@@ -26,7 +26,7 @@ const OrderDraftListPage: React.StatelessComponent<OrderDraftListPageProps> = ({
   <Container>
     <PageHeader title={i18n.t("Draft Orders")}>
       <Button
-        color="secondary"
+        color="primary"
         variant="contained"
         disabled={disabled}
         onClick={onAdd}

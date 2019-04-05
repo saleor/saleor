@@ -78,7 +78,7 @@ const styles = (theme: Theme) =>
             overflowY: "scroll"
           },
           "& a": {
-            color: theme.palette.secondary.light
+            color: theme.palette.primary.light
           },
           "&:after": {
             animationDuration: theme.transitions.duration.shortest + "ms",
@@ -125,17 +125,17 @@ const styles = (theme: Theme) =>
           "&Button": {
             "&--active": {
               "&:hover": {
-                background: theme.palette.secondary.main
+                background: theme.palette.primary.main
               },
               "&:not(:hover)": {
-                borderRightColor: theme.palette.secondary.main
+                borderRightColor: theme.palette.primary.main
               },
-              background: theme.palette.secondary.main
+              background: theme.palette.primary.main
             },
             "&:focus": {
               "&:active": {
                 "&:after": {
-                  background: fade(theme.palette.secondary.main, 0.3),
+                  background: fade(theme.palette.primary.main, 0.3),
                   borderRadius: "100%",
                   content: "''",
                   display: "block",
@@ -145,7 +145,7 @@ const styles = (theme: Theme) =>
               }
             },
             "&:hover": {
-              background: fade(theme.palette.secondary.main, 0.3)
+              background: fade(theme.palette.primary.main, 0.3)
             },
             alignItems: "center",
             background: "none",

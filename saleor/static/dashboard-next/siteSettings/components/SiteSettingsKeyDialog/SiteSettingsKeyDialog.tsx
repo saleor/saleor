@@ -86,7 +86,7 @@ const SiteSettingsKeyDialog: React.StatelessComponent<
               <Button onClick={onClose}>
                 {i18n.t("Cancel", { context: "button" })}
               </Button>
-              <Button color="secondary" type="submit" variant="contained">
+              <Button color="primary" type="submit" variant="contained">
                 {i18n.t("Add authentication", {
                   context: "button"
                 })}

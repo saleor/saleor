@@ -101,7 +101,7 @@ const CustomerAddress = withStyles(styles, { name: "CustomerAddress" })(
       <div className={classes.actionsContainer}>
         <CardActions className={classes.actions}>
           <Button
-            color="secondary"
+            color="primary"
             disabled={disabled}
             variant="flat"
             onClick={onEdit}
@@ -109,7 +109,7 @@ const CustomerAddress = withStyles(styles, { name: "CustomerAddress" })(
             {i18n.t("Edit")}
           </Button>
           <Button
-            color="secondary"
+            color="primary"
             disabled={disabled}
             variant="flat"
             onClick={onRemove}

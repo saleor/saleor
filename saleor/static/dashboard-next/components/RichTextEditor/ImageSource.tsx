@@ -86,7 +86,7 @@ class ImageSource extends React.Component<ImageSourceProps> {
                 <Button onClick={onClose}>
                   {i18n.t("Cancel", { context: "button" })}
                 </Button>
-                <Button onClick={submit} color="secondary" variant="contained">
+                <Button onClick={submit} color="primary" variant="contained">
                   {i18n.t("Save", { context: "button" })}
                 </Button>
               </DialogActions>

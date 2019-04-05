@@ -99,7 +99,7 @@ const CountryList = withStyles(styles, {
             toolbar={
               <Button
                 variant="flat"
-                color="secondary"
+                color="primary"
                 onClick={onCountryAssign}
               >
                 {i18n.t("Assign countries")}
@@ -159,7 +159,7 @@ const CountryList = withStyles(styles, {
                           )}
                         >
                           <IconButton
-                            color="secondary"
+                            color="primary"
                             disabled={!country || disabled}
                             onClick={() => onCountryUnassign(country.code)}
                           >
