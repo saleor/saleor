@@ -172,6 +172,7 @@ class Sale(models.Model):
     end_date = models.DateField(null=True, blank=True)
 
     objects = SaleQueryset.as_manager()
+    translated = TranslationProxy()
 
     class Meta:
         app_label = 'discount'
@@ -193,3 +194,13 @@ class Sale(models.Model):
         if self.type == DiscountValueType.PERCENTAGE:
             return partial(percentage_discount, percentage=self.value)
         raise NotImplementedError('Unknown discount type')
+
+
+class SaleTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    sale = models.ForeignKey(
+        Sale, related_name='translations', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('language_code', 'sale'),)

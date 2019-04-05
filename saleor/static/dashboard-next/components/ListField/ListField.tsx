@@ -114,7 +114,7 @@ const ListField = withStyles(styles)(
               endAdornment: (
                 <Button
                   variant="text"
-                  color="secondary"
+                  color="primary"
                   onClick={this.handleValueAdd}
                 >
                   {i18n.t("Add", { context: "button" })}

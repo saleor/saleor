@@ -58,6 +58,7 @@ export default (colors: IThemeColors): Theme =>
       MuiInput: {
         input: {
           "&:-webkit-autofill": {
+            WebkitTextFillColor: colors.font.default,
             boxShadow: `inset 0 0 0px 9999px ${colors.autofill}`
           },
           "&::placeholder": {

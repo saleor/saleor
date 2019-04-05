@@ -21,6 +21,10 @@ const shopInfo = gql`
         host
         url
       }
+      languages {
+        code
+        language
+      }
       includeTaxesInPrices
       name
       trackInventoryByDefault

@@ -67,7 +67,7 @@ const CardMenu = withStyles(styles, {
           aria-owns={open ? "long-menu" : null}
           aria-haspopup="true"
           className={classes.iconButton}
-          color="secondary"
+          color="primary"
           disabled={disabled}
           onClick={handleClick}
         >

@@ -34,7 +34,7 @@ SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
 def send_user_password_reset_email(user, site):
     context = {
         'email': user.email,
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)).decode(),
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
         'token': default_token_generator.make_token(user),
         'site_name': site.name,
         'domain': site.domain,

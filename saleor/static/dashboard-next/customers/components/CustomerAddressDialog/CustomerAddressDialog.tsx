@@ -95,7 +95,7 @@ const CustomerAddressDialog = withStyles(styles, {})(
                 </Button>
                 <ConfirmButton
                   transitionState={confirmButtonState}
-                  color="secondary"
+                  color="primary"
                   variant="contained"
                   onClick={submit}
                   type="submit"

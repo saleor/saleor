@@ -88,13 +88,13 @@ const ImageEntity = withStyles(styles, {
                                 disable();
                                 onEdit(entityKey);
                               }}
-                              color="secondary"
+                              color="primary"
                               variant="flat"
                             >
                               {i18n.t("Replace")}
                             </Button>
                             <IconButton onClick={() => onRemove(entityKey)}>
-                              <DeleteIcon color="secondary" />
+                              <DeleteIcon color="primary" />
                             </IconButton>
                           </div>
                         </ClickAwayListener>

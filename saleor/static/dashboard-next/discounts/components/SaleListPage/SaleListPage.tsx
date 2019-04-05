@@ -26,7 +26,7 @@ const SaleListPage: React.StatelessComponent<SaleListPageProps> = ({
 }) => (
   <Container>
     <PageHeader title={i18n.t("Sales")}>
-      <Button onClick={onAdd} variant="contained" color="secondary">
+      <Button onClick={onAdd} variant="contained" color="primary">
         {i18n.t("Add sale")}
         <AddIcon />
       </Button>

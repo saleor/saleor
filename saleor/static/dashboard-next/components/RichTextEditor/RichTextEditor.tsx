@@ -36,6 +36,7 @@ export interface RichTextEditorProps {
   helperText: string;
   label: string;
   name: string;
+  scroll?: boolean;
   initial?: RawDraftContentState;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
@@ -72,13 +73,10 @@ const styles = (theme: Theme) =>
       "& .DraftEditor": {
         "&-editorContainer": {
           "& .public-DraftEditor-content": {
-            lineHeight: 1.62,
-            maxHeight: 300,
-            minHeight: 100,
-            overflowY: "scroll"
+            lineHeight: 1.62
           },
           "& a": {
-            color: theme.palette.secondary.light
+            color: theme.palette.primary.light
           },
           "&:after": {
             animationDuration: theme.transitions.duration.shortest + "ms",
@@ -125,17 +123,17 @@ const styles = (theme: Theme) =>
           "&Button": {
             "&--active": {
               "&:hover": {
-                background: theme.palette.secondary.main
+                background: theme.palette.primary.main
               },
               "&:not(:hover)": {
-                borderRightColor: theme.palette.secondary.main
+                borderRightColor: theme.palette.primary.main
               },
-              background: theme.palette.secondary.main
+              background: theme.palette.primary.main
             },
             "&:focus": {
               "&:active": {
                 "&:after": {
-                  background: fade(theme.palette.secondary.main, 0.3),
+                  background: fade(theme.palette.primary.main, 0.3),
                   borderRadius: "100%",
                   content: "''",
                   display: "block",
@@ -145,7 +143,7 @@ const styles = (theme: Theme) =>
               }
             },
             "&:hover": {
-              background: fade(theme.palette.secondary.main, 0.3)
+              background: fade(theme.palette.primary.main, 0.3)
             },
             alignItems: "center",
             background: "none",
@@ -210,6 +208,15 @@ const styles = (theme: Theme) =>
           }
         }
       }
+    },
+    scroll: {
+      "& .DraftEditor": {
+        "&-editorContainer": {
+          "& .public-DraftEditor-content": {
+            lineHeight: 1.62
+          }
+        }
+      }
     }
   });
 const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
@@ -220,12 +227,14 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
     initial,
     label,
     name,
+    scroll,
     onChange
   }: RichTextEditorProps & WithStyles<typeof styles>) => (
     <div
       className={classNames({
         [classes.error]: error,
-        [classes.root]: true
+        [classes.root]: true,
+        [classes.scroll]: scroll
       })}
     >
       <Typography className={classes.label} variant="caption" color="primary">
@@ -286,4 +295,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
   )
 );
 RichTextEditor.displayName = "RichTextEditor";
+RichTextEditor.defaultProps = {
+  scroll: true
+};
 export default RichTextEditor;

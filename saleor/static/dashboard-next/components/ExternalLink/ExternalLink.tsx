@@ -26,7 +26,7 @@ const ExternalLink = withStyles(styles, { name: "ExternalLink" })(
     ...props
   }: ExternalLinkProps) => (
     <a href={href} className={classes.link} {...props}>
-      <Typography className={className} color="secondary" {...typographyProps}>
+      <Typography className={className} color="primary" {...typographyProps}>
         {children}
       </Typography>
     </a>

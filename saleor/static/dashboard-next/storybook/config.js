@@ -129,6 +129,10 @@ function loadStories() {
   // Taxes
   require("./stories/taxes/CountryListPage");
   require("./stories/taxes/CountryTaxesPage");
+
+  // Translations
+  require("./stories/translations/TranslationsEntitiesListPage");
+  require("./stories/translations/TranslationsLanguageListPage");
 }
 
 configure(loadStories, module);
