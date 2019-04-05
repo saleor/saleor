@@ -55,7 +55,7 @@ const SiteSettingsKeys = withStyles(styles, { name: "SiteSettingsKeys" })(
           })}
           toolbar={
             <Button
-              color="secondary"
+              color="primary"
               disabled={disabled}
               variant="text"
               onClick={onAdd}
@@ -97,7 +97,7 @@ const SiteSettingsKeys = withStyles(styles, { name: "SiteSettingsKeys" })(
                   </TableCell>
                   <TableCell className={classes.iconCell}>
                     <IconButton onClick={() => onRemove(key.name)}>
-                      <DeleteIcon color="secondary" />
+                      <DeleteIcon color="primary" />
                     </IconButton>
                   </TableCell>
                 </TableRow>

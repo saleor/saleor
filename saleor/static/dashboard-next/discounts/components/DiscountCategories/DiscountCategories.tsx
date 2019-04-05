@@ -69,7 +69,7 @@ const DiscountCategories = withStyles(styles, {
           saleName: maybe(() => sale.name)
         })}
         toolbar={
-          <Button variant="flat" color="secondary" onClick={onCategoryAssign}>
+          <Button variant="flat" color="primary" onClick={onCategoryAssign}>
             {i18n.t("Assign categories")}
           </Button>
         }
@@ -126,7 +126,7 @@ const DiscountCategories = withStyles(styles, {
                       onCategoryUnassign(category.id);
                     }}
                   >
-                    <DeleteIcon color="secondary" />
+                    <DeleteIcon color="primary" />
                   </IconButton>
                 </TableCell>
               </TableRow>

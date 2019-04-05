@@ -134,7 +134,7 @@ const ConfirmButton = withStyles(styles)(
         <Button
           variant="contained"
           onClick={transitionState === "loading" ? undefined : onClick}
-          color="secondary"
+          color="primary"
           className={classNames({
             [classes.error]:
               transitionState === "error" && displayCompletedActionState,

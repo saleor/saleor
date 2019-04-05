@@ -70,7 +70,7 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
             : i18n.t("Weight Based Rates")
         }
         toolbar={
-          <Button color="secondary" onClick={onRateAdd}>
+          <Button color="primary" onClick={onRateAdd}>
             {i18n.t("Add rate", {
               context: "button"
             })}
@@ -134,7 +134,7 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
                 </TableCell>
                 <TableCell className={classes.alignRight}>
                   <IconButton
-                    color="secondary"
+                    color="primary"
                     disabled={disabled}
                     onClick={event => {
                       event.stopPropagation();
@@ -146,7 +146,7 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
                 </TableCell>
                 <TableCell className={classes.alignRight}>
                   <IconButton
-                    color="secondary"
+                    color="primary"
                     disabled={disabled}
                     onClick={event => {
                       event.stopPropagation();

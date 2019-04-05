@@ -67,7 +67,7 @@ export const TaxConfiguration = withStyles(styles, {
           disabled={disabled}
           onClick={onTaxFetch}
           variant="flat"
-          color="secondary"
+          color="primary"
         >
           {i18n.t("Fetch taxes")}
         </Button>

@@ -60,7 +60,7 @@ export const ProductVariantImages = withStyles(styles, {
       title={i18n.t("Images")}
       toolbar={
         <Button
-          color="secondary"
+          color="primary"
           variant="text"
           disabled={disabled}
           onClick={onImageAdd}

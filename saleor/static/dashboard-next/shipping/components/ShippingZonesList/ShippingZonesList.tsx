@@ -57,7 +57,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
         height="const"
         title={i18n.t("Shipping by zone")}
         toolbar={
-          <Button color="secondary" onClick={onAdd}>
+          <Button color="primary" onClick={onAdd}>
             {i18n.t("Add shipping zone", {
               context: "button"
             })}
@@ -108,7 +108,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
                 </TableCell>
                 <TableCell className={classes.alignRight}>
                   <IconButton
-                    color="secondary"
+                    color="primary"
                     disabled={disabled}
                     onClick={event => {
                       event.stopPropagation();
