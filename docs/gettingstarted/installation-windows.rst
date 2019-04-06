@@ -17,6 +17,9 @@ Download the latest **3.7** Windows installer from the `Python download page <ht
 
 Make sure that "**Add Python 3.7 to PATH**" is checked.
 
+.. code-block:: powershell
+py --version
+
 
 Node.js
 ~~~~~~~
@@ -73,7 +76,7 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    .. code-block:: powershell
 
-    python -m pip install -r requirements.txt
+    py -m pip install -r requirements.txt
 
 
 #. Set ``SECRET_KEY`` environment variable.
@@ -110,7 +113,7 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    .. code-block:: powershell
 
-    python manage.py migrate
+    py manage.py migrate
 
    .. warning::
 
@@ -142,4 +145,4 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    .. code-block:: powershell
 
-    python manage.py runserver
+    py manage.py runserver
