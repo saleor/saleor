@@ -14,8 +14,8 @@ from ...core import TaxRateType
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...core.weight import WeightField
 from ...product.models import (
-    Attribute, AttributeValue, Category, Collection, Product, ProductImage,
-    ProductType, ProductVariant, VariantImage)
+    Attribute, AttributeValue, Category, Collection, DigitalContent, Product,
+    ProductImage, ProductType, ProductVariant, VariantImage)
 from ...product.tasks import update_variants_names
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
@@ -99,7 +99,11 @@ class ProductTypeForm(forms.ModelForm):
                 'Enable variants'),
             'is_shipping_required': pgettext_lazy(
                 'Shipping toggle',
-                'Require shipping')}
+                'Require shipping'),
+            'is_digital': pgettext_lazy(
+                'Digital product type',
+                'This product is digital')
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -131,6 +135,15 @@ class ProductTypeForm(forms.ModelForm):
         has_variants = self.cleaned_data['has_variants']
         product_attr = set(self.cleaned_data.get('product_attributes', []))
         variant_attr = set(self.cleaned_data.get('variant_attributes', []))
+
+        is_digital = self.cleaned_data['is_digital']
+        is_shipping_required = self.cleaned_data['is_shipping_required']
+        if is_digital and is_shipping_required:
+            msg = pgettext_lazy(
+                'Product type form error',
+                'Digital content requires disabled shipping'
+            )
+            self.add_error('is_shipping_required', msg)
         if not has_variants and variant_attr:
             msg = pgettext_lazy(
                 'Product type form error',
@@ -539,3 +552,31 @@ class ProductBulkUpdate(forms.Form):
 
     def _unpublish_products(self):
         self.cleaned_data['products'].update(is_published=False)
+
+
+class DigitalContentForm(forms.ModelForm):
+    content_type = forms.CharField(required=False)
+    content_file = forms.FileField(required=True)
+    # use_required_attribute = False
+    # variants = forms.ModelMultipleChoiceField(
+    #     queryset=ProductVariant.objects.none(),
+    #     widget=forms.CheckboxSelectMultiple, required=False)
+
+    class Meta:
+        model = DigitalContent
+        exclude = ('product_variant', )
+        widgets = {'content_file': forms.widgets.FileInput()}
+        labels = {
+            'content_file': pgettext_lazy(
+                'Digital Content', 'Digital Content'),
+        }
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+    def save(self, commit=True):
+        digital_content = super().save(commit=commit)
+        # create_product_thumbnails.delay(image.pk)
+        return digital_content

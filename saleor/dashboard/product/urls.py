@@ -57,6 +57,9 @@ urlpatterns = [
     url(r'^(?P<product_pk>[0-9]+)/images/upload/$',
         views.ajax_upload_image, name='product-images-upload'),
 
+    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/digital-content/$',
+        views.digital_content_edit, name='digital-content'),
+
     url(r'attributes/$',
         views.attribute_list, name='attributes'),
     url(r'attributes/(?P<pk>[0-9]+)/$',

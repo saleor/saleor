@@ -1,0 +1,105 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load static %}
+
+{% block title %}
+  {% if product_image.pk %}
+    {% trans "Edit - Image" context "Image form text" %}
+  {% else %}
+    {% trans "Add image" context "Image form text" %}
+  {% endif %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-store body-products{% endblock %}
+
+{% block menu_products_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk as url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ variant }}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}" class="breadcrumb">
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    {% if digital_content.pk %}
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Digital Content" context "Digital Content form text" %}
+        </span>
+      </li>
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Digital Content form text" %}
+        </span>
+      </li>
+    {% else %}
+      <li>
+        <span class="hide-on-med-and-down">
+          {% trans "Add digital content" context "Digital Content form breadcrumbs" %}
+        </span>
+        <span class="hide-on-large-only breadcrumbs--ellipsed-item">
+          {% blocktrans trimmed context "Digital Content form breadcrumbs"  %}
+            Add digital content for {{ variant }}
+          {% endblocktrans %}
+        </span>
+      </li>
+    {% endif %}
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        <form method="post" enctype="multipart/form-data">
+          <div class="card-content">
+            {% csrf_token %}
+            <div class="row">
+              {{ form.content_file|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.use_default_settings|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.automatic_fulfillment|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.max_downloads|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.url_valid_days|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            <a href="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}" class="btn-flat waves-effect">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
+            {% if digital_content.pk %}
+              <button type="submit" class="btn waves-effect">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <button type="submit" class="btn waves-effect">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col s12 m3 help-box"></div>
+  </div>
+{% endblock %}

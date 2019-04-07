@@ -13,8 +13,8 @@ from django.views.decorators.http import require_POST
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale
 from ...product.models import (
-    Attribute, AttributeValue, Product, ProductImage, ProductType,
-    ProductVariant)
+    Attribute, AttributeValue, DigitalContent, Product, ProductImage,
+    ProductType, ProductVariant)
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
@@ -684,3 +684,34 @@ def ajax_reorder_attribute_values(request, attribute_pk):
         status = 400
         ctx = {'error': form.errors}
     return JsonResponse(ctx, status=status)
+
+
+@staff_member_required
+@permission_required('product.manage_products')
+def digital_content_edit(request, product_pk, variant_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(ProductVariant, pk=variant_pk)
+
+    new_digital_content = DigitalContent(product_variant=variant)
+    digital_content = getattr(variant, 'digital_content', new_digital_content)
+
+    form = forms.DigitalContentForm(
+        request.POST or None, request.FILES or None, instance=digital_content)
+    if form.is_valid():
+        if digital_content.id:
+            digital_content.delete()
+        instance = form.save()
+        msg = pgettext_lazy(
+            'Dashboard message',
+            'Updated digital content %s') % (instance.content_file.name,)
+        messages.success(request, msg)
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    ctx = {
+        'form': form, 'product': product, 'variant': variant,
+        'digital_content': digital_content}
+    return TemplateResponse(
+        request,
+        'dashboard/product/digital_content/form.html',
+        ctx)
