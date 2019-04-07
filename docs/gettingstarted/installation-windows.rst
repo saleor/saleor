@@ -13,12 +13,13 @@ Before you are ready to run Saleor you will need additional software installed o
 Python
 ~~~~~~
 
-Download the latest **3.7** Windows installer from the `Python download page <https://www.python.org/downloads/>`_ and follow the instructions.
+#.  You can install the `Official Python 3.7 App <https://www.microsoft.com/en-us/p/python-37/9nj46sx7x90p>`__ from the microsoft store
 
-Make sure that "**Add Python 3.7 to PATH**" is checked.
+#. Download the latest **3.7** Windows installer from the `Python download page <https://www.python.org/downloads/>`_ and follow the instructions.
 
 .. code-block:: powershell
-py --version
+  
+  (Get-Command py).Version
 
 
 Node.js
