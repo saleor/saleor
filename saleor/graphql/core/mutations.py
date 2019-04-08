@@ -503,7 +503,7 @@ class VerifyToken(Verify):
 
     user = graphene.Field(User)
 
-    def resolve_user(self, info, **kwargs):
+    def resolve_user(self, _info, **_kwargs):
         username_field = get_user_model().USERNAME_FIELD
         kwargs = {username_field: self.payload.get(username_field)}
         return models.User.objects.get(**kwargs)

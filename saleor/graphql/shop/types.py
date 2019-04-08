@@ -132,17 +132,17 @@ class Shop(graphene.ObjectType):
         and configuration.''')
 
     @permission_required('site.manage_settings')
-    def resolve_authorization_keys(self, info):
+    def resolve_authorization_keys(self, _info):
         return site_models.AuthorizationKey.objects.all()
 
-    def resolve_countries(self, info):
+    def resolve_countries(self, _info):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
         return [
             CountryDisplay(
                 code=country[0], country=country[1], vat=taxes.get(country[0]))
             for country in countries]
 
-    def resolve_currencies(self, info):
+    def resolve_currencies(self, _info):
         return settings.AVAILABLE_CURRENCIES
 
     def resolve_domain(self, info):
@@ -161,7 +161,7 @@ class Shop(graphene.ObjectType):
                     code=country.code, country=country.name))
         return Geolocalization(country=None)
 
-    def resolve_default_currency(self, info):
+    def resolve_default_currency(self, _info):
         return settings.DEFAULT_CURRENCY
 
     def resolve_description(self, info):
@@ -172,7 +172,7 @@ class Shop(graphene.ObjectType):
         qs = product_models.Collection.objects.all()
         return get_node_optimized(qs, {'pk': collection_pk}, info)
 
-    def resolve_languages(self, info):
+    def resolve_languages(self, _info):
         return [
             LanguageDisplay(
                 code=LanguageCodeEnum[str_to_enum(language[0])], language=language[1])
@@ -191,11 +191,11 @@ class Shop(graphene.ObjectType):
         return Navigation(main=top_menu, secondary=bottom_menu)
 
     @permission_required('account.manage_users')
-    def resolve_permissions(self, info):
+    def resolve_permissions(self, _info):
         permissions = get_permissions()
         return format_permissions_for_display(permissions)
 
-    def resolve_phone_prefixes(self, info):
+    def resolve_phone_prefixes(self, _info):
         return list(COUNTRY_CODE_TO_REGION_CODE.keys())
 
     def resolve_header_text(self, info):

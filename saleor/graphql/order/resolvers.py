@@ -39,16 +39,16 @@ def resolve_draft_orders(info, created, query):
     return filter_orders(qs, info, created, None, query)
 
 
-def resolve_orders_total(info, period):
+def resolve_orders_total(_info, period):
     qs = models.Order.objects.confirmed().exclude(status=OrderStatus.CANCELED)
     qs = filter_by_period(qs, period, 'created')
     return sum_order_totals(qs)
 
 
-def resolve_order(info, id):
+def resolve_order(info, order_id):
     """Return order only for user assigned to it or proper staff user."""
     user = info.context.user
-    order = graphene.Node.get_node_from_global_id(info, id, Order)
+    order = graphene.Node.get_node_from_global_id(info, order_id, Order)
     if user.has_perm('order.manage_orders') or order.user == user:
         return order
     return None
