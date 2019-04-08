@@ -146,7 +146,7 @@ class VoucherDelete(ModelDeleteMutation):
 class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
     voucher = graphene.Field(
         Voucher,
-        description=('Voucher of which catalogue IDs will be modified.'))
+        description='Voucher of which catalogue IDs will be modified.')
 
     class Arguments:
         id = graphene.ID(required=True, description='ID of a voucher.')
@@ -258,13 +258,13 @@ class SaleDelete(ModelDeleteMutation):
 
 class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
     sale = graphene.Field(
-        Sale, description=('Sale of which catalogue IDs will be modified.'))
+        Sale, description='Sale of which catalogue IDs will be modified.')
 
     class Arguments:
         id = graphene.ID(required=True, description='ID of a sale.')
         input = CatalogueInput(
             required=True,
-            description=('Fields required to modify catalogue IDs of sale.'))
+            description='Fields required to modify catalogue IDs of sale.')
 
     class Meta:
         abstract = True

@@ -1496,7 +1496,7 @@ def test_product_type_update_changes_variant_name(
         'variantAttributes': variant_attributes_ids}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
+    get_graphql_content(response)
     variant_attributes = set(variant_attributes)
     variant_attributes_ids = [attr.pk for attr in variant_attributes]
     mock_update_variants_names.assert_called_once_with(

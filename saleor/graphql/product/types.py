@@ -466,12 +466,6 @@ class ProductType(CountableDjangoObjectType):
         PrefetchingConnectionField(
             Product, description='List of products of this type.'),
         prefetch_related=prefetch_products)
-    product_attributes = gql_optimizer.field(
-        PrefetchingConnectionField(Attribute),
-        model_field='product_attributes')
-    variant_attributes = gql_optimizer.field(
-        PrefetchingConnectionField(Attribute),
-        model_field='variant_attributes')
     tax_rate = TaxRateType(description='A type of tax rate.')
     variant_attributes = graphene.List(
         Attribute, description='Variant attributes of that product type.')
@@ -487,9 +481,11 @@ class ProductType(CountableDjangoObjectType):
             'has_variants', 'id', 'is_digital', 'is_shipping_required', 'name',
             'weight']
 
+    @gql_optimizer.resolver_hints(prefetch_related='product_attributes')
     def resolve_product_attributes(self, info, **kwargs):
         return self.product_attributes.all()
 
+    @gql_optimizer.resolver_hints(prefetch_related='variant_attributes')
     def resolve_variant_attributes(self, info, **kwargs):
         return self.variant_attributes.all()
 
