@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop support for Django 2.1 and Django 1.11 (previous LTS)
 - Fix variants for juices in example data - #3926 by @michaljelonek
 - Fix logo in docs - #3928 by @michaljelonek
+- Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
 
 
 ## 2.4.0
