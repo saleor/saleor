@@ -7,15 +7,16 @@
 # Mark G <drax2gma@gmail.com>, 2018
 # Marci Wéber <webermarton@gmail.com>, 2018
 # Lehner Viktor <lehnerviktor@gmail.com>, 2019
+# Tóth Péter <peter.taught@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Lehner Viktor <lehnerviktor@gmail.com>, 2019\n"
+"Last-Translator: Tóth Péter <peter.taught@gmail.com>, 2019\n"
 "Language-Team: Hungarian (https://www.transifex.com/mirumee/teams/34782/hu/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -48,8 +49,8 @@ msgstr "Rendezés"
 msgctxt "Number of matching records in the dashboard categories list"
 msgid "Found %(counter)d matching category"
 msgid_plural "Found %(counter)d matching categories"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)d megadott kategória található."
+msgstr[1] " %(counter)d szűrőnek megfelelő kategória található."
 
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
@@ -69,7 +70,7 @@ msgstr "Leírás"
 #: saleor/dashboard/category/forms.py:29
 msgctxt "Category form"
 msgid "Background Image"
-msgstr ""
+msgstr "Háttérkép"
 
 #: saleor/dashboard/category/forms.py:31
 msgctxt "Description of a category image"
@@ -92,7 +93,7 @@ msgstr "Frissített kategória %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed category %s"
-msgstr ""
+msgstr "Eltávolított kategória%s"
 
 #: saleor/dashboard/collection/filters.py:9
 msgctxt "Collection list sorting option"
@@ -103,13 +104,13 @@ msgstr "név"
 #: saleor/dashboard/product/filters.py:22
 msgctxt "Is publish filter choice"
 msgid "Published"
-msgstr ""
+msgstr "Közétett"
 
 #: saleor/dashboard/collection/filters.py:13
 #: saleor/dashboard/product/filters.py:23
 msgctxt "Is publish filter choice"
 msgid "Not published"
-msgstr ""
+msgstr "Nem közétett"
 
 #: saleor/dashboard/collection/filters.py:18
 msgctxt "Collection list name filter label"
@@ -119,7 +120,7 @@ msgstr "Név"
 #: saleor/dashboard/collection/filters.py:21
 msgctxt "Collection list filter label"
 msgid "Is published"
-msgstr ""
+msgstr "Közzétéve"
 
 #: saleor/dashboard/collection/filters.py:23
 #: saleor/dashboard/customer/filters.py:38
@@ -141,18 +142,18 @@ msgstr "Rendezés"
 msgctxt "Number of matching records in the dashboard collections list"
 msgid "Found %(counter)d matching collection"
 msgid_plural "Found %(counter)d matching collections"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)d szűrőnek megfelelő kollekció található"
+msgstr[1] "%(counter)d szűrőnek megfelelő kollekció található"
 
 #: saleor/dashboard/collection/forms.py:18
 msgctxt "Products selection"
 msgid "Products"
-msgstr ""
+msgstr "Termékek"
 
 #: saleor/dashboard/collection/forms.py:27
 msgctxt "Background image of a collection"
 msgid "Background image"
-msgstr ""
+msgstr "Háttérkép"
 
 #: saleor/dashboard/collection/forms.py:29
 msgctxt "Description of a collection image"
@@ -162,14 +163,14 @@ msgstr "Kép leírása"
 #: saleor/dashboard/collection/forms.py:32
 msgctxt "Collection published toggle"
 msgid "Published"
-msgstr ""
+msgstr "Publikált"
 
 #: saleor/dashboard/collection/forms.py:36
 msgctxt ""
 "The publication date field, can be a posterior date for a planned "
 "publication."
 msgid "Publication date"
-msgstr ""
+msgstr "Közzététel dátuma"
 
 #: saleor/dashboard/collection/forms.py:39
 msgctxt "Description field of a collection"
@@ -179,22 +180,22 @@ msgstr "Leírás"
 #: saleor/dashboard/collection/views.py:28
 msgctxt "Dashboard message"
 msgid "Updated homepage collection"
-msgstr ""
+msgstr "Főoldal kollekció frissítve"
 
 #: saleor/dashboard/collection/views.py:52
 msgctxt "Collection message"
 msgid "Added collection"
-msgstr ""
+msgstr "Kollekció hozzáadva"
 
 #: saleor/dashboard/collection/views.py:67
 msgctxt "Collection message"
 msgid "Updated collection"
-msgstr ""
+msgstr "Kollekció frissítve"
 
 #: saleor/dashboard/collection/views.py:88
 msgctxt "Collection message"
 msgid "Deleted collection"
-msgstr ""
+msgstr "Kollekció törölve"
 
 #: saleor/dashboard/customer/filters.py:17
 #: saleor/dashboard/staff/filters.py:16
@@ -217,27 +218,27 @@ msgstr "hely"
 #: saleor/dashboard/customer/filters.py:24
 msgctxt "Is active filter choice"
 msgid "Active"
-msgstr ""
+msgstr "Aktív"
 
 #: saleor/dashboard/customer/filters.py:25
 msgctxt "Is active filter choice"
 msgid "Not active"
-msgstr ""
+msgstr "Nem aktív"
 
 #: saleor/dashboard/customer/filters.py:30
 msgctxt "Customer name or email filter"
 msgid "Name or email"
-msgstr ""
+msgstr "Név vagy e-mail cím"
 
 #: saleor/dashboard/customer/filters.py:33
 msgctxt "Customer list filter label"
 msgid "Location"
-msgstr ""
+msgstr "Hely"
 
 #: saleor/dashboard/customer/filters.py:36
 msgctxt "Customer list filter label"
 msgid "Is active"
-msgstr ""
+msgstr "Aktivitás"
 
 #: saleor/dashboard/customer/filters.py:41
 msgctxt "Customer list filter label"
@@ -249,8 +250,8 @@ msgstr "Rendezés"
 msgctxt "Number of matching records in the dashboard customers list"
 msgid "Found %(counter)d matching customer"
 msgid_plural "Found %(counter)d matching customers"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)d szűrőnek megfelelő vásárló található."
+msgstr[1] " %(counter)d szűrőnek megfelelő vásárló található."
 
 #: saleor/dashboard/customer/forms.py:10
 #, python-format
@@ -264,74 +265,76 @@ msgid ""
 "You can't delete your own account via dashboard, please try from the "
 "storefront."
 msgstr ""
+"Nem törölheted ki a saját fiókodat a dashboard-on keresztül, próbáld a "
+"főoldalon."
 
 #: saleor/dashboard/customer/forms.py:34
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
-msgstr ""
+msgstr "Csak szuperfelhasználók törölhetik ki a saját fiókjukat."
 
 #: saleor/dashboard/customer/forms.py:39
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
-msgstr ""
+msgstr "Nincs engedélyed, staff felhasználókat szerkeszteni."
 
-#: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
+#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:23
 msgctxt "Customer form: Given name field"
 msgid "Given name"
 msgstr "Keresztnév"
 
-#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:25
+#: saleor/dashboard/customer/forms.py:71 saleor/dashboard/staff/forms.py:25
 msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr "Vezetéknév"
 
-#: saleor/dashboard/customer/forms.py:71
+#: saleor/dashboard/customer/forms.py:73
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/dashboard/customer/forms.py:73
-msgctxt "Customer form: is active toggle"
-msgid "User is active"
-msgstr ""
-
 #: saleor/dashboard/customer/forms.py:75
 msgctxt "Customer form: customer note field"
 msgid "Notes"
-msgstr ""
+msgstr "Megjegyzések"
 
-#: saleor/dashboard/customer/forms.py:85
+#: saleor/dashboard/customer/forms.py:77
+msgctxt "Customer form: is active toggle"
+msgid "User is active"
+msgstr "Felhasználó aktív"
+
+#: saleor/dashboard/customer/forms.py:87
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Megjegyzés"
 
-#: saleor/dashboard/customer/forms.py:88
+#: saleor/dashboard/customer/forms.py:90
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
-msgstr ""
+msgstr "A vásárló láthatja ezt a megjegyzést "
 
-#: saleor/dashboard/customer/views.py:63
+#: saleor/dashboard/customer/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
-msgstr ""
+msgstr "Vásárló hozzáadva %s"
 
-#: saleor/dashboard/customer/views.py:79
+#: saleor/dashboard/customer/views.py:81
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
-msgstr ""
+msgstr "Vásárló frissítve %s"
 
-#: saleor/dashboard/customer/views.py:112
+#: saleor/dashboard/customer/views.py:114
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
 msgstr "Megjegyzés hozzáadva"
 
-#: saleor/dashboard/customer/views.py:133
+#: saleor/dashboard/customer/views.py:135
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(customer_name)s successfully removed"
-msgstr ""
+msgstr "%(customer_name)s sikeresen el lett távolítva"
 
 #: saleor/dashboard/discount/filters.py:14
 msgctxt "Sale list sorting option"
@@ -366,7 +369,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:23
 msgctxt "Voucher list sorting option"
 msgid "countries"
-msgstr ""
+msgstr "országok"
 
 #: saleor/dashboard/discount/filters.py:24
 msgctxt "Voucher list sorting option"
@@ -381,7 +384,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:26
 msgctxt "Voucher list sorting option"
 msgid "used"
-msgstr ""
+msgstr "felhasznált"
 
 #: saleor/dashboard/discount/filters.py:28
 msgctxt "Voucher list sorting option"
@@ -391,7 +394,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:31
 msgctxt "Sale type filter choice"
 msgid "USD"
-msgstr ""
+msgstr "USD"
 
 #: saleor/dashboard/discount/filters.py:32
 msgctxt "Sale type filter choice"
@@ -406,22 +409,22 @@ msgstr "Név"
 #: saleor/dashboard/discount/filters.py:52
 msgctxt "Sale list filter label"
 msgid "Categories"
-msgstr ""
+msgstr "Kategóriák"
 
 #: saleor/dashboard/discount/filters.py:56
 msgctxt "Sale list filter label"
 msgid "Discount type"
-msgstr ""
+msgstr "Kedvezmény típus"
 
 #: saleor/dashboard/discount/filters.py:61
 msgctxt "Sale list filter label"
 msgid "Value"
-msgstr ""
+msgstr "Érték"
 
 #: saleor/dashboard/discount/filters.py:64
 msgctxt "Sale list sorting filter label"
 msgid "Period of validity"
-msgstr ""
+msgstr "Érvényesség időszaka"
 
 #: saleor/dashboard/discount/filters.py:68
 msgctxt "Sale list filter label"
@@ -433,8 +436,8 @@ msgstr "Rendezés"
 msgctxt "Number of matching records in the dashboard sales list"
 msgid "Found %(counter)d matching sale"
 msgid_plural "Found %(counter)d matching sales"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)d szűrőnek megfelelő leértékelés található."
+msgstr[1] " %(counter)d szűrőnek megfelelő leértékelés található."
 
 #: saleor/dashboard/discount/filters.py:87
 msgctxt "Voucher list name filter label"
@@ -444,7 +447,7 @@ msgstr "Név"
 #: saleor/dashboard/discount/filters.py:92
 msgctxt "Sale list is sale type filter label"
 msgid "Discount type"
-msgstr ""
+msgstr "Kedvezmény típus"
 
 #: saleor/dashboard/discount/filters.py:97
 msgctxt "Sale list filter label"
@@ -454,12 +457,12 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:100
 msgctxt "Voucher list sorting filter label"
 msgid "Period of validity"
-msgstr ""
+msgstr "Érvényesség időszaka"
 
 #: saleor/dashboard/discount/filters.py:105
 msgctxt "Voucher list sorting filter"
 msgid "Minimum amount spent"
-msgstr ""
+msgstr "Minimum elköltött összeg"
 
 #: saleor/dashboard/discount/filters.py:108
 msgctxt "Voucher list sorting filter label"
@@ -471,18 +474,18 @@ msgstr "Rendezés"
 msgctxt "Number of matching records in the dashboard vouchers list"
 msgid "Found %(counter)d matching voucher"
 msgid_plural "Found %(counter)d matching vouchers"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] " %(counter)d szűrőnek megfelelő kupon található."
+msgstr[1] " %(counter)d szűrőnek megfelelő kupon található."
 
 #: saleor/dashboard/discount/forms.py:21
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Apply only if the purchase value is greater than or equal to"
-msgstr ""
+msgstr "Csak akkor alkalmazza ha a vásárlás értéke nagyobb vagy egyenlő"
 
 #: saleor/dashboard/discount/forms.py:29
 msgctxt "Discounted products"
 msgid "Discounted products"
-msgstr ""
+msgstr "Kedvezményes termékek"
 
 #: saleor/dashboard/discount/forms.py:37
 msgctxt "Sale name"
@@ -492,32 +495,32 @@ msgstr "Név"
 #: saleor/dashboard/discount/forms.py:40
 msgctxt "Discount type"
 msgid "Fixed or percentage"
-msgstr ""
+msgstr "Fix vagy százalék"
 
 #: saleor/dashboard/discount/forms.py:43
 msgctxt "Sale date restrictions"
 msgid "Start date"
-msgstr ""
+msgstr "Kezdeti dátum"
 
 #: saleor/dashboard/discount/forms.py:46
 msgctxt "Sale date restrictions"
 msgid "End date"
-msgstr ""
+msgstr "Lejárati dátum"
 
 #: saleor/dashboard/discount/forms.py:49
 msgctxt "Percentage or fixed amount value"
 msgid "Value"
-msgstr ""
+msgstr "Érték"
 
 #: saleor/dashboard/discount/forms.py:52
 msgctxt "Discounted categories"
 msgid "Discounted categories"
-msgstr ""
+msgstr "Kedvezményes kategóriák"
 
 #: saleor/dashboard/discount/forms.py:55
 msgctxt "Discounted collections"
 msgid "Discounted collections"
-msgstr ""
+msgstr "Kedvezményes kollekciók"
 
 #: saleor/dashboard/discount/forms.py:69
 msgctxt "Sale (discount) error"
@@ -533,37 +536,37 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:91
 msgctxt "Discount type"
 msgid "Discount type"
-msgstr ""
+msgstr "Kedvezmény típus"
 
 #: saleor/dashboard/discount/forms.py:97
 msgctxt "Coupon code"
 msgid "Code"
-msgstr ""
+msgstr "Kód"
 
 #: saleor/dashboard/discount/forms.py:100
 msgctxt "Usage limit"
 msgid "Usage limit"
-msgstr ""
+msgstr "Felhasználási limit"
 
 #: saleor/dashboard/discount/forms.py:103
 msgctxt "Voucher date restrictions"
 msgid "Start date"
-msgstr ""
+msgstr "Kezdeti dátum"
 
 #: saleor/dashboard/discount/forms.py:106
 msgctxt "Voucher date restrictions"
 msgid "End date"
-msgstr ""
+msgstr "Lejárati dátum"
 
 #: saleor/dashboard/discount/forms.py:109
 msgctxt "Discount type of the voucher"
 msgid "Discount type"
-msgstr ""
+msgstr "Kedvezmény típus"
 
 #: saleor/dashboard/discount/forms.py:112
 msgctxt "Discount value of the voucher"
 msgid "Discount value"
-msgstr ""
+msgstr "Kezdvezmény értéke"
 
 #: saleor/dashboard/discount/forms.py:130
 msgctxt "Text above the dropdown of countries"
@@ -573,7 +576,7 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:158
 msgctxt "Field label, apply discount value only once per order"
 msgid "Only apply once per order"
-msgstr ""
+msgstr "Rendelésenként csak egyszer alkalmazza "
 
 #: saleor/dashboard/discount/forms.py:161
 msgctxt "Help text of checkbox for applying discount only once per order"
@@ -585,17 +588,17 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:170
 msgctxt "Product"
 msgid "Products"
-msgstr ""
+msgstr "Termékek"
 
 #: saleor/dashboard/discount/forms.py:184
 msgctxt "Collections"
 msgid "Collections"
-msgstr ""
+msgstr "Kollekciók"
 
 #: saleor/dashboard/discount/forms.py:195
 msgctxt "Categories"
 msgid "Categories"
-msgstr ""
+msgstr "Kategóriák"
 
 #: saleor/dashboard/discount/views.py:56
 msgctxt "Sale (discount) message"
@@ -611,23 +614,23 @@ msgstr "Leértékelés frissítve"
 #, python-format
 msgctxt "Sale (discount) message"
 msgid "Removed sale %s"
-msgstr ""
+msgstr "%s Leértékelés eltávolítva"
 
 #: saleor/dashboard/discount/views.py:124
 msgctxt "Voucher message"
 msgid "Added voucher"
-msgstr ""
+msgstr "Kupon hozzáadva"
 
 #: saleor/dashboard/discount/views.py:150
 msgctxt "Voucher message"
 msgid "Updated voucher"
-msgstr ""
+msgstr "Kupon frissítve"
 
 #: saleor/dashboard/discount/views.py:167
 #, python-format
 msgctxt "Voucher message"
 msgid "Removed voucher %s"
-msgstr ""
+msgstr "%s Kupon eltávolítva "
 
 #: saleor/dashboard/menu/filters.py:9
 msgctxt "Menu list sorting option"
@@ -642,7 +645,7 @@ msgstr "Név"
 #: saleor/dashboard/menu/filters.py:17
 msgctxt "Menu list filter label"
 msgid "Menu name"
-msgstr ""
+msgstr "Menü név"
 
 #: saleor/dashboard/menu/filters.py:20
 msgctxt "Menu list filter label"
@@ -654,8 +657,8 @@ msgstr "Rendezés"
 msgctxt "Number of matching records in the dashboard menus list"
 msgid "Found %(counter)d matching menu"
 msgid_plural "Found %(counter)d matching menus"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)d szűrőnek megfelelő menü található. "
+msgstr[1] " %(counter)d szűrőnek megfelelő menü található."
 
 #: saleor/dashboard/menu/filters.py:39
 msgctxt "Menu item list filter label"
@@ -665,7 +668,7 @@ msgstr "Név"
 #: saleor/dashboard/menu/filters.py:42
 msgctxt "Menu item list filter label"
 msgid "Points to"
-msgstr ""
+msgstr "Ide vezet"
 
 #: saleor/dashboard/menu/filters.py:45
 msgctxt "Menu item list sorting filter label"
@@ -683,7 +686,7 @@ msgstr[1] ""
 #: saleor/dashboard/menu/forms.py:27
 msgctxt "Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Menü név"
 
 #: saleor/dashboard/menu/forms.py:47
 msgctxt "Menu item object to link"
@@ -772,17 +775,17 @@ msgstr ""
 #: saleor/dashboard/menu/views.py:249
 msgctxt "Link object type group description"
 msgid "Collection"
-msgstr ""
+msgstr "Kollekció"
 
 #: saleor/dashboard/menu/views.py:254
 msgctxt "Link object type group description"
 msgid "Category"
-msgstr ""
+msgstr "Kategória"
 
 #: saleor/dashboard/menu/views.py:259
 msgctxt "Link object type group description"
 msgid "Page"
-msgstr ""
+msgstr "Oldal"
 
 #: saleor/dashboard/order/filters.py:22
 msgctxt "Order list sorting option"
@@ -792,7 +795,7 @@ msgstr ""
 #: saleor/dashboard/order/filters.py:24
 msgctxt "Order list sorting option"
 msgid "payment"
-msgstr ""
+msgstr "fizetés"
 
 #: saleor/dashboard/order/filters.py:25
 msgctxt "Order list sorting option"
@@ -802,7 +805,7 @@ msgstr "email"
 #: saleor/dashboard/order/filters.py:26 saleor/dashboard/order/filters.py:27
 msgctxt "Order list sorting option"
 msgid "created"
-msgstr "létrehozá"
+msgstr "létrehozva"
 
 #: saleor/dashboard/order/filters.py:32
 msgctxt "Order list filter label"
@@ -812,22 +815,22 @@ msgstr ""
 #: saleor/dashboard/order/filters.py:35
 msgctxt "Order list filter label"
 msgid "Customer name or email"
-msgstr ""
+msgstr "Vásárló neve vagy e-mail címe"
 
 #: saleor/dashboard/order/filters.py:38
 msgctxt "Order list filter label"
 msgid "Placed on"
-msgstr ""
+msgstr "Megrendelve"
 
 #: saleor/dashboard/order/filters.py:42
 msgctxt "Order list filter label"
 msgid "Order status"
-msgstr ""
+msgstr "Rendelés állapota"
 
 #: saleor/dashboard/order/filters.py:47
 msgctxt "Order list filter label"
 msgid "Payment status"
-msgstr ""
+msgstr "Fizetés állapota"
 
 #: saleor/dashboard/order/filters.py:54
 msgctxt "Order list filter label"
@@ -844,23 +847,23 @@ msgstr "Rendezés"
 msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
 msgid_plural "Found %(counter)d matching orders"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)d szűrőnek megfelelő rendelés található."
+msgstr[1] " %(counter)d szűrőnek megfelelő rendelés található."
 
 #: saleor/dashboard/order/forms.py:39
 msgctxt "Send email to customer about order created by staff users"
 msgid "Send email with order confirmation to the customer"
-msgstr ""
+msgstr "Küldjön rendelésről megerősítő e-mail-t a vásárlónak"
 
 #: saleor/dashboard/order/forms.py:57
 msgctxt "Create draft order form error"
 msgid "Could not create order without any products"
-msgstr ""
+msgstr "Termékek nélkül nem lehetett rendelést létrehozni"
 
 #: saleor/dashboard/order/forms.py:67
 msgctxt "Create draft order form error"
 msgid "Shipping method is not valid for chosen shipping address"
-msgstr ""
+msgstr "Szállítási mód nem érvényes a választott szállítási címhez"
 
 #: saleor/dashboard/order/forms.py:95
 msgctxt "Update an order with user default addresses"
@@ -870,7 +873,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:103
 msgctxt "Order form: editing customer details - selecting a customer"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: saleor/dashboard/order/forms.py:111
 msgctxt "Order customer email"
@@ -891,17 +894,17 @@ msgstr "Szállítási mód"
 #: saleor/dashboard/order/forms.py:211
 msgctxt "Order discount amount fixed value"
 msgid "Discount amount"
-msgstr ""
+msgstr "Kedvezmény összege"
 
 #: saleor/dashboard/order/forms.py:223
 msgctxt "Order voucher"
 msgid "Voucher"
-msgstr ""
+msgstr "Kupon"
 
 #: saleor/dashboard/order/forms.py:251
 msgctxt "Order note"
 msgid "Note"
-msgstr ""
+msgstr "Megjegyzés"
 
 #: saleor/dashboard/order/forms.py:258
 msgctxt "Payment management form (capture, refund, void)"
@@ -991,7 +994,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:513
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
-msgstr ""
+msgstr "Ehhez a rendeléshez nem tartozik kupon"
 
 #: saleor/dashboard/order/forms.py:526
 msgctxt "Payment status field value"
@@ -1150,7 +1153,7 @@ msgstr ""
 #: saleor/dashboard/order/views.py:464
 msgctxt "Dashboard message"
 msgid "Voucher updated"
-msgstr ""
+msgstr "Kupon frissítve"
 
 #: saleor/dashboard/order/views.py:482
 msgctxt "Dashboard message"
@@ -1160,7 +1163,7 @@ msgstr ""
 #: saleor/dashboard/order/views.py:509
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
-msgstr ""
+msgstr "Kupon eltávolítva a rendelésből"
 
 #: saleor/dashboard/order/views.py:546
 msgctxt "Dashboard message"
@@ -1248,7 +1251,7 @@ msgstr ""
 #: saleor/dashboard/page/forms.py:27
 msgctxt "Page form: publication status indicator"
 msgid "Is published"
-msgstr ""
+msgstr "Közzétéve"
 
 #: saleor/dashboard/page/forms.py:31
 msgctxt "Form field help text"
@@ -1304,12 +1307,12 @@ msgstr "Név"
 #: saleor/dashboard/product/filters.py:31
 msgctxt "Product list filter label"
 msgid "Category"
-msgstr ""
+msgstr "Kategória"
 
 #: saleor/dashboard/product/filters.py:35
 msgctxt "Product list filter label"
 msgid "Product type"
-msgstr ""
+msgstr "Termék típus"
 
 #: saleor/dashboard/product/filters.py:39
 msgctxt "Product list filter label"
@@ -1319,7 +1322,7 @@ msgstr "Ár"
 #: saleor/dashboard/product/filters.py:43
 msgctxt "Product list filter label"
 msgid "Is published"
-msgstr ""
+msgstr "Közzétéve"
 
 #: saleor/dashboard/product/filters.py:48
 msgctxt "Product list filter label"
@@ -1331,8 +1334,8 @@ msgstr "Rendezés"
 msgctxt "Number of matching records in the dashboard products list"
 msgid "Found %(counter)d matching product"
 msgid_plural "Found %(counter)d matching products"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] " %(counter)d szűrőnek megfelelő termék található."
+msgstr[1] "%(counter)d szűrőnek megfelelő termék található."
 
 #: saleor/dashboard/product/filters.py:67
 msgctxt "Attribute list filter label"
@@ -1365,7 +1368,7 @@ msgstr "Rendezés"
 #: saleor/dashboard/product/filters.py:97
 msgctxt "Product type list filter label"
 msgid "Product attributes"
-msgstr ""
+msgstr "Termék tulajdonságai"
 
 #: saleor/dashboard/product/filters.py:102
 msgctxt "Product type list filter label"
@@ -1377,8 +1380,8 @@ msgstr ""
 msgctxt "Number of matching records in the dashboard product types list"
 msgid "Found %(counter)d matching product type"
 msgid_plural "Found %(counter)d matching product types"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)d szűrőnek megfelelő termék típus található."
+msgstr[1] "%(counter)d szűrőnek megfelelő termék típus található."
 
 #: saleor/dashboard/product/forms.py:39
 msgctxt "Help text in rich-text editor field"
@@ -1388,7 +1391,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:56
 msgctxt "Product type form label"
 msgid "Product type"
-msgstr ""
+msgstr "Termék típus"
 
 #: saleor/dashboard/product/forms.py:73
 msgctxt "Product type tax rate type"
@@ -1406,6 +1409,8 @@ msgid ""
 "Default weight that will be used for calculating shipping price for products"
 " of that type."
 msgstr ""
+"Alapértelmezett súly, ami az adott terméktípus szállítási költség "
+"kiszámítására lesz használva."
 
 #: saleor/dashboard/product/forms.py:83
 msgctxt "Product type attributes"
@@ -1450,12 +1455,12 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:230
 msgctxt "Category"
 msgid "Category"
-msgstr ""
+msgstr "Kategória"
 
 #: saleor/dashboard/product/forms.py:233
 msgctxt "Add to collection select"
 msgid "Collections"
-msgstr ""
+msgstr "Kollekciók"
 
 #: saleor/dashboard/product/forms.py:240
 msgctxt "Product weight field help text"
@@ -1478,7 +1483,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:255
 msgctxt "Product published toggle"
 msgid "Published"
-msgstr ""
+msgstr "Közétett"
 
 #: saleor/dashboard/product/forms.py:257
 msgctxt "Charge taxes on product"
@@ -1968,6 +1973,11 @@ msgstr ""
 #: saleor/dashboard/staff/forms.py:29
 msgctxt "User active toggle"
 msgid "User is active"
+msgstr "Felhasználó aktív"
+
+#: saleor/dashboard/staff/forms.py:31
+msgctxt "User staff toggle"
+msgid "User is staff"
 msgstr ""
 
 #: saleor/dashboard/staff/views.py:43
@@ -1976,13 +1986,13 @@ msgctxt "Dashboard message"
 msgid "Updated staff member %s"
 msgstr ""
 
-#: saleor/dashboard/staff/views.py:63
+#: saleor/dashboard/staff/views.py:65
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
 msgstr ""
 
-#: saleor/dashboard/staff/views.py:82
+#: saleor/dashboard/staff/views.py:84
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed staff member %s"
