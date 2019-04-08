@@ -58,12 +58,12 @@ class OrderQueries(graphene.ObjectType):
         token=graphene.Argument(graphene.String, required=True))
 
     @permission_required('order.manage_orders')
-    def resolve_homepage_events(self, info, **kwargs):
+    def resolve_homepage_events(self, info, **_kwargs):
         return resolve_homepage_events(info)
 
     @login_required
-    def resolve_order(self, info, id):
-        return resolve_order(info, id)
+    def resolve_order(self, info, **data):
+        return resolve_order(info, data.get('id'))
 
     @permission_required('order.manage_orders')
     def resolve_orders(
