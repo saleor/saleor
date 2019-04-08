@@ -45,30 +45,30 @@ class OrderEvent(CountableDjangoObjectType):
         interfaces = [relay.Node]
         only_fields = ['id']
 
-    def resolve_email(self, info):
+    def resolve_email(self, _info):
         return self.parameters.get('email', None)
 
-    def resolve_email_type(self, info):
+    def resolve_email_type(self, _info):
         return self.parameters.get('email_type', None)
 
-    def resolve_amount(self, info):
+    def resolve_amount(self, _info):
         amount = self.parameters.get('amount', None)
         return float(amount) if amount else None
 
-    def resolve_quantity(self, info):
+    def resolve_quantity(self, _info):
         quantity = self.parameters.get('quantity', None)
         return int(quantity) if quantity else None
 
-    def resolve_message(self, info):
+    def resolve_message(self, _info):
         return self.parameters.get('message', None)
 
-    def resolve_composed_id(self, info):
+    def resolve_composed_id(self, _info):
         return self.parameters.get('composed_id', None)
 
-    def resolve_oversold_items(self, info):
+    def resolve_oversold_items(self, _info):
         return self.parameters.get('oversold_items', None)
 
-    def resolve_order_number(self, info):
+    def resolve_order_number(self, _info):
         return self.order_id
 
 
@@ -82,7 +82,7 @@ class FulfillmentLine(CountableDjangoObjectType):
         only_fields = ['id', 'quantity']
 
     @gql_optimizer.resolver_hints(prefetch_related='order_line')
-    def resolve_order_line(self, info):
+    def resolve_order_line(self, _info):
         return self.order_line
 
 
@@ -103,10 +103,10 @@ class Fulfillment(CountableDjangoObjectType):
             'fulfillment_order', 'id', 'shipping_date', 'status',
             'tracking_number']
 
-    def resolve_lines(self, info):
+    def resolve_lines(self, _info):
         return self.lines.all()
 
-    def resolve_status_display(self, info):
+    def resolve_status_display(self, _info):
         return self.get_status_display()
 
 
@@ -160,8 +160,7 @@ class OrderLine(CountableDjangoObjectType):
         alt = image.alt if image else None
         return Image(alt=alt, url=info.context.build_absolute_uri(url))
 
-    @staticmethod
-    def resolve_unit_price(self, info):
+    def resolve_unit_price(self, _info):
         return self.unit_price
 
 
@@ -235,8 +234,7 @@ class Order(CountableDjangoObjectType):
             'shipping_price', 'status', 'token', 'tracking_client_id',
             'translated_discount_name', 'user', 'voucher', 'weight']
 
-    @staticmethod
-    def resolve_shipping_price(self, info):
+    def resolve_shipping_price(self, _info):
         return self.shipping_price
 
     @gql_optimizer.resolver_hints(prefetch_related='payments__transactions')
@@ -253,31 +251,25 @@ class Order(CountableDjangoObjectType):
             actions.append(OrderAction.VOID)
         return actions
 
-    @staticmethod
-    def resolve_subtotal(self, info):
+    def resolve_subtotal(self, _info):
         return self.get_subtotal()
 
-    @staticmethod
-    def resolve_total(self, info):
+    def resolve_total(self, _info):
         return self.total
 
-    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments__transactions')
-    def resolve_total_authorized(self, info):
+    def resolve_total_authorized(self, _info):
         # FIXME adjust to multiple payments in the future
         return self.total_authorized
 
-    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_total_captured(self, info):
+    def resolve_total_captured(self, _info):
         # FIXME adjust to multiple payments in the future
         return self.total_captured
 
-    @staticmethod
-    def resolve_total_balance(self, info):
+    def resolve_total_balance(self, _info):
         return self.total_balance
 
-    @staticmethod
     def resolve_fulfillments(self, info):
         user = info.context.user
         if user.is_staff:
@@ -286,61 +278,52 @@ class Order(CountableDjangoObjectType):
             qs = self.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
         return qs.order_by('pk')
 
-    @staticmethod
-    def resolve_lines(self, info):
+    def resolve_lines(self, _info):
         return self.lines.all().order_by('pk')
 
-    @staticmethod
-    def resolve_events(self, info):
+    def resolve_events(self, _info):
         return self.events.all().order_by('pk')
 
-    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_is_paid(self, info):
+    def resolve_is_paid(self, _info):
         return self.is_fully_paid()
 
-    @staticmethod
-    def resolve_number(self, info):
+    def resolve_number(self, _info):
         return str(self.pk)
 
-    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_payment_status(self, info):
+    def resolve_payment_status(self, _info):
         return self.get_payment_status()
 
-    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
-    def resolve_payment_status_display(self, info):
+    def resolve_payment_status_display(self, _info):
         return self.get_payment_status_display()
 
-    @staticmethod
-    def resolve_payments(self, info):
+    def resolve_payments(self, _info):
         return self.payments.all()
 
-    @staticmethod
-    def resolve_status_display(self, info):
+    def resolve_status_display(self, _info):
         return self.get_status_display()
 
     @staticmethod
-    def resolve_can_finalize(self, info):
+    def resolve_can_finalize(self, _info):
         try:
             validate_draft_order(self)
         except ValidationError:
             return False
         return True
 
-    @staticmethod
-    def resolve_user_email(self, info):
+    @gql_optimizer.resolver_hints(select_related='user')
+    def resolve_user_email(self, _info):
         if self.user_email:
             return self.user_email
         if self.user_id:
             return self.user.email
         return None
 
-    @staticmethod
     def resolve_available_shipping_methods(self, info):
         return applicable_shipping_methods(
             self, self.get_subtotal().gross.amount)
 
-    def resolve_is_shipping_required(self, info):
+    def resolve_is_shipping_required(self, _info):
         return self.is_shipping_required()
