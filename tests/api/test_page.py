@@ -210,3 +210,27 @@ def test_paginate_pages(user_api_client, page):
     content = get_graphql_content(response)
     pages_data = content['data']['pages']
     assert len(pages_data['edges']) == 2
+
+
+def test_bulk_publish(staff_api_client, page_list, permission_manage_pages):
+    assert len(page_list) == 2
+    assert not any(page.is_published for page in page_list)
+
+    query = """
+        mutation publishManyPages((ids: [ID]!) {
+            pageBulkPublish(ids: $ids) {
+                count
+            }
+        }
+    """
+    variables = {'ids': [
+        graphene.Node.to_global_id('Page', page.id)
+        for page in page_list]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages])
+    content = get_graphql_content(response)
+
+    map(Page.refresh_from_db, page_list)
+    assert content['data']['pageBulkPublish']['count'] == 2
+    assert all(page.is_published for page in page_list)
+
