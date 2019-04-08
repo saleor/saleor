@@ -23,6 +23,8 @@
   <a href="https://twitter.com/getsaleor">Twitter</a>
   <span> | </span>
   <a href="https://gitter.im/mirumee/saleor">Gitter</a>
+  <span> | </span>
+  <a href="https://spectrum.chat/saleor">Spectrum</a>
 </div>
 
 <br>

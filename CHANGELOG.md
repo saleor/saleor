@@ -14,6 +14,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix schema after bulk mutations are added - #3843 by @jxltom
 - Add address book view - #3826 by @dominik-zeglen
 - New translations:
+  - Armenian
+  - Portuguese
   - Swahili
   - Thai
 - Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
@@ -39,6 +41,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop support for Django 2.1 and Django 1.11 (previous LTS)
 - Fix variants for juices in example data - #3926 by @michaljelonek
 - Fix logo in docs - #3928 by @michaljelonek
+- Fix alignment of the cart dropdown on new bootstrap version - #3937 by @NyanKiyoshi
+- Refactor the account avatars path from a relative to absolute - #3938 by @NyanKiyoshi
 
 
 ## 2.4.0
