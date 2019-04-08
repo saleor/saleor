@@ -13,7 +13,7 @@ import { Tab } from "../../../components/Tab";
 import TabContainer from "../../../components/Tab/TabContainer";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { UserError } from "../../../types";
+import { UserError, ListActionProps } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
 import {
@@ -37,7 +37,8 @@ export enum CategoryPageTab {
   products = "products"
 }
 
-export interface CategoryUpdatePageProps {
+export interface CategoryUpdatePageProps
+  extends ListActionProps<"onBulkProductDelete"> {
   changeTab: (index: CategoryPageTab) => void;
   currentTab: CategoryPageTab;
   errors: UserError[];
@@ -81,6 +82,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
   onAddCategory,
   onAddProduct,
   onBack,
+  onBulkProductDelete,
   onCategoryClick,
   onDelete,
   onNextPage,
@@ -174,6 +176,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
           )}
           {currentTab === CategoryPageTab.products && (
             <CategoryProductsCard
+              onBulkDelete={onBulkProductDelete}
               categoryName={maybe(() => category.name)}
               products={products}
               disabled={disabled}

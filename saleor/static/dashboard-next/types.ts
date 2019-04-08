@@ -54,3 +54,6 @@ export type ActiveTab<TTab extends string> = Partial<{
 export type SingleAction = Partial<{
   id: string;
 }>;
+export type BulkAction = Partial<{
+  ids: string[];
+}>;
