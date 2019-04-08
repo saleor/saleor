@@ -40,7 +40,8 @@ class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def clean_instance(cls, info, instance, errors):
         if instance.order.status != OrderStatus.DRAFT:
-            cls.add_error(errors, 'id', 'Cannot delete line for non-draft orders.')
+            cls.add_error(errors, 'id',
+                          'Cannot delete line for non-draft orders.')
 
     @classmethod
     def user_is_allowed(cls, user, input):
