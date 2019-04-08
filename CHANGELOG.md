@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop support for Django 2.1 and Django 1.11 (previous LTS)
 - Fix variants for juices in example data - #3926 by @michaljelonek
 - Fix logo in docs - #3928 by @michaljelonek
+- Fix alignment of the cart dropdown on new bootstrap version - #3937 by @NyanKiyoshi
 - Refactor the account avatars path from a relative to absolute - #3938 by @NyanKiyoshi
 
 
