@@ -751,6 +751,20 @@ def page(db):
     page = Page.objects.create(**data)
     return page
 
+@pytest.fixture
+def page_list(db):
+    data_1 = {
+        'slug': 'test-url',
+        'title': 'Test page',
+        'content': 'test content'}
+    data_2 = {
+        'slug': 'test-url-2',
+        'title': 'Test page',
+        'content': 'test content'}
+    page_1 = Page.objects.create(**data_1)
+    page_2 = Page.objects.create(**data_2)
+    return page_1, page_2
+
 
 @pytest.fixture
 def model_form_class():
