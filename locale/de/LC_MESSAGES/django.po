@@ -4,9 +4,9 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Irina Treichl, 2017
 # Rapahel Wierscher <rapwie@gmail.com>, 2018
 # Patryk Zawadzki <patrys@room-303.com>, 2018
+# Irina Treichl, 2018
 # Jens-Erik Weber <JensErikWeber@gmail.com>, 2018
 # Till Hinrichs <till@eightdyasaweek.cc>, 2018
 # H3 iM <coding.cs@pm.me>, 2018
@@ -16,15 +16,16 @@
 # Max Wessendorf <m.wessendorf@ukd.de>, 2019
 # Herr Hausfrau <herr.hausfrau@gmail.com>, 2019
 # Michael Bykovski <bykof@me.com>, 2019
+# Hendrik Bursian <hendrikbursian@protonmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Michael Bykovski <bykof@me.com>, 2019\n"
+"Last-Translator: Hendrik Bursian <hendrikbursian@protonmail.com>, 2019\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -227,17 +228,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Der Wert ist für das gewählte Land ungütlig"
 
-#: saleor/account/models.py:154
+#: saleor/account/models.py:147
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "Kunden verwalten"
 
-#: saleor/account/models.py:157
+#: saleor/account/models.py:150
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "Personal verwalten"
 
-#: saleor/account/models.py:160
+#: saleor/account/models.py:153
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr "Als andere Benutzer auftreten"
@@ -444,7 +445,7 @@ msgstr "Die Versandart ist nicht gültig für die gewählte Versandadresse"
 #: saleor/checkout/utils.py:908
 msgctxt "order placement_error"
 msgid "Billing address is not set"
-msgstr ""
+msgstr "Rechnungsadresse ist nicht gesetzt"
 
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
@@ -599,22 +600,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "Sie sind eingeloggt als {}"
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr "Kg"
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr "Pfund"
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr "Unzen"
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr "Gramm"
@@ -1019,6 +1020,8 @@ msgid ""
 "Setting charge status to {} directly is not supported. Please use the "
 "dashboard to refund partially."
 msgstr ""
+"Das Setzen des Abbuchungsstatus auf {} ist nicht unterstützt. Bitte benutzen"
+" Sie das Dashboard um anteilig zu erstatten."
 
 #: saleor/payment/gateways/razorpay/errors.py:5
 msgctxt "Razorpay payment error"
@@ -1269,31 +1272,35 @@ msgid "Swedish"
 msgstr "Schwedisch"
 
 #: saleor/settings.py:90
+msgid "Thai"
+msgstr ""
+
+#: saleor/settings.py:91
 msgid "Turkish"
 msgstr "Türkisch"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:92
 msgid "Ukrainian"
 msgstr "Ukrainisch"
 
-#: saleor/settings.py:92
+#: saleor/settings.py:93
 msgid "Vietnamese"
 msgstr "Vietnamesisch"
 
-#: saleor/settings.py:93
+#: saleor/settings.py:94
 msgid "Simplified Chinese"
 msgstr "Chinesisch vereinfacht"
 
-#: saleor/settings.py:94
+#: saleor/settings.py:95
 msgid "Traditional Chinese"
 msgstr "Chinesisch traditionell"
 
-#: saleor/settings.py:330
+#: saleor/settings.py:331
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "Europäische Union"
 
-#: saleor/settings.py:567
+#: saleor/settings.py:568
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr "Dummy Gateway"
@@ -6313,6 +6320,10 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Sie bekommen diese E-Mail weil Sie oder jemand anders ein Passwort für Ihren Benutzeraccount auf %(domain)s angefordert hat.\n"
+"Sie können diese Nachricht ignorieren, wenn sie es nicht selber angefordert haben.\n"
+"Klicken Sie unten um Ihr Passwort zurückzusetzen.\n"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
