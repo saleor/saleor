@@ -44,9 +44,9 @@ class Sale(CountableDjangoObjectType):
         description = dedent("""
         Sales allow creating discounts for categories, collections or
         products and are visible to all the customers.""")
-        exclude_fields = ['translations']
         interfaces = [relay.Node]
         model = models.Sale
+        only_fields = ['end_date', 'id', 'name', 'start_date', 'type', 'value']
 
     def resolve_categories(self, info, **kwargs):
         return self.categories.all()
@@ -92,7 +92,10 @@ class Voucher(CountableDjangoObjectType):
         Vouchers allow giving discounts to particular customers on categories,
         collections or specific products. They can be used during checkout by
         providing valid voucher codes.""")
-        exclude_fields = ['translations']
+        only_fields = [
+            'apply_once_per_order', 'code', 'discount_value',
+            'discount_value_type', 'end_date', 'id', 'min_amount_spent',
+            'name', 'start_date', 'type', 'usage_limit', 'used']
         interfaces = [relay.Node]
         model = models.Voucher
 

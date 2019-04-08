@@ -42,7 +42,7 @@ class OrderEvent(CountableDjangoObjectType):
         description = 'History log of the order.'
         model = models.OrderEvent
         interfaces = [relay.Node]
-        exclude_fields = ['order', 'parameters']
+        only_fields = ['id']
 
     def resolve_email(self, info):
         return self.parameters.get('email', None)
@@ -78,7 +78,7 @@ class FulfillmentLine(CountableDjangoObjectType):
         description = 'Represents line of the fulfillment.'
         interfaces = [relay.Node]
         model = models.FulfillmentLine
-        exclude_fields = ['fulfillment']
+        only_fields = ['id', 'quantity']
 
     @gql_optimizer.resolver_hints(prefetch_related='order_line')
     def resolve_order_line(self, info):
@@ -98,7 +98,9 @@ class Fulfillment(CountableDjangoObjectType):
         description = 'Represents order fulfillment.'
         interfaces = [relay.Node]
         model = models.Fulfillment
-        exclude_fields = ['order']
+        only_fields = [
+            'fulfillment_order', 'id', 'shipping_date', 'status',
+            'tracking_number']
 
     def resolve_lines(self, info):
         return self.lines.all()
@@ -129,8 +131,10 @@ class OrderLine(CountableDjangoObjectType):
         description = 'Represents order line of particular order.'
         model = models.OrderLine
         interfaces = [relay.Node]
-        exclude_fields = [
-            'order', 'unit_price_gross', 'unit_price_net']
+        only_fields = [
+            'digital_content_url', 'id', 'is_shipping_required',
+            'product_name', 'product_sku', 'quantity', 'quantity_fulfilled',
+            'tax_rate', 'translated_product_name']
 
     @gql_optimizer.resolver_hints(
         prefetch_related=['variant__images', 'variant__product__images'])
@@ -218,17 +222,17 @@ class Order(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description='Returns True, if order requires shipping.',
         required=True)
-    lines = graphene.List(
-        OrderLine, required=True,
-        description='List of order lines for the order')
 
     class Meta:
         description = 'Represents an order in the shop.'
         interfaces = [relay.Node]
         model = models.Order
-        exclude_fields = [
-            'checkout_token', 'shipping_price_gross', 'shipping_price_net',
-            'total_gross', 'total_net']
+        only_fields = [
+            'billing_address', 'created', 'customer_note', 'discount_amount',
+            'discount_name', 'display_gross_prices', 'id', 'language_code',
+            'shipping_address', 'shipping_method', 'shipping_method_name',
+            'shipping_price', 'status', 'token', 'tracking_client_id',
+            'translated_discount_name', 'user', 'voucher', 'weight']
 
     @staticmethod
     def resolve_shipping_price(self, info):
