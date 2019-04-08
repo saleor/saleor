@@ -1,9 +1,14 @@
 import os
+import os.path
 import random
 
+from django.conf import settings
 from django.core.files import File
 
 from ..checkout import AddressType
+
+AVATARS_PATH = os.path.join(
+    settings.PROJECT_ROOT, 'saleor', 'static', 'images', 'avatars')
 
 
 def store_user_address(user, address, address_type):
@@ -61,7 +66,6 @@ def get_user_last_name(user):
 
 def get_random_avatar():
     """Return random avatar picked from a pool of static avatars."""
-    avatars_dir = 'saleor/static/images/avatars/'
-    avatar_name = random.choice(os.listdir(avatars_dir))
-    avatar_path = os.path.join(avatars_dir, avatar_name)
+    avatar_name = random.choice(os.listdir(AVATARS_PATH))
+    avatar_path = os.path.join(AVATARS_PATH, avatar_name)
     return File(open(avatar_path, 'rb'), name=avatar_name)
