@@ -53,12 +53,12 @@ class MenuCreate(ModelMutation):
         model = models.Menu
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('menu.manage_menus')
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, raw_input):
+        cleaned_input = super().clean_input(info, instance, raw_input)
         items = []
         for item in cleaned_input.get('items', []):
             category = item.get('category')
@@ -108,7 +108,7 @@ class MenuUpdate(ModelMutation):
         model = models.Menu
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('menu.manage_menus')
 
 
@@ -122,7 +122,7 @@ class MenuDelete(ModelDeleteMutation):
         model = models.Menu
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('menu.manage_menus')
 
 
@@ -139,12 +139,12 @@ class MenuItemCreate(ModelMutation):
         model = models.MenuItem
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('menu.manage_menus')
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, raw_input):
+        cleaned_input = super().clean_input(info, instance, raw_input)
         items = [
             cleaned_input.get('page'), cleaned_input.get('collection'),
             cleaned_input.get('url'), cleaned_input.get('category')]
@@ -169,7 +169,7 @@ class MenuItemUpdate(MenuItemCreate):
         model = models.MenuItem
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('menu.manage_menus')
 
     @classmethod
@@ -192,7 +192,7 @@ class MenuItemDelete(ModelDeleteMutation):
         model = models.MenuItem
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('menu.manage_menus')
 
 
@@ -209,12 +209,12 @@ class AssignNavigation(BaseMutation):
         description = 'Assigns storefront\'s navigation menus.'
 
     @classmethod
-    def user_is_allowed(cls, instance, input):
+    def user_is_allowed(cls, instance, _data):
         return instance.has_perms([
             'menu.manage_menus', 'site.manage_settings'])
 
     @classmethod
-    def perform_mutation(cls, root, info, navigation_type, menu=None):
+    def perform_mutation(cls, _root, info, navigation_type, menu=None):
         site_settings = info.context.site.settings
         if menu is not None:
             menu = cls.get_node_or_error(info, menu, field='menu')

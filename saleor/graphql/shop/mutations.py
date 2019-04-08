@@ -48,13 +48,14 @@ class ShopSettingsUpdate(BaseMutation):
         description = 'Updates shop settings'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('site.manage_settings')
 
     @classmethod
-    def perform_mutation(cls, root, info, input):
+    def perform_mutation(cls, _root, info, **data):
         instance = info.context.site.settings
-        for field_name, desired_value in input.items():
+        raw_input = data.get('input')
+        for field_name, desired_value in raw_input.items():
             current_value = getattr(instance, field_name)
             if current_value != desired_value:
                 setattr(instance, field_name, desired_value)
@@ -73,14 +74,15 @@ class ShopDomainUpdate(BaseMutation):
         description = 'Updates site domain of the shop'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('site.manage_settings')
 
     @classmethod
-    def perform_mutation(cls, root, info, input):
+    def perform_mutation(cls, _root, info, **data):
         site = info.context.site
-        domain = input.get('domain')
-        name = input.get('name')
+        raw_input = data.get('input')
+        domain = raw_input.get('domain')
+        name = raw_input.get('name')
         if domain is not None:
             site.domain = domain
         if name is not None:
@@ -97,11 +99,11 @@ class ShopFetchTaxRates(BaseMutation):
         description = 'Fetch tax rates'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('site.manage_settings')
 
     @classmethod
-    def perform_mutation(cls, root, info):
+    def perform_mutation(cls, _root, _info):
         if not settings.VATLAYER_ACCESS_KEY:
             raise ValidationError(
                 'Could not fetch tax rates. Make sure you have supplied a '
@@ -121,11 +123,11 @@ class HomepageCollectionUpdate(BaseMutation):
         description = 'Updates homepage collection of the shop'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('site.manage_settings')
 
     @classmethod
-    def perform_mutation(cls, root, info, collection=None):
+    def perform_mutation(cls, _root, info, collection=None):
         new_collection = cls.get_node_or_error(
             info, collection, field='collection', only_type=Collection)
         site_settings = info.context.site.settings
@@ -158,18 +160,18 @@ class AuthorizationKeyAdd(BaseMutation):
             description='Fields required to create an authorization key.')
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('site.manage_settings')
 
     @classmethod
-    def perform_mutation(cls, root, info, key_type, input):
+    def perform_mutation(cls, _root, info, key_type, **data):
         if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
             raise ValidationError({
                 'key_type': 'Authorization key already exists.'})
 
         site_settings = info.context.site.settings
         instance = site_models.AuthorizationKey(
-            name=key_type, site_settings=site_settings, **input)
+            name=key_type, site_settings=site_settings, **data.get('input'))
         cls.clean_instance(instance)
         instance.save()
         return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
@@ -188,11 +190,11 @@ class AuthorizationKeyDelete(BaseMutation):
         description = 'Deletes an authorization key.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('site.manage_settings')
 
     @classmethod
-    def perform_mutation(cls, root, info, key_type):
+    def perform_mutation(cls, _root, info, key_type):
         try:
             site_settings = info.context.site.settings
             instance = site_models.AuthorizationKey.objects.get(

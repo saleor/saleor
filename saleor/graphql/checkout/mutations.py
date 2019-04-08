@@ -106,10 +106,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return_field_name = 'checkout'
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, raw_input):
+        cleaned_input = super().clean_input(info, instance, raw_input)
         user = info.context.user
-        lines = input.pop('lines', None)
+        lines = raw_input.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
             variants = cls.get_nodes_or_error(
@@ -127,21 +127,23 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             default_billing_address = user.default_billing_address
             default_shipping_address = user.default_shipping_address
 
-        if 'shipping_address' in input:
-            shipping_address = cls.validate_address(input['shipping_address'])
+        if 'shipping_address' in raw_input:
+            shipping_address = cls.validate_address(
+                raw_input['shipping_address'])
             cleaned_input['shipping_address'] = shipping_address
         else:
             cleaned_input['shipping_address'] = default_shipping_address
 
-        if 'billing_address' in input:
-            billing_address = cls.validate_address(input['billing_address'])
+        if 'billing_address' in raw_input:
+            billing_address = cls.validate_address(
+                raw_input['billing_address'])
             cleaned_input['billing_address'] = billing_address
         else:
             cleaned_input['billing_address'] = default_billing_address
 
         # Use authenticated user's email as default email
         if user.is_authenticated:
-            email = input.pop('email', None)
+            email = raw_input.pop('email', None)
             cleaned_input['email'] = email or user.email
 
         return cleaned_input
@@ -166,7 +168,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 add_variant_to_cart(instance, variant, quantity)
 
     @classmethod
-    def perform_mutation(cls, root, info, input):
+    def perform_mutation(cls, root, info, **data):
         user = info.context.user
 
         # `perform_mutation` is overriden to properly get or create a checkout
@@ -180,7 +182,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         else:
             checkout = models.Cart()
 
-        cleaned_input = cls.clean_input(info, checkout, input)
+        cleaned_input = cls.clean_input(
+            data.get('input'), checkout, input)
         checkout = cls.construct_instance(checkout, cleaned_input)
         cls.clean_instance(checkout)
         cls.save(info, checkout, cleaned_input)
@@ -257,7 +260,7 @@ class CheckoutLineDelete(BaseMutation):
         description = 'Deletes a CheckoutLine.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, line_id):
+    def perform_mutation(cls, _root, info, checkout_id, line_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
         line = cls.get_node_or_error(
@@ -291,7 +294,7 @@ class CheckoutCustomerAttach(BaseMutation):
         description = 'Sets the customer as the owner of the Checkout.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, customer_id):
+    def perform_mutation(cls, _root, info, checkout_id, customer_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
         customer = cls.get_node_or_error(
@@ -311,7 +314,7 @@ class CheckoutCustomerDetach(BaseMutation):
         description = 'Removes the user assigned as the owner of the checkout.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id):
+    def perform_mutation(cls, _root, info, checkout_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
         checkout.user = None
@@ -390,7 +393,7 @@ class CheckoutEmailUpdate(BaseMutation):
         description = 'Updates email address in the existing Checkout object.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, email):
+    def perform_mutation(cls, _root, info, checkout_id, email):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
 
@@ -412,7 +415,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         description = 'Updates the shipping address of the checkout.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, shipping_method_id):
+    def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
         shipping_method = cls.get_node_or_error(
@@ -445,7 +448,7 @@ class CheckoutComplete(BaseMutation):
             'payment before it can be performed.')
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id):
+    def perform_mutation(cls, _root, info, checkout_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
 
@@ -496,7 +499,7 @@ class CheckoutUpdateVoucher(BaseMutation):
             'field to remove voucher from checkout.')
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, voucher_code=None):
+    def perform_mutation(cls, _root, info, checkout_id, voucher_code=None):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
 
