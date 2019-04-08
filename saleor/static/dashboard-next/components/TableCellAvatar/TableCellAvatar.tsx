@@ -22,7 +22,7 @@ const styles = (theme: Theme) =>
       padding: theme.spacing.unit / 2
     },
     root: {
-      paddingLeft: theme.spacing.unit * 3,
+      // paddingLeft: theme.spacing.unit * 3,
       paddingRight: theme.spacing.unit * 3,
       width: "1%"
     }

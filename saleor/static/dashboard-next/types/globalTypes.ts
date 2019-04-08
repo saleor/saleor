@@ -382,6 +382,7 @@ export interface ProductTypeInput {
   productAttributes?: (string | null)[] | null;
   variantAttributes?: (string | null)[] | null;
   isShippingRequired?: boolean | null;
+  isDigital?: boolean | null;
   weight?: any | null;
   taxRate?: TaxRateType | null;
 }
@@ -437,6 +438,9 @@ export interface ShopSettingsInput {
   chargeTaxesOnShipping?: boolean | null;
   trackInventoryByDefault?: boolean | null;
   defaultWeightUnit?: WeightUnitsEnum | null;
+  automaticFulfillmentDigitalProducts?: boolean | null;
+  defaultDigitalMaxDownloads?: number | null;
+  defaultDigitalUrlValidDays?: number | null;
 }
 
 export interface SiteDomainInput {

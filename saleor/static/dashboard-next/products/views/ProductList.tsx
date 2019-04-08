@@ -1,22 +1,32 @@
+import DialogContentText from "@material-ui/core/DialogContentText";
 import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
-import Navigator from "../../components/Navigator";
-import { createPaginationState, Paginator } from "../../components/Paginator";
-import { maybe } from "../../misc";
+import ActionDialog from "../../components/ActionDialog";
+import { createPaginationState } from "../../components/Paginator";
+import useNavigator from "../../hooks/useNavigator";
+import useNotifier from "../../hooks/useNotifier";
+import usePaginator from "../../hooks/usePaginator";
+import i18n from "../../i18n";
+import { maybe, getMutationState } from "../../misc";
 import { StockAvailability } from "../../types/globalTypes";
 import ProductListCard from "../components/ProductListCard";
 import { getTabName } from "../misc";
+import { TypedProductBulkDeleteMutation } from "../mutations";
 import { TypedProductListQuery } from "../queries";
+import { productBulkDelete } from "../types/productBulkDelete";
 import { productAddUrl, productUrl } from "../urls";
 
 export interface ProductListFilters {
   status: StockAvailability;
 }
+type ProductListDialog = "publish" | "unpublish" | "delete";
 export type ProductListQueryParams = Partial<
   {
     after: string;
     before: string;
+    dialog: ProductListDialog;
+    ids: string[];
   } & ProductListFilters
 >;
 
@@ -28,35 +38,79 @@ const PAGINATE_BY = 20;
 
 export const ProductList: React.StatelessComponent<ProductListProps> = ({
   params
-}) => (
-  <Navigator>
-    {navigate => {
-      const changeFilters = (newParams: ProductListQueryParams) =>
-        navigate(
-          "?" +
-            stringifyQs({
-              ...params,
-              ...newParams
-            })
+}) => {
+  const navigate = useNavigator();
+  const notify = useNotifier();
+  const paginate = usePaginator();
+
+  const closeModal = () =>
+    navigate(
+      "?" +
+        stringifyQs({
+          ...params,
+          dialog: undefined,
+          ids: undefined
+        })
+    );
+
+  const changeFilters = (newParams: ProductListQueryParams) =>
+    navigate(
+      "?" +
+        stringifyQs({
+          ...params,
+          ...newParams
+        })
+    );
+
+  const openModal = (dialog: ProductListDialog, ids: string[]) =>
+    navigate(
+      "?" +
+        stringifyQs({
+          ...params,
+          dialog,
+          ids
+        })
+    );
+
+  const paginationState = createPaginationState(PAGINATE_BY, params);
+
+  return (
+    <TypedProductListQuery
+      displayLoader
+      variables={{
+        ...paginationState,
+        stockAvailability: params.status
+      }}
+    >
+      {({ data, loading, refetch }) => {
+        const currentTab = getTabName(params);
+        const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
+          maybe(() => data.products.pageInfo),
+          paginationState,
+          params
         );
-      const paginationState = createPaginationState(PAGINATE_BY, params);
-      return (
-        <TypedProductListQuery
-          displayLoader
-          variables={{
-            ...paginationState,
-            stockAvailability: params.status
-          }}
-        >
-          {({ data, loading }) => {
-            const currentTab = getTabName(params);
-            return (
-              <Paginator
-                pageInfo={maybe(() => data.products.pageInfo)}
-                paginationState={paginationState}
-                queryString={params}
-              >
-                {({ loadNextPage, loadPreviousPage, pageInfo }) => (
+
+        const handleBulkDelete = (data: productBulkDelete) => {
+          if (data.productBulkDelete.errors.length === 0) {
+            closeModal();
+            notify({
+              text: i18n.t("Products removed")
+            });
+            refetch();
+          }
+        };
+
+        return (
+          <TypedProductBulkDeleteMutation onCompleted={handleBulkDelete}>
+            {(productBulkDelete, productBulkDeleteOpts) => {
+              const bulkDeleteMutationState = getMutationState(
+                productBulkDeleteOpts.called,
+                productBulkDeleteOpts.loading,
+                maybe(() => productBulkDeleteOpts.data.productBulkDelete.errors)
+              );
+
+              return (
+                <>
                   <ProductListCard
                     currentTab={currentTab}
                     filtersList={[]}
@@ -89,14 +143,83 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         status: StockAvailability.OUT_OF_STOCK
                       })
                     }
+                    onBulkDelete={ids => openModal("delete", ids)}
+                    onBulkPublish={ids => openModal("publish", ids)}
+                    onBulkUnpublish={ids => openModal("unpublish", ids)}
                   />
-                )}
-              </Paginator>
-            );
-          }}
-        </TypedProductListQuery>
-      );
-    }}
-  </Navigator>
-);
+                  <ActionDialog
+                    open={params.dialog === "delete"}
+                    confirmButtonState={bulkDeleteMutationState}
+                    onClose={closeModal}
+                    onConfirm={() =>
+                      productBulkDelete({ variables: { ids: params.ids } })
+                    }
+                    title={i18n.t("Remove products")}
+                    variant="delete"
+                  >
+                    <DialogContentText
+                      dangerouslySetInnerHTML={{
+                        __html: i18n.t(
+                          "Are you sure you want to remove <strong>{{ number }}</strong> products?",
+                          {
+                            number: maybe(
+                              () => params.ids.length.toString(),
+                              "..."
+                            )
+                          }
+                        )
+                      }}
+                    />
+                  </ActionDialog>
+                  <ActionDialog
+                    open={params.dialog === "publish"}
+                    confirmButtonState={"default"}
+                    onClose={closeModal}
+                    onConfirm={() => console.log(params.ids)}
+                    title={i18n.t("Publish products")}
+                  >
+                    <DialogContentText
+                      dangerouslySetInnerHTML={{
+                        __html: i18n.t(
+                          "Are you sure you want to publish <strong>{{ number }}</strong> products?",
+                          {
+                            number: maybe(
+                              () => params.ids.length.toString(),
+                              "..."
+                            )
+                          }
+                        )
+                      }}
+                    />
+                  </ActionDialog>
+                  <ActionDialog
+                    open={params.dialog === "unpublish"}
+                    confirmButtonState={"default"}
+                    onClose={closeModal}
+                    onConfirm={() => console.log(params.ids)}
+                    title={i18n.t("Unpublish products")}
+                  >
+                    <DialogContentText
+                      dangerouslySetInnerHTML={{
+                        __html: i18n.t(
+                          "Are you sure you want to unpublish <strong>{{ number }}</strong> products?",
+                          {
+                            number: maybe(
+                              () => params.ids.length.toString(),
+                              "..."
+                            )
+                          }
+                        )
+                      }}
+                    />
+                  </ActionDialog>
+                </>
+              );
+            }}
+          </TypedProductBulkDeleteMutation>
+        );
+      }}
+    </TypedProductListQuery>
+  );
+};
 export default ProductList;
