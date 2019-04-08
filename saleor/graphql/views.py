@@ -7,7 +7,7 @@ from django.shortcuts import render_to_response
 from django.views.generic import View
 from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
-from graphql import get_default_backend, GraphQLDocument
+from graphql import GraphQLDocument, get_default_backend
 from graphql.error import (
     GraphQLError, GraphQLSyntaxError, format_error as format_graphql_error)
 from graphql.execution import ExecutionResult

@@ -937,8 +937,8 @@ def test_order_add_note(
         mutation addNote($id: ID!, $message: String) {
             orderAddNote(order: $id, input: {message: $message}) {
                 errors {
-                field
-                message
+                    field
+                    message
                 }
                 order {
                     id

@@ -221,7 +221,7 @@ class ModelMutation(BaseMutation):
             arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, input):
+    def clean_input(cls, info, instance, raw_input):
         """Clean input data received from mutation arguments.
 
         Fields containing IDs or lists of IDs are automatically resolved into
@@ -253,8 +253,8 @@ class ModelMutation(BaseMutation):
         cleaned_input = {}
 
         for field_name, field in InputCls._meta.fields.items():
-            if field_name in input:
-                value = input[field_name]
+            if field_name in raw_input:
+                value = raw_input[field_name]
 
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field):
@@ -287,6 +287,17 @@ class ModelMutation(BaseMutation):
                 f.save_form_data(instance, cleaned_data[f.name])
 
     @classmethod
+    def user_is_allowed(cls, *args):
+        """Determine whether user has rights to perform this mutation.
+
+        Default implementation assumes that user is allowed to perform any
+        mutation. By overriding this method, you can restrict access to it.
+        `user` is the User instance associated with the request and `input` is
+        the input data provided as mutation arguments.
+        """
+        return True
+
+    @classmethod
     def success_response(cls, instance):
         """Return a success response."""
         return cls(**{cls._meta.return_field_name: instance, 'errors': []})
@@ -307,7 +318,7 @@ class ModelMutation(BaseMutation):
         return instance
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         """Perform model mutation.
 
         Depending on the input data, `mutate` either creates a new instance or
@@ -316,8 +327,8 @@ class ModelMutation(BaseMutation):
         created based on the model associated with this mutation.
         """
         instance = cls.get_instance(info, **data)
-        input_data = data.get('input')
-        cleaned_input = cls.clean_input(info, instance, input_data)
+        raw_input = data.get('input')
+        cleaned_input = cls.clean_input(info, instance, raw_input)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance)
         cls.save(info, instance, cleaned_input)

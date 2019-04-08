@@ -64,12 +64,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         model = models.Order
 
     @classmethod
-    def clean_input(cls, info, instance, input):
+    def clean_input(cls, info, instance, raw_input):
         shipping_address = input.pop('shipping_address', None)
         billing_address = input.pop('billing_address', None)
-        cleaned_input = super().clean_input(info, instance, input)
+        cleaned_input = super().clean_input(info, instance, raw_input)
 
-        lines = input.pop('lines', None)
+        lines = raw_input.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
             variants = cls.get_nodes_or_error(
@@ -102,7 +102,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -150,7 +150,7 @@ class DraftOrderDelete(ModelDeleteMutation):
         model = models.Order
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('order.manage_orders')
 
 
@@ -232,17 +232,17 @@ class DraftOrderLinesCreate(BaseMutation):
         description = 'Create order lines for a draft order.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, input):
-        order = cls.get_node_or_error(info, id, only_type=Order)
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_node_or_error(info, data.get('id'), only_type=Order)
         if order.status != OrderStatus.DRAFT:
             raise ValidationError({'id': 'Only draft orders can be edited.'})
 
         lines = []
-        for input_line in input:
+        for input_line in data.get('input'):
             variant_id = input_line['variant_id']
             variant = cls.get_node_or_error(
                 info, variant_id, 'variant_id', only_type=ProductVariant)
@@ -274,7 +274,7 @@ class DraftOrderLineDelete(BaseMutation):
         description = 'Deletes an order line from a draft order.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -306,16 +306,16 @@ class DraftOrderLineUpdate(ModelMutation):
         model = models.OrderLine
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, raw_input):
+        cleaned_input = super().clean_input(info, instance, raw_input)
         if instance.order.status != OrderStatus.DRAFT:
             raise ValidationError({'id': 'Only draft orders can be edited.'})
 
-        quantity = input['quantity']
+        quantity = raw_input['quantity']
         if quantity <= 0:
             raise ValidationError({
                 'quantity':

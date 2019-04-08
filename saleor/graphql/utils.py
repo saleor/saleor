@@ -1,10 +1,11 @@
+from typing import List
+
 import graphene
 from django.db.models import Q
 from django.utils import timezone
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
-from typing import List
 
 from .core.enums import PermissionEnum, ReportingPeriod
 from .core.types import PermissionDisplay
@@ -53,7 +54,7 @@ def _resolve_graphene_type(types: List):
     assert len(set(types)) == 1, 'Received IDs of more than one type.'
     # get type by name
     type_name = types[0]
-    for model, _type in registry._registry.items():
+    for _, _type in registry._registry.items():
         if _type._meta.name == type_name:
             return _type
 

@@ -22,7 +22,7 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
             raise ValidationError({'id': 'Cannot delete non-draft orders.'})
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('order.manage_orders')
 
 
