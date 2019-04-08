@@ -1,6 +1,7 @@
 from textwrap import dedent
 
 import graphene
+from django.core.exceptions import ValidationError
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
@@ -55,7 +56,7 @@ class DigitalContentCreate(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def clean_input(cls, info, input, instance, errors):
+    def clean_input(cls, info, input, instance):
         if hasattr(instance, 'digital_content'):
             instance.digital_content.delete()
 
@@ -68,40 +69,38 @@ class DigitalContentCreate(BaseMutation):
 
         if not all(field in input for field in required_fields):
             msg = ('Use default settings is disabled. Provide all '
-                   'configuration fields')
-            missing_field = set(required_fields).difference(set(input))
-            for field in missing_field:
-                cls.add_error(errors, field, msg)
+                   'missing configuration fields: ')
+            missing_fields = set(required_fields).difference(set(input))
+            if missing_fields:
+                msg += '{}, ' * len(missing_fields)
+                raise ValidationError(msg.format(*missing_fields))
 
         return input
 
     @classmethod
     @permission_required('product.manage_products')
-    def mutate(cls, root, info, variant_id, input):
-        errors = []
+    def perform_mutation(cls, root, info, variant_id, input):
         variant = cls.get_node_or_error(
-            info, variant_id, errors, 'id', only_type=ProductVariant)
+            info, variant_id, 'id', only_type=ProductVariant)
 
-        input = cls.clean_input(info, input, variant, errors)
-        digital_content = None
+        input = cls.clean_input(info, input, variant)
 
-        if not errors:
-            content_data = info.context.FILES.get(input['content_file'])
-            digital_content = models.DigitalContent(
-                content_file=content_data
-            )
-            digital_content.use_default_settings = input.get(
-                'use_default_settings', False)
+        content_data = info.context.FILES.get(input['content_file'])
+        digital_content = models.DigitalContent(
+            content_file=content_data
+        )
+        digital_content.use_default_settings = input.get(
+            'use_default_settings', False)
 
-            digital_content.max_downloads = input.get('max_downloads')
-            digital_content.url_valid_days = input.get('url_valid_days')
-            digital_content.automatic_fulfillment = input.get(
-                'automatic_fulfillment', False)
+        digital_content.max_downloads = input.get('max_downloads')
+        digital_content.url_valid_days = input.get('url_valid_days')
+        digital_content.automatic_fulfillment = input.get(
+            'automatic_fulfillment', False)
 
-            variant.digital_content = digital_content
-            variant.digital_content.save()
+        variant.digital_content = digital_content
+        variant.digital_content.save()
         return DigitalContentCreate(
-            content=digital_content, errors=errors)
+            content=digital_content)
 
 
 class DigitalContentDelete(BaseMutation):
@@ -120,14 +119,13 @@ class DigitalContentDelete(BaseMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, variant_id):
-        errors = []
         variant = cls.get_node_or_error(
-            info, variant_id, errors, 'id', only_type=ProductVariant)
+            info, variant_id, 'id', only_type=ProductVariant)
 
-        if hasattr(variant, 'digital_content') and not errors:
+        if hasattr(variant, 'digital_content'):
             variant.digital_content.delete()
 
-        return DigitalContentDelete(variant=variant, errors=errors)
+        return DigitalContentDelete(variant=variant)
 
 
 class DigitalContentUpdate(BaseMutation):
@@ -148,7 +146,7 @@ class DigitalContentUpdate(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def clean_input(cls, info, input, instance, errors):
+    def clean_input(cls, info, input):
         use_default_settings = input.get('use_default_settings')
         if use_default_settings:
             return {'use_default_settings': use_default_settings}
@@ -158,43 +156,41 @@ class DigitalContentUpdate(BaseMutation):
 
         if not all(field in input for field in required_fields):
             msg = ('Use default settings is disabled. Provide all '
-                   'configuration fields')
+                   'missing configuration fields: ')
             missing_fields = set(required_fields).difference(set(input))
-            for field in missing_fields:
-                cls.add_error(errors, field, msg)
+            if missing_fields:
+                msg += '{}, ' * len(missing_fields)
+                raise ValidationError(msg.format(*missing_fields))
 
         return input
 
     @classmethod
     @permission_required('product.manage_products')
-    def mutate(cls, root, info, variant_id, input):
-        errors = []
+    def perform_mutation(cls, root, info, variant_id, input):
         variant = cls.get_node_or_error(
-            info, variant_id, errors, 'id', only_type=ProductVariant)
+            info, variant_id, 'id', only_type=ProductVariant)
 
         if not hasattr(variant, 'digital_content'):
             msg = 'Variant %s doesn\'t have any digital content' % variant.id
-            cls.add_error(errors, 'variant_id', msg)
+            raise ValidationError({'variantId': msg})
 
-        input = cls.clean_input(info, input, variant, errors)
+        input = cls.clean_input(info, input)
 
-        digital_content = None
-        if not errors:
-            digital_content = variant.digital_content
+        digital_content = variant.digital_content
 
-            digital_content.use_default_settings = input.get(
-                'use_default_settings', False)
+        digital_content.use_default_settings = input.get(
+            'use_default_settings', False)
 
-            digital_content.max_downloads = input.get('max_downloads')
-            digital_content.url_valid_days = input.get('url_valid_days')
-            digital_content.automatic_fulfillment = input.get(
-                'automatic_fulfillment', False)
+        digital_content.max_downloads = input.get('max_downloads')
+        digital_content.url_valid_days = input.get('url_valid_days')
+        digital_content.automatic_fulfillment = input.get(
+            'automatic_fulfillment', False)
 
-            variant.digital_content = digital_content
-            variant.digital_content.save()
+        variant.digital_content = digital_content
+        variant.digital_content.save()
 
         return DigitalContentUpdate(
-            content=digital_content, variant=variant, errors=errors)
+            content=digital_content, variant=variant)
 
 
 class DigitalContentUrlCreateInput(graphene.InputObjectType):
