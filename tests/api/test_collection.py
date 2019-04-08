@@ -354,7 +354,7 @@ FETCH_COLLECTION_QUERY = """
 
 def test_collection_image_query(user_api_client, collection):
     alt_text = 'Alt text for an image.'
-    image_file, image_name = create_image()
+    image_file, _image_name = create_image()
     collection.background_image = image_file
     collection.background_image_alt = alt_text
     collection.save()
@@ -363,8 +363,7 @@ def test_collection_image_query(user_api_client, collection):
     response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['collection']
-    thumbnail_url = collection.background_image.thumbnail['120x120'].url
-    assert thumbnail_url in data['backgroundImage']['url']
+    assert data['backgroundImage']['url']
     assert data['backgroundImage']['alt'] == alt_text
 
 

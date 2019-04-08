@@ -40,7 +40,7 @@ const styles = (theme: Theme) =>
       margin: `${theme.spacing.unit * 3}px 0`
     },
     hr: {
-      backgroundColor: "#eaeaea",
+      backgroundColor: theme.overrides.MuiCard.root.borderColor,
       border: "none",
       height: 1,
       margin: `0 -${theme.spacing.unit * 3}px ${theme.spacing.unit * 3}px`
@@ -98,15 +98,29 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
       () => data.productType.value.productAttributes,
       []
     );
-    const getAttributeName = (slug: string) =>
-      unrolledAttributes.filter(a => a.slug === slug)[0].name;
+    const getAttributeName = (slug: string) => {
+      const match = unrolledAttributes.find(a => a.slug === slug);
+      if (!match) {
+        return "";
+      }
+      return match.name;
+    };
     const getAttributeValue = (slug: string) => {
       if (unrolledAttributes.length > 0) {
-        const value = data.attributes.filter(a => a.slug === slug)[0];
-        const matches = unrolledAttributes
-          .filter(a => a.slug === slug)[0]
-          .values.filter(v => v.slug === value.value);
-        const label = matches.length > 0 ? matches[0].name : value.value;
+        const value = data.attributes.find(a => a.slug === slug);
+        const attributeMatch = unrolledAttributes.find(a => a.slug === slug);
+        if (!attributeMatch) {
+          return {
+            label: "",
+            value: ""
+          };
+        }
+        const attributeValueMatch = attributeMatch.values.find(
+          v => v.slug === value.value
+        );
+        const label = !!attributeValueMatch
+          ? attributeValueMatch.name
+          : value.value;
         return {
           label,
           value
@@ -117,8 +131,14 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
         value: ""
       };
     };
-    const getAttributeValues = (slug: string) =>
-      unrolledAttributes.filter(a => a.slug === slug)[0].values;
+    const getAttributeValues = (slug: string) => {
+      const match = unrolledAttributes.find(a => a.slug === slug);
+      if (match) {
+        return match.values;
+      }
+
+      return [];
+    };
     const handleProductTypeSelect = (
       event: React.ChangeEvent<{
         name: string;

@@ -363,6 +363,68 @@ class ModelDeleteMutation(ModelMutation):
         return cls.success_response(instance)
 
 
+class BaseBulkMutation(BaseMutation):
+    count = graphene.Int(
+        required=True, description='Returns how many objects were affected.')
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, model=None, _meta=None, **kwargs):
+        if not model:
+            raise ImproperlyConfigured('model is required for bulk mutation')
+        if not _meta:
+            _meta = ModelMutationOptions(cls)
+        _meta.model = model
+
+        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+
+    @classmethod
+    def user_is_allowed(cls, user, ids):
+        """Determine whether user has rights to perform this mutation.
+
+        Default implementation assumes that user is allowed to perform any
+        mutation. By overriding this method, you can restrict access to it.
+        `user` is the User instance associated with the request and `input` is
+        the input data provided as mutation arguments.
+        """
+        return True
+
+
+class ModelBulkDeleteMutation(BaseBulkMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def clean_instance(cls, info, instance, errors):
+        """Perform additional logic before deleting the model instance.
+
+        Override this method to raise custom validation error and abort
+        the deletion process.
+        """
+
+    @classmethod
+    def mutate(cls, root, info, ids):
+        """Perform a mutation that deletes a list of model instances."""
+        if not cls.user_is_allowed(info.context.user, ids):
+            raise PermissionDenied()
+
+        count, errors = 0, []
+        model_type = registry.get_type_for_model(cls._meta.model)
+        instances = cls.get_nodes_or_error(ids, errors, 'id', model_type)
+        for instance in instances:
+            instance_errors = []
+            cls.clean_instance(info, instance, instance_errors)
+
+            if not instance_errors:
+                instance.delete()
+                count += 1
+            errors.extend(instance_errors)
+
+        return cls(count=count, errors=errors)
+
+
 class CreateToken(ObtainJSONWebToken):
     """Mutation that authenticates a user and returns token and user data.
 

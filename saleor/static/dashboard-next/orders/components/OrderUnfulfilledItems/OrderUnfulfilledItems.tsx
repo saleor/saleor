@@ -115,7 +115,7 @@ const OrderUnfulfilledItems = withStyles(styles, {
     </Table>
     {canFulfill && (
       <CardActions>
-        <Button variant="text" color="secondary" onClick={onFulfill}>
+        <Button variant="text" color="primary" onClick={onFulfill}>
           {i18n.t("Fulfill", {
             context: "button"
           })}

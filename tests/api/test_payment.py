@@ -158,6 +158,21 @@ def test_payment_capture_success(
     assert_read_only_mode(response)
 
 
+def test_payment_capture_with_invalid_argument(
+        staff_api_client, permission_manage_orders, payment_txn_preauth):
+    payment = payment_txn_preauth
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment_txn_preauth.pk)
+
+    variables = {
+        'paymentId': payment_id,
+        'amount': 0}
+    response = staff_api_client.post_graphql(
+        CAPTURE_QUERY, variables, permissions=[permission_manage_orders])
+    assert_read_only_mode(response)
+
+
 def test_payment_capture_gateway_error(
         staff_api_client, permission_manage_orders, payment_txn_preauth,
         monkeypatch):
@@ -203,6 +218,23 @@ def test_payment_refund_success(
     variables = {
         'paymentId': payment_id,
         'amount': str(payment.total)}
+    response = staff_api_client.post_graphql(
+        REFUND_QUERY, variables, permissions=[permission_manage_orders])
+    assert_read_only_mode(response)
+
+
+def test_payment_refund_with_invalid_argument(
+        staff_api_client, permission_manage_orders, payment_txn_captured):
+    payment = payment_txn_captured
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment.pk)
+
+    variables = {
+        'paymentId': payment_id,
+        'amount': 0}
     response = staff_api_client.post_graphql(
         REFUND_QUERY, variables, permissions=[permission_manage_orders])
     assert_read_only_mode(response)

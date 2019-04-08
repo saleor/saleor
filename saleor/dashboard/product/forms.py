@@ -10,7 +10,6 @@ from django.utils.translation import pgettext_lazy
 from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
 
-from . import ProductBulkAction
 from ...core import TaxRateType
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...core.weight import WeightField
@@ -24,6 +23,7 @@ from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
 from ..widgets import RichTextEditorWidget
+from . import ProductBulkAction
 from .widgets import ImagePreviewWidget
 
 
@@ -259,7 +259,8 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         product_type = self.instance.product_type
-        self.initial['tax_rate'] = product_type.tax_rate
+        self.initial['tax_rate'] = (
+            self.instance.tax_rate or product_type.tax_rate)
         self.available_attributes = (
             product_type.product_attributes.prefetch_related('values').all())
         self.prepare_fields_for_attributes()

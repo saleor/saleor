@@ -17,9 +17,9 @@ from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
-from ...core.utils import clean_seo_fields
+from ...core.utils import clean_seo_fields, validate_image_file
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
-from ..utils import attributes_to_hstore, validate_image_file
+from ..utils import attributes_to_hstore
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -582,6 +582,9 @@ class ProductTypeInput(graphene.InputObjectType):
     is_shipping_required = graphene.Boolean(
         description=dedent("""Determines if shipping is required for products
         of this variant."""))
+    is_digital = graphene.Boolean(
+        description=dedent("Determines if products are digital."),
+        required=False)
     weight = WeightScalar(description='Weight of the ProductType items.')
     tax_rate = TaxRateType(description='A type of goods.')
 

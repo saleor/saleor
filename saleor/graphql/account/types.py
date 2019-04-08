@@ -10,7 +10,7 @@ from ...core.permissions import get_permissions
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import CountryDisplay, PermissionDisplay
+from ..core.types import Image, CountryDisplay, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 
@@ -31,6 +31,12 @@ class AddressInput(graphene.InputObjectType):
 class Address(CountableDjangoObjectType):
     country = graphene.Field(
         CountryDisplay, required=True, description='Default shop\'s country')
+    is_default_shipping_address = graphene.Boolean(
+        required=False,
+        description='Address is user\'s default shipping address')
+    is_default_billing_address = graphene.Boolean(
+        required=False,
+        description='Address is user\'s default billing address')
 
     class Meta:
         exclude_fields = ['user_set', 'user_addresses']
@@ -41,6 +47,38 @@ class Address(CountableDjangoObjectType):
     def resolve_country(self, info):
         return CountryDisplay(
             code=self.country.code, country=self.country.name)
+
+    def resolve_is_default_shipping_address(self, info):
+        """
+        This field is added through annotation when using the
+        `resolve_addresses` resolver. It's invalid for
+        `resolve_default_shipping_address` and
+        `resolve_default_billing_address`
+        """
+        if not hasattr(self, 'user_default_shipping_address_pk'):
+            return None
+
+        user_default_shipping_address_pk = getattr(
+            self, 'user_default_shipping_address_pk')
+        if user_default_shipping_address_pk == self.pk:
+            return True
+        return False
+
+    def resolve_is_default_billing_address(self, info):
+        """
+        This field is added through annotation when using the
+        `resolve_addresses` resolver. It's invalid for
+        `resolve_default_shipping_address` and
+        `resolve_default_billing_address`
+        """
+        if not hasattr(self, 'user_default_billing_address_pk'):
+            return None
+
+        user_default_billing_address_pk = getattr(
+            self, 'user_default_billing_address_pk')
+        if user_default_billing_address_pk == self.pk:
+            return True
+        return False
 
 
 class User(CountableDjangoObjectType):
@@ -58,6 +96,8 @@ class User(CountableDjangoObjectType):
         model_field='orders')
     permissions = graphene.List(
         PermissionDisplay, description='List of user\'s permissions.')
+    avatar = graphene.Field(
+        Image, size=graphene.Int(description='Size of the avatar.'))
 
     class Meta:
         exclude_fields = [
@@ -67,7 +107,7 @@ class User(CountableDjangoObjectType):
         model = get_user_model()
 
     def resolve_addresses(self, info, **kwargs):
-        return self.addresses.all()
+        return self.addresses.annotate_default(self).all()
 
     def resolve_checkout(self, info, **kwargs):
         return get_user_cart(self)
@@ -89,6 +129,16 @@ class User(CountableDjangoObjectType):
         if viewer.has_perm('order.manage_orders'):
             return self.orders.all()
         return self.orders.confirmed()
+
+    def resolve_avatar(self, info, size=None, **kwargs):
+        if self.avatar:
+            return Image.get_adjusted(
+                image=self.avatar,
+                alt=None,
+                size=size,
+                rendition_key_set='user_avatars',
+                info=info,
+            )
 
 
 class AddressValidationInput(graphene.InputObjectType):

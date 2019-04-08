@@ -4,7 +4,13 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { customerAddPath, customerListPath, customerPath } from "./urls";
+import {
+  customerAddPath,
+  customerAddressesPath,
+  customerListPath,
+  customerPath
+} from "./urls";
+import CustomerAddressesViewComponent from "./views/CustomerAddresses";
 import CustomerCreateView from "./views/CustomerCreate";
 import CustomerDetailsViewComponent from "./views/CustomerDetails";
 import CustomerListViewComponent, {
@@ -31,12 +37,25 @@ const CustomerDetailsView: React.StatelessComponent<
   <CustomerDetailsViewComponent id={decodeURIComponent(match.params.id)} />
 );
 
+interface CustomerAddressesRouteParams {
+  id: string;
+}
+const CustomerAddressesView: React.StatelessComponent<
+  RouteComponentProps<CustomerAddressesRouteParams>
+> = ({ match }) => (
+  <CustomerAddressesViewComponent id={decodeURIComponent(match.params.id)} />
+);
+
 export const CustomerSection: React.StatelessComponent<{}> = () => (
   <>
     <WindowTitle title={i18n.t("Customers")} />
     <Switch>
       <Route exact path={customerListPath} component={CustomerListView} />
       <Route exact path={customerAddPath} component={CustomerCreateView} />
+      <Route
+        path={customerAddressesPath(":id")}
+        component={CustomerAddressesView}
+      />
       <Route path={customerPath(":id")} component={CustomerDetailsView} />
     </Switch>
   </>

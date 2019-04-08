@@ -1,6 +1,7 @@
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -58,6 +59,7 @@ const SiteSettingsPage: React.StatelessComponent<SiteSettingsPageProps> = ({
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
           <PageHeader
             title={i18n.t("General Information", {
               context: "page header"

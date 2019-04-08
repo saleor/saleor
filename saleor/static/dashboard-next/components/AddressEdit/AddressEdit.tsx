@@ -10,6 +10,7 @@ import * as React from "react";
 import { AddressTypeInput } from "../../customers/types";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
+import { FormErrors } from "../../types";
 import FormSpacer from "../FormSpacer";
 import SingleAutocompleteSelectField from "../SingleAutocompleteSelectField";
 
@@ -29,7 +30,7 @@ interface AddressEditProps extends WithStyles<typeof styles> {
   }>;
   data: AddressTypeInput;
   disabled?: boolean;
-  errors: { [T in keyof AddressTypeInput]?: string };
+  errors: FormErrors<keyof AddressTypeInput>;
   onChange(event: React.ChangeEvent<any>);
 }
 
@@ -161,6 +162,9 @@ const AddressEdit = withStyles(styles, { name: "AddressEdit" })(
               () => countries.map(c => ({ ...c, value: c.code })),
               []
             )}
+            InputProps={{
+              autoComplete: "off"
+            }}
           />
         </div>
         <div>

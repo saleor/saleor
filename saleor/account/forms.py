@@ -5,8 +5,8 @@ from django.contrib.auth import forms as django_forms, update_session_auth_hash
 from django.utils.translation import pgettext, pgettext_lazy
 from phonenumbers.phonenumberutil import country_code_for_region
 
-from . import emails
 from ..account.models import User
+from . import emails
 from .i18n import AddressMetaForm, get_address_form_class
 
 

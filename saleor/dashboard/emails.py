@@ -13,7 +13,7 @@ from ..core.utils import build_absolute_uri
 
 def _send_set_password_email(pk, template_name):
     user = User.objects.get(pk=pk)
-    uid = urlsafe_base64_encode(force_bytes(user.pk)).decode()
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     password_set_url = build_absolute_uri(
         reverse(

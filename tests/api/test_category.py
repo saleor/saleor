@@ -338,7 +338,7 @@ FETCH_CATEGORY_QUERY = """
 def test_category_image_query(user_api_client, non_default_category):
     alt_text = 'Alt text for an image.'
     category = non_default_category
-    image_file, image_name = create_image()
+    image_file, _image_name = create_image()
     category.background_image = image_file
     category.background_image_alt = alt_text
     category.save()
@@ -347,8 +347,7 @@ def test_category_image_query(user_api_client, non_default_category):
     response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['category']
-    thumbnail_url = category.background_image.thumbnail['120x120'].url
-    assert thumbnail_url in data['backgroundImage']['url']
+    assert data['backgroundImage']['url']
     assert data['backgroundImage']['alt'] == alt_text
 
 

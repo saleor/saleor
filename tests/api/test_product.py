@@ -883,6 +883,7 @@ def test_update_product_without_variants_sku_duplication(
     assert_read_only_mode(response)
 
 
+
 def test_delete_product(staff_api_client, product, permission_manage_products):
     query = """
         mutation DeleteProduct($id: ID!) {
@@ -1119,7 +1120,6 @@ def test_product_image_create_mutation(
         }
     }
     """
-
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.graphql.product.mutations.products.'
@@ -1641,3 +1641,24 @@ def test_variant_margin_permissions(
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
     assert 'margin' in content['data']['productVariant']
+
+
+def test_variant_digital_content(
+        staff_api_client, permission_manage_products, digital_content):
+    query = """
+    query Margin($id: ID!) {
+        productVariant(id: $id) {
+            digitalContent{
+                id
+            }
+        }
+    }
+    """
+    variant = digital_content.product_variant
+    variables = {
+        'id': graphene.Node.to_global_id('ProductVariant', variant.pk)}
+    permissions = [permission_manage_products, ]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert 'digitalContent' in content['data']['productVariant']
+    assert 'id' in content['data']['productVariant']['digitalContent']

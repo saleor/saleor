@@ -2,9 +2,9 @@ from django.contrib.sites.models import Site
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
-from . import AuthenticationBackends
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits
+from . import AuthenticationBackends
 from .patch_sites import patch_contrib_sites
 
 patch_contrib_sites()
@@ -31,7 +31,9 @@ class SiteSettings(models.Model):
     default_weight_unit = models.CharField(
         max_length=10, choices=WeightUnits.CHOICES,
         default=WeightUnits.KILOGRAM)
-
+    automatic_fulfillment_digital_products = models.BooleanField(default=False)
+    default_digital_max_downloads = models.IntegerField(blank=True, null=True)
+    default_digital_url_valid_days = models.IntegerField(blank=True, null=True)
     translated = TranslationProxy()
 
     class Meta:

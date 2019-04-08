@@ -11,6 +11,8 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
+import { FormErrors } from "../../../types";
+import { CustomerCreatePageFormData } from "../CustomerCreatePage";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -23,17 +25,9 @@ const styles = (theme: Theme) =>
   });
 
 export interface CustomerCreateDetailsProps extends WithStyles<typeof styles> {
-  data: {
-    email: string;
-    firstName: string;
-    lastName: string;
-  };
+  data: CustomerCreatePageFormData;
   disabled: boolean;
-  errors: Partial<{
-    email: string;
-    firstName: string;
-    lastName: string;
-  }>;
+  errors: FormErrors<"customerFirstName" | "customerLastName" | "email">;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -53,24 +47,24 @@ const CustomerCreateDetails = withStyles(styles, {
         <div className={classes.root}>
           <TextField
             disabled={disabled}
-            error={!!errors.firstName}
+            error={!!errors.customerFirstName}
             fullWidth
-            name="firstName"
+            name="customerFirstName"
             label={i18n.t("First Name")}
-            helperText={errors.firstName}
+            helperText={errors.customerFirstName}
             type="text"
-            value={data.email}
+            value={data.customerFirstName}
             onChange={onChange}
           />
           <TextField
             disabled={disabled}
-            error={!!errors.lastName}
+            error={!!errors.customerLastName}
             fullWidth
-            name="lastName"
+            name="customerLastName"
             label={i18n.t("Last Name")}
-            helperText={errors.lastName}
+            helperText={errors.customerLastName}
             type="text"
-            value={data.lastName}
+            value={data.customerLastName}
             onChange={onChange}
           />
           <TextField

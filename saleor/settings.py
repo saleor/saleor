@@ -73,6 +73,7 @@ LANGUAGES = [
     ('fr', _('French')),
     ('hi', _('Hindi')),
     ('hu', _('Hungarian')),
+    ('hy', _('Armenian')),
     ('id', _('Indonesian')),
     ('it', _('Italian')),
     ('ja', _('Japanese')),
@@ -81,12 +82,15 @@ LANGUAGES = [
     ('nb', _('Norwegian')),
     ('nl', _('Dutch')),
     ('pl', _('Polish')),
+    ('pt', _('Portuguese')),
     ('pt-br', _('Brazilian Portuguese')),
     ('ro', _('Romanian')),
     ('ru', _('Russian')),
     ('sk', _('Slovak')),
     ('sr', _('Serbian')),
+    ('sw', _('Swahili')),
     ('sv', _('Swedish')),
+    ('th', _('Thai')),
     ('tr', _('Turkish')),
     ('uk', _('Ukrainian')),
     ('vi', _('Vietnamese')),
@@ -415,7 +419,11 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_list', 'thumbnail__255x255'),
         ('product_list_2x', 'thumbnail__510x510')],
     'background_images': [
-        ('header_image', 'thumbnail__1080x440')]}
+        ('header_image', 'thumbnail__1080x440')],
+    'user_avatars': [
+        ('default', 'thumbnail__445x445'),
+    ],
+}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment

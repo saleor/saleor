@@ -59,7 +59,7 @@ const ShippingWeightUnitForm: React.StatelessComponent<
           </CardContent>
           <Hr />
           <CardActions>
-            <Button color="secondary" onClick={submit}>
+            <Button color="primary" onClick={submit}>
               {i18n.t("Save", {
                 context: "button"
               })}

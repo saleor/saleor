@@ -1,24 +1,25 @@
 import json
 import re
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
-import pytest
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.files import File
 from django.shortcuts import reverse
 
-from saleor.account.models import Address, User
+from saleor.account.models import User
 from saleor.checkout import AddressType
 from saleor.graphql.account.mutations import (
-    CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
+    CustomerDelete, StaffDelete, StaffUpdate, UserDelete)
 from saleor.graphql.core.enums import PermissionEnum
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
-
+from tests.utils import create_image
 from .utils import (
     assert_no_permission, assert_read_only_mode,
-    convert_dict_keys_to_camel_case)
+    convert_dict_keys_to_camel_case,
+    get_multipart_request_body,
+)
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -92,8 +93,18 @@ def test_token_create_user_data(
     assert token_data['user']['permissions'][0]['code'] == 'MANAGE_ORDERS'
 
 
-def test_query_user(staff_api_client, customer_user, permission_manage_users):
+def test_query_user(
+        staff_api_client, customer_user, address, permission_manage_users):
     user = customer_user
+    user.default_shipping_address.country = 'US'
+    user.default_shipping_address.save()
+    user.addresses.add(address.get_copy())
+
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = 'image.jpg'
+    user.avatar = avatar_mock
+    user.save()
+
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -104,6 +115,8 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
             isActive
             addresses {
                 id
+                isDefaultShippingAddress
+                isDefaultBillingAddress
             }
             orders {
                 totalCount
@@ -124,6 +137,28 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
                 country {
                     code
                 }
+                isDefaultShippingAddress
+                isDefaultBillingAddress
+            }
+            defaultBillingAddress {
+                firstName
+                lastName
+                companyName
+                streetAddress1
+                streetAddress2
+                city
+                cityArea
+                postalCode
+                countryArea
+                phone
+                country {
+                    code
+                }
+                isDefaultShippingAddress
+                isDefaultBillingAddress
+            }
+            avatar {
+                url
             }
         }
     }
@@ -139,8 +174,20 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert data['lastName'] == user.last_name
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
-    assert len(data['addresses']) == user.addresses.count()
     assert data['orders']['totalCount'] == user.orders.count()
+    assert data['avatar']['url']
+
+    assert len(data['addresses']) == user.addresses.count()
+    for address in data['addresses']:
+        if address['isDefaultShippingAddress']:
+            address_id = graphene.Node.to_global_id(
+                'Address', user.default_shipping_address.id)
+            assert address['id'] == address_id
+        if address['isDefaultBillingAddress']:
+            address_id = graphene.Node.to_global_id(
+                'Address', user.default_billing_address.id)
+            assert address['id'] == address_id
+
     address = data['defaultShippingAddress']
     user_address = user.default_shipping_address
     assert address['firstName'] == user_address.first_name
@@ -154,6 +201,24 @@ def test_query_user(staff_api_client, customer_user, permission_manage_users):
     assert address['country']['code'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
     assert address['phone'] == user_address.phone.as_e164
+    assert address['isDefaultShippingAddress'] is None
+    assert address['isDefaultBillingAddress'] is None
+
+    address = data['defaultBillingAddress']
+    user_address = user.default_billing_address
+    assert address['firstName'] == user_address.first_name
+    assert address['lastName'] == user_address.last_name
+    assert address['companyName'] == user_address.company_name
+    assert address['streetAddress1'] == user_address.street_address_1
+    assert address['streetAddress2'] == user_address.street_address_2
+    assert address['city'] == user_address.city
+    assert address['cityArea'] == user_address.city_area
+    assert address['postalCode'] == user_address.postal_code
+    assert address['country']['code'] == user_address.country.code
+    assert address['countryArea'] == user_address.country_area
+    assert address['phone'] == user_address.phone.as_e164
+    assert address['isDefaultShippingAddress'] is None
+    assert address['isDefaultBillingAddress'] is None
 
 
 USER_QUERY = """
@@ -632,6 +697,9 @@ def test_staff_create(
                 permissions {
                     code
                 }
+                avatar {
+                    url
+                }
             }
         }
     }
@@ -713,7 +781,7 @@ def test_user_delete_errors(staff_user, admin_user):
     errors = []
     UserDelete.clean_instance(info, admin_user, errors)
     assert errors[0].field == 'id'
-    assert errors[0].message == 'Only superuser can delete his own account.'
+    assert errors[0].message == 'Cannot delete this account.'
 
 
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
@@ -818,18 +886,21 @@ def test_create_address_mutation(
         staff_api_client, customer_user, permission_manage_users):
     query = """
     mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
-        addressCreate(input: {userId: $user, city: $city, country: $country}) {
-         errors {
-            field
-            message
-         }
-         address {
-            id
-            city
-            country {
-                code
+        addressCreate(userId: $user, input: {city: $city, country: $country}) {
+            errors {
+                field
+                message
             }
-         }
+            address {
+                id
+                city
+                country {
+                    code
+                }
+            }
+            user {
+                id
+            }
         }
     }
     """
@@ -845,6 +916,9 @@ ADDRESS_UPDATE_MUTATION = """
         addressUpdate(id: $addressId, input: $address) {
             address {
                 city
+            }
+            user {
+                id
             }
         }
     }
@@ -901,6 +975,9 @@ ADDRESS_DELETE_MUTATION = """
             address {
                 city
             }
+            user {
+                id
+            }
         }
     }
 """
@@ -931,6 +1008,47 @@ def test_customer_delete_address_for_other(
     assert customer_user not in address_obj.user_addresses.all()
     variables = {'id': graphene.Node.to_global_id('Address', address_obj.id)}
     response = user_api_client.post_graphql(query, variables)
+    assert_read_only_mode(response)
+
+
+SET_DEFAULT_ADDRESS_MUTATION = """
+mutation($address_id: ID!, $user_id: ID!, $type: AddressTypeEnum!) {
+  addressSetDefault(addressId: $address_id, userId: $user_id, type: $type) {
+    errors {
+      field
+      message
+    }
+    user {
+      defaultBillingAddress {
+        id
+      }
+      defaultShippingAddress {
+        id
+      }
+    }
+  }
+}
+"""
+
+
+def test_set_default_address(
+        staff_api_client, address_other_country, customer_user,
+        permission_manage_users):
+    customer_user.default_billing_address = None
+    customer_user.default_shipping_address = None
+    customer_user.save()
+
+    # try to set an address that doesn't belong to that user
+    address = address_other_country
+
+    variables = {
+        'address_id': graphene.Node.to_global_id('Address', address.id),
+        'user_id': graphene.Node.to_global_id('User', customer_user.id),
+        'type': AddressType.SHIPPING.upper()}
+
+    response = staff_api_client.post_graphql(
+        SET_DEFAULT_ADDRESS_MUTATION, variables,
+        permissions=[permission_manage_users])
     assert_read_only_mode(response)
 
 
@@ -1158,4 +1276,91 @@ def test_customer_change_default_address_invalid_address(
         'id': graphene.Node.to_global_id('Address', address_other_country.id),
         'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert_read_only_mode(response)
+
+
+USER_AVATAR_UPDATE_MUTATION = """
+    mutation userAvatarUpdate($image: Upload!) {
+        userAvatarUpdate(image: $image) {
+            user {
+                avatar {
+                    url
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_avatar_update_mutation_permission(api_client):
+    """ Should raise error if user is not staff. """
+
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    image_file, image_name = create_image('avatar')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = api_client.post_multipart(body)
+    assert_no_permission(response)
+
+
+def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    user = staff_api_client.user
+
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.graphql.account.mutations.'
+         'create_user_avatar_thumbnails.delay'),
+        mock_create_thumbnails)
+
+    image_file, image_name = create_image('avatar')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(body)
+    assert_read_only_mode(response)
+
+
+def test_user_avatar_update_mutation_image_exists(staff_api_client):
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = 'image.jpg'
+    user.avatar = avatar_mock
+    user.save()
+
+    image_file, image_name = create_image('new_image')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(body)
+    assert_read_only_mode(response)
+
+
+USER_AVATAR_DELETE_MUTATION = """
+    mutation userAvatarDelete {
+        userAvatarDelete {
+            user {
+                avatar {
+                    url
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_avatar_delete_mutation_permission(api_client):
+    """ Should raise error if user is not staff. """
+    query = USER_AVATAR_DELETE_MUTATION
+    response = api_client.post_graphql(query)
+    assert_no_permission(response)
+
+
+def test_user_avatar_delete_mutation(staff_api_client):
+    query = USER_AVATAR_DELETE_MUTATION
+    user = staff_api_client.user
+    response = staff_api_client.post_graphql(query)
     assert_read_only_mode(response)

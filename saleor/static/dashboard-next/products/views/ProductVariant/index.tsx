@@ -2,7 +2,6 @@ import * as React from "react";
 import { Route } from "react-router-dom";
 
 import * as placeholderImg from "../../../../images/placeholder255x255.png";
-import ErrorMessageCard from "../../../components/ErrorMessageCard";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
 import { WindowTitle } from "../../../components/WindowTitle";
@@ -13,7 +12,11 @@ import ProductVariantPage from "../../components/ProductVariantPage";
 import ProductVariantOperations from "../../containers/ProductVariantOperations";
 import { TypedProductVariantQuery } from "../../queries";
 import { VariantUpdate } from "../../types/VariantUpdate";
-import { productUrl, productVariantEditUrl } from "../../urls";
+import {
+  productUrl,
+  productVariantAddUrl,
+  productVariantEditUrl
+} from "../../urls";
 import { productVariantRemovePath, productVariantRemoveUrl } from "./urls";
 
 interface ProductUpdateProps {
@@ -46,10 +49,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
             variables={{ id: variantId }}
             require={["productVariant"]}
           >
-            {({ data, loading, error }) => {
-              if (error) {
-                return <ErrorMessageCard message="Something went wrong" />;
-              }
+            {({ data, loading }) => {
               const variant = data ? data.productVariant : undefined;
               const handleBack = () => navigate(productUrl(productId));
               const handleDelete = () => {
@@ -133,6 +133,9 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           variant={variant}
                           header={
                             variant ? variant.name || variant.sku : undefined
+                          }
+                          onAdd={() =>
+                            navigate(productVariantAddUrl(productId))
                           }
                           onBack={handleBack}
                           onDelete={() =>

@@ -24,8 +24,8 @@ const styles = (theme: Theme) =>
           display: "block"
         }
       },
-      background: "#ffffff",
-      border: "1px solid #eaeaea",
+      background: theme.palette.background.paper,
+      border: `1px solid ${theme.overrides.MuiCard.root.borderColor}`,
       borderRadius: theme.spacing.unit,
       height: 148,
       overflow: "hidden",
@@ -64,12 +64,12 @@ const ImageTile = withStyles(styles, { name: "ImageTile" })(
       <div className={classes.imageOverlay}>
         <div className={classes.imageOverlayToolbar}>
           {onImageEdit && (
-            <IconButton color="secondary" onClick={onImageEdit}>
+            <IconButton color="primary" onClick={onImageEdit}>
               <EditIcon />
             </IconButton>
           )}
           {onImageDelete && (
-            <IconButton color="secondary" onClick={onImageDelete}>
+            <IconButton color="primary" onClick={onImageDelete}>
               <DeleteIcon />
             </IconButton>
           )}

@@ -2,7 +2,8 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
-from ..translations.mutations import VoucherTranslate
+from ..translations.mutations import SaleTranslate, VoucherTranslate
+from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .mutations import (
     SaleAddCatalogues, SaleCreate, SaleDelete, SaleRemoveCatalogues,
     SaleUpdate, VoucherAddCatalogues, VoucherCreate, VoucherDelete,
@@ -47,12 +48,15 @@ class DiscountQueries(graphene.ObjectType):
 class DiscountMutations(graphene.ObjectType):
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
+    sale_bulk_delete = SaleBulkDelete.Field()
     sale_update = SaleUpdate.Field()
     sale_catalogues_add = SaleAddCatalogues.Field()
     sale_catalogues_remove = SaleRemoveCatalogues.Field()
+    sale_translate = SaleTranslate.Field()
 
     voucher_create = VoucherCreate.Field()
     voucher_delete = VoucherDelete.Field()
+    voucher_bulk_delete = VoucherBulkDelete.Field()
     voucher_update = VoucherUpdate.Field()
     voucher_catalogues_add = VoucherAddCatalogues.Field()
     voucher_catalogues_remove = VoucherRemoveCatalogues.Field()

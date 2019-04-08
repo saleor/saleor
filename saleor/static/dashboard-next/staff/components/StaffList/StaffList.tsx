@@ -18,12 +18,7 @@ import * as React from "react";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import {
-  getUserInitials,
-  getUserName,
-  maybe,
-  renderCollection
-} from "../../../misc";
+import { getUserName, maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
@@ -31,7 +26,6 @@ const styles = (theme: Theme) =>
   createStyles({
     avatar: {
       alignItems: "center",
-      backgroundColor: theme.palette.primary.main,
       borderRadius: "100%",
       display: "grid",
       float: "left",
@@ -40,10 +34,9 @@ const styles = (theme: Theme) =>
       marginRight: theme.spacing.unit * 1 + "px",
       width: 37
     },
-    avatarText: {
-      color: "#ffffff",
-      fontSize: 18,
-      pointerEvents: "none"
+    avatarImage: {
+      pointerEvents: "none",
+      width: "100%"
     },
     statusText: {
       color: "#9E9D9D"
@@ -111,9 +104,10 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
               >
                 <TableCell>
                   <div className={classes.avatar}>
-                    <Typography className={classes.avatarText}>
-                      {getUserInitials(staffMember)}
-                    </Typography>
+                    <img
+                      className={classes.avatarImage}
+                      src={maybe(() => staffMember.avatar.url)}
+                    />
                   </div>
                   <Typography>
                     {getUserName(staffMember) || <Skeleton />}

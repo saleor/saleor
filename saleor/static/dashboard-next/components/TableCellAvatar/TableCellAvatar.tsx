@@ -10,13 +10,13 @@ import Cached from "@material-ui/icons/Cached";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import NoPhoto from "../../icons/NoPhoto";
+import Image from "../../icons/Image";
 
 const styles = (theme: Theme) =>
   createStyles({
     avatar: {
       background: "none",
-      border: "1px solid #eaeaea",
+      border: `1px solid ${theme.overrides.MuiCard.root.borderColor}`,
       borderRadius: 2,
       color: "#bdbdbd",
       padding: theme.spacing.unit / 2
@@ -39,11 +39,11 @@ const TableCellAvatar = withStyles(styles, { name: "TableCellAvatar" })(
     <TableCell className={classNames(classes.root, className)}>
       {thumbnail === undefined ? (
         <Avatar className={classNames(classes.avatar, avatarProps)}>
-          <Cached />
+          <Cached color="primary" />
         </Avatar>
       ) : thumbnail === null ? (
         <Avatar className={classNames(classes.avatar, avatarProps)}>
-          <NoPhoto />
+          <Image color="primary" />
         </Avatar>
       ) : (
         <Avatar

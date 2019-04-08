@@ -3519,8 +3519,8 @@
     "fields": {
       "slug": "bottle-size",
       "name": "Size",
-      "product_type": 11,
-      "product_variant_type": null
+      "product_type": null,
+      "product_variant_type": 9
     }
   },
   {

@@ -9,7 +9,6 @@ import {
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import { FormSpacer } from "../../../components/FormSpacer";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
@@ -22,7 +21,8 @@ const styles = (theme: Theme) =>
     },
     grid: {
       display: "grid",
-      gridGap: `${theme.spacing.unit * 2}px`,
+      gridColumnGap: `${theme.spacing.unit * 2}px`,
+      gridRowGap: `${theme.spacing.unit * 3}px`,
       gridTemplateColumns: "1fr 1fr"
     }
   });
@@ -117,19 +117,16 @@ const ProductVariantAttributes = withStyles(styles, {
                 });
 
               return (
-                <React.Fragment key={index}>
-                  <SingleAutocompleteSelectField
-                    disabled={disabled}
-                    name={item.slug}
-                    label={item.name}
-                    onChange={handleAttributeValueSelect}
-                    value={getAttributeValue(item.slug)}
-                    choices={getAttributeValues(item.slug)}
-                    key={index}
-                    custom
-                  />
-                  <FormSpacer />
-                </React.Fragment>
+                <SingleAutocompleteSelectField
+                  key={index}
+                  disabled={disabled}
+                  name={item.slug}
+                  label={item.name}
+                  onChange={handleAttributeValueSelect}
+                  value={getAttributeValue(item.slug)}
+                  choices={getAttributeValues(item.slug)}
+                  custom
+                />
               );
             })
           )}

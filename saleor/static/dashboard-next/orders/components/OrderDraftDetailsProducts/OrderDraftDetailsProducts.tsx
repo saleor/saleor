@@ -153,7 +153,7 @@ const OrderDraftDetailsProducts = withStyles(styles, {
               </TableCell>
               <TableCell className={classes.iconCell}>
                 <IconButton onClick={() => onOrderLineRemove(line.id)}>
-                  <DeleteIcon color="secondary" />
+                  <DeleteIcon color="primary" />
                 </IconButton>
               </TableCell>
             </TableRow>
