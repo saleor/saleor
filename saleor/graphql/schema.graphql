@@ -789,6 +789,11 @@ type DraftOrderLineUpdate {
   orderLine: OrderLine
 }
 
+type DraftOrderLinesBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type DraftOrderLinesCreate {
   errors: [Error!]
   order: Order!
@@ -1150,6 +1155,7 @@ type Mutations {
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
   draftOrderBulkDelete(ids: [ID]!): DraftOrderBulkDelete
+  draftOrderLinesBulkDelete(ids: [ID]!): DraftOrderLinesBulkDelete
   draftOrderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): DraftOrderLinesCreate
   draftOrderLineDelete(id: ID!): DraftOrderLineDelete
   draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate

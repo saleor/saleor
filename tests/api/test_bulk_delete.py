@@ -296,6 +296,10 @@ def test_delete_draft_orders_lines(
     mutation draftOrderLinesBulkDelete($ids: [ID]!) {
         draftOrderLinesBulkDelete(ids: $ids) {
             count
+            errors {
+                field
+                message
+            }
         }
     }
     """
@@ -304,19 +308,21 @@ def test_delete_draft_orders_lines(
         graphene.Node.to_global_id('OrderLine', order_line.id)
         for order_line in order_lines]}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables,
+        permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    assert 'errors' in content
+    assert 'errors' in content['data']['draftOrderLinesBulkDelete']
     assert content['data']['draftOrderLinesBulkDelete']['count'] == 0
 
     order.status = OrderStatus.DRAFT
     order.save()
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, check_no_permissions=False,
+        permissions=[permission_manage_orders])
     content = get_graphql_content(response)
 
     assert content['data']['draftOrderLinesBulkDelete']['count'] == 2
-    assert not order_models.Order.objects.filter(
+    assert not order_models.OrderLine.objects.filter(
         id__in=[order_line.pk for order_line in order_lines]).exists()
 
 
