@@ -31,6 +31,8 @@ const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
   const params: ProductListQueryParams = {
     after: qs.after,
     before: qs.before,
+    dialog: qs.dialog,
+    ids: qs.ids,
     status: qs.status
   };
   return <ProductListComponent params={params} />;
