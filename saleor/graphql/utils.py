@@ -4,10 +4,13 @@ from django.utils import timezone
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
+from typing import List
 
 from .core.enums import PermissionEnum, ReportingPeriod
 from .core.types import PermissionDisplay
 
+ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
+    'Could not resolve to a node with the global id list of \'%s\'.')
 registry = get_global_registry()
 
 
@@ -20,18 +23,11 @@ def get_database_id(info, node_id, only_type):
     return _id
 
 
-def get_nodes(ids, graphene_type=None):
-    """Return a list of nodes.
-
-    If the `graphene_type` argument is provided, the IDs will be validated
-    against this type. If the type was not provided, it will be looked up in
-    the Graphene's registry. Raises an error if not all IDs are of the same
-    type.
-    """
+def _resolve_nodes(ids, graphene_type=None):
     pks = []
     types = []
     invalid_ids = []
-    error_msg = "Could not resolve to a nodes with the global id list of '%s'."
+
     for graphql_id in ids:
         if graphql_id:
             try:
@@ -45,31 +41,50 @@ def get_nodes(ids, graphene_type=None):
                             graphene_type._meta.name)
                 pks.append(_id)
                 types.append(_type)
+
     if invalid_ids:
         raise GraphQLError(
-            error_msg % invalid_ids)
+            ERROR_COULD_NO_RESOLVE_GLOBAL_ID % invalid_ids)
+
+    return types, pks
+
+
+def _resolve_graphene_type(types: List):
+    assert len(set(types)) == 1, 'Received IDs of more than one type.'
+    # get type by name
+    type_name = types[0]
+    for model, _type in registry._registry.items():
+        if _type._meta.name == type_name:
+            return _type
+
+
+def get_nodes(ids, graphene_type=None):
+    """Return a list of nodes.
+
+    If the `graphene_type` argument is provided, the IDs will be validated
+    against this type. If the type was not provided, it will be looked up in
+    the Graphene's registry. Raises an error if not all IDs are of the same
+    type.
+    """
+    types, pks = _resolve_nodes(ids, graphene_type)
 
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
     # types.
     if types and not graphene_type:
-        assert len(set(types)) == 1, 'Received IDs of more than one type.'
-        # get type by name
-        type_name = types[0]
-        for model, _type in registry._registry.items():
-            if _type._meta.name == type_name:
-                graphene_type = _type
-                break
+        graphene_type = _resolve_graphene_type(types)
 
     nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
     nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
+
     if not nodes:
         raise GraphQLError(
-            error_msg % ids)
+            ERROR_COULD_NO_RESOLVE_GLOBAL_ID % ids)
+
     nodes_pk_list = [str(node.pk) for node in nodes]
     for pk in pks:
         assert pk in nodes_pk_list, (
-            'There is no node of type {} with pk {}'.format(_type, pk))
+            'There is no node of type {} with pk {}'.format(graphene_type, pk))
     return nodes
 
 

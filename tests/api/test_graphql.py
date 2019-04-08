@@ -216,14 +216,14 @@ def test_get_nodes(product_list):
 
     # Raise an error if no nodes were found
     global_ids = []
-    msg = 'Could not resolve to a nodes with the global id list of {}.'.format(
+    msg = 'Could not resolve to a node with the global id list of {}.'.format(
         global_ids)
     with pytest.raises(Exception, message=msg):
         get_nodes(global_ids, Product)
 
     # Raise an error if pass wrong ids
     global_ids = ['a', 'bb']
-    msg = 'Could not resolve to a nodes with the global id list of {}.'.format(
+    msg = 'Could not resolve to a node with the global id list of {}.'.format(
         global_ids)
     with pytest.raises(Exception, message=msg):
         get_nodes(global_ids, Product)
