@@ -18,10 +18,6 @@ class BraintreePaymentForm(forms.Form):
         self.payment_information = payment_information
         self.fields['amount'].initial = payment_information['amount']
 
-        # FIXME IMPROVEMENT:
-        # if environment is Sandbox, we could provide couple of predefined
-        # nounces for easier testing
-
     def clean(self):
         cleaned_data = super().clean()
         # Amount is sent client-side

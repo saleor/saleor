@@ -1,5 +1,6 @@
 from textwrap import dedent
 
+from django.core.exceptions import ValidationError
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
@@ -14,7 +15,7 @@ from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import Image, ProductVariant
 from ..shipping.types import ShippingMethod
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
-from .utils import applicable_shipping_methods, can_finalize_draft_order
+from .utils import applicable_shipping_methods, validate_draft_order
 
 
 class OrderEvent(CountableDjangoObjectType):
@@ -322,8 +323,11 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_can_finalize(self, info):
-        errors = can_finalize_draft_order(self, [])
-        return not errors
+        try:
+            validate_draft_order(self)
+        except ValidationError:
+            return False
+        return True
 
     @staticmethod
     def resolve_user_email(self, info):
@@ -336,7 +340,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_available_shipping_methods(self, info):
         return applicable_shipping_methods(
-            self, info, self.get_subtotal().gross.amount)
+            self, self.get_subtotal().gross.amount)
 
     def resolve_is_shipping_required(self, info):
         return self.is_shipping_required()

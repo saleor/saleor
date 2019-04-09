@@ -109,13 +109,13 @@ def test_create_fulfillment_with_emtpy_quantity(
 
 
 @pytest.mark.parametrize(
-    'quantity, error_message',
+    'quantity, error_message, error_field',
     (
-        (0, 'Total quantity must be larger than 0.'),
-        (100, 'Only 3 items remaining to fulfill.')))
+        (0, 'Total quantity must be larger than 0.', 'lines'),
+        (100, 'Only 3 items remaining to fulfill:', 'orderLineId')))
 def test_create_fulfillment_not_sufficient_quantity(
         staff_api_client, order_with_lines, staff_user, quantity,
-        error_message, permission_manage_orders):
+        error_message, error_field, permission_manage_orders):
     query = CREATE_FULFILLMENT_QUERY
     order_line = order_with_lines.lines.first()
     order_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
@@ -127,8 +127,8 @@ def test_create_fulfillment_not_sufficient_quantity(
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']
     assert data['errors']
-    assert data['errors'][0]['field'] in (str(order_line), 'lines')
-    assert data['errors'][0]['message'] == error_message
+    assert data['errors'][0]['field'] == error_field
+    assert error_message in data['errors'][0]['message']
 
 
 def test_create_fulfillment_with_invalid_input(
