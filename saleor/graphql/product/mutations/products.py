@@ -64,7 +64,7 @@ class CategoryCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -108,7 +108,7 @@ class CategoryDelete(ModelDeleteMutation):
         model = models.Category
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -147,7 +147,7 @@ class CollectionCreate(ModelMutation):
         model = models.Collection
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -197,7 +197,7 @@ class CollectionDelete(ModelDeleteMutation):
         model = models.Collection
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -383,7 +383,7 @@ class ProductCreate(ModelMutation):
             instance.collections.set(collections)
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -437,7 +437,7 @@ class ProductDelete(ModelDeleteMutation):
         model = models.Product
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -526,7 +526,7 @@ class ProductVariantCreate(ModelMutation):
         instance.save()
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -553,7 +553,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         model = models.ProductVariant
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -594,7 +594,7 @@ class ProductTypeCreate(ModelMutation):
         model = models.ProductType
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -638,7 +638,7 @@ class ProductTypeDelete(ModelDeleteMutation):
         model = models.ProductType
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 

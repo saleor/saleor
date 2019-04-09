@@ -124,7 +124,7 @@ class CustomerCreate(ModelMutation, I18nMixin):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
     @classmethod
@@ -189,7 +189,7 @@ class LoggedUserUpdate(CustomerCreate):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.is_authenticated
 
     @classmethod
@@ -214,7 +214,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
             required=True, description='ID of a customer to delete.')
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
 
@@ -230,7 +230,7 @@ class StaffCreate(ModelMutation):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_staff')
 
     @classmethod
@@ -297,12 +297,12 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
             required=True, description='ID of a staff user to delete.')
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_staff')
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         user_id = data.get('id')
@@ -428,7 +428,7 @@ class AddressCreate(ModelMutation):
         return response
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
 
@@ -485,7 +485,7 @@ class AddressDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         node_id = data.get('id')
@@ -576,7 +576,7 @@ class CustomerAddressCreate(ModelMutation):
         exclude = ['user_addresses']
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.is_authenticated
 
     @classmethod

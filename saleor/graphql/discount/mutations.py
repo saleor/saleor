@@ -105,7 +105,7 @@ class VoucherCreate(ModelMutation):
         model = models.Voucher
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
@@ -139,7 +139,7 @@ class VoucherDelete(ModelDeleteMutation):
         model = models.Voucher
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
 
@@ -224,7 +224,7 @@ class SaleCreate(ModelMutation):
         model = models.Sale
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
 
@@ -239,7 +239,7 @@ class SaleUpdate(ModelMutation):
         model = models.Sale
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
 
@@ -252,7 +252,7 @@ class SaleDelete(ModelDeleteMutation):
         model = models.Sale
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
 

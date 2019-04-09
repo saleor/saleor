@@ -102,7 +102,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -150,7 +150,7 @@ class DraftOrderDelete(ModelDeleteMutation):
         model = models.Order
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
 
@@ -306,7 +306,7 @@ class DraftOrderLineUpdate(ModelMutation):
         model = models.OrderLine
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod

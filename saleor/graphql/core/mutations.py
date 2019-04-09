@@ -287,7 +287,7 @@ class ModelMutation(BaseMutation):
                 f.save_form_data(instance, cleaned_data[f.name])
 
     @classmethod
-    def user_is_allowed(cls, *args):
+    def user_is_allowed(cls, user):
         """Determine whether user has rights to perform this mutation.
 
         Default implementation assumes that user is allowed to perform any
@@ -351,7 +351,7 @@ class ModelDeleteMutation(ModelMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         """Perform a mutation that deletes a model instance."""
-        if not cls.user_is_allowed(info.context.user, data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         node_id = data.get('id')

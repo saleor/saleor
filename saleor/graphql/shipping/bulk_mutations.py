@@ -16,7 +16,7 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
         model = models.ShippingZone
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user, ids):
         return user.has_perm('shipping.manage_shipping')
 
 
@@ -32,5 +32,5 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         model = models.ShippingMethod
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user, ids):
         return user.has_perm('shipping.manage_shipping')
