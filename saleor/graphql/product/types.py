@@ -183,13 +183,25 @@ class ProductOrder(graphene.InputObjectType):
 
 
 class VariantAvailability(graphene.ObjectType):
-    available = graphene.Boolean()
-    on_sale = graphene.Boolean()
-    discount = graphene.Field(TaxedMoney)
-    discount_local_currency = graphene.Field(TaxedMoney)
-    price = graphene.Field(TaxedMoney)
-    price_undiscounted = graphene.Field(TaxedMoney)
-    price_local_currency = graphene.Field(TaxedMoney)
+    available = graphene.Boolean(
+        description='Whether the variant is in stock and visible or not.')
+    on_sale = graphene.Boolean(
+        description='Whether the variant is in sale or not.')
+    discount = graphene.Field(
+        TaxedMoney,
+        description='The discount amount if in sale (null otherwise).')
+    discount_local_currency = graphene.Field(
+        TaxedMoney,
+        description='The discount amount in the local currency.')
+    price = graphene.Field(
+        TaxedMoney,
+        description='The price, with any discount subtracted.')
+    price_undiscounted = graphene.Field(
+        TaxedMoney,
+        description='The price without any discount.')
+    price_local_currency = graphene.Field(
+        TaxedMoney,
+        description='The discounted price in the local currency.')
 
     class Meta:
         description = 'Represents availability of a variant in the storefront.'
@@ -319,13 +331,27 @@ class ProductVariant(CountableDjangoObjectType):
 
 
 class ProductAvailability(graphene.ObjectType):
-    available = graphene.Boolean()
-    on_sale = graphene.Boolean()
-    discount = graphene.Field(TaxedMoney)
-    discount_local_currency = graphene.Field(TaxedMoney)
-    price_range = graphene.Field(TaxedMoneyRange)
-    price_range_undiscounted = graphene.Field(TaxedMoneyRange)
-    price_range_local_currency = graphene.Field(TaxedMoneyRange)
+    available = graphene.Boolean(
+        description='Whether the product is in stock and visible or not.')
+    on_sale = graphene.Boolean(
+        description='Whether the product is in stock and visible or not.')
+    discount = graphene.Field(
+        TaxedMoney,
+        description='The discount amount if in sale (null otherwise).')
+    discount_local_currency = graphene.Field(
+        TaxedMoney,
+        description='The discount amount in the local currency.')
+    price_range = graphene.Field(
+        TaxedMoneyRange,
+        description='The discounted price range of the product variants.')
+    price_range_undiscounted = graphene.Field(
+        TaxedMoneyRange,
+        description='The undiscounted price range of the product variants.')
+    price_range_local_currency = graphene.Field(
+        TaxedMoneyRange,
+        description=(
+            'The discounted price range of the product variants '
+            'in the local currency.'))
 
     class Meta:
         description = 'Represents availability of a product in the storefront.'

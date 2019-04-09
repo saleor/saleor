@@ -19,6 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
 
 
+- Implement variant availability, introducing discounts in variants - #3948 by @NyanKiyoshi
+
 ## 2.5.0
 
 ### API
