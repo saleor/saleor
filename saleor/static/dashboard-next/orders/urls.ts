@@ -1,6 +1,7 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
+import { Dialog, SingleAction } from "../types";
 import { OrderListQueryParams } from "./views/OrderList";
 
 const orderSectionUrl = "/orders";
@@ -26,4 +27,20 @@ export const orderDraftListUrl = (params?: OrderListQueryParams): string => {
 };
 
 export const orderPath = (id: string) => urlJoin(orderSectionUrl, id);
-export const orderUrl = (id: string) => orderPath(encodeURIComponent(id));
+export type OrderUrlDialog =
+  | "add-order-line"
+  | "cancel"
+  | "cancel-fulfillment"
+  | "capture"
+  | "edit-billing-address"
+  | "edit-fulfillment"
+  | "edit-shipping"
+  | "edit-shipping-address"
+  | "finalize"
+  | "fulfill"
+  | "mark-paid"
+  | "refund"
+  | "void";
+export type OrderUrlQueryParams = Dialog<OrderUrlDialog> & SingleAction;
+export const orderUrl = (id: string, params?: OrderUrlQueryParams) =>
+  orderPath(encodeURIComponent(id)) + "?" + stringifyQs(params);
