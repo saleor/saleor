@@ -1,4 +1,8 @@
+import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
+
+import { ActiveTab, Dialog, Pagination } from "../types";
+import { SaleDetailsPageTab } from "./components/SaleDetailsPage";
 
 export const discountSection = "/discounts/";
 
@@ -6,7 +10,16 @@ export const saleSection = urlJoin(discountSection, "sales");
 export const saleListPath = saleSection;
 export const saleListUrl = saleListPath;
 export const salePath = (id: string) => urlJoin(saleSection, id);
-export const saleUrl = (id: string) => salePath(encodeURIComponent(id));
+export type SaleUrlDialog =
+  | "assign-category"
+  | "assign-collection"
+  | "assign-product"
+  | "remove";
+export type SaleUrlQueryParams = Pagination &
+  Dialog<SaleUrlDialog> &
+  ActiveTab<SaleDetailsPageTab>;
+export const saleUrl = (id: string, params?: SaleUrlQueryParams) =>
+  salePath(encodeURIComponent(id)) + "?" + stringifyQs(params);
 export const saleAddPath = urlJoin(saleSection, "add");
 export const saleAddUrl = saleAddPath;
 
