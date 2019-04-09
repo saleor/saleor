@@ -77,7 +77,9 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    .. code-block:: powershell
 
-    py -m pip install -r requirements.txt
+    py -m virtualenv . 
+    .\scripts\activate
+    pip install -r requirements.txt
 
 
 #. Set ``SECRET_KEY`` environment variable.
@@ -114,7 +116,7 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    .. code-block:: powershell
 
-    py manage.py migrate
+    python manage.py migrate
 
    .. warning::
 
@@ -146,4 +148,4 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    .. code-block:: powershell
 
-    py manage.py runserver
+    python manage.py runserver
