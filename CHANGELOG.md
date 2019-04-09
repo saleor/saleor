@@ -3,47 +3,54 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-- Update typescript types after apollo is upgraded - #3823 by @jxltom
-- Add languageCode enum to API - #3819 by @michaljelonek
-- Bump backend dependencies - #3827 by @maarcingebala
-- Fix django-recaptcha tests after upgraded to 1.5.0 - 3835 by @jxltom
-- Resort imports by upgraded isort - #3836 by @jxltom
-- Support is_default_shipping/billing_address for address API - #3787 by @jxltom
+- Refactor error handling in mutations #3891 by @maarcingebala @akjanik
+- Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
+
+
+## 2.5.0
+
+### API
+- Add query to fetch draft orders - #3809 by @michaljelonek
 - Add bulk delete mutations - #3838 by @michaljelonek
-- Fix product creating - #3837 by @dominik-zeglen
-- Fix schema after bulk mutations are added - #3843 by @jxltom
-- Add address book view - #3826 by @dominik-zeglen
+- Add `languageCode` enum to API - #3819 by @michaljelonek, #3854 by @jxltom
+- Duplicate address instances in checkout mutations - #3866 by @pawelzar
+- Restrict access to `orders` query for unauthorized users - #3861 by @pawelzar
+- Support setting address as default in address mutations - #3787 by @jxltom
+- Fix phone number validation in GraphQL when country prefix not given - #3905 by @patrys
+- Report pretty stack traces in DEBUG mode - #3918 by @patrys
+
+### Core
+- Drop support for Django 2.1 and Django 1.11 (previous LTS) - #3929 by @patrys
+- Fulfillment of digital products - #3868 by @korycins
+- Introduce avatars for staff accounts - #3878 by @pawelzar
+- Refactor the account avatars path from a relative to absolute - #3938 by @NyanKiyoshi
+
+### Dashboard 2.0
+- Add translations section - #3884 by @dominik-zeglen
+- Add light/dark theme - #3856 by @dominik-zeglen
+- Add customer's address book view - #3826 by @dominik-zeglen
+- Add "Add variant" button on the variant details page = #3914 by @dominik-zeglen
+- Add back arrows in "Configure" subsections - #3917 by @dominik-zeglen
+- Display avatars in staff views - #3922 by @dominik-zeglen
+- Prevent user from changing his own status and permissions - #3922 by @dominik-zeglen
+- Fix crashing product create view - #3837, #3910 by @dominik-zeglen
+- Fix layout in staff members details page - #3857 by @dominik-zeglen
+- Fix unfocusing rich text editor - #3902 by @dominik-zeglen
+- Improve accessibility - #3856 by @dominik-zeglen
+
+### Other notable changes
+- Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
+- Fix default product tax rate in Dashboard 1.0 - #3880 by @pawelzar
+- Fix logo in docs - #3928 by @michaljelonek
+- Fix name of logo file - #3867 by @jxltom
+- Fix variants for juices in example data - #3926 by @michaljelonek
+- Fix alignment of the cart dropdown on new bootstrap version - #3937 by @NyanKiyoshi
+- Refactor the account avatars path from a relative to absolute - #3938 by @NyanKiyoshi
 - New translations:
   - Armenian
   - Portuguese
   - Swahili
   - Thai
-- Improve user and staff management in dashboard 1.0 - #3781 by @jxltom
-- Add missing language enum in GraphQL schema - #3854 by @jxltom
-- Fix layout in staff members details page - #3857 by @dominik-zeglen
-- Add draft orders query - #3809 by @michaljelonek
-- Restrict global orders query - #3861 by @pawelzar
-- Improve accessibility - #3856 by @dominik-zeglen
-- Add light/dark theme - #3856 by @dominik-zeglen
-- Fix bug where logo-document is not renamed to logo-light - #3867 by @jxltom
-- Copy addresses in checkoutCreate and draftOrderCreate mutations - #3866 by @pawelzar
-- Fix default product tax rate in Dashboard 1.0 - #3880 by @pawelzar
-- Introduce avatars for staff accounts - #3878 by @pawelzar
-- Fix unfocusing rich text editor - #3902 by @dominik-zeglen
-- Fix phone number validation in GraphQL when country prefix not given - #3905 by @patrys
-- Fix product create view crash - #3910 by @dominik-zeglen
-- Add ability to create another variant from the variant details view = #3914 by @dominik-zeglen
-- Add back arrows to configure sections - #3917 by @dominik-zeglen
-- Display avatars in staff views - #3922 by @dominik-zeglen
-- Prevent user from changing his own status and permissions - #3922 by @dominik-zeglen
-- Support for digital product - #3868 by @korycins
-- Add translation interface - #3884 by @dominik-zeglen
-- Drop support for Django 2.1 and Django 1.11 (previous LTS)
-- Fix variants for juices in example data - #3926 by @michaljelonek
-- Fix logo in docs - #3928 by @michaljelonek
-- Fix alignment of the cart dropdown on new bootstrap version - #3937 by @NyanKiyoshi
-- Refactor the account avatars path from a relative to absolute - #3938 by @NyanKiyoshi
-- Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
 
 
 ## 2.4.0

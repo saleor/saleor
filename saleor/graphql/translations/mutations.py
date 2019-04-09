@@ -1,5 +1,4 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -14,24 +13,21 @@ from .enums import LanguageCodeEnum
 
 
 class BaseTranslateMutation(ModelMutation):
-
     class Meta:
         abstract = True
 
     @classmethod
-    @permission_required('site.manage_translations')
-    def mutate(cls, root, info, **data):
-        errors = []
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('site.manage_translations')
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
         model_type = registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node_or_error(
-            info, data['id'], errors, 'id', model_type)
-
-        if errors or not instance:
-            return cls(errors=errors)
-
+            info, data['id'], only_type=model_type)
         instance.translations.update_or_create(
             language_code=data['language_code'], defaults=data['input'])
-        return cls(**{cls._meta.return_field_name: instance, 'errors': errors})
+        return cls(**{cls._meta.return_field_name: instance})
 
 
 class NameTranslationInput(graphene.InputObjectType):
@@ -218,9 +214,12 @@ class ShopSettingsTranslate(BaseMutation):
         description = 'Creates/Updates translations for Shop Settings.'
 
     @classmethod
-    @permission_required('site.manage_translations')
-    def mutate(cls, root, info, language_code, input):
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('site.manage_translations')
+
+    @classmethod
+    def perform_mutation(cls, root, info, language_code, input):
         instance = info.context.site.settings
         instance.translations.update_or_create(
             language_code=language_code, defaults=input)
-        return ShopSettingsTranslate(shop=Shop(), errors=[])
+        return ShopSettingsTranslate(shop=Shop())

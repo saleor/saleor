@@ -1,12 +1,13 @@
 import uuid
 from unittest.mock import ANY, patch
 
+from django.core.exceptions import ValidationError
 import graphene
 import pytest
 
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
-    add_voucher_to_cart, is_fully_paid, ready_to_place_order)
+    add_voucher_to_cart, is_fully_paid, clean_checkout)
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
@@ -611,21 +612,6 @@ def test_checkout_customer_detach(
     assert cart.user is None
 
 
-def test_checkout_customer_detach_without_customer(
-        user_api_client, cart_with_item):
-    cart = cart_with_item
-
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
-    variables = {
-        'checkoutId': checkout_id, }
-    response = user_api_client.post_graphql(
-        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables)
-    content = get_graphql_content(response)
-    data = content['data']['checkoutCustomerDetach']
-    assert data['errors'][0][
-        'message'] == 'There\'s no customer assigned to this Checkout.'
-
-
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     mutation checkoutShippingAddressUpdate(
             $checkoutId: ID!, $shippingAddress: AddressInput!) {
@@ -1073,7 +1059,8 @@ def test_checkout_shipping_method_update(
     checkout.refresh_from_db()
     assert checkout.shipping_method == shipping_method
     mock_clean_shipping.assert_called_once_with(
-        checkout, shipping_method, [], ANY, ANY, remove=False)
+        checkout=checkout, method=shipping_method, discounts=ANY, taxes=ANY,
+        remove=False)
 
 
 def test_query_checkout_line(cart_with_item, user_api_client):
@@ -1155,18 +1142,20 @@ def test_ready_to_place_order(
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    ready, error = ready_to_place_order(checkout, None, None)
-    assert ready
-    assert not error
+    # Shouldn't raise any errors
+    clean_checkout(checkout, None, None)
 
 
 def test_ready_to_place_order_no_shipping_method(cart_with_item, address):
     checkout = cart_with_item
     checkout.shipping_address = address
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
-    assert not ready
-    assert error == 'Shipping method is not set'
+
+    with pytest.raises(ValidationError) as e:
+        clean_checkout(checkout, None, None)
+
+    msg = 'Shipping method is not set'
+    assert e.value.error_list[0].message == msg
 
 
 def test_ready_to_place_order_no_shipping_address(
@@ -1174,9 +1163,11 @@ def test_ready_to_place_order_no_shipping_address(
     checkout = cart_with_item
     checkout.shipping_method = shipping_method
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
-    assert not ready
-    assert error == 'Shipping address is not set'
+
+    with pytest.raises(ValidationError) as e:
+        clean_checkout(checkout, None, None)
+    msg = 'Shipping address is not set'
+    assert e.value.error_list[0].message == msg
 
 
 def test_ready_to_place_order_invalid_shipping_method(
@@ -1186,9 +1177,12 @@ def test_ready_to_place_order_invalid_shipping_method(
     shipping_method = shipping_zone_without_countries.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
-    assert not ready
-    assert error == 'Shipping method is not valid for your shipping address'
+
+    with pytest.raises(ValidationError) as e:
+        clean_checkout(checkout, None, None)
+
+    msg = 'Shipping method is not valid for your shipping address'
+    assert e.value.error_list[0].message == msg
 
 
 def test_ready_to_place_order_no_billing_address(
@@ -1197,9 +1191,11 @@ def test_ready_to_place_order_no_billing_address(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
-    assert not ready
-    assert error == 'Billing address is not set'
+
+    with pytest.raises(ValidationError) as e:
+        clean_checkout(checkout, None, None)
+    msg = 'Billing address is not set'
+    assert e.value.error_list[0].message == msg
 
 
 def test_ready_to_place_order_no_payment(
@@ -1209,11 +1205,12 @@ def test_ready_to_place_order_no_payment(
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    ready, error = ready_to_place_order(checkout, None, None)
-    assert not ready
-    assert error == (
-        'Provided payment methods can not '
-        'cover the checkout\'s total amount')
+
+    with pytest.raises(ValidationError) as e:
+        clean_checkout(checkout, None, None)
+
+    msg = 'Provided payment methods can not cover the checkout\'s total amount'
+    assert e.value.error_list[0].message == msg
 
 
 def test_is_fully_paid(cart_with_item, payment_dummy):

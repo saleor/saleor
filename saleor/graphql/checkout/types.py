@@ -94,7 +94,7 @@ class Checkout(CountableDjangoObjectType):
         taxes = get_taxes_for_address(self.shipping_address)
         price = self.get_subtotal(
             taxes=taxes, discounts=info.context.discounts)
-        return applicable_shipping_methods(self, info, price.gross.amount)
+        return applicable_shipping_methods(self, price.gross.amount)
 
     def resolve_available_payment_gateways(self, info):
         return settings.CHECKOUT_PAYMENT_GATEWAYS.keys()

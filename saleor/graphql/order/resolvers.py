@@ -54,10 +54,6 @@ def resolve_order(info, id):
     return None
 
 
-def resolve_shipping_methods(obj, info, price):
-    return applicable_shipping_methods(obj, info, price)
-
-
 def resolve_homepage_events(info):
     # Filter only selected events to be displayed on homepage.
     types = [
