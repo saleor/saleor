@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 - Refactor error handling in mutations #3891 by @maarcingebala @akjanik
+- Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
 
 
 ## 2.5.0
@@ -44,6 +45,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix name of logo file - #3867 by @jxltom
 - Fix variants for juices in example data - #3926 by @michaljelonek
 - Fix alignment of the cart dropdown on new bootstrap version - #3937 by @NyanKiyoshi
+- Refactor the account avatars path from a relative to absolute - #3938 by @NyanKiyoshi
 - New translations:
   - Armenian
   - Portuguese

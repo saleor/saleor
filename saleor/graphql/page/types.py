@@ -30,8 +30,10 @@ class Page(CountableDjangoObjectType):
     class Meta:
         description = dedent("""A static page that can be manually added by a shop
         operator through the dashboard.""")
-        exclude_fields = [
-            'voucher_set', 'sale_set', 'menuitem_set', 'translations']
+        only_fields = [
+            'content', 'content_json', 'created', 'id', 'is_published',
+            'publication_date', 'seo_description', 'seo_title', 'slug',
+            'title']
         interfaces = [relay.Node]
         model = models.Page
 
