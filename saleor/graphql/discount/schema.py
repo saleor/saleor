@@ -33,7 +33,7 @@ class DiscountQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, Sale)
 
     @permission_required('discount.manage_discounts')
-    def resolve_sales(self, info, query=None, **kwargs):
+    def resolve_sales(self, info, query=None, **_kwargs):
         return resolve_sales(info, query)
 
     @permission_required('discount.manage_discounts')
@@ -41,7 +41,7 @@ class DiscountQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, Voucher)
 
     @permission_required('discount.manage_discounts')
-    def resolve_vouchers(self, info, query=None, **kwargs):
+    def resolve_vouchers(self, info, query=None, **_kwargs):
         return resolve_vouchers(info, query)
 
 

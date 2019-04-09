@@ -1230,9 +1230,8 @@ def test_clean_order_refund_payment():
 
 
 def test_clean_order_capture():
-    amount = Mock(spec='string')
     with pytest.raises(ValidationError) as e:
-        clean_order_capture(None, amount)
+        clean_order_capture(None)
     msg = 'There\'s no payment associated with the order.'
     assert e.value.error_dict['payment'][0].message == msg
 

@@ -117,10 +117,10 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_attributes(
             self, info, in_category=None, in_collection=None, query=None,
-            **kwargs):
+            **_kwargs):
         return resolve_attributes(info, in_category, in_collection, query)
 
-    def resolve_categories(self, info, level=None, query=None, **kwargs):
+    def resolve_categories(self, info, level=None, query=None, **_kwargs):
         return resolve_categories(info, level=level, query=query)
 
     def resolve_category(self, info, id):
@@ -129,7 +129,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_collection(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Collection)
 
-    def resolve_collections(self, info, query=None, **kwargs):
+    def resolve_collections(self, info, query=None, **_kwargs):
         return resolve_collections(info, query)
 
     @permission_required('product.manage_products')
@@ -137,8 +137,8 @@ class ProductQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, DigitalContent)
 
     @permission_required('product.manage_products')
-    def resolve_digital_contents(self, info, query=None, **kwargs):
-        return resolve_digital_contents(info, query)
+    def resolve_digital_contents(self, info, **_kwargs):
+        return resolve_digital_contents(info)
 
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Product)
@@ -149,18 +149,18 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_type(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
-    def resolve_product_types(self, info, **kwargs):
+    def resolve_product_types(self, info, **_kwargs):
         return resolve_product_types(info)
 
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
 
-    def resolve_product_variants(self, info, ids=None, **kwargs):
+    def resolve_product_variants(self, info, ids=None, **_kwargs):
         return resolve_product_variants(info, ids)
 
     @permission_required(['order.manage_orders', 'product.manage_products'])
-    def resolve_report_product_sales(self, info, period, **kwargs):
-        return resolve_report_product_sales(info, period)
+    def resolve_report_product_sales(self, *_args, period, **_kwargs):
+        return resolve_report_product_sales(period)
 
 
 class ProductMutations(graphene.ObjectType):

@@ -23,7 +23,7 @@ class Transaction(CountableDjangoObjectType):
             'id', 'created', 'payment', 'token', 'kind', 'is_success',
             'error', 'gateway_response']
 
-    def resolve_amount(self, info):
+    def resolve_amount(self, _info):
         return self.get_amount()
 
 
@@ -78,7 +78,7 @@ class Payment(CountableDjangoObjectType):
             'extra_data']
 
     @gql_optimizer.resolver_hints(prefetch_related='transactions')
-    def resolve_actions(self, info):
+    def resolve_actions(self, _info):
         actions = []
         if self.can_capture():
             actions.append(OrderAction.CAPTURE)
@@ -88,13 +88,13 @@ class Payment(CountableDjangoObjectType):
             actions.append(OrderAction.VOID)
         return actions
 
-    def resolve_total(self, info):
+    def resolve_total(self, _info):
         return self.get_total()
 
-    def resolve_captured_amount(self, info):
+    def resolve_captured_amount(self, _info):
         return self.get_captured_amount()
 
-    def resolve_billing_address(self, info):
+    def resolve_billing_address(self, _info):
         return Address(
             first_name=self.billing_first_name,
             last_name=self.billing_last_name,
@@ -108,23 +108,23 @@ class Payment(CountableDjangoObjectType):
             country_area=self.billing_country_area)
 
     @gql_optimizer.resolver_hints(prefetch_related='transactions')
-    def resolve_transactions(self, info):
+    def resolve_transactions(self, _info):
         return self.transactions.all()
 
-    def resolve_available_refund_amount(self, info):
+    def resolve_available_refund_amount(self, _info):
         # FIXME TESTME
         if not self.can_refund():
             return None
         return self.get_captured_amount()
 
     @gql_optimizer.resolver_hints(prefetch_related='transactions')
-    def resolve_available_capture_amount(self, info):
+    def resolve_available_capture_amount(self, _info):
         # FIXME TESTME
         if not self.can_capture():
             return None
         return self.get_charge_amount()
 
-    def resolve_credit_card(self, info):
+    def resolve_credit_card(self, _info):
         data = {
             'first_digits': self.cc_first_digits,
             'last_digits': self.cc_last_digits,

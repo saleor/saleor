@@ -507,7 +507,7 @@ class AddressDelete(ModelDeleteMutation):
 
         # Refresh the user instance to clear the default addresses. If the
         # deleted address was used as default, it would stay cached in the
-        # user instance and the invalid ID returned in the response migt cause
+        # user instance and the invalid ID returned in the response might cause
         # an error.
         user.refresh_from_db()
 
@@ -520,12 +520,14 @@ class AddressSetDefault(BaseMutation):
 
     class Arguments:
         address_id = graphene.ID(
-            required=True, description='ID of the address.')
+            required=True,
+            description='ID of the address.')
         user_id = graphene.ID(
             required=True,
             description='ID of the user to change the address for.')
         type = AddressTypeEnum(
-            required=True, description='The type of address.')
+            required=True,
+            description='The type of address.')
 
     class Meta:
         description = 'Sets a default address for the given user.'
@@ -594,7 +596,7 @@ class CustomerAddressCreate(ModelMutation):
         instance.user_addresses.add(user)
 
 
-# The same as SetDefaultAddress, but for the currenty authenticated user.
+# The same as SetDefaultAddress, but for the currently authenticated user.
 class CustomerSetDefaultAddress(BaseMutation):
     user = graphene.Field(User, description='An updated user instance.')
 
@@ -621,6 +623,7 @@ class CustomerSetDefaultAddress(BaseMutation):
                 'id': 'The address doesn\'t belong to that user.'})
 
         raw_address_type = data.get('type')
+        address_type = None
         if raw_address_type == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
         elif raw_address_type == AddressTypeEnum.SHIPPING.value:

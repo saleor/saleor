@@ -238,7 +238,7 @@ class Order(CountableDjangoObjectType):
         return self.shipping_price
 
     @gql_optimizer.resolver_hints(prefetch_related='payments__transactions')
-    def resolve_actions(self, info):
+    def resolve_actions(self, _info):
         actions = []
         payment = self.get_last_payment()
         if self.can_capture(payment):
@@ -321,7 +321,7 @@ class Order(CountableDjangoObjectType):
             return self.user.email
         return None
 
-    def resolve_available_shipping_methods(self, info):
+    def resolve_available_shipping_methods(self, _info):
         return applicable_shipping_methods(
             self, self.get_subtotal().gross.amount)
 

@@ -452,9 +452,10 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        description=dedent("""Determines if the inventory of this variant should
-        be tracked. If false, the quantity won't change when customers
-        buy this item."""))
+        description=dedent(
+            """Determines if the inventory of this variant should
+               be tracked. If false, the quantity won't change when customers
+               buy this item."""))
     weight = WeightScalar(
         description='Weight of the Product Variant.', required=False)
 

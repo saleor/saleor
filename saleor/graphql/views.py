@@ -55,7 +55,7 @@ class GraphQLView(View):
         if request.method == 'OPTIONS':
             response = self.options(request, *args, **kwargs)
         elif request.method == 'POST':
-            response = self.handle_query(request, *args, **kwargs)
+            response = self.handle_query(request)
         else:
             return HttpResponseNotAllowed(
                 ['GET', 'OPTIONS', 'POST'])
@@ -67,7 +67,7 @@ class GraphQLView(View):
             'Origin, Content-Type, Accept, Authorization')
         return response
 
-    def handle_query(self, request: HttpRequest, *args, **kwargs):
+    def handle_query(self, request: HttpRequest):
         try:
             data = self.parse_body(request)
         except ValueError:
@@ -102,7 +102,7 @@ class GraphQLView(View):
             result = None
         return result, status_code
 
-    def get_root_value(self, request: HttpRequest):
+    def get_root_value(self):
         return self.root_value
 
     def parse_query(self, query: str) -> (GraphQLDocument, ExecutionResult):
@@ -138,7 +138,7 @@ class GraphQLView(View):
             extra_options['executor'] = self.executor
         try:
             return document.execute(
-                root=self.get_root_value(request),
+                root=self.get_root_value(),
                 variables=variables,
                 operation_name=operation_name,
                 context=request,
