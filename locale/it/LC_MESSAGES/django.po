@@ -11,15 +11,16 @@
 # primax79 <alfredo.oliviero@netfarm.it>, 2018
 # Marco Badan <marco.badan@gmail.com>, 2019
 # Matteo Vitali <trottomv@gmail.com>, 2019
+# Federico Montemaro <montemarostore@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Matteo Vitali <trottomv@gmail.com>, 2019\n"
+"Last-Translator: Federico Montemaro <montemarostore@gmail.com>, 2019\n"
 "Language-Team: Italian (https://www.transifex.com/mirumee/teams/34782/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -222,17 +223,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Questo valore non è valido per lo stato selezionato"
 
-#: saleor/account/models.py:154
+#: saleor/account/models.py:147
 msgctxt "Permission description"
 msgid "Manage customers."
-msgstr ""
+msgstr "Gestisci clienti"
 
-#: saleor/account/models.py:157
+#: saleor/account/models.py:150
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "Gestisci staff."
 
-#: saleor/account/models.py:160
+#: saleor/account/models.py:153
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr "Impersona clienti."
@@ -593,25 +594,25 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "Sei loggato come {}"
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
-msgstr ""
+msgstr "kg"
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr ""
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr ""
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
-msgstr ""
+msgstr "g"
 
 #: saleor/discount/__init__.py:12
 msgctxt "Discount type"
@@ -621,7 +622,7 @@ msgstr "%"
 #: saleor/discount/__init__.py:23
 msgctxt "Voucher: discount for"
 msgid "All products"
-msgstr ""
+msgstr "Tutti i prodotti"
 
 #: saleor/discount/__init__.py:24
 msgctxt "Voucher: discount for"
@@ -787,7 +788,7 @@ msgstr ""
 #: saleor/order/__init__.py:89
 msgctxt "Email type"
 msgid "Order confirmation"
-msgstr ""
+msgstr "Conferma ordine"
 
 #: saleor/order/__init__.py:115
 #, python-format
@@ -1255,31 +1256,35 @@ msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:90
+msgid "Thai"
+msgstr ""
+
+#: saleor/settings.py:91
 msgid "Turkish"
 msgstr "Turco"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:92
 msgid "Ukrainian"
 msgstr "Ucraino"
 
-#: saleor/settings.py:92
+#: saleor/settings.py:93
 msgid "Vietnamese"
 msgstr "Vietnamita"
 
-#: saleor/settings.py:93
+#: saleor/settings.py:94
 msgid "Simplified Chinese"
 msgstr ""
 
-#: saleor/settings.py:94
+#: saleor/settings.py:95
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:330
+#: saleor/settings.py:331
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:567
+#: saleor/settings.py:568
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
