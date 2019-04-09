@@ -1,6 +1,5 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
-import { Route } from "react-router-dom";
 
 import ActionDialog from "../../components/ActionDialog";
 import Messages from "../../components/messages";
@@ -13,10 +12,11 @@ import PageDetailsPage, { FormData } from "../components/PageDetailsPage";
 import { TypedPageRemove, TypedPageUpdate } from "../mutations";
 import { TypedPageDetailsQuery } from "../queries";
 import { PageRemove } from "../types/PageRemove";
-import { pageListUrl, pageRemovePath, pageRemoveUrl, pageUrl } from "../urls";
+import { pageListUrl, pageUrl, PageUrlQueryParams } from "../urls";
 
 export interface PageDetailsProps {
   id: string;
+  params: PageUrlQueryParams;
 }
 
 const createPageInput = (data: FormData): PageInput => ({
@@ -40,7 +40,8 @@ const createPageInput = (data: FormData): PageInput => ({
 });
 
 export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
-  id
+  id,
+  params
 }) => (
   <Navigator>
     {navigate => (
@@ -88,7 +89,13 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                               saveButtonBarState={formTransitionState}
                               page={maybe(() => pageDetails.data.page)}
                               onBack={() => navigate(pageListUrl)}
-                              onRemove={() => navigate(pageRemoveUrl(id))}
+                              onRemove={() =>
+                                navigate(
+                                  pageUrl(id, {
+                                    action: "remove"
+                                  })
+                                )
+                              }
                               onSubmit={formData =>
                                 pageUpdate({
                                   variables: {
@@ -98,35 +105,29 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                                 })
                               }
                             />
-                            <Route
-                              exact
-                              path={pageRemovePath(":id")}
-                              render={({ match }) => (
-                                <ActionDialog
-                                  open={!!match}
-                                  confirmButtonState={removeTransitionState}
-                                  title={i18n.t("Remove Page")}
-                                  onClose={() => navigate(pageUrl(id))}
-                                  onConfirm={pageRemove}
-                                  variant="delete"
-                                >
-                                  <DialogContentText
-                                    dangerouslySetInnerHTML={{
-                                      __html: i18n.t(
-                                        "Are you sure you want to remove <strong>{{ title }}</strong>?",
-                                        {
-                                          context: "page remove",
-                                          title: maybe(
-                                            () => pageDetails.data.page.title,
-                                            "..."
-                                          )
-                                        }
+                            <ActionDialog
+                              open={params.action === "remove"}
+                              confirmButtonState={removeTransitionState}
+                              title={i18n.t("Remove Page")}
+                              onClose={() => navigate(pageUrl(id))}
+                              onConfirm={pageRemove}
+                              variant="delete"
+                            >
+                              <DialogContentText
+                                dangerouslySetInnerHTML={{
+                                  __html: i18n.t(
+                                    "Are you sure you want to remove <strong>{{ title }}</strong>?",
+                                    {
+                                      context: "page remove",
+                                      title: maybe(
+                                        () => pageDetails.data.page.title,
+                                        "..."
                                       )
-                                    }}
-                                  />
-                                </ActionDialog>
-                              )}
-                            />
+                                    }
+                                  )
+                                }}
+                              />
+                            </ActionDialog>
                           </>
                         );
                       }}
