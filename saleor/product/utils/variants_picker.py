@@ -10,7 +10,8 @@ from .availability import get_product_availability
 
 def get_variant_picker_data(
         product, discounts=None, taxes=None, local_currency=None):
-    availability = get_product_availability(product, discounts, taxes, local_currency)
+    availability = get_product_availability(
+        product, discounts, taxes, local_currency)
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
