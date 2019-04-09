@@ -40,3 +40,6 @@ export type Dialog<TDialog extends string> = Partial<{
 export type ActiveTab<TTab extends string> = Partial<{
   activeTab: TTab;
 }>;
+export type SingleAction = Partial<{
+  id: string;
+}>;
