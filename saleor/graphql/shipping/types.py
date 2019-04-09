@@ -33,7 +33,9 @@ class ShippingMethod(CountableDjangoObjectType):
             They are directly exposed to the customers.""")
         model = models.ShippingMethod
         interfaces = [relay.Node]
-        exclude_fields = ['carts', 'shipping_zone', 'orders', 'translations']
+        only_fields = [
+            'id', 'maximum_order_price', 'maximum_order_weight',
+            'minimum_order_price', 'minimum_order_weight', 'name', 'price']
 
 
 class ShippingZone(CountableDjangoObjectType):
@@ -57,6 +59,7 @@ class ShippingZone(CountableDjangoObjectType):
             and are never exposed to the customers directly.""")
         model = models.ShippingZone
         interfaces = [relay.Node]
+        only_fields = ['default', 'id', 'name']
 
     def resolve_price_range(self, info):
         return self.price_range
