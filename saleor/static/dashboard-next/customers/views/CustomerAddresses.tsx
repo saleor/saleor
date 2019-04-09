@@ -1,6 +1,5 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
-import { Route, Switch } from "react-router-dom";
 
 import ActionDialog from "../../components/ActionDialog";
 import { WindowTitle } from "../../components/WindowTitle";
@@ -23,26 +22,28 @@ import { RemoveCustomerAddress } from "../types/RemoveCustomerAddress";
 import { SetCustomerDefaultAddress } from "../types/SetCustomerDefaultAddress";
 import { UpdateCustomerAddress } from "../types/UpdateCustomerAddress";
 import {
-  customerAddressAddPath,
-  customerAddressAddUrl,
   customerAddressesUrl,
-  customerAddressPath,
-  customerAddressRemovePath,
-  customerAddressRemoveUrl,
-  customerAddressUrl,
+  CustomerAddressesUrlDialog,
+  CustomerAddressesUrlQueryParams,
   customerUrl
 } from "../urls";
 
 interface CustomerAddressesProps {
   id: string;
+  params: CustomerAddressesUrlQueryParams;
 }
 
-const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
+const CustomerAddresses: React.FC<CustomerAddressesProps> = ({
+  id,
+  params
+}) => {
   const navigate = useNavigator();
   const notify = useNotifier();
   const shop = useShop();
 
   const closeModal = () => navigate(customerAddressesUrl(id), true);
+  const openModal = (action: CustomerAddressesUrlDialog, addressId?: string) =>
+    navigate(customerAddressesUrl(id, { action, id: addressId }));
 
   const handleSetAddressAsDefault = (data: SetCustomerDefaultAddress) => {
     if (data.addressSetDefault.errors.length === 0) {
@@ -140,15 +141,11 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                             <CustomerAddressListPage
                               customer={maybe(() => customerData.data.user)}
                               disabled={customerData.loading}
-                              onAdd={() => navigate(customerAddressAddUrl(id))}
+                              onAdd={() => openModal("add")}
                               onBack={() => navigate(customerUrl(id))}
-                              onEdit={addressId =>
-                                navigate(customerAddressUrl(id, addressId))
-                              }
+                              onEdit={addressId => openModal("edit", addressId)}
                               onRemove={addressId =>
-                                navigate(
-                                  customerAddressRemoveUrl(id, addressId)
-                                )
+                                openModal("remove", addressId)
                               }
                               onSetAsDefault={(addressId, type) =>
                                 setCustomerDefaultAddress({
@@ -156,124 +153,87 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({ id }) => {
                                 })
                               }
                             />
-                            <Switch>
-                              <Route
-                                path={customerAddressAddPath(":customerId")}
-                                render={({ match }) => (
-                                  <CustomerAddressDialog
-                                    address={undefined}
-                                    confirmButtonState={
-                                      createAddressTransitionState
+                            <CustomerAddressDialog
+                              address={undefined}
+                              confirmButtonState={createAddressTransitionState}
+                              countries={maybe(
+                                () =>
+                                  shop.countries.map(country => ({
+                                    code: country.code,
+                                    label: country.country
+                                  })),
+                                []
+                              )}
+                              errors={maybe(
+                                () =>
+                                  createCustomerAddressOpts.data.addressCreate
+                                    .errors,
+                                []
+                              )}
+                              open={params.action === "add"}
+                              variant="create"
+                              onClose={closeModal}
+                              onConfirm={formData =>
+                                createCustomerAddress({
+                                  variables: {
+                                    id,
+                                    input: {
+                                      ...formData,
+                                      country: formData.country.value
                                     }
-                                    countries={maybe(
-                                      () =>
-                                        shop.countries.map(country => ({
-                                          code: country.code,
-                                          label: country.country
-                                        })),
-                                      []
-                                    )}
-                                    errors={maybe(
-                                      () =>
-                                        createCustomerAddressOpts.data
-                                          .addressCreate.errors,
-                                      []
-                                    )}
-                                    open={!!match}
-                                    variant="create"
-                                    onClose={closeModal}
-                                    onConfirm={formData =>
-                                      createCustomerAddress({
-                                        variables: {
-                                          id,
-                                          input: {
-                                            ...formData,
-                                            country: formData.country.value
-                                          }
-                                        }
-                                      })
+                                  }
+                                })
+                              }
+                            />
+                            <CustomerAddressDialog
+                              address={maybe(() =>
+                                customerData.data.user.addresses.find(
+                                  addr => addr.id === params.id
+                                )
+                              )}
+                              confirmButtonState={updateAddressTransitionState}
+                              countries={[]}
+                              errors={maybe(
+                                () =>
+                                  updateCustomerAddressOpts.data.addressUpdate
+                                    .errors,
+                                []
+                              )}
+                              open={params.action === "edit"}
+                              variant="edit"
+                              onClose={closeModal}
+                              onConfirm={formData =>
+                                updateCustomerAddress({
+                                  variables: {
+                                    id: params.id,
+                                    input: {
+                                      ...formData,
+                                      country: formData.country.value
                                     }
-                                  />
+                                  }
+                                })
+                              }
+                            />
+                            <ActionDialog
+                              open={params.action === "remove"}
+                              variant="delete"
+                              title={i18n.t("Remove Address")}
+                              confirmButtonState={removeAddressTransitionState}
+                              onClose={closeModal}
+                              onConfirm={() =>
+                                removeCustomerAddress({
+                                  variables: {
+                                    id: params.id
+                                  }
+                                })
+                              }
+                            >
+                              <DialogContentText>
+                                {i18n.t(
+                                  "Are you sure you want to remove this address from users address book?"
                                 )}
-                              />
-                              <Route
-                                path={customerAddressRemovePath(
-                                  ":customerId",
-                                  ":addressId"
-                                )}
-                                render={({ match }) => (
-                                  <ActionDialog
-                                    open={!!match}
-                                    variant="delete"
-                                    title={i18n.t("Remove Address")}
-                                    confirmButtonState={
-                                      removeAddressTransitionState
-                                    }
-                                    onClose={closeModal}
-                                    onConfirm={() =>
-                                      removeCustomerAddress({
-                                        variables: {
-                                          id: decodeURIComponent(
-                                            match.params.addressId
-                                          )
-                                        }
-                                      })
-                                    }
-                                  >
-                                    <DialogContentText>
-                                      {i18n.t(
-                                        "Are you sure you want to remove this address from users address book?"
-                                      )}
-                                    </DialogContentText>
-                                  </ActionDialog>
-                                )}
-                              />
-                              <Route
-                                path={customerAddressPath(
-                                  ":customerId",
-                                  ":addressId"
-                                )}
-                                render={({ match }) => (
-                                  <CustomerAddressDialog
-                                    address={maybe(() =>
-                                      customerData.data.user.addresses.find(
-                                        addr =>
-                                          addr.id ===
-                                          decodeURIComponent(
-                                            match.params.addressId
-                                          )
-                                      )
-                                    )}
-                                    confirmButtonState={
-                                      updateAddressTransitionState
-                                    }
-                                    countries={[]}
-                                    errors={maybe(
-                                      () =>
-                                        updateCustomerAddressOpts.data
-                                          .addressUpdate.errors,
-                                      []
-                                    )}
-                                    open={!!match}
-                                    variant="edit"
-                                    onClose={closeModal}
-                                    onConfirm={formData =>
-                                      updateCustomerAddress({
-                                        variables: {
-                                          id: decodeURIComponent(
-                                            match.params.addressId
-                                          ),
-                                          input: {
-                                            ...formData,
-                                            country: formData.country.value
-                                          }
-                                        }
-                                      })
-                                    }
-                                  />
-                                )}
-                              />
-                            </Switch>
+                              </DialogContentText>
+                            </ActionDialog>
                           </>
                         );
                       }}
