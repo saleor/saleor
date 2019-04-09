@@ -429,8 +429,7 @@ class BaseBulkMutation(BaseMutation):
         count, errors = cls.perform_mutation(root, info, **data)
         if errors:
             errors = validation_error_to_error_type(errors)
-            return cls(errors=errors, count=count)
-        return cls(count=count)
+        return cls(errors=errors, count=count)
 
 
 class ModelBulkDeleteMutation(BaseBulkMutation):

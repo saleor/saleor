@@ -621,8 +621,6 @@ class CustomerSetDefaultAddress(BaseMutation):
             address_type = AddressType.BILLING
         elif type == AddressTypeEnum.SHIPPING.value:
             address_type = AddressType.SHIPPING
-        else:
-            raise ValueError('Unknown value of AddressTypeEnum: %s' % type)
 
         utils.change_user_default_address(user, address, address_type)
         return cls(user=user)
