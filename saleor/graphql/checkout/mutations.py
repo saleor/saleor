@@ -7,8 +7,8 @@ from django.db import transaction
 from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_cart, add_voucher_to_cart, change_billing_address_in_cart,
-    change_shipping_address_in_cart, create_order, get_or_create_user_cart,
-    get_taxes_for_cart, get_voucher_for_cart, clean_checkout,
+    change_shipping_address_in_cart, clean_checkout, create_order,
+    get_or_create_user_cart, get_taxes_for_cart, get_voucher_for_cart,
     recalculate_cart_discount, remove_voucher_from_cart)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
@@ -32,7 +32,7 @@ def clean_shipping_method(
         checkout, method, discounts, taxes, country_code=None, remove=True):
     # FIXME Add tests for this function
     if not method:
-        return
+        return None
 
     if not checkout.is_shipping_required():
         raise ValidationError('This checkout does not requires shipping.')
@@ -208,8 +208,6 @@ class CheckoutLinesAdd(BaseMutation):
     def perform_mutation(cls, root, info, checkout_id, lines, replace=False):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
-
-        variants, quantities = None, None
 
         variant_ids = [line.get('variant_id') for line in lines]
         variants = cls.get_nodes_or_error(

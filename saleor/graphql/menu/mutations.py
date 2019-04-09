@@ -67,22 +67,22 @@ class MenuCreate(ModelMutation):
             url = item.get('url')
             if len([i for i in [category, collection, page, url] if i]) > 1:
                 raise ValidationError({'items': 'More than one item provided.'})
-            else:
-                if category:
-                    category = cls.get_node_or_error(
-                        info, category, field='items', only_type=Category)
-                    item['category'] = category
-                elif collection:
-                    collection = cls.get_node_or_error(
-                        info, collection, field='items', only_type=Collection)
-                    item['collection'] = collection
-                elif page:
-                    page = cls.get_node_or_error(
-                        info, page, field='items', only_type=Page)
-                    item['page'] = page
-                elif not url:
-                    raise ValidationError({'items': 'No menu item provided.'})
-                items.append(item)
+
+            if category:
+                category = cls.get_node_or_error(
+                    info, category, field='items', only_type=Category)
+                item['category'] = category
+            elif collection:
+                collection = cls.get_node_or_error(
+                    info, collection, field='items', only_type=Collection)
+                item['collection'] = collection
+            elif page:
+                page = cls.get_node_or_error(
+                    info, page, field='items', only_type=Page)
+                item['page'] = page
+            elif not url:
+                raise ValidationError({'items': 'No menu item provided.'})
+            items.append(item)
 
         cleaned_input['items'] = items
         return cleaned_input
@@ -225,8 +225,5 @@ class AssignNavigation(BaseMutation):
         elif navigation_type == NavigationType.SECONDARY:
             site_settings.bottom_menu = menu
             site_settings.save(update_fields=['bottom_menu'])
-        else:
-            raise AssertionError(
-                'Unknown navigation type: %s' % navigation_type)
 
         return AssignNavigation(menu=menu)

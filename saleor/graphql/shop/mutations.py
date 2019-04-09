@@ -102,12 +102,11 @@ class ShopFetchTaxRates(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info):
-        if settings.VATLAYER_ACCESS_KEY:
-            call_command('get_vat_rates')
-        else:
+        if not settings.VATLAYER_ACCESS_KEY:
             raise ValidationError(
                 'Could not fetch tax rates. Make sure you have supplied a '
                 'valid API Access Key.')
+        call_command('get_vat_rates')
         return ShopFetchTaxRates(shop=Shop())
 
 
