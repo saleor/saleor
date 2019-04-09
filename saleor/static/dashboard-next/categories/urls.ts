@@ -1,4 +1,8 @@
+import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
+
+import { ActiveTab, Dialog, Pagination } from "../types";
+import { CategoryPageTab } from "./components/CategoryUpdatePage";
 
 const categorySectionUrl = "/categories/";
 
@@ -6,7 +10,11 @@ export const categoryListPath = categorySectionUrl;
 export const categoryListUrl = categorySectionUrl;
 
 export const categoryPath = (id: string) => urlJoin(categorySectionUrl, id);
-export const categoryUrl = (id: string) => categoryPath(encodeURIComponent(id));
+export type CategoryUrlQueryParams = Dialog<"delete"> &
+  Pagination &
+  ActiveTab<CategoryPageTab>;
+export const categoryUrl = (id: string, params?: CategoryUrlQueryParams) =>
+  categoryPath(encodeURIComponent(id)) + "?" + stringifyQs(params);
 
 export const categoryAddPath = (parentId?: string) => {
   if (parentId) {
