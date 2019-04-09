@@ -1,3 +1,7 @@
+from unittest.mock import Mock
+
+from saleor.product.models import ProductVariant
+from saleor.product.utils.availability import get_variant_availability
 from tests.api.utils import get_graphql_content
 
 QUERY_GET_VARIANT_AVAILABILITY = """
@@ -92,3 +96,27 @@ def test_get_variant_availability_not_on_sale(api_client, product):
     # check the discounted price
     assert availability['price']['currency'] == 'USD'
     assert availability['price']['net']['amount'] == 10.0
+
+
+def test_variant_availability(
+        variant: ProductVariant, monkeypatch, settings, taxes):
+    availability = get_variant_availability(variant)
+    assert availability.price == variant.get_price()
+    assert availability.price_local_currency is None
+
+    monkeypatch.setattr(
+        'django_prices_openexchangerates.models.get_rates',
+        lambda c: {'PLN': Mock(rate=2)})
+
+    settings.DEFAULT_COUNTRY = 'PL'
+    settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
+
+    availability = get_variant_availability(variant, local_currency='PLN')
+    assert availability.price_local_currency.currency == 'PLN'
+    assert availability.available
+
+    availability = get_variant_availability(variant, taxes=taxes)
+    assert availability.price.tax.amount
+    assert availability.price_undiscounted.tax.amount
+    assert availability.price_undiscounted.tax.amount
+    assert availability.available

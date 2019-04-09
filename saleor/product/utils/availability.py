@@ -73,28 +73,26 @@ def _get_total_discount(
 def _get_product_price_range(
         discounted: Union[MoneyRange, TaxedMoneyRange],
         undiscounted: Union[MoneyRange, TaxedMoneyRange], local_currency=None):
-    # Local currency
+    price_range_local = None
+    discount_local_currency = None
+
     if local_currency:
         price_range_local = to_local_currency(
             discounted, local_currency)
         undiscounted_local = to_local_currency(
             undiscounted, local_currency)
-        if (undiscounted_local and
-            undiscounted_local.start > price_range_local.start):
+        if (undiscounted_local
+                and undiscounted_local.start > price_range_local.start):
             discount_local_currency = (
                 undiscounted_local.start - price_range_local.start)
-        else:
-            discount_local_currency = None
-    else:
-        price_range_local = None
-        discount_local_currency = None
 
     return price_range_local, discount_local_currency
 
 
 def get_product_availability(
         product: Product,
-        discounts=None, taxes=None, local_currency=None):
+        discounts=None, taxes=None, local_currency=None
+) -> ProductAvailability:
 
     discounted = product.get_price_range(discounts=discounts, taxes=taxes)
     undiscounted = product.get_price_range(taxes=taxes)
@@ -119,7 +117,8 @@ def get_product_availability(
 
 def get_variant_availability(
         variant: ProductVariant,
-        discounts=None, taxes=None, local_currency=None):
+        discounts=None, taxes=None, local_currency=None
+) -> VariantAvailability:
 
     discounted = variant.get_price(discounts=discounts, taxes=taxes)
     undiscounted = variant.get_price(taxes=taxes)
