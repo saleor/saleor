@@ -902,6 +902,7 @@ enum LanguageCodeEnum {
   FR
   HI
   HU
+  HY
   ID
   IT
   JA
@@ -910,6 +911,7 @@ enum LanguageCodeEnum {
   NB
   NL
   PL
+  PT
   PT_BR
   RO
   RU
