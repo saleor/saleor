@@ -4,7 +4,7 @@ from textwrap import dedent
 import graphene
 from django.contrib.auth import get_user_model
 from django.core.exceptions import (
-    ImproperlyConfigured, NON_FIELD_ERRORS, ValidationError)
+    NON_FIELD_ERRORS, ImproperlyConfigured, ValidationError)
 from django.db.models.fields.files import FileField
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
@@ -85,7 +85,6 @@ class BaseMutation(graphene.Mutation):
         if not node_id:
             return None
 
-        node = None
         try:
             node = graphene.Node.get_node_from_global_id(
                 info, node_id, only_type)
@@ -99,7 +98,6 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def get_nodes_or_error(cls, ids, field, only_type=None):
-        instances = None
         try:
             instances = get_nodes(ids, only_type)
         except GraphQLError as e:
@@ -432,8 +430,7 @@ class BaseBulkMutation(BaseMutation):
         if errors:
             errors = validation_error_to_error_type(errors)
             return cls(errors=errors, count=count)
-        else:
-            return cls(count=count)
+        return cls(count=count)
 
 
 class ModelBulkDeleteMutation(BaseBulkMutation):
