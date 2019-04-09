@@ -24,24 +24,31 @@ def get_database_id(info, node_id, only_type):
     return _id
 
 
+def _check_graphene_type(requested_graphene_type, received_type):
+    if requested_graphene_type:
+        assert str(requested_graphene_type) == received_type, (
+            'Must receive an {} id.'
+        ).format(requested_graphene_type._meta.name)
+
+
 def _resolve_nodes(ids, graphene_type=None):
     pks = []
     types = []
     invalid_ids = []
 
     for graphql_id in ids:
-        if graphql_id:
-            try:
-                _type, _id = from_global_id(graphql_id)
-            except Exception:
-                invalid_ids.append(graphql_id)
-            else:
-                if graphene_type:
-                    assert str(graphene_type) == _type, (
-                        'Must receive an {} id.').format(
-                            graphene_type._meta.name)
-                pks.append(_id)
-                types.append(_type)
+        if not graphql_id:
+            continue
+
+        try:
+            _type, _id = from_global_id(graphql_id)
+        except Exception:
+            invalid_ids.append(graphql_id)
+            continue
+
+        _check_graphene_type(graphene_type, _type)
+        pks.append(_id)
+        types.append(_type)
 
     if invalid_ids:
         raise GraphQLError(
