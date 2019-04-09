@@ -749,7 +749,7 @@ class ProductImageReorder(BaseMutation):
             if image and image.product != product:
                 raise ValidationError({
                     'order':
-                    'Image %(image_id)s does not belong to this product.'},
+                        'Image %(image_id)s does not belong to this product.'},
                     params={'image_id': image_id})
             images.append(image)
 

@@ -45,7 +45,8 @@ def validation_error_to_error_type(validation_error: ValidationError) -> list:
         # convert field errors
         for field, field_errors in validation_error.message_dict.items():
             for err in field_errors:
-                field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
+                field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(
+                    field)
                 err_list.append(Error(field=field, message=err))
     else:
         # convert non-field errors
@@ -234,14 +235,14 @@ class ModelMutation(BaseMutation):
 
         def is_list_of_ids(field):
             return (
-                isinstance(field.type, graphene.List)
-                and field.type.of_type == graphene.ID)
+                    isinstance(field.type, graphene.List)
+                    and field.type.of_type == graphene.ID)
 
         def is_id_field(field):
             return (
-                field.type == graphene.ID
-                or isinstance(field.type, graphene.NonNull)
-                and field.type.of_type == graphene.ID)
+                    field.type == graphene.ID
+                    or isinstance(field.type, graphene.NonNull)
+                    and field.type.of_type == graphene.ID)
 
         def is_upload_field(field):
             if hasattr(field.type, 'of_type'):

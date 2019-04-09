@@ -522,7 +522,8 @@ class AddressSetDefault(BaseMutation):
         address_id = graphene.ID(
             required=True, description='ID of the address.')
         user_id = graphene.ID(
-            required=True, description='ID of the user to change the address for.')
+            required=True,
+            description='ID of the user to change the address for.')
         type = AddressTypeEnum(
             required=True, description='The type of address.')
 

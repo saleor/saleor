@@ -22,7 +22,7 @@ def clean_order_update_shipping(order, method):
     if not order.shipping_address:
         raise ValidationError({
             'order': 'Cannot choose a shipping method for an order without '
-                'the shipping address.'})
+                     'the shipping address.'})
 
     valid_methods = (
         ShippingMethodModel.objects.applicable_shipping_methods(
@@ -33,7 +33,7 @@ def clean_order_update_shipping(order, method):
     if method.pk not in valid_methods:
         raise ValidationError({
             'shipping_method':
-            'Shipping method cannot be used with this order.'})
+                'Shipping method cannot be used with this order.'})
 
 
 def clean_order_cancel(order):
@@ -125,7 +125,7 @@ class OrderUpdateShipping(BaseMutation):
             if not order.is_draft() and order.is_shipping_required():
                 raise ValidationError({
                     'shipping_method':
-                    'Shipping method is required for this order.'})
+                        'Shipping method is required for this order.'})
 
             order.shipping_method = None
             order.shipping_price = ZERO_TAXED_MONEY
