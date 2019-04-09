@@ -12,7 +12,8 @@ from ...product import models
 from ...product.templatetags.product_images import (
     get_product_image_thumbnail, get_thumbnail)
 from ...product.utils import calculate_revenue_for_variant
-from ...product.utils.availability import get_availability
+from ...product.utils.availability import (
+    get_product_availability, get_variant_availability)
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..core.connection import CountableDjangoObjectType
@@ -181,6 +182,19 @@ class ProductOrder(graphene.InputObjectType):
         description='Specifies the direction in which to sort products')
 
 
+class VariantAvailability(graphene.ObjectType):
+    available = graphene.Boolean()
+    on_sale = graphene.Boolean()
+    discount = graphene.Field(TaxedMoney)
+    discount_local_currency = graphene.Field(TaxedMoney)
+    price = graphene.Field(TaxedMoney)
+    price_undiscounted = graphene.Field(TaxedMoney)
+    price_local_currency = graphene.Field(TaxedMoney)
+
+    class Meta:
+        description = 'Represents availability of a variant in the storefront.'
+
+
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int(
         required=True, description='Quantity of a product available for sale.')
@@ -191,6 +205,10 @@ class ProductVariant(CountableDjangoObjectType):
                A value of `null` indicates that the default product
                price is used."""))
     price = graphene.Field(Money, description='Price of the product variant.')
+    availability = graphene.Field(
+        VariantAvailability, description=dedent(
+            """Informs about variant's availability in the
+               storefront, current price and discounted price."""))
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this variant.')
@@ -253,6 +271,14 @@ class ProductVariant(CountableDjangoObjectType):
         return (
             self.price_override
             if self.price_override is not None else self.product.price)
+
+    @gql_optimizer.resolver_hints(
+        prefetch_related=('product', ), only=['price_override'])
+    def resolve_availability(self, info):
+        context = info.context
+        availability = get_variant_availability(
+            self, context.discounts, context.taxes, context.currency)
+        return VariantAvailability(**availability._asdict())
 
     @permission_required('product.manage_products')
     def resolve_price_override(self, *_args):
@@ -398,7 +424,7 @@ class Product(CountableDjangoObjectType):
         only=['publication_date', 'charge_taxes', 'price', 'tax_rate'])
     def resolve_availability(self, info):
         context = info.context
-        availability = get_availability(
+        availability = get_product_availability(
             self, context.discounts, context.taxes, context.currency)
         return ProductAvailability(**availability._asdict())
 

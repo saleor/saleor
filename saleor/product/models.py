@@ -227,6 +227,10 @@ class ProductVariant(models.Model):
     def quantity_available(self):
         return max(self.quantity - self.quantity_allocated, 0)
 
+    @property
+    def is_visible(self):
+        return self.product.is_visible
+
     def check_quantity(self, quantity):
         """Check if there is at least the given quantity in stock
         if stock handling is enabled.

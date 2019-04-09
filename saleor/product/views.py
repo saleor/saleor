@@ -21,7 +21,7 @@ from .utils import (
     handle_checkout_form, products_for_checkout, products_for_products_list,
     products_with_details)
 from .utils.attributes import get_product_attributes_data
-from .utils.availability import get_availability
+from .utils.availability import get_product_availability
 from .utils.digital_products import digital_content_url_is_valid
 from .utils.variants_picker import get_variant_picker_data
 
@@ -65,7 +65,7 @@ def product_details(request, slug, product_id, form=None):
         product.publication_date is None or product.publication_date <= today)
     if form is None:
         form = handle_checkout_form(request, product, create_checkout=False)[0]
-    availability = get_availability(
+    availability = get_product_availability(
         product, discounts=request.discounts, taxes=request.taxes,
         local_currency=request.currency)
     product_images = get_product_images(product)
