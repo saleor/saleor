@@ -54,7 +54,7 @@ def resolve_order(info, order_id):
     return None
 
 
-def resolve_homepage_events(info):
+def resolve_homepage_events():
     # Filter only selected events to be displayed on homepage.
     types = [
         OrderEvents.PLACED.value, OrderEvents.PLACED_FROM_DRAFT.value,
@@ -62,5 +62,5 @@ def resolve_homepage_events(info):
     return models.OrderEvent.objects.filter(type__in=types)
 
 
-def resolve_order_by_token(info, token):
+def resolve_order_by_token(token):
     return models.Order.objects.filter(token=token).first()

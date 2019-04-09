@@ -28,8 +28,9 @@ class Menu(CountableDjangoObjectType):
         prefetch_related=prefetch_menus)
 
     class Meta:
-        description = dedent("""Represents a single menu - an object that is used
-        to help navigate through the store.""")
+        description = dedent(
+            """Represents a single menu - an object that is used
+               to help navigate through the store.""")
         interfaces = [relay.Node]
         only_fields = ['id', 'name']
         model = models.Menu

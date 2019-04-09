@@ -68,9 +68,10 @@ class Shop(graphene.ObjectType):
         description='Customer\'s geolocalization data.')
     authorization_keys = graphene.List(
         AuthorizationKey,
-        description=dedent('''List of configured authorization keys. Authorization
-        keys are used to enable thrid party OAuth authorization (currently
-        Facebook or Google).'''),
+        description=dedent(
+            '''List of configured authorization keys. Authorization
+               keys are used to enable third party OAuth authorization 
+               (currently Facebook or Google).'''),
         required=True)
     countries = graphene.List(
         CountryDisplay, description='List of countries available in the shop.',
@@ -175,7 +176,8 @@ class Shop(graphene.ObjectType):
     def resolve_languages(self, _info):
         return [
             LanguageDisplay(
-                code=LanguageCodeEnum[str_to_enum(language[0])], language=language[1])
+                code=LanguageCodeEnum[str_to_enum(language[0])],
+                language=language[1])
             for language in settings.LANGUAGES]
 
     def resolve_name(self, info):
@@ -216,7 +218,7 @@ class Shop(graphene.ObjectType):
     def resolve_default_weight_unit(self, info):
         return info.context.site.settings.default_weight_unit
 
-    def resolve_default_country(self, info):
+    def resolve_default_country(self, _info):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:

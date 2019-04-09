@@ -41,7 +41,7 @@ def clean_order_cancel(order):
         raise ValidationError({'order': 'This order can\'t be canceled.'})
 
 
-def clean_order_capture(payment, amount):
+def clean_order_capture(payment):
     if not payment:
         raise ValidationError({
             'payment': 'There\'s no payment associated with the order.'})
@@ -274,7 +274,7 @@ class OrderCapture(BaseMutation):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
         payment = order.get_last_payment()
-        clean_order_capture(payment, amount)
+        clean_order_capture(payment)
 
         try:
             gateway_capture(payment, amount)

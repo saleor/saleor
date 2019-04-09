@@ -74,7 +74,7 @@ def resolve_collections(info, query):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_digital_contents(info, query):
+def resolve_digital_contents(info):
     qs = models.DigitalContent.objects.all()
     return gql_optimizer.query(qs, info)
 
@@ -82,7 +82,7 @@ def resolve_digital_contents(info, query):
 def resolve_products(
         info, attributes=None, categories=None, collections=None,
         price_lte=None, price_gte=None, sort_by=None, stock_availability=None,
-        query=None, **kwargs):
+        query=None, **_kwargs):
 
     user = info.context.user
     qs = models.Product.objects.visible_to_user(user)
@@ -135,7 +135,7 @@ def resolve_product_variants(info, ids=None):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_report_product_sales(info, period):
+def resolve_report_product_sales(period):
     qs = models.ProductVariant.objects.prefetch_related(
         'product', 'product__images', 'order_lines__order').all()
 

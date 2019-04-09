@@ -26,7 +26,7 @@ class FulfillmentLineInput(graphene.InputObjectType):
     order_line_id = graphene.ID(
         description='The ID of the order line.', name='orderLineId')
     quantity = graphene.Int(
-        description='The number of line item(s) to be fulfiled.')
+        description='The number of line item(s) to be fulfilled.')
 
 
 class FulfillmentCreateInput(graphene.InputObjectType):
@@ -172,7 +172,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         order = fulfillment.order
         order.events.create(
             parameters={
-                'tracking_numner': tracking_number,
+                'tracking_number': tracking_number,
                 'fulfillment': fulfillment.composed_id},
             type=OrderEvents.TRACKING_UPDATED.value,
             user=info.context.user)
@@ -197,7 +197,7 @@ class FulfillmentCancel(BaseMutation):
         and optionally restocks items.""")
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _data):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -221,7 +221,7 @@ class FulfillmentCancel(BaseMutation):
                 parameters={'quantity': fulfillment.get_total_quantity()},
                 type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
                 user=info.context.user)
-        else:
+        elif order:
             order.events.create(
                 parameters={'composed_id': fulfillment.composed_id},
                 type=OrderEvents.FULFILLMENT_CANCELED.value,

@@ -249,26 +249,26 @@ class ModelMutation(BaseMutation):
                 return field.type.of_type == Upload
             return field.type == Upload
 
-        InputCls = getattr(cls.Arguments, 'input')
+        input_cls = getattr(cls.Arguments, 'input')
         cleaned_input = {}
 
-        for field_name, field in InputCls._meta.fields.items():
+        for field_name, field_item in input_cls._meta.fields.items():
             if field_name in raw_input:
                 value = raw_input[field_name]
 
                 # handle list of IDs field
-                if value is not None and is_list_of_ids(field):
+                if value is not None and is_list_of_ids(field_item):
                     instances = cls.get_nodes_or_error(
                         value, field_name) if value else []
                     cleaned_input[field_name] = instances
 
                 # handle ID field
-                elif value is not None and is_id_field(field):
+                elif value is not None and is_id_field(field_item):
                     instance = cls.get_node_or_error(info, value, field_name)
                     cleaned_input[field_name] = instance
 
                 # handle uploaded files
-                elif value is not None and is_upload_field(field):
+                elif value is not None and is_upload_field(field_item):
                     value = info.context.FILES.get(value)
                     cleaned_input[field_name] = value
 
@@ -322,7 +322,7 @@ class ModelMutation(BaseMutation):
         """Perform model mutation.
 
         Depending on the input data, `mutate` either creates a new instance or
-        updates an existing one. If `id` arugment is present, it is assumed
+        updates an existing one. If `id` argument is present, it is assumed
         that this is an "update" mutation. Otherwise, a new instance is
         created based on the model associated with this mutation.
         """

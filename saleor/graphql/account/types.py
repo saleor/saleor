@@ -47,11 +47,11 @@ class Address(CountableDjangoObjectType):
             'first_name', 'id', 'last_name', 'phone', 'postal_code',
             'street_address_1', 'street_address_2']
 
-    def resolve_country(self, info):
+    def resolve_country(self, _info):
         return CountryDisplay(
             code=self.country.code, country=self.country.name)
 
-    def resolve_is_default_shipping_address(self, info):
+    def resolve_is_default_shipping_address(self, _info):
         """
         This field is added through annotation when using the
         `resolve_addresses` resolver. It's invalid for
@@ -67,7 +67,7 @@ class Address(CountableDjangoObjectType):
             return True
         return False
 
-    def resolve_is_default_billing_address(self, info):
+    def resolve_is_default_billing_address(self, _info):
         """
         This field is added through annotation when using the
         `resolve_addresses` resolver. It's invalid for
@@ -112,13 +112,13 @@ class User(CountableDjangoObjectType):
             'is_active', 'is_staff', 'last_login', 'last_name', 'note',
             'token']
 
-    def resolve_addresses(self, info, **kwargs):
+    def resolve_addresses(self, _info, **_kwargs):
         return self.addresses.annotate_default(self).all()
 
-    def resolve_checkout(self, info, **kwargs):
+    def resolve_checkout(self, _info, **_kwargs):
         return get_user_cart(self)
 
-    def resolve_permissions(self, info, **kwargs):
+    def resolve_permissions(self, _info, **_kwargs):
         if self.is_superuser:
             permissions = get_permissions()
         else:
@@ -127,16 +127,16 @@ class User(CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @permission_required('account.manage_users')
-    def resolve_note(self, info):
+    def resolve_note(self, _info):
         return self.note
 
-    def resolve_orders(self, info, **kwargs):
+    def resolve_orders(self, info, **_kwargs):
         viewer = info.context.user
         if viewer.has_perm('order.manage_orders'):
             return self.orders.all()
         return self.orders.confirmed()
 
-    def resolve_avatar(self, info, size=None, **kwargs):
+    def resolve_avatar(self, info, size=None, **_kwargs):
         if self.avatar:
             return Image.get_adjusted(
                 image=self.avatar,

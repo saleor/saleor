@@ -179,7 +179,7 @@ class AuthorizationKeyAdd(BaseMutation):
 
 class AuthorizationKeyDelete(BaseMutation):
     authorization_key = graphene.Field(
-        AuthorizationKey, description='Auhtorization key that was deleted.')
+        AuthorizationKey, description='Authorization key that was deleted.')
     shop = graphene.Field(Shop, description='Updated Shop')
 
     class Arguments:

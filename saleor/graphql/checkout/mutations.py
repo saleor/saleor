@@ -90,7 +90,7 @@ class CheckoutCreateInput(graphene.InputObjectType):
         description='The customer\'s email address.')
     shipping_address = AddressInput(
         description=(
-            'The mailling address to where the checkout will be shipped.'))
+            'The mailing address to where the checkout will be shipped.'))
     billing_address = AddressInput(
         description='Billing address of the customer.')
 
@@ -171,7 +171,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
 
-        # `perform_mutation` is overriden to properly get or create a checkout
+        # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
             checkout, created = get_or_create_user_cart(user)
@@ -330,7 +330,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         shipping_address = AddressInput(
             required=True,
             description=(
-                'The mailling address to where the checkout will be shipped.'))
+                'The mailing address to where the checkout will be shipped.'))
 
     class Meta:
         description = 'Update shipping address in the existing Checkout.'
