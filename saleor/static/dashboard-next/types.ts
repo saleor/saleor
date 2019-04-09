@@ -33,3 +33,10 @@ export type Pagination = Partial<{
   after: string;
   before: string;
 }>;
+
+export type Dialog<TDialog extends string> = Partial<{
+  action: TDialog;
+}>;
+export type ActiveTab<TTab extends string> = Partial<{
+  activeTab: TTab;
+}>;
