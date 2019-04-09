@@ -9,6 +9,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix dashboard 1.0 missing logo and missing back arrow on collections - #3958 by @NyanKiyoshi
 - Add mutations for publishing and unpublishing multiple pages - #3954 by @akjanik
 
+- Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
+
 ## 2.5.0
 
 ### API
