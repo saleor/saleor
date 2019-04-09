@@ -467,7 +467,8 @@ def test_create_attribute_value_not_unique_name(
     content = get_graphql_content(response)
     data = content['data']['attributeValueCreate']
     assert data['errors']
-    assert data['errors'][0]['field'] == 'All'
+    assert data['errors'][0]['message']
+    assert not data['errors'][0]['field']
 
 
 UPDATE_ATTRIBUTE_VALUE_QUERY = """
@@ -523,7 +524,8 @@ def test_update_attribute_value_name_not_unique(
     content = get_graphql_content(response)
     data = content['data']['attributeValueUpdate']
     assert data['errors']
-    assert data['errors'][0]['field'] == 'All'
+    assert data['errors'][0]['message']
+    assert not data['errors'][0]['field']
 
 
 def test_update_same_attribute_value(

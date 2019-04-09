@@ -715,8 +715,8 @@ def test_product_create_without_product_type(
     query = """
     mutation createProduct($categoryId: ID!) {
         productCreate(input: {
-                name: "Product", 
-                price: "2.5", 
+                name: "Product",
+                price: "2.5",
                 productType: "",
                 category: $categoryId}) {
             product {
@@ -1166,7 +1166,7 @@ def test_product_type_update_mutation(
     assert data['name'] == product_type_name
     assert data['hasVariants'] == has_variants
     assert data['isShippingRequired'] == require_shipping
-    assert len(data['productAttributes']) == 0
+    assert not data['productAttributes']
     assert len(data['variantAttributes']) == (
         variant_attributes.count())
 

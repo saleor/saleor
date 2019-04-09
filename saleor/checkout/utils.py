@@ -5,6 +5,7 @@ from uuid import UUID
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Sum
 from django.utils.encoding import smart_text
@@ -890,25 +891,21 @@ def is_fully_paid(cart: Cart, taxes, discounts):
     return total_paid >= cart_total
 
 
-def ready_to_place_order(cart: Cart, taxes, discounts):
+def clean_checkout(cart: Cart, taxes, discounts):
     """Check if checkout can be completed."""
     if cart.is_shipping_required():
         if not cart.shipping_method:
-            return False, pgettext_lazy(
-                'order placement_error', 'Shipping method is not set')
+            raise ValidationError('Shipping method is not set')
         if not cart.shipping_address:
-            return False, pgettext_lazy(
-                'order placement error', 'Shipping address is not set')
+            raise ValidationError('Shipping address is not set')
         if not is_valid_shipping_method(cart, taxes, discounts):
-            return False, pgettext_lazy(
-                'order placement error',
+            raise ValidationError(
                 'Shipping method is not valid for your shipping address')
+
     if not cart.billing_address:
-        return False, pgettext_lazy(
-            'order placement_error', 'Billing address is not set')
+        raise ValidationError('Billing address is not set')
+
     if not is_fully_paid(cart, taxes, discounts):
-        return False, pgettext_lazy(
-            'order placement error', (
-                'Provided payment methods can not '
-                'cover the checkout\'s total amount'))
-    return True, None
+        raise ValidationError(
+            'Provided payment methods can not cover the checkout\'s total '
+            'amount')
