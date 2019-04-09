@@ -16,7 +16,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
         model = models.Category
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user, ids):
         return user.has_perm('product.manage_products')
 
 
@@ -32,7 +32,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         model = models.Collection
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user, ids):
         return user.has_perm('product.manage_products')
 
 
@@ -48,7 +48,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         model = models.Product
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user, ids):
         return user.has_perm('product.manage_products')
 
 
@@ -64,7 +64,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         model = models.ProductVariant
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user, ids):
         return user.has_perm('product.manage_products')
 
 
@@ -80,7 +80,7 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
         model = models.ProductType
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user, ids):
         return user.has_perm('product.manage_products')
 
 
@@ -96,5 +96,5 @@ class ProductImageBulkDelete(ModelBulkDeleteMutation):
         model = models.ProductImage
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user, ids):
         return user.has_perm('product.manage_products')

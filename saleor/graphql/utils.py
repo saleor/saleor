@@ -57,6 +57,7 @@ def _resolve_graphene_type(types: List):
     for _, _type in registry._registry.items():
         if _type._meta.name == type_name:
             return _type
+    return None
 
 
 def get_nodes(ids, graphene_type=None):

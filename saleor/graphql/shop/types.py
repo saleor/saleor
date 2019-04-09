@@ -70,7 +70,7 @@ class Shop(graphene.ObjectType):
         AuthorizationKey,
         description=dedent(
             '''List of configured authorization keys. Authorization
-               keys are used to enable third party OAuth authorization 
+               keys are used to enable third party OAuth authorization
                (currently Facebook or Google).'''),
         required=True)
     countries = graphene.List(

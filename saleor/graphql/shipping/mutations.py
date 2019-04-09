@@ -72,7 +72,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
         model = models.ShippingZone
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
 
@@ -92,7 +92,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         model = models.ShippingZone
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
 
@@ -106,7 +106,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
         model = models.ShippingZone
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
 
@@ -152,7 +152,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
         model = models.ShippingMethod
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
     @classmethod
@@ -179,7 +179,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
         model = models.ShippingMethod
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
     @classmethod

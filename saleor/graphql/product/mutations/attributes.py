@@ -233,7 +233,7 @@ class AttributeDelete(ModelDeleteMutation):
         model = models.Attribute
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -301,7 +301,7 @@ class AttributeValueUpdate(ModelMutation):
         model = models.AttributeValue
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -329,7 +329,7 @@ class AttributeValueDelete(ModelDeleteMutation):
         model = models.AttributeValue
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
