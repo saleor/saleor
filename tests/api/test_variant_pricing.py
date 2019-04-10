@@ -44,6 +44,9 @@ query {
 
 
 def test_get_variant_pricing_on_sale(api_client, sale, product):
+    price = product.price
+    discounted_price = price.amount - sale.value
+
     response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, {})
     content = get_graphql_content(response)
 
@@ -59,18 +62,18 @@ def test_get_variant_pricing_on_sale(api_client, sale, product):
     assert pricing['onSale'] is True
 
     # check the discount
-    assert pricing['discount']['currency'] == product.price.currency
-    assert pricing['discount']['net']['amount'] == 5.0
+    assert pricing['discount']['currency'] == price.currency
+    assert pricing['discount']['net']['amount'] == discounted_price
 
     # check the undiscounted price
     assert (
-        pricing['priceUndiscounted']['currency'] == product.price.currency)
+        pricing['priceUndiscounted']['currency'] == price.currency)
     assert (
-        pricing['priceUndiscounted']['net']['amount'] == product.price.amount)
+        pricing['priceUndiscounted']['net']['amount'] == price.amount)
 
     # check the discounted price
-    assert pricing['price']['currency'] == product.price.currency
-    assert pricing['price']['net']['amount'] == 5.0
+    assert pricing['price']['currency'] == price.currency
+    assert pricing['price']['net']['amount'] == discounted_price
 
 
 def test_get_variant_pricing_not_on_sale(api_client, product):
