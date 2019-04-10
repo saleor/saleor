@@ -1,7 +1,7 @@
 from textwrap import dedent
 
 import graphene
-from graphql_jwt.decorators import permission_required
+from django.core.exceptions import ValidationError
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
@@ -44,13 +44,13 @@ class ShippingZoneInput(graphene.InputObjectType):
 
 class ShippingZoneMixin:
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         default = cleaned_input.get('default')
         if default:
             if default_shipping_zone_exists(instance.pk):
-                cls.add_error(
-                    errors, 'default', 'Default shipping zone already exists.')
+                raise ValidationError({
+                    'default': 'Default shipping zone already exists.'})
             elif cleaned_input.get('countries'):
                 cleaned_input['countries'] = []
         else:
@@ -112,8 +112,8 @@ class ShippingZoneDelete(ModelDeleteMutation):
 
 class ShippingPriceMixin:
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         type = cleaned_input.get('type')
         if type:
             if type == ShippingMethodTypeEnum.PRICE.value:
@@ -121,19 +121,19 @@ class ShippingPriceMixin:
                 max_price = cleaned_input.get('maximum_order_price')
                 if (min_price is not None and max_price is not None
                         and max_price <= min_price):
-                    cls.add_error(
-                        errors, 'maximum_order_price',
+                    raise ValidationError({
+                        'maximum_order_price':
                         'Maximum order price should be larger than the '
-                        'minimum order price.')
+                        'minimum order price.'})
             else:
                 min_weight = cleaned_input.get('minimum_order_weight')
                 max_weight = cleaned_input.get('maximum_order_weight')
                 if (min_weight is not None and max_weight is not None
                         and max_weight <= min_weight):
-                    cls.add_error(
-                        errors, 'maximum_order_weight',
+                    raise ValidationError({
+                        'maximum_order_weight':
                         'Maximum order weight should be larger than the '
-                        'minimum order weight.')
+                        'minimum order weight.'})
         return cleaned_input
 
 
@@ -204,20 +204,16 @@ class ShippingPriceDelete(BaseMutation):
         description = 'Deletes a shipping price.'
 
     @classmethod
-    @permission_required('shipping.manage_shipping')
-    def mutate(cls, root, info, id):
-        errors = []
-        shipping_method = cls.get_node_or_error(
-            info, id, errors, 'id', only_type=ShippingMethod)
-        if not shipping_method:
-            return ShippingPriceDelete(errors=errors)
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('shipping.manage_shipping')
 
+    @classmethod
+    def perform_mutation(cls, root, info, id):
+        shipping_method = cls.get_node_or_error(
+            info, id, only_type=ShippingMethod)
         shipping_method_id = shipping_method.id
         shipping_zone = shipping_method.shipping_zone
-
         shipping_method.delete()
         shipping_method.id = shipping_method_id
         return ShippingPriceDelete(
-            shipping_method=shipping_method,
-            shipping_zone=shipping_zone,
-            errors=errors)
+            shipping_method=shipping_method, shipping_zone=shipping_zone)

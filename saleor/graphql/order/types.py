@@ -1,5 +1,6 @@
 from textwrap import dedent
 
+from django.core.exceptions import ValidationError
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
@@ -14,7 +15,7 @@ from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import Image, ProductVariant
 from ..shipping.types import ShippingMethod
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
-from .utils import applicable_shipping_methods, can_finalize_draft_order
+from .utils import applicable_shipping_methods, validate_draft_order
 
 
 class OrderEvent(CountableDjangoObjectType):
@@ -42,7 +43,7 @@ class OrderEvent(CountableDjangoObjectType):
         description = 'History log of the order.'
         model = models.OrderEvent
         interfaces = [relay.Node]
-        exclude_fields = ['order', 'parameters']
+        only_fields = ['id']
 
     def resolve_email(self, info):
         return self.parameters.get('email', None)
@@ -78,7 +79,7 @@ class FulfillmentLine(CountableDjangoObjectType):
         description = 'Represents line of the fulfillment.'
         interfaces = [relay.Node]
         model = models.FulfillmentLine
-        exclude_fields = ['fulfillment']
+        only_fields = ['id', 'quantity']
 
     @gql_optimizer.resolver_hints(prefetch_related='order_line')
     def resolve_order_line(self, info):
@@ -98,7 +99,9 @@ class Fulfillment(CountableDjangoObjectType):
         description = 'Represents order fulfillment.'
         interfaces = [relay.Node]
         model = models.Fulfillment
-        exclude_fields = ['order']
+        only_fields = [
+            'fulfillment_order', 'id', 'shipping_date', 'status',
+            'tracking_number']
 
     def resolve_lines(self, info):
         return self.lines.all()
@@ -129,8 +132,10 @@ class OrderLine(CountableDjangoObjectType):
         description = 'Represents order line of particular order.'
         model = models.OrderLine
         interfaces = [relay.Node]
-        exclude_fields = [
-            'order', 'unit_price_gross', 'unit_price_net']
+        only_fields = [
+            'digital_content_url', 'id', 'is_shipping_required',
+            'product_name', 'product_sku', 'quantity', 'quantity_fulfilled',
+            'tax_rate', 'translated_product_name']
 
     @gql_optimizer.resolver_hints(
         prefetch_related=['variant__images', 'variant__product__images'])
@@ -218,17 +223,17 @@ class Order(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description='Returns True, if order requires shipping.',
         required=True)
-    lines = graphene.List(
-        OrderLine, required=True,
-        description='List of order lines for the order')
 
     class Meta:
         description = 'Represents an order in the shop.'
         interfaces = [relay.Node]
         model = models.Order
-        exclude_fields = [
-            'checkout_token', 'shipping_price_gross', 'shipping_price_net',
-            'total_gross', 'total_net']
+        only_fields = [
+            'billing_address', 'created', 'customer_note', 'discount_amount',
+            'discount_name', 'display_gross_prices', 'id', 'language_code',
+            'shipping_address', 'shipping_method', 'shipping_method_name',
+            'shipping_price', 'status', 'token', 'tracking_client_id',
+            'translated_discount_name', 'user', 'voucher', 'weight']
 
     @staticmethod
     def resolve_shipping_price(self, info):
@@ -318,8 +323,11 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_can_finalize(self, info):
-        errors = can_finalize_draft_order(self, [])
-        return not errors
+        try:
+            validate_draft_order(self)
+        except ValidationError:
+            return False
+        return True
 
     @staticmethod
     def resolve_user_email(self, info):
@@ -332,7 +340,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_available_shipping_methods(self, info):
         return applicable_shipping_methods(
-            self, info, self.get_subtotal().gross.amount)
+            self, self.get_subtotal().gross.amount)
 
     def resolve_is_shipping_required(self, info):
         return self.is_shipping_required()

@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
 "Last-Translator: Chetabahana <admin@chetabahana.com>, 2019\n"
 "Language-Team: Indonesian (https://www.transifex.com/mirumee/teams/34782/id/)\n"
@@ -117,7 +117,7 @@ msgstr "Nama"
 #: saleor/dashboard/collection/filters.py:21
 msgctxt "Collection list filter label"
 msgid "Is published"
-msgstr ""
+msgstr "Diterbitkan"
 
 #: saleor/dashboard/collection/filters.py:23
 #: saleor/dashboard/customer/filters.py:38
@@ -166,7 +166,7 @@ msgctxt ""
 "The publication date field, can be a posterior date for a planned "
 "publication."
 msgid "Publication date"
-msgstr ""
+msgstr "Tanggal penerbitan"
 
 #: saleor/dashboard/collection/forms.py:39
 msgctxt "Description field of a collection"
@@ -234,7 +234,7 @@ msgstr "Lokasi"
 #: saleor/dashboard/customer/filters.py:36
 msgctxt "Customer list filter label"
 msgid "Is active"
-msgstr ""
+msgstr "Aktif"
 
 #: saleor/dashboard/customer/filters.py:41
 msgctxt "Customer list filter label"
@@ -252,7 +252,7 @@ msgstr[0] "Ditemukan %(counter)d pelanggan yang cocok"
 #, python-format
 msgctxt "Customer form: Name field placeholder"
 msgid "%(name)s (Inherit from default billing address)"
-msgstr ""
+msgstr "%(name)s (Merujuk dari alamat penagihan standar)"
 
 #: saleor/dashboard/customer/forms.py:29
 msgctxt "Edit customer details in order form error"
@@ -273,59 +273,59 @@ msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
 msgstr "Kamu tidak memiliki kewenangan, untuk mengubah pengguna staf."
 
-#: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
+#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:23
 msgctxt "Customer form: Given name field"
 msgid "Given name"
 msgstr "Nama pemberian"
 
-#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:25
+#: saleor/dashboard/customer/forms.py:71 saleor/dashboard/staff/forms.py:25
 msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr "Nama keluarga"
 
-#: saleor/dashboard/customer/forms.py:71
+#: saleor/dashboard/customer/forms.py:73
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "Email"
-
-#: saleor/dashboard/customer/forms.py:73
-msgctxt "Customer form: is active toggle"
-msgid "User is active"
-msgstr "Pengguna aktif"
 
 #: saleor/dashboard/customer/forms.py:75
 msgctxt "Customer form: customer note field"
 msgid "Notes"
 msgstr "Catatan"
 
-#: saleor/dashboard/customer/forms.py:85
+#: saleor/dashboard/customer/forms.py:77
+msgctxt "Customer form: is active toggle"
+msgid "User is active"
+msgstr "Pengguna aktif"
+
+#: saleor/dashboard/customer/forms.py:87
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Catatan"
 
-#: saleor/dashboard/customer/forms.py:88
+#: saleor/dashboard/customer/forms.py:90
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "Pelanggan dapat melihat catatan ini"
 
-#: saleor/dashboard/customer/views.py:63
+#: saleor/dashboard/customer/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
 msgstr "Pelanggan %s ditambahkan"
 
-#: saleor/dashboard/customer/views.py:79
+#: saleor/dashboard/customer/views.py:81
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
 msgstr "Pelanggan %s diperbarui"
 
-#: saleor/dashboard/customer/views.py:112
+#: saleor/dashboard/customer/views.py:114
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
 msgstr "Catatan ditambahkan"
 
-#: saleor/dashboard/customer/views.py:133
+#: saleor/dashboard/customer/views.py:135
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(customer_name)s successfully removed"
@@ -344,12 +344,12 @@ msgstr "nominal"
 #: saleor/dashboard/discount/filters.py:16
 msgctxt "Sale list sorting option"
 msgid "start_date"
-msgstr ""
+msgstr "start_date"
 
 #: saleor/dashboard/discount/filters.py:17
 msgctxt "Sale list sorting option"
 msgid "end_date"
-msgstr ""
+msgstr "end_date"
 
 #: saleor/dashboard/discount/filters.py:20
 msgctxt "Voucher list sorting option"
@@ -369,12 +369,12 @@ msgstr "Negara"
 #: saleor/dashboard/discount/filters.py:24
 msgctxt "Voucher list sorting option"
 msgid "start_date"
-msgstr ""
+msgstr "start_date"
 
 #: saleor/dashboard/discount/filters.py:25
 msgctxt "Voucher list sorting option"
 msgid "end_date"
-msgstr ""
+msgstr "end_date"
 
 #: saleor/dashboard/discount/filters.py:26
 msgctxt "Voucher list sorting option"
@@ -384,7 +384,7 @@ msgstr "digunakan"
 #: saleor/dashboard/discount/filters.py:28
 msgctxt "Voucher list sorting option"
 msgid "min_amount_spent"
-msgstr ""
+msgstr "min_amount_spent"
 
 #: saleor/dashboard/discount/filters.py:31
 msgctxt "Sale type filter choice"
@@ -488,7 +488,7 @@ msgstr "Nama"
 #: saleor/dashboard/discount/forms.py:40
 msgctxt "Discount type"
 msgid "Fixed or percentage"
-msgstr ""
+msgstr "Tetap atau persentase"
 
 #: saleor/dashboard/discount/forms.py:43
 msgctxt "Sale date restrictions"
@@ -518,13 +518,15 @@ msgstr "Koleksi yang didiskon"
 #: saleor/dashboard/discount/forms.py:69
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
-msgstr ""
+msgstr "Penjualan tidak boleh melebihi 100%"
 
 #: saleor/dashboard/discount/forms.py:76
 msgctxt "Sale (discount) error"
 msgid ""
 "A single sale must point to at least one product, collectionand/or category."
 msgstr ""
+"Penjualan harus menunjuk setidaknya satu produk, koleksi dan / atau "
+"kategori."
 
 #: saleor/dashboard/discount/forms.py:91
 msgctxt "Discount type"
@@ -564,7 +566,7 @@ msgstr "Nominal diskon"
 #: saleor/dashboard/discount/forms.py:130
 msgctxt "Text above the dropdown of countries"
 msgid "Limit countries that voucher should apply to"
-msgstr ""
+msgstr "Batasi negara tempat voucher seharusnya berlaku"
 
 #: saleor/dashboard/discount/forms.py:158
 msgctxt "Field label, apply discount value only once per order"
@@ -577,6 +579,8 @@ msgid ""
 "If unchecked, discount value will be taken off each suitable item in an "
 "order."
 msgstr ""
+"Jika tidak dicentang, nilai diskon akan diambil dari setiap item yang sesuai"
+" dalam suatu pesanan."
 
 #: saleor/dashboard/discount/forms.py:170
 msgctxt "Product"
@@ -596,34 +600,34 @@ msgstr "Kategori"
 #: saleor/dashboard/discount/views.py:56
 msgctxt "Sale (discount) message"
 msgid "Added sale"
-msgstr ""
+msgstr "Penjualan tambahan"
 
 #: saleor/dashboard/discount/views.py:70
 msgctxt "Sale (discount) message"
 msgid "Updated sale"
-msgstr ""
+msgstr "Penjualan diperbarui"
 
 #: saleor/dashboard/discount/views.py:84
 #, python-format
 msgctxt "Sale (discount) message"
 msgid "Removed sale %s"
-msgstr ""
+msgstr "Penjualan dihapus %s"
 
 #: saleor/dashboard/discount/views.py:124
 msgctxt "Voucher message"
 msgid "Added voucher"
-msgstr ""
+msgstr "Voucher ditambahkan"
 
 #: saleor/dashboard/discount/views.py:150
 msgctxt "Voucher message"
 msgid "Updated voucher"
-msgstr ""
+msgstr "Voucher yang diperbarui"
 
 #: saleor/dashboard/discount/views.py:167
 #, python-format
 msgctxt "Voucher message"
 msgid "Removed voucher %s"
-msgstr ""
+msgstr "Voucher yang dihapus %s"
 
 #: saleor/dashboard/menu/filters.py:9
 msgctxt "Menu list sorting option"
@@ -660,7 +664,7 @@ msgstr "Nama"
 #: saleor/dashboard/menu/filters.py:42
 msgctxt "Menu item list filter label"
 msgid "Points to"
-msgstr ""
+msgstr "Poin ke"
 
 #: saleor/dashboard/menu/filters.py:45
 msgctxt "Menu item list sorting filter label"
@@ -697,17 +701,17 @@ msgstr "URL"
 #: saleor/dashboard/menu/forms.py:70
 msgctxt "Menu item form error"
 msgid "Maximum nesting level for menu items equals to 2."
-msgstr ""
+msgstr "Level maksimum untuk item menu sama dengan 2."
 
 #: saleor/dashboard/menu/forms.py:78
 msgctxt "Menu item form error"
 msgid "A single menu item can't point to both an internal link and URL."
-msgstr ""
+msgstr "Item menu tidak dapat mengarah ke tautan internal dan URL."
 
 #: saleor/dashboard/menu/forms.py:85
 msgctxt "Menu item form error"
 msgid "A single menu item must point to an internal link or URL."
-msgstr ""
+msgstr "Item menu harus mengarah ke tautan atau URL internal."
 
 #: saleor/dashboard/menu/utils.py:101
 #, python-format
@@ -715,53 +719,55 @@ msgctxt "Menu item page hidden status"
 msgid ""
 "%(menu_item_name)s is hidden (will become visible on %(available_on_date)s)"
 msgstr ""
+"%(menu_item_name)s disembunyikan (akan menjadi terlihat pada "
+"%(available_on_date)s)"
 
 #: saleor/dashboard/menu/utils.py:109
 #, python-format
 msgctxt "Menu item published status"
 msgid "%(menu_item_name)s (Not published)"
-msgstr ""
+msgstr "%(menu_item_name)s (Tidak diterbitkan)"
 
 #: saleor/dashboard/menu/views.py:36
 msgctxt "Dashboard message"
 msgid "Updated storefront menus"
-msgstr ""
+msgstr "Menu etalase yang diperbarui"
 
 #: saleor/dashboard/menu/views.py:53
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu %s"
-msgstr ""
+msgstr "Tambahan menu %s"
 
 #: saleor/dashboard/menu/views.py:67
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated menu %s"
-msgstr ""
+msgstr "Perbarui menu %s"
 
 #: saleor/dashboard/menu/views.py:97
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu %s"
-msgstr ""
+msgstr "Hapus menu %s"
 
 #: saleor/dashboard/menu/views.py:121
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu item %s"
-msgstr ""
+msgstr "Tambah menu item %s"
 
 #: saleor/dashboard/menu/views.py:145
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved menu item %s"
-msgstr ""
+msgstr "Simpan menu item %s"
 
 #: saleor/dashboard/menu/views.py:163
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu item %s"
-msgstr ""
+msgstr "Hapus menu item %s"
 
 #: saleor/dashboard/menu/views.py:249
 msgctxt "Link object type group description"
@@ -848,17 +854,19 @@ msgstr "Mengirimkan email dengan konfirmasi pembelian kepada pelanggan"
 #: saleor/dashboard/order/forms.py:57
 msgctxt "Create draft order form error"
 msgid "Could not create order without any products"
-msgstr ""
+msgstr "Pesanan tidak dapat dibuat tanpa produk"
 
 #: saleor/dashboard/order/forms.py:67
 msgctxt "Create draft order form error"
 msgid "Shipping method is not valid for chosen shipping address"
-msgstr ""
+msgstr "Metode pengiriman tidak valid untuk alamat pengiriman yang dipilih"
 
 #: saleor/dashboard/order/forms.py:95
 msgctxt "Update an order with user default addresses"
 msgid "Set billing and shipping address in order to customer defaults"
 msgstr ""
+"Tetapkan alamat penagihan dan pengiriman agar sesuai dengan standar "
+"pelanggan"
 
 #: saleor/dashboard/order/forms.py:103
 msgctxt "Order form: editing customer details - selecting a customer"
@@ -874,7 +882,7 @@ msgstr "Email"
 msgctxt "Edit customer details in order form error"
 msgid ""
 "An order can be related either with an email or an existing user account"
-msgstr ""
+msgstr "Pesanan dapat dikaitkan dengan email atau akun pengguna yang ada"
 
 #: saleor/dashboard/order/forms.py:154
 msgctxt "Shipping method form field label"
@@ -884,12 +892,12 @@ msgstr "Metode pengiriman"
 #: saleor/dashboard/order/forms.py:211
 msgctxt "Order discount amount fixed value"
 msgid "Discount amount"
-msgstr ""
+msgstr "Jumlah diskon"
 
 #: saleor/dashboard/order/forms.py:223
 msgctxt "Order voucher"
 msgid "Voucher"
-msgstr ""
+msgstr "Voucher"
 
 #: saleor/dashboard/order/forms.py:251
 msgctxt "Order note"
@@ -899,38 +907,38 @@ msgstr "Catatan"
 #: saleor/dashboard/order/forms.py:258
 msgctxt "Payment management form (capture, refund, void)"
 msgid "Amount"
-msgstr ""
+msgstr "Jumlah"
 
 #: saleor/dashboard/order/forms.py:264
 msgctxt "Payment form error"
 msgid "This payment action can not be performed."
-msgstr ""
+msgstr "Pembayaran ini tidak dapat dilakukan."
 
 #: saleor/dashboard/order/forms.py:273
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
-msgstr ""
+msgstr "Kesalahan gateway pembayaran: %s"
 
 #: saleor/dashboard/order/forms.py:289
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
-msgstr ""
+msgstr "Hanya pembayaran pra-otorisasi yang dapat direkam"
 
 #: saleor/dashboard/order/forms.py:303
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
-msgstr ""
+msgstr "Hanya pembayaran yang dikonfirmasi yang dapat dikembalikan"
 
 #: saleor/dashboard/order/forms.py:313
 msgctxt "Payment form error"
 msgid "Manual payments can not be refunded"
-msgstr ""
+msgstr "Pembayaran manual tidak dapat dikembalikan"
 
 #: saleor/dashboard/order/forms.py:323
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be voided"
-msgstr ""
+msgstr "Hanya pembayaran pra-otorisasi yang dapat dibatalkan"
 
 #: saleor/dashboard/order/forms.py:381
 msgctxt "Integer number"
@@ -942,26 +950,26 @@ msgstr "Jumlah"
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
 msgid_plural "Only %(remaining)d remaining in stock."
-msgstr[0] ""
+msgstr[0] "Hanya %(remaining)d tersisa di stok barang."
 
 #: saleor/dashboard/order/forms.py:432
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
-msgstr[0] ""
+msgstr[0] "Melengkapi %(quantity)d items"
 
 #: saleor/dashboard/order/forms.py:442
 msgctxt "Cancel order form error"
 msgid "This order can't be canceled"
-msgstr ""
+msgstr "Pesanan ini tidak dapat dibatalkan"
 
 #: saleor/dashboard/order/forms.py:462
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
-msgstr[0] ""
+msgstr[0] "Melengkapi %(quantity)d items"
 
 #: saleor/dashboard/order/forms.py:472
 msgctxt "Cancel fulfillment form error"
@@ -976,12 +984,12 @@ msgstr "Mengirimkan email notifikasi kepada pelanggan"
 #: saleor/dashboard/order/forms.py:492
 msgctxt "Fulfillment record"
 msgid "Tracking number"
-msgstr ""
+msgstr "Melacak nomor"
 
 #: saleor/dashboard/order/forms.py:513
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
-msgstr ""
+msgstr "Pesanan ini tidak memiliki voucher"
 
 #: saleor/dashboard/order/forms.py:526
 msgctxt "Payment status field value"
@@ -1003,6 +1011,7 @@ msgstr "Jumlah"
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr ""
+"Tidak dapat menambahkan item. Hanya  %(remaining)d tersisa dalam persediaan."
 
 #: saleor/dashboard/order/forms.py:590
 msgctxt "Order form: address subform - phone number input field"
@@ -1017,24 +1026,24 @@ msgstr "Mengirimkan detil pengiriman kepada pelanggan kamu sekarang"
 #: saleor/dashboard/order/forms.py:607
 msgctxt "Order tracking number"
 msgid "Tracking number"
-msgstr ""
+msgstr "Melacak nomor"
 
 #: saleor/dashboard/order/forms.py:644
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
 msgid_plural "%(quantity)d items remaining to fulfill."
-msgstr[0] ""
+msgstr[0] "%(quantity)d barang yang tersisa untuk dipesan."
 
 #: saleor/dashboard/order/views.py:64
 msgctxt "Dashboard message related to an order"
 msgid "Draft order created"
-msgstr ""
+msgstr "Draf pesanan dibuat"
 
 #: saleor/dashboard/order/views.py:79
 msgctxt "Dashboard message related to an order"
 msgid "Order created from draft order"
-msgstr ""
+msgstr "Pesanan dibuat dari draft"
 
 #: saleor/dashboard/order/views.py:106
 msgctxt "Dashboard message"
@@ -1050,18 +1059,18 @@ msgstr "Catatan ditambahkan"
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
-msgstr ""
+msgstr "Rekam %(amount)s"
 
 #: saleor/dashboard/order/views.py:198
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
-msgstr ""
+msgstr "Dikembalikan %(amount)s"
 
 #: saleor/dashboard/order/views.py:224
 msgctxt "Dashboard message"
 msgid "Voided payment"
-msgstr ""
+msgstr "Pembayaran dibatalkan"
 
 #: saleor/dashboard/order/views.py:249
 #, python-format
@@ -1070,51 +1079,54 @@ msgid ""
 "Changed quantity for variant %(variant)s from %(old_quantity)s to "
 "%(new_quantity)s"
 msgstr ""
+"Jumlah berubah untuk jenis %(variant)s dari %(old_quantity)s ke "
+"%(new_quantity)s"
 
 #: saleor/dashboard/order/views.py:274
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Canceled item %s"
-msgstr ""
+msgstr "Item yang dibatalkan %s"
 
 #: saleor/dashboard/order/views.py:306
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Added %(quantity)d x %(variant)s"
-msgstr ""
+msgstr "Ditambahkan %(quantity)d x %(variant)s"
 
 #: saleor/dashboard/order/views.py:311
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Insufficient stock: could not add %(quantity)d x %(variant)s"
 msgstr ""
+"Stok tidak mencukupi: tidak bisa ditambahkan %(quantity)d x %(variant)s"
 
 #: saleor/dashboard/order/views.py:331
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
-msgstr ""
+msgstr "Alamat pengiriman yang diperbarui"
 
 #: saleor/dashboard/order/views.py:337
 msgctxt "Dashboard message"
 msgid "Updated billing address"
-msgstr ""
+msgstr "Alamat penagihan yang diperbarui"
 
 #: saleor/dashboard/order/views.py:369
 #, python-format
 msgctxt "Dashboard message"
 msgid "%s email assigned to an order"
-msgstr ""
+msgstr "%s email yang dipakai untuk pesanan"
 
 #: saleor/dashboard/order/views.py:373
 #, python-format
 msgctxt "Dashboard message"
 msgid "%s user assigned to an order"
-msgstr ""
+msgstr "%s pengguna untuk pesanan"
 
 #: saleor/dashboard/order/views.py:377
 msgctxt "Dashboard message"
 msgid "Guest user assigned to an order"
-msgstr ""
+msgstr "User tamu diterapkan untuk pesanan"
 
 #: saleor/dashboard/order/views.py:398
 msgctxt "Dashboard message"
@@ -1124,61 +1136,61 @@ msgstr "Pelanggan dihapus dari pembelian"
 #: saleor/dashboard/order/views.py:413
 msgctxt "Dashboard message"
 msgid "Shipping updated"
-msgstr ""
+msgstr "Pengiriman diperbarui"
 
 #: saleor/dashboard/order/views.py:431
 msgctxt "Dashboard message"
 msgid "Shipping removed"
-msgstr ""
+msgstr "Pengiriman dihapus"
 
 #: saleor/dashboard/order/views.py:445
 msgctxt "Dashboard message"
 msgid "Discount updated"
-msgstr ""
+msgstr "Diskon diperbarui"
 
 #: saleor/dashboard/order/views.py:464
 msgctxt "Dashboard message"
 msgid "Voucher updated"
-msgstr ""
+msgstr "Voucher diperbarui"
 
 #: saleor/dashboard/order/views.py:482
 msgctxt "Dashboard message"
 msgid "Order canceled"
-msgstr ""
+msgstr "Pesanan dibatalkan"
 
 #: saleor/dashboard/order/views.py:509
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
-msgstr ""
+msgstr "Voucher dihapus dari pesanan"
 
 #: saleor/dashboard/order/views.py:546
 msgctxt "Dashboard message"
 msgid "Order manually marked as paid"
-msgstr ""
+msgstr "Pesanan ditandai secara manual sebagai berbayar"
 
 #: saleor/dashboard/order/views.py:611
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
 msgid_plural "Fulfilled %(quantity_fulfilled)d items"
-msgstr[0] ""
+msgstr[0] "Dipenuhi%(quantity_fulfilled)d items"
 
 #: saleor/dashboard/order/views.py:629
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
-msgstr ""
+msgstr "Tidak ada item yang terpenuhi"
 
 #: saleor/dashboard/order/views.py:651
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
-msgstr ""
+msgstr "Pesanan #%(fulfillment)s dibatalkan"
 
 #: saleor/dashboard/order/views.py:697
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number updated"
-msgstr ""
+msgstr "Nomor pelacakan pesanan #%(fulfillment)s diperbarui"
 
 #: saleor/dashboard/page/filters.py:8
 msgctxt "Page list sorting option"
@@ -1225,7 +1237,7 @@ msgstr "Judul"
 #: saleor/dashboard/page/forms.py:23
 msgctxt "Page form: slug field"
 msgid "Slug"
-msgstr ""
+msgstr "Slug"
 
 #: saleor/dashboard/page/forms.py:25
 msgctxt "Page form: available on which date field"
@@ -1235,23 +1247,23 @@ msgstr "Tersedia pada"
 #: saleor/dashboard/page/forms.py:27
 msgctxt "Page form: publication status indicator"
 msgid "Is published"
-msgstr ""
+msgstr "Diterbitkan"
 
 #: saleor/dashboard/page/forms.py:31
 msgctxt "Form field help text"
 msgid "Slug is being used to create page URL"
-msgstr ""
+msgstr "Slug digunakan untuk membuat URL halaman"
 
 #: saleor/dashboard/page/views.py:48
 msgctxt "Dashboard message"
 msgid "Saved page"
-msgstr ""
+msgstr "Halaman tersimpan"
 
 #: saleor/dashboard/page/views.py:66
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed page %s"
-msgstr ""
+msgstr "Halaman yang dihapus %s"
 
 #: saleor/dashboard/product/__init__.py:11
 msgctxt "product bulk action"
@@ -1306,7 +1318,7 @@ msgstr "Harga"
 #: saleor/dashboard/product/filters.py:43
 msgctxt "Product list filter label"
 msgid "Is published"
-msgstr ""
+msgstr "Diterbitkan"
 
 #: saleor/dashboard/product/filters.py:48
 msgctxt "Product list filter label"
@@ -1367,7 +1379,7 @@ msgstr[0] "Ditemukan %(counter)d tipe produk yang cocok"
 #: saleor/dashboard/product/forms.py:39
 msgctxt "Help text in rich-text editor field"
 msgid "Select text to enable text-formatting tools."
-msgstr ""
+msgstr "Pilih teks untuk mengaktifkan alat pemformatan."
 
 #: saleor/dashboard/product/forms.py:56
 msgctxt "Product type form label"
@@ -1377,7 +1389,7 @@ msgstr "Tipe produk"
 #: saleor/dashboard/product/forms.py:73
 msgctxt "Product type tax rate type"
 msgid "Tax rate"
-msgstr ""
+msgstr "Tarif pajak"
 
 #: saleor/dashboard/product/forms.py:75 saleor/dashboard/product/forms.py:237
 msgctxt "ProductType weight"
@@ -1390,16 +1402,18 @@ msgid ""
 "Default weight that will be used for calculating shipping price for products"
 " of that type."
 msgstr ""
+"Bobot default yang digunakan untuk menghitung harga pengiriman untuk jenis "
+"produk."
 
 #: saleor/dashboard/product/forms.py:83
 msgctxt "Product type attributes"
 msgid "Attributes common to all variants."
-msgstr ""
+msgstr "Atribut yang umum untuk semua varian."
 
 #: saleor/dashboard/product/forms.py:88
 msgctxt "Product type attributes"
 msgid "Attributes specific to each variant."
-msgstr ""
+msgstr "Atribut khusus untuk setiap varian."
 
 #: saleor/dashboard/product/forms.py:99
 msgctxt "Enable variants"
@@ -1409,7 +1423,7 @@ msgstr "Aktifkan variasi"
 #: saleor/dashboard/product/forms.py:102
 msgctxt "Shipping toggle"
 msgid "Require shipping"
-msgstr ""
+msgstr "Membutuhkan pengiriman"
 
 #: saleor/dashboard/product/forms.py:137
 msgctxt "Product type form error"
@@ -1419,17 +1433,17 @@ msgstr "Variasi produk dinonaktifkan."
 #: saleor/dashboard/product/forms.py:142
 msgctxt "Product type form error"
 msgid "A single attribute can't belong to both a product and its variant."
-msgstr ""
+msgstr "Atribut tunggal tidak dapat dimiliki produk maupun variannya."
 
 #: saleor/dashboard/product/forms.py:164
 msgctxt "Product type form error"
 msgid "Some products of this type have more than one variant."
-msgstr ""
+msgstr "Beberapa produk jenis ini memiliki lebih dari satu varian."
 
 #: saleor/dashboard/product/forms.py:226
 msgctxt "Product tax rate type"
 msgid "Tax rate"
-msgstr ""
+msgstr "Tarif pajak"
 
 #: saleor/dashboard/product/forms.py:230
 msgctxt "Category"
@@ -1447,6 +1461,8 @@ msgid ""
 "Weight will be used to calculate shipping price, if empty, equal to default "
 "value used on the ProductType."
 msgstr ""
+"Berat akan digunakan untuk menghitung harga pengiriman, jika kosong, sama "
+"dengan nilai default yang digunakan pada ProductType.."
 
 #: saleor/dashboard/product/forms.py:251
 #: saleor/dashboard/shipping/forms.py:123
@@ -1457,7 +1473,7 @@ msgstr "Harga"
 #: saleor/dashboard/product/forms.py:253
 msgctxt "Availability date"
 msgid "Publish product on"
-msgstr ""
+msgstr "Terbitkan produk pada"
 
 #: saleor/dashboard/product/forms.py:255
 msgctxt "Product published toggle"
@@ -1467,7 +1483,7 @@ msgstr "Diterbitkan"
 #: saleor/dashboard/product/forms.py:257
 msgctxt "Charge taxes on product"
 msgid "Charge taxes on this product"
-msgstr ""
+msgstr "Tagihan pajak untuk produk ini"
 
 #: saleor/dashboard/product/forms.py:277
 msgctxt "Currency gross amount"
@@ -1490,6 +1506,8 @@ msgid ""
 "Weight will be used to calculate shipping price. If empty, weight from "
 "Product or ProductType will be used."
 msgstr ""
+"Berat akan digunakan untuk menghitung harga pengiriman. Jika kosong, berat "
+"dari Produk atau Jenis Produk akan digunakan."
 
 #: saleor/dashboard/product/forms.py:320
 msgctxt "SKU"
@@ -1499,47 +1517,47 @@ msgstr "SKU"
 #: saleor/dashboard/product/forms.py:322
 msgctxt "Override price"
 msgid "Selling price override"
-msgstr ""
+msgstr "Harga jual ditimpahkan"
 
 #: saleor/dashboard/product/forms.py:323
 msgctxt "Integer number"
 msgid "Number in stock"
-msgstr ""
+msgstr "Jumlah stok"
 
 #: saleor/dashboard/product/forms.py:324
 msgctxt "Currency amount"
 msgid "Cost price"
-msgstr ""
+msgstr "Harga biaya"
 
 #: saleor/dashboard/product/forms.py:326
 msgctxt "Track inventory field"
 msgid "Track inventory"
-msgstr ""
+msgstr "Lacak inventaris"
 
 #: saleor/dashboard/product/forms.py:330
 msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
-msgstr ""
+msgstr "Otomatis melacak inventaris produk ini"
 
 #: saleor/dashboard/product/forms.py:345
 msgctxt "Override price"
 msgid "Selling gross price override"
-msgstr ""
+msgstr "Jual dengan harga bruto"
 
 #: saleor/dashboard/product/forms.py:347
 msgctxt "Currency amount"
 msgid "Cost gross price"
-msgstr ""
+msgstr "Biaya harga bruto"
 
 #: saleor/dashboard/product/forms.py:350
 msgctxt "Override price"
 msgid "Selling net price override"
-msgstr ""
+msgstr "Biaya harga bersih"
 
 #: saleor/dashboard/product/forms.py:352
 msgctxt "Currency amount"
 msgid "Cost net price"
-msgstr ""
+msgstr "Biaya harga bersih"
 
 #: saleor/dashboard/product/forms.py:405 saleor/dashboard/product/forms.py:510
 msgctxt "Product image"
@@ -1549,122 +1567,122 @@ msgstr "Gambar"
 #: saleor/dashboard/product/forms.py:446
 msgctxt "Product display name"
 msgid "Display name"
-msgstr ""
+msgstr "Nama tampilan"
 
 #: saleor/dashboard/product/forms.py:448
 msgctxt "Product internal name"
 msgid "Internal name"
-msgstr ""
+msgstr "Nama internal"
 
 #: saleor/dashboard/product/views.py:128
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
-msgstr ""
+msgstr "Produk ditambahkan %s"
 
 #: saleor/dashboard/product/views.py:159
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
-msgstr ""
+msgstr "Produk diperbarui %s"
 
 #: saleor/dashboard/product/views.py:174
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
-msgstr ""
+msgstr "Produk dihapus%s"
 
 #: saleor/dashboard/product/views.py:193
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
 msgid_plural "%(count)d products have been updated"
-msgstr[0] ""
+msgstr[0] "%(count)d produk telah diperbarui"
 
 #: saleor/dashboard/product/views.py:247
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product type %s"
-msgstr ""
+msgstr "Tipe produk ditambahkan %s"
 
 #: saleor/dashboard/product/views.py:265
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product type %s"
-msgstr ""
+msgstr "Tipe produk yang diperbarui %s"
 
 #: saleor/dashboard/product/views.py:282
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product type %s"
-msgstr ""
+msgstr "Tipe produk yang dihapus %s"
 
 #: saleor/dashboard/product/views.py:330 saleor/dashboard/product/views.py:351
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
-msgstr ""
+msgstr "Varian tersimpan %s"
 
 #: saleor/dashboard/product/views.py:371
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
-msgstr ""
+msgstr "Varian yang dihapus %s"
 
 #: saleor/dashboard/product/views.py:452
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
-msgstr ""
+msgstr "Gambar yang ditambahkan %s"
 
 #: saleor/dashboard/product/views.py:473
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
-msgstr ""
+msgstr "Gambar yang diperbarui %s"
 
 #: saleor/dashboard/product/views.py:491
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
-msgstr ""
+msgstr "Gambar yang dihapus %s"
 
 #: saleor/dashboard/product/views.py:574
 msgctxt "Dashboard message"
 msgid "Added attribute"
-msgstr ""
+msgstr "Atribut ditambahkan"
 
 #: saleor/dashboard/product/views.py:591
 msgctxt "Dashboard message"
 msgid "Updated attribute"
-msgstr ""
+msgstr "Atribut yang diperbarui"
 
 #: saleor/dashboard/product/views.py:608
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
-msgstr ""
+msgstr "Atribut yang dihapus %s"
 
 #: saleor/dashboard/product/views.py:627
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
-msgstr ""
+msgstr "Nilai atribut ditambahkan"
 
 #: saleor/dashboard/product/views.py:646
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
-msgstr ""
+msgstr "Nilai atribut yang diperbarui"
 
 #: saleor/dashboard/product/views.py:664
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"
-msgstr ""
+msgstr "Nilai atribut yang dihapus %s"
 
 #: saleor/dashboard/seo/fields.py:9
 msgctxt "Form field help text"
 msgid "If empty, the preview shows what will be autogenerated."
-msgstr ""
+msgstr "Jika kosong, pratinjau menunjukkan apa yang akan dibuat otomatis."
 
 #: saleor/dashboard/seo/fields.py:30
 msgctxt "A SEO friendly title"
@@ -1719,6 +1737,8 @@ msgid ""
 "Default unit for weights entered from the dashboard.All weights will be "
 "recalculated to the new unit."
 msgstr ""
+"Unit default untuk bobot yang dimasukkan dari dashboard. Semua bobot akan "
+"dihitung ulang ke unit baru."
 
 #: saleor/dashboard/shipping/forms.py:49
 msgctxt "Shippment Zone field name"
@@ -1728,7 +1748,7 @@ msgstr "Nama zona pengiriman"
 #: saleor/dashboard/shipping/forms.py:51
 msgctxt "Shipping Zone field name"
 msgid "Rest of World"
-msgstr ""
+msgstr "Sisa di Dunia"
 
 #: saleor/dashboard/shipping/forms.py:53
 msgctxt "List of countries to pick from"
@@ -1738,7 +1758,7 @@ msgstr "Negara"
 #: saleor/dashboard/shipping/forms.py:57
 msgctxt "Countries field help text"
 msgid "Each country might be included in only one shipping zone."
-msgstr ""
+msgstr "Setiap negara dapat dimasukkan hanya dalam satu zona pengiriman."
 
 #: saleor/dashboard/shipping/forms.py:60
 msgctxt "Help text for ShippingZone name"
@@ -1753,18 +1773,20 @@ msgid ""
 "If selected, this zone will include any countries that are not already "
 "listed in your other shipping zones."
 msgstr ""
+"Jika dipilih, zona ini akan mencakup negara mana saja yang belum terdaftar "
+"di zona pengiriman Anda yang lain."
 
 #: saleor/dashboard/shipping/forms.py:89
 msgctxt "ShippingZone  with \"default\" option selected already exists"
 msgid "Default ShippingZone already exists."
-msgstr ""
+msgstr "ShippingZone default sudah ada."
 
 #: saleor/dashboard/shipping/forms.py:102
 #, python-format
 msgctxt "Shipping zone containing duplicated countries form error"
 msgid ""
 "Countries already exists in another shipping zone: %(list_of_countries)s"
-msgstr ""
+msgstr "Negara sudah ada di zona pengiriman lain: %(list_of_countries)s"
 
 #: saleor/dashboard/shipping/forms.py:111
 msgctxt "ShippingZone field error"
@@ -1821,7 +1843,7 @@ msgstr "Tidak ada batas"
 #: saleor/dashboard/shipping/views.py:28
 msgctxt "Dashboard message"
 msgid "Updated default weight unit"
-msgstr ""
+msgstr "Unit berat default yang diperbarui"
 
 #: saleor/dashboard/shipping/views.py:49
 msgctxt "Dashboard message"
@@ -1843,39 +1865,39 @@ msgstr "%(shipping_zone_name)s berhasil dihapus"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added shipping method for %(zone_name)s shipping zone"
-msgstr ""
+msgstr "Menambahkan metode pengiriman untuk%(zone_name)s zona pengiriman"
 
 #: saleor/dashboard/shipping/views.py:136
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated %(method_name)s shipping method"
-msgstr ""
+msgstr "Diperbarui%(method_name)s metode pengiriman"
 
 #: saleor/dashboard/shipping/views.py:157
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed %(shipping_method_name)s shipping method"
-msgstr ""
+msgstr "Dihapus%(shipping_method_name)s metode pengiriman"
 
 #: saleor/dashboard/sites/forms.py:14
 msgctxt "Domain name (FQDN)"
 msgid "Domain name"
-msgstr ""
+msgstr "Nama domain"
 
 #: saleor/dashboard/sites/forms.py:16
 msgctxt "Display name"
 msgid "Display name"
-msgstr ""
+msgstr "Nama tampilan"
 
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Header text"
 msgid "Header text"
-msgstr ""
+msgstr "Teks tajuk"
 
 #: saleor/dashboard/sites/forms.py:32
 msgctxt "Inventory tracking by default settings toggle label"
 msgid "Enable inventory tracking for newly created products"
-msgstr ""
+msgstr "Aktifkan pelacakan inventaris untuk produk yang baru dibuat"
 
 #: saleor/dashboard/sites/forms.py:34
 msgctxt "Default weight unit"
@@ -1888,11 +1910,13 @@ msgid ""
 "This will set the default value of stock handling on product and variant "
 "creation"
 msgstr ""
+"Ini akan menetapkan nilai default penanganan stok pada produk dan pembuatan "
+"varian"
 
 #: saleor/dashboard/sites/forms.py:48
 msgctxt "Key for chosen authorization method"
 msgid "Key"
-msgstr ""
+msgstr "Kunci"
 
 #: saleor/dashboard/sites/forms.py:50
 msgctxt "Password"
@@ -1902,30 +1926,30 @@ msgstr "Password"
 #: saleor/dashboard/sites/views.py:35
 msgctxt "Dashboard message"
 msgid "Updated site settings"
-msgstr ""
+msgstr "Pengaturan situs yang diperbarui"
 
 #: saleor/dashboard/sites/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added authorization key %s"
-msgstr ""
+msgstr "Menambahkan kunci otorisasi %s"
 
 #: saleor/dashboard/sites/views.py:80
 #, python-format
 msgctxt "dashboard message"
 msgid "Updated authorization key %s"
-msgstr ""
+msgstr "Kunci otorisasi yang diperbarui %s"
 
 #: saleor/dashboard/sites/views.py:98
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"
-msgstr ""
+msgstr "Kunci otorisasi situs yang dihapus %s"
 
 #: saleor/dashboard/staff/filters.py:29
 msgctxt "Group list filter label"
 msgid "Permissions"
-msgstr ""
+msgstr "Izin"
 
 #: saleor/dashboard/staff/filters.py:33
 msgctxt "Staff list filter label"
@@ -1942,7 +1966,7 @@ msgstr[0] "Ditemukan %(counter)d anggota staf yang cocok"
 #: saleor/dashboard/staff/forms.py:15
 msgctxt "Label above the permissions choicefield"
 msgid "Permissions"
-msgstr ""
+msgstr "Izin"
 
 #: saleor/dashboard/staff/forms.py:27
 msgctxt "Email"
@@ -1954,33 +1978,38 @@ msgctxt "User active toggle"
 msgid "User is active"
 msgstr "Pengguna aktif"
 
+#: saleor/dashboard/staff/forms.py:31
+msgctxt "User staff toggle"
+msgid "User is staff"
+msgstr "Pengguna adalah staf"
+
 #: saleor/dashboard/staff/views.py:43
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr ""
+msgstr "Anggota staf yang diperbarui %s"
 
-#: saleor/dashboard/staff/views.py:63
+#: saleor/dashboard/staff/views.py:65
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr ""
+msgstr "Anggota staf ditambahkan %s"
 
-#: saleor/dashboard/staff/views.py:82
+#: saleor/dashboard/staff/views.py:84
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed staff member %s"
-msgstr ""
+msgstr "Anggota staf yang dihapus %s"
 
 #: saleor/dashboard/taxes/filters.py:11
 msgctxt "Product list sorting option"
 msgid "country_code"
-msgstr ""
+msgstr "country_code"
 
 #: saleor/dashboard/taxes/filters.py:24
 msgctxt "Taxes list filter label"
 msgid "Country name"
-msgstr ""
+msgstr "Nama negara"
 
 #: saleor/dashboard/taxes/filters.py:28
 msgctxt "Taxes list sorting form"
@@ -1997,7 +2026,7 @@ msgstr[0] "Ditemukan %(counter)d negara yang cocok"
 #: saleor/dashboard/taxes/forms.py:16
 msgctxt "Include taxes in prices"
 msgid "All products prices are entered with tax included"
-msgstr ""
+msgstr "Semua harga produk dimasukkan dengan termasuk pajak"
 
 #: saleor/dashboard/taxes/forms.py:19
 msgctxt "Display gross prices"
@@ -2007,17 +2036,17 @@ msgstr "Menampilkan harga gross kepada pelanggan di etalase"
 #: saleor/dashboard/taxes/forms.py:22
 msgctxt "Charge taxes on shipping rates"
 msgid "Charge taxes on shipping rates"
-msgstr ""
+msgstr "Beban pajak pada tarif pengiriman"
 
 #: saleor/dashboard/taxes/views.py:57
 msgctxt "Dashboard message"
 msgid "Updated taxes settings"
-msgstr ""
+msgstr "Setelan pajak yang diperbarui"
 
 #: saleor/dashboard/taxes/views.py:71
 msgctxt "Dashboard message"
 msgid "Tax rates updated successfully"
-msgstr ""
+msgstr "Tarif pajak berhasil diperbarui"
 
 #: saleor/dashboard/taxes/views.py:77
 msgctxt "Dashboard message"
@@ -2025,11 +2054,14 @@ msgid ""
 "Could not fetch tax rates. Make sure you have supplied a valid API Access "
 "Key.<br/>Check the server logs for more information about this error."
 msgstr ""
+"Tidak dapat mengambil tarif pajak. Pastikan Anda telah menyediakan Kunci "
+"Akses API yang valid. <br/>Periksa log server untuk informasi lebih lanjut "
+"tentang kesalahan ini."
 
 #: saleor/dashboard/templatetags/chips.py:66
 msgctxt "Possible values of boolean filter"
 msgid "yes,no,all"
-msgstr ""
+msgstr "ya,tidak,semua"
 
 #: saleor/dashboard/templatetags/chips.py:79
 #, python-format

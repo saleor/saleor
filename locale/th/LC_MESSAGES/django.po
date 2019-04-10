@@ -4,16 +4,17 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# jakk sutt <jakkrit@ppsmartbot.com>, 2019
+# Peeravit Prapatrangsi <peeravit.pra@gmail.com>, 2019
+# Jakkrit S <jakkrit@ppsmartbot.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-04 10:43-0600\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: jakk sutt <jakkrit@ppsmartbot.com>, 2019\n"
+"Last-Translator: Jakkrit S <jakkrit@ppsmartbot.com>, 2019\n"
 "Language-Team: Thai (https://www.transifex.com/mirumee/teams/34782/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,17 +25,17 @@ msgstr ""
 #: saleor/account/forms.py:69
 msgctxt "Form field"
 msgid "Email"
-msgstr "อีเมลล์"
+msgstr "อีเมล"
 
 #: saleor/account/forms.py:82
 msgctxt "Password"
 msgid "Password"
-msgstr "พาสเวิร์ด"
+msgstr "รหัสผ่าน"
 
 #: saleor/account/forms.py:84
 msgctxt "Email"
 msgid "Email"
-msgstr "อีเมลล์"
+msgstr "อีเมล"
 
 #: saleor/account/forms.py:88
 msgctxt "Registration error"
@@ -49,12 +50,12 @@ msgstr "ชื่อ"
 #: saleor/account/forms.py:137
 msgctxt "Customer form: Family name field"
 msgid "Family name"
-msgstr "สกุล"
+msgstr "นามสกุล"
 
 #: saleor/account/i18n.py:18
 msgctxt "Address field"
 msgid "Area"
-msgstr ""
+msgstr "พื้นที่"
 
 #: saleor/account/i18n.py:19
 msgctxt "Address field"
@@ -64,7 +65,7 @@ msgstr "ประเทศ"
 #: saleor/account/i18n.py:20
 msgctxt "Address field"
 msgid "Department"
-msgstr ""
+msgstr "แผนก"
 
 #: saleor/account/i18n.py:21
 msgctxt "Address field"
@@ -109,7 +110,7 @@ msgstr ""
 #: saleor/account/i18n.py:29
 msgctxt "Address field"
 msgid "PIN"
-msgstr ""
+msgstr "รหัส PIN"
 
 #: saleor/account/i18n.py:30
 msgctxt "Address field"
@@ -154,17 +155,17 @@ msgstr "รหัสไปรษณีย์"
 #: saleor/account/i18n.py:63 saleor/account/i18n.py:109
 msgctxt "Country"
 msgid "Country"
-msgstr "ระเทศ"
+msgstr "ประเทศ"
 
 #: saleor/account/i18n.py:94
 msgctxt "Personal name"
 msgid "Given name"
-msgstr "ชื่อชื่อ"
+msgstr "ชื่อ"
 
 #: saleor/account/i18n.py:96
 msgctxt "Personal name"
 msgid "Family name"
-msgstr "สกุล"
+msgstr "นามสกุล"
 
 #: saleor/account/i18n.py:98
 msgctxt "Company or organization"
@@ -216,17 +217,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr ""
 
-#: saleor/account/models.py:135
+#: saleor/account/models.py:147
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr ""
 
-#: saleor/account/models.py:138
+#: saleor/account/models.py:150
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr ""
 
-#: saleor/account/models.py:141
+#: saleor/account/models.py:153
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -247,52 +248,52 @@ msgstr ""
 
 #: saleor/account/validators.py:11
 msgid "The phone number entered is not valid."
-msgstr ""
+msgstr "เบอร์โทรศัพท์ไม่ถูกต้อง"
 
 #: saleor/account/views.py:31
 msgid "You have been successfully logged out."
-msgstr ""
+msgstr "ล็อกเอ๊าท์สำเร็จ"
 
 #: saleor/account/views.py:45
 msgid "User has been created"
-msgstr ""
+msgstr "สร้างผู้ใช้เรียบร้อยแล้ว"
 
 #: saleor/account/views.py:97
 msgctxt "Storefront message"
 msgid "Password successfully changed."
-msgstr ""
+msgstr "เปลี่ยนพาสเวิร์ดสำเร็จ"
 
 #: saleor/account/views.py:106
 msgctxt "Storefront message"
 msgid "Account successfully updated."
-msgstr ""
+msgstr "บัญชีอัพเดทสำเร็จ"
 
 #: saleor/account/views.py:119
 msgctxt "Storefront message"
 msgid "Address successfully updated."
-msgstr ""
+msgstr "ที่อยู่อัพเดทสำเร็จ"
 
 #: saleor/account/views.py:134
 msgctxt "Storefront message"
 msgid "Address successfully removed"
-msgstr ""
+msgstr "ลบที่อยู่เรียบร้อยแล้ว"
 
 #: saleor/account/views.py:148
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
-msgstr ""
+msgstr "กรุณาตรวจสอบอีเมลยืนยันที่ถูกส่งไปแล้ว"
 
 #: saleor/account/views.py:163
 msgctxt "Account deleted"
 msgid ""
 "Your account was deleted successfully. In case of any trouble or questions "
 "feel free to contact us."
-msgstr ""
+msgstr "ลบบัญชีเรียบร้อยแล้ว หากมีข้อสงสัยหรือคำถาม กรุณาติดต่อเรา"
 
 #: saleor/checkout/__init__.py:15
 msgctxt "Type of address used to fulfill order"
 msgid "Billing"
-msgstr ""
+msgstr "บิล"
 
 #: saleor/checkout/__init__.py:19
 msgctxt "Type of address used to fulfill order"
@@ -307,17 +308,17 @@ msgstr "จำนวน"
 #: saleor/checkout/forms.py:43
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently not available."
-msgstr ""
+msgstr "ขอโทษค่ะ ไม่มีสินค้านี้ในขณะนี้ค่ะ"
 
 #: saleor/checkout/forms.py:46
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
-msgstr ""
+msgstr "ขอโทษค่ะ สินค้านี้ไม่มีในสต็อกในขณะนี้ค่ะ"
 
 #: saleor/checkout/forms.py:48
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
-msgstr ""
+msgstr "ขอโทษค่ะ เราหาสินค้านี้ไม่เจอค่ะ"
 
 #: saleor/checkout/forms.py:51
 #, python-format
@@ -329,17 +330,17 @@ msgstr[0] ""
 #: saleor/checkout/forms.py:162
 msgctxt "Country form field label"
 msgid "Country"
-msgstr "ระเทศ"
+msgstr "ประเทศ"
 
 #: saleor/checkout/forms.py:188 saleor/checkout/forms.py:200
 msgctxt "Address form field label"
 msgid "Email"
-msgstr "อีเมลล์"
+msgstr "อีเมล"
 
 #: saleor/checkout/forms.py:213
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "กรุณากรอกที่อยู่ใหม่"
 
 #: saleor/checkout/forms.py:216
 msgctxt "Shipping addresses form field label"
@@ -349,12 +350,12 @@ msgstr "ที่อยู่"
 #: saleor/checkout/forms.py:233
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "กรุณากรอกที่อยู่ใหม่"
 
 #: saleor/checkout/forms.py:235
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
-msgstr ""
+msgstr "ที่อยู่เดียวกับที่อยู่จัดส่ง"
 
 #: saleor/checkout/forms.py:238
 msgctxt "Billing addresses form field label"
@@ -382,51 +383,53 @@ msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
+"ขอโทษค่ะ เรามีสินค้าไม่พอในสต็อก "
+"จำนวนสินค้าที่ต้องการมีน้อยกว่าสินค้าในสต็อกค่ะ"
 
 #: saleor/checkout/utils.py:630
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
-msgstr ""
+msgstr "คำสั่งซื้อของคุณไม่จำเป็นต้องกรอกที่อยู่จัดส่งค่ะ"
 
 #: saleor/checkout/utils.py:636
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
-msgstr ""
+msgstr "กรุณาเลือกวิธีจัดส่งก่อนค่ะ"
 
 #: saleor/checkout/utils.py:644
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
-msgstr ""
+msgstr "ไม่มีข้อเสนอนี้ในประเทศของคุณค่ะ"
 
 #: saleor/checkout/utils.py:666
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
-msgstr ""
+msgstr "ข้อเสนอนี้ใช้ได้กับเพียงสินค้าบางชิ้นที่เลือกอยู่นะคะ"
 
 #: saleor/checkout/utils.py:793
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr ""
 
-#: saleor/checkout/utils.py:897
+#: saleor/checkout/utils.py:898
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
-msgstr ""
+msgstr "ไม่ได้เลือกวิธีจัดส่งค่ะ"
 
-#: saleor/checkout/utils.py:900
+#: saleor/checkout/utils.py:901
 msgctxt "order placement error"
 msgid "Shipping address is not set"
-msgstr ""
+msgstr "ไม่ได้กรอกที่อยู่จัดส่งค่ะ"
 
-#: saleor/checkout/utils.py:904
+#: saleor/checkout/utils.py:905
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
-msgstr ""
+msgstr "วิธีจัดส่งที่เลือกไม่สามารถใช้ได้กับที่อยู่จัดส่งนี้ค่ะ"
 
-#: saleor/checkout/utils.py:907
-msgctxt "order placement error"
-msgid "Checkout is not fully paid"
-msgstr ""
+#: saleor/checkout/utils.py:908
+msgctxt "order placement_error"
+msgid "Billing address is not set"
+msgstr "ที่อยู่จัดส่งบิลไม่ได้ตั้งไว้ค่ะ"
 
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
@@ -580,22 +583,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr ""
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr "กิโลกรัม"
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr "ปอนด์"
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr "ออนซ์"
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr ""
@@ -671,7 +674,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr ""
 
-#: saleor/discount/models.py:179
+#: saleor/discount/models.py:180
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr ""
@@ -679,7 +682,7 @@ msgstr ""
 #: saleor/discount/utils.py:49
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
-msgstr ""
+msgstr "ส่วนลดนี้ไม่สามารถใช้กับสินค้านี้ค่ะ"
 
 #: saleor/graphql/order/mutations/fulfillments.py:78
 #, python-format
@@ -742,7 +745,7 @@ msgstr ""
 #: saleor/order/__init__.py:32
 msgctxt "Status for a permanently canceled order"
 msgid "Canceled"
-msgstr ""
+msgstr "ยกเลิกแล้ว"
 
 #: saleor/order/__init__.py:42
 msgctxt "Status for a group of products in an order marked as fulfilled"
@@ -753,17 +756,17 @@ msgstr ""
 msgctxt ""
 "Status for a fulfilled group of products in an order marked as canceled"
 msgid "Canceled"
-msgstr ""
+msgstr "ยกเลิกแล้ว"
 
 #: saleor/order/__init__.py:83
 msgctxt "Email type"
 msgid "Payment confirmation"
-msgstr ""
+msgstr "ยืนยันการชำระเงิน"
 
 #: saleor/order/__init__.py:85
 msgctxt "Email type"
 msgid "Shipping confirmation"
-msgstr ""
+msgstr "ยืนยันที่อยู่จัดส่ง"
 
 #: saleor/order/__init__.py:87
 msgctxt "Email type"
@@ -773,7 +776,7 @@ msgstr ""
 #: saleor/order/__init__.py:89
 msgctxt "Email type"
 msgid "Order confirmation"
-msgstr ""
+msgstr "ยืนยันคำสั่งสินค้า"
 
 #: saleor/order/__init__.py:115
 #, python-format
@@ -845,7 +848,7 @@ msgstr ""
 #: saleor/order/__init__.py:176
 msgctxt "Dashboard message related to an order"
 msgid "Order was fully paid"
-msgstr ""
+msgstr "คำสั่งซื้อนี้ได้รับชำระเงินครบถ้วนแล้ว"
 
 #: saleor/order/__init__.py:180
 #, python-format
@@ -877,7 +880,7 @@ msgstr[0] ""
 #: saleor/order/forms.py:16
 msgctxt "Payments form label"
 msgid "Payment Method"
-msgstr ""
+msgstr "วีธีชำระเงิน"
 
 #: saleor/order/forms.py:36
 msgctxt "Payment delete form error"
@@ -889,12 +892,12 @@ msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr ""
 
-#: saleor/order/models.py:134
+#: saleor/order/models.py:135
 msgctxt "Permission description"
 msgid "Manage orders."
-msgstr ""
+msgstr "จัดการคำสั่งซื้อ"
 
-#: saleor/order/models.py:335
+#: saleor/order/models.py:344
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -905,7 +908,7 @@ msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
-msgstr ""
+msgstr "ไม่สามารถส่งคำสั่งซื้อไปยังบัญชีของคุณได้เนื่องจากอีเมลไม่ตรงกัน"
 
 #: saleor/order/views.py:203
 msgctxt "storefront message"
@@ -947,17 +950,27 @@ msgctxt "transaction kind"
 msgid "Void"
 msgstr ""
 
-#: saleor/payment/__init__.py:93
-msgctxt "payment status"
-msgid "Charged"
-msgstr ""
-
-#: saleor/payment/__init__.py:94
+#: saleor/payment/__init__.py:99
 msgctxt "payment status"
 msgid "Not charged"
 msgstr ""
 
-#: saleor/payment/__init__.py:95
+#: saleor/payment/__init__.py:101
+msgctxt "payment status"
+msgid "Partially charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:102
+msgctxt "payment status"
+msgid "Fully charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:104
+msgctxt "payment status"
+msgid "Partially refunded"
+msgstr ""
+
+#: saleor/payment/__init__.py:105
 msgctxt "payment status"
 msgid "Fully refunded"
 msgstr ""
@@ -966,12 +979,18 @@ msgstr ""
 #: saleor/payment/gateways/braintree/forms.py:35
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
-msgstr ""
+msgstr "ไม่สามารถดำเนินการได้ อีกสักครู่กรุณาลองใหม่อีกครั้งค่ะ"
 
 #: saleor/payment/gateways/dummy/forms.py:9
 msgctxt "Payment status form field"
 msgid "Payment status"
 msgstr "สถานะการชำระเงิน"
+
+#: saleor/payment/gateways/dummy/forms.py:23
+msgid ""
+"Setting charge status to {} directly is not supported. Please use the "
+"dashboard to refund partially."
+msgstr ""
 
 #: saleor/payment/gateways/razorpay/errors.py:5
 msgctxt "Razorpay payment error"
@@ -1037,22 +1056,22 @@ msgstr ""
 #: saleor/product/__init__.py:19
 msgctxt "Product status"
 msgid "out of stock"
-msgstr ""
+msgstr "สินค้าหมดสต็อก"
 
 #: saleor/product/__init__.py:21
 msgctxt "Product status"
 msgid "stock running low"
-msgstr ""
+msgstr "สต็อกเหลือน้อย"
 
 #: saleor/product/__init__.py:23
 msgctxt "Product status"
 msgid "not yet available"
-msgstr ""
+msgstr "ยังไม่มีสินค้า"
 
 #: saleor/product/__init__.py:25
 msgctxt "Product status"
 msgid "ready for purchase"
-msgstr ""
+msgstr "พร้อมส่ง"
 
 #: saleor/product/__init__.py:37
 msgctxt "Variant status"
@@ -1062,7 +1081,7 @@ msgstr ""
 #: saleor/product/__init__.py:39
 msgctxt "Variant status"
 msgid "out of stock"
-msgstr ""
+msgstr "สินค้าหมดสต็อก"
 
 #: saleor/product/filters.py:12
 msgctxt "Product list sorting option"
@@ -1107,7 +1126,7 @@ msgstr ""
 
 #: saleor/settings.py:61
 msgid "Arabic"
-msgstr ""
+msgstr "ภาษาอารบิก"
 
 #: saleor/settings.py:62
 msgid "Azerbaijani"
@@ -1115,7 +1134,7 @@ msgstr ""
 
 #: saleor/settings.py:63
 msgid "Bulgarian"
-msgstr ""
+msgstr "ภาษาบัลแกเรียน"
 
 #: saleor/settings.py:64
 msgid "Bengali"
@@ -1222,31 +1241,35 @@ msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:90
-msgid "Turkish"
+msgid "Thai"
 msgstr ""
 
 #: saleor/settings.py:91
-msgid "Ukrainian"
+msgid "Turkish"
 msgstr ""
 
 #: saleor/settings.py:92
-msgid "Vietnamese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:93
-msgid "Simplified Chinese"
+msgid "Vietnamese"
 msgstr ""
 
 #: saleor/settings.py:94
+msgid "Simplified Chinese"
+msgstr ""
+
+#: saleor/settings.py:95
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:330
+#: saleor/settings.py:331
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:567
+#: saleor/settings.py:568
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1299,17 +1322,22 @@ msgstr ""
 #: saleor/site/models.py:40
 msgctxt "Permission description"
 msgid "Manage settings."
-msgstr ""
+msgstr "จัดการการตั้งค่า"
+
+#: saleor/site/models.py:42
+msgctxt "Permission description"
+msgid "Manage translations."
+msgstr "จัดการการแปลภาษา"
 
 #: templates/404.html:6
 msgctxt "Eror page not found"
 msgid "Page not found"
-msgstr ""
+msgstr "ไม่พบหน้าที่ต้องการ"
 
 #: templates/_language_picker_modal.html:8
 msgctxt "Change language modal title"
 msgid "Select language"
-msgstr ""
+msgstr "เลือกภาษา"
 
 #: templates/_language_picker_modal.html:24
 msgctxt "Close modal action button"
@@ -1319,47 +1347,47 @@ msgstr "ปิด"
 #: templates/_language_picker_modal.html:25
 msgctxt "Change language action button"
 msgid "Change"
-msgstr ""
+msgstr "เปลี่ยน"
 
 #: templates/account/account_delete_prompt.html:8
 msgctxt "Account deletetion confirmation page title"
 msgid "Are you sure?"
-msgstr ""
+msgstr "คุณแน่ใจใช่ไหมคะ?"
 
 #: templates/account/account_delete_prompt.html:16
 msgctxt "Message displayed to the user requesting for his account deletetion"
 msgid "Sorry to see you go!"
-msgstr ""
+msgstr "เสียใจที่คุณจากไปนะคะ"
 
 #: templates/account/account_delete_prompt.html:22
 msgctxt "Message displayed to the user requesting for his account deletetion"
 msgid "Are you sure you want to delete your account?"
-msgstr ""
+msgstr "คุณแน่ใจว่าต้องการลบบัญชีนะคะ"
 
 #: templates/account/account_delete_prompt.html:27
 msgctxt "Confirm account deletion button"
 msgid "Delete account"
-msgstr ""
+msgstr "ลบบัญชี"
 
 #: templates/account/address_delete.html:6
 msgctxt "Remove address form action"
 msgid "Remove Address"
-msgstr ""
+msgstr "ลบที่อยู่"
 
 #: templates/account/address_delete.html:9
 msgctxt "Remove address form action"
 msgid "Cancel"
-msgstr ""
+msgstr "ยกเลิก"
 
 #: templates/account/address_edit.html:7
 msgctxt "Edit address page title"
 msgid "Edit address"
-msgstr ""
+msgstr "แก้ไขที่อยู่"
 
 #: templates/account/address_edit.html:9
 msgctxt "New address page title"
 msgid "New address"
-msgstr ""
+msgstr "ี่ที่อยู่ใหม่"
 
 #: templates/account/address_edit.html:16 templates/account/details.html:16
 #: templates/account/password_change.html:7 templates/checkout/index.html:11
@@ -1368,42 +1396,42 @@ msgstr ""
 #: templates/product/details.html:45
 msgctxt "Main navigation item"
 msgid "Home"
-msgstr ""
+msgstr "หน้าแรก"
 
 #: templates/account/address_edit.html:21
 msgctxt "Edit/new address breadcrumb"
 msgid "Your profile"
-msgstr ""
+msgstr "โปรไฟล์"
 
 #: templates/account/address_edit.html:27
 msgctxt "Edit address breadcrumb"
 msgid "Edit address"
-msgstr ""
+msgstr "แก้ไขที่อยู่"
 
 #: templates/account/address_edit.html:33
 msgctxt "New address breadcrumb"
 msgid "New address"
-msgstr ""
+msgstr "ที่อยู่ใหม่"
 
 #: templates/account/address_edit.html:47
 msgctxt "Edit address title"
 msgid "Edit address"
-msgstr ""
+msgstr "แก้ไขที่อยู่"
 
 #: templates/account/address_edit.html:49
 msgctxt "New address title"
 msgid "New address"
-msgstr ""
+msgstr "ที่อยู่ใหม่"
 
 #: templates/account/address_edit.html:57
 msgctxt "Edit/new address primary action"
 msgid "Save changes"
-msgstr ""
+msgstr "บันทึก"
 
 #: templates/account/details.html:10
 msgctxt "User profile page title"
 msgid "Your profile"
-msgstr ""
+msgstr "โปรไฟล์"
 
 #: templates/account/details.html:19 templates/account/password_change.html:8
 #: templates/base.html:84 templates/base.html:226
@@ -1411,46 +1439,46 @@ msgstr ""
 #: templates/order/payment/details.html:17
 msgctxt "Main navigation item"
 msgid "Your account"
-msgstr ""
+msgstr "บัญชี"
 
 #: templates/account/details.html:26
 msgid "My account"
-msgstr ""
+msgstr "บัญชี"
 
 #: templates/account/details.html:30
 msgctxt "User profile tab"
 msgid "Recent Orders"
-msgstr ""
+msgstr "คำสั่งซื้อล่าสุด"
 
 #: templates/account/details.html:36
 msgctxt "User profile tab"
 msgid "Change password"
-msgstr ""
+msgstr "เปลี่ยนพาสเวิร์ด"
 
 #: templates/account/details.html:42
 msgctxt "User profile tab"
 msgid "Contact details"
-msgstr ""
+msgstr "รายละเอียดการติดต่อ"
 
 #: templates/account/details.html:47
 msgctxt "User profile tab"
 msgid "Settings"
-msgstr ""
+msgstr "การตั้งค่า"
 
 #: templates/account/details.html:59
 msgctxt "Recent orders column title"
 msgid "Order"
-msgstr ""
+msgstr "คำสั่งซื้อ"
 
 #: templates/account/details.html:62
 msgctxt "Recent orders column title"
 msgid "Date"
-msgstr ""
+msgstr "วันที่"
 
 #: templates/account/details.html:65
 msgctxt "Recent orders column title"
 msgid "Summary"
-msgstr ""
+msgstr "สรุป"
 
 #: templates/account/details.html:68
 msgctxt "Recent orders column title"
@@ -1465,7 +1493,7 @@ msgstr "สถานะคำสั่งซื้อ"
 #: templates/account/details.html:96
 msgctxt "Recent orders link text"
 msgid "Details"
-msgstr ""
+msgstr "รายละเอียด"
 
 #: templates/account/details.html:111
 msgctxt "No recent orders text"
@@ -1475,12 +1503,12 @@ msgstr ""
 #: templates/account/details.html:122
 msgctxt "User profile action"
 msgid "Change password"
-msgstr ""
+msgstr "เปลี่ยนพาสเวิร์ด"
 
 #: templates/account/details.html:129
 msgctxt "User profile settings"
 msgid "Personal Data"
-msgstr ""
+msgstr "ข้อมูลส่วนตัว"
 
 #: templates/account/details.html:136
 msgctxt "User profile action"
@@ -1490,7 +1518,7 @@ msgstr "อัพเดท"
 #: templates/account/details.html:141
 msgctxt "List of adresses in contact details"
 msgid "Addresses"
-msgstr ""
+msgstr "ที่อยู่"
 
 #: templates/account/details.html:152
 msgctxt "User address action"
@@ -1513,27 +1541,27 @@ msgstr ""
 #: templates/account/details.html:184
 msgctxt "Remove account form action"
 msgid "Remove Account"
-msgstr ""
+msgstr "ลบบัญชี"
 
 #: templates/account/login.html:5
 msgctxt "Login page title"
 msgid "Log in"
-msgstr ""
+msgstr "ล็อกอิน"
 
 #: templates/account/login.html:16
 msgctxt "Login form secondary title"
 msgid "Don't have an account yet?"
-msgstr ""
+msgstr "ยังไม่มีแอ็คเค้าท์ใช่มั๊ย"
 
 #: templates/account/login.html:21
 msgctxt "Login form secondary action"
 msgid "Register"
-msgstr ""
+msgstr "ลงทะเบียน"
 
 #: templates/account/login.html:26
 msgctxt "Login form title"
 msgid "Log in"
-msgstr ""
+msgstr "ล็อกอิน"
 
 #: templates/account/partials/already_logged_in.html:5
 #, python-format
@@ -1544,20 +1572,20 @@ msgstr ""
 #: templates/account/partials/login_form.html:16
 msgctxt "Login form primary action"
 msgid "Log in"
-msgstr ""
+msgstr "ล็อกอิน"
 
 #: templates/account/partials/login_form.html:19
 msgctxt "Login form secondary link"
 msgid "Forgot password?"
-msgstr ""
+msgstr "ลืมพาสเวิร์ด?"
 
 #: templates/account/partials/login_form.html:29
 msgid "Facebook"
-msgstr ""
+msgstr "เฟซบุ๊ค"
 
 #: templates/account/partials/login_form.html:37
 msgid "Google"
-msgstr ""
+msgstr "กูเกิ้ล"
 
 #: templates/account/password_change.html:9
 msgctxt "Password change breadcrumb"
@@ -1567,22 +1595,22 @@ msgstr "แก้ไข"
 #: templates/account/password_change.html:22
 msgctxt "Password change form legend"
 msgid "Change Password"
-msgstr ""
+msgstr "เปลี่ยนพาสเวิร์ด"
 
 #: templates/account/password_change.html:28
 msgctxt "Password change form primary action"
 msgid "Save new password"
-msgstr ""
+msgstr "บันทึกพาสเวิร์ดใหม่"
 
 #: templates/account/password_reset.html:6
 msgctxt "Password reset page title"
 msgid "Password reset"
-msgstr ""
+msgstr "รีเซ็ทพาสเวิร์ด"
 
 #: templates/account/password_reset.html:17
 msgctxt "Password reset form title"
 msgid "Forgot your password?"
-msgstr ""
+msgstr "ลืมพาสเวิร์ดใช่มั๊ย?"
 
 #: templates/account/password_reset.html:19
 msgctxt "Password reset form help text"
@@ -1594,29 +1622,29 @@ msgstr ""
 #: templates/account/password_reset.html:30
 msgctxt "Password reset primary action"
 msgid "Continue"
-msgstr ""
+msgstr "ต่อไป"
 
 #: templates/account/password_reset_done.html:6
 msgctxt "Password reset done page title"
 msgid "Password Reset"
-msgstr ""
+msgstr "รีเซ็ทพาสเวิร์ด"
 
 #: templates/account/password_reset_done.html:10
 msgctxt "Password reset done title"
 msgid "Password Reset"
-msgstr ""
+msgstr "รีเซ็ทพาสเวิร์ด"
 
 #: templates/account/password_reset_done.html:14
 msgctxt "Password reset done text"
 msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it "
 "within a few minutes."
-msgstr ""
+msgstr "เราได้ส่งอีเมล์ไปแล้ว กรุณาติดต่อเราหากไม่ได้รับอีเมลภายในสิบนาที"
 
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
 msgid "Change Password"
-msgstr ""
+msgstr "เปลี่ยนพาสเวิร์ด"
 
 #: templates/account/password_reset_from_key.html:11
 msgid "Bad Token"
@@ -1634,22 +1662,22 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:24
 msgctxt "Password reset from key form title"
 msgid "Password Reset"
-msgstr ""
+msgstr "รีเซ็ทพาสเวิร์ด"
 
 #: templates/account/password_reset_from_key.html:25
 msgctxt "Password reset from key form title"
 msgid "Now you can set new password for you account."
-msgstr ""
+msgstr "คุณสามารถตั้งค่าพาสเวิร์ดใหม่ได้เลยค่ะ"
 
 #: templates/account/password_reset_from_key.html:32
 msgctxt "Password reset from key form primary action"
 msgid "Continue"
-msgstr ""
+msgstr "ต่อไป"
 
 #: templates/account/password_reset_from_key.html:39
 msgctxt "Password reset link expired from key form title"
 msgid "Password Reset Link Expired"
-msgstr ""
+msgstr "ลิ๊งค์รีเซ็ทพาสเวิร์ดหมดอายุแล้วค่ะ"
 
 #: templates/account/password_reset_from_key.html:40
 msgctxt "Password reset from key form title"
@@ -1657,25 +1685,26 @@ msgid ""
 "Sorry but this link is no longer valid. If you forget your password, please "
 "use link below."
 msgstr ""
+"ขอโทษค่ะ ลิ๊งค์นี้หมดอายุแล้ว หากคุณลืมพาสเวิร์ด กรุณาใช้ลิ๊งค์ด้านล่างค่ะ"
 
 #: templates/account/password_reset_from_key.html:42
 msgctxt "Reset my password link"
 msgid "Reset my password"
-msgstr ""
+msgstr "รีเซ็ทพาสเวิร์ด"
 
 #: templates/account/password_reset_from_key_done.html:4
 msgctxt "Password reset from key done page title"
 msgid "Password Changed"
-msgstr ""
+msgstr "เปลี่ยนพาสเวิร์ดเรียบร้อยแล้ว"
 
 #: templates/account/password_reset_from_key_done.html:7
 msgctxt "Password reset from key done title"
 msgid "Password Changed"
-msgstr ""
+msgstr "เปลี่ยนพาสเวิร์ดเรียบร้อยแล้ว"
 
 #: templates/account/password_reset_from_key_done.html:9
 msgid "Your password is now changed."
-msgstr ""
+msgstr "พาสเวิร์ดของคุณเปลี่ยนแปลงเรียบร้อยแล้ว"
 
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
@@ -1686,17 +1715,17 @@ msgstr ""
 #: templates/account/signup.html:6
 msgctxt "Signup page title"
 msgid "Sign Up"
-msgstr ""
+msgstr "ลงทะเบียน"
 
 #: templates/account/signup.html:17
 msgctxt "Signup form secondary title"
 msgid "Already have an account?"
-msgstr ""
+msgstr "มีบัญชีแล้วใช่มั๊ย"
 
 #: templates/account/signup.html:21
 msgctxt "Signup form secondary action"
 msgid "Log in"
-msgstr ""
+msgstr "ล็อกอิน"
 
 #: templates/account/signup.html:28
 msgctxt "Signup form title"
@@ -1721,34 +1750,34 @@ msgstr ""
 #: templates/base.html:95 templates/base.html:238
 msgctxt "Main navigation item"
 msgid "Log out"
-msgstr ""
+msgstr "ล็อกเอ๊าท์"
 
 #: templates/base.html:101 templates/base.html:244
 msgctxt "Main navigation item"
 msgid "Register"
-msgstr ""
+msgstr "ลงทะเบียน"
 
 #: templates/base.html:105 templates/base.html:249
 msgctxt "Main navigation item"
 msgid "Log in"
-msgstr ""
+msgstr "ล็อกอิน"
 
 #: templates/base.html:136
 msgid "Search for product"
-msgstr ""
+msgstr "ค้นหาสินค้า"
 
 #: templates/base.html:139
 msgid "Search"
-msgstr ""
+msgstr "ค้นหา"
 
 #: templates/base.html:148 templates/base.html:208
 msgctxt "Main navigation item"
 msgid "Your Cart"
-msgstr ""
+msgstr "ตระกร้าสินค้า"
 
 #: templates/base.html:202
 msgid "Account"
-msgstr ""
+msgstr "บัญชี"
 
 #: templates/base.html:220
 msgctxt "Main navigation item"
@@ -1764,37 +1793,37 @@ msgstr ""
 #: templates/cart_dropdown.html:40
 msgctxt "Cart dropdown text"
 msgid "Shipment and taxes calculated at checkout"
-msgstr ""
+msgstr "ค่าขนส่งและภาษีจะคำนวณเมื่อเช็คเอ๊าท์"
 
 #: templates/cart_dropdown.html:54
 msgctxt "Cart dropdown secondary action"
 msgid "Go to cart"
-msgstr ""
+msgstr "ไปยังตระกร้าสินค้า"
 
 #: templates/cart_dropdown.html:57
 msgctxt "Cart dropdown primary action"
 msgid "Checkout"
-msgstr ""
+msgstr "เช็คเอ๊าท์"
 
 #: templates/cart_dropdown.html:62 templates/checkout/index.html:91
 msgctxt "Empty cart message"
 msgid "There are no products in your shopping cart."
-msgstr ""
+msgstr "ไม่สินค้าในตระกร้าสินค้า"
 
 #: templates/cart_dropdown.html:67 templates/checkout/index.html:92
 msgctxt "Empty cart link"
 msgid "Check out our sales"
-msgstr ""
+msgstr "ดูสินค้าลดราคา"
 
 #: templates/category/index.html:7
 msgctxt "Category breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "หน้าแรก"
 
 #: templates/checkout/_subtotal_table.html:32
 msgctxt "Cart shipping cost form"
 msgid "Shipping cost for:"
-msgstr ""
+msgstr "ค่าจัดส่งสำหรับ:"
 
 #: templates/checkout/_subtotal_table.html:57
 msgctxt "Order subtotal"
@@ -1804,27 +1833,27 @@ msgstr "รวมทั้งหมด"
 #: templates/checkout/_subtotal_table.html:58
 msgctxt "Cart summary text"
 msgid "Shipment and taxes calculated at checkout"
-msgstr ""
+msgstr "ค่าขนส่งและภาษีจะคำนวณเมื่อเช็คเอ๊าท์"
 
 #: templates/checkout/details.html:7
 msgctxt "Checkout page title"
 msgid "Checkout"
-msgstr ""
+msgstr "เช็คเอ๊าท์"
 
 #: templates/checkout/details.html:12
 msgctxt "Checkout top message"
 msgid "Easy and secure!"
-msgstr ""
+msgstr "ง่ายและปลอดภัย!"
 
 #: templates/checkout/details.html:20
 msgctxt "Checkout title"
 msgid "Checkout"
-msgstr ""
+msgstr "เช็คเอ๊าท์"
 
 #: templates/checkout/details.html:35
 msgctxt "Order review title"
 msgid "Order review"
-msgstr ""
+msgstr "เช็คคำสั่งซื้อ"
 
 #: templates/checkout/details.html:51
 msgctxt "Order review section"
@@ -1869,7 +1898,7 @@ msgstr ""
 #: templates/checkout/index.html:22
 msgctxt "Cart message"
 msgid "Product has been removed from cart"
-msgstr ""
+msgstr "ลบสินค้าออกจากตระกร้าสินค้าแล้ว"
 
 #: templates/checkout/index.html:30
 msgctxt "Cart table header"
@@ -1889,7 +1918,7 @@ msgstr "ราคา"
 #: templates/checkout/index.html:81
 msgctxt "Cart primary action"
 msgid "Checkout"
-msgstr ""
+msgstr "เช็คเอ๊าท์"
 
 #: templates/checkout/index.html:84
 msgctxt "cart page: secondary action, empty the cart"
@@ -1899,27 +1928,27 @@ msgstr ""
 #: templates/checkout/login.html:6
 msgctxt "Checkout login page title"
 msgid "Login"
-msgstr ""
+msgstr "ล็อกอิน"
 
 #: templates/checkout/login.html:12
 msgctxt "Checkout login page title"
 msgid "New customer?"
-msgstr ""
+msgstr "ลูกค้าใหม่?"
 
 #: templates/checkout/login.html:18
 msgctxt "Checkout login page new users action"
 msgid "Continue"
-msgstr ""
+msgstr "ต่อไป"
 
 #: templates/checkout/login.html:21
 msgctxt "Checkout login page new users message"
 msgid "Registration is not required!"
-msgstr ""
+msgstr "ไม่จำเป็นต้องลงทะเบียน!"
 
 #: templates/checkout/login.html:26
 msgctxt "Checkout login form title"
 msgid "Existing customer? Log in."
-msgstr ""
+msgstr "มีบัญชีอยู่แล้ว? ล็อกอิน"
 
 #: templates/checkout/payment.html:9
 msgctxt "Checkout payment title"
@@ -1940,11 +1969,11 @@ msgstr "ที่อยู่จัดส่ง"
 #: templates/checkout/shipping_address.html:21
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
-msgstr ""
+msgstr "ต่อไป"
 
 #: templates/checkout/shipping_method.html:15
 msgid "Select other address"
-msgstr ""
+msgstr "ใช้ที่อยู่อื่น"
 
 #: templates/checkout/shipping_method.html:23
 msgctxt "Checkout shipping method form title"
@@ -1954,7 +1983,7 @@ msgstr "ตัวเลือกการจัดส่ง"
 #: templates/checkout/shipping_method.html:40
 msgctxt "Checkout shipping method primary action"
 msgid "Continue"
-msgstr ""
+msgstr "ต่อไป"
 
 #: templates/checkout/shipping_method.html:45
 msgctxt ""
@@ -1970,12 +1999,12 @@ msgstr ""
 #: templates/checkout/snippets/addresses_form.html:4
 msgctxt "Checkout addresses form label"
 msgid "Same as shipping"
-msgstr ""
+msgstr "ที่อยู่เดียวกับที่อยู่จัดส่ง"
 
 #: templates/checkout/snippets/addresses_form.html:11
 msgctxt "Checkout addresses form label"
 msgid "Enter a new address"
-msgstr ""
+msgstr "กรุณากรอกที่อยู่ใหม่"
 
 #: templates/checkout/snippets/voucher_form.html:14
 msgctxt "Checkout voucher form action"
@@ -2030,7 +2059,7 @@ msgstr ""
 #: templates/collection/index.html:7
 msgctxt "Site breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "หน้าแรก"
 
 #: templates/collection/index.html:16
 #, python-format
@@ -2068,22 +2097,22 @@ msgstr ""
 #: templates/dashboard/base.html:52
 msgctxt "Dashboard top navigation action"
 msgid "Log out"
-msgstr ""
+msgstr "ล็อกเอ๊าท์"
 
 #: templates/dashboard/base.html:81
 msgctxt "Dashboard search"
 msgid "Search"
-msgstr ""
+msgstr "ค้นหา"
 
 #: templates/dashboard/base.html:96 templates/dashboard/base.html:248
 msgctxt "Dashboard homepage"
 msgid "Home"
-msgstr ""
+msgstr "หน้าแรก"
 
 #: templates/dashboard/base.html:102
 msgctxt "Dashboard catalogue"
 msgid "Catalogue"
-msgstr ""
+msgstr "แคตตาล็อก"
 
 #: templates/dashboard/base.html:107 templates/dashboard/product/form.html:28
 #: templates/dashboard/product/list.html:10
@@ -2103,22 +2132,22 @@ msgstr "สินค้า"
 #: templates/dashboard/category/list.html:32
 msgctxt "Dashboard categories list"
 msgid "Categories"
-msgstr ""
+msgstr "ประเภทสินค้า"
 
 #: templates/dashboard/base.html:117
 msgctxt "Dashboard side navigation link"
 msgid "Collections"
-msgstr ""
+msgstr "คอลเล็กชั่น"
 
 #: templates/dashboard/base.html:126
 msgctxt "Dashboard discounts list"
 msgid "Discounts"
-msgstr ""
+msgstr "ส่วนลด"
 
 #: templates/dashboard/base.html:131
 msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
-msgstr ""
+msgstr "ลดราคา"
 
 #: templates/dashboard/base.html:136
 #: templates/dashboard/discount/voucher/form.html:12
@@ -2132,7 +2161,7 @@ msgstr ""
 #: templates/dashboard/base.html:145
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
-msgstr ""
+msgstr "ลดราคา"
 
 #: templates/dashboard/base.html:151
 #: templates/dashboard/order/address_form.html:7
@@ -2155,17 +2184,17 @@ msgstr "คำสั่งซื้อ"
 #: templates/dashboard/customer/list.html:26
 msgctxt "Dashboard customers list"
 msgid "Customers"
-msgstr ""
+msgstr "ลูกค้า"
 
 #: templates/dashboard/base.html:168
 msgctxt "Management section"
 msgid "Staff management"
-msgstr ""
+msgstr "การจัดการพนักงานร้าน"
 
 #: templates/dashboard/base.html:173
 msgctxt "Dashboard staff members list"
 msgid "Staff members"
-msgstr ""
+msgstr "พนักงานร้าน"
 
 #: templates/dashboard/base.html:182
 msgctxt "Dashboard configuration"
@@ -2254,13 +2283,13 @@ msgstr ""
 #: templates/dashboard/taxes/form.html:100
 msgctxt "Dashboard cancel action"
 msgid "Cancel"
-msgstr ""
+msgstr "ยกเลิก"
 
 #: templates/dashboard/category/detail.html:8
 #: templates/dashboard/category/list.html:9
 msgctxt "Category list page title"
 msgid "Categories"
-msgstr ""
+msgstr "ประเภทสินค้า"
 
 #: templates/dashboard/category/detail.html:83
 msgctxt "Category field"
@@ -2270,17 +2299,17 @@ msgstr "คำอธิบายา"
 #: templates/dashboard/category/detail.html:94
 msgctxt "Category detail view action"
 msgid "Edit category"
-msgstr ""
+msgstr "แก้ไขประเภทสินค้า"
 
 #: templates/dashboard/category/detail.html:97
 msgctxt "Category detail view action"
 msgid "Remove category"
-msgstr ""
+msgstr "ลบประเภทสินค้า"
 
 #: templates/dashboard/category/detail.html:104
 msgctxt "Title of the subcategories list"
 msgid "Subcategories"
-msgstr ""
+msgstr "ประเภทสินค้าย่อย"
 
 #: templates/dashboard/category/detail.html:109
 #: templates/dashboard/includes/_menu_items.html:14
@@ -2289,13 +2318,13 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
 #: templates/dashboard/sites/detail.html:79
 msgid "Add"
-msgstr ""
+msgstr "เพิ่ม"
 
 #: templates/dashboard/category/detail.html:116
 #: templates/dashboard/category/list.html:49
 msgctxt "Category list table header name"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/category/detail.html:119
 #: templates/dashboard/category/list.html:52
@@ -2316,22 +2345,22 @@ msgstr "ลบ"
 #: templates/dashboard/category/detail.html:149
 msgctxt "Empty list of categories"
 msgid "No subcategories"
-msgstr ""
+msgstr "ไม่มีประเภทสินค้าย่อย"
 
 #: templates/dashboard/category/form.html:9
 msgctxt "Category form page title"
 msgid "Edit category"
-msgstr ""
+msgstr "แก้ไขประเภทสินค้า"
 
 #: templates/dashboard/category/form.html:11
 msgctxt "Category detail page title"
 msgid "Add new category"
-msgstr ""
+msgstr "เพิ่มประเภทสินค้าใหม่"
 
 #: templates/dashboard/category/form.html:24
 msgctxt "Category form page title"
 msgid "Add new category"
-msgstr ""
+msgstr "เพิ่มประเภทสินค้าใหม่"
 
 #: templates/dashboard/category/form.html:55
 msgctxt "Category form page title"
@@ -2342,7 +2371,7 @@ msgstr "แก้ไข"
 #: templates/dashboard/category/form.html:77
 msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
-msgstr ""
+msgstr "เพิ่มประเภทสินค้าใหม่"
 
 #: templates/dashboard/category/form.html:123
 #: templates/dashboard/customer/form.html:62
@@ -2381,12 +2410,12 @@ msgstr "สร้าง"
 #: templates/dashboard/category/list.html:22
 msgctxt "Category list add button text"
 msgid "Add category"
-msgstr ""
+msgstr "เพิ่มประเภทสินค้า"
 
 #: templates/dashboard/category/list.html:83
 msgctxt "Empty category list message"
 msgid "No categories found."
-msgstr ""
+msgstr "ไม่พบประเภทสินค้า"
 
 #: templates/dashboard/category/modal/confirm_delete.html:13
 #, python-format
@@ -2439,7 +2468,7 @@ msgstr "ลบ"
 
 #: templates/dashboard/category/zero_page.html:5
 msgid "No categories found."
-msgstr ""
+msgstr "ไม่พบประเภทสินค้า"
 
 #: templates/dashboard/category/zero_page.html:8
 #, python-format
@@ -2473,7 +2502,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:18
 #: templates/dashboard/collection/list.html:19
 msgid "Collections"
-msgstr ""
+msgstr "คอลเล็กชั่น"
 
 #: templates/dashboard/collection/detail.html:32
 msgctxt "Collection action"
@@ -2493,7 +2522,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:77
 msgctxt "Collection secondary action"
 msgid "Cancel"
-msgstr ""
+msgstr "ยกเลิก"
 
 #: templates/dashboard/collection/detail.html:80
 msgctxt "Collection detail action"
@@ -2523,7 +2552,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:10
 msgctxt "Collections list page title "
 msgid "Collections"
-msgstr ""
+msgstr "คอลเล็กชั่น"
 
 #: templates/dashboard/collection/list.html:25
 msgctxt "Collections list add button text"
@@ -2533,7 +2562,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:40
 msgctxt "Collections list table header name"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/collection/list.html:43
 msgctxt "Voucher table header"
@@ -2691,7 +2720,7 @@ msgstr ""
 #: templates/dashboard/staff/detail.html:79
 msgctxt "Dashboard add action"
 msgid "Add"
-msgstr ""
+msgstr "เพิ่ม"
 
 #: templates/dashboard/customer/list.html:17
 msgctxt "Customer list add button text"
@@ -2701,7 +2730,7 @@ msgstr ""
 #: templates/dashboard/customer/list.html:40
 msgctxt "Customers table header"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/customer/list.html:43
 msgctxt "Customers table header"
@@ -2783,7 +2812,7 @@ msgstr ""
 #: templates/dashboard/discount/sale/list.html:18
 msgctxt "Dashboard sales (discounts) list."
 msgid "Sales"
-msgstr ""
+msgstr "ลดราคา"
 
 #: templates/dashboard/discount/sale/form.html:32
 msgctxt "Sale (discount) action"
@@ -2797,7 +2826,7 @@ msgstr ""
 
 #: templates/dashboard/discount/sale/list.html:9
 msgid "Sales"
-msgstr ""
+msgstr "ลดราคา"
 
 #: templates/dashboard/discount/sale/list.html:27
 msgctxt "Sale (discount) list add button text"
@@ -2807,7 +2836,7 @@ msgstr ""
 #: templates/dashboard/discount/sale/list.html:42
 msgctxt "Sale (discount) table header"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/discount/sale/list.html:45
 msgctxt "Sale (discount) table header"
@@ -2876,7 +2905,7 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:43
 msgctxt "Voucher table header"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/discount/voucher/list.html:46
 msgctxt "Voucher table header"
@@ -2980,7 +3009,7 @@ msgstr ""
 #: templates/dashboard/includes/_menu_items.html:23
 msgctxt "Menu items list table header name"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/includes/_menu_items.html:26
 msgctxt "Menu items list table header points to"
@@ -3093,12 +3122,12 @@ msgstr ""
 #: templates/dashboard/index.html:92
 msgctxt "Preauthorized payments table header"
 msgid "Order"
-msgstr ""
+msgstr "คำสั่งซื้อ"
 
 #: templates/dashboard/index.html:95
 msgctxt "Preauthorized payments table header"
 msgid "Date"
-msgstr ""
+msgstr "วันที่"
 
 #: templates/dashboard/index.html:98
 msgctxt "Preauthorized payments table header"
@@ -3301,7 +3330,7 @@ msgstr ""
 #: templates/dashboard/order/address_form.html:7
 msgctxt ""
 msgid "Edit address"
-msgstr ""
+msgstr "แก้ไขที่อยู่"
 
 #: templates/dashboard/order/address_form.html:39
 #: templates/dashboard/order/detail.html:217
@@ -3333,16 +3362,16 @@ msgstr ""
 #: templates/dashboard/order/detail.html:79
 msgctxt "Order detail tab"
 msgid "Details"
-msgstr ""
+msgstr "รายละเอียด"
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:571
+#: templates/dashboard/order/detail.html:575
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:621
+#: templates/dashboard/order/detail.html:625
 msgctxt "Order detail tab"
 msgid "History"
 msgstr ""
@@ -3449,7 +3478,7 @@ msgid "Placed on"
 msgstr "สั่งซื้อเมื่อ"
 
 #: templates/dashboard/order/detail.html:280
-#: templates/dashboard/order/detail.html:473
+#: templates/dashboard/order/detail.html:477
 #: templates/dashboard/order/pdf/packing_slip.html:58
 msgctxt "Order table header"
 msgid "Item"
@@ -3461,7 +3490,7 @@ msgid "Price"
 msgstr "ราคา"
 
 #: templates/dashboard/order/detail.html:286
-#: templates/dashboard/order/detail.html:476
+#: templates/dashboard/order/detail.html:480
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Quantity"
@@ -3491,206 +3520,206 @@ msgctxt "Order table row action"
 msgid "Remove line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:347
+#: templates/dashboard/order/detail.html:348
 msgctxt "Order totals action"
 msgid "Edit shipping"
 msgstr "แก้ไขการจัดส่ง"
 
-#: templates/dashboard/order/detail.html:349
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:350
+#: templates/dashboard/order/detail.html:359
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:353
-#: templates/dashboard/order/detail.html:362
+#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:363
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "ตัวเลือกการจัดส่ง"
 
-#: templates/dashboard/order/detail.html:368
+#: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
 msgid "Taxes (included)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:370
+#: templates/dashboard/order/detail.html:372
 msgctxt "Order total taxes"
 msgid "Taxes"
 msgstr "ภาษี"
 
-#: templates/dashboard/order/detail.html:378
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:380
+#: templates/dashboard/order/detail.html:404
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:382
-#: templates/dashboard/order/detail.html:406
+#: templates/dashboard/order/detail.html:384
+#: templates/dashboard/order/detail.html:408
 msgctxt "Order totals header"
 msgid "Discount"
 msgstr "ส่วนลด"
 
-#: templates/dashboard/order/detail.html:389
+#: templates/dashboard/order/detail.html:391
 msgctxt "Order totals action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:390
+#: templates/dashboard/order/detail.html:392
 msgctxt "Order detail action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:395
+#: templates/dashboard/order/detail.html:397
 msgctxt "Order totals action"
 msgid "Edit discount"
 msgstr "แก้ไขส่วนลด"
 
-#: templates/dashboard/order/detail.html:396
+#: templates/dashboard/order/detail.html:398
 msgctxt "Order detail action"
 msgid "Edit discount"
 msgstr "แก้ไขส่วนลด"
 
-#: templates/dashboard/order/detail.html:411
+#: templates/dashboard/order/detail.html:413
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:432
+#: templates/dashboard/order/detail.html:436
 msgctxt "Order summary card action title"
 msgid "Fulfill order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:433
+#: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action"
 msgid "Fulfill"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:437
+#: templates/dashboard/order/detail.html:441
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:438
+#: templates/dashboard/order/detail.html:442
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:443
+#: templates/dashboard/order/detail.html:447
 msgctxt "Order summary card action title"
 msgid "Create order"
 msgstr "สร้างคำสั่งซื้อ"
 
-#: templates/dashboard/order/detail.html:444
+#: templates/dashboard/order/detail.html:448
 msgctxt "Order summary card action"
 msgid "Create order"
 msgstr "สร้างคำสั่งซื้อ"
 
-#: templates/dashboard/order/detail.html:450
+#: templates/dashboard/order/detail.html:454
 msgctxt "Order detail action"
 msgid "Invoice"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:453
+#: templates/dashboard/order/detail.html:457
 msgctxt "Order detail action"
 msgid "View on site"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:462
+#: templates/dashboard/order/detail.html:466
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:494
+#: templates/dashboard/order/detail.html:498
 #, python-format
 msgctxt "Fulfillment table text"
 msgid "Tracking number: %(tracking)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:510
 msgctxt "Fulfillment summary card action title"
 msgid "Cancel fulfillment"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:507
+#: templates/dashboard/order/detail.html:511
 msgctxt "Fulfillment summary card action"
 msgid "Cancel"
-msgstr ""
+msgstr "ยกเลิก"
 
-#: templates/dashboard/order/detail.html:510
+#: templates/dashboard/order/detail.html:514
 msgctxt "Fulfillment summary card action title"
 msgid "Edit tracking number"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:512
+#: templates/dashboard/order/detail.html:516
 msgctxt "Fulfillment summary card action"
 msgid "Edit tracking"
 msgstr "แก้ไขข้อมูลติดตามสถานะจัดส่ง"
 
-#: templates/dashboard/order/detail.html:514
+#: templates/dashboard/order/detail.html:518
 msgctxt "Fulfillment summary card action"
 msgid "Add tracking"
 msgstr "เพิ่มข้อมูลติดตามสถานะจัดส่งสินค้า"
 
-#: templates/dashboard/order/detail.html:519
+#: templates/dashboard/order/detail.html:523
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:529
+#: templates/dashboard/order/detail.html:533
 msgctxt "Customer order note card title"
 msgid "Customer note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:535
+#: templates/dashboard/order/detail.html:539
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:544
+#: templates/dashboard/order/detail.html:548
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:557
+#: templates/dashboard/order/detail.html:561
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:563
+#: templates/dashboard/order/detail.html:567
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:578
+#: templates/dashboard/order/detail.html:582
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:581
+#: templates/dashboard/order/detail.html:585
 msgctxt "Payment history table header"
 msgid "Date"
-msgstr ""
+msgstr "วันที่"
 
-#: templates/dashboard/order/detail.html:584
+#: templates/dashboard/order/detail.html:588
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "สถานะการชำระเงิน"
 
-#: templates/dashboard/order/detail.html:587
+#: templates/dashboard/order/detail.html:591
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:595
+#: templates/dashboard/order/detail.html:599
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:616
+#: templates/dashboard/order/detail.html:620
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr ""
@@ -3748,7 +3777,7 @@ msgstr ""
 #: templates/dashboard/order/modal/add_variant_to_order.html:22
 msgctxt "Modal order add variant primary action"
 msgid "Add"
-msgstr ""
+msgstr "เพิ่ม"
 
 #: templates/dashboard/order/modal/cancel_fulfillment.html:11
 #, python-format
@@ -4254,7 +4283,7 @@ msgstr "แก้ไข"
 
 #: templates/dashboard/page/form.html:82 templates/dashboard/page/form.html:85
 msgid "Cancel"
-msgstr ""
+msgstr "ยกเลิก"
 
 #: templates/dashboard/page/form.html:83
 msgid "Save"
@@ -4393,7 +4422,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/list.html:42
 msgctxt "Dashboard attributes list table header name"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/product/attribute/list.html:44
 msgctxt "Name of product type related to the attribute"
@@ -4496,7 +4525,7 @@ msgstr "รหัสสินค้า"
 
 #: templates/dashboard/product/detail.html:100
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/product/detail.html:101
 msgid "Status"
@@ -4658,7 +4687,7 @@ msgstr ""
 #: templates/dashboard/product/list.html:61
 msgctxt "Products list table header"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/product/list.html:64
 msgctxt "Products list table header"
@@ -4802,7 +4831,7 @@ msgstr ""
 #: templates/dashboard/product/product_type/list.html:44
 msgctxt "Dashboard product types list table header name"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/product/product_type/list.html:48
 msgctxt "Product type item list text"
@@ -5121,7 +5150,7 @@ msgstr "หน่วยน้ำหนักเริ่มต้น"
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:21
 msgctxt "Header of the shipping methods list"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:24
 msgctxt "Header of the shipping methods list"
@@ -5275,7 +5304,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:87
 msgctxt "Header of authorization keys list"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
@@ -5370,7 +5399,7 @@ msgstr "เพิ่มพนักงานร้าน"
 #: templates/dashboard/staff/list.html:42
 msgctxt "Staff members table header"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/staff/list.html:45
 msgctxt "Staff members table header"
@@ -5425,7 +5454,7 @@ msgstr ""
 #: templates/dashboard/taxes/details.html:50
 msgctxt "Country tax rates list header"
 msgid "Name"
-msgstr ""
+msgstr "ชื่อ"
 
 #: templates/dashboard/taxes/details.html:53
 msgctxt "Country tax rates list header"
@@ -5892,7 +5921,7 @@ msgstr ""
 "กำลังประมวลผลคำสั่งซื้อ"
 
 #: templates/order/payment/braintree.html:29
-#: templates/order/payment/dummy.html:30
+#: templates/order/payment/dummy.html:37
 msgctxt "Payment form primary action"
 msgid "Make payment"
 msgstr "ชำระเงิน"
@@ -5917,7 +5946,7 @@ msgctxt "Header of the order summary table"
 msgid "Order details"
 msgstr "รายละเอียดคำสั่งซื้อ"
 
-#: templates/order/payment/dummy.html:25
+#: templates/order/payment/dummy.html:32
 #: templates/order/payment/stripe.html:11
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment"

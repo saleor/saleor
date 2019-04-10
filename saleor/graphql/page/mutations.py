@@ -36,8 +36,8 @@ class PageCreate(ModelMutation):
         return user.has_perm('page.manage_pages')
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         slug = cleaned_input.get('slug', '')
         if not slug:
             cleaned_input['slug'] = slugify(cleaned_input['title'])

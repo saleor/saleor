@@ -15,15 +15,16 @@
 # Ramazan Acar <acarist@gmail.com>, 2019
 # Engin Öz <o.enginoz@gmail.com>, 2019
 # Tugba Cekirge <tugbacekirge@gmail.com>, 2019
+# Hakan ıı, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Tugba Cekirge <tugbacekirge@gmail.com>, 2019\n"
+"Last-Translator: Hakan ıı, 2019\n"
 "Language-Team: Turkish (https://www.transifex.com/mirumee/teams/34782/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -226,17 +227,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Bu değer seçilen ülke için geçersiz"
 
-#: saleor/account/models.py:154
+#: saleor/account/models.py:147
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "Müşterileri yönet."
 
-#: saleor/account/models.py:157
+#: saleor/account/models.py:150
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "Personel yönet."
 
-#: saleor/account/models.py:160
+#: saleor/account/models.py:153
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr "Müşterilerinizi tanıyın."
@@ -464,17 +465,17 @@ msgstr "Borç Tutarı"
 #: saleor/core/__init__.py:56
 msgctxt "VAT rate type"
 msgid "admission to cultural events"
-msgstr ""
+msgstr "kültürel etkinliklere giriş"
 
 #: saleor/core/__init__.py:58
 msgctxt "VAT rate type"
 msgid "admission to entertainment events"
-msgstr ""
+msgstr "eğlence etkinliklerine giriş"
 
 #: saleor/core/__init__.py:60
 msgctxt "VAT rate type"
 msgid "admission to sporting events"
-msgstr ""
+msgstr "spor etkinliklerine giriş"
 
 #: saleor/core/__init__.py:61
 msgctxt "VAT rate type"
@@ -514,7 +515,7 @@ msgstr ""
 #: saleor/core/__init__.py:71
 msgctxt "VAT rate type"
 msgid "domestic services"
-msgstr ""
+msgstr "yurtiçi hizmetler"
 
 #: saleor/core/__init__.py:72
 msgctxt "VAT rate type"
@@ -599,22 +600,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "{} olarak giriş yaptınız"
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr "kg"
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr "lb"
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr "oz"
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr "g"
@@ -928,7 +929,7 @@ msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
-msgstr ""
+msgstr "E-posta adresleri eşleşmediğinden siparişinizi hesabınıza atamadık"
 
 #: saleor/order/views.py:203
 msgctxt "storefront message"
@@ -1261,31 +1262,35 @@ msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:90
+msgid "Thai"
+msgstr ""
+
+#: saleor/settings.py:91
 msgid "Turkish"
 msgstr "Türkçe"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:92
 msgid "Ukrainian"
 msgstr ""
 
-#: saleor/settings.py:92
+#: saleor/settings.py:93
 msgid "Vietnamese"
 msgstr ""
 
-#: saleor/settings.py:93
+#: saleor/settings.py:94
 msgid "Simplified Chinese"
 msgstr "Basitleştirilmiş Çince"
 
-#: saleor/settings.py:94
+#: saleor/settings.py:95
 msgid "Traditional Chinese"
 msgstr "Geleneksel Çince"
 
-#: saleor/settings.py:330
+#: saleor/settings.py:331
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "Avrupa Birliği"
 
-#: saleor/settings.py:567
+#: saleor/settings.py:568
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""

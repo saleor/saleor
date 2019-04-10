@@ -31,7 +31,7 @@ class Menu(CountableDjangoObjectType):
         description = dedent("""Represents a single menu - an object that is used
         to help navigate through the store.""")
         interfaces = [relay.Node]
-        exclude_fields = ['json_content']
+        only_fields = ['id', 'name']
         model = models.Menu
 
     def resolve_items(self, info, **kwargs):
@@ -59,8 +59,9 @@ class MenuItem(CountableDjangoObjectType):
         description = dedent("""Represents a single item of the related menu.
         Can store categories, collection or pages.""")
         interfaces = [relay.Node]
-        exclude_fields = [
-            'sort_order', 'lft', 'rght', 'tree_id', 'translations']
+        only_fields = [
+            'category', 'collection', 'id', 'level', 'menu', 'name', 'page',
+            'parent']
         model = models.MenuItem
 
     def resolve_children(self, info, **kwargs):
