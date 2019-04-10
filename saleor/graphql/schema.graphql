@@ -1684,8 +1684,9 @@ type Product implements Node {
   url: String!
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
   thumbnail(size: Int): Image
-  availability: ProductAvailability
-  price: Money
+  availability: ProductPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  pricing: ProductPricingInfo
+  price: Money @deprecated(reason: "Has been replaced by 'pricing.price_range_undiscounted'")
   taxRate: TaxRateType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
@@ -1696,16 +1697,6 @@ type Product implements Node {
   collections: [Collection]
   availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
-}
-
-type ProductAvailability {
-  available: Boolean
-  onSale: Boolean
-  discount: TaxedMoney
-  discountLocalCurrency: TaxedMoney
-  priceRange: TaxedMoneyRange
-  priceRangeUndiscounted: TaxedMoneyRange
-  priceRangeLocalCurrency: TaxedMoneyRange
 }
 
 type ProductBulkDelete {
@@ -1835,6 +1826,16 @@ enum ProductOrderField {
   DATE
 }
 
+type ProductPricingInfo {
+  available: Boolean
+  onSale: Boolean
+  discount: TaxedMoney
+  discountLocalCurrency: TaxedMoney
+  priceRange: TaxedMoneyRange
+  priceRangeUndiscounted: TaxedMoneyRange
+  priceRangeLocalCurrency: TaxedMoneyRange
+}
+
 type ProductTranslate {
   errors: [Error!]
   product: Product
@@ -1922,6 +1923,8 @@ type ProductVariant implements Node {
   stockQuantity: Int!
   priceOverride: Money
   price: Money
+  availability: VariantPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  pricing: VariantPricingInfo
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
@@ -2575,6 +2578,16 @@ type VariantImageUnassign {
   errors: [Error!]
   productVariant: ProductVariant
   image: ProductImage
+}
+
+type VariantPricingInfo {
+  available: Boolean
+  onSale: Boolean
+  discount: TaxedMoney
+  discountLocalCurrency: TaxedMoney
+  price: TaxedMoney
+  priceUndiscounted: TaxedMoney
+  priceLocalCurrency: TaxedMoney
 }
 
 type VerifyToken {
