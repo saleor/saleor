@@ -239,15 +239,20 @@ class ProductVariant(CountableDjangoObjectType):
             """Override the base price of a product if necessary.
                A value of `null` indicates that the default product
                price is used."""))
-    price = graphene.Field(Money, description='Price of the product variant.')
+    price = graphene.Field(
+        Money, description='Price of the product variant.',
+        deprecation_reason=(
+            'Has been replaced by \'pricing.price_undiscounted\''))
     availability = graphene.Field(
         VariantPricingInfo, description=dedent(
             """Informs about variant's availability in the
                storefront, current price and discounted price."""),
         deprecation_reason='Has been renamed to \'pricing\'.')
     pricing = graphene.Field(
-        VariantPricingInfo, description=dedent("""Informs about product's pricing in the
-        storefront, current price and discounts."""))
+        VariantPricingInfo,
+        description=dedent(
+            """Lists the storefront product's pricing, 
+            the current price and discounts, only meant for displaying"""))
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this variant.')
@@ -377,14 +382,17 @@ class Product(CountableDjangoObjectType):
                storefront, current price and discounts."""),
         deprecation_reason='Has been renamed to \'pricing\'.')
     pricing = graphene.Field(
-        ProductPricingInfo, description=dedent("""Informs about product's pricing in the
-        storefront, current price and discounts."""))
+        ProductPricingInfo, description=dedent(
+            """Lists the storefront product's pricing, 
+            the current price and discounts, only meant for displaying."""))
+    base_price = graphene.Field(
+        Money,
+        description='The product\'s default base price.')
     price = graphene.Field(
         Money,
-        description=dedent("""The product's base price (without any discounts
-        applied)."""),
+        description='The product\'s default base price.',
         deprecation_reason=(
-            'Has been replaced by \'pricing.price_range_undiscounted\''))
+            'Has been replaced by \'basePrice\''))
     tax_rate = TaxRateType(description='A type of tax rate.')
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
@@ -464,6 +472,12 @@ class Product(CountableDjangoObjectType):
         return ProductPricingInfo(**availability._asdict())
 
     resolve_availability = resolve_pricing
+
+    @permission_required('product.manage_products')
+    def resolve_price(self, _info):
+        return self.price
+
+    resolve_base_price = resolve_price
 
     @gql_optimizer.resolver_hints(
         prefetch_related='product_type__product_attributes__values')

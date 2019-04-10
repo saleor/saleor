@@ -110,12 +110,6 @@ def test_real_query(user_api_client, product):
     fragment ProductFragmentQuery on Product {
         id
         name
-        price {
-            amount
-            currency
-            localized
-            __typename
-        }
         pricing {
             ...ProductPriceFragmentQuery
             __typename
