@@ -52,7 +52,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Portuguese
   - Swahili
   - Thai
-- Add Add mutation for bulk delete order lines #3935 @akjanik
 
 
 ## 2.4.0
