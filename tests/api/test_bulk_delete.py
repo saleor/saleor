@@ -13,6 +13,18 @@ from saleor.shipping.models import ShippingMethod, ShippingZone
 
 from .utils import get_graphql_content
 
+MUTATION_DELETE_ORDER_LINES = """
+    mutation draftOrderLinesBulkDelete($ids: [ID]!) {
+        draftOrderLinesBulkDelete(ids: $ids) {
+            count
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
 
 @pytest.fixture
 def attribute_list():
@@ -286,38 +298,40 @@ def test_delete_draft_orders(
         id__in=[order.id for order in orders]).count() == len(orders)
 
 
-def test_delete_draft_orders_lines(
+def test_fail_to_delete_non_draft_order_lines(
         staff_api_client, order_with_lines, permission_manage_orders):
     order = order_with_lines
     order_lines = [line for line in order]
+    # Set anything but OrderStatus.DRAFT
     order.status = OrderStatus.CANCELED
-
-    query = """
-    mutation draftOrderLinesBulkDelete($ids: [ID]!) {
-        draftOrderLinesBulkDelete(ids: $ids) {
-            count
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
+    order.save()
 
     variables = {'ids': [
         graphene.Node.to_global_id('OrderLine', order_line.id)
         for order_line in order_lines]}
     response = staff_api_client.post_graphql(
-        query, variables,
+        MUTATION_DELETE_ORDER_LINES, variables,
         permissions=[permission_manage_orders])
+
     content = get_graphql_content(response)
     assert 'errors' in content['data']['draftOrderLinesBulkDelete']
     assert content['data']['draftOrderLinesBulkDelete']['count'] == 0
 
+
+def test_delete_draft_order_lines(
+        staff_api_client, order_with_lines, permission_manage_orders):
+    order = order_with_lines
+    order_lines = [line for line in order]
+    # Only lines in draft order can be deleted
     order.status = OrderStatus.DRAFT
     order.save()
+
+    variables = {'ids': [
+        graphene.Node.to_global_id('OrderLine', order_line.id)
+        for order_line in order_lines]}
+
     response = staff_api_client.post_graphql(
-        query, variables, check_no_permissions=False,
+        MUTATION_DELETE_ORDER_LINES, variables,
         permissions=[permission_manage_orders])
     content = get_graphql_content(response)
 
