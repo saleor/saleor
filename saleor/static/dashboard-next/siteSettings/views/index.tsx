@@ -41,7 +41,7 @@ export const SiteSettings: React.StatelessComponent<SiteSettingsProps> = ({
           context: "notification"
         })
       });
-      navigate(siteSettingsUrl);
+      navigate(siteSettingsUrl());
     }
   };
   const handleDeleteKeySuccess = (data: AuthorizationKeyDelete) => {
