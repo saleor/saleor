@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 - Refactor error handling in mutations #3891 by @maarcingebala @akjanik
 - Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
+- Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
 
 
 ## 2.5.0
