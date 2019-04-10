@@ -557,10 +557,6 @@ class ProductBulkUpdate(forms.Form):
 class DigitalContentForm(forms.ModelForm):
     content_type = forms.CharField(required=False)
     content_file = forms.FileField(required=True)
-    # use_required_attribute = False
-    # variants = forms.ModelMultipleChoiceField(
-    #     queryset=ProductVariant.objects.none(),
-    #     widget=forms.CheckboxSelectMultiple, required=False)
 
     class Meta:
         model = DigitalContent
@@ -570,13 +566,3 @@ class DigitalContentForm(forms.ModelForm):
             'content_file': pgettext_lazy(
                 'Digital Content', 'Digital Content'),
         }
-
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-    def save(self, commit=True):
-        digital_content = super().save(commit=commit)
-        # create_product_thumbnails.delay(image.pk)
-        return digital_content

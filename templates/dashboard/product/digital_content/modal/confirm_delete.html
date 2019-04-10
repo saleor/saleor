@@ -1,0 +1,27 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+
+{% block form_class %}{% endblock %}
+
+{% block action_url %}
+{% url 'dashboard:digital-content-delete' product_pk=product.pk variant_pk=variant.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Modal remove product text" %}
+  Remove digital product for variant {{ variant }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+  <div class="col s12">
+    {% blocktrans trimmed context "Modal remove product text" %}
+      Are you sure you want to remove digital content for  <strong>{{ variant }}</strong>?
+    {% endblocktrans %}
+  </div>
+{% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

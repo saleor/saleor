@@ -4,10 +4,10 @@
 {% load static %}
 
 {% block title %}
-  {% if product_image.pk %}
-    {% trans "Edit - Image" context "Image form text" %}
+  {% if variant.has_assigned_digital_content %}
+    {% trans "Edit - Content" context "Digital content form text" %}
   {% else %}
-    {% trans "Add image" context "Image form text" %}
+    {% trans "Add digital content" context "Digital content form text" %}
   {% endif %} - {{ block.super }}
 {% endblock %}
 
@@ -35,12 +35,7 @@
     {% if digital_content.pk %}
       <li>
         <span class="breadcrumbs--ellipsed-item">
-          {% trans "Digital Content" context "Digital Content form text" %}
-        </span>
-      </li>
-      <li>
-        <span class="breadcrumbs--ellipsed-item">
-          {% trans "Edit" context "Digital Content form text" %}
+          {% trans "Edit Digital Content" context "Digital Content form text" %}
         </span>
       </li>
     {% else %}
@@ -88,6 +83,9 @@
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
             {% if digital_content.pk %}
+              <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:digital-content-delete' product_pk=product.pk variant_pk=variant.pk %}">
+                 {% trans "Remove digital content" context "Dashboard action" %}
+              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Save" context "Dashboard update action" %}
               </button>

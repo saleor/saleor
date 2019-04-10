@@ -265,6 +265,11 @@ class ProductVariant(models.Model):
         is_digital = self.product.product_type.is_digital
         return not self.is_shipping_required() and is_digital
 
+    def has_assigned_digital_content(self):
+        if hasattr(self, 'digital_content'):
+            return True
+        return False
+
     def is_in_stock(self):
         return self.quantity_available > 0
 

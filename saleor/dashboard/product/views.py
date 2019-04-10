@@ -692,8 +692,9 @@ def digital_content_edit(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(ProductVariant, pk=variant_pk)
 
-    new_digital_content = DigitalContent(product_variant=variant)
-    digital_content = getattr(variant, 'digital_content', new_digital_content)
+    digital_content = getattr(variant, 'digital_content', None)
+    if not digital_content:
+        digital_content = DigitalContent(product_variant=variant)
 
     form = forms.DigitalContentForm(
         request.POST or None, request.FILES or None, instance=digital_content)
@@ -715,3 +716,23 @@ def digital_content_edit(request, product_pk, variant_pk):
         request,
         'dashboard/product/digital_content/form.html',
         ctx)
+
+
+@staff_member_required
+@permission_required('product.manage_products')
+def digital_content_delete(request, product_pk, variant_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(ProductVariant, pk=variant_pk)
+    content = get_object_or_404(DigitalContent, product_variant_id=variant_pk)
+    if request.method == 'POST':
+        content.delete()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Removed digital content for %s') % (variant,)
+        messages.success(request, msg)
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    return TemplateResponse(
+        request,
+        'dashboard/product/digital_content/modal/confirm_delete.html',
+        {'product': product, 'variant': variant})

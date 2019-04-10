@@ -21,7 +21,10 @@ class SiteSettingsForm(forms.ModelForm):
         model = SiteSettings
         fields = [
             'header_text', 'description',
-            'track_inventory_by_default', 'default_weight_unit']
+            'track_inventory_by_default', 'default_weight_unit',
+            'automatic_fulfillment_digital_products',
+            'default_digital_max_downloads',
+            'default_digital_url_valid_days']
         labels = {
             'header_text': pgettext_lazy(
                 'Header text', 'Header text'),
@@ -31,7 +34,18 @@ class SiteSettingsForm(forms.ModelForm):
                 'Inventory tracking by default settings toggle label',
                 'Enable inventory tracking for newly created products'),
             'default_weight_unit': pgettext_lazy(
-                'Default weight unit', 'Default weight unit')}
+                'Default weight unit', 'Default weight unit'),
+            'automatic_fulfillment_digital_products': pgettext_lazy(
+                'Digital content default settings',
+                'Enable automatic fulfillment for all digital products'),
+            'default_digital_max_downloads': pgettext_lazy(
+                'Digital content default settings',
+                'Default number of max downloads per digital content url'),
+            'default_digital_url_valid_days': pgettext_lazy(
+                'Digital content default settings',
+                'Default number of days which digital content url will be '
+                'valid')
+        }
         help_texts = {
             'track_inventory_by_default': pgettext_lazy(
                 'handle stock by default settings field help text',
