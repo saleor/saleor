@@ -2,7 +2,6 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import slugify
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.mutations import ModelDeleteMutation, ModelMutation
@@ -36,8 +35,9 @@ class AttributeUpdateInput(graphene.InputObjectType):
 
 
 class AttributeMixin:
+
     @classmethod
-    def check_unique_values(cls, values_input, attribute, errors):
+    def check_unique_values(cls, values_input, attribute):
         # Check values uniqueness in case of creating new attribute.
         existing_values = attribute.values.values_list('slug', flat=True)
         for value_data in values_input:
@@ -46,17 +46,17 @@ class AttributeMixin:
                 msg = (
                     'Value %s already exists within this attribute.' %
                     value_data['name'])
-                cls.add_error(errors, cls.ATTRIBUTE_VALUES_FIELD, msg)
+                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: msg})
 
         new_slugs = [
             slugify(value_data['name']) for value_data in values_input]
         if len(set(new_slugs)) != len(new_slugs):
-            cls.add_error(
-                errors, cls.ATTRIBUTE_VALUES_FIELD,
-                'Provided values are not unique.')
+            raise ValidationError({
+                cls.ATTRIBUTE_VALUES_FIELD:
+                'Provided values are not unique.'})
 
     @classmethod
-    def clean_values(cls, cleaned_input, attribute, errors):
+    def clean_values(cls, cleaned_input, attribute):
         """Clean attribute values.
 
         Transforms AttributeValueCreateInput into AttributeValue instances.
@@ -74,22 +74,20 @@ class AttributeMixin:
                 for field in validation_errors.message_dict:
                     if field == 'attribute':
                         continue
-                    for message in validation_errors.message_dict[field]:
-                        cls.add_error(
-                            errors, cls.ATTRIBUTE_VALUES_FIELD, message)
-        cls.check_unique_values(values_input, attribute, errors)
-        return errors
+                    for msg in validation_errors.message_dict[field]:
+                        raise ValidationError({
+                            cls.ATTRIBUTE_VALUES_FIELD: msg})
+        cls.check_unique_values(values_input, attribute)
 
     @classmethod
     def clean_attribute(
-            cls, instance, cleaned_input, errors, product_type=None):
+            cls, instance, cleaned_input, product_type=None):
         if 'name' in cleaned_input:
             slug = slugify(cleaned_input['name'])
         elif instance.pk:
             slug = instance.slug
         else:
-            cls.add_error(errors, 'name', 'This field cannot be blank.')
-            return cleaned_input
+            raise ValidationError({'name': 'This field cannot be blank.'})
         cleaned_input['slug'] = slug
 
         if not product_type:
@@ -100,9 +98,8 @@ class AttributeMixin:
             | Q(product_variant_type=product_type))
         query = query.exclude(pk=getattr(instance, 'pk', None))
         if query.exists():
-            cls.add_error(
-                errors, 'name',
-                'Attribute already exists within this product type.')
+            raise ValidationError({
+                'name': 'Attribute already exists within this product type.'})
         return cleaned_input
 
     @classmethod
@@ -139,24 +136,20 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         model = models.Attribute
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, id, type, input):
-        errors = []
-        product_type = cls.get_node_or_error(
-            info, id, errors, 'id', ProductType)
-        if not product_type:
-            return AttributeCreate(errors=errors)
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, type, input):
+        product_type = cls.get_node_or_error(info, id, only_type=ProductType)
         instance = models.Attribute()
 
-        cleaned_input = cls.clean_input(info, instance, input, errors)
+        cleaned_input = cls.clean_input(info, instance, input)
         cls.clean_attribute(
-            instance, cleaned_input, errors, product_type=product_type)
-        cls.clean_values(cleaned_input, instance, errors)
-
+            instance, cleaned_input, product_type=product_type)
+        cls.clean_values(cleaned_input, instance)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
-        if errors:
-            return AttributeCreate(errors=errors)
+        cls.clean_instance(instance)
 
         instance.save()
         if type == AttributeTypeEnum.VARIANT.name:
@@ -164,8 +157,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         else:
             product_type.product_attributes.add(instance)
         cls._save_m2m(info, instance, cleaned_input)
-        return AttributeCreate(
-            attribute=instance, product_type=product_type, errors=errors)
+        return AttributeCreate(attribute=instance, product_type=product_type)
 
 
 class AttributeUpdate(AttributeMixin, ModelMutation):
@@ -186,7 +178,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         model = models.Attribute
 
     @classmethod
-    def clean_remove_values(cls, cleaned_input, instance, errors):
+    def clean_remove_values(cls, cleaned_input, instance):
         """Check if AttributeValues to be removed are assigned to given
         Attribute.
         """
@@ -194,7 +186,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         for value in remove_values:
             if value.attribute != instance:
                 msg = 'Value %s does not belong to this attribute.' % value
-                cls.add_error(errors, 'remove_values', msg)
+                raise ValidationError({'remove_values': msg})
         return remove_values
 
     @classmethod
@@ -204,27 +196,26 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
             attribute_value.delete()
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, id, input):
-        errors = []
-        instance = cls.get_node_or_error(info, id, errors, 'id', Attribute)
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
 
-        cleaned_input = cls.clean_input(info, instance, input, errors)
+    @classmethod
+    def perform_mutation(cls, root, info, id, input):
+        instance = cls.get_node_or_error(info, id, only_type=Attribute)
+
+        cleaned_input = cls.clean_input(info, instance, input)
         product_type = instance.product_type
         cls.clean_attribute(
-            instance, cleaned_input, errors, product_type=product_type)
-        cls.clean_values(cleaned_input, instance, errors)
-        cls.clean_remove_values(cleaned_input, instance, errors)
-
+            instance, cleaned_input, product_type=product_type)
+        cls.clean_values(cleaned_input, instance)
+        cls.clean_remove_values(cleaned_input, instance)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
-        if errors:
-            return AttributeUpdate(errors=errors)
+        cls.clean_instance(instance)
 
         instance.save()
         cls._save_m2m(info, instance, cleaned_input)
         return AttributeUpdate(
-            attribute=instance, product_type=product_type, errors=errors)
+            attribute=instance, product_type=product_type)
 
 
 class AttributeDelete(ModelDeleteMutation):
@@ -267,29 +258,29 @@ class AttributeValueCreate(ModelMutation):
         model = models.AttributeValue
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, attribute_id, input):
-        errors = []
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
+
+    @classmethod
+    def perform_mutation(cls, root, info, attribute_id, input):
         attribute = cls.get_node_or_error(
-            info, attribute_id, errors, 'id', Attribute)
+            info, attribute_id, only_type=Attribute)
 
         instance = models.AttributeValue(attribute=attribute)
-        cleaned_input = cls.clean_input(info, instance, input, errors)
+        cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
-        if errors:
-            return cls(errors=errors)
+        cls.clean_instance(instance)
 
         instance.save()
         cls._save_m2m(info, instance, cleaned_input)
         return AttributeValueCreate(
-            attribute=attribute, attributeValue=instance, errors=errors)
+            attribute=attribute, attributeValue=instance)
 
 
 class AttributeValueUpdate(ModelMutation):
@@ -312,8 +303,8 @@ class AttributeValueUpdate(ModelMutation):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, input):
+        cleaned_input = super().clean_input(info, instance, input)
         if 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input

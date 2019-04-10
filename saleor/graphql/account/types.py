@@ -10,7 +10,7 @@ from ...core.permissions import get_permissions
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import Image, CountryDisplay, PermissionDisplay
+from ..core.types import CountryDisplay, Image, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 
@@ -23,7 +23,7 @@ class AddressInput(graphene.InputObjectType):
     city = graphene.String(description='City.')
     city_area = graphene.String(description='District.')
     postal_code = graphene.String(description='Postal code.')
-    country = graphene.String(required=True, description='Country.')
+    country = graphene.String(description='Country.')
     country_area = graphene.String(description='State or province.')
     phone = graphene.String(description='Phone number.')
 
@@ -39,10 +39,13 @@ class Address(CountableDjangoObjectType):
         description='Address is user\'s default billing address')
 
     class Meta:
-        exclude_fields = ['user_set', 'user_addresses']
         description = 'Represents user address data.'
         interfaces = [relay.Node]
         model = models.Address
+        only_fields = [
+            'city', 'city_area', 'company_name', 'country', 'country_area',
+            'first_name', 'id', 'last_name', 'phone', 'postal_code',
+            'street_address_1', 'street_address_2']
 
     def resolve_country(self, info):
         return CountryDisplay(
@@ -100,11 +103,14 @@ class User(CountableDjangoObjectType):
         Image, size=graphene.Int(description='Size of the avatar.'))
 
     class Meta:
-        exclude_fields = [
-            'carts', 'password', 'is_superuser', 'OrderEvent_set']
         description = 'Represents user data.'
         interfaces = [relay.Node]
         model = get_user_model()
+        only_fields = [
+            'date_joined', 'default_billing_address',
+            'default_shipping_address', 'email', 'first_name', 'id',
+            'is_active', 'is_staff', 'last_login', 'last_name', 'note',
+            'token']
 
     def resolve_addresses(self, info, **kwargs):
         return self.addresses.annotate_default(self).all()

@@ -1,0 +1,375 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+# Translators:
+# Carlos Fontinha <prisma.portatil@gmail.com>, 2019
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: Carlos Fontinha <prisma.portatil@gmail.com>, 2019\n"
+"Language-Team: Portuguese (https://www.transifex.com/mirumee/teams/34782/pt/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
+msgid "Missing source"
+msgstr "Fonte não encontrada"
+
+#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
+msgid "\n"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/bulk-actions.js:89
+msgid "item selected"
+msgid_plural "items selected"
+msgstr[0] "item selecionado"
+msgstr[1] "itens selecionados"
+
+#: saleor/static/dashboard/js/components/datepicker.js:4
+msgctxt "Datepicker option"
+msgid "Next month"
+msgstr "Próximo mês"
+
+#: saleor/static/dashboard/js/components/datepicker.js:5
+msgctxt "Datepicker option"
+msgid "Previous month"
+msgstr "Mês anterior"
+
+#: saleor/static/dashboard/js/components/datepicker.js:8
+msgctxt "Datepicker option"
+msgid "Select a month"
+msgstr "Selecione um mês"
+
+#: saleor/static/dashboard/js/components/datepicker.js:9
+msgctxt "Datepicker option"
+msgid "Select a year"
+msgstr "Selecione um ano"
+
+#: saleor/static/dashboard/js/components/datepicker.js:13
+msgctxt "Datepicker month"
+msgid "January"
+msgstr "Janeiro"
+
+#: saleor/static/dashboard/js/components/datepicker.js:14
+msgctxt "Datepicker month"
+msgid "February"
+msgstr "Fevereiro"
+
+#: saleor/static/dashboard/js/components/datepicker.js:15
+msgctxt "Datepicker month"
+msgid "March"
+msgstr "Março"
+
+#: saleor/static/dashboard/js/components/datepicker.js:16
+msgctxt "Datepicker month"
+msgid "April"
+msgstr "Abril"
+
+#: saleor/static/dashboard/js/components/datepicker.js:17
+msgctxt "Datepicker month"
+msgid "May"
+msgstr "Maio"
+
+#: saleor/static/dashboard/js/components/datepicker.js:18
+msgctxt "Datepicker month"
+msgid "June"
+msgstr "Junho"
+
+#: saleor/static/dashboard/js/components/datepicker.js:19
+msgctxt "Datepicker month"
+msgid "July"
+msgstr "Julho"
+
+#: saleor/static/dashboard/js/components/datepicker.js:20
+msgctxt "Datepicker month"
+msgid "August"
+msgstr "Agosto"
+
+#: saleor/static/dashboard/js/components/datepicker.js:21
+msgctxt "Datepicker month"
+msgid "September"
+msgstr "Setembro"
+
+#: saleor/static/dashboard/js/components/datepicker.js:22
+msgctxt "Datepicker month"
+msgid "October"
+msgstr "Outubro"
+
+#: saleor/static/dashboard/js/components/datepicker.js:23
+msgctxt "Datepicker month"
+msgid "November"
+msgstr "Novembro"
+
+#: saleor/static/dashboard/js/components/datepicker.js:24
+msgctxt "Datepicker month"
+msgid "December"
+msgstr "Dezembro"
+
+#: saleor/static/dashboard/js/components/datepicker.js:26
+msgctxt "Datepicker month shortcut"
+msgid "Jan"
+msgstr "Jan"
+
+#: saleor/static/dashboard/js/components/datepicker.js:27
+msgctxt "Datepicker month shortcut"
+msgid "Feb"
+msgstr "Fev"
+
+#: saleor/static/dashboard/js/components/datepicker.js:28
+msgctxt "Datepicker month shortcut"
+msgid "Mar"
+msgstr "Mar"
+
+#: saleor/static/dashboard/js/components/datepicker.js:29
+msgctxt "Datepicker month shortcut"
+msgid "Apr"
+msgstr "Abr"
+
+#: saleor/static/dashboard/js/components/datepicker.js:30
+msgctxt "Datepicker month shortcut"
+msgid "May"
+msgstr "Maio"
+
+#: saleor/static/dashboard/js/components/datepicker.js:31
+msgctxt "Datepicker month shortcut"
+msgid "Jun"
+msgstr "Jun"
+
+#: saleor/static/dashboard/js/components/datepicker.js:32
+msgctxt "Datepicker month shortcut"
+msgid "Jul"
+msgstr "Jul"
+
+#: saleor/static/dashboard/js/components/datepicker.js:33
+msgctxt "Datepicker month shortcut"
+msgid "Aug"
+msgstr "Ago"
+
+#: saleor/static/dashboard/js/components/datepicker.js:34
+msgctxt "Datepicker month shortcut"
+msgid "Sep"
+msgstr "Set"
+
+#: saleor/static/dashboard/js/components/datepicker.js:35
+msgctxt "Datepicker month shortcut"
+msgid "Oct"
+msgstr "Out"
+
+#: saleor/static/dashboard/js/components/datepicker.js:36
+msgctxt "Datepicker month shortcut"
+msgid "Nov"
+msgstr "Nov"
+
+#: saleor/static/dashboard/js/components/datepicker.js:37
+msgctxt "Datepicker month shortcut"
+msgid "Dec"
+msgstr "Dez"
+
+#: saleor/static/dashboard/js/components/datepicker.js:39
+msgctxt "Datepicker weekday"
+msgid "Sunday"
+msgstr "Domingo"
+
+#: saleor/static/dashboard/js/components/datepicker.js:40
+msgctxt "Datepicker weekday"
+msgid "Monday"
+msgstr "Segunda"
+
+#: saleor/static/dashboard/js/components/datepicker.js:41
+msgctxt "Datepicker weekday"
+msgid "Tuesday"
+msgstr "Terça"
+
+#: saleor/static/dashboard/js/components/datepicker.js:42
+msgctxt "Datepicker weekday"
+msgid "Wednesday"
+msgstr "Quarta"
+
+#: saleor/static/dashboard/js/components/datepicker.js:43
+msgctxt "Datepicker weekday"
+msgid "Thursday"
+msgstr "Quinta"
+
+#: saleor/static/dashboard/js/components/datepicker.js:44
+msgctxt "Datepicker weekday"
+msgid "Friday"
+msgstr "Sexta"
+
+#: saleor/static/dashboard/js/components/datepicker.js:45
+msgctxt "Datepicker weekday"
+msgid "Saturday"
+msgstr "Sábado"
+
+#: saleor/static/dashboard/js/components/datepicker.js:47
+msgctxt "Datepicker weekday shortcut"
+msgid "Sun"
+msgstr "Dom"
+
+#: saleor/static/dashboard/js/components/datepicker.js:48
+msgctxt "Datepicker weekday shortcut"
+msgid "Mon"
+msgstr "Seg"
+
+#: saleor/static/dashboard/js/components/datepicker.js:49
+msgctxt "Datepicker weekday shortcut"
+msgid "Tue"
+msgstr "Ter"
+
+#: saleor/static/dashboard/js/components/datepicker.js:50
+msgctxt "Datepicker weekday shortcut"
+msgid "Wed"
+msgstr "Qua"
+
+#: saleor/static/dashboard/js/components/datepicker.js:51
+msgctxt "Datepicker weekday shortcut"
+msgid "Thu"
+msgstr "Qui"
+
+#: saleor/static/dashboard/js/components/datepicker.js:52
+msgctxt "Datepicker weekday shortcut"
+msgid "Fri"
+msgstr "Sex"
+
+#: saleor/static/dashboard/js/components/datepicker.js:53
+msgctxt "Datepicker weekday shortcut"
+msgid "Sat"
+msgstr "Sáb"
+
+#: saleor/static/dashboard/js/components/datepicker.js:57
+msgctxt "Sunday shortcut"
+msgid "S"
+msgstr "S"
+
+#: saleor/static/dashboard/js/components/datepicker.js:58
+msgctxt "Monday shortcut"
+msgid "M"
+msgstr "S"
+
+#: saleor/static/dashboard/js/components/datepicker.js:59
+msgctxt "Tuesday shortcut"
+msgid "T"
+msgstr "Q"
+
+#: saleor/static/dashboard/js/components/datepicker.js:60
+msgctxt "Wednesday shortcut"
+msgid "W"
+msgstr "Q"
+
+#: saleor/static/dashboard/js/components/datepicker.js:61
+msgctxt "Thursday shortcut"
+msgid "T"
+msgstr "Q"
+
+#: saleor/static/dashboard/js/components/datepicker.js:62
+msgctxt "Friday shortcut"
+msgid "F"
+msgstr "S"
+
+#: saleor/static/dashboard/js/components/datepicker.js:63
+msgctxt "Saturday shortcut"
+msgid "S"
+msgstr "S"
+
+#: saleor/static/dashboard/js/components/datepicker.js:64
+msgctxt "Datepicker option"
+msgid "Today"
+msgstr "Hoje"
+
+#: saleor/static/dashboard/js/components/datepicker.js:65
+msgctxt "Datepicker option"
+msgid "Clear"
+msgstr "Limpar"
+
+#: saleor/static/dashboard/js/components/datepicker.js:66
+msgctxt "Datepicker option"
+msgid "Close"
+msgstr "Fechar"
+
+#: saleor/static/dashboard/js/components/editor.js:27
+msgctxt "Rich text editor option"
+msgid "Bold text"
+msgstr "Negrito"
+
+#: saleor/static/dashboard/js/components/editor.js:31
+msgctxt "Rich text editor option"
+msgid "Italic text"
+msgstr "Itálico"
+
+#: saleor/static/dashboard/js/components/editor.js:35
+msgctxt "Rich text editor option"
+msgid "Header"
+msgstr "Título"
+
+#: saleor/static/dashboard/js/components/editor.js:42
+msgctxt "Rich text editor option"
+msgid "Subheader"
+msgstr "Subtítulo"
+
+#: saleor/static/dashboard/js/components/editor.js:49
+msgctxt "Rich text editor option"
+msgid "Quote"
+msgstr "Citação"
+
+#: saleor/static/dashboard/js/components/editor.js:54
+msgctxt "Rich text editor option"
+msgid "Link"
+msgstr "Link"
+
+#: saleor/static/dashboard/js/components/editor.js:61
+msgctxt "Rich text editor option"
+msgid "Image (converts selected text to an image tag)"
+msgstr "Imagem (converta texto selecionado em um rótulo de imagem)"
+
+#: saleor/static/dashboard/js/components/editor.js:66
+msgctxt "Rich text editor option"
+msgid "Left align"
+msgstr "Alinhar à esquerda"
+
+#: saleor/static/dashboard/js/components/editor.js:71
+msgctxt "Rich text editor option"
+msgid "Center align"
+msgstr "Centralizar"
+
+#: saleor/static/dashboard/js/components/editor.js:76
+msgctxt "Rich text editor option"
+msgid "Right align"
+msgstr "Alinhar à direita"
+
+#: saleor/static/dashboard/js/components/editor.js:81
+msgctxt "Rich text editor option"
+msgid "Justify"
+msgstr "Justificar"
+
+#: saleor/static/dashboard/js/components/editor.js:86
+msgctxt "Rich text editor option"
+msgid "Remove formatting"
+msgstr "Remover formatação"
+
+#: saleor/static/dashboard/js/components/google-preview.js:46
+msgid ""
+"Your input might be a little too short, think of something more descriptive"
+msgstr "A sua entrada é muito pequena, pense em algo com maior descrição"
+
+#: saleor/static/dashboard/js/components/google-preview.js:50
+msgid "Your input fits between the recommended lengths"
+msgstr "A sua entrada encaixa-se no tamanho recomendado"
+
+#: saleor/static/js/components/variantPicker/QuantityInput.js:22
+msgctxt "Add to cart form field label"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: saleor/static/js/components/variantPicker/VariantPicker.js:167
+msgctxt "Product details primary action"
+msgid "Add to cart"
+msgstr "Adicionar ao carrinho"

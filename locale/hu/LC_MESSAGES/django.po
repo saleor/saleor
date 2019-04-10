@@ -6,15 +6,16 @@
 # Translators:
 # Marci Wéber <webermarton@gmail.com>, 2018
 # Lehner Viktor <lehnerviktor@gmail.com>, 2019
+# Tóth Péter <peter.taught@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-04 10:43-0600\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Lehner Viktor <lehnerviktor@gmail.com>, 2019\n"
+"Last-Translator: Tóth Péter <peter.taught@gmail.com>, 2019\n"
 "Language-Team: Hungarian (https://www.transifex.com/mirumee/teams/34782/hu/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -217,17 +218,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Az érték nem érvényes a kiválasztott országban"
 
-#: saleor/account/models.py:135
+#: saleor/account/models.py:147
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "Ügyfelek kezelése"
 
-#: saleor/account/models.py:138
+#: saleor/account/models.py:150
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "Személyzet kezelése"
 
-#: saleor/account/models.py:141
+#: saleor/account/models.py:153
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -412,24 +413,24 @@ msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "A voucher időközben lejárt. A rendelést töröltük."
 
-#: saleor/checkout/utils.py:897
+#: saleor/checkout/utils.py:898
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
 msgstr "Nics szállítási mód kiválasztva"
 
-#: saleor/checkout/utils.py:900
+#: saleor/checkout/utils.py:901
 msgctxt "order placement error"
 msgid "Shipping address is not set"
 msgstr ""
 
-#: saleor/checkout/utils.py:904
+#: saleor/checkout/utils.py:905
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
 msgstr ""
 
-#: saleor/checkout/utils.py:907
-msgctxt "order placement error"
-msgid "Checkout is not fully paid"
+#: saleor/checkout/utils.py:908
+msgctxt "order placement_error"
+msgid "Billing address is not set"
 msgstr ""
 
 #: saleor/checkout/views/discount.py:62
@@ -585,22 +586,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "Bejelentkezve mint {}"
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr ""
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr ""
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr ""
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr ""
@@ -676,7 +677,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr ""
 
-#: saleor/discount/models.py:179
+#: saleor/discount/models.py:180
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr ""
@@ -898,12 +899,12 @@ msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr ""
 
-#: saleor/order/models.py:134
+#: saleor/order/models.py:135
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr ""
 
-#: saleor/order/models.py:335
+#: saleor/order/models.py:344
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -956,17 +957,27 @@ msgctxt "transaction kind"
 msgid "Void"
 msgstr ""
 
-#: saleor/payment/__init__.py:93
-msgctxt "payment status"
-msgid "Charged"
-msgstr ""
-
-#: saleor/payment/__init__.py:94
+#: saleor/payment/__init__.py:99
 msgctxt "payment status"
 msgid "Not charged"
 msgstr ""
 
-#: saleor/payment/__init__.py:95
+#: saleor/payment/__init__.py:101
+msgctxt "payment status"
+msgid "Partially charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:102
+msgctxt "payment status"
+msgid "Fully charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:104
+msgctxt "payment status"
+msgid "Partially refunded"
+msgstr ""
+
+#: saleor/payment/__init__.py:105
 msgctxt "payment status"
 msgid "Fully refunded"
 msgstr ""
@@ -980,6 +991,12 @@ msgstr ""
 #: saleor/payment/gateways/dummy/forms.py:9
 msgctxt "Payment status form field"
 msgid "Payment status"
+msgstr "Fizetés állapota"
+
+#: saleor/payment/gateways/dummy/forms.py:23
+msgid ""
+"Setting charge status to {} directly is not supported. Please use the "
+"dashboard to refund partially."
 msgstr ""
 
 #: saleor/payment/gateways/razorpay/errors.py:5
@@ -1231,31 +1248,35 @@ msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:90
-msgid "Turkish"
+msgid "Thai"
 msgstr ""
 
 #: saleor/settings.py:91
-msgid "Ukrainian"
+msgid "Turkish"
 msgstr ""
 
 #: saleor/settings.py:92
-msgid "Vietnamese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:93
-msgid "Simplified Chinese"
+msgid "Vietnamese"
 msgstr ""
 
 #: saleor/settings.py:94
+msgid "Simplified Chinese"
+msgstr ""
+
+#: saleor/settings.py:95
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:330
+#: saleor/settings.py:331
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:567
+#: saleor/settings.py:568
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1308,6 +1329,11 @@ msgstr ""
 #: saleor/site/models.py:40
 msgctxt "Permission description"
 msgid "Manage settings."
+msgstr ""
+
+#: saleor/site/models.py:42
+msgctxt "Permission description"
+msgid "Manage translations."
 msgstr ""
 
 #: templates/404.html:6
@@ -1464,12 +1490,12 @@ msgstr ""
 #: templates/account/details.html:68
 msgctxt "Recent orders column title"
 msgid "Payment status"
-msgstr ""
+msgstr "Fizetés állapota"
 
 #: templates/account/details.html:71
 msgctxt "Recent orders column title"
 msgid "Order status"
-msgstr ""
+msgstr "Rendelés állapota"
 
 #: templates/account/details.html:96
 msgctxt "Recent orders link text"
@@ -2102,7 +2128,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/form.html:26
 msgctxt "Dashboard products list"
 msgid "Products"
-msgstr ""
+msgstr "Termékek"
 
 #: templates/dashboard/base.html:112
 #: templates/dashboard/category/detail.html:33
@@ -2112,12 +2138,12 @@ msgstr ""
 #: templates/dashboard/category/list.html:32
 msgctxt "Dashboard categories list"
 msgid "Categories"
-msgstr ""
+msgstr "Kategóriák"
 
 #: templates/dashboard/base.html:117
 msgctxt "Dashboard side navigation link"
 msgid "Collections"
-msgstr ""
+msgstr "Kollekciók"
 
 #: templates/dashboard/base.html:126
 msgctxt "Dashboard discounts list"
@@ -2269,12 +2295,12 @@ msgstr "Mégse"
 #: templates/dashboard/category/list.html:9
 msgctxt "Category list page title"
 msgid "Categories"
-msgstr ""
+msgstr "Kategóriák"
 
 #: templates/dashboard/category/detail.html:83
 msgctxt "Category field"
 msgid "Description"
-msgstr ""
+msgstr "Leírás"
 
 #: templates/dashboard/category/detail.html:94
 msgctxt "Category detail view action"
@@ -2310,7 +2336,7 @@ msgstr "Név"
 #: templates/dashboard/category/list.html:52
 msgctxt "Category list table header description"
 msgid "Description"
-msgstr ""
+msgstr "Leírás"
 
 #: templates/dashboard/category/detail.html:140
 msgctxt "Category edit action"
@@ -2483,7 +2509,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:18
 #: templates/dashboard/collection/list.html:19
 msgid "Collections"
-msgstr ""
+msgstr "Kollekciók"
 
 #: templates/dashboard/collection/detail.html:32
 msgctxt "Collection action"
@@ -2518,7 +2544,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:106
 msgctxt "Collection field"
 msgid "Published"
-msgstr ""
+msgstr "Publikált"
 
 #: templates/dashboard/collection/detail.html:108
 msgctxt "Collection field"
@@ -2533,7 +2559,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:10
 msgctxt "Collections list page title "
 msgid "Collections"
-msgstr ""
+msgstr "Kollekciók"
 
 #: templates/dashboard/collection/list.html:25
 msgctxt "Collections list add button text"
@@ -2624,12 +2650,12 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:107
 msgctxt "Customer orders table header"
 msgid "Placed on"
-msgstr ""
+msgstr "Megrendelve"
 
 #: templates/dashboard/customer/detail.html:110
 msgctxt "Customer orders table header"
 msgid "Order status"
-msgstr ""
+msgstr "Rendelés állapota"
 
 #: templates/dashboard/customer/detail.html:113
 msgctxt "Customer orders table header"
@@ -2685,7 +2711,7 @@ msgstr ""
 #: templates/dashboard/search/results.html:89
 msgctxt "Dashboard customer"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: templates/dashboard/customer/form.html:36
 msgctxt "Dashboard add customer action"
@@ -2721,7 +2747,7 @@ msgstr "Email"
 #: templates/dashboard/customer/list.html:46
 msgctxt "Customers table header"
 msgid "Location"
-msgstr ""
+msgstr "Hely"
 
 #: templates/dashboard/customer/list.html:86
 msgctxt "Empty customers table message"
@@ -2822,12 +2848,12 @@ msgstr "Név"
 #: templates/dashboard/discount/sale/list.html:45
 msgctxt "Sale (discount) table header"
 msgid "Start date"
-msgstr ""
+msgstr "Kezdeti dátum"
 
 #: templates/dashboard/discount/sale/list.html:48
 msgctxt "Sale (discount) table header"
 msgid "End date"
-msgstr ""
+msgstr "Lejárati dátum"
 
 #: templates/dashboard/discount/sale/list.html:51
 msgctxt "Sale (discount) table header"
@@ -2896,12 +2922,12 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:49
 msgctxt "Voucher table header"
 msgid "Start date"
-msgstr ""
+msgstr "Kezdeti dátum"
 
 #: templates/dashboard/discount/voucher/list.html:52
 msgctxt "Voucher table header"
 msgid "End date"
-msgstr ""
+msgstr "Lejárati dátum"
 
 #: templates/dashboard/discount/voucher/list.html:55
 msgctxt "Voucher table header"
@@ -2946,7 +2972,7 @@ msgstr ""
 #: templates/dashboard/includes/_collection_availability.html:5
 msgctxt "Collection availability status"
 msgid "Published"
-msgstr ""
+msgstr "Publikált"
 
 #: templates/dashboard/includes/_collection_availability.html:8
 #, python-format
@@ -2995,7 +3021,7 @@ msgstr "Név"
 #: templates/dashboard/includes/_menu_items.html:26
 msgctxt "Menu items list table header points to"
 msgid "Points to"
-msgstr ""
+msgstr "Ide vezet"
 
 #: templates/dashboard/includes/_menu_items.html:28
 msgctxt "Menu items status"
@@ -3005,12 +3031,12 @@ msgstr ""
 #: templates/dashboard/includes/_menu_items.html:47
 msgctxt "Menu items status"
 msgid "Published"
-msgstr ""
+msgstr "Publikált"
 
 #: templates/dashboard/includes/_menu_items.html:51
 msgctxt "Menu items status"
 msgid "Not published"
-msgstr ""
+msgstr "Nem közétett"
 
 #: templates/dashboard/includes/_menu_items.html:56
 msgctxt "Menu item edit action"
@@ -3030,7 +3056,7 @@ msgstr ""
 #: templates/dashboard/includes/_page_availability.html:5
 msgctxt "Page availability status"
 msgid "Published"
-msgstr ""
+msgstr "Publikált"
 
 #: templates/dashboard/includes/_page_availability.html:9
 #: templates/dashboard/includes/_page_availability.html:19
@@ -3062,22 +3088,22 @@ msgstr ""
 #: templates/dashboard/index.html:28 templates/dashboard/order/list.html:44
 msgctxt "Orders table header"
 msgid "Placed on"
-msgstr ""
+msgstr "Megrendelve"
 
 #: templates/dashboard/index.html:31 templates/dashboard/order/list.html:47
 msgctxt "Orders table header"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: templates/dashboard/index.html:34 templates/dashboard/order/list.html:50
 msgctxt "Orders table header"
 msgid "Payment status"
-msgstr ""
+msgstr "Fizetés állapota"
 
 #: templates/dashboard/index.html:37 templates/dashboard/order/list.html:53
 msgctxt "Orders table header"
 msgid "Order status"
-msgstr ""
+msgstr "Rendelés állapota"
 
 #: templates/dashboard/index.html:40 templates/dashboard/order/list.html:56
 msgctxt "Orders table header"
@@ -3113,7 +3139,7 @@ msgstr ""
 #: templates/dashboard/index.html:98
 msgctxt "Preauthorized payments table header"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: templates/dashboard/index.html:101
 msgctxt "Preauthorized payments table header"
@@ -3187,7 +3213,7 @@ msgstr ""
 #: templates/dashboard/menu/item/detail.html:75
 msgctxt "Menu item field"
 msgid "Points to"
-msgstr ""
+msgstr "Ide vezet"
 
 #: templates/dashboard/menu/item/detail.html:87
 msgctxt "Menu item detail view action"
@@ -3253,7 +3279,7 @@ msgstr ""
 #: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Menü név"
 
 #: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
@@ -3346,13 +3372,13 @@ msgid "Details"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:571
+#: templates/dashboard/order/detail.html:575
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr "Fizetések"
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:621
+#: templates/dashboard/order/detail.html:625
 msgctxt "Order detail tab"
 msgid "History"
 msgstr ""
@@ -3410,7 +3436,7 @@ msgstr "Megjelölve fizetettként"
 #: templates/dashboard/order/detail.html:190
 msgctxt "Order details summary header"
 msgid "Customer"
-msgstr ""
+msgstr "Vásárló"
 
 #: templates/dashboard/order/detail.html:194
 msgctxt "Order customer details action title"
@@ -3456,10 +3482,10 @@ msgstr ""
 #: templates/dashboard/order/detail.html:270
 msgctxt "Order placed on date"
 msgid "Placed on"
-msgstr ""
+msgstr "Megrendelve"
 
 #: templates/dashboard/order/detail.html:280
-#: templates/dashboard/order/detail.html:473
+#: templates/dashboard/order/detail.html:477
 #: templates/dashboard/order/pdf/packing_slip.html:58
 msgctxt "Order table header"
 msgid "Item"
@@ -3471,7 +3497,7 @@ msgid "Price"
 msgstr "Ár"
 
 #: templates/dashboard/order/detail.html:286
-#: templates/dashboard/order/detail.html:476
+#: templates/dashboard/order/detail.html:480
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Quantity"
@@ -3501,206 +3527,206 @@ msgctxt "Order table row action"
 msgid "Remove line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:347
+#: templates/dashboard/order/detail.html:348
 msgctxt "Order totals action"
 msgid "Edit shipping"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:349
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:350
+#: templates/dashboard/order/detail.html:359
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:353
-#: templates/dashboard/order/detail.html:362
+#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:363
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "Szállításra"
 
-#: templates/dashboard/order/detail.html:368
+#: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
 msgid "Taxes (included)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:370
+#: templates/dashboard/order/detail.html:372
 msgctxt "Order total taxes"
 msgid "Taxes"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:378
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:380
+#: templates/dashboard/order/detail.html:404
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:382
-#: templates/dashboard/order/detail.html:406
+#: templates/dashboard/order/detail.html:384
+#: templates/dashboard/order/detail.html:408
 msgctxt "Order totals header"
 msgid "Discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:389
+#: templates/dashboard/order/detail.html:391
 msgctxt "Order totals action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:390
+#: templates/dashboard/order/detail.html:392
 msgctxt "Order detail action"
 msgid "Edit voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:395
+#: templates/dashboard/order/detail.html:397
 msgctxt "Order totals action"
 msgid "Edit discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:396
+#: templates/dashboard/order/detail.html:398
 msgctxt "Order detail action"
 msgid "Edit discount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:411
+#: templates/dashboard/order/detail.html:413
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:432
+#: templates/dashboard/order/detail.html:436
 msgctxt "Order summary card action title"
 msgid "Fulfill order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:433
+#: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action"
 msgid "Fulfill"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:437
+#: templates/dashboard/order/detail.html:441
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr "Termék hozzáadása a rendeléshez"
 
-#: templates/dashboard/order/detail.html:438
+#: templates/dashboard/order/detail.html:442
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr "Termék hozzáadás"
 
-#: templates/dashboard/order/detail.html:443
+#: templates/dashboard/order/detail.html:447
 msgctxt "Order summary card action title"
 msgid "Create order"
 msgstr "Rendelés felvitel"
 
-#: templates/dashboard/order/detail.html:444
+#: templates/dashboard/order/detail.html:448
 msgctxt "Order summary card action"
 msgid "Create order"
 msgstr "Rendelés felvitel"
 
-#: templates/dashboard/order/detail.html:450
+#: templates/dashboard/order/detail.html:454
 msgctxt "Order detail action"
 msgid "Invoice"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:453
+#: templates/dashboard/order/detail.html:457
 msgctxt "Order detail action"
 msgid "View on site"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:462
+#: templates/dashboard/order/detail.html:466
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:494
+#: templates/dashboard/order/detail.html:498
 #, python-format
 msgctxt "Fulfillment table text"
 msgid "Tracking number: %(tracking)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:510
 msgctxt "Fulfillment summary card action title"
 msgid "Cancel fulfillment"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:507
+#: templates/dashboard/order/detail.html:511
 msgctxt "Fulfillment summary card action"
 msgid "Cancel"
 msgstr "Mégse"
 
-#: templates/dashboard/order/detail.html:510
+#: templates/dashboard/order/detail.html:514
 msgctxt "Fulfillment summary card action title"
 msgid "Edit tracking number"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:512
+#: templates/dashboard/order/detail.html:516
 msgctxt "Fulfillment summary card action"
 msgid "Edit tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:514
+#: templates/dashboard/order/detail.html:518
 msgctxt "Fulfillment summary card action"
 msgid "Add tracking"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:519
+#: templates/dashboard/order/detail.html:523
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:529
+#: templates/dashboard/order/detail.html:533
 msgctxt "Customer order note card title"
 msgid "Customer note"
 msgstr "Ügyfél megjegyzése"
 
-#: templates/dashboard/order/detail.html:535
+#: templates/dashboard/order/detail.html:539
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:544
+#: templates/dashboard/order/detail.html:548
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:557
+#: templates/dashboard/order/detail.html:561
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:563
+#: templates/dashboard/order/detail.html:567
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:578
+#: templates/dashboard/order/detail.html:582
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:581
+#: templates/dashboard/order/detail.html:585
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:584
+#: templates/dashboard/order/detail.html:588
 msgctxt "Payment history table header"
 msgid "Payment status"
-msgstr ""
+msgstr "Fizetés állapota"
 
-#: templates/dashboard/order/detail.html:587
+#: templates/dashboard/order/detail.html:591
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr "Mennyiség"
 
-#: templates/dashboard/order/detail.html:595
+#: templates/dashboard/order/detail.html:599
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:616
+#: templates/dashboard/order/detail.html:620
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr ""
@@ -4335,7 +4361,7 @@ msgstr ""
 
 #: templates/dashboard/product/attribute/detail.html:46
 msgid "Product type"
-msgstr ""
+msgstr "Termék típus"
 
 #: templates/dashboard/product/attribute/detail.html:53
 msgctxt "Attribute detail action"
@@ -4408,7 +4434,7 @@ msgstr "Név"
 #: templates/dashboard/product/attribute/list.html:44
 msgctxt "Name of product type related to the attribute"
 msgid "Product type"
-msgstr ""
+msgstr "Termék típus"
 
 #: templates/dashboard/product/attribute/list.html:46
 msgctxt "Dashboard attributes list table header values"
@@ -4469,12 +4495,12 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:20
 msgctxt "Product form breadcrumbs"
 msgid "Products"
-msgstr ""
+msgstr "Termékek"
 
 #: templates/dashboard/product/detail.html:54
 msgctxt "Product field"
 msgid "Published"
-msgstr ""
+msgstr "Publikált"
 
 #: templates/dashboard/product/detail.html:56
 msgctxt "Product field"
@@ -4695,7 +4721,7 @@ msgstr ""
 #: templates/dashboard/product/modal/select_type.html:11
 msgctxt "Modal select product types title"
 msgid "Product type"
-msgstr ""
+msgstr "Termék típus"
 
 #: templates/dashboard/product/modal/select_type.html:19
 msgctxt "Dashboard add action"
@@ -4817,7 +4843,7 @@ msgstr "Név"
 #: templates/dashboard/product/product_type/list.html:48
 msgctxt "Product type item list text"
 msgid "Product attributes"
-msgstr ""
+msgstr "Termék tulajdonságai"
 
 #: templates/dashboard/product/product_type/list.html:51
 msgctxt "Product type item list text"
@@ -4989,7 +5015,7 @@ msgstr ""
 #: templates/dashboard/search/results.html:25
 msgctxt "Search results list products"
 msgid "Products"
-msgstr ""
+msgstr "Termékek"
 
 #: templates/dashboard/search/results.html:47
 msgctxt "Search results list orders"
@@ -5270,7 +5296,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
-msgstr ""
+msgstr "Leírás"
 
 #: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
@@ -5390,7 +5416,7 @@ msgstr ""
 #: templates/dashboard/staff/list.html:48
 msgctxt "Staff members table header"
 msgid "Location"
-msgstr ""
+msgstr "Hely"
 
 #: templates/dashboard/staff/list.html:88
 msgctxt "Empty staff table message"
@@ -5440,7 +5466,7 @@ msgstr "Név"
 #: templates/dashboard/taxes/details.html:53
 msgctxt "Country tax rates list header"
 msgid "Value"
-msgstr ""
+msgstr "Érték"
 
 #: templates/dashboard/taxes/details.html:62
 #, python-format
@@ -5900,7 +5926,7 @@ msgid "You've authorized transaction. Order is in processing"
 msgstr ""
 
 #: templates/order/payment/braintree.html:29
-#: templates/order/payment/dummy.html:30
+#: templates/order/payment/dummy.html:37
 msgctxt "Payment form primary action"
 msgid "Make payment"
 msgstr ""
@@ -5925,7 +5951,7 @@ msgctxt "Header of the order summary table"
 msgid "Order details"
 msgstr ""
 
-#: templates/order/payment/dummy.html:25
+#: templates/order/payment/dummy.html:32
 #: templates/order/payment/stripe.html:11
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment"
@@ -6022,7 +6048,7 @@ msgstr ""
 #: templates/product/details.html:194
 msgctxt "Product details title"
 msgid "Description"
-msgstr ""
+msgstr "Leírás"
 
 #: templates/product/product_list_base.html:83
 msgctxt "Filter heading title"

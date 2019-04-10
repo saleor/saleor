@@ -1,8 +1,8 @@
 from textwrap import dedent
 
 import graphene
+from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
-from graphql_jwt.decorators import permission_required
 
 from ....order import OrderEvents, OrderEventsEmails, models
 from ....order.emails import send_fulfillment_confirmation
@@ -67,38 +67,32 @@ class FulfillmentCreate(BaseMutation):
         description = 'Creates a new fulfillment for an order.'
 
     @classmethod
-    def clean_lines(cls, order_lines, quantities, errors):
-        if errors:
-            return errors
-
+    def clean_lines(cls, order_lines, quantities):
         for order_line, quantity in zip(order_lines, quantities):
             if quantity > order_line.quantity_unfulfilled:
                 msg = npgettext_lazy(
                     'Fulfill order line mutation error',
-                    'Only %(quantity)d item remaining to fulfill.',
-                    'Only %(quantity)d items remaining to fulfill.',
+                    'Only %(quantity)d item remaining to fulfill: %(order_line)s.',
+                    'Only %(quantity)d items remaining to fulfill: %(order_line)s.',
                     number='quantity') % {
                         'quantity': order_line.quantity_unfulfilled,
                         'order_line': order_line}
-                cls.add_error(errors, order_line, msg)
-        return errors
+                raise ValidationError({'order_line_id': msg})
 
     @classmethod
-    def clean_input(cls, input, errors):
+    def clean_input(cls, input):
         lines = input['lines']
         quantities = [line['quantity'] for line in lines]
         lines_ids = [line['order_line_id'] for line in lines]
         order_lines = cls.get_nodes_or_error(
-            lines_ids, errors, 'lines', OrderLine)
+            lines_ids, field='lines', only_type=OrderLine)
 
-        cls.clean_lines(order_lines, quantities, errors)
+        cls.clean_lines(order_lines, quantities)
 
         if sum(quantities) <= 0:
-            cls.add_error(
-                errors, 'lines', 'Total quantity must be larger than 0.')
+            raise ValidationError({
+                'lines': 'Total quantity must be larger than 0.'})
 
-        if errors:
-            return cls(errors=errors)
         input['order_lines'] = order_lines
         input['quantities'] = quantities
         return input
@@ -130,19 +124,17 @@ class FulfillmentCreate(BaseMutation):
         return fulfillment
 
     @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, order, input):
-        errors = []
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.manage_orders')
+
+    @classmethod
+    def perform_mutation(cls, root, info, order, input):
         order = cls.get_node_or_error(
-            info, order, errors, 'order', Order)
-        if errors:
-            return cls(errors=errors)
+            info, order, field='order', only_type=Order)
         fulfillment = models.Fulfillment(
             tracking_number=input.pop('tracking_number', None) or '',
             order=order)
-        cleaned_input = cls.clean_input(input, errors)
-        if errors:
-            return cls(errors=errors)
+        cleaned_input = cls.clean_input(input)
         fulfillment = cls.save(
             info.context.user, fulfillment, order, cleaned_input)
         return FulfillmentCreate(
@@ -166,13 +158,12 @@ class FulfillmentUpdateTracking(BaseMutation):
         description = 'Updates a fulfillment for an order.'
 
     @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, id, input):
-        errors = []
-        fulfillment = cls.get_node_or_error(
-            info, id, errors, 'id', Fulfillment)
-        if errors:
-            return cls(errors=errors)
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.manage_orders')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, input):
+        fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
         tracking_number = input.get('tracking_number') or ''
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
@@ -204,24 +195,24 @@ class FulfillmentCancel(BaseMutation):
         and optionally restocks items.""")
 
     @classmethod
-    @permission_required('order.manage_orders')
-    def mutate(cls, root, info, id, input):
-        errors = []
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.manage_orders')
+
+    @classmethod
+    def perform_mutation(cls, root, info, id, input):
         restock = input.get('restock')
-        fulfillment = cls.get_node_or_error(
-            info, id, errors, 'id', Fulfillment)
-        if fulfillment:
-            order = fulfillment.order
-            if not fulfillment.can_edit():
-                err_msg = pgettext_lazy(
-                    'Cancel fulfillment mutation error',
-                    'This fulfillment can\'t be canceled')
-                cls.add_error(errors, 'fulfillment', err_msg)
+        fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
 
-        if errors:
-            return cls(errors=errors)
+        if not fulfillment.can_edit():
+            err_msg = pgettext_lazy(
+                'Cancel fulfillment mutation error',
+                'This fulfillment can\'t be canceled')
+            raise ValidationError({'fulfillment': err_msg})
 
+        order = fulfillment.order
         cancel_fulfillment(fulfillment, restock)
+
+        # FIXME: move event creation to `cancel_fulfillment`
         if restock:
             order.events.create(
                 parameters={'quantity': fulfillment.get_total_quantity()},
