@@ -1,4 +1,6 @@
+from collections import namedtuple
 from textwrap import dedent
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -8,7 +10,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..page.types import Page
 from ..product.types import Category, Collection
 from .enums import NavigationType
-from .types import Menu
+from .types import Menu, MenuItem, MenuItemMoveInput
 
 
 class MenuItemInput(graphene.InputObjectType):
@@ -194,6 +196,94 @@ class MenuItemDelete(ModelDeleteMutation):
     @classmethod
     def user_is_allowed(cls, user):
         return user.has_perm('menu.manage_menus')
+
+
+_MenuMoveOperation = namedtuple(
+    '_MenuMoveOperation', ('menuItem', 'parent', 'sort_order'))
+
+
+class MenuItemMove(BaseMutation):
+    menu_item = graphene.List(
+        MenuItem, description='Assigned menu to move within.')
+
+    class Arguments:
+        move = graphene.List(
+            MenuItemMoveInput,
+            required=True, description='The menu position data')
+
+    class Meta:
+        description = 'Move items of a menu'
+
+    @staticmethod
+    def validate_move(
+            operation: _MenuMoveOperation):
+        """Validate if the given move is actually possible."""
+
+        if operation.parent:
+            if operation.menuItem.lft:
+                raise ValidationError({
+                    'parent': (
+                        'Cannot assign a parent to a leaf.')
+                })
+
+            if operation.menuItem.is_ancestor_of(operation.parent):
+                raise ValidationError({
+                    'parent': (
+                        'Cannot assign a parent that is an ancestor '
+                        'of the target menu item.')
+                })
+
+    @classmethod
+    def clean_move(
+            cls, info, move_operations: List) -> List[_MenuMoveOperation]:
+        operations = []
+        for move in move_operations:
+            menu_item = cls.get_node_or_error(
+                info, move.item_id,
+                field='item_id', only_type=MenuItem)
+            parent_node = None
+
+            if move.parent_id:
+                parent_node = cls.get_node_or_error(
+                    info, move.parent_id,
+                    field='parent_id', only_type=MenuItem)
+
+            operation = _MenuMoveOperation(
+                menuItem=menu_item,
+                parent=parent_node,
+                sort_order=move.sort_order)
+
+            cls.validate_move(operation)
+            operations.append(operation)
+        return operations
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('menu.manage_menus')
+
+    @classmethod
+    def perform_mutation(cls, root, info, move):
+        move = cls.clean_move(info, move)
+        menu_items = []
+
+        for item in move:
+            menu_item = item.menuItem  # type: models.MenuItem
+
+            # Move the parent if provided
+            if item.parent:
+                menu_item.move_to(item.parent)
+            # Remove the menu item's parent if was set to none (root node)
+            elif menu_item.parent:
+                menu_item.parent = None
+
+            # Move the menu item
+            menu_item.sort_order = item.sort_order
+
+            # Commit
+            menu_item.save()
+            menu_items.append(menu_item)
+
+        return cls(menu_item=menu_items)
 
 
 class AssignNavigation(BaseMutation):
