@@ -1,7 +1,6 @@
 from textwrap import dedent
 
 import graphene
-from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
 from ..core.enums import ReportingPeriod
