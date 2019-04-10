@@ -82,6 +82,14 @@ class FilterInputConnectionField(DjangoConnectionField):
     def connection_resolver(
             cls, resolver, connection, default_manager, max_limit,
             enforce_first_or_last, filterset_class, root, info, **args):
+
+        # Disable `enforce_first_or_last` if not querying for `edges`.
+        values = [
+            field.name.value
+            for field in info.field_asts[0].selection_set.selections]
+        if 'edges' not in values:
+            enforce_first_or_last = False
+
         filters_input = args.get('filters')
         qs = default_manager
         if filters_input and filterset_class:
