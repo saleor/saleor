@@ -359,7 +359,7 @@ class PasswordReset(BaseMutation):
         description = 'Sends password reset email'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
     @classmethod
@@ -533,7 +533,7 @@ class AddressSetDefault(BaseMutation):
         description = 'Sets a default address for the given user.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
     @classmethod
@@ -610,12 +610,12 @@ class CustomerSetDefaultAddress(BaseMutation):
         description = 'Sets a default address for the authenticated user.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        address = cls.get_node_or_error(info, id, Address)
+        address = cls.get_node_or_error(info, data.get('id'), Address)
 
         user = info.context.user
         if address not in user.addresses.all():

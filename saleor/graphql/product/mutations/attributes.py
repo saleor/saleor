@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import slugify
+from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.mutations import ModelDeleteMutation, ModelMutation
@@ -136,12 +137,11 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         model = models.Attribute
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, _root, info, **data):
+    def perform_mutation(cls, root, info, **data):
         product_type = cls.get_node_or_error(
             info, data.get('id'), only_type=ProductType)
         instance = models.Attribute()
@@ -198,7 +198,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
             attribute_value.delete()
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -266,7 +266,7 @@ class AttributeValueCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod

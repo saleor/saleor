@@ -157,7 +157,7 @@ class BaseMutation(graphene.Mutation):
         return instance
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         """Determine whether user has rights to perform this mutation.
 
         Default implementation assumes that user is allowed to perform any
@@ -169,7 +169,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         try:

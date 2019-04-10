@@ -65,8 +65,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_input(cls, info, instance, raw_input):
-        shipping_address = input.pop('shipping_address', None)
-        billing_address = input.pop('billing_address', None)
+        shipping_address = raw_input.pop('shipping_address', None)
+        billing_address = raw_input.pop('billing_address', None)
         cleaned_input = super().clean_input(info, instance, raw_input)
 
         lines = raw_input.pop('lines', None)
@@ -176,7 +176,7 @@ class DraftOrderComplete(BaseMutation):
                 order.user = None
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -232,7 +232,7 @@ class DraftOrderLinesCreate(BaseMutation):
         description = 'Create order lines for a draft order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -274,7 +274,7 @@ class DraftOrderLineDelete(BaseMutation):
         description = 'Deletes an order line from a draft order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod

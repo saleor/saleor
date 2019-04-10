@@ -149,12 +149,12 @@ CREATE_ATTRIBUTES_QUERY = """
 def test_create_attribute_and_attribute_values(
         staff_api_client, permission_manage_products, product_type):
     query = CREATE_ATTRIBUTES_QUERY
-    id = graphene.Node.to_global_id('ProductType', product_type.id)
+    node_id = graphene.Node.to_global_id('ProductType', product_type.id)
 
     attribute_name = 'Example name'
     name = 'Value name'
     variables = {
-        'name': attribute_name, 'id': id,
+        'name': attribute_name, 'id': node_id,
         'type': AttributeTypeEnum.PRODUCT.name,
         'values': [{'name': name, 'value': '#1231'}]}
     response = staff_api_client.post_graphql(
@@ -185,9 +185,9 @@ def test_create_attribute_and_attribute_values_errors(
         staff_api_client, name_1, name_2, error_msg,
         permission_manage_products, product_type):
     query = CREATE_ATTRIBUTES_QUERY
-    id = graphene.Node.to_global_id('ProductType', product_type.id)
+    node_id = graphene.Node.to_global_id('ProductType', product_type.id)
     variables = {
-        'name': 'Example name', 'id': id,
+        'name': 'Example name', 'id': node_id,
         'type': AttributeTypeEnum.PRODUCT.name,
         'values': [
             {'name': name_1, 'value': '#1231'},
@@ -207,10 +207,10 @@ def test_create_variant_attribute(
     product_type.save()
 
     query = CREATE_ATTRIBUTES_QUERY
-    id = graphene.Node.to_global_id('ProductType', product_type.id)
+    node_id = graphene.Node.to_global_id('ProductType', product_type.id)
     attribute_name = 'Example name'
     variables = {
-        'name': attribute_name, 'id': id,
+        'name': attribute_name, 'id': node_id,
         'type': AttributeTypeEnum.VARIANT.name, 'values': []}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
@@ -269,8 +269,9 @@ def test_update_attribute_name(
     query = UPDATE_ATTRIBUTE_QUERY
     attribute = color_attribute
     name = 'Wings name'
-    id = graphene.Node.to_global_id('Attribute', attribute.id)
-    variables = {'name': name, 'id': id, 'addValues': [], 'removeValues': []}
+    node_id = graphene.Node.to_global_id('Attribute', attribute.id)
+    variables = {
+        'name': name, 'id': node_id, 'addValues': [], 'removeValues': []}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
@@ -286,12 +287,12 @@ def test_update_attribute_remove_and_add_values(
     attribute = color_attribute
     name = 'Wings name'
     attribute_value_name = 'Red Color'
-    id = graphene.Node.to_global_id('Attribute', attribute.id)
+    node_id = graphene.Node.to_global_id('Attribute', attribute.id)
     attribute_value_id = attribute.values.first().id
     value_id = graphene.Node.to_global_id(
         'AttributeValue', attribute_value_id)
     variables = {
-        'name': name, 'id': id,
+        'name': name, 'id': node_id,
         'addValues': [{'name': attribute_value_name, 'value': '#1231'}],
         'removeValues': [value_id]}
     response = staff_api_client.post_graphql(
@@ -312,14 +313,14 @@ def test_update_empty_attribute_and_add_values(
     attribute = color_attribute_without_values
     name = 'Wings name'
     attribute_value_name = 'Yellow Color'
-    id = graphene.Node.to_global_id('Attribute', attribute.id)
+    node_id = graphene.Node.to_global_id('Attribute', attribute.id)
     variables = {
-        'name': name, 'id': id,
+        'name': name, 'id': node_id,
         'addValues': [{'name': attribute_value_name, 'value': '#1231'}],
         'removeValues': []}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
+    get_graphql_content(response)
     attribute.refresh_from_db()
     assert attribute.values.count() == 1
     assert attribute.values.filter(name=attribute_value_name).exists()
@@ -338,9 +339,9 @@ def test_update_attribute_and_add_attribute_values_errors(
         permission_manage_products):
     query = UPDATE_ATTRIBUTE_QUERY
     attribute = color_attribute
-    id = graphene.Node.to_global_id('Attribute', attribute.id)
+    node_id = graphene.Node.to_global_id('Attribute', attribute.id)
     variables = {
-        'name': 'Example name', 'id': id, 'removeValues': [],
+        'name': 'Example name', 'id': node_id, 'removeValues': [],
         'addValues': [
             {'name': name_1, 'value': '#1'}, {'name': name_2, 'value': '#2'}]}
     response = staff_api_client.post_graphql(
@@ -357,12 +358,12 @@ def test_update_attribute_and_remove_others_attribute_value(
         permission_manage_products):
     query = UPDATE_ATTRIBUTE_QUERY
     attribute = color_attribute
-    id = graphene.Node.to_global_id('Attribute', attribute.id)
+    node_id = graphene.Node.to_global_id('Attribute', attribute.id)
     size_attribute = size_attribute.values.first()
     attr_id = graphene.Node.to_global_id(
         'AttributeValue', size_attribute.pk)
     variables = {
-        'name': 'Example name', 'id': id, 'slug': 'example-slug',
+        'name': 'Example name', 'id': node_id, 'slug': 'example-slug',
         'addValues': [], 'removeValues': [attr_id]}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
@@ -395,8 +396,8 @@ def test_delete_attribute(
         }
     }
     """
-    id = graphene.Node.to_global_id('Attribute', attribute.id)
-    variables = {'id': id}
+    node_id = graphene.Node.to_global_id('Attribute', attribute.id)
+    variables = {'id': node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
@@ -499,9 +500,9 @@ def test_update_attribute_value(
         staff_api_client, pink_attribute_value, permission_manage_products):
     query = UPDATE_ATTRIBUTE_VALUE_QUERY
     value = pink_attribute_value
-    id = graphene.Node.to_global_id('AttributeValue', value.id)
+    node_id = graphene.Node.to_global_id('AttributeValue', value.id)
     name = 'Crimson name'
-    variables = {'name': name, 'value': '#RED', 'id': id}
+    variables = {'name': name, 'value': '#RED', 'id': node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
@@ -517,8 +518,9 @@ def test_update_attribute_value_name_not_unique(
     query = UPDATE_ATTRIBUTE_VALUE_QUERY
     value = pink_attribute_value.attribute.values.create(
         name='Example Name', slug='example-name', value='#RED')
-    id = graphene.Node.to_global_id('AttributeValue', value.id)
-    variables = {'name': pink_attribute_value.name, 'value': '#RED', 'id': id}
+    node_id = graphene.Node.to_global_id('AttributeValue', value.id)
+    variables = {
+        'name': pink_attribute_value.name, 'value': '#RED', 'id': node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
@@ -532,9 +534,9 @@ def test_update_same_attribute_value(
         staff_api_client, pink_attribute_value, permission_manage_products):
     query = UPDATE_ATTRIBUTE_VALUE_QUERY
     value = pink_attribute_value
-    id = graphene.Node.to_global_id('AttributeValue', value.id)
+    node_id = graphene.Node.to_global_id('AttributeValue', value.id)
     attr_value = '#BLUE'
-    variables = {'name': value.name, 'value': attr_value, 'id': id}
+    variables = {'name': value.name, 'value': attr_value, 'id': node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
@@ -546,7 +548,6 @@ def test_update_same_attribute_value(
 def test_delete_attribute_value(
         staff_api_client, color_attribute, pink_attribute_value,
         permission_manage_products):
-    value = pink_attribute_value
     value = color_attribute.values.get(name='Red')
     query = """
     mutation updateChoice($id: ID!) {
@@ -558,9 +559,9 @@ def test_delete_attribute_value(
         }
     }
     """
-    id = graphene.Node.to_global_id('AttributeValue', value.id)
-    variables = {'id': id}
-    response = staff_api_client.post_graphql(
+    node_id = graphene.Node.to_global_id('AttributeValue', value.id)
+    variables = {'id': node_id}
+    staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()

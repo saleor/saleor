@@ -218,7 +218,7 @@ class CollectionAddProducts(BaseMutation):
         description = 'Adds products to a collection.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -245,7 +245,7 @@ class CollectionRemoveProducts(BaseMutation):
         description = 'Remove products from a collection.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -667,7 +667,7 @@ class ProductImageCreate(BaseMutation):
         https://github.com/jaydenseric/graphql-multipart-request-spec''')
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -703,7 +703,7 @@ class ProductImageUpdate(BaseMutation):
         description = 'Updates a product image.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -734,7 +734,7 @@ class ProductImageReorder(BaseMutation):
         description = 'Changes ordering of the product image.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -776,7 +776,7 @@ class ProductImageDelete(BaseMutation):
         description = 'Deletes a product image.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -806,7 +806,7 @@ class VariantImageAssign(BaseMutation):
         description = 'Assign an image to a product variant'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -843,7 +843,7 @@ class VariantImageUnassign(BaseMutation):
         description = 'Unassign an image from a product variant'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod

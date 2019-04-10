@@ -114,7 +114,7 @@ class OrderUpdateShipping(BaseMutation):
         description = 'Updates a shipping method of the order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -174,7 +174,7 @@ class OrderAddNote(BaseMutation):
         description = 'Adds note to the order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -203,7 +203,7 @@ class OrderCancel(BaseMutation):
         description = 'Cancel an order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -234,7 +234,7 @@ class OrderMarkAsPaid(BaseMutation):
         description = 'Mark order as manually paid.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -262,7 +262,7 @@ class OrderCapture(BaseMutation):
         description = 'Capture an order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -299,7 +299,7 @@ class OrderVoid(BaseMutation):
         description = 'Void an order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -331,7 +331,7 @@ class OrderRefund(BaseMutation):
         description = 'Refund an order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
