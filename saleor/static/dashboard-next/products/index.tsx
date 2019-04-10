@@ -9,6 +9,7 @@ import {
   productImagePath,
   ProductImageUrlQueryParams,
   productListPath,
+  ProductListUrlQueryParams,
   productPath,
   ProductUrlQueryParams,
   productVariantAddPath,
@@ -17,9 +18,7 @@ import {
 } from "./urls";
 import ProductCreate from "./views/ProductCreate";
 import ProductImageComponent from "./views/ProductImage";
-import ProductListComponent, {
-  ProductListQueryParams
-} from "./views/ProductList";
+import ProductListComponent from "./views/ProductList";
 import ProductUpdateComponent from "./views/ProductUpdate";
 import ProductVariantComponent from "./views/ProductVariant";
 import ProductVariantCreateComponent from "./views/ProductVariantCreate";
@@ -28,13 +27,7 @@ const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: ProductListQueryParams = {
-    after: qs.after,
-    before: qs.before,
-    dialog: qs.dialog,
-    ids: qs.ids,
-    status: qs.status
-  };
+  const params: ProductListUrlQueryParams = qs;
   return <ProductListComponent params={params} />;
 };
 

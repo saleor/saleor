@@ -8,30 +8,24 @@ import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import usePaginator from "../../hooks/usePaginator";
 import i18n from "../../i18n";
-import { maybe, getMutationState } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import { StockAvailability } from "../../types/globalTypes";
 import ProductListCard from "../components/ProductListCard";
 import { getTabName } from "../misc";
 import { TypedProductBulkDeleteMutation } from "../mutations";
 import { TypedProductListQuery } from "../queries";
 import { productBulkDelete } from "../types/productBulkDelete";
-import { productAddUrl, productUrl } from "../urls";
-
-export interface ProductListFilters {
-  status: StockAvailability;
-}
-type ProductListDialog = "publish" | "unpublish" | "delete";
-export type ProductListQueryParams = Partial<
-  {
-    after: string;
-    before: string;
-    dialog: ProductListDialog;
-    ids: string[];
-  } & ProductListFilters
->;
+import {
+  productAddUrl,
+  productListUrl,
+  ProductListUrlDialog,
+  ProductListUrlFilters,
+  ProductListUrlQueryParams,
+  productUrl
+} from "../urls";
 
 interface ProductListProps {
-  params: ProductListQueryParams;
+  params: ProductListUrlQueryParams;
 }
 
 const PAGINATE_BY = 20;
@@ -45,31 +39,24 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
 
   const closeModal = () =>
     navigate(
-      "?" +
-        stringifyQs({
-          ...params,
-          dialog: undefined,
-          ids: undefined
-        })
+      productListUrl({
+        ...params,
+        action: undefined,
+        ids: undefined
+      }),
+      true
     );
 
-  const changeFilters = (newParams: ProductListQueryParams) =>
-    navigate(
-      "?" +
-        stringifyQs({
-          ...params,
-          ...newParams
-        })
-    );
+  const changeFilters = (filters: ProductListUrlFilters) =>
+    navigate(productListUrl(filters));
 
-  const openModal = (dialog: ProductListDialog, ids: string[]) =>
+  const openModal = (action: ProductListUrlDialog, ids: string[]) =>
     navigate(
-      "?" +
-        stringifyQs({
-          ...params,
-          dialog,
-          ids
-        })
+      productListUrl({
+        ...params,
+        action,
+        ids
+      })
     );
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
@@ -148,7 +135,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                     onBulkUnpublish={ids => openModal("unpublish", ids)}
                   />
                   <ActionDialog
-                    open={params.dialog === "delete"}
+                    open={params.action === "delete"}
                     confirmButtonState={bulkDeleteMutationState}
                     onClose={closeModal}
                     onConfirm={() =>
@@ -172,7 +159,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                     />
                   </ActionDialog>
                   <ActionDialog
-                    open={params.dialog === "publish"}
+                    open={params.action === "publish"}
                     confirmButtonState={"default"}
                     onClose={closeModal}
                     onConfirm={() => console.log(params.ids)}
@@ -193,7 +180,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                     />
                   </ActionDialog>
                   <ActionDialog
-                    open={params.dialog === "unpublish"}
+                    open={params.action === "unpublish"}
                     confirmButtonState={"default"}
                     onClose={closeModal}
                     onConfirm={() => console.log(params.ids)}
