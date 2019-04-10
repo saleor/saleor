@@ -167,8 +167,8 @@ input AttributeUpdateInput {
 }
 
 type AttributeValue implements Node {
-  id: ID!
   sortOrder: Int!
+  id: ID!
   name: String
   slug: String
   type: AttributeValueType
@@ -991,6 +991,7 @@ input MenuInput {
 
 type MenuItem implements Node {
   id: ID!
+  sortOrder: Int!
   menu: Menu!
   name: String!
   parent: MenuItem
@@ -1045,6 +1046,17 @@ input MenuItemInput {
   category: ID
   collection: ID
   page: ID
+}
+
+type MenuItemMove {
+  errors: [Error!]
+  menuItem: [MenuItem]
+}
+
+input MenuItemMoveInput {
+  itemId: ID!
+  parentId: ID
+  sortOrder: Int!
 }
 
 type MenuItemTranslate {
@@ -1183,6 +1195,7 @@ type Mutations {
   menuItemBulkDelete(ids: [ID]!): MenuItemBulkDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
+  menuItemMove(move: [MenuItemMoveInput]!): MenuItemMove
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete

@@ -62,8 +62,19 @@ class MenuItem(CountableDjangoObjectType):
         interfaces = [relay.Node]
         only_fields = [
             'category', 'collection', 'id', 'level', 'menu', 'name', 'page',
-            'parent']
+            'parent', 'sort_order']
         model = models.MenuItem
 
     def resolve_children(self, _info, **_kwargs):
         return self.children.all()
+
+
+class MenuItemMoveInput(graphene.InputObjectType):
+    item_id = graphene.ID(
+        description='The menu item ID to move.', required=True)
+    parent_id = graphene.ID(
+        description=(
+            'ID of the parent menu. If empty, menu will be top level menu.'))
+    sort_order = graphene.Int(
+        description='Sorting position of the menu item (from 0 to x).',
+        required=True)
