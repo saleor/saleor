@@ -6,20 +6,18 @@ import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
 import {
   staffListPath,
-  staffMemberAddPath,
-  staffMemberDetailsPath
+  StaffListUrlQueryParams,
+  staffMemberDetailsPath,
+  StaffMemberDetailsUrlQueryParams
 } from "./urls";
 import StaffDetailsComponent from "./views/StaffDetails";
-import StaffListComponent, { StaffListQueryParams } from "./views/StaffList";
+import StaffListComponent from "./views/StaffList";
 
 const StaffList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: StaffListQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: StaffListUrlQueryParams = qs;
   return <StaffListComponent params={params} />;
 };
 
@@ -28,16 +26,23 @@ interface StaffDetailsRouteProps {
 }
 const StaffDetails: React.StatelessComponent<
   RouteComponentProps<StaffDetailsRouteProps>
-> = ({ match }) => (
-  <StaffDetailsComponent id={decodeURIComponent(match.params.id)} />
-);
+> = ({ match }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: StaffMemberDetailsUrlQueryParams = qs;
+
+  return (
+    <StaffDetailsComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
+};
 
 const Component = () => (
   <>
     <WindowTitle title={i18n.t("Staff")} />
     <Switch>
       <Route exact path={staffListPath} component={StaffList} />
-      <Route exact path={staffMemberAddPath} component={StaffList} />
       <Route path={staffMemberDetailsPath(":id")} component={StaffDetails} />
     </Switch>
   </>
