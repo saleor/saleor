@@ -15,7 +15,7 @@ from ..core.utils.taxes import display_gross_prices, get_taxed_shipping_price
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod, ShippingZone
 from ..shipping.utils import get_shipping_price_estimate
-from .models import Cart
+from .models import Checkout
 
 
 class QuantityField(forms.IntegerField):
@@ -188,7 +188,7 @@ class AnonymousUserShippingForm(forms.ModelForm):
         label=pgettext_lazy('Address form field label', 'Email'))
 
     class Meta:
-        model = Cart
+        model = Checkout
         fields = ['email']
 
 
@@ -200,7 +200,7 @@ class AnonymousUserBillingForm(forms.ModelForm):
         label=pgettext_lazy('Address form field label', 'Email'))
 
     class Meta:
-        model = Cart
+        model = Checkout
         fields = ['email']
 
 
@@ -269,7 +269,7 @@ class CartShippingMethodForm(forms.ModelForm):
         empty_label=None)
 
     class Meta:
-        model = Cart
+        model = Checkout
         fields = ['shipping_method']
 
     def __init__(self, *args, **kwargs):
@@ -298,7 +298,7 @@ class CartNoteForm(forms.ModelForm):
         widget=forms.Textarea({'rows': 3}))
 
     class Meta:
-        model = Cart
+        model = Checkout
         fields = ['note']
 
 
@@ -321,7 +321,7 @@ class CartVoucherForm(forms.ModelForm):
         widget=forms.TextInput)
 
     class Meta:
-        model = Cart
+        model = Checkout
         fields = ['voucher']
 
     def __init__(self, *args, **kwargs):

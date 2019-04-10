@@ -2,15 +2,14 @@ from ...checkout import models
 
 
 def resolve_checkout_lines():
-    queryset = models.CartLine.objects.all()
+    queryset = models.CheckoutLine.objects.all()
     return queryset
 
 
 def resolve_checkouts():
-    queryset = models.Cart.objects.all()
+    queryset = models.Checkout.objects.all()
     return queryset
 
 
 def resolve_checkout(token):
-    checkout = models.Cart.objects.filter(token=token).first()
-    return checkout
+    return models.Checkout.objects.filter(token=token).first()

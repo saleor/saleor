@@ -18,7 +18,7 @@ from prices import Money
 from saleor.account.backends import BaseBackend
 from saleor.account.models import Address, User
 from saleor.checkout import utils
-from saleor.checkout.models import Cart
+from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_cart
 from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
@@ -69,7 +69,7 @@ def site_settings(db, settings):
 
 @pytest.fixture
 def cart(db):
-    return Cart.objects.create()
+    return Checkout.objects.create()
 
 
 @pytest.fixture

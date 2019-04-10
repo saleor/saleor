@@ -9,7 +9,7 @@ from ...core.utils import (
 from ...product.models import ProductVariant
 from ...shipping.utils import get_shipping_price_estimate
 from ..forms import CartShippingMethodForm, CountryForm, ReplaceCartLineForm
-from ..models import Cart
+from ..models import Checkout
 from ..utils import (
     check_product_availability_and_warn, get_cart_data,
     get_cart_data_for_checkout, get_or_empty_db_cart, get_taxes_for_cart,
@@ -25,7 +25,7 @@ from .validators import (
     validate_shipping_method)
 
 
-@get_or_empty_db_cart(Cart.objects.for_display())
+@get_or_empty_db_cart(Checkout.objects.for_display())
 @validate_cart
 def checkout_login(request, cart):
     """Allow the user to log in prior to checkout."""
@@ -35,7 +35,7 @@ def checkout_login(request, cart):
     return TemplateResponse(request, 'checkout/login.html', ctx)
 
 
-@get_or_empty_db_cart(Cart.objects.for_display())
+@get_or_empty_db_cart(Checkout.objects.for_display())
 @validate_cart
 @validate_is_shipping_required
 def checkout_index(request, cart):
@@ -43,7 +43,7 @@ def checkout_index(request, cart):
     return redirect('checkout:shipping-address')
 
 
-@get_or_empty_db_cart(Cart.objects.for_display())
+@get_or_empty_db_cart(Checkout.objects.for_display())
 @validate_voucher
 @validate_cart
 @validate_is_shipping_required
@@ -55,7 +55,7 @@ def checkout_shipping_address(request, cart):
     return anonymous_user_shipping_address_view(request, cart)
 
 
-@get_or_empty_db_cart(Cart.objects.for_display())
+@get_or_empty_db_cart(Checkout.objects.for_display())
 @validate_voucher
 @validate_cart
 @validate_is_shipping_required
@@ -79,7 +79,7 @@ def checkout_shipping_method(request, cart):
     return TemplateResponse(request, 'checkout/shipping_method.html', ctx)
 
 
-@get_or_empty_db_cart(Cart.objects.for_display())
+@get_or_empty_db_cart(Checkout.objects.for_display())
 @validate_voucher
 @validate_cart
 @add_voucher_form
@@ -94,7 +94,7 @@ def checkout_summary(request, cart):
     return anonymous_summary_without_shipping(request, cart)
 
 
-@get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
+@get_or_empty_db_cart(cart_queryset=Checkout.objects.for_display())
 def cart_index(request, cart):
     """Display cart details."""
     discounts = request.discounts
@@ -104,9 +104,9 @@ def cart_index(request, cart):
 
     # refresh required to get updated cart lines and it's quantity
     try:
-        cart = Cart.objects.prefetch_related(
+        cart = Checkout.objects.prefetch_related(
             'lines__variant__product__category').get(pk=cart.pk)
-    except Cart.DoesNotExist:
+    except Checkout.DoesNotExist:
         pass
 
     lines = cart.lines.select_related('variant__product__product_type')
@@ -145,7 +145,7 @@ def cart_index(request, cart):
     return TemplateResponse(request, 'checkout/index.html', ctx)
 
 
-@get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
+@get_or_empty_db_cart(cart_queryset=Checkout.objects.for_display())
 def cart_shipping_options(request, cart):
     """Display shipping options to get a price estimate."""
     country_form = CountryForm(request.POST or None, taxes=request.taxes)
@@ -214,7 +214,7 @@ def clear_cart(request, cart):
     return JsonResponse(response)
 
 
-@get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
+@get_or_empty_db_cart(cart_queryset=Checkout.objects.for_display())
 def cart_summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""
     discounts = request.discounts

@@ -102,7 +102,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     class Meta:
         description = 'Create a new checkout.'
-        model = models.Cart
+        model = models.Checkout
         return_field_name = 'checkout'
 
     @classmethod
@@ -180,7 +180,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             if not created:
                 return CheckoutCreate(checkout=checkout)
         else:
-            checkout = models.Cart()
+            checkout = models.Checkout()
 
         cleaned_input = cls.clean_input(info, checkout, data.get('input'))
         checkout = cls.construct_instance(checkout, cleaned_input)
