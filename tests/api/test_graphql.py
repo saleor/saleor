@@ -116,7 +116,7 @@ def test_real_query(user_api_client, product):
             localized
             __typename
         }
-        availability {
+        pricing {
             ...ProductPriceFragmentQuery
             __typename
         }
@@ -126,7 +126,7 @@ def test_real_query(user_api_client, product):
         __typename
     }
 
-    fragment ProductPriceFragmentQuery on ProductAvailability {
+    fragment ProductPriceFragmentQuery on ProductPricingInfo {
         available
         discount {
             gross {

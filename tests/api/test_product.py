@@ -103,7 +103,7 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                             name
                             stockQuantity
                         }
-                        availability {
+                        pricing {
                             available,
                             priceRange {
                                 start {
@@ -148,7 +148,7 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     product_data = product_edges_data[0]['node']
     assert product_data['name'] == product.name
     assert product_data['url'] == product.get_absolute_url()
-    gross = product_data['availability']['priceRange']['start']['gross']
+    gross = product_data['pricing']['priceRange']['start']['gross']
     assert float(gross['amount']) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
     purchase_cost, margin = get_product_costs_data(product)
