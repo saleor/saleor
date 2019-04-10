@@ -29,7 +29,7 @@ from . import AddressType, logger
 from .forms import (
     AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
     BillingAddressChoiceForm)
-from .models import Cart
+from .models import Checkout
 
 COOKIE_NAME = 'cart'
 
@@ -131,14 +131,14 @@ def check_product_availability_and_warn(request, cart):
     """Warn if cart contains any lines that cannot be fulfilled."""
     if contains_unavailable_variants(cart):
         msg = pgettext_lazy(
-            'Cart warning message',
+            'Checkout warning message',
             'Sorry. We don\'t have that many items in stock. '
             'Quantity was set to maximum available for now.')
         messages.warning(request, msg)
         remove_unavailable_variants(cart)
 
 
-def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
+def find_and_assign_anonymous_cart(queryset=Checkout.objects.all()):
     """Assign cart from cookie to request user."""
     def get_cart(view):
         @wraps(view)
@@ -154,7 +154,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
             if request.user.is_authenticated:
                 with transaction.atomic():
                     change_cart_user(cart, request.user)
-                    carts_to_close = Cart.objects.filter(user=request.user)
+                    carts_to_close = Checkout.objects.filter(user=request.user)
                     carts_to_close = carts_to_close.exclude(token=token)
                     carts_to_close.delete()
                 response.delete_cookie(COOKIE_NAME)
@@ -165,13 +165,13 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
 
 
 def get_or_create_anonymous_cart_from_token(
-        token, cart_queryset=Cart.objects.all()):
+        token, cart_queryset=Checkout.objects.all()):
     """Return an open unassigned cart with given token or create a new one."""
     return cart_queryset.filter(token=token, user=None).get_or_create(
         defaults={'user': None})[0]
 
 
-def get_or_create_user_cart(user: User, cart_queryset=Cart.objects.all()):
+def get_or_create_user_cart(user: User, cart_queryset=Checkout.objects.all()):
     """Return an open cart for given user or create a new one."""
     defaults = {
         'shipping_address': user.default_shipping_address,
@@ -180,22 +180,22 @@ def get_or_create_user_cart(user: User, cart_queryset=Cart.objects.all()):
     created = False
     cart = cart_queryset.filter(user=user).first()
     if cart is None:
-        cart = Cart.objects.create(user=user, **defaults)
+        cart = Checkout.objects.create(user=user, **defaults)
         created = True
     return cart, created
 
 
-def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
+def get_anonymous_cart_from_token(token, cart_queryset=Checkout.objects.all()):
     """Return an open unassigned cart with given token if any."""
     return cart_queryset.filter(token=token, user=None).first()
 
 
-def get_user_cart(user, cart_queryset=Cart.objects.all()):
+def get_user_cart(user, cart_queryset=Checkout.objects.all()):
     """Return an open cart for given user if any."""
     return cart_queryset.filter(user=user).first()
 
 
-def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
+def get_or_create_cart_from_request(request, cart_queryset=Checkout.objects.all()):
     """Fetch cart from database or create a new one based on cookie."""
     if request.user.is_authenticated:
         return get_or_create_user_cart(request.user, cart_queryset)[0]
@@ -203,7 +203,7 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
     return get_or_create_anonymous_cart_from_token(token, cart_queryset)
 
 
-def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
+def get_cart_from_request(request, cart_queryset=Checkout.objects.all()):
     """Fetch cart from database or return a new instance based on cookie."""
     if request.user.is_authenticated:
         cart = get_user_cart(request.user, cart_queryset)
@@ -215,11 +215,11 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if cart is not None:
         return cart
     if user:
-        return Cart(user=user)
-    return Cart()
+        return Checkout(user=user)
+    return Checkout()
 
 
-def get_or_empty_db_cart(cart_queryset=Cart.objects.all()):
+def get_or_empty_db_cart(cart_queryset=Checkout.objects.all()):
     """Decorate view to receive a cart if one exists.
 
     Changes the view signature from `func(request, ...)` to
@@ -842,7 +842,7 @@ def _process_user_data_for_order(cart):
 
 
 @transaction.atomic
-def create_order(cart: Cart, tracking_code: str, discounts, taxes):
+def create_order(cart: Checkout, tracking_code: str, discounts, taxes):
     """Create an order from the cart.
 
     Each order will get a private copy of both the billing and the shipping
@@ -881,7 +881,7 @@ def create_order(cart: Cart, tracking_code: str, discounts, taxes):
     return order
 
 
-def is_fully_paid(cart: Cart, taxes, discounts):
+def is_fully_paid(cart: Checkout, taxes, discounts):
     """Check if provided payment methods cover the checkout's total amount.
     Note that these payments may not be captured or charged at all."""
     payments = [
@@ -891,7 +891,7 @@ def is_fully_paid(cart: Cart, taxes, discounts):
     return total_paid >= cart_total
 
 
-def clean_checkout(cart: Cart, taxes, discounts):
+def clean_checkout(cart: Checkout, taxes, discounts):
     """Check if checkout can be completed."""
     if cart.is_shipping_required():
         if not cart.shipping_method:

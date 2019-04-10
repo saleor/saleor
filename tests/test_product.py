@@ -13,7 +13,7 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout import utils
-from saleor.checkout.models import Cart
+from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_cart
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount.models import Sale
@@ -221,8 +221,8 @@ def test_adding_to_cart_with_current_user_token(
 
     authorized_client.post(url, data)
 
-    assert Cart.objects.count() == 1
-    assert Cart.objects.get(user=customer_user).pk == request_cart_with_item.pk
+    assert Checkout.objects.count() == 1
+    assert Checkout.objects.get(user=customer_user).pk == request_cart_with_item.pk
 
 
 def test_adding_to_cart_with_another_user_token(
@@ -245,8 +245,8 @@ def test_adding_to_cart_with_another_user_token(
 
     client.post(url, data)
 
-    assert Cart.objects.count() == 2
-    assert Cart.objects.get(user=admin_user).pk != request_cart_with_item.pk
+    assert Checkout.objects.count() == 2
+    assert Checkout.objects.get(user=admin_user).pk != request_cart_with_item.pk
 
 
 def test_anonymous_adding_to_cart_with_another_user_token(
@@ -267,8 +267,8 @@ def test_anonymous_adding_to_cart_with_another_user_token(
 
     client.post(url, data)
 
-    assert Cart.objects.count() == 2
-    assert Cart.objects.get(user=None).pk != request_cart_with_item.pk
+    assert Checkout.objects.count() == 2
+    assert Checkout.objects.get(user=None).pk != request_cart_with_item.pk
 
 
 def test_adding_to_cart_with_deleted_cart_token(
@@ -291,8 +291,8 @@ def test_adding_to_cart_with_deleted_cart_token(
 
     authorized_client.post(url, data)
 
-    assert Cart.objects.count() == 1
-    assert not Cart.objects.filter(token=old_token).exists()
+    assert Checkout.objects.count() == 1
+    assert not Checkout.objects.filter(token=old_token).exists()
 
 
 def test_adding_to_cart_with_closed_cart_token(

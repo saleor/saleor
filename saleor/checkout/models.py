@@ -18,7 +18,7 @@ from ..shipping.models import ShippingMethod
 CENTS = Decimal('0.01')
 
 
-class CartQueryset(models.QuerySet):
+class CheckoutQueryset(models.QuerySet):
     """A specialized queryset for dealing with carts."""
 
     def for_display(self):
@@ -34,13 +34,13 @@ class CartQueryset(models.QuerySet):
             'lines__variant__product__product_type__product_attributes__values')  # noqa
 
 
-class Cart(models.Model):
+class Checkout(models.Model):
     """A shopping cart."""
 
     created = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
+        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='checkouts',
         on_delete=models.CASCADE)
     email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -52,7 +52,7 @@ class Cart(models.Model):
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)
     shipping_method = models.ForeignKey(
-        ShippingMethod, blank=True, null=True, related_name='carts',
+        ShippingMethod, blank=True, null=True, related_name='checkouts',
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(
@@ -65,13 +65,13 @@ class Cart(models.Model):
         max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
 
-    objects = CartQueryset.as_manager()
+    objects = CheckoutQueryset.as_manager()
 
     class Meta:
         ordering = ('-last_change', )
 
     def __repr__(self):
-        return 'Cart(quantity=%s)' % (self.quantity,)
+        return 'Checkout(quantity=%s)' % (self.quantity,)
 
     def __iter__(self):
         return iter(self.lines.all())
@@ -118,22 +118,22 @@ class Cart(models.Model):
         return max(payments, default=None, key=attrgetter('pk'))
 
 
-class CartLine(models.Model):
-    """A single cart line.
+class CheckoutLine(models.Model):
+    """A single checkout line.
 
-    Multiple lines in the same cart can refer to the same product variant if
+    Multiple lines in the same checkout can refer to the same product variant if
     their `data` field is different.
     """
 
-    cart = models.ForeignKey(
-        Cart, related_name='lines', on_delete=models.CASCADE)
+    checkout = models.ForeignKey(
+        Checkout, related_name='lines', on_delete=models.CASCADE)
     variant = models.ForeignKey(
         'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     data = JSONField(blank=True, default=dict)
 
     class Meta:
-        unique_together = ('cart', 'variant', 'data')
+        unique_together = ('checkout', 'variant', 'data')
         ordering = ('id',)
 
     def __str__(self):
@@ -154,7 +154,7 @@ class CartLine(models.Model):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        return 'CartLine(variant=%r, quantity=%r)' % (
+        return 'CheckoutLine(variant=%r, quantity=%r)' % (
             self.variant, self.quantity)
 
     def __getstate__(self):

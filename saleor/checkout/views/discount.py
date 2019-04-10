@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 
 from ...discount.models import Voucher
 from ..forms import CartVoucherForm
-from ..models import Cart
+from ..models import Checkout
 from ..utils import (
     get_or_empty_db_cart, get_taxes_for_cart, recalculate_cart_discount,
     remove_voucher_from_cart)
@@ -67,7 +67,7 @@ def validate_voucher(view):
 
 
 @require_POST
-@get_or_empty_db_cart(Cart.objects.for_display())
+@get_or_empty_db_cart(Checkout.objects.for_display())
 def remove_voucher_view(request, cart):
     """Clear the discount and remove the voucher."""
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])

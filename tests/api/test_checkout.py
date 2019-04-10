@@ -1,13 +1,13 @@
 import uuid
 from unittest.mock import ANY, patch
 
-from django.core.exceptions import ValidationError
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
 
-from saleor.checkout.models import Cart
+from saleor.checkout.models import Checkout
 from saleor.checkout.utils import (
-    add_voucher_to_cart, is_fully_paid, clean_checkout)
+    add_voucher_to_cart, clean_checkout, is_fully_paid)
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
@@ -44,11 +44,11 @@ def test_checkout_create(api_client, variant, graphql_address_data):
                 'variantId': variant_id}],
             'email': test_email,
             'shippingAddress': shipping_address}}
-    assert not Cart.objects.exists()
+    assert not Checkout.objects.exists()
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
 
-    new_cart = Cart.objects.first()
+    new_cart = Checkout.objects.first()
     assert new_cart is not None
     checkout_data = content['data']['checkoutCreate']['checkout']
     assert checkout_data['token'] == str(new_cart.token)
@@ -122,7 +122,7 @@ def test_checkout_create_default_email_for_logged_in_customer(
         MUTATION_CHECKOUT_CREATE, variables)
     customer = user_api_client.user
     content = get_graphql_content(response)
-    new_cart = Cart.objects.first()
+    new_cart = Checkout.objects.first()
     assert new_cart is not None
     checkout_data = content['data']['checkoutCreate']['checkout']
     assert checkout_data['email'] == str(customer.email)
@@ -138,11 +138,11 @@ def test_checkout_create_logged_in_customer(user_api_client, variant):
             'lines': [{
                 'quantity': 1,
                 'variantId': variant_id}]}}
-    assert not Cart.objects.exists()
+    assert not Checkout.objects.exists()
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
-    new_cart = Cart.objects.first()
+    new_cart = Checkout.objects.first()
     assert new_cart is not None
     checkout_data = content['data']['checkoutCreate']['checkout']
     assert checkout_data['token'] == str(new_cart.token)
@@ -167,12 +167,12 @@ def test_checkout_create_logged_in_customer_custom_email(
                 'quantity': 1,
                 'variantId': variant_id}],
             'email': custom_email}}
-    assert not Cart.objects.exists()
+    assert not Checkout.objects.exists()
     assert not custom_email == customer.email
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
-    new_cart = Cart.objects.first()
+    new_cart = Checkout.objects.first()
     assert new_cart is not None
     checkout_data = content['data']['checkoutCreate']['checkout']
     assert checkout_data['token'] == str(new_cart.token)
@@ -194,11 +194,11 @@ def test_checkout_create_logged_in_customer_custom_addresses(
                 'variantId': variant_id}],
             'shippingAddress': shipping_address,
             'billingAddress': billing_address}}
-    assert not Cart.objects.exists()
+    assert not Checkout.objects.exists()
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
-    new_cart = Cart.objects.first()
+    new_cart = Checkout.objects.first()
     assert new_cart is not None
     checkout_data = content['data']['checkoutCreate']['checkout']
     assert checkout_data['token'] == str(new_cart.token)
@@ -226,7 +226,7 @@ def test_checkout_create_check_lines_quantity(
                 'variantId': variant_id}],
             'email': test_email,
             'shippingAddress': shipping_address}}
-    assert not Cart.objects.exists()
+    assert not Checkout.objects.exists()
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
@@ -879,7 +879,7 @@ def test_checkout_complete(
     assert payment.transactions.count() == 2
 
     # assert that the cart has been delated after checkout
-    with pytest.raises(Cart.DoesNotExist):
+    with pytest.raises(Checkout.DoesNotExist):
         checkout.refresh_from_db()
 
 

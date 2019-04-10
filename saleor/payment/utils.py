@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils.translation import pgettext_lazy
 
 from ..account.models import Address, User
-from ..checkout.models import Cart
+from ..checkout.models import Checkout
 from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails, utils as order_utils
 from ..order.emails import send_payment_confirmation
@@ -109,7 +109,7 @@ def create_payment(
         customer_ip_address: str = '',
         payment_token: str = '',
         extra_data: Dict = None,
-        checkout: Cart = None,
+        checkout: Checkout = None,
         order: Order = None) -> Payment:
     """Create a payment instance.
 
