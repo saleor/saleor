@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 - Refactor error handling in mutations #3891 by @maarcingebala @akjanik
 - Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
+- Add mutation for bulk delete order lines - #3935 by @akjanik 
 
 
 ## 2.5.0
