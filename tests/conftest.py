@@ -27,15 +27,14 @@ from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import recalculate_order, fulfill_order_line
+from saleor.order.utils import fulfill_order_line, recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
-    Product, ProductImage, ProductTranslation, ProductType, ProductVariant,
-    DigitalContent
-)
+    DigitalContent, Product, ProductImage, ProductTranslation, ProductType,
+    ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site import AuthenticationBackends
@@ -751,6 +750,7 @@ def page(db):
     page = Page.objects.create(**data)
     return page
 
+
 @pytest.fixture
 def page_list(db):
     data_1 = {
@@ -764,6 +764,17 @@ def page_list(db):
     page_1 = Page.objects.create(**data_1)
     page_2 = Page.objects.create(**data_2)
     return page_1, page_2
+
+
+@pytest.fixture
+def page_list_unpublished(db):
+    page_1 = Page.objects.create(slug='page-1', title='Page 1',
+                                 is_published=False)
+    page_2 = Page.objects.create(slug='page-2', title='Page 2',
+                                 is_published=False)
+    page_3 = Page.objects.create(slug='page-3', title='Page 3',
+                                 is_published=False)
+    return page_1, page_2, page_3
 
 
 @pytest.fixture
