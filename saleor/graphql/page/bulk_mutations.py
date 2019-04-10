@@ -34,3 +34,19 @@ class PageBulkPublish(ModelBulkPublishMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('page.manage_pages')
+
+
+class PageBulkUnpublish(PageBulkPublish):
+    class Arguments:
+        ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description='List of page IDs to unpublish.')
+
+    class Meta:
+        description = 'Unpublish pages.'
+        model = models.Page
+
+    @classmethod
+    def bulk_action(cls, queryset):
+        queryset.update(is_published=False)
