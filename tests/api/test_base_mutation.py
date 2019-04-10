@@ -18,12 +18,10 @@ class Mutation(BaseMutation):
         description = 'Base mutation'
 
     @classmethod
-    def mutate(cls, root, info, product_id):
-        errors = []
+    def perform_mutation(cls, root, info, product_id):
         product = cls.get_node_or_error(
-            info, product_id, errors, 'product_id', product_types.Product)
-        if errors:
-            return Mutation(errors=errors)
+            info, product_id, field='product_id',
+            only_type=product_types.Product)
         return Mutation(name=product.name)
 
 
@@ -117,8 +115,6 @@ def test_user_error_id_of_different_type(product, schema_context):
 
 
 def test_get_node_or_error_returns_null_for_empty_id():
-    errors = []
     info = Mock()
-    response = Mutation.get_node_or_error(info, '', errors, '')
-    assert not errors
+    response = Mutation.get_node_or_error(info, '', field='')
     assert response is None

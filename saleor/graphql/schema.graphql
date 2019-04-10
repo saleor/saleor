@@ -95,10 +95,10 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  slug: String
-  name: String
   productType: ProductType
   productVariantType: ProductType
+  name: String
+  slug: String
   values: [AttributeValue]
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
 }
@@ -170,9 +170,9 @@ type AttributeValue implements Node {
   id: ID!
   sortOrder: Int!
   name: String
-  value: String
   slug: String
   type: AttributeValueType
+  value: String
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
 }
 
@@ -269,12 +269,12 @@ type Category implements Node {
   description: String!
   descriptionJson: JSONString!
   parent: Category
-  backgroundImage(size: Int): Image
   level: Int!
-  children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String
+  children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
 }
 
@@ -338,7 +338,6 @@ type Checkout implements Node {
   created: DateTime!
   lastChange: DateTime!
   user: User
-  email: String!
   token: UUID!
   quantity: Int!
   billingAddress: Address
@@ -349,11 +348,12 @@ type Checkout implements Node {
   discountName: String
   translatedDiscountName: String
   voucherCode: String
-  lines: [CheckoutLine]
   id: ID!
   availableShippingMethods: [ShippingMethod]!
   availablePaymentGateways: [GatewaysEnum]!
+  email: String!
   isShippingRequired: Boolean!
+  lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
   totalPrice: TaxedMoney
@@ -480,10 +480,10 @@ type Collection implements Node {
   id: ID!
   name: String!
   slug: String!
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  backgroundImage(size: Int): Image
   description: String!
   descriptionJson: JSONString!
+  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  backgroundImage(size: Int): Image
   publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
 }
@@ -839,8 +839,8 @@ input FulfillmentCreateInput {
 
 type FulfillmentLine implements Node {
   id: ID!
-  orderLine: OrderLine
   quantity: Int!
+  orderLine: OrderLine
 }
 
 input FulfillmentLineInput {
@@ -902,6 +902,7 @@ enum LanguageCodeEnum {
   FR
   HI
   HU
+  HY
   ID
   IT
   JA
@@ -910,6 +911,7 @@ enum LanguageCodeEnum {
   NB
   NL
   PL
+  PT
   PT_BR
   RO
   RU
@@ -943,8 +945,8 @@ type Margin {
 type Menu implements Node {
   id: ID!
   name: String!
-  items: [MenuItem]
   children: [MenuItem]!
+  items: [MenuItem]
 }
 
 type MenuBulkDelete {
@@ -987,12 +989,12 @@ type MenuItem implements Node {
   menu: Menu!
   name: String!
   parent: MenuItem
-  url: String
   category: Category
   collection: Collection
   page: Page
   level: Int!
   children: [MenuItem]
+  url: String
   translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
 }
 
@@ -1253,12 +1255,10 @@ type Order implements Node {
   trackingClientId: String!
   billingAddress: Address
   shippingAddress: Address
-  userEmail: String
   shippingMethod: ShippingMethod
   shippingPrice: TaxedMoney
   shippingMethodName: String
   token: String!
-  total: TaxedMoney
   voucher: Voucher
   discountAmount: Money
   discountName: String!
@@ -1266,22 +1266,24 @@ type Order implements Node {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
-  lines: [OrderLine]!
   fulfillments: [Fulfillment]!
-  events: [OrderEvent]
-  payments: [Payment]
+  lines: [OrderLine]!
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
   number: String
   isPaid: Boolean
   paymentStatus: PaymentChargeStatusEnum
   paymentStatusDisplay: String
+  payments: [Payment]
+  total: TaxedMoney
   subtotal: TaxedMoney
   statusDisplay: String
   canFinalize: Boolean!
   totalAuthorized: Money
   totalCaptured: Money
+  events: [OrderEvent]
   totalBalance: Money!
+  userEmail: String
   isShippingRequired: Boolean!
 }
 
@@ -1383,18 +1385,18 @@ enum OrderEventsEmails {
 
 type OrderLine implements Node {
   id: ID!
-  variant: ProductVariant
   productName: String!
   translatedProductName: String!
   productSku: String!
   isShippingRequired: Boolean!
   quantity: Int!
   quantityFulfilled: Int!
-  unitPrice: TaxedMoney
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use thumbnail instead")
   thumbnail(size: Int): Image
+  unitPrice: TaxedMoney
+  variant: ProductVariant
 }
 
 input OrderLineCreateInput {
@@ -1551,23 +1553,18 @@ type Payment implements Node {
   isActive: Boolean!
   created: DateTime!
   modified: DateTime!
-  chargeStatus: PaymentChargeStatusEnum!
   token: String!
-  total: Money
-  capturedAmount: Money
   checkout: Checkout
   order: Order
   billingEmail: String!
-  ccFirstDigits: String!
-  ccLastDigits: String!
-  ccBrand: String!
-  ccExpMonth: Int
-  ccExpYear: Int
   customerIpAddress: String
   extraData: String!
-  transactions: [Transaction]
+  chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
+  total: Money
+  capturedAmount: Money
   billingAddress: Address
+  transactions: [Transaction]
   availableCaptureAmount: Money
   availableRefundAmount: Money
   creditCard: CreditCard
@@ -1644,22 +1641,22 @@ type Product implements Node {
   description: String!
   descriptionJson: JSONString!
   category: Category!
-  price: Money
-  attributes: [SelectedAttribute!]!
   updatedAt: DateTime
   chargeTaxes: Boolean!
-  taxRate: TaxRateType
   weight: Weight
-  variants: [ProductVariant]
-  images: [ProductImage]
-  collections: [Collection]
   url: String!
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
   thumbnail(size: Int): Image
   availability: ProductAvailability
+  price: Money
+  taxRate: TaxRateType
+  attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
   margin: Margin
   imageById(id: ID): ProductImage
+  variants: [ProductVariant]
+  images: [ProductImage]
+  collections: [Collection]
   availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
 }
@@ -1817,11 +1814,11 @@ type ProductType implements Node {
   hasVariants: Boolean!
   isShippingRequired: Boolean!
   isDigital: Boolean!
-  taxRate: TaxRateType
   weight: Weight
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  productAttributes: [Attribute]
+  taxRate: TaxRateType
   variantAttributes: [Attribute]
+  productAttributes: [Attribute]
 }
 
 type ProductTypeBulkDelete {
@@ -1875,22 +1872,22 @@ type ProductVariant implements Node {
   id: ID!
   sku: String!
   name: String!
-  priceOverride: Money
   product: Product!
-  attributes: [SelectedAttribute!]!
-  images: [ProductImage]
   trackInventory: Boolean!
   quantity: Int!
   quantityAllocated: Int!
-  costPrice: Money
   weight: Weight
-  digitalContent: DigitalContent
   stockQuantity: Int!
+  priceOverride: Money
   price: Money
+  attributes: [SelectedAttribute!]!
+  costPrice: Money
   margin: Int
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
+  images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
+  digitalContent: DigitalContent
 }
 
 type ProductVariantBulkDelete {
@@ -2026,11 +2023,11 @@ type Sale implements Node {
   name: String!
   type: SaleType!
   value: Float!
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   startDate: Date!
   endDate: Date
+  categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
 }
 
@@ -2125,12 +2122,12 @@ input SetPasswordInput {
 type ShippingMethod implements Node {
   id: ID!
   name: String!
-  type: ShippingMethodTypeEnum
   price: Money
   minimumOrderPrice: Money
   maximumOrderPrice: Money
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
+  type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
 }
 
@@ -2187,10 +2184,10 @@ type ShippingPriceUpdate {
 type ShippingZone implements Node {
   id: ID!
   name: String!
-  countries: [CountryDisplay]
   default: Boolean!
-  shippingMethods: [ShippingMethod]
   priceRange: MoneyRange
+  countries: [CountryDisplay]
+  shippingMethods: [ShippingMethod]
 }
 
 type ShippingZoneBulkDelete {
@@ -2398,9 +2395,9 @@ type Transaction implements Node {
   token: String!
   kind: TransactionKind!
   isSuccess: Boolean!
-  amount: Money
   error: TransactionError
   gatewayResponse: JSONString!
+  amount: Money
 }
 
 enum TransactionError {
@@ -2469,7 +2466,6 @@ type User implements Node {
   email: String!
   firstName: String!
   lastName: String!
-  addresses: [Address]
   isStaff: Boolean!
   token: UUID!
   isActive: Boolean!
@@ -2477,10 +2473,11 @@ type User implements Node {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
-  avatar(size: Int): Image
-  orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  addresses: [Address]
   checkout: Checkout
+  orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [PermissionDisplay]
+  avatar(size: Int): Image
 }
 
 input UserAddressInput {
@@ -2555,11 +2552,11 @@ type Voucher implements Node {
   applyOncePerOrder: Boolean!
   discountValueType: VoucherDiscountValueType!
   discountValue: Float!
-  countries: [CountryDisplay]
   minAmountSpent: Money
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
 }
 

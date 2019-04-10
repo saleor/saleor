@@ -20,7 +20,7 @@ class CheckoutLine(CountableDjangoObjectType):
         description='Indicates whether the item need to be delivered.')
 
     class Meta:
-        exclude_fields = ['cart', 'data']
+        only_fields = ['id', 'quantity', 'variant']
         description = 'Represents an item in the checkout.'
         interfaces = [graphene.relay.Node]
         model = models.CartLine
@@ -65,7 +65,11 @@ class Checkout(CountableDjangoObjectType):
             'shipping costs, and discounts included.'))
 
     class Meta:
-        exclude_fields = ['payments']
+        only_fields = [
+            'billing_address', 'created', 'discount_amount', 'discount_name',
+            'is_shipping_required', 'last_change', 'note', 'quantity',
+            'shipping_address', 'shipping_method', 'token',
+            'translated_discount_name', 'user', 'voucher_code']
         description = 'Checkout object'
         model = models.Cart
         interfaces = [graphene.relay.Node]
@@ -90,7 +94,7 @@ class Checkout(CountableDjangoObjectType):
         taxes = get_taxes_for_address(self.shipping_address)
         price = self.get_subtotal(
             taxes=taxes, discounts=info.context.discounts)
-        return applicable_shipping_methods(self, info, price.gross.amount)
+        return applicable_shipping_methods(self, price.gross.amount)
 
     def resolve_available_payment_gateways(self, info):
         return settings.CHECKOUT_PAYMENT_GATEWAYS.keys()

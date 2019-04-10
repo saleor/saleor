@@ -68,7 +68,7 @@ stripe = "*"
 "urllib3" = "*"
 
 [dev-packages]
-pytest = "==4.0.2"
+pytest = "*"
 pytest-django = "*"
 pytest-vcr = "*"
 pytest-mock = "*"

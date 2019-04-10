@@ -3,7 +3,8 @@ from textwrap import dedent
 
 import graphene
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import (
+    NON_FIELD_ERRORS, ImproperlyConfigured, ValidationError)
 from django.db.models.fields.files import FileField
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
@@ -37,6 +38,23 @@ def get_output_fields(model, return_field_name):
     return fields
 
 
+def validation_error_to_error_type(validation_error: ValidationError) -> list:
+    """Convert a ValidationError into a list of Error types."""
+    err_list = []
+    if hasattr(validation_error, 'error_dict'):
+        # convert field errors
+        for field, field_errors in validation_error.message_dict.items():
+            for err in field_errors:
+                field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(
+                    field)
+                err_list.append(Error(field=field, message=err))
+    else:
+        # convert non-field errors
+        for err in validation_error.error_list:
+            err_list.append(Error(message=err.message))
+    return err_list
+
+
 class ModelMutationOptions(MutationOptions):
     exclude = None
     model = None
@@ -64,66 +82,50 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def add_error(cls, errors, field, message):
-        """Add a mutation user error.
-
-        `errors` is the list of errors that happened during the execution of
-        the mutation. `field` is the name of an input field the error is
-        related to. `None` value is allowed and it indicates that the error
-        is general and is not related to any of the input fields. `message`
-        is the actual error message to be returned in the response.
-
-        As a result of this method, the `errors` list is updated with an Error
-        object to be returned as mutation result.
-        """
-        field = snake_to_camel_case(field)
-        errors.append(Error(field=field, message=message))
-
-    @classmethod
-    def get_node_or_error(cls, info, global_id, errors, field, only_type=None):
-        if not global_id:
+    def get_node_or_error(cls, info, node_id, field='id', only_type=None):
+        if not node_id:
             return None
 
-        node = None
         try:
             node = graphene.Node.get_node_from_global_id(
-                info, global_id, only_type)
+                info, node_id, only_type)
         except (AssertionError, GraphQLError) as e:
-            cls.add_error(errors, field, str(e))
+            raise ValidationError({field: str(e)})
         else:
             if node is None:
-                message = "Couldn't resolve to a node: %s" % global_id
-                cls.add_error(errors, field, message)
+                raise ValidationError({
+                    field: "Couldn't resolve to a node: %s" % node_id})
         return node
 
     @classmethod
-    def get_nodes_or_error(cls, ids, errors, field, only_type=None):
-        instances = None
+    def get_nodes_or_error(cls, ids, field, only_type=None):
         try:
             instances = get_nodes(ids, only_type)
         except GraphQLError as e:
-            cls.add_error(field=field, message=str(e), errors=errors)
+            raise ValidationError({field: str(e)})
         return instances
 
     @classmethod
-    def clean_instance(cls, instance, errors):
+    def clean_instance(cls, instance):
         """Clean the instance that was created using the input data.
 
-        Once a instance is created, this method runs `full_clean()` to perform
-        model fields' validation. Returns errors ready to be returned by
-        the GraphQL response (if any occurred).
+        Once an instance is created, this method runs `full_clean()` to perform
+        model validation.
         """
         try:
             instance.full_clean()
-        except ValidationError as validation_errors:
-            message_dict = validation_errors.message_dict
-            for field in message_dict:
-                if hasattr(cls._meta,
-                           'exclude') and field in cls._meta.exclude:
-                    continue
-                for message in message_dict[field]:
-                    field = snake_to_camel_case(field)
-                    cls.add_error(errors, field, message)
+        except ValidationError as error:
+            if hasattr(cls._meta, 'exclude'):
+                # Ignore validation errors for fields that are specified as
+                # excluded.
+                new_error_dict = {}
+                for field, errors in error.error_dict.items():
+                    if field not in cls._meta.exclude:
+                        new_error_dict[field] = errors
+                error.error_dict = new_error_dict
+
+            if error.error_dict:
+                raise error
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -153,6 +155,35 @@ class BaseMutation(graphene.Mutation):
                     data = f._get_default()
             f.save_form_data(instance, data)
         return instance
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        """Determine whether user has rights to perform this mutation.
+
+        Default implementation assumes that user is allowed to perform any
+        mutation. By overriding this method, you can restrict access to it.
+        `user` is the User instance associated with the request and `input` is
+        the input data provided as mutation arguments.
+        """
+        return True
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        try:
+            response = cls.perform_mutation(root, info, **data)
+            if response.errors is None:
+                response.errors = []
+            return response
+        except ValidationError as e:
+            errors = validation_error_to_error_type(e)
+            return cls(errors=errors)
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        pass
 
 
 class ModelMutation(BaseMutation):
@@ -190,14 +221,13 @@ class ModelMutation(BaseMutation):
             arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
+    def clean_input(cls, info, instance, input):
         """Clean input data received from mutation arguments.
 
         Fields containing IDs or lists of IDs are automatically resolved into
         model instances. `instance` argument is the model instance the mutation
         is operating on (before setting the input data). `input` is raw input
-        data the mutation receives. `errors` is a list of errors that occurred
-        during mutation's execution.
+        data the mutation receives.
 
         Override this method to provide custom transformations of incoming
         data.
@@ -205,14 +235,14 @@ class ModelMutation(BaseMutation):
 
         def is_list_of_ids(field):
             return (
-                isinstance(field.type, graphene.List)
-                and field.type.of_type == graphene.ID)
+                    isinstance(field.type, graphene.List)
+                    and field.type.of_type == graphene.ID)
 
         def is_id_field(field):
             return (
-                field.type == graphene.ID
-                or isinstance(field.type, graphene.NonNull)
-                and field.type.of_type == graphene.ID)
+                    field.type == graphene.ID
+                    or isinstance(field.type, graphene.NonNull)
+                    and field.type.of_type == graphene.ID)
 
         def is_upload_field(field):
             if hasattr(field.type, 'of_type'):
@@ -229,14 +259,12 @@ class ModelMutation(BaseMutation):
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field):
                     instances = cls.get_nodes_or_error(
-                        value, errors=errors,
-                        field=field_name) if value else []
+                        value, field_name) if value else []
                     cleaned_input[field_name] = instances
 
                 # handle ID field
                 elif value is not None and is_id_field(field):
-                    instance = cls.get_node_or_error(
-                        info, value, errors=errors, field=field_name)
+                    instance = cls.get_node_or_error(info, value, field_name)
                     cleaned_input[field_name] = instance
 
                 # handle uploaded files
@@ -259,17 +287,6 @@ class ModelMutation(BaseMutation):
                 f.save_form_data(instance, cleaned_data[f.name])
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        """Determine whether user has rights to perform this mutation.
-
-        Default implementation assumes that user is allowed to perform any
-        mutation. By overriding this method, you can restrict access to it.
-        `user` is the User instance associated with the request and `input` is
-        the input data provided as mutation arguments.
-        """
-        return True
-
-    @classmethod
     def success_response(cls, instance):
         """Return a success response."""
         return cls(**{cls._meta.return_field_name: instance, 'errors': []})
@@ -279,7 +296,18 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def get_instance(cls, info, **data):
+        object_id = data.get('id')
+        if object_id:
+            model_type = registry.get_type_for_model(cls._meta.model)
+            instance = cls.get_node_or_error(
+                info, object_id, only_type=model_type)
+        else:
+            instance = cls._meta.model()
+        return instance
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
         """Perform model mutation.
 
         Depending on the input data, `mutate` either creates a new instance or
@@ -287,30 +315,11 @@ class ModelMutation(BaseMutation):
         that this is an "update" mutation. Otherwise, a new instance is
         created based on the model associated with this mutation.
         """
-        if not cls.user_is_allowed(info.context.user, data):
-            raise PermissionDenied()
-
-        id = data.get('id')
-        input = data.get('input')
-
-        # Initialize the errors list.
-        errors = []
-
-        # Initialize model instance based on presence of `id` attribute.
-        if id:
-            model_type = registry.get_type_for_model(cls._meta.model)
-            instance = cls.get_node_or_error(
-                info, id, errors, 'id', model_type)
-        else:
-            instance = cls._meta.model()
-        if errors:
-            return cls(errors=errors)
-
-        cleaned_input = cls.clean_input(info, instance, input, errors)
+        instance = cls.get_instance(info, **data)
+        input_data = data.get('input')
+        cleaned_input = cls.clean_input(info, instance, input_data)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance, errors)
-        if errors:
-            return cls(errors=errors)
+        cls.clean_instance(instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         return cls.success_response(instance)
@@ -321,7 +330,7 @@ class ModelDeleteMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
+    def clean_instance(cls, info, instance):
         """Perform additional logic before deleting the model instance.
 
         Override this method to raise custom validation error and abort
@@ -329,22 +338,17 @@ class ModelDeleteMutation(ModelMutation):
         """
 
     @classmethod
-    def mutate(cls, root, info, **data):
+    def perform_mutation(cls, root, info, **data):
         """Perform a mutation that deletes a model instance."""
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()
 
-        errors = []
         node_id = data.get('id')
         model_type = registry.get_type_for_model(cls._meta.model)
-        instance = cls.get_node_or_error(
-            info, node_id, errors, 'id', model_type)
+        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
 
         if instance:
-            cls.clean_instance(info, instance, errors)
-
-        if errors:
-            return cls(errors=errors)
+            cls.clean_instance(info, instance)
 
         db_id = instance.id
         instance.delete()
@@ -383,13 +387,58 @@ class BaseBulkMutation(BaseMutation):
         """
         return True
 
+    @classmethod
+    def bulk_action(cls, instances):
+        """Implement action performed on list of instances"""
+        raise NotImplementedError
+
+    @classmethod
+    def perform_mutation(cls, root, info, ids):
+        """Perform a mutation that deletes a list of model instances."""
+        clean_instances, errors = [], {}
+        model_type = registry.get_type_for_model(cls._meta.model)
+        instances = cls.get_nodes_or_error(ids, 'id', model_type)
+        for instance, node_id in zip(instances, ids):
+            instance_errors = []
+
+            # catch individual validation errors to raise them later as
+            # a single error
+            try:
+                cls.clean_instance(info, instance)
+            except ValidationError as e:
+                msg = '. '.join(e.messages)
+                instance_errors.append(msg)
+
+            if not instance_errors:
+                clean_instances.append(instance)
+            else:
+                instance_errors_msg = '. '.join(instance_errors)
+                ValidationError({
+                    node_id: instance_errors_msg}).update_error_dict(errors)
+
+        if errors:
+            errors = ValidationError(errors)
+        count = len(clean_instances)
+        cls.bulk_action(clean_instances)
+        return count, errors
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        count, errors = cls.perform_mutation(root, info, **data)
+        if errors:
+            errors = validation_error_to_error_type(errors)
+        return cls(errors=errors, count=count)
+
 
 class ModelBulkDeleteMutation(BaseBulkMutation):
     class Meta:
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
+    def clean_instance(cls, info, instance):
         """Perform additional logic before deleting the model instance.
 
         Override this method to raise custom validation error and abort
@@ -397,24 +446,9 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         """
 
     @classmethod
-    def mutate(cls, root, info, ids):
-        """Perform a mutation that deletes a list of model instances."""
-        if not cls.user_is_allowed(info.context.user, ids):
-            raise PermissionDenied()
-
-        count, errors = 0, []
-        model_type = registry.get_type_for_model(cls._meta.model)
-        instances = cls.get_nodes_or_error(ids, errors, 'id', model_type)
+    def bulk_action(cls, instances):
         for instance in instances:
-            instance_errors = []
-            cls.clean_instance(info, instance, instance_errors)
-
-            if not instance_errors:
-                instance.delete()
-                count += 1
-            errors.extend(instance_errors)
-
-        return cls(count=count, errors=errors)
+            instance.delete()
 
 
 class CreateToken(ObtainJSONWebToken):

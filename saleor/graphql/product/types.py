@@ -85,7 +85,7 @@ class AttributeValue(CountableDjangoObjectType):
 
     class Meta:
         description = 'Represents a value of an attribute.'
-        exclude_fields = ['attribute', 'translations']
+        only_fields = ['id', 'sort_order']
         interfaces = [relay.Node]
         model = models.AttributeValue
 
@@ -114,7 +114,7 @@ class Attribute(CountableDjangoObjectType):
     class Meta:
         description = dedent("""Custom attribute of a product. Attributes can be
         assigned to products and variants at the product type level.""")
-        exclude_fields = ['translations']
+        only_fields = ['id', 'product_type', 'product_variant_type']
         interfaces = [relay.Node]
         model = models.Attribute
 
@@ -144,7 +144,7 @@ class DigitalContentUrl(CountableDjangoObjectType):
 
     class Meta:
         model = models.DigitalContentUrl
-        only_fields = ['token', 'content', 'created', 'download_num', 'url']
+        only_fields = ['content', 'created', 'download_num', 'token', 'url']
         interfaces = (relay.Node,)
 
     def resolve_url(self, info):
@@ -161,9 +161,9 @@ class DigitalContent(CountableDjangoObjectType):
     class Meta:
         model = models.DigitalContent
         only_fields = [
-            'urls', 'content_file', 'use_default_settings',
-            'automatic_fulfillment', 'product_variant', 'max_downloads',
-            'url_valid_days', ]
+            'automatic_fulfillment', 'content_file', 'max_downloads',
+            'product_variant', 'url_valid_days', 'urls',
+            'use_default_settings']
         interfaces = (relay.Node,)
 
     def resolve_urls(self, info, **kwargs):
@@ -224,7 +224,9 @@ class ProductVariant(CountableDjangoObjectType):
     class Meta:
         description = dedent("""Represents a version of a product such as
         different size or color.""")
-        exclude_fields = ['order_lines', 'variant_images', 'translations']
+        only_fields = [
+            'id', 'name', 'product', 'quantity', 'quantity_allocated', 'sku',
+            'track_inventory', 'weight']
         interfaces = [relay.Node]
         model = models.ProductVariant
 
@@ -362,7 +364,10 @@ class Product(CountableDjangoObjectType):
         storefront.""")
         interfaces = [relay.Node]
         model = models.Product
-        exclude_fields = ['voucher_set', 'sale_set', 'translations']
+        only_fields = [
+            'category', 'charge_taxes', 'description', 'description_json',
+            'id', 'is_published', 'name', 'product_type', 'publication_date',
+            'seo_description', 'seo_title', 'updated_at', 'weight']
 
     @gql_optimizer.resolver_hints(prefetch_related='images')
     def resolve_thumbnail_url(self, info, *, size=None):
@@ -478,6 +483,9 @@ class ProductType(CountableDjangoObjectType):
         attributes are available to products of this type.""")
         interfaces = [relay.Node]
         model = models.ProductType
+        only_fields = [
+            'has_variants', 'id', 'is_digital', 'is_shipping_required', 'name',
+            'weight']
 
     def resolve_product_attributes(self, info, **kwargs):
         return self.product_attributes.all()
@@ -515,9 +523,9 @@ class Collection(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a collection of products."
-        exclude_fields = [
-            'voucher_set', 'sale_set', 'menuitem_set', 'background_image_alt',
-            'translations']
+        only_fields = [
+            'description', 'description_json', 'id', 'is_published', 'name',
+            'publication_date', 'seo_description', 'seo_title', 'slug']
         interfaces = [relay.Node]
         model = models.Collection
 
@@ -581,9 +589,9 @@ class Category(CountableDjangoObjectType):
         description = dedent("""Represents a single category of products.
         Categories allow to organize products in a tree-hierarchies which can
         be used for navigation in the storefront.""")
-        exclude_fields = [
-            'lft', 'rght', 'tree_id', 'voucher_set', 'sale_set',
-            'menuitem_set', 'background_image_alt', 'translations']
+        only_fields = [
+            'description', 'description_json', 'id', 'level', 'name', 'parent',
+            'seo_description', 'seo_title', 'slug']
         interfaces = [relay.Node]
         model = models.Category
 
@@ -630,9 +638,7 @@ class ProductImage(CountableDjangoObjectType):
 
     class Meta:
         description = 'Represents a product image.'
-        exclude_fields = [
-            'image', 'product', 'ppoi', 'productvariant_set',
-            'variant_images']
+        only_fields = ['alt', 'id', 'sort_order']
         interfaces = [relay.Node]
         model = models.ProductImage
 

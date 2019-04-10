@@ -19,7 +19,9 @@ class Transaction(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Transaction
         filter_fields = ['id']
-        exclude_fields = ['currency']
+        only_fields = [
+            'id', 'created', 'payment', 'token', 'kind', 'is_success',
+            'error', 'gateway_response']
 
     def resolve_amount(self, info):
         return self.get_amount()
@@ -70,11 +72,10 @@ class Payment(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Payment
         filter_fields = ['id']
-        exclude_fields = [
-            'billing_first_name', 'billing_last_name', 'billing_company_name',
-            'billing_address_1', 'billing_address_2', 'billing_city',
-            'billing_postal_code', 'billing_country_code',
-            'billing_country_area', 'currency', 'billing_city_area']
+        only_fields = [
+            'id', 'gateway', 'is_active', 'created', 'modified', 'token',
+            'checkout', 'order', 'billing_email', 'customer_ip_address',
+            'extra_data']
 
     @gql_optimizer.resolver_hints(prefetch_related='transactions')
     def resolve_actions(self, info):
