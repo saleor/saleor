@@ -166,4 +166,4 @@ snapshottest==0.5.0
 pytest-django==3.4.5
 factory-boy==2.11.1
 
-djangorestframework-csvs==2.1.0
+djangorestframework-csv==2.1.0
