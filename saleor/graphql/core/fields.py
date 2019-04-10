@@ -1,3 +1,5 @@
+from functools import partial
+
 import graphene
 from django.db.models.query import QuerySet
 from django_measurement.models import MeasurementField
@@ -66,3 +68,46 @@ class PrefetchingConnectionField(DjangoConnectionField):
         connection.iterable = iterable
         connection.length = _len
         return connection
+
+
+class FilterInputConnectionField(DjangoConnectionField):
+    def __init__(self, type, *args, **kwargs):
+        self.filters_obj = kwargs.get('filters')
+        self.filterset_class = None
+        if self.filters_obj:
+            self.filterset_class = self.filters_obj.filterset_class
+        super().__init__(type, *args, **kwargs)
+
+    @classmethod
+    def connection_resolver(
+            cls, resolver, connection, default_manager, max_limit,
+            enforce_first_or_last, filterset_class, root, info, **args):
+        filters_input = args.get('filters')
+        qs = default_manager
+        if filters_input and filterset_class:
+            qs = filterset_class(
+                data=dict(filters_input),
+                queryset=default_manager.get_queryset(),
+                request=info.context).qs
+
+        return super().connection_resolver(
+            resolver,
+            connection,
+            qs,
+            max_limit,
+            enforce_first_or_last,
+            root,
+            info,
+            **args
+        )
+
+    def get_resolver(self, parent_resolver):
+        return partial(
+            self.connection_resolver,
+            parent_resolver,
+            self.type,
+            self.get_manager(),
+            self.max_limit,
+            self.enforce_first_or_last,
+            self.filterset_class
+        )

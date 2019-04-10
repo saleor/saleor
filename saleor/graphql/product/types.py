@@ -18,7 +18,9 @@ from ...product.utils.costs import (
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import ReportingPeriod, TaxRateType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ..core.types import (
+    FilterInputObjectType, Image, Money, MoneyRange, TaxedMoney,
+    TaxedMoneyRange)
 from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import (
@@ -27,6 +29,7 @@ from ..translations.types import (
 from ..utils import get_database_id, reporting_period_to_date
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeValueType, OrderDirection, ProductOrderField
+from .filters import ProductFilter
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -299,6 +302,11 @@ class ProductAvailability(graphene.ObjectType):
 
     class Meta:
         description = 'Represents availability of a product in the storefront.'
+
+
+class ProductFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductFilter
 
 
 class Product(CountableDjangoObjectType):

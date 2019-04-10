@@ -1,10 +1,12 @@
 from textwrap import dedent
 
 import graphene
+from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
 from ..core.enums import ReportingPeriod
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import (
+    FilterInputConnectionField, PrefetchingConnectionField)
 from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import (
     AttributeTranslate, AttributeValueTranslate, CategoryTranslate,
@@ -35,8 +37,8 @@ from .resolvers import (
     resolve_products, resolve_report_product_sales)
 from .scalars import AttributeScalar
 from .types import (
-    Attribute, Category, Collection, DigitalContent, Product, ProductOrder,
-    ProductType, ProductVariant)
+    Attribute, Category, Collection, DigitalContent, Product,
+    ProductFilterInput, ProductOrder, ProductType, ProductVariant)
 
 
 class ProductQueries(graphene.ObjectType):
@@ -76,8 +78,9 @@ class ProductQueries(graphene.ObjectType):
     product = graphene.Field(
         Product, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a product by ID.')
-    products = PrefetchingConnectionField(
+    products = FilterInputConnectionField(
         Product,
+        filters=ProductFilterInput(),
         attributes=graphene.List(
             AttributeScalar, description='Filter products by attributes.'),
         categories=graphene.List(
