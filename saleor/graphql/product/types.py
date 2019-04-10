@@ -383,7 +383,8 @@ class Product(CountableDjangoObjectType):
         Money,
         description=dedent("""The product's base price (without any discounts
         applied)."""),
-        deprecation_reason='Has been replaced by \'pricing.price_range_undiscounted\'')
+        deprecation_reason=(
+            'Has been replaced by \'pricing.price_range_undiscounted\''))
     tax_rate = TaxRateType(description='A type of tax rate.')
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
