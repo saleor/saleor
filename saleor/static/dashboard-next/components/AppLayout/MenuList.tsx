@@ -99,13 +99,15 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     onMenuItemClick
   }: MenuListProps & WithStyles<typeof styles>) => (
     <div className={className}>
+      {/* FIXME: this .split("?")[0] looks gross */}
       {menuItems.map(menuItem => {
         const isActive = (menuItem: IMenuItem) =>
-          location === orderDraftListUrl() && menuItem.url === orderListUrl()
+          location.split("?")[0] === orderDraftListUrl().split("?")[0] &&
+          menuItem.url.split("?")[0] === orderListUrl().split("?")[0]
             ? false
-            : !!matchPath(location, {
-                exact: menuItem.url === "/",
-                path: menuItem.url
+            : !!matchPath(location.split("?")[0], {
+                exact: menuItem.url.split("?")[0] === "/",
+                path: menuItem.url.split("?")[0]
               });
 
         if (
