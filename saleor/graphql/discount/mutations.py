@@ -164,7 +164,7 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         description = 'Adds products, categories, collections to a voucher.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
@@ -181,7 +181,7 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
             'Removes products, categories, collections from a voucher.')
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
@@ -275,7 +275,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         description = 'Adds products, categories, collections to a voucher.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
@@ -291,7 +291,7 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         description = 'Removes products, categories, collections from a sale.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod

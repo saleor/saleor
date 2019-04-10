@@ -124,7 +124,7 @@ class FulfillmentCreate(BaseMutation):
         return fulfillment
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -159,7 +159,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         description = 'Updates a fulfillment for an order.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -197,7 +197,7 @@ class FulfillmentCancel(BaseMutation):
         and optionally restocks items.""")
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod

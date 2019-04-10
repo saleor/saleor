@@ -48,7 +48,7 @@ class ShopSettingsUpdate(BaseMutation):
         description = 'Updates shop settings'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_settings')
 
     @classmethod
@@ -74,7 +74,7 @@ class ShopDomainUpdate(BaseMutation):
         description = 'Updates site domain of the shop'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_settings')
 
     @classmethod
@@ -99,7 +99,7 @@ class ShopFetchTaxRates(BaseMutation):
         description = 'Fetch tax rates'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_settings')
 
     @classmethod
@@ -123,7 +123,7 @@ class HomepageCollectionUpdate(BaseMutation):
         description = 'Updates homepage collection of the shop'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_settings')
 
     @classmethod
@@ -160,7 +160,7 @@ class AuthorizationKeyAdd(BaseMutation):
             description='Fields required to create an authorization key.')
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_settings')
 
     @classmethod
@@ -190,7 +190,7 @@ class AuthorizationKeyDelete(BaseMutation):
         description = 'Deletes an authorization key.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_settings')
 
     @classmethod

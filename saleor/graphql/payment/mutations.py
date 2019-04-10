@@ -104,7 +104,7 @@ class PaymentCapture(BaseMutation):
         description = 'Captures the authorized payment amount'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -124,7 +124,7 @@ class PaymentRefund(PaymentCapture):
         description = 'Refunds the captured payment amount'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
@@ -148,7 +148,7 @@ class PaymentVoid(BaseMutation):
         description = 'Voids the authorized payment'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod

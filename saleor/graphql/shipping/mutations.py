@@ -204,7 +204,7 @@ class ShippingPriceDelete(BaseMutation):
         description = 'Deletes a shipping price.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
     @classmethod

@@ -182,8 +182,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         else:
             checkout = models.Cart()
 
-        cleaned_input = cls.clean_input(
-            data.get('input'), checkout, input)
+        cleaned_input = cls.clean_input(info, checkout, data.get('input'))
         checkout = cls.construct_instance(checkout, cleaned_input)
         cls.clean_instance(checkout)
         cls.save(info, checkout, cleaned_input)

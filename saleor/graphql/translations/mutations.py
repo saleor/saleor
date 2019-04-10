@@ -17,7 +17,7 @@ class BaseTranslateMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_translations')
 
     @classmethod
@@ -214,7 +214,7 @@ class ShopSettingsTranslate(BaseMutation):
         description = 'Creates/Updates translations for Shop Settings.'
 
     @classmethod
-    def user_is_allowed(cls, user, _data):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_translations')
 
     @classmethod
