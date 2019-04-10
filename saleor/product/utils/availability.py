@@ -66,7 +66,7 @@ def _get_total_discount(
         if undiscounted > discounted:
             return undiscounted - discounted
     elif undiscounted.start > discounted.start:
-        return undiscounted - discounted
+        return undiscounted.start - discounted.stop
     return None
 
 
