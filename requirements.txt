@@ -165,3 +165,5 @@ snapshottest==0.5.0
 
 pytest-django==3.4.5
 factory-boy==2.11.1
+
+rest_framework_csv==2.1.0
