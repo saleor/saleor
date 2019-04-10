@@ -72,6 +72,7 @@ def automatically_fulfill_digital_lines(order: Order):
             fulfillment=fulfillment, order_line=line,
             quantity=quantity)
         fulfill_order_line(order_line=line, quantity=quantity)
+    update_order_status(order)
     emails.send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
 
 
