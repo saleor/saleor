@@ -2,9 +2,10 @@ import functools
 import operator
 from collections import defaultdict
 
+import django_filters
 from django.db.models import Q
 
-from ...product.models import Attribute
+from ...product.models import Attribute, Product
 
 
 def filter_products_by_attributes(qs, filter_value):
@@ -59,3 +60,16 @@ def sort_qs(qs, sort_by_product_order):
         qs = qs.order_by(sort_by_product_order['direction']
                          + sort_by_product_order['field'])
     return qs
+
+
+class ProductFilter(django_filters.FilterSet):
+    is_published = django_filters.BooleanFilter()
+
+    class Meta:
+        model = Product
+        fields = {
+            'name': ['exact', 'icontains'],
+            'category': ['exact'],
+            'product_type__id': ['exact'],
+            'price': ['exact', 'lt', 'gt'],
+        }
