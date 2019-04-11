@@ -1,14 +1,35 @@
-import { useEffect } from "react";
+import { useState } from "react";
 
-import useListSelector from "./useListSelector";
+function useBulkActions(initial: string[] = []) {
+  const [listElements, setListElements] = useState(initial);
 
-interface ConnectionNode {
-  id: string;
-}
-function useBulkActions(list: ConnectionNode[]) {
-  const listSelectorFuncs = useListSelector();
-  useEffect(() => listSelectorFuncs.reset, [list === undefined, list === null]);
+  function isSelected(id: string) {
+    return !!listElements.find(listElement => listElement === id);
+  }
 
-  return listSelectorFuncs;
+  function add(id: string) {
+    setListElements([...listElements, id]);
+  }
+
+  function remove(id: string) {
+    setListElements(listElements.filter(listElement => listElement !== id));
+  }
+
+  function reset() {
+    setListElements(initial);
+  }
+
+  function toggle(id: string) {
+    isSelected(id) ? remove(id) : add(id);
+  }
+
+  return {
+    add,
+    isSelected,
+    listElements,
+    remove,
+    reset,
+    toggle
+  };
 }
 export default useBulkActions;
