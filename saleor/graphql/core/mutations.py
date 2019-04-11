@@ -403,7 +403,7 @@ class BaseBulkMutation(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, ids):
         """Perform a mutation that deletes a list of model instances."""
-        clean_instances, errors = [], {}
+        clean_instance_ids, errors = [], {}
         instance_model = cls._meta.model
         model_type = registry.get_type_for_model(instance_model)
         instances = cls.get_nodes_or_error(ids, 'id', model_type)
@@ -419,7 +419,7 @@ class BaseBulkMutation(BaseMutation):
                 instance_errors.append(msg)
 
             if not instance_errors:
-                clean_instances.append(instance.pk)
+                clean_instance_ids.append(instance.pk)
             else:
                 instance_errors_msg = '. '.join(instance_errors)
                 ValidationError({
@@ -427,9 +427,9 @@ class BaseBulkMutation(BaseMutation):
 
         if errors:
             errors = ValidationError(errors)
-        count = len(clean_instances)
+        count = len(clean_instance_ids)
         if count:
-            qs = instance_model.objects.filter(pk__in=clean_instances)
+            qs = instance_model.objects.filter(pk__in=clean_instance_ids)
             cls.bulk_action(queryset=qs)
         return count, errors
 
