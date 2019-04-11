@@ -461,24 +461,51 @@ def test_menu_reorder_assign_parent_to_top_level(
     assert root.parent is None
 
 
-def test_menu_reorder_assign_parent_to_leaf(
+def test_menu_reorder_cannot_assign_to_ancestor(
         staff_api_client, permission_manage_menus, menu_item_list):
 
     root = menu_item_list[0]
     root_node_id = graphene.Node.to_global_id('MenuItem', root.pk)
 
-    # Give to the item menu a parent
-    root.move_to(menu_item_list[1])
-    root.save()
+    child = menu_item_list[2]
+    child_node_id = graphene.Node.to_global_id('MenuItem', child.pk)
 
-    assert root.parent
+    # Give the child an ancestor
+    child.move_to(root)
+    child.save()
+
+    # Give the child an ancestor
+    child.move_to(root)
+    child.save()
+
+    assert not root.parent
+    assert child.parent
 
     move = [{
         "itemId": root_node_id,
-        "parentId": root_node_id,
+        "parentId": child_node_id,
         "sortOrder": None
     }]
 
     response = get_graphql_content(staff_api_client.post_graphql(
         QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
-    assert response['data']['menuItemMove']['errors']
+    assert response['data']['menuItemMove']['errors'] == [
+        {'field': 'parent',
+         'message': 'Cannot assign a node as child of '
+                    'one of its descendants.'}]
+
+
+def test_menu_reorder_cannot_assign_to_itself(
+        staff_api_client, permission_manage_menus, menu_item):
+    node_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
+    move = [{
+        "itemId": node_id,
+        "parentId": node_id,
+        "sortOrder": None
+    }]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+    assert response['data']['menuItemMove']['errors'] == [
+        {'field': 'parent',
+         'message': 'Cannot assign a node to itself.'}]
