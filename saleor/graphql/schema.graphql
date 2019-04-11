@@ -1195,7 +1195,7 @@ type Mutations {
   menuItemBulkDelete(ids: [ID]!): MenuItemBulkDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
-  menuItemMove(move: [MenuItemMoveInput]!): MenuItemMove
+  menuItemMove(moves: [MenuItemMoveInput]!): MenuItemMove
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
