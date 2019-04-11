@@ -33,7 +33,7 @@ const menuStructure: IMenuItem[] = [
       {
         ariaLabel: "categories",
         label: i18n.t("Categories", { context: "Menu label" }),
-        url: categoryListUrl
+        url: categoryListUrl()
       },
       {
         ariaLabel: "collections",

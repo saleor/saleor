@@ -13,7 +13,7 @@ import { Tab } from "../../../components/Tab";
 import TabContainer from "../../../components/Tab/TabContainer";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { UserError, ListActionProps } from "../../../types";
+import { ListActionProps, UserError } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
 import {
@@ -38,7 +38,7 @@ export enum CategoryPageTab {
 }
 
 export interface CategoryUpdatePageProps
-  extends ListActionProps<"onBulkProductDelete"> {
+  extends ListActionProps<"onBulkCategoryDelete" | "onBulkProductDelete"> {
   changeTab: (index: CategoryPageTab) => void;
   currentTab: CategoryPageTab;
   errors: UserError[];
@@ -82,6 +82,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
   onAddCategory,
   onAddProduct,
   onBack,
+  onBulkCategoryDelete,
   onBulkProductDelete,
   onCategoryClick,
   onDelete,
@@ -168,6 +169,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
               isRoot={false}
               categories={subcategories}
               onAdd={onAddCategory}
+              onBulkDelete={onBulkCategoryDelete}
               onRowClick={onCategoryClick}
               onNextPage={onNextPage}
               onPreviousPage={onPreviousPage}

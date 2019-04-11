@@ -18,10 +18,12 @@ import {
   CategoryUpdatePage
 } from "../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
+  TypedCategoryBulkDeleteMutation,
   TypedCategoryDeleteMutation,
   TypedCategoryUpdateMutation
 } from "../mutations";
 import { TypedCategoryDetailsQuery } from "../queries";
+import { CategoryBulkDelete } from "../types/CategoryBulkDelete";
 import { CategoryDelete } from "../types/CategoryDelete";
 import { CategoryUpdate } from "../types/CategoryUpdate";
 import {
@@ -124,6 +126,18 @@ export const CategoryDetails: React.StatelessComponent<
                 require={["category"]}
               >
                 {({ data, loading, refetch }) => {
+                  const handleBulkCategoryDelete = (
+                    data: CategoryBulkDelete
+                  ) => {
+                    if (data.categoryBulkDelete.errors.length === 0) {
+                      closeModal();
+                      notify({
+                        text: i18n.t("Categories removed")
+                      });
+                      refetch();
+                    }
+                  };
+
                   const handleBulkProductDelete = (data: productBulkDelete) => {
                     if (data.productBulkDelete.errors.length === 0) {
                       closeModal();
@@ -143,161 +157,217 @@ export const CategoryDetails: React.StatelessComponent<
                   return (
                     <>
                       <WindowTitle title={maybe(() => data.category.name)} />
-                      <TypedProductBulkDeleteMutation
-                        onCompleted={handleBulkProductDelete}
+                      <TypedCategoryBulkDeleteMutation
+                        onCompleted={handleBulkCategoryDelete}
                       >
-                        {(productBulkDelete, productBulkDeleteOpts) => {
-                          const bulkDeleteMutationState = getMutationState(
-                            productBulkDeleteOpts.called,
-                            productBulkDeleteOpts.loading,
-                            maybe(
-                              () =>
-                                productBulkDeleteOpts.data.productBulkDelete
-                                  .errors
-                            )
-                          );
+                        {(categoryBulkDelete, categoryBulkDeleteOpts) => (
+                          <TypedProductBulkDeleteMutation
+                            onCompleted={handleBulkProductDelete}
+                          >
+                            {(productBulkDelete, productBulkDeleteOpts) => {
+                              const categoryBulkDeleteMutationState = getMutationState(
+                                categoryBulkDeleteOpts.called,
+                                categoryBulkDeleteOpts.loading,
+                                maybe(
+                                  () =>
+                                    categoryBulkDeleteOpts.data
+                                      .categoryBulkDelete.errors
+                                )
+                              );
+                              const productBulkDeleteMutationState = getMutationState(
+                                productBulkDeleteOpts.called,
+                                productBulkDeleteOpts.loading,
+                                maybe(
+                                  () =>
+                                    productBulkDeleteOpts.data.productBulkDelete
+                                      .errors
+                                )
+                              );
 
-                          return (
-                            <>
-                              <CategoryUpdatePage
-                                changeTab={changeTab}
-                                currentTab={params.activeTab}
-                                category={maybe(() => data.category)}
-                                disabled={loading}
-                                errors={maybe(
-                                  () => updateResult.data.categoryUpdate.errors
-                                )}
-                                onAddCategory={() =>
-                                  navigate(categoryAddUrl(id))
-                                }
-                                onAddProduct={() => navigate(productAddUrl)}
-                                onBack={() =>
-                                  navigate(
-                                    maybe(
+                              return (
+                                <>
+                                  <CategoryUpdatePage
+                                    changeTab={changeTab}
+                                    currentTab={params.activeTab}
+                                    category={maybe(() => data.category)}
+                                    disabled={loading}
+                                    errors={maybe(
                                       () =>
-                                        categoryUrl(data.category.parent.id),
-                                      categoryListUrl
-                                    )
-                                  )
-                                }
-                                onBulkProductDelete={ids =>
-                                  openModal("delete-products", ids)
-                                }
-                                onCategoryClick={id => () =>
-                                  navigate(categoryUrl(id))}
-                                onDelete={() => openModal("delete")}
-                                onImageDelete={() =>
-                                  updateCategory({
-                                    variables: {
-                                      id,
-                                      input: {
-                                        backgroundImage: null
-                                      }
+                                        updateResult.data.categoryUpdate.errors
+                                    )}
+                                    onAddCategory={() =>
+                                      navigate(categoryAddUrl(id))
                                     }
-                                  })
-                                }
-                                onImageUpload={file =>
-                                  updateCategory({
-                                    variables: {
-                                      id,
-                                      input: {
-                                        backgroundImage: file
-                                      }
-                                    }
-                                  })
-                                }
-                                onNextPage={loadNextPage}
-                                onPreviousPage={loadPreviousPage}
-                                pageInfo={pageInfo}
-                                onProductClick={id => () =>
-                                  navigate(productUrl(id))}
-                                onSubmit={formData =>
-                                  updateCategory({
-                                    variables: {
-                                      id,
-                                      input: {
-                                        backgroundImageAlt:
-                                          formData.backgroundImageAlt,
-                                        descriptionJson: JSON.stringify(
-                                          formData.description
-                                        ),
-                                        name: formData.name,
-                                        seo: {
-                                          description: formData.seoDescription,
-                                          title: formData.seoTitle
-                                        }
-                                      }
-                                    }
-                                  })
-                                }
-                                products={maybe(() =>
-                                  data.category.products.edges.map(
-                                    edge => edge.node
-                                  )
-                                )}
-                                saveButtonBarState={formTransitionState}
-                                subcategories={maybe(() =>
-                                  data.category.children.edges.map(
-                                    edge => edge.node
-                                  )
-                                )}
-                              />
-                              <ActionDialog
-                                confirmButtonState={removeDialogTransitionState}
-                                onClose={() => closeModal}
-                                onConfirm={() =>
-                                  deleteCategory({ variables: { id } })
-                                }
-                                open={params.action === "delete"}
-                                title={i18n.t("Delete category", {
-                                  context: "modal title"
-                                })}
-                                variant="delete"
-                              >
-                                <DialogContentText
-                                  dangerouslySetInnerHTML={{
-                                    __html: i18n.t(
-                                      "Are you sure you want to remove <strong>{{ categoryName }}</strong>?",
-                                      {
-                                        categoryName: maybe(
-                                          () => data.category.name
-                                        ),
-                                        context: "modal message"
-                                      }
-                                    )
-                                  }}
-                                />
-                              </ActionDialog>
-                              <ActionDialog
-                                open={params.action === "delete-products"}
-                                confirmButtonState={bulkDeleteMutationState}
-                                onClose={closeModal}
-                                onConfirm={() =>
-                                  productBulkDelete({
-                                    variables: { ids: params.ids }
-                                  })
-                                }
-                                title={i18n.t("Remove products")}
-                                variant="delete"
-                              >
-                                <DialogContentText
-                                  dangerouslySetInnerHTML={{
-                                    __html: i18n.t(
-                                      "Are you sure you want to remove <strong>{{ number }}</strong> products?",
-                                      {
-                                        number: maybe(
-                                          () => params.ids.length.toString(),
-                                          "..."
+                                    onAddProduct={() => navigate(productAddUrl)}
+                                    onBack={() =>
+                                      navigate(
+                                        maybe(
+                                          () =>
+                                            categoryUrl(
+                                              data.category.parent.id
+                                            ),
+                                          categoryListUrl()
                                         )
-                                      }
-                                    )
-                                  }}
-                                />
-                              </ActionDialog>
-                            </>
-                          );
-                        }}
-                      </TypedProductBulkDeleteMutation>
+                                      )
+                                    }
+                                    onBulkCategoryDelete={ids =>
+                                      openModal("delete-categories", ids)
+                                    }
+                                    onBulkProductDelete={ids =>
+                                      openModal("delete-products", ids)
+                                    }
+                                    onCategoryClick={id => () =>
+                                      navigate(categoryUrl(id))}
+                                    onDelete={() => openModal("delete")}
+                                    onImageDelete={() =>
+                                      updateCategory({
+                                        variables: {
+                                          id,
+                                          input: {
+                                            backgroundImage: null
+                                          }
+                                        }
+                                      })
+                                    }
+                                    onImageUpload={file =>
+                                      updateCategory({
+                                        variables: {
+                                          id,
+                                          input: {
+                                            backgroundImage: file
+                                          }
+                                        }
+                                      })
+                                    }
+                                    onNextPage={loadNextPage}
+                                    onPreviousPage={loadPreviousPage}
+                                    pageInfo={pageInfo}
+                                    onProductClick={id => () =>
+                                      navigate(productUrl(id))}
+                                    onSubmit={formData =>
+                                      updateCategory({
+                                        variables: {
+                                          id,
+                                          input: {
+                                            backgroundImageAlt:
+                                              formData.backgroundImageAlt,
+                                            descriptionJson: JSON.stringify(
+                                              formData.description
+                                            ),
+                                            name: formData.name,
+                                            seo: {
+                                              description:
+                                                formData.seoDescription,
+                                              title: formData.seoTitle
+                                            }
+                                          }
+                                        }
+                                      })
+                                    }
+                                    products={maybe(() =>
+                                      data.category.products.edges.map(
+                                        edge => edge.node
+                                      )
+                                    )}
+                                    saveButtonBarState={formTransitionState}
+                                    subcategories={maybe(() =>
+                                      data.category.children.edges.map(
+                                        edge => edge.node
+                                      )
+                                    )}
+                                  />
+                                  <ActionDialog
+                                    confirmButtonState={
+                                      removeDialogTransitionState
+                                    }
+                                    onClose={() => closeModal}
+                                    onConfirm={() =>
+                                      deleteCategory({ variables: { id } })
+                                    }
+                                    open={params.action === "delete"}
+                                    title={i18n.t("Delete category", {
+                                      context: "modal title"
+                                    })}
+                                    variant="delete"
+                                  >
+                                    <DialogContentText
+                                      dangerouslySetInnerHTML={{
+                                        __html: i18n.t(
+                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>?",
+                                          {
+                                            categoryName: maybe(
+                                              () => data.category.name
+                                            ),
+                                            context: "modal message"
+                                          }
+                                        )
+                                      }}
+                                    />
+                                  </ActionDialog>
+                                  <ActionDialog
+                                    open={params.action === "delete-categories"}
+                                    confirmButtonState={
+                                      categoryBulkDeleteMutationState
+                                    }
+                                    onClose={closeModal}
+                                    onConfirm={() =>
+                                      categoryBulkDelete({
+                                        variables: { ids: params.ids }
+                                      })
+                                    }
+                                    title={i18n.t("Remove categories")}
+                                    variant="delete"
+                                  >
+                                    <DialogContentText
+                                      dangerouslySetInnerHTML={{
+                                        __html: i18n.t(
+                                          "Are you sure you want to remove <strong>{{ number }}</strong> categories?",
+                                          {
+                                            number: maybe(
+                                              () =>
+                                                params.ids.length.toString(),
+                                              "..."
+                                            )
+                                          }
+                                        )
+                                      }}
+                                    />
+                                  </ActionDialog>
+                                  <ActionDialog
+                                    open={params.action === "delete-products"}
+                                    confirmButtonState={
+                                      productBulkDeleteMutationState
+                                    }
+                                    onClose={closeModal}
+                                    onConfirm={() =>
+                                      productBulkDelete({
+                                        variables: { ids: params.ids }
+                                      })
+                                    }
+                                    title={i18n.t("Remove products")}
+                                    variant="delete"
+                                  >
+                                    <DialogContentText
+                                      dangerouslySetInnerHTML={{
+                                        __html: i18n.t(
+                                          "Are you sure you want to remove <strong>{{ number }}</strong> products?",
+                                          {
+                                            number: maybe(
+                                              () =>
+                                                params.ids.length.toString(),
+                                              "..."
+                                            )
+                                          }
+                                        )
+                                      }}
+                                    />
+                                  </ActionDialog>
+                                </>
+                              );
+                            }}
+                          </TypedProductBulkDeleteMutation>
+                        )}
+                      </TypedCategoryBulkDeleteMutation>
                     </>
                   );
                 }}

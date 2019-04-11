@@ -8,11 +8,14 @@ import { fade } from "@material-ui/core/styles/colorManipulator";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import * as classNames from "classnames";
 import * as React from "react";
+
 import i18n from "../../i18n";
 
 export interface TableActionsProps {
   children: React.ReactNode;
+  className?: string;
   selected?: number;
 }
 
@@ -42,10 +45,11 @@ const styles = (theme: Theme) =>
 const TableActions = withStyles(styles, { name: "TableActions" })(
   ({
     classes,
+    className,
     children,
     selected
   }: TableActionsProps & WithStyles<typeof styles>) => (
-    <TableRow className={classes.root}>
+    <TableRow className={classNames(classes.root, className)}>
       <TableCell className={classes.cell} colSpan={9999}>
         <div className={classes.container}>
           {selected && (
