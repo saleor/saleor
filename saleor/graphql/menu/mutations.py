@@ -199,7 +199,7 @@ class MenuItemDelete(ModelDeleteMutation):
 
 
 _MenuMoveOperation = namedtuple(
-    '_MenuMoveOperation', ('menuItem', 'parent', 'sort_order'))
+    '_MenuMoveOperation', ('menu_item', 'parent', 'sort_order'))
 
 
 class MenuItemMove(BaseMutation):
@@ -227,7 +227,7 @@ class MenuItemMove(BaseMutation):
         """Validate if the given move will be actually possible."""
 
         if operation.parent:
-            if operation.menuItem.is_ancestor_of(operation.parent):
+            if operation.menu_item.is_ancestor_of(operation.parent):
                 raise ValidationError({
                     'parent': (
                         'Cannot assign a node as child of '
@@ -246,7 +246,7 @@ class MenuItemMove(BaseMutation):
                 field='parent_id', only_type=MenuItem)
 
         return _MenuMoveOperation(
-            menuItem=menu_item,
+            menu_item=menu_item,
             parent=parent_node,
             sort_order=move.sort_order)
 
@@ -268,7 +268,7 @@ class MenuItemMove(BaseMutation):
 
     @staticmethod
     def process_item(item: _MenuMoveOperation):
-        menu_item = item.menuItem  # type: models.MenuItem
+        menu_item = item.menu_item  # type: models.MenuItem
 
         # Move the parent if provided
         if item.parent:
@@ -290,7 +290,7 @@ class MenuItemMove(BaseMutation):
 
         for item in move:
             cls.process_item(item)
-            menu_items.append(item)
+            menu_items.append(item.menu_item)
 
         return cls(menu_item=menu_items)
 
