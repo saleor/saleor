@@ -547,14 +547,10 @@ class AddressSetDefault(BaseMutation):
             raise ValidationError({
                 'address_id': 'The address doesn\'t belong to that user.'})
 
-        raw_address_type = data.get('type')
-        if raw_address_type == AddressTypeEnum.BILLING.value:
+        if data.get('type') == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
-        elif raw_address_type == AddressTypeEnum.SHIPPING.value:
-            address_type = AddressType.SHIPPING
         else:
-            raise ValueError(
-                'Unknown value of AddressTypeEnum: %s' % raw_address_type)
+            address_type = AddressType.SHIPPING
 
         utils.change_user_default_address(user, address, address_type)
         return cls(user=user)
@@ -622,11 +618,9 @@ class CustomerSetDefaultAddress(BaseMutation):
             raise ValidationError({
                 'id': 'The address doesn\'t belong to that user.'})
 
-        raw_address_type = data.get('type')
-        address_type = None
-        if raw_address_type == AddressTypeEnum.BILLING.value:
+        if data.get('type') == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
-        elif raw_address_type == AddressTypeEnum.SHIPPING.value:
+        else:
             address_type = AddressType.SHIPPING
 
         utils.change_user_default_address(user, address, address_type)
