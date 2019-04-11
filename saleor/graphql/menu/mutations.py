@@ -266,28 +266,31 @@ class MenuItemMove(BaseMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('menu.manage_menus')
 
+    @staticmethod
+    def process_item(item: _MenuMoveOperation):
+        menu_item = item.menuItem  # type: models.MenuItem
+
+        # Move the parent if provided
+        if item.parent:
+            menu_item.move_to(item.parent)
+        # Remove the menu item's parent if was set to none (root node)
+        elif menu_item.parent_id:
+            menu_item.parent_id = None
+
+        # Move the menu item
+        if item.sort_order is not None:
+            menu_item.sort_order = item.sort_order
+
+        menu_item.save()
+
     @classmethod
     def perform_mutation(cls, root, info, move):
         move = cls.clean_move(info, move)
         menu_items = []
 
         for item in move:
-            menu_item = item.menuItem  # type: models.MenuItem
-
-            # Move the parent if provided
-            if item.parent:
-                menu_item.move_to(item.parent)
-            # Remove the menu item's parent if was set to none (root node)
-            elif menu_item.parent_id:
-                menu_item.parent_id = None
-
-            # Move the menu item
-            if item.sort_order is not None:
-                menu_item.sort_order = item.sort_order
-
-            # Commit
-            menu_item.save()
-            menu_items.append(menu_item)
+            cls.process_item(item)
+            menu_items.append(item)
 
         return cls(menu_item=menu_items)
 
