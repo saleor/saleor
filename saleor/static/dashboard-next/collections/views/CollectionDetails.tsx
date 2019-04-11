@@ -210,7 +210,7 @@ export const CollectionDetails: React.StatelessComponent<
                     {({ loadNextPage, loadPreviousPage, pageInfo }) => (
                       <CollectionDetailsPage
                         onAdd={() => openModal("assign")}
-                        onBack={() => navigate(collectionListUrl)}
+                        onBack={() => navigate(collectionListUrl())}
                         disabled={loading}
                         collection={data.collection}
                         isFeatured={maybe(

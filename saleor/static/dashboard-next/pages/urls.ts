@@ -10,7 +10,7 @@ export type PageListUrlDialog = "remove";
 export type PageListUrlQueryParams = BulkAction &
   Dialog<PageListUrlDialog> &
   Pagination;
-export const pageListUrl = (params: PageListUrlQueryParams) =>
+export const pageListUrl = (params?: PageListUrlQueryParams) =>
   pageListPath + "?" + stringifyQs(params);
 
 export const pagePath = (id: string) => urlJoin(pagesSection, id);
