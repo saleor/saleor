@@ -84,14 +84,6 @@ def menu_item_list(menu):
 
 
 @pytest.fixture
-def page_list():
-    page_1 = Page.objects.create(slug='page-1', title='Page 1')
-    page_2 = Page.objects.create(slug='page-2', title='Page 2')
-    page_3 = Page.objects.create(slug='page-3', title='Page 3')
-    return page_1, page_2, page_3
-
-
-@pytest.fixture
 def product_type_list():
     product_type_1 = ProductType.objects.create(name='Type 1')
     product_type_2 = ProductType.objects.create(name='Type 2')
@@ -401,7 +393,7 @@ def test_delete_pages(
         query, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
 
-    assert content['data']['pageBulkDelete']['count'] == 3
+    assert content['data']['pageBulkDelete']['count'] == len(page_list)
     assert not Page.objects.filter(
         id__in=[page.id for page in page_list]).exists()
 
