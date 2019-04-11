@@ -227,8 +227,8 @@ def test_filter_input():
         class Meta:
             filterset_class = TestProductFilter
 
-    filter = TestFilter()
-    fields = filter._meta.fields
+    test_filter = TestFilter()
+    fields = test_filter._meta.fields
 
     assert 'product_type__id' in fields
     product_type_id = fields['product_type__id']
