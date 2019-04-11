@@ -6,11 +6,13 @@ import AppHeader from "../../../components/AppHeader";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
+import { ListActionProps, PageListProps } from "../../../types";
 import { PageList_pages_edges_node } from "../../types/PageList";
 import PageList from "../PageList/PageList";
 
-export interface PageListPageProps extends PageListProps {
+export interface PageListPageProps
+  extends PageListProps,
+    ListActionProps<"onBulkDelete"> {
   pages: PageList_pages_edges_node[];
   onBack: () => void;
 }
@@ -19,6 +21,7 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   disabled,
   onAdd,
   onBack,
+  onBulkDelete,
   onNextPage,
   onPreviousPage,
   onRowClick,
@@ -41,6 +44,7 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
     <PageList
       disabled={disabled}
       pages={pages}
+      onBulkDelete={onBulkDelete}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       onRowClick={onRowClick}

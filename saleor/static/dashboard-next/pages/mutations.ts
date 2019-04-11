@@ -2,6 +2,10 @@ import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
 import { pageDetailsFragment } from "./queries";
+import {
+  PageBulkRemove,
+  PageBulkRemoveVariables
+} from "./types/PageBulkRemove";
 import { PageCreate, PageCreateVariables } from "./types/PageCreate";
 import { PageRemove, PageRemoveVariables } from "./types/PageRemove";
 import { PageUpdate, PageUpdateVariables } from "./types/PageUpdate";
@@ -55,3 +59,18 @@ const pageRemove = gql`
 export const TypedPageRemove = TypedMutation<PageRemove, PageRemoveVariables>(
   pageRemove
 );
+
+const pageBulkRemove = gql`
+  mutation PageBulkRemove($ids: [ID]!) {
+    pageBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedPageBulkRemove = TypedMutation<
+  PageBulkRemove,
+  PageBulkRemoveVariables
+>(pageBulkRemove);

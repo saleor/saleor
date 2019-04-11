@@ -7,21 +7,19 @@ import i18n from "../i18n";
 import {
   pageCreatePath,
   pageListPath,
+  PageListUrlQueryParams,
   pagePath,
   PageUrlQueryParams
 } from "./urls";
 import PageCreate from "./views/PageCreate";
 import PageDetailsComponent from "./views/PageDetails";
-import PageListComponent, { PageListQueryParams } from "./views/PageList";
+import PageListComponent from "./views/PageList";
 
 const PageList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: PageListQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: PageListUrlQueryParams = qs;
   return <PageListComponent params={params} />;
 };
 
