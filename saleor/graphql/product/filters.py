@@ -70,6 +70,6 @@ class ProductFilter(django_filters.FilterSet):
         fields = {
             'name': ['exact', 'icontains'],
             'category': ['exact'],
-            'product_type__id': ['exact'],
+            'product_type': ['exact'],
             'price': ['exact', 'lt', 'gt'],
         }
