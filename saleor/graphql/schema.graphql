@@ -41,7 +41,7 @@ input AddressInput {
   city: String
   cityArea: String
   postalCode: String
-  country: String!
+  country: String
   countryArea: String
   phone: String
 }
@@ -796,8 +796,8 @@ type DraftOrderLinesBulkDelete {
 
 type DraftOrderLinesCreate {
   errors: [Error!]
-  order: Order!
-  orderLines: [OrderLine!]!
+  order: Order
+  orderLines: [OrderLine!]
 }
 
 type DraftOrderUpdate {
@@ -1149,6 +1149,8 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
+  pageBulkPublish(ids: [ID]!): PageBulkPublish
+  pageBulkUnpublish(ids: [ID]!): PageBulkUnpublish
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
   draftOrderComplete(id: ID!): DraftOrderComplete
@@ -1198,7 +1200,7 @@ type Mutations {
   tokenCreate(email: String!, password: String!): CreateToken
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
-  checkoutBillingAddressUpdate(billingAddress: AddressInput, checkoutId: ID): CheckoutBillingAddressUpdate
+  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
@@ -1208,7 +1210,7 @@ type Mutations {
   checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
-  checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
+  checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   passwordReset(email: String!): PasswordReset
@@ -1479,6 +1481,16 @@ type Page implements Node {
 }
 
 type PageBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
+type PageBulkPublish {
+  errors: [Error!]
+  count: Int!
+}
+
+type PageBulkUnpublish {
   errors: [Error!]
   count: Int!
 }
