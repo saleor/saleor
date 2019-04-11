@@ -207,7 +207,7 @@ class MenuItemMove(BaseMutation):
         MenuItem, description='Assigned menu to move within.')
 
     class Arguments:
-        move = graphene.List(
+        moves = graphene.List(
             MenuItemMoveInput,
             required=True, description='The menu position data')
 
@@ -251,7 +251,7 @@ class MenuItemMove(BaseMutation):
             sort_order=move.sort_order)
 
     @classmethod
-    def clean_move(
+    def clean_moves(
             cls, info, move_operations: List) -> List[_MenuMoveOperation]:
 
         operations = []
@@ -267,7 +267,7 @@ class MenuItemMove(BaseMutation):
         return user.has_perm('menu.manage_menus')
 
     @staticmethod
-    def process_item(item: _MenuMoveOperation):
+    def perform_operation(item: _MenuMoveOperation):
         menu_item = item.menu_item  # type: models.MenuItem
 
         # Move the parent if provided
@@ -284,13 +284,13 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    def perform_mutation(cls, root, info, move):
-        move = cls.clean_move(info, move)
+    def perform_mutation(cls, root, info, moves):
+        operations = cls.clean_moves(info, moves)
         menu_items = []
 
-        for item in move:
-            cls.process_item(item)
-            menu_items.append(item.menu_item)
+        for operation in operations:
+            cls.perform_operation(operation)
+            menu_items.append(operation.menu_item)
 
         return cls(menu_item=menu_items)
 

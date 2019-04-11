@@ -375,8 +375,8 @@ def test_assign_menu(
 
 
 QUERY_REORDER_MENU = '''
-mutation menuItemMove($move: [MenuItemMoveInput]!) {
-  menuItemMove(move: $move) {
+mutation menuItemMove($moves: [MenuItemMoveInput]!) {
+  menuItemMove(moves: $moves) {
     errors {
       field
       message
@@ -396,13 +396,13 @@ def test_menu_reorder(
     menu_item_list = list(menu_item_list)
     shuffle(menu_item_list)
 
-    move = [{
+    moves = [{
         "itemId": graphene.Node.to_global_id('MenuItem', item.pk),
         "parentId": None, "sortOrder": pos
     } for pos, item in enumerate(menu_item_list)]
 
     response = get_graphql_content(staff_api_client.post_graphql(
-        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+        QUERY_REORDER_MENU, {'moves': moves}, [permission_manage_menus]))
     assert not response['data']['menuItemMove'].get('errors')
 
     # Ensure the order is right
@@ -418,14 +418,14 @@ def test_menu_reorder_assign_parent(
     menu_item_list = list(menu_item_list)
 
     root = menu_item_list[0]
-    move = [{
+    moves = [{
         "itemId": graphene.Node.to_global_id('MenuItem', item.pk),
         "parentId": graphene.Node.to_global_id('MenuItem', root.pk),
         "sortOrder": None
     } for item in menu_item_list[1:]]
 
     response = get_graphql_content(staff_api_client.post_graphql(
-        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+        QUERY_REORDER_MENU, {'moves': moves}, [permission_manage_menus]))
     assert not response['data']['menuItemMove'].get('errors')
 
     # Ensure the parent were assigned correctly
@@ -446,14 +446,14 @@ def test_menu_reorder_assign_parent_to_top_level(
 
     assert root.parent
 
-    move = [{
+    moves = [{
         "itemId": root_node_id,
         "parentId": None,
         "sortOrder": None
     }]
 
     response = get_graphql_content(staff_api_client.post_graphql(
-        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+        QUERY_REORDER_MENU, {'moves': moves}, [permission_manage_menus]))
     assert not response['data']['menuItemMove'].get('errors')
 
     # Ensure the order is right
@@ -481,14 +481,14 @@ def test_menu_reorder_cannot_assign_to_ancestor(
     assert not root.parent
     assert child.parent
 
-    move = [{
+    moves = [{
         "itemId": root_node_id,
         "parentId": child_node_id,
         "sortOrder": None
     }]
 
     response = get_graphql_content(staff_api_client.post_graphql(
-        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+        QUERY_REORDER_MENU, {'moves': moves}, [permission_manage_menus]))
     assert response['data']['menuItemMove']['errors'] == [
         {'field': 'parent',
          'message': 'Cannot assign a node as child of '
@@ -498,14 +498,14 @@ def test_menu_reorder_cannot_assign_to_ancestor(
 def test_menu_reorder_cannot_assign_to_itself(
         staff_api_client, permission_manage_menus, menu_item):
     node_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
-    move = [{
+    moves = [{
         "itemId": node_id,
         "parentId": node_id,
         "sortOrder": None
     }]
 
     response = get_graphql_content(staff_api_client.post_graphql(
-        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+        QUERY_REORDER_MENU, {'moves': moves}, [permission_manage_menus]))
     assert response['data']['menuItemMove']['errors'] == [
         {'field': 'parent',
          'message': 'Cannot assign a node to itself.'}]
