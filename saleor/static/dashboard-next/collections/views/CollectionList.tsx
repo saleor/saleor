@@ -1,8 +1,12 @@
+import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../components/ActionDialog";
 import { createPaginationState } from "../../components/Paginator";
+import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import usePaginator from "../../hooks/usePaginator";
@@ -32,6 +36,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
+  const { isSelected, listElements, reset, toggle } = useBulkActions();
 
   const closeModal = () =>
     navigate(
@@ -67,6 +72,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
               text: i18n.t("Removed collections")
             });
             refetch();
+            reset();
             navigate(
               collectionListUrl({
                 ...params,
@@ -97,13 +103,35 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
                     collections={maybe(() =>
                       data.collections.edges.map(edge => edge.node)
                     )}
-                    onBulkDelete={ids => openModal("remove", ids)}
-                    onBulkPublish={ids => openModal("publish", ids)}
-                    onBulkUnpublish={ids => openModal("unpublish", ids)}
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
                     pageInfo={pageInfo}
                     onRowClick={id => () => navigate(collectionUrl(id))}
+                    toolbar={
+                      <>
+                        <Button
+                          color="primary"
+                          onClick={() => openModal("unpublish", listElements)}
+                        >
+                          {i18n.t("Unpublish")}
+                        </Button>
+                        <Button
+                          color="primary"
+                          onClick={() => openModal("publish", listElements)}
+                        >
+                          {i18n.t("Publish")}
+                        </Button>
+                        <IconButton
+                          color="primary"
+                          onClick={() => openModal("remove", listElements)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </>
+                    }
+                    isChecked={isSelected}
+                    selected={listElements.length}
+                    toggle={toggle}
                   />
                   <ActionDialog
                     open={params.action === "publish"}

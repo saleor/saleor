@@ -5,13 +5,11 @@ import * as React from "react";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { ListActionProps, PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { CollectionList_collections_edges_node } from "../../types/CollectionList";
 import CollectionList from "../CollectionList/CollectionList";
 
-export interface CollectionListPageProps
-  extends PageListProps,
-    ListActionProps<"onBulkPublish" | "onBulkUnpublish" | "onBulkDelete"> {
+export interface CollectionListPageProps extends PageListProps, ListActions {
   collections: CollectionList_collections_edges_node[];
 }
 
