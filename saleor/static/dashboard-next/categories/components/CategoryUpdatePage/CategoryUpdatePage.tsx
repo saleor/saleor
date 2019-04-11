@@ -13,7 +13,7 @@ import { Tab } from "../../../components/Tab";
 import TabContainer from "../../../components/Tab/TabContainer";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { ListActionProps, UserError } from "../../../types";
+import { TabListActions, UserError } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
 import {
@@ -38,7 +38,7 @@ export enum CategoryPageTab {
 }
 
 export interface CategoryUpdatePageProps
-  extends ListActionProps<"onBulkCategoryDelete" | "onBulkProductDelete"> {
+  extends TabListActions<"productListToolbar" | "subcategoryListToolbar"> {
   changeTab: (index: CategoryPageTab) => void;
   currentTab: CategoryPageTab;
   errors: UserError[];
@@ -82,8 +82,6 @@ export const CategoryUpdatePage: React.StatelessComponent<
   onAddCategory,
   onAddProduct,
   onBack,
-  onBulkCategoryDelete,
-  onBulkProductDelete,
   onCategoryClick,
   onDelete,
   onNextPage,
@@ -91,7 +89,12 @@ export const CategoryUpdatePage: React.StatelessComponent<
   onProductClick,
   onSubmit,
   onImageDelete,
-  onImageUpload
+  onImageUpload,
+  isChecked,
+  productListToolbar,
+  selected,
+  subcategoryListToolbar,
+  toggle
 }: CategoryUpdatePageProps) => {
   const initialData: FormData = category
     ? {
@@ -169,16 +172,18 @@ export const CategoryUpdatePage: React.StatelessComponent<
               isRoot={false}
               categories={subcategories}
               onAdd={onAddCategory}
-              onBulkDelete={onBulkCategoryDelete}
               onRowClick={onCategoryClick}
               onNextPage={onNextPage}
               onPreviousPage={onPreviousPage}
               pageInfo={pageInfo}
+              toggle={toggle}
+              selected={selected}
+              isChecked={isChecked}
+              toolbar={subcategoryListToolbar}
             />
           )}
           {currentTab === CategoryPageTab.products && (
             <CategoryProductsCard
-              onBulkDelete={onBulkProductDelete}
               categoryName={maybe(() => category.name)}
               products={products}
               disabled={disabled}
@@ -187,6 +192,10 @@ export const CategoryUpdatePage: React.StatelessComponent<
               onPreviousPage={onPreviousPage}
               onRowClick={onProductClick}
               onAdd={onAddProduct}
+              toggle={toggle}
+              selected={selected}
+              isChecked={isChecked}
+              toolbar={productListToolbar}
             />
           )}
           <SaveButtonBar

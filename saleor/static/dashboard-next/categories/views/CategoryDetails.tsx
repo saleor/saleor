@@ -1,9 +1,12 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../components/ActionDialog";
 import { createPaginationState } from "../../components/Paginator";
 import { WindowTitle } from "../../components/WindowTitle";
+import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import usePaginator from "../../hooks/usePaginator";
@@ -53,6 +56,7 @@ export const CategoryDetails: React.StatelessComponent<
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
+  const { isSelected, listElements, reset, toggle } = useBulkActions();
 
   const handleCategoryDelete = (data: CategoryDelete) => {
     if (data.categoryDelete.errors.length === 0) {
@@ -77,12 +81,14 @@ export const CategoryDetails: React.StatelessComponent<
     }
   };
 
-  const changeTab = (tabName: CategoryPageTab) =>
+  const changeTab = (tabName: CategoryPageTab) => {
+    reset();
     navigate(
       categoryUrl(id, {
         activeTab: tabName
       })
     );
+  };
 
   const closeModal = () =>
     navigate(
@@ -135,6 +141,7 @@ export const CategoryDetails: React.StatelessComponent<
                         text: i18n.t("Categories removed")
                       });
                       refetch();
+                      reset();
                     }
                   };
 
@@ -145,6 +152,7 @@ export const CategoryDetails: React.StatelessComponent<
                         text: i18n.t("Products removed")
                       });
                       refetch();
+                      reset();
                     }
                   };
 
@@ -210,12 +218,6 @@ export const CategoryDetails: React.StatelessComponent<
                                         )
                                       )
                                     }
-                                    onBulkCategoryDelete={ids =>
-                                      openModal("delete-categories", ids)
-                                    }
-                                    onBulkProductDelete={ids =>
-                                      openModal("delete-products", ids)
-                                    }
                                     onCategoryClick={id => () =>
                                       navigate(categoryUrl(id))}
                                     onDelete={() => openModal("delete")}
@@ -275,6 +277,35 @@ export const CategoryDetails: React.StatelessComponent<
                                         edge => edge.node
                                       )
                                     )}
+                                    subcategoryListToolbar={
+                                      <IconButton
+                                        color="primary"
+                                        onClick={() =>
+                                          openModal(
+                                            "delete-categories",
+                                            listElements
+                                          )
+                                        }
+                                      >
+                                        <DeleteIcon />
+                                      </IconButton>
+                                    }
+                                    productListToolbar={
+                                      <IconButton
+                                        color="primary"
+                                        onClick={() =>
+                                          openModal(
+                                            "delete-products",
+                                            listElements
+                                          )
+                                        }
+                                      >
+                                        <DeleteIcon />
+                                      </IconButton>
+                                    }
+                                    isChecked={isSelected}
+                                    selected={listElements.length}
+                                    toggle={toggle}
                                   />
                                   <ActionDialog
                                     confirmButtonState={
