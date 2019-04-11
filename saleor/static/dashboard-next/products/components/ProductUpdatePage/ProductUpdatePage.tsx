@@ -12,7 +12,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { UserError } from "../../../types";
+import { ListActionProps, UserError } from "../../../types";
 import {
   ProductDetails_product,
   ProductDetails_product_attributes_attribute,
@@ -27,7 +27,8 @@ import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
 
-interface ProductUpdateProps {
+interface ProductUpdateProps
+  extends ListActionProps<"onBulkProductVariantDelete"> {
   errors: UserError[];
   placeholderImage: string;
   collections?: Array<{
@@ -114,6 +115,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   variants,
   onAttributesEdit,
   onBack,
+  onBulkProductVariantDelete,
   onDelete,
   onImageDelete,
   onImageEdit,
@@ -234,9 +236,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 <CardSpacer />
                 {hasVariants ? (
                   <ProductVariants
+                    disabled={disabled}
                     variants={variants}
                     fallbackPrice={product ? product.price : undefined}
                     onAttributesEdit={onAttributesEdit}
+                    onBulkDelete={onBulkProductVariantDelete}
                     onRowClick={onVariantShow}
                     onVariantAdd={onVariantAdd}
                   />
