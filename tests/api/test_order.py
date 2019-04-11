@@ -24,7 +24,7 @@ from .utils import assert_no_permission, get_graphql_content
 
 @pytest.fixture
 def orders(customer_user):
-    Order.objects.bulk_create([
+    return Order.objects.bulk_create([
         Order(
             user=customer_user,
             status=OrderStatus.CANCELED,
@@ -75,7 +75,8 @@ def test_orderline_query(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content['data']['orders']['edges'][0]['node']
-    assert '/static/images/placeholder540x540.png' in order_data['lines'][0]['thumbnail']['url']
+    assert '/static/images/placeholder540x540.png' in \
+           order_data['lines'][0]['thumbnail']['url']
     variant_id = graphene.Node.to_global_id('ProductVariant', line.variant.pk)
     assert order_data['lines'][0]['variant']['id'] == variant_id
 
@@ -379,7 +380,8 @@ def test_draft_order_create(
     assert order.billing_address.pk != customer_user.default_billing_address.pk
     assert order.billing_address.as_data() == customer_user.default_billing_address.as_data()
     assert order.shipping_method == shipping_method
-    assert order.shipping_address.first_name == graphql_address_data['firstName']
+    assert order.shipping_address.first_name == graphql_address_data[
+        'firstName']
 
 
 def test_draft_order_update(
@@ -435,6 +437,7 @@ ORDER_CAN_FINALIZE_QUERY = """
         }
     }
 """
+
 
 def test_can_finalize_order(
         staff_api_client, permission_manage_orders, order_with_lines):
@@ -826,8 +829,10 @@ def test_order_update(
         """
     email = 'not_default@example.com'
     assert not order.user_email == email
-    assert not order.shipping_address.first_name == graphql_address_data['firstName']
-    assert not order.billing_address.last_name == graphql_address_data['lastName']
+    assert not order.shipping_address.first_name == graphql_address_data[
+        'firstName']
+    assert not order.billing_address.last_name == graphql_address_data[
+        'lastName']
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {
         'id': order_id, 'email': email, 'address': graphql_address_data}
@@ -841,7 +846,8 @@ def test_order_update(
     order.refresh_from_db()
     order.shipping_address.refresh_from_db()
     order.billing_address.refresh_from_db()
-    assert order.shipping_address.first_name == graphql_address_data['firstName']
+    assert order.shipping_address.first_name == graphql_address_data[
+        'firstName']
     assert order.billing_address.last_name == graphql_address_data['lastName']
     assert order.user_email == email
     assert order.user is None
@@ -923,7 +929,8 @@ def test_order_update_user_email_existing_user(
     order.refresh_from_db()
     order.shipping_address.refresh_from_db()
     order.billing_address.refresh_from_db()
-    assert order.shipping_address.first_name == graphql_address_data['firstName']
+    assert order.shipping_address.first_name == graphql_address_data[
+        'firstName']
     assert order.billing_address.last_name == graphql_address_data['lastName']
     assert order.user_email == email
     assert order.user == customer_user
@@ -1160,12 +1167,14 @@ def test_order_void(
     assert event_payment_voided.user == staff_user
 
 
-def test_order_void_payment_error(staff_api_client, permission_manage_orders, payment_txn_preauth):
+def test_order_void_payment_error(staff_api_client, permission_manage_orders,
+                                  payment_txn_preauth):
     msg = 'error has happened'
     order = payment_txn_preauth.order
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {'id': order_id}
-    with patch('saleor.graphql.order.mutations.orders.gateway_void', side_effect=ValueError(msg)):
+    with patch('saleor.graphql.order.mutations.orders.gateway_void',
+               side_effect=ValueError(msg)):
         response = staff_api_client.post_graphql(
             ORDER_VOID, variables, permissions=[permission_manage_orders])
         content = get_graphql_content(response)
@@ -1408,8 +1417,8 @@ def test_orders_total(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     assert (
-        content['data']['ordersTotal']['gross']['amount'] ==
-        order_with_lines.total.gross.amount)
+            content['data']['ordersTotal']['gross']['amount'] ==
+            order_with_lines.total.gross.amount)
 
 
 def test_order_by_token_query(api_client, order):
@@ -1424,3 +1433,39 @@ def test_order_by_token_query(api_client, order):
     response = api_client.post_graphql(query, {'token': order.token})
     content = get_graphql_content(response)
     assert content['data']['orderByToken']['id'] == order_id
+
+
+MUTATION_CANCEL_ORDERS = """
+    CancelManyOrders($ids: [ID]!, !restock: Boolean) {
+        ordersCancel(ids: $ids, restock: $restock) {
+            count
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_order_bulk_cancel_with_restock(
+        staff_api_client, orders, order_with_lines,
+        permission_manage_orders):
+    assert order_with_lines.can_cancel()
+    orders.append(order_with_lines)
+    expected_count = sum(order.can_cancel() for order in orders)
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('Order', order.id)
+            for order in orders],
+        'restock': True}
+    response = staff_api_client.post_graphql(
+        MUTATION_CANCEL_ORDERS, variables,
+        permissions=[permission_manage_orders])
+    order_with_lines.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content['data']['ordersCancel']
+    assert data['count'] == expected_count
+    event = order_with_lines.events.first()
+    assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
+    assert event.user == staff_api_client.user
