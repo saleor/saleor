@@ -259,7 +259,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order {
 export interface OrderLinesAdd_draftOrderLinesCreate {
   __typename: "DraftOrderLinesCreate";
   errors: OrderLinesAdd_draftOrderLinesCreate_errors[] | null;
-  order: OrderLinesAdd_draftOrderLinesCreate_order;
+  order: OrderLinesAdd_draftOrderLinesCreate_order | null;
 }
 
 export interface OrderLinesAdd {

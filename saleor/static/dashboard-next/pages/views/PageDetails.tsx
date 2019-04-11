@@ -88,7 +88,7 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                               )}
                               saveButtonBarState={formTransitionState}
                               page={maybe(() => pageDetails.data.page)}
-                              onBack={() => navigate(pageListUrl)}
+                              onBack={() => navigate(pageListUrl())}
                               onRemove={() =>
                                 navigate(
                                   pageUrl(id, {

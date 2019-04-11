@@ -221,7 +221,7 @@ export interface AddressInput {
   city?: string | null;
   cityArea?: string | null;
   postalCode?: string | null;
-  country: string;
+  country?: string | null;
   countryArea?: string | null;
   phone?: string | null;
 }

@@ -6,7 +6,7 @@ import { BulkAction, Dialog, Pagination } from "../types";
 export const pagesSection = "/pages/";
 
 export const pageListPath = pagesSection;
-export type PageListUrlDialog = "remove";
+export type PageListUrlDialog = "publish" | "unpublish" | "remove";
 export type PageListUrlQueryParams = BulkAction &
   Dialog<PageListUrlDialog> &
   Pagination;
