@@ -13,6 +13,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 
 - Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
+- Add mutation for bulk delete order lines - #3935 by @akjanik 
+
+- Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
 
 ## 2.5.0
 

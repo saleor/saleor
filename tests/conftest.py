@@ -797,6 +797,14 @@ def menu_item(menu):
 
 
 @pytest.fixture
+def menu_item_list(menu):
+    menu_item_1 = MenuItem.objects.create(menu=menu, name='Link 1')
+    menu_item_2 = MenuItem.objects.create(menu=menu, name='Link 2')
+    menu_item_3 = MenuItem.objects.create(menu=menu, name='Link 3')
+    return menu_item_1, menu_item_2, menu_item_3
+
+
+@pytest.fixture
 def menu_with_items(menu, category, collection):
     menu.items.create(name='Link 1', url='http://example.com/')
     menu_item = menu.items.create(name='Link 2', url='http://example.com/')
