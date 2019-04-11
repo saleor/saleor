@@ -36,15 +36,15 @@ import {
 } from "./types/VariantImageUnassign";
 import { VariantUpdate, VariantUpdateVariables } from "./types/VariantUpdate";
 
-import {
-  fragmentVariant,
-  productFragment,
-  productFragmentDetails
-} from "./queries";
+import { fragmentVariant, productFragmentDetails } from "./queries";
 import {
   productBulkDelete,
   productBulkDeleteVariables
 } from "./types/productBulkDelete";
+import {
+  ProductVariantBulkDelete,
+  ProductVariantBulkDeleteVariables
+} from "./types/ProductVariantBulkDelete";
 
 export const productImageCreateMutation = gql`
   ${productFragmentDetails}
@@ -432,3 +432,18 @@ export const TypedProductBulkDeleteMutation = TypedMutation<
   productBulkDelete,
   productBulkDeleteVariables
 >(productBulkDeleteMutation);
+
+export const ProductVariantBulkDeleteMutation = gql`
+  mutation ProductVariantBulkDelete($ids: [ID!]!) {
+    productVariantBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedProductVariantBulkDeleteMutation = TypedMutation<
+  ProductVariantBulkDelete,
+  ProductVariantBulkDeleteVariables
+>(ProductVariantBulkDeleteMutation);
