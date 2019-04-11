@@ -76,5 +76,4 @@ class MenuItemMoveInput(graphene.InputObjectType):
         description=(
             'ID of the parent menu. If empty, menu will be top level menu.'))
     sort_order = graphene.Int(
-        description='Sorting position of the menu item (from 0 to x).',
-        required=True)
+        description='Sorting position of the menu item (from 0 to x).')

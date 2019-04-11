@@ -1,9 +1,11 @@
+from random import shuffle
+
 import graphene
 import pytest
+from tests.api.utils import get_graphql_content
 
 from saleor.graphql.menu.mutations import NavigationType
 from saleor.menu.models import MenuItem
-from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
 
@@ -370,3 +372,113 @@ def test_assign_menu(
     assert not content['data']['assignNavigation']['menu']
     site_settings.refresh_from_db()
     assert site_settings.top_menu is None
+
+
+QUERY_REORDER_MENU = '''
+mutation menuItemMove($move: [MenuItemMoveInput]!) {
+  menuItemMove(move: $move) {
+    errors {
+      field
+      message
+    }
+
+    menuItem {
+      sortOrder
+   }
+  }
+}
+'''
+
+
+def test_menu_reorder(
+        staff_api_client, permission_manage_menus, menu_item_list):
+
+    menu_item_list = list(menu_item_list)
+    shuffle(menu_item_list)
+
+    move = [{
+        "itemId": graphene.Node.to_global_id('MenuItem', item.pk),
+        "parentId": None, "sortOrder": pos
+    } for pos, item in enumerate(menu_item_list)]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+    assert not response['data']['menuItemMove'].get('errors')
+
+    # Ensure the order is right
+    for db_item, expected in zip(
+            menu_item_list[0].menu.items.all(), menu_item_list):
+        assert db_item.pk == expected.pk
+        assert db_item.parent is None
+
+
+def test_menu_reorder_assign_parent(
+        staff_api_client, permission_manage_menus, menu_item_list):
+
+    menu_item_list = list(menu_item_list)
+
+    root = menu_item_list[0]
+    move = [{
+        "itemId": graphene.Node.to_global_id('MenuItem', item.pk),
+        "parentId": graphene.Node.to_global_id('MenuItem', root.pk),
+        "sortOrder": None
+    } for item in menu_item_list[1:]]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+    assert not response['data']['menuItemMove'].get('errors')
+
+    # Ensure the parent were assigned correctly
+    for item in menu_item_list[1:]:
+        item.refresh_from_db(fields=['parent_id'])
+        assert item.parent_id == root.pk
+
+
+def test_menu_reorder_assign_parent_to_top_level(
+        staff_api_client, permission_manage_menus, menu_item_list):
+
+    root = menu_item_list[0]
+    root_node_id = graphene.Node.to_global_id('MenuItem', root.pk)
+
+    # Give to the item menu a parent
+    root.move_to(menu_item_list[1])
+    root.save()
+
+    assert root.parent
+
+    move = [{
+        "itemId": root_node_id,
+        "parentId": None,
+        "sortOrder": None
+    }]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+    assert not response['data']['menuItemMove'].get('errors')
+
+    # Ensure the order is right
+    root.refresh_from_db(fields=['parent', 'parent_id'])
+    assert root.parent is None
+
+
+def test_menu_reorder_assign_parent_to_leaf(
+        staff_api_client, permission_manage_menus, menu_item_list):
+
+    root = menu_item_list[0]
+    root_node_id = graphene.Node.to_global_id('MenuItem', root.pk)
+
+    # Give to the item menu a parent
+    root.move_to(menu_item_list[1])
+    root.save()
+
+    assert root.parent
+
+    move = [{
+        "itemId": root_node_id,
+        "parentId": root_node_id,
+        "sortOrder": None
+    }]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {'move': move}, [permission_manage_menus]))
+    assert response['data']['menuItemMove']['errors']

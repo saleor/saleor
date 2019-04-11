@@ -212,7 +212,7 @@ class MenuItemMove(BaseMutation):
             required=True, description='The menu position data')
 
     class Meta:
-        description = 'Move items of a menu'
+        description = 'Moves items of menus'
 
     @staticmethod
     def validate_move(
@@ -220,7 +220,7 @@ class MenuItemMove(BaseMutation):
         """Validate if the given move is actually possible."""
 
         if operation.parent:
-            if operation.menuItem.lft:
+            if operation.menuItem.parent:
                 raise ValidationError({
                     'parent': (
                         'Cannot assign a parent to a leaf.')
@@ -243,7 +243,7 @@ class MenuItemMove(BaseMutation):
                 field='item_id', only_type=MenuItem)
             parent_node = None
 
-            if move.parent_id:
+            if move.parent_id is not None:
                 parent_node = cls.get_node_or_error(
                     info, move.parent_id,
                     field='parent_id', only_type=MenuItem)
@@ -273,11 +273,12 @@ class MenuItemMove(BaseMutation):
             if item.parent:
                 menu_item.move_to(item.parent)
             # Remove the menu item's parent if was set to none (root node)
-            elif menu_item.parent:
-                menu_item.parent = None
+            elif menu_item.parent_id:
+                menu_item.parent_id = None
 
             # Move the menu item
-            menu_item.sort_order = item.sort_order
+            if item.sort_order is not None:
+                menu_item.sort_order = item.sort_order
 
             # Commit
             menu_item.save()
