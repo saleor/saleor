@@ -7,7 +7,12 @@ import { CategoryPageTab } from "./components/CategoryUpdatePage";
 const categorySectionUrl = "/categories/";
 
 export const categoryListPath = categorySectionUrl;
-export const categoryListUrl = categorySectionUrl;
+export type CategoryListUrlDialog = "delete";
+export type CategoryListUrlQueryParams = BulkAction &
+  Dialog<CategoryListUrlDialog> &
+  Pagination;
+export const categoryListUrl = (params?: CategoryListUrlQueryParams) =>
+  categorySectionUrl + "?" + stringifyQs(params);
 
 export const categoryPath = (id: string) => urlJoin(categorySectionUrl, id);
 export type CategoryUrlDialog =

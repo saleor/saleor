@@ -1,3 +1,4 @@
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import MuiTableHead, {
   TableHeadProps as MuiTableHeadProps
 } from "@material-ui/core/TableHead";
@@ -10,19 +11,28 @@ export interface TableHeadProps extends MuiTableHeadProps {
   toolbar: React.ReactNode | React.ReactNodeArray;
 }
 
-const TableHead: React.StatelessComponent<TableHeadProps> = ({
-  children,
-  selected,
-  toolbar,
-  ...muiTableHeadProps
-}) => (
-  <MuiTableHead {...muiTableHeadProps}>
-    {selected ? (
-      <TableActions selected={selected}>{toolbar}</TableActions>
-    ) : (
-      children
-    )}
-  </MuiTableHead>
+const styles = createStyles({
+  shrink: {}
+});
+
+const TableHead = withStyles(styles, {
+  name: "TableHead"
+})(
+  ({
+    children,
+    classes,
+    selected,
+    toolbar,
+    ...muiTableHeadProps
+  }: TableHeadProps & WithStyles<typeof styles>) => (
+    <MuiTableHead {...muiTableHeadProps}>
+      {selected ? (
+        <TableActions selected={selected}>{toolbar}</TableActions>
+      ) : (
+        children
+      )}
+    </MuiTableHead>
+  )
 );
 TableHead.displayName = "TableHead";
 export default TableHead;
