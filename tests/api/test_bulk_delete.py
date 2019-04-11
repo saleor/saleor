@@ -302,7 +302,7 @@ def test_fail_to_delete_non_draft_order_lines(
         staff_api_client, order_with_lines, permission_manage_orders):
     order = order_with_lines
     order_lines = [line for line in order]
-    # Set anything but OrderStatus.DRAFT
+    # Ensure we cannot delete a non-draft order
     order.status = OrderStatus.CANCELED
     order.save()
 
