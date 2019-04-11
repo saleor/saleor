@@ -1,9 +1,13 @@
 from unittest.mock import Mock
 
+import django_filters
 import graphene
 from django.utils import timezone
+from graphene import InputField
 
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.core.filters import EnumFilter
+from saleor.graphql.core.types import FilterInputObjectType
 from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id, reporting_period_to_date
@@ -195,3 +199,48 @@ def test_mutation_decimal_input_without_arguments(
     content = get_graphql_content(response)
     data = content['data']['productVariantUpdate']
     assert data['errors'] == []
+
+
+def test_filter_input():
+    class CreatedEnum(graphene.Enum):
+        WEEK = 'week'
+        YEAR = 'year'
+
+    class TestProductFilter(django_filters.FilterSet):
+        name = django_filters.CharFilter()
+        created = EnumFilter(enum_class=CreatedEnum, method='created_filter')
+
+        class Meta:
+            model = Product
+            fields = {
+                'product_type__id': ['exact'],
+            }
+
+        def created_filter(self, queryset, name, value):
+            if CreatedEnum.WEEK == value:
+                return queryset
+            elif CreatedEnum.YEAR == value:
+                return queryset
+            return  queryset
+
+    class TestFilter(FilterInputObjectType):
+        class Meta:
+            filterset_class = TestProductFilter
+
+    filter = TestFilter()
+    fields = filter._meta.fields
+
+    assert 'product_type__id' in fields
+    product_type_id = fields['product_type__id']
+    assert isinstance(product_type_id, InputField)
+    assert product_type_id.type == graphene.ID
+
+    assert 'name' in fields
+    name = fields['name']
+    assert isinstance(name, InputField)
+    assert name.type == graphene.String
+
+    assert 'created' in fields
+    created = fields['created']
+    assert isinstance(created, InputField)
+    assert created.type == CreatedEnum
