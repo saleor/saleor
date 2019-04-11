@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 
-import { maybe } from "../misc";
 import useListSelector from "./useListSelector";
 
 interface ConnectionNode {
@@ -8,9 +7,7 @@ interface ConnectionNode {
 }
 function useBulkActions(list: ConnectionNode[]) {
   const listSelectorFuncs = useListSelector();
-  useEffect(() => listSelectorFuncs.reset, [
-    maybe(() => list.reduce((acc, curr) => acc + curr.id, ""))
-  ]);
+  useEffect(() => listSelectorFuncs.reset, [list === undefined, list === null]);
 
   return listSelectorFuncs;
 }
