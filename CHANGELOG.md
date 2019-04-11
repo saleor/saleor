@@ -5,7 +5,8 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 - Refactor error handling in mutations #3891 by @maarcingebala @akjanik
 - Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
-- Add mutation for bulk delete order lines - #3935 by @akjanik 
+- Add mutation for bulk delete order lines - #3935 by @akjanik
+- Fix dashboard 1.0 missing logo and missing back arrow on collections - #3958 by @NyanKiyoshi
 
 
 ## 2.5.0
