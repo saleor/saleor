@@ -231,8 +231,8 @@ def test_bulk_publish(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
-    for page in page_list:
-        page.refresh_from_db()
+    page_list = Page.objects.filter(id__in=[page.pk for page in page_list])
+
     assert content['data']['pageBulkPublish']['count'] == len(page_list)
     assert all(page.is_published for page in page_list)
 
@@ -255,7 +255,7 @@ def test_bulk_unpublish(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
-    for page in page_list:
-        page.refresh_from_db()
+    page_list = Page.objects.filter(id__in=[page.pk for page in page_list])
+
     assert content['data']['pageBulkUnpublish']['count'] == len(page_list)
     assert not any(page.is_published for page in page_list)

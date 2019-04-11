@@ -761,20 +761,17 @@ def page_list(db):
         'slug': 'test-url-2',
         'title': 'Test page',
         'content': 'test content'}
-    page_1 = Page.objects.create(**data_1)
-    page_2 = Page.objects.create(**data_2)
-    return page_1, page_2
+    pages = Page.objects.bulk_create([Page(**data_1), Page(**data_2)])
+    return pages
 
 
 @pytest.fixture
 def page_list_unpublished(db):
-    page_1 = Page.objects.create(slug='page-1', title='Page 1',
-                                 is_published=False)
-    page_2 = Page.objects.create(slug='page-2', title='Page 2',
-                                 is_published=False)
-    page_3 = Page.objects.create(slug='page-3', title='Page 3',
-                                 is_published=False)
-    return page_1, page_2, page_3
+    pages = Page.objects.bulk_create(
+        [Page(slug='page-1', title='Page 1', is_published=False),
+         Page(slug='page-2', title='Page 2', is_published=False),
+         Page(slug='page-3', title='Page 3', is_published=False)])
+    return pages
 
 
 @pytest.fixture
