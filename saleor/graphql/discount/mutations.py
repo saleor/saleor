@@ -109,11 +109,11 @@ class VoucherCreate(ModelMutation):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        code = raw_input.get('code', None)
+    def clean_input(cls, info, instance, data):
+        code = data.get('code', None)
         if code == '':
-            raw_input['code'] = generate_voucher_code()
-        cleaned_input = super().clean_input(info, instance, raw_input)
+            data['code'] = generate_voucher_code()
+        cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
 
 

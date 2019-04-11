@@ -260,8 +260,8 @@ class AttributeValueCreate(ModelMutation):
         model = models.AttributeValue
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input
 
@@ -305,8 +305,8 @@ class AttributeValueUpdate(ModelMutation):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input

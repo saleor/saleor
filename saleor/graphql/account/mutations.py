@@ -128,10 +128,10 @@ class CustomerCreate(ModelMutation, I18nMixin):
         return user.has_perm('account.manage_users')
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        shipping_address_data = raw_input.pop(SHIPPING_ADDRESS_FIELD, None)
-        billing_address_data = raw_input.pop(BILLING_ADDRESS_FIELD, None)
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        shipping_address_data = data.pop(SHIPPING_ADDRESS_FIELD, None)
+        billing_address_data = data.pop(BILLING_ADDRESS_FIELD, None)
+        cleaned_input = super().clean_input(info, instance, data)
 
         if shipping_address_data:
             shipping_address = cls.validate_address(
@@ -234,8 +234,8 @@ class StaffCreate(ModelMutation):
         return user.has_perm('account.manage_staff')
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
 
         # set is_staff to True to create a staff user
         cleaned_input['is_staff'] = True
@@ -279,8 +279,8 @@ class StaffUpdate(StaffCreate):
                     'is_active': 'Cannot deactivate superuser\'s account.'})
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         is_active = cleaned_input.get('is_active')
         if is_active is not None:
             cls.clean_is_active(is_active, instance, info.context.user)
@@ -338,8 +338,8 @@ class SetPassword(ModelMutation):
         model = models.User
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         token = cleaned_input.pop('token')
         if not default_token_generator.check_token(instance, token):
             raise ValidationError({'token': SetPassword.INVALID_TOKEN})
@@ -448,12 +448,12 @@ class AddressUpdate(ModelMutation):
         exclude = ['user_addresses']
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
+    def clean_input(cls, info, instance, data):
         # Method user_is_allowed cannot be used for permission check, because
         # it doesn't have the address instance.
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
-        return super().clean_input(info, instance, raw_input)
+        return super().clean_input(info, instance, data)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):

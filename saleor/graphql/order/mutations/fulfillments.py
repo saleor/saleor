@@ -80,8 +80,8 @@ class FulfillmentCreate(BaseMutation):
                 raise ValidationError({'order_line_id': msg})
 
     @classmethod
-    def clean_input(cls, raw_input):
-        lines = raw_input['lines']
+    def clean_input(cls, data):
+        lines = data['lines']
         quantities = [line['quantity'] for line in lines]
         lines_ids = [line['order_line_id'] for line in lines]
         order_lines = cls.get_nodes_or_error(
@@ -93,9 +93,9 @@ class FulfillmentCreate(BaseMutation):
             raise ValidationError({
                 'lines': 'Total quantity must be larger than 0.'})
 
-        raw_input['order_lines'] = order_lines
-        raw_input['quantities'] = quantities
-        return raw_input
+        data['order_lines'] = order_lines
+        data['quantities'] = quantities
+        return data
 
     @classmethod
     def save(cls, user, fulfillment, order, cleaned_input):
@@ -131,11 +131,11 @@ class FulfillmentCreate(BaseMutation):
     def perform_mutation(cls, root, info, order, **data):
         order = cls.get_node_or_error(
             info, order, field='order', only_type=Order)
-        raw_input = data.get('input')
+        data = data.get('input')
         fulfillment = models.Fulfillment(
-            tracking_number=raw_input.pop('tracking_number', None) or '',
+            tracking_number=data.pop('tracking_number', None) or '',
             order=order)
-        cleaned_input = cls.clean_input(raw_input)
+        cleaned_input = cls.clean_input(data)
         fulfillment = cls.save(
             info.context.user, fulfillment, order, cleaned_input)
         return FulfillmentCreate(

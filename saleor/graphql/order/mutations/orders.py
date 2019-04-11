@@ -121,9 +121,9 @@ class OrderUpdateShipping(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
-        raw_input = data.get('input')
+        data = data.get('input')
 
-        if not raw_input['shipping_method']:
+        if not data['shipping_method']:
             if not order.is_draft() and order.is_shipping_required():
                 raise ValidationError({
                     'shipping_method':
@@ -139,7 +139,7 @@ class OrderUpdateShipping(BaseMutation):
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
-            info, raw_input['shipping_method'], field='shipping_method',
+            info, data['shipping_method'], field='shipping_method',
             only_type=ShippingMethod)
 
         clean_order_update_shipping(order, method)
