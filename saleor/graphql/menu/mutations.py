@@ -215,45 +215,50 @@ class MenuItemMove(BaseMutation):
         description = 'Moves items of menus'
 
     @staticmethod
-    def validate_move(
-            operation: _MenuMoveOperation):
-        """Validate if the given move is actually possible."""
+    def pre_validate_move(move):
+        """Validate if the given move could be possibly possible."""
+        if move.parent_id:
+            if move.item_id == move.parent_id:
+                raise ValidationError({
+                    'parent': 'Cannot assign a node to itself.'})
+
+    @staticmethod
+    def post_validate_move(operation: _MenuMoveOperation):
+        """Validate if the given move will be actually possible."""
 
         if operation.parent:
-            if operation.menuItem.parent:
-                raise ValidationError({
-                    'parent': (
-                        'Cannot assign a parent to a leaf.')
-                })
-
             if operation.menuItem.is_ancestor_of(operation.parent):
                 raise ValidationError({
                     'parent': (
-                        'Cannot assign a parent that is an ancestor '
-                        'of the target menu item.')
-                })
+                        'Cannot assign a node as child of '
+                        'one of its descendants.')})
+
+    @classmethod
+    def move_to_operation(cls, info, move) -> _MenuMoveOperation:
+        menu_item = cls.get_node_or_error(
+            info, move.item_id,
+            field='item_id', only_type=MenuItem)
+        parent_node = None
+
+        if move.parent_id is not None:
+            parent_node = cls.get_node_or_error(
+                info, move.parent_id,
+                field='parent_id', only_type=MenuItem)
+
+        return _MenuMoveOperation(
+            menuItem=menu_item,
+            parent=parent_node,
+            sort_order=move.sort_order)
 
     @classmethod
     def clean_move(
             cls, info, move_operations: List) -> List[_MenuMoveOperation]:
+
         operations = []
         for move in move_operations:
-            menu_item = cls.get_node_or_error(
-                info, move.item_id,
-                field='item_id', only_type=MenuItem)
-            parent_node = None
-
-            if move.parent_id is not None:
-                parent_node = cls.get_node_or_error(
-                    info, move.parent_id,
-                    field='parent_id', only_type=MenuItem)
-
-            operation = _MenuMoveOperation(
-                menuItem=menu_item,
-                parent=parent_node,
-                sort_order=move.sort_order)
-
-            cls.validate_move(operation)
+            cls.pre_validate_move(move)
+            operation = cls.move_to_operation(info, move)
+            cls.post_validate_move(operation)
             operations.append(operation)
         return operations
 
