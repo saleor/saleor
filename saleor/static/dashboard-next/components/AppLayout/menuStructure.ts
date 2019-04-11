@@ -38,7 +38,7 @@ const menuStructure: IMenuItem[] = [
       {
         ariaLabel: "collections",
         label: i18n.t("Collections", { context: "Menu label" }),
-        url: collectionListUrl
+        url: collectionListUrl()
       }
     ],
     label: i18n.t("Catalogue", { context: "Menu label" }),

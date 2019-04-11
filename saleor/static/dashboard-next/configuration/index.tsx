@@ -67,7 +67,7 @@ export const configurationMenu: MenuItem[] = [
     icon: <Pages fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PAGES,
     title: i18n.t("Pages"),
-    url: pageListUrl
+    url: pageListUrl()
   }
 ];
 

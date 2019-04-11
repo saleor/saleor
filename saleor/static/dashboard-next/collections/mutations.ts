@@ -10,6 +10,10 @@ import {
   CollectionAssignProductVariables
 } from "./types/CollectionAssignProduct";
 import {
+  CollectionBulkDelete,
+  CollectionBulkDeleteVariables
+} from "./types/CollectionBulkDelete";
+import {
   CollectionUpdate,
   CollectionUpdateVariables
 } from "./types/CollectionUpdate";
@@ -203,3 +207,18 @@ export const TypedUnassignCollectionProductMutation = TypedMutation<
   UnassignCollectionProduct,
   UnassignCollectionProductVariables
 >(unassignCollectionProduct);
+
+const collectionBulkDelete = gql`
+  mutation CollectionBulkDelete($ids: [ID]!) {
+    collectionBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedCollectionBulkDelete = TypedMutation<
+  CollectionBulkDelete,
+  CollectionBulkDeleteVariables
+>(collectionBulkDelete);
