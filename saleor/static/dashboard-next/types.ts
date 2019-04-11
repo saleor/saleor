@@ -15,10 +15,16 @@ export interface ListProps {
   onPreviousPage: () => void;
   onRowClick: (id: string) => () => void;
 }
-export interface ListActions {
+export interface ListActionsWithoutToolbar {
   toggle: (id: string) => void;
   isChecked: (id: string) => boolean;
   selected: number;
+}
+export type TabListActions<
+  TToolbars extends string
+> = ListActionsWithoutToolbar &
+  Record<TToolbars, React.ReactNode | React.ReactNodeArray>;
+export interface ListActions extends ListActionsWithoutToolbar {
   toolbar: React.ReactNode | React.ReactNodeArray;
 }
 export interface PageListProps extends ListProps {
