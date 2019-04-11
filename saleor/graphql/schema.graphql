@@ -1056,7 +1056,7 @@ type MenuItemMove {
 input MenuItemMoveInput {
   itemId: ID!
   parentId: ID
-  sortOrder: Int!
+  sortOrder: Int
 }
 
 type MenuItemTranslate {
