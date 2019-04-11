@@ -1,3 +1,4 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
@@ -22,7 +23,7 @@ import { PageList_pages_edges_node } from "../../types/PageList";
 
 export interface PageListProps
   extends ListProps,
-    ListActionProps<"onBulkDelete"> {
+    ListActionProps<"onBulkDelete" | "onBulkPublish" | "onBulkUnpublish"> {
   pages: PageList_pages_edges_node[];
 }
 
@@ -37,6 +38,8 @@ const PageList = withStyles(styles, { name: "PageList" })(
     pages,
     disabled,
     onBulkDelete,
+    onBulkPublish,
+    onBulkUnpublish,
     onNextPage,
     pageInfo,
     onRowClick,
@@ -50,12 +53,26 @@ const PageList = withStyles(styles, { name: "PageList" })(
           <TableHead
             selected={listElements.length}
             toolbar={
-              <IconButton
-                color="primary"
-                onClick={() => onBulkDelete(listElements)}
-              >
-                <DeleteIcon />
-              </IconButton>
+              <>
+                <Button
+                  color="primary"
+                  onClick={() => onBulkUnpublish(listElements)}
+                >
+                  {i18n.t("Unpublish")}
+                </Button>
+                <Button
+                  color="primary"
+                  onClick={() => onBulkPublish(listElements)}
+                >
+                  {i18n.t("Publish")}
+                </Button>
+                <IconButton
+                  color="primary"
+                  onClick={() => onBulkDelete(listElements)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </>
             }
           >
             <TableRow>

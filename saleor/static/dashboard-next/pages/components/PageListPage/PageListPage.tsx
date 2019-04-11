@@ -12,7 +12,7 @@ import PageList from "../PageList/PageList";
 
 export interface PageListPageProps
   extends PageListProps,
-    ListActionProps<"onBulkDelete"> {
+    ListActionProps<"onBulkPublish" | "onBulkUnpublish" | "onBulkDelete"> {
   pages: PageList_pages_edges_node[];
   onBack: () => void;
 }
@@ -22,6 +22,8 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   onAdd,
   onBack,
   onBulkDelete,
+  onBulkPublish,
+  onBulkUnpublish,
   onNextPage,
   onPreviousPage,
   onRowClick,
@@ -45,6 +47,8 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
       disabled={disabled}
       pages={pages}
       onBulkDelete={onBulkDelete}
+      onBulkPublish={onBulkPublish}
+      onBulkUnpublish={onBulkUnpublish}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       onRowClick={onRowClick}
