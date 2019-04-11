@@ -22,6 +22,23 @@ from tests.utils import create_image, create_pdf_file_with_image_ext
 from .utils import assert_no_permission, get_multipart_request_body
 
 
+@pytest.fixture
+def query_products_with_filters():
+    query = """
+        query ($filters: ProductFilterInput!, ) {
+          products(first:5, filters: $filters) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+    return query
+
+
 def test_resolve_attribute_list(color_attribute):
     value = color_attribute.values.first()
     attributes_hstore = {str(color_attribute.pk): str(value.pk)}
@@ -158,6 +175,89 @@ def test_product_query(staff_api_client, product, permission_manage_products):
         'purchaseCost']['stop']['amount']
     assert margin[0] == product_data['margin']['start']
     assert margin[1] == product_data['margin']['stop']
+
+
+def test_products_query_with_filters_product_type(
+        query_products_with_filters, staff_api_client, product,
+        permission_manage_products):
+    product_type = ProductType.objects.create(
+        name='Custom Type', has_variants=True, is_shipping_required=True,)
+    second_product = product
+    second_product.id = None
+    second_product.product_type = product_type
+    second_product.save()
+
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.id)
+    variables = {'filters': {'product_type': product_type_id}}
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filters, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
+
+
+def test_products_query_with_filters_category(
+        query_products_with_filters, staff_api_client, product,
+        permission_manage_products):
+    category = Category.objects.create(name='Custom', slug='custom')
+    second_product = product
+    second_product.id = None
+    second_product.category = category
+    second_product.save()
+
+    category_id = graphene.Node.to_global_id('Category', category.id)
+    variables = {'filters': {'category': category_id}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filters, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
+
+
+@pytest.mark.parametrize(
+    'filters', (
+            {'price': 6.0}, {'price__gt': 5.0, 'price__lt': 9.0},
+            {'name': 'Apple Juice1'}, {'name__icontains': 'Juice1'},
+            {'is_published': False}
+    )
+)
+def test_products_query_with_filters(
+        filters, query_products_with_filters, staff_api_client, product,
+        permission_manage_products):
+
+    second_product = product
+    second_product.id = None
+    second_product.name = 'Apple Juice1'
+    second_product.price = Money('6.00', 'USD')
+    second_product.is_published = False
+    second_product.save()
+
+    variables = {'filters': filters}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filters, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
 
 
 def test_product_query_search(user_api_client, product_type, category):
