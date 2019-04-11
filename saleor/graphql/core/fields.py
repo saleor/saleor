@@ -71,13 +71,13 @@ class PrefetchingConnectionField(DjangoConnectionField):
 
 
 class FilterInputConnectionField(DjangoConnectionField):
-    def __init__(self, type, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         filters_name = kwargs.get('filters_name', 'filters')
         self.filters_obj = kwargs.get(filters_name)
         self.filterset_class = None
         if self.filters_obj:
             self.filterset_class = self.filters_obj.filterset_class
-        super().__init__(type, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def connection_resolver(

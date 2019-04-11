@@ -14,8 +14,8 @@ class FilterInputObjectType(InputObjectType):
     provided with using fitlerset_class argument."""
     @classmethod
     def __init_subclass_with_meta__(
-            cls, container=None, _meta=None, model=None, filterset_class=None,
-            fields=None,  **options):
+            cls, _meta=None, model=None, filterset_class=None,
+            fields=None, **options):
         cls.custom_filterset_class = filterset_class
         cls.filterset_class = None
         cls.fields = fields
