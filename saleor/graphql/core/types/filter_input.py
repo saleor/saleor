@@ -9,6 +9,9 @@ from saleor.graphql.core.filters import EnumFilter
 
 
 class FilterInputObjectType(InputObjectType):
+    """Class for storing and serving django-filtres as graphQL input.
+    FilterSet class which inherits from django-filters.FilterSet should be
+    provided with using fitlerset_class argument."""
     @classmethod
     def __init_subclass_with_meta__(
             cls, container=None, _meta=None, model=None, filterset_class=None,
