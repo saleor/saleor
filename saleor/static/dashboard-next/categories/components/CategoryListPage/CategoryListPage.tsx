@@ -5,12 +5,10 @@ import * as React from "react";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { ListActionProps, PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import CategoryList from "../CategoryList";
 
-export interface CategoryTableProps
-  extends PageListProps,
-    ListActionProps<"onBulkDelete"> {
+export interface CategoryTableProps extends PageListProps, ListActions {
   categories: Array<{
     id: string;
     name: string;
@@ -27,11 +25,14 @@ export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
   categories,
   disabled,
   onAdd,
-  onBulkDelete,
   onNextPage,
   onPreviousPage,
   onRowClick,
-  pageInfo
+  pageInfo,
+  isChecked,
+  selected,
+  toggle,
+  toolbar
 }) => (
   <Container>
     <PageHeader title={i18n.t("Categories")}>
@@ -42,13 +43,16 @@ export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
     <CategoryList
       categories={categories}
       onAdd={onAdd}
-      onBulkDelete={onBulkDelete}
       onRowClick={onRowClick}
       disabled={disabled}
       isRoot={true}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       pageInfo={pageInfo}
+      isChecked={isChecked}
+      selected={selected}
+      toggle={toggle}
+      toolbar={toolbar}
     />
   </Container>
 );

@@ -1,8 +1,11 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../components/ActionDialog";
 import { createPaginationState } from "../../components/Paginator";
+import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import usePaginator from "../../hooks/usePaginator";
 import i18n from "../../i18n";
@@ -29,6 +32,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
 }) => {
   const navigate = useNavigator();
   const paginate = usePaginator();
+  const { isSelected, listElements, toggle, reset } = useBulkActions();
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
   return (
@@ -44,6 +48,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
           if (data.categoryBulkDelete.errors.length === 0) {
             navigate(categoryListUrl(), true);
             refetch();
+            reset();
           }
         };
         return (
@@ -67,20 +72,30 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
                       []
                     )}
                     onAdd={() => navigate(categoryAddUrl())}
-                    onBulkDelete={ids =>
-                      navigate(
-                        categoryListUrl({
-                          ...params,
-                          action: "delete",
-                          ids
-                        })
-                      )
-                    }
                     onRowClick={id => () => navigate(categoryUrl(id))}
                     disabled={loading}
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
                     pageInfo={pageInfo}
+                    isChecked={isSelected}
+                    selected={listElements.length}
+                    toggle={toggle}
+                    toolbar={
+                      <IconButton
+                        color="primary"
+                        onClick={() =>
+                          navigate(
+                            categoryListUrl({
+                              ...params,
+                              action: "delete",
+                              ids: listElements
+                            })
+                          )
+                        }
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    }
                   />
                   <ActionDialog
                     confirmButtonState={bulkDeleteState}
