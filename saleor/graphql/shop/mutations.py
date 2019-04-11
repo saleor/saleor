@@ -54,8 +54,8 @@ class ShopSettingsUpdate(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = info.context.site.settings
-        raw_input = data.get('input')
-        for field_name, desired_value in raw_input.items():
+        data = data.get('input')
+        for field_name, desired_value in data.items():
             current_value = getattr(instance, field_name)
             if current_value != desired_value:
                 setattr(instance, field_name, desired_value)
@@ -80,9 +80,9 @@ class ShopDomainUpdate(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         site = info.context.site
-        raw_input = data.get('input')
-        domain = raw_input.get('domain')
-        name = raw_input.get('name')
+        data = data.get('input')
+        domain = data.get('domain')
+        name = data.get('name')
         if domain is not None:
             site.domain = domain
         if name is not None:

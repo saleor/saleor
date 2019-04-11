@@ -106,10 +106,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return_field_name = 'checkout'
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
-        lines = raw_input.pop('lines', None)
+        lines = data.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
             variants = cls.get_nodes_or_error(
@@ -127,23 +127,23 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             default_billing_address = user.default_billing_address
             default_shipping_address = user.default_shipping_address
 
-        if 'shipping_address' in raw_input:
+        if 'shipping_address' in data:
             shipping_address = cls.validate_address(
-                raw_input['shipping_address'])
+                data['shipping_address'])
             cleaned_input['shipping_address'] = shipping_address
         else:
             cleaned_input['shipping_address'] = default_shipping_address
 
-        if 'billing_address' in raw_input:
+        if 'billing_address' in data:
             billing_address = cls.validate_address(
-                raw_input['billing_address'])
+                data['billing_address'])
             cleaned_input['billing_address'] = billing_address
         else:
             cleaned_input['billing_address'] = default_billing_address
 
         # Use authenticated user's email as default email
         if user.is_authenticated:
-            email = raw_input.pop('email', None)
+            email = data.pop('email', None)
             cleaned_input['email'] = email or user.email
 
         return cleaned_input

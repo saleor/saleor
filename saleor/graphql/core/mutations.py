@@ -221,7 +221,7 @@ class ModelMutation(BaseMutation):
             arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
+    def clean_input(cls, info, instance, data):
         """Clean input data received from mutation arguments.
 
         Fields containing IDs or lists of IDs are automatically resolved into
@@ -253,8 +253,8 @@ class ModelMutation(BaseMutation):
         cleaned_input = {}
 
         for field_name, field_item in input_cls._meta.fields.items():
-            if field_name in raw_input:
-                value = raw_input[field_name]
+            if field_name in data:
+                value = data[field_name]
 
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field_item):
@@ -327,8 +327,8 @@ class ModelMutation(BaseMutation):
         created based on the model associated with this mutation.
         """
         instance = cls.get_instance(info, **data)
-        raw_input = data.get('input')
-        cleaned_input = cls.clean_input(info, instance, raw_input)
+        data = data.get('input')
+        cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance)
         cls.save(info, instance, cleaned_input)

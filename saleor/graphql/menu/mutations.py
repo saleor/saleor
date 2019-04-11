@@ -57,8 +57,8 @@ class MenuCreate(ModelMutation):
         return user.has_perm('menu.manage_menus')
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         items = []
         for item in cleaned_input.get('items', []):
             category = item.get('category')
@@ -143,8 +143,8 @@ class MenuItemCreate(ModelMutation):
         return user.has_perm('menu.manage_menus')
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         items = [
             cleaned_input.get('page'), cleaned_input.get('collection'),
             cleaned_input.get('url'), cleaned_input.get('category')]

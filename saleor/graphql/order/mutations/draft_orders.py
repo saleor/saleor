@@ -64,12 +64,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         model = models.Order
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        shipping_address = raw_input.pop('shipping_address', None)
-        billing_address = raw_input.pop('billing_address', None)
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        shipping_address = data.pop('shipping_address', None)
+        billing_address = data.pop('billing_address', None)
+        cleaned_input = super().clean_input(info, instance, data)
 
-        lines = raw_input.pop('lines', None)
+        lines = data.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
             variants = cls.get_nodes_or_error(
@@ -310,12 +310,12 @@ class DraftOrderLineUpdate(ModelMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if instance.order.status != OrderStatus.DRAFT:
             raise ValidationError({'id': 'Only draft orders can be edited.'})
 
-        quantity = raw_input['quantity']
+        quantity = data['quantity']
         if quantity <= 0:
             raise ValidationError({
                 'quantity':

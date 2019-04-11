@@ -44,8 +44,8 @@ class ShippingZoneInput(graphene.InputObjectType):
 
 class ShippingZoneMixin:
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         default = cleaned_input.get('default')
         if default:
             if default_shipping_zone_exists(instance.pk):
@@ -112,8 +112,8 @@ class ShippingZoneDelete(ModelDeleteMutation):
 
 class ShippingPriceMixin:
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         cleaned_type = cleaned_input.get('type')
         if cleaned_type:
             if cleaned_type == ShippingMethodTypeEnum.PRICE.value:

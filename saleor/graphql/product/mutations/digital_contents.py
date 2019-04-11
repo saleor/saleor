@@ -56,26 +56,26 @@ class DigitalContentCreate(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def clean_input(cls, info, raw_input, instance):
+    def clean_input(cls, info, data, instance):
         if hasattr(instance, 'digital_content'):
             instance.digital_content.delete()
 
-        use_default_settings = raw_input.get('use_default_settings')
+        use_default_settings = data.get('use_default_settings')
         if use_default_settings:
-            return raw_input
+            return data
 
         required_fields = [
             'max_downloads', 'url_valid_days', 'automatic_fulfillment']
 
-        if not all(field in raw_input for field in required_fields):
+        if not all(field in data for field in required_fields):
             msg = ('Use default settings is disabled. Provide all '
                    'missing configuration fields: ')
-            missing_fields = set(required_fields).difference(set(raw_input))
+            missing_fields = set(required_fields).difference(set(data))
             if missing_fields:
                 msg += '{}, ' * len(missing_fields)
                 raise ValidationError(msg.format(*missing_fields))
 
-        return raw_input
+        return data
 
     @classmethod
     @permission_required('product.manage_products')
@@ -146,23 +146,23 @@ class DigitalContentUpdate(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def clean_input(cls, info, raw_input):
-        use_default_settings = raw_input.get('use_default_settings')
+    def clean_input(cls, info, data):
+        use_default_settings = data.get('use_default_settings')
         if use_default_settings:
             return {'use_default_settings': use_default_settings}
 
         required_fields = [
             'max_downloads', 'url_valid_days', 'automatic_fulfillment']
 
-        if not all(field in raw_input for field in required_fields):
+        if not all(field in data for field in required_fields):
             msg = ('Use default settings is disabled. Provide all '
                    'missing configuration fields: ')
-            missing_fields = set(required_fields).difference(set(raw_input))
+            missing_fields = set(required_fields).difference(set(data))
             if missing_fields:
                 msg += '{}, ' * len(missing_fields)
                 raise ValidationError(msg.format(*missing_fields))
 
-        return raw_input
+        return data
 
     @classmethod
     @permission_required('product.manage_products')

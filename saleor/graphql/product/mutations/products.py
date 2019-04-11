@@ -48,17 +48,17 @@ class CategoryCreate(ModelMutation):
         model = models.Category
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
-        parent_id = raw_input['parent_id']
+        parent_id = data['parent_id']
         if parent_id:
             parent = cls.get_node_or_error(
                 info, parent_id, field='parent', only_type=Category)
             cleaned_input['parent'] = parent
-        if raw_input.get('background_image'):
-            image_data = info.context.FILES.get(raw_input['background_image'])
+        if data.get('background_image'):
+            image_data = info.context.FILES.get(data['background_image'])
             validate_image_file(image_data, 'background_image')
         clean_seo_fields(cleaned_input)
         return cleaned_input
@@ -151,12 +151,12 @@ class CollectionCreate(ModelMutation):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
-        if raw_input.get('background_image'):
-            image_data = info.context.FILES.get(raw_input['background_image'])
+        if data.get('background_image'):
+            image_data = info.context.FILES.get(data['background_image'])
             validate_image_file(image_data, 'background_image')
         clean_seo_fields(cleaned_input)
         return cleaned_input
@@ -321,8 +321,8 @@ class ProductCreate(ModelMutation):
         model = models.Product
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -493,15 +493,15 @@ class ProductVariantCreate(ModelMutation):
                     fieldname: 'This field cannot be blank.'})
 
     @classmethod
-    def clean_input(cls, info, instance, raw_input):
-        cleaned_input = super().clean_input(info, instance, raw_input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
 
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
 
-        if 'attributes' in raw_input:
+        if 'attributes' in data:
             attributes_input = cleaned_input.pop('attributes')
             product = instance.product if instance.pk else cleaned_input.get(
                 'product')
@@ -672,14 +672,14 @@ class ProductImageCreate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        raw_input = data.get('input')
+        data = data.get('input')
         product = cls.get_node_or_error(
-            info, raw_input['product'], field='product', only_type=Product)
-        image_data = info.context.FILES.get(raw_input['image'])
+            info, data['product'], field='product', only_type=Product)
+        image_data = info.context.FILES.get(data['image'])
         validate_image_file(image_data, 'image')
 
         image = product.images.create(
-            image=image_data, alt=raw_input.get('alt', ''))
+            image=image_data, alt=data.get('alt', ''))
         create_product_thumbnails.delay(image.pk)
         return ProductImageCreate(product=product, image=image)
 

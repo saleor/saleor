@@ -58,10 +58,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         checkout = cls.get_node_or_error(
             info, checkout_id, field='checkout_id', only_type=Checkout)
 
-        raw_input = data.get('input')
+        data = data.get('input')
         billing_address = checkout.billing_address
-        if 'billing_address' in raw_input:
-            billing_address = cls.validate_address(raw_input['billing_address'])
+        if 'billing_address' in data:
+            billing_address = cls.validate_address(data['billing_address'])
         if billing_address is None:
             raise ValidationError({
                 'billing_address':
@@ -70,7 +70,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         checkout_total = checkout.get_total(
             discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.billing_address))
-        amount = raw_input.get('amount', checkout_total)
+        amount = data.get('amount', checkout_total)
         if amount < checkout_total.gross.amount:
             raise ValidationError({
                 'amount':
@@ -81,8 +81,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             'customer_user_agent': info.context.META.get('HTTP_USER_AGENT')}
 
         payment = create_payment(
-            gateway=raw_input['gateway'],
-            payment_token=raw_input['token'],
+            gateway=data['gateway'],
+            payment_token=data['token'],
             total=amount,
             currency=settings.DEFAULT_CURRENCY,
             email=checkout.email,
