@@ -396,8 +396,8 @@ class BaseBulkMutation(BaseMutation):
         """
 
     @classmethod
-    def bulk_action(cls, instances):
-        """Implement action performed on list of instances"""
+    def bulk_action(cls, queryset):
+        """Implement action performed on queryset."""
         raise NotImplementedError
 
     @classmethod
