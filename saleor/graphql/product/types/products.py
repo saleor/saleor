@@ -1,4 +1,3 @@
-import re
 from textwrap import dedent
 
 import graphene
@@ -8,31 +7,39 @@ from graphene import relay
 from graphql.error import GraphQLError
 from graphql_jwt.decorators import permission_required
 
-from ...product import models
-from ...product.templatetags.product_images import (
+from .digital_contents import DigitalContent
+from ....product import models
+from ....product.templatetags.product_images import (
     get_product_image_thumbnail, get_thumbnail)
-from ...product.utils import calculate_revenue_for_variant
-from ...product.utils.availability import get_availability
-from ...product.utils.costs import (
+from ....product.utils import calculate_revenue_for_variant
+from ....product.utils.availability import get_availability
+from ....product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
-from ..core.connection import CountableDjangoObjectType
-from ..core.enums import ReportingPeriod, TaxRateType
-from ..core.fields import PrefetchingConnectionField
-from ..core.types import (
-    FilterInputObjectType, Image, Money, MoneyRange, TaxedMoney,
-    TaxedMoneyRange)
-from ..translations.enums import LanguageCodeEnum
-from ..translations.resolvers import resolve_translation
-from ..translations.types import (
-    AttributeTranslation, AttributeValueTranslation, CategoryTranslation,
-    CollectionTranslation, ProductTranslation, ProductVariantTranslation)
-from ..utils import get_database_id, reporting_period_to_date
-from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-from .enums import AttributeValueType, OrderDirection, ProductOrderField
-from .filters import ProductFilter
+from ...core.connection import CountableDjangoObjectType
+from ...core.enums import ReportingPeriod, TaxRateType
+from ...core.fields import PrefetchingConnectionField
+from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ...translations.enums import LanguageCodeEnum
+from ...translations.resolvers import resolve_translation
+from ...translations.types import (
+    CategoryTranslation, CollectionTranslation, ProductTranslation,
+    ProductVariantTranslation)
+from ...utils import get_database_id, reporting_period_to_date
+from .attributes import SelectedAttribute, Attribute
 
-COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
-color_pattern = re.compile(COLOR_PATTERN)
+
+def prefetch_products(info, *args, **kwargs):
+    """Prefetch products visible to the current user.
+
+    Can be used with models that have the `products` relationship. Queryset of
+    products being prefetched is filtered based on permissions of the viewing
+    user, to restrict access to unpublished products to non-staff users.
+    """
+    user = info.context.user
+    qs = models.Product.objects.visible_to_user(user)
+    return Prefetch(
+        'products', queryset=gql_optimizer.query(qs, info),
+        to_attr='prefetched_products')
 
 
 def resolve_attribute_list(attributes_hstore, attributes_qs):
@@ -60,127 +67,9 @@ def resolve_attribute_list(attributes_hstore, attributes_qs):
     return attributes_list
 
 
-def resolve_attribute_value_type(attribute_value):
-    if color_pattern.match(attribute_value):
-        return AttributeValueType.COLOR
-    if 'gradient(' in attribute_value:
-        return AttributeValueType.GRADIENT
-    if '://' in attribute_value:
-        return AttributeValueType.URL
-    return AttributeValueType.STRING
-
-
-class AttributeValue(CountableDjangoObjectType):
-    name = graphene.String(description=AttributeValueDescriptions.NAME)
-    slug = graphene.String(description=AttributeValueDescriptions.SLUG)
-    type = AttributeValueType(description=AttributeValueDescriptions.TYPE)
-    value = graphene.String(description=AttributeValueDescriptions.VALUE)
-    translation = graphene.Field(
-        AttributeValueTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description='A language code to return the translation for.',
-            required=True),
-        description=(
-            'Returns translated Attribute Value fields '
-            'for the given language code.'),
-        resolver=resolve_translation)
-
-    class Meta:
-        description = 'Represents a value of an attribute.'
-        only_fields = ['id', 'sort_order']
-        interfaces = [relay.Node]
-        model = models.AttributeValue
-
-    def resolve_type(self, info):
-        return resolve_attribute_value_type(self.value)
-
-
-class Attribute(CountableDjangoObjectType):
-    name = graphene.String(description=AttributeDescriptions.NAME)
-    slug = graphene.String(description=AttributeDescriptions.SLUG)
-    values = gql_optimizer.field(
-        graphene.List(
-            AttributeValue, description=AttributeDescriptions.VALUES),
-        model_field='values')
-    translation = graphene.Field(
-        AttributeTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description='A language code to return the translation for.',
-            required=True),
-        description=(
-            'Returns translated Attribute fields '
-            'for the given language code.'),
-        resolver=resolve_translation)
-
-    class Meta:
-        description = dedent("""Custom attribute of a product. Attributes can be
-        assigned to products and variants at the product type level.""")
-        only_fields = ['id', 'product_type', 'product_variant_type']
-        interfaces = [relay.Node]
-        model = models.Attribute
-
-    def resolve_values(self, info):
-        return self.values.all()
-
-
 class Margin(graphene.ObjectType):
     start = graphene.Int()
     stop = graphene.Int()
-
-
-class SelectedAttribute(graphene.ObjectType):
-    attribute = graphene.Field(
-        Attribute, default_value=None, description=AttributeDescriptions.NAME,
-        required=True)
-    value = graphene.Field(
-        AttributeValue, default_value=None,
-        description='Value of an attribute.', required=True)
-
-    class Meta:
-        description = 'Represents a custom attribute.'
-
-
-class DigitalContentUrl(CountableDjangoObjectType):
-    url = graphene.String(description='Url for digital content')
-
-    class Meta:
-        model = models.DigitalContentUrl
-        only_fields = ['content', 'created', 'download_num', 'token', 'url']
-        interfaces = (relay.Node,)
-
-    def resolve_url(self, info):
-        return self.get_absolute_url()
-
-
-class DigitalContent(CountableDjangoObjectType):
-    urls = gql_optimizer.field(
-        graphene.List(
-            lambda: DigitalContentUrl,
-            description='List of urls for the digital variant'),
-        model_field='urls')
-
-    class Meta:
-        model = models.DigitalContent
-        only_fields = [
-            'automatic_fulfillment', 'content_file', 'max_downloads',
-            'product_variant', 'url_valid_days', 'urls',
-            'use_default_settings']
-        interfaces = (relay.Node,)
-
-    def resolve_urls(self, info, **kwargs):
-        qs = self.urls.all()
-        return gql_optimizer.query(qs, info)
-
-
-class ProductOrder(graphene.InputObjectType):
-    field = graphene.Argument(
-        ProductOrderField, required=True,
-        description='Sort products by the selected field.')
-    direction = graphene.Argument(
-        OrderDirection, required=True,
-        description='Specifies the direction in which to sort products')
 
 
 class ProductVariant(CountableDjangoObjectType):
@@ -304,11 +193,6 @@ class ProductAvailability(graphene.ObjectType):
 
     class Meta:
         description = 'Represents availability of a product in the storefront.'
-
-
-class ProductFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = ProductFilter
 
 
 class Product(CountableDjangoObjectType):
@@ -453,20 +337,6 @@ class Product(CountableDjangoObjectType):
             except cls._meta.model.DoesNotExist:
                 return None
         return None
-
-
-def prefetch_products(info, *args, **kwargs):
-    """Prefetch products visible to the current user.
-
-    Can be used with models that have the `products` relationship. Queryset of
-    products being prefetched is filtered based on permissions of the viewing
-    user, to restrict access to unpublished products to non-staff users.
-    """
-    user = info.context.user
-    qs = models.Product.objects.visible_to_user(user)
-    return Prefetch(
-        'products', queryset=gql_optimizer.query(qs, info),
-        to_attr='prefetched_products')
 
 
 class ProductType(CountableDjangoObjectType):

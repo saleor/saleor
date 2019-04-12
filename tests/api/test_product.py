@@ -11,7 +11,7 @@ from prices import Money
 
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
-from saleor.graphql.product.types import resolve_attribute_list
+from saleor.graphql.product.types.products import resolve_attribute_list
 from saleor.product.models import (
     Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
     ProductVariant)
