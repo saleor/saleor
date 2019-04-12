@@ -41,7 +41,8 @@ def products_for_products_list(user):
 def products_for_homepage(user, homepage_collection):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
-        'translations', 'images', 'variants__variant_images__image')
+        'translations', 'images', 'variants__variant_images__image',
+        'collections')
     products = products.filter(collections=homepage_collection)
     return products
 
