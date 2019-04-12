@@ -1,7 +1,7 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { ActiveTab, Dialog, Pagination } from "../types";
+import { ActiveTab, BulkAction, Dialog, Pagination } from "../types";
 import { SaleDetailsPageTab } from "./components/SaleDetailsPage";
 import { VoucherDetailsPageTab } from "./components/VoucherDetailsPage";
 
@@ -15,8 +15,12 @@ export type SaleUrlDialog =
   | "assign-category"
   | "assign-collection"
   | "assign-product"
+  | "unassign-category"
+  | "unassign-collection"
+  | "unassign-product"
   | "remove";
 export type SaleUrlQueryParams = Pagination &
+  BulkAction &
   Dialog<SaleUrlDialog> &
   ActiveTab<SaleDetailsPageTab>;
 export const saleUrl = (id: string, params?: SaleUrlQueryParams) =>
@@ -33,8 +37,12 @@ export type VoucherUrlDialog =
   | "assign-collection"
   | "assign-country"
   | "assign-product"
+  | "unassign-category"
+  | "unassign-collection"
+  | "unassign-product"
   | "remove";
 export type VoucherUrlQueryParams = Pagination &
+  BulkAction &
   Dialog<VoucherUrlDialog> &
   ActiveTab<VoucherDetailsPageTab>;
 export const voucherUrl = (id: string, params?: VoucherUrlQueryParams) =>

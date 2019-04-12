@@ -1,5 +1,6 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
+import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
@@ -11,7 +12,6 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
@@ -21,11 +21,12 @@ import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { ListProps } from "../../../types";
+import { ListActions, ListProps } from "../../../types";
 import { SaleDetails_sale } from "../../types/SaleDetails";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
+import TableHead from "../../../components/TableHead";
 
-export interface DiscountCollectionsProps extends ListProps {
+export interface DiscountCollectionsProps extends ListProps, ListActions {
   discount: SaleDetails_sale | VoucherDetails_voucher;
   onCollectionAssign: () => void;
   onCollectionUnassign: (id: string) => void;
@@ -61,7 +62,11 @@ const DiscountCollections = withStyles(styles, {
     onCollectionUnassign,
     onRowClick,
     onPreviousPage,
-    onNextPage
+    onNextPage,
+    isChecked,
+    selected,
+    toggle,
+    toolbar
   }: DiscountCollectionsProps & WithStyles<typeof styles>) => (
     <Card>
       <CardTitle
@@ -75,8 +80,9 @@ const DiscountCollections = withStyles(styles, {
         }
       />
       <Table>
-        <TableHead>
+        <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
+            <TableCell />
             <TableCell className={classes.wideColumn}>
               {i18n.t("Collection name")}
             </TableCell>
@@ -89,7 +95,7 @@ const DiscountCollections = withStyles(styles, {
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={3}
+              colSpan={4}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -102,38 +108,56 @@ const DiscountCollections = withStyles(styles, {
         <TableBody>
           {renderCollection(
             maybe(() => sale.collections.edges.map(edge => edge.node)),
-            collection => (
-              <TableRow
-                hover={!!collection}
-                key={collection ? collection.id : "skeleton"}
-                onClick={collection && onRowClick(collection.id)}
-                className={classes.tableRow}
-              >
-                <TableCell>
-                  {maybe<React.ReactNode>(() => collection.name, <Skeleton />)}
-                </TableCell>
-                <TableCell className={classes.textRight}>
-                  {maybe<React.ReactNode>(
-                    () => collection.products.totalCount,
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell className={classes.iconCell}>
-                  <IconButton
-                    disabled={!collection || disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onCollectionUnassign(collection.id);
-                    }}
-                  >
-                    <DeleteIcon color="primary" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ),
+            collection => {
+              const isSelected = collection ? isChecked(collection.id) : false;
+              return (
+                <TableRow
+                  selected={isSelected}
+                  hover={!!collection}
+                  key={collection ? collection.id : "skeleton"}
+                  onClick={collection && onRowClick(collection.id)}
+                  className={classes.tableRow}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      color="primary"
+                      checked={isSelected}
+                      disabled={disabled}
+                      onClick={event => {
+                        toggle(collection.id);
+                        event.stopPropagation();
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {maybe<React.ReactNode>(
+                      () => collection.name,
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.textRight}>
+                    {maybe<React.ReactNode>(
+                      () => collection.products.totalCount,
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.iconCell}>
+                    <IconButton
+                      disabled={!collection || disabled}
+                      onClick={event => {
+                        event.stopPropagation();
+                        onCollectionUnassign(collection.id);
+                      }}
+                    >
+                      <DeleteIcon color="primary" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            },
             () => (
               <TableRow>
-                <TableCell colSpan={3}>
+                <TableCell colSpan={4}>
                   {i18n.t("No collections found")}
                 </TableCell>
               </TableRow>
