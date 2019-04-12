@@ -1,9 +1,12 @@
+import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
-import { stringify as stringifyQs } from "qs";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../components/ActionDialog";
 import { createPaginationState } from "../../components/Paginator";
+import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import usePaginator from "../../hooks/usePaginator";
@@ -36,6 +39,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
+  const { isSelected, listElements, reset, toggle } = useBulkActions();
 
   const closeModal = () =>
     navigate(
@@ -47,8 +51,10 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       true
     );
 
-  const changeFilters = (filters: ProductListUrlFilters) =>
+  const changeFilters = (filters: ProductListUrlFilters) => {
+    reset();
     navigate(productListUrl(filters));
+  };
 
   const openModal = (action: ProductListUrlDialog, ids: string[]) =>
     navigate(
@@ -83,6 +89,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
             notify({
               text: i18n.t("Products removed")
             });
+            reset();
             refetch();
           }
         };
@@ -130,9 +137,31 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         status: StockAvailability.OUT_OF_STOCK
                       })
                     }
-                    onBulkDelete={ids => openModal("delete", ids)}
-                    onBulkPublish={ids => openModal("publish", ids)}
-                    onBulkUnpublish={ids => openModal("unpublish", ids)}
+                    toolbar={
+                      <>
+                        <Button
+                          color="primary"
+                          onClick={() => openModal("unpublish", listElements)}
+                        >
+                          {i18n.t("Unpublish")}
+                        </Button>
+                        <Button
+                          color="primary"
+                          onClick={() => openModal("publish", listElements)}
+                        >
+                          {i18n.t("Publish")}
+                        </Button>
+                        <IconButton
+                          color="primary"
+                          onClick={() => openModal("delete", listElements)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </>
+                    }
+                    isChecked={isSelected}
+                    selected={listElements.length}
+                    toggle={toggle}
                   />
                   <ActionDialog
                     open={params.action === "delete"}
