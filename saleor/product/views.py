@@ -151,8 +151,10 @@ def category_index(request, slug, category_id):
             category_id=category_id)
     # Check for subcategories
     categories = category.get_descendants(include_self=True)
-    products = products_for_products_list(user=request.user).filter(
-        category__in=categories).order_by('name')
+    products = products_for_products_list(user=request.user)\
+        .filter(category__in=categories)\
+        .order_by('name')\
+        .prefetch_related('collections')
     product_filter = ProductCategoryFilter(
         request.GET, queryset=products, category=category)
     ctx = get_product_list_context(request, product_filter)
