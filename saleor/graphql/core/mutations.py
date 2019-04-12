@@ -349,7 +349,7 @@ class ModelDeleteMutation(ModelMutation):
         """
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         """Perform a mutation that deletes a model instance."""
         if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
@@ -412,7 +412,7 @@ class BaseBulkMutation(BaseMutation):
         raise NotImplementedError
 
     @classmethod
-    def perform_mutation(cls, root, info, ids):
+    def perform_mutation(cls, _root, info, ids):
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids, errors = [], {}
         instance_model = cls._meta.model

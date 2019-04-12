@@ -166,7 +166,7 @@ class DigitalContentUpdate(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def perform_mutation(cls, root, info, variant_id, **data):
+    def perform_mutation(cls, _root, info, variant_id, **data):
         variant = cls.get_node_or_error(
             info, variant_id, 'id', only_type=ProductVariant)
 

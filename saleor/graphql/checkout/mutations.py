@@ -168,7 +168,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 add_variant_to_cart(instance, variant, quantity)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         user = info.context.user
 
         # `perform_mutation` is overridden to properly get or create a checkout
@@ -207,7 +207,7 @@ class CheckoutLinesAdd(BaseMutation):
         description = 'Adds a checkout line to the existing checkout.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, lines, replace=False):
+    def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
 
@@ -335,7 +335,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         description = 'Update shipping address in the existing Checkout.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, shipping_address):
+    def perform_mutation(cls, _root, info, checkout_id, shipping_address):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
         shipping_address = cls.validate_address(
@@ -369,7 +369,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         description = 'Update billing address in the existing Checkout.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, billing_address):
+    def perform_mutation(cls, _root, info, checkout_id, billing_address):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
 

@@ -108,7 +108,7 @@ class PaymentCapture(BaseMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, payment_id, amount=None):
+    def perform_mutation(cls, _root, info, payment_id, amount=None):
         payment = cls.get_node_or_error(
             info, payment_id, field='payment_id', only_type=Payment)
         try:
@@ -128,7 +128,7 @@ class PaymentRefund(PaymentCapture):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, payment_id, amount=None):
+    def perform_mutation(cls, _root, info, payment_id, amount=None):
         payment = cls.get_node_or_error(
             info, payment_id, field='payment_id', only_type=Payment)
         try:

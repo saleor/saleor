@@ -141,7 +141,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         product_type = cls.get_node_or_error(
             info, data.get('id'), only_type=ProductType)
         instance = models.Attribute()
@@ -202,7 +202,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, input):
+    def perform_mutation(cls, _root, info, id, input):
         instance = cls.get_node_or_error(info, id, only_type=Attribute)
 
         cleaned_input = cls.clean_input(info, instance, input)
@@ -270,7 +270,7 @@ class AttributeValueCreate(ModelMutation):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, attribute_id, input):
+    def perform_mutation(cls, _root, info, attribute_id, input):
         attribute = cls.get_node_or_error(
             info, attribute_id, only_type=Attribute)
 

@@ -128,7 +128,7 @@ class FulfillmentCreate(BaseMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, order, **data):
+    def perform_mutation(cls, _root, info, order, **data):
         order = cls.get_node_or_error(
             info, order, field='order', only_type=Order)
         data = data.get('input')
