@@ -18,11 +18,10 @@ from saleor.graphql.core.enums import PermissionEnum
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
+
 from .utils import (
-    assert_no_permission,
-    convert_dict_keys_to_camel_case,
-    get_multipart_request_body,
-)
+    assert_no_permission, convert_dict_keys_to_camel_case,
+    get_multipart_request_body)
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -382,15 +381,15 @@ def test_me_query_customer_can_not_see_note(
     assert data['note'] == staff_api_client.user.note
 
 
-def test_me_query_checkout(user_api_client, cart):
+def test_me_query_checkout(user_api_client, checkout):
     user = user_api_client.user
-    cart.user = user
-    cart.save()
+    checkout.user = user
+    checkout.save()
 
     response = user_api_client.post_graphql(ME_QUERY)
     content = get_graphql_content(response)
     data = content['data']['me']
-    assert data['checkout']['token'] == str(cart.token)
+    assert data['checkout']['token'] == str(checkout.token)
 
 
 def test_me_with_cancelled_fulfillments(

@@ -14,7 +14,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
-from saleor.checkout.utils import add_variant_to_cart
+from saleor.checkout.utils import add_variant_to_checkout
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount.models import Sale
 from saleor.menu.models import MenuItemTranslation
@@ -177,115 +177,115 @@ def test_render_product_detail_with_taxes(client, product, vatlayer):
     assert response.status_code == 200
 
 
-def test_view_invalid_add_to_cart(client, product, request_cart):
+def test_view_invalid_add_to_checkout(client, product, request_checkout):
     variant = product.variants.get()
-    add_variant_to_cart(request_cart, variant, 2)
+    add_variant_to_checkout(request_checkout, variant, 2)
     response = client.post(
         reverse(
-            'product:add-to-cart',
+            'product:add-to-checkout',
             kwargs={
                 'slug': product.get_slug(),
                 'product_id': product.pk}),
         {})
     assert response.status_code == 200
-    assert request_cart.quantity == 2
+    assert request_checkout.quantity == 2
 
 
-def test_view_add_to_cart(client, product, request_cart_with_item):
-    variant = request_cart_with_item.lines.get().variant
+def test_view_add_to_checkout(client, product, request_checkout_with_item):
+    variant = request_checkout_with_item.lines.get().variant
     response = client.post(
         reverse(
-            'product:add-to-cart',
+            'product:add-to-checkout',
             kwargs={'slug': product.get_slug(),
                     'product_id': product.pk}),
         {'quantity': 1, 'variant': variant.pk})
     assert response.status_code == 302
-    assert request_cart_with_item.quantity == 1
+    assert request_checkout_with_item.quantity == 1
 
 
-def test_adding_to_cart_with_current_user_token(
-        customer_user, authorized_client, product, request_cart_with_item):
+def test_adding_to_checkout_with_current_user_token(
+        customer_user, authorized_client, product, request_checkout_with_item):
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
 
     response = authorized_client.get(reverse('cart:index'))
 
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
-    variant = request_cart_with_item.lines.first().variant
+    variant = request_checkout_with_item.lines.first().variant
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     authorized_client.post(url, data)
 
     assert Checkout.objects.count() == 1
-    assert Checkout.objects.get(user=customer_user).pk == request_cart_with_item.pk
+    assert Checkout.objects.get(user=customer_user).pk == request_checkout_with_item.pk
 
 
-def test_adding_to_cart_with_another_user_token(
+def test_adding_to_checkout_with_another_user_token(
         admin_user, admin_client, product, customer_user,
-        request_cart_with_item):
+        request_checkout_with_item):
     client = admin_client
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
 
     response = client.get(reverse('cart:index'))
 
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     client.cookies[key] = response.cookies[key]
-    variant = request_cart_with_item.lines.first().variant
+    variant = request_checkout_with_item.lines.first().variant
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     client.post(url, data)
 
     assert Checkout.objects.count() == 2
-    assert Checkout.objects.get(user=admin_user).pk != request_cart_with_item.pk
+    assert Checkout.objects.get(user=admin_user).pk != request_checkout_with_item.pk
 
 
-def test_anonymous_adding_to_cart_with_another_user_token(
-        client, product, customer_user, request_cart_with_item):
+def test_anonymous_adding_to_checkout_with_another_user_token(
+        client, product, customer_user, request_checkout_with_item):
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
 
     response = client.get(reverse('cart:index'))
 
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     client.cookies[key] = response.cookies[key]
     variant = product.variants.get()
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     client.post(url, data)
 
     assert Checkout.objects.count() == 2
-    assert Checkout.objects.get(user=None).pk != request_cart_with_item.pk
+    assert Checkout.objects.get(user=None).pk != request_checkout_with_item.pk
 
 
-def test_adding_to_cart_with_deleted_cart_token(
-        customer_user, authorized_client, product, request_cart_with_item):
+def test_adding_to_checkout_with_deleted_checkout_token(
+        customer_user, authorized_client, product, request_checkout_with_item):
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
-    old_token = request_cart_with_item.token
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
+    old_token = request_checkout_with_item.token
 
     response = authorized_client.get(reverse('cart:index'))
 
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
-    request_cart_with_item.delete()
+    request_checkout_with_item.delete()
     variant = product.variants.get()
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
@@ -295,24 +295,24 @@ def test_adding_to_cart_with_deleted_cart_token(
     assert not Checkout.objects.filter(token=old_token).exists()
 
 
-def test_adding_to_cart_with_closed_cart_token(
-        customer_user, authorized_client, product, request_cart_with_item):
+def test_adding_to_checkout_with_closed_checkout_token(
+        customer_user, authorized_client, product, request_checkout_with_item):
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
 
     response = authorized_client.get(reverse('cart:index'))
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
     variant = product.variants.get()
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     authorized_client.post(url, data)
 
-    assert customer_user.carts.count() == 1
+    assert customer_user.checkouts.count() == 1
 
 
 def test_product_filter_before_filtering(authorized_client, product, category):

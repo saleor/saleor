@@ -150,9 +150,9 @@
                 <div class="navbar__brand__cart__icon">
                   <svg data-src="{% static "images/cart.svg" %}" width="24" height="24"/>
                 </div>
-                <span class="badge {% if not cart_counter %}empty{% endif %}">
-                  {% if cart_counter %}
-                    {{ cart_counter }}
+                <span class="badge {% if not checkout_counter %}empty{% endif %}">
+                  {% if checkout_counter %}
+                    {{ checkout_counter }}
                   {% else %}
                     0
                   {% endif %}

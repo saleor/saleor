@@ -1,4 +1,4 @@
-"""Cart-related ORM models."""
+"""Checkout-related ORM models."""
 from decimal import Decimal
 from operator import attrgetter
 from uuid import uuid4
@@ -19,7 +19,7 @@ CENTS = Decimal('0.01')
 
 
 class CheckoutQueryset(models.QuerySet):
-    """A specialized queryset for dealing with carts."""
+    """A specialized queryset for dealing with checkouts."""
 
     def for_display(self):
         """Annotate the queryset for display purposes.
@@ -35,7 +35,7 @@ class CheckoutQueryset(models.QuerySet):
 
 
 class Checkout(models.Model):
-    """A shopping cart."""
+    """A shopping checkout."""
 
     created = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now_add=True)
@@ -90,12 +90,12 @@ class Checkout(models.Model):
             else ZERO_TAXED_MONEY)
 
     def get_subtotal(self, discounts=None, taxes=None):
-        """Return the total cost of the cart prior to shipping."""
+        """Return the total cost of the checkout prior to shipping."""
         subtotals = (line.get_total(discounts, taxes) for line in self)
         return sum(subtotals, ZERO_TAXED_MONEY)
 
     def get_total(self, discounts=None, taxes=None):
-        """Return the total cost of the cart."""
+        """Return the total cost of the checkout."""
         return (
             self.get_subtotal(discounts, taxes)
             + self.get_shipping_price(taxes) - self.discount_amount)
@@ -144,7 +144,7 @@ class CheckoutLine(models.Model):
         return super().__hash__()
 
     def __eq__(self, other):
-        if not isinstance(other, CartLine):
+        if not isinstance(other, CheckoutLine):
             return NotImplemented
 
         return (

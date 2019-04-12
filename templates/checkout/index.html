@@ -23,7 +23,7 @@
     <button type="button" class="close close-msg" aria-hidden="true">&times;</button>
   </div>
   <div class="cart">
-    {% if cart_lines %}
+    {% if checkout_lines %}
       <div class="table__header d-none d-md-block">
         <div class="row">
           <div class="col-md-7">
@@ -37,7 +37,7 @@
           </div>
         </div>
       </div>
-      {% for line in cart_lines %}
+      {% for line in checkout_lines %}
         <div class="cart__line{% if forloop.last %} last{% endif %} table__row">
           <div class="row">
             <div class="col-7 cart__line__product">
