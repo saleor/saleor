@@ -1,4 +1,4 @@
-"""Cart-related forms and fields."""
+"""Checkout-related forms and fields."""
 from datetime import date
 
 from django import forms
@@ -23,35 +23,35 @@ class QuantityField(forms.IntegerField):
 
     def __init__(self, **kwargs):
         super().__init__(
-            min_value=0, max_value=settings.MAX_CART_LINE_QUANTITY,
+            min_value=0, max_value=settings.MAX_CHECKOUT_LINE_QUANTITY,
             initial=1, **kwargs)
 
 
-class AddToCartForm(forms.Form):
-    """Add-to-cart form.
+class AddToCheckoutForm(forms.Form):
+    """Add-to-checkout form.
 
     Allows selection of a product variant and quantity.
 
-    The save method adds it to the cart.
+    The save method adds it to the checkout.
     """
 
     quantity = QuantityField(
-        label=pgettext_lazy('Add to cart form field label', 'Quantity'))
+        label=pgettext_lazy('Add to checkout form field label', 'Quantity'))
     error_messages = {
         'not-available': pgettext_lazy(
-            'Add to cart form error',
+            'Add to checkout form error',
             'Sorry. This product is currently not available.'),
         'empty-stock': pgettext_lazy(
-            'Add to cart form error',
+            'Add to checkout form error',
             'Sorry. This product is currently out of stock.'),
         'variant-does-not-exists': pgettext_lazy(
-            'Add to cart form error', 'Oops. We could not find that product.'),
+            'Add to checkout form error', 'Oops. We could not find that product.'),
         'insufficient-stock': npgettext_lazy(
-            'Add to cart form error',
+            'Add to checkout form error',
             'Only %d remaining in stock.', 'Only %d remaining in stock.')}
 
     def __init__(self, *args, **kwargs):
-        self.cart = kwargs.pop('cart')
+        self.checkout = kwargs.pop('checkout')
         self.product = kwargs.pop('product')
         self.discounts = kwargs.pop('discounts', ())
         self.taxes = kwargs.pop('taxes', {})
@@ -60,7 +60,7 @@ class AddToCartForm(forms.Form):
     def clean(self):
         """Clean the form.
 
-        Makes sure the total quantity in cart (taking into account what was
+        Makes sure the total quantity in checkout (taking into account what was
         already there) does not exceed available quantity.
         """
         cleaned_data = super().clean()
@@ -73,7 +73,7 @@ class AddToCartForm(forms.Form):
             msg = self.error_messages['variant-does-not-exists']
             self.add_error(NON_FIELD_ERRORS, msg)
         else:
-            line = self.cart.get_line(variant)
+            line = self.checkout.get_line(variant)
             used_quantity = line.quantity if line else 0
             new_quantity = quantity + used_quantity
             try:
@@ -89,11 +89,11 @@ class AddToCartForm(forms.Form):
         return cleaned_data
 
     def save(self):
-        """Add the selected product variant and quantity to the cart."""
-        from .utils import add_variant_to_cart
+        """Add the selected product variant and quantity to the checkout."""
+        from .utils import add_variant_to_checkout
         variant = self.get_variant(self.cleaned_data)
         quantity = self.cleaned_data['quantity']
-        add_variant_to_cart(self.cart, variant, quantity)
+        add_variant_to_checkout(self.checkout, variant, quantity)
 
     def get_variant(self, cleaned_data):
         """Return a product variant that matches submitted values.
@@ -105,19 +105,19 @@ class AddToCartForm(forms.Form):
         raise NotImplementedError()
 
 
-class ReplaceCartLineForm(AddToCartForm):
-    """Replace quantity in cart form.
+class ReplaceCheckoutLineForm(AddToCheckoutForm):
+    """Replace quantity in checkout form.
 
-    Similar to AddToCartForm but its save method replaces the quantity.
+    Similar to AddToCheckoutForm but its save method replaces the quantity.
     """
 
     def __init__(self, *args, **kwargs):
         self.variant = kwargs.pop('variant')
         kwargs['product'] = self.variant.product
         super().__init__(*args, **kwargs)
-        self.cart_line = self.cart.get_line(self.variant)
+        self.checkout_line = self.checkout.get_line(self.variant)
         self.fields['quantity'].widget.attrs = {
-            'min': 1, 'max': settings.MAX_CART_LINE_QUANTITY}
+            'min': 1, 'max': settings.MAX_CHECKOUT_LINE_QUANTITY}
 
     def clean_quantity(self):
         """Clean the quantity field.
@@ -138,22 +138,22 @@ class ReplaceCartLineForm(AddToCartForm):
         """Clean the form skipping the add-to-form checks."""
         # explicitly skip parent's implementation
         # pylint: disable=E1003
-        return super(AddToCartForm, self).clean()
+        return super(AddToCheckoutForm, self).clean()
 
     def get_variant(self, cleaned_data):
         """Return the matching variant.
 
         In this case we explicitly know the variant as we're modifying an
-        existing line in cart.
+        existing line in checkout.
         """
         return self.variant
 
     def save(self):
-        """Replace the selected product's quantity in cart."""
-        from .utils import add_variant_to_cart
+        """Replace the selected product's quantity in checkout."""
+        from .utils import add_variant_to_checkout
         variant = self.get_variant(self.cleaned_data)
         quantity = self.cleaned_data['quantity']
-        add_variant_to_cart(self.cart, variant, quantity, replace=True)
+        add_variant_to_checkout(self.checkout, variant, quantity, replace=True)
 
 
 class CountryForm(forms.Form):
@@ -261,7 +261,7 @@ class ShippingMethodChoiceField(forms.ModelChoiceField):
         return label
 
 
-class CartShippingMethodForm(forms.ModelForm):
+class CheckoutShippingMethodForm(forms.ModelForm):
     shipping_method = ShippingMethodChoiceField(
         queryset=ShippingMethod.objects.all(),
         label=pgettext_lazy(
@@ -290,8 +290,8 @@ class CartShippingMethodForm(forms.ModelForm):
                 self.initial['shipping_method'] = shipping_methods[0]
 
 
-class CartNoteForm(forms.ModelForm):
-    """Save note in cart."""
+class CheckoutNoteForm(forms.ModelForm):
+    """Save note in checkout."""
 
     note = forms.CharField(
         max_length=250, required=False, strip=True, label=False,
@@ -309,8 +309,8 @@ class VoucherField(forms.ModelChoiceField):
             'Voucher form error', 'Discount code incorrect or expired')}
 
 
-class CartVoucherForm(forms.ModelForm):
-    """Apply voucher to a cart form."""
+class CheckoutVoucherForm(forms.ModelForm):
+    """Apply voucher to a checkout form."""
 
     voucher = VoucherField(
         queryset=Voucher.objects.none(),
@@ -330,12 +330,12 @@ class CartVoucherForm(forms.ModelForm):
             date=date.today())
 
     def clean(self):
-        from .utils import get_voucher_discount_for_cart
+        from .utils import get_voucher_discount_for_checkout
         cleaned_data = super().clean()
         if 'voucher' in cleaned_data:
             voucher = cleaned_data['voucher']
             try:
-                discount_amount = get_voucher_discount_for_cart(
+                discount_amount = get_voucher_discount_for_checkout(
                     voucher, self.instance)
                 cleaned_data['discount_amount'] = discount_amount
             except NotApplicable as e:

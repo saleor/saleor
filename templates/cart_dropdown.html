@@ -37,7 +37,7 @@
       <div class="col-md-8">
         <h3>
           {% trans "Subtotal" context "Order subtotal" %}<br>
-          <span>{% trans "Shipment and taxes calculated at checkout" context "Cart dropdown text" %}</span>
+          <span>{% trans "Shipment and taxes calculated at checkout" context "Checkout dropdown text" %}</span>
         </h3>
       </div>
       <div class="col-md-4">
@@ -51,7 +51,7 @@
     <div class="row cart-dropdown__actions">
       <div class="col-md-1"></div>
       <div class="col-md-5">
-        <a href="{% url "cart:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to cart" context "Cart dropdown secondary action" %}</a>
+        <a href="{% url "cart:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to cart" context "Checkout dropdown secondary action" %}</a>
       </div>
       <div class="col-md-5">
         <a href="{% url "checkout:login" %}" class="btn btn-primary narrow float-md-right">{% trans "Checkout" context "Cart dropdown primary action" %}</a>
