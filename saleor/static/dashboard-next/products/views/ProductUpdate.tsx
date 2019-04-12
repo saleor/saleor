@@ -88,7 +88,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   data: ProductVariantBulkDelete
                 ) => {
                   if (data.productVariantBulkDelete.errors.length === 0) {
-                    navigate(productUrl(id));
+                    navigate(productUrl(id), true);
                     reset();
                     refetch();
                   }
