@@ -67,7 +67,7 @@ const menuStructure: IMenuItem[] = [
     ariaLabel: "customers",
     label: i18n.t("Customers", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_USERS,
-    url: customerListUrl
+    url: customerListUrl()
   },
 
   {

@@ -50,7 +50,7 @@ export const CustomerDetailsView: React.StatelessComponent<
           context: "notification"
         })
       });
-      navigate(customerListUrl);
+      navigate(customerListUrl());
     }
   };
   return (
@@ -97,7 +97,7 @@ export const CustomerDetailsView: React.StatelessComponent<
                       onAddressManageClick={() =>
                         navigate(customerAddressesUrl(id))
                       }
-                      onBack={() => navigate(customerListUrl)}
+                      onBack={() => navigate(customerListUrl())}
                       onRowClick={id => navigate(orderUrl(id))}
                       onSubmit={formData =>
                         updateCustomer({
