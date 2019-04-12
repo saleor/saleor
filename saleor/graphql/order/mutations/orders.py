@@ -266,7 +266,7 @@ class OrderCapture(BaseMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, amount, **data):
+    def perform_mutation(cls, _root, info, amount, **data):
         if amount <= 0:
             raise ValidationError({
                 'amount': 'Amount should be a positive number.'})
@@ -303,7 +303,7 @@ class OrderVoid(BaseMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
         payment = order.get_last_payment()
@@ -335,7 +335,7 @@ class OrderRefund(BaseMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, amount, **data):
+    def perform_mutation(cls, _root, info, amount, **data):
         if amount <= 0:
             raise ValidationError({
                 'amount': 'Amount should be a positive number.'})

@@ -180,7 +180,7 @@ class DraftOrderComplete(BaseMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, id):
+    def perform_mutation(cls, _root, info, id):
         order = cls.get_node_or_error(info, id, only_type=Order)
         validate_draft_order(order)
         cls.update_user_fields(order)
@@ -278,7 +278,7 @@ class DraftOrderLineDelete(BaseMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, id):
+    def perform_mutation(cls, _root, info, id):
         line = cls.get_node_or_error(info, id, only_type=OrderLine)
         order = line.order
         if order.status != OrderStatus.DRAFT:

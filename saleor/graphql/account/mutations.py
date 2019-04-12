@@ -301,7 +301,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         return user.has_perm('account.manage_staff')
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
@@ -484,7 +484,7 @@ class AddressDelete(ModelDeleteMutation):
         return super().clean_instance(info, instance)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 

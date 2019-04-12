@@ -21,7 +21,7 @@ class BaseTranslateMutation(ModelMutation):
         return user.has_perm('site.manage_translations')
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         model_type = registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node_or_error(
             info, data['id'], only_type=model_type)
