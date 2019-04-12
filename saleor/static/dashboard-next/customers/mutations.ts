@@ -4,6 +4,10 @@ import { TypedMutation } from "../mutations";
 import { fragmentAddress } from "../orders/queries";
 import { customerAddressesFragment, customerDetailsFragment } from "./queries";
 import {
+  BulkRemoveCustomers,
+  BulkRemoveCustomersVariables
+} from "./types/BulkRemoveCustomers";
+import {
   CreateCustomer,
   CreateCustomerVariables
 } from "./types/CreateCustomer";
@@ -167,3 +171,18 @@ export const TypedRemoveCustomerAddressMutation = TypedMutation<
   RemoveCustomerAddress,
   RemoveCustomerAddressVariables
 >(removeCustomerAddress);
+
+export const bulkRemoveCustomers = gql`
+  mutation BulkRemoveCustomers($ids: [ID]!) {
+    customerBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedBulkRemoveCustomers = TypedMutation<
+  BulkRemoveCustomers,
+  BulkRemoveCustomersVariables
+>(bulkRemoveCustomers);
