@@ -6,13 +6,11 @@ import AppHeader from "../../../components/AppHeader";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { ListActionProps, PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { PageList_pages_edges_node } from "../../types/PageList";
 import PageList from "../PageList/PageList";
 
-export interface PageListPageProps
-  extends PageListProps,
-    ListActionProps<"onBulkPublish" | "onBulkUnpublish" | "onBulkDelete"> {
+export interface PageListPageProps extends PageListProps, ListActions {
   pages: PageList_pages_edges_node[];
   onBack: () => void;
 }
@@ -21,14 +19,15 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   disabled,
   onAdd,
   onBack,
-  onBulkDelete,
-  onBulkPublish,
-  onBulkUnpublish,
   onNextPage,
   onPreviousPage,
   onRowClick,
   pageInfo,
-  pages
+  pages,
+  isChecked,
+  selected,
+  toggle,
+  toolbar
 }) => (
   <Container>
     <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
@@ -46,13 +45,14 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
     <PageList
       disabled={disabled}
       pages={pages}
-      onBulkDelete={onBulkDelete}
-      onBulkPublish={onBulkPublish}
-      onBulkUnpublish={onBulkUnpublish}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       onRowClick={onRowClick}
       pageInfo={pageInfo}
+      isChecked={isChecked}
+      selected={selected}
+      toggle={toggle}
+      toolbar={toolbar}
     />
   </Container>
 );

@@ -14,8 +14,14 @@ export const collectionListUrl = (params?: CollectionListUrlQueryParams) =>
   collectionSectionUrl + "?" + stringifyQs(params);
 
 export const collectionPath = (id: string) => urlJoin(collectionSectionUrl, id);
-export type CollectionUrlDialog = "remove" | "removeImage" | "assign";
-export type CollectionUrlQueryParams = Pagination & Dialog<CollectionUrlDialog>;
+export type CollectionUrlDialog =
+  | "remove"
+  | "removeImage"
+  | "assign"
+  | "unassign";
+export type CollectionUrlQueryParams = BulkAction &
+  Pagination &
+  Dialog<CollectionUrlDialog>;
 export const collectionUrl = (id: string, params?: CollectionUrlQueryParams) =>
   collectionPath(encodeURIComponent(id)) + "?" + stringifyQs(params);
 

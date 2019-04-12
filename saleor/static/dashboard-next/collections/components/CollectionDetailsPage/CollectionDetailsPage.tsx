@@ -12,7 +12,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
 import { CollectionImage } from "../CollectionImage/CollectionImage";
@@ -29,7 +29,7 @@ export interface CollectionDetailsPageFormData {
   isPublished: boolean;
 }
 
-export interface CollectionDetailsPageProps extends PageListProps {
+export interface CollectionDetailsPageProps extends PageListProps, ListActions {
   collection: CollectionDetails_collection;
   isFeatured: boolean;
   saveButtonBarState: ConfirmButtonTransitionState;
