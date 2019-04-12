@@ -1,5 +1,3 @@
-from typing import List
-
 import graphene
 from django.db.models import Q
 from django.utils import timezone
@@ -28,43 +26,40 @@ def _check_graphene_type(requested_graphene_type, received_type):
     if requested_graphene_type:
         assert str(requested_graphene_type) == received_type, (
             'Must receive an {} id.'
-        ).format(requested_graphene_type._meta.name)
+        ).format(str(requested_graphene_type))
 
 
 def _resolve_nodes(ids, graphene_type=None):
     pks = []
-    types = []
     invalid_ids = []
+    used_type = graphene_type
 
     for graphql_id in ids:
         if not graphql_id:
             continue
 
         try:
-            _type, _id = from_global_id(graphql_id)
+            node_type, _id = from_global_id(graphql_id)
         except Exception:
             invalid_ids.append(graphql_id)
             continue
 
-        _check_graphene_type(graphene_type, _type)
+        _check_graphene_type(used_type, node_type)
+        used_type = node_type
         pks.append(_id)
-        types.append(_type)
 
     if invalid_ids:
         raise GraphQLError(
             ERROR_COULD_NO_RESOLVE_GLOBAL_ID % invalid_ids)
 
-    return types, pks
+    return used_type, pks
 
 
-def _resolve_graphene_type(types: List):
-    assert len(set(types)) == 1, 'Received IDs of more than one type.'
-    # get type by name
-    type_name = types[0]
+def _resolve_graphene_type(type_name):
     for _, _type in registry._registry.items():
         if _type._meta.name == type_name:
             return _type
-    return None
+    raise AssertionError('Could not resolve the type {}'.format(type_name))
 
 
 def get_nodes(ids, graphene_type=None):
@@ -75,13 +70,13 @@ def get_nodes(ids, graphene_type=None):
     the Graphene's registry. Raises an error if not all IDs are of the same
     type.
     """
-    types, pks = _resolve_nodes(ids, graphene_type)
+    nodes_type, pks = _resolve_nodes(ids, graphene_type)
 
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
     # types.
-    if types and not graphene_type:
-        graphene_type = _resolve_graphene_type(types)
+    if nodes_type and not graphene_type:
+        graphene_type = _resolve_graphene_type(nodes_type)
 
     nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
     nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
