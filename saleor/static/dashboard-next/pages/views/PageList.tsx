@@ -1,9 +1,13 @@
+import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../components/ActionDialog";
 import { createPaginationState } from "../../components/Paginator";
 import { configurationMenuUrl } from "../../configuration";
+import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import usePaginator from "../../hooks/usePaginator";
@@ -39,6 +43,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
+  const { isSelected, listElements, reset, toggle } = useBulkActions();
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
 
@@ -76,6 +81,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
             notify({
               text: i18n.t("Published pages")
             });
+            reset();
             refetch();
           }
         };
@@ -86,6 +92,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
             notify({
               text: i18n.t("Unpublished pages")
             });
+            reset();
             refetch();
           }
         };
@@ -101,6 +108,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
             notify({
               text: i18n.t("Removed pages")
             });
+            reset();
             refetch();
           }
         };
@@ -147,12 +155,40 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
                             pageInfo={pageInfo}
                             onAdd={() => navigate(pageCreateUrl)}
                             onBack={() => navigate(configurationMenuUrl)}
-                            onBulkDelete={ids => openModal("remove", ids)}
-                            onBulkPublish={ids => openModal("publish", ids)}
-                            onBulkUnpublish={ids => openModal("unpublish", ids)}
                             onNextPage={loadNextPage}
                             onPreviousPage={loadPreviousPage}
                             onRowClick={id => () => navigate(pageUrl(id))}
+                            toolbar={
+                              <>
+                                <Button
+                                  color="primary"
+                                  onClick={() =>
+                                    openModal("unpublish", listElements)
+                                  }
+                                >
+                                  {i18n.t("Unpublish")}
+                                </Button>
+                                <Button
+                                  color="primary"
+                                  onClick={() =>
+                                    openModal("publish", listElements)
+                                  }
+                                >
+                                  {i18n.t("Publish")}
+                                </Button>
+                                <IconButton
+                                  color="primary"
+                                  onClick={() =>
+                                    openModal("remove", listElements)
+                                  }
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </>
+                            }
+                            isChecked={isSelected}
+                            selected={listElements.length}
+                            toggle={toggle}
                           />
                           <ActionDialog
                             open={params.action === "publish"}

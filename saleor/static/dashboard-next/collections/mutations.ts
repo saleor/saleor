@@ -163,7 +163,7 @@ export const TypedCollectionRemoveMutation = TypedMutation<
 const unassignCollectionProduct = gql`
   mutation UnassignCollectionProduct(
     $collectionId: ID!
-    $productId: ID!
+    $productIds: [ID]!
     $first: Int
     $after: String
     $last: Int
@@ -171,7 +171,7 @@ const unassignCollectionProduct = gql`
   ) {
     collectionRemoveProducts(
       collectionId: $collectionId
-      products: [$productId]
+      products: $productIds
     ) {
       errors {
         field
