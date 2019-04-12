@@ -12,7 +12,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { ListActionProps, UserError } from "../../../types";
+import { ListActions, UserError } from "../../../types";
 import {
   ProductDetails_product,
   ProductDetails_product_attributes_attribute,
@@ -27,8 +27,7 @@ import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
 
-interface ProductUpdateProps
-  extends ListActionProps<"onBulkProductVariantDelete"> {
+interface ProductUpdateProps extends ListActions {
   errors: UserError[];
   placeholderImage: string;
   collections?: Array<{
@@ -115,7 +114,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   variants,
   onAttributesEdit,
   onBack,
-  onBulkProductVariantDelete,
   onDelete,
   onImageDelete,
   onImageEdit,
@@ -124,7 +122,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   onSeoClick,
   onSubmit,
   onVariantAdd,
-  onVariantShow
+  onVariantShow,
+  isChecked,
+  selected,
+  toggle,
+  toolbar
 }) => {
   const initialData: FormData = {
     attributes: maybe(
@@ -240,9 +242,12 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     variants={variants}
                     fallbackPrice={product ? product.price : undefined}
                     onAttributesEdit={onAttributesEdit}
-                    onBulkDelete={onBulkProductVariantDelete}
                     onRowClick={onVariantShow}
                     onVariantAdd={onVariantAdd}
+                    toolbar={toolbar}
+                    isChecked={isChecked}
+                    selected={selected}
+                    toggle={toggle}
                   />
                 ) : (
                   <ProductStock

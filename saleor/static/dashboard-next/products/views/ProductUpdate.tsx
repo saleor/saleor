@@ -1,10 +1,13 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import ActionDialog from "../../components/ActionDialog";
 import { WindowTitle } from "../../components/WindowTitle";
+import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import i18n from "../../i18n";
@@ -39,7 +42,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   params
 }) => {
   const navigate = useNavigator();
-  const pushMessage = useNotifier();
+  const notify = useNotifier();
+  const { isSelected, listElements, reset, toggle } = useBulkActions();
 
   return (
     <CategorySearchProvider>
@@ -56,11 +60,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
             >
               {({ data, loading, refetch }) => {
                 const handleDelete = () => {
-                  pushMessage({ text: i18n.t("Product removed") });
+                  notify({ text: i18n.t("Product removed") });
                   navigate(productListUrl());
                 };
                 const handleUpdate = () =>
-                  pushMessage({ text: i18n.t("Saved changes") });
+                  notify({ text: i18n.t("Saved changes") });
                 const handleImageCreate = (data: ProductImageCreate) => {
                   const imageError = data.productImageCreate.errors.find(
                     error =>
@@ -68,13 +72,13 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                       ("image" as keyof ProductImageCreateVariables)
                   );
                   if (imageError) {
-                    pushMessage({
+                    notify({
                       text: imageError.message
                     });
                   }
                 };
                 const handleImageDeleteSuccess = () =>
-                  pushMessage({
+                  notify({
                     text: i18n.t("Image successfully deleted")
                   });
                 const handleVariantAdd = () =>
@@ -85,6 +89,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 ) => {
                   if (data.productVariantBulkDelete.errors.length === 0) {
                     navigate(productUrl(id));
+                    reset();
                     refetch();
                   }
                 };
@@ -239,14 +244,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             onBack={() => {
                               navigate(productListUrl());
                             }}
-                            onBulkProductVariantDelete={ids =>
-                              navigate(
-                                productUrl(id, {
-                                  action: "remove-variants",
-                                  ids
-                                })
-                              )
-                            }
                             onDelete={() =>
                               navigate(
                                 productUrl(id, {
@@ -286,6 +283,24 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             }}
                             onImageEdit={handleImageEdit}
                             onImageDelete={handleImageDelete}
+                            toolbar={
+                              <IconButton
+                                color="primary"
+                                onClick={() =>
+                                  navigate(
+                                    productUrl(id, {
+                                      action: "remove-variants",
+                                      ids: listElements
+                                    })
+                                  )
+                                }
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            }
+                            isChecked={isSelected}
+                            selected={listElements.length}
+                            toggle={toggle}
                           />
                           <ActionDialog
                             open={params.action === "remove"}
