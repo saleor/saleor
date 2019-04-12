@@ -2,7 +2,6 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import slugify
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.mutations import ModelDeleteMutation, ModelMutation
