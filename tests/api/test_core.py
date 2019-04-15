@@ -208,7 +208,7 @@ def test_filter_input():
 
     class TestProductFilter(django_filters.FilterSet):
         name = django_filters.CharFilter()
-        created = EnumFilter(enum_class=CreatedEnum, method='created_filter')
+        created = EnumFilter(input_class=CreatedEnum, method='created_filter')
 
         class Meta:
             model = Product
@@ -216,7 +216,7 @@ def test_filter_input():
                 'product_type__id': ['exact'],
             }
 
-        def created_filter(self, queryset, name, value):
+        def created_filter(self, queryset, _, value):
             if CreatedEnum.WEEK == value:
                 return queryset
             elif CreatedEnum.YEAR == value:

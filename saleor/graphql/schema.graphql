@@ -136,6 +136,11 @@ type AttributeDelete {
   attribute: Attribute
 }
 
+input AttributeInput {
+  slug: String!
+  attributeValue: String!
+}
+
 scalar AttributeScalar
 
 type AttributeTranslate {
@@ -1630,6 +1635,11 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
 }
 
+input PriceInput {
+  gte: Float
+  lte: Float
+}
+
 type Product implements Node {
   id: ID!
   publicationDate: Date
@@ -1718,14 +1728,14 @@ type ProductDelete {
 }
 
 input ProductFilterInput {
-  name: String
-  name__icontains: String
-  category: ID
-  product_type: ID
-  price: Float
-  price__lt: Float
-  price__gt: Float
-  is_published: Boolean
+  isPublished: Boolean
+  collections: [ID]
+  categories: [ID]
+  price: PriceInput
+  attributes: [AttributeInput]
+  stockAvailability: StockAvailability
+  productType: ID
+  search: String
 }
 
 type ProductImage implements Node {

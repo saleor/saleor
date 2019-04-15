@@ -7,7 +7,6 @@ from graphene import relay
 from graphql.error import GraphQLError
 from graphql_jwt.decorators import permission_required
 
-from .digital_contents import DigitalContent
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail, get_thumbnail)
@@ -25,7 +24,9 @@ from ...translations.types import (
     CategoryTranslation, CollectionTranslation, ProductTranslation,
     ProductVariantTranslation)
 from ...utils import get_database_id, reporting_period_to_date
-from .attributes import SelectedAttribute, Attribute
+from ..enums import OrderDirection, ProductOrderField
+from .attributes import Attribute, SelectedAttribute
+from .digital_contents import DigitalContent
 
 
 def prefetch_products(info, *args, **kwargs):
@@ -65,6 +66,15 @@ def resolve_attribute_list(attributes_hstore, attributes_qs):
             attributes_list.append(
                 SelectedAttribute(attribute=attribute, value=value))
     return attributes_list
+
+
+class ProductOrder(graphene.InputObjectType):
+    field = graphene.Argument(
+        ProductOrderField, required=True,
+        description='Sort products by the selected field.')
+    direction = graphene.Argument(
+        OrderDirection, required=True,
+        description='Specifies the direction in which to sort products')
 
 
 class Margin(graphene.ObjectType):

@@ -3,9 +3,18 @@ import operator
 from collections import defaultdict
 
 import django_filters
-from django.db.models import Q
+from django.db.models import Q, Sum
+from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
+
+from saleor.search.backends import picker
 
 from ...product.models import Attribute, Product
+from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
+from ..core.types.common import PriceInput
+from ..utils import get_nodes
+from . import types
+from .enums import StockAvailability
+from .types.attributes import AttributeInput
 
 
 def filter_products_by_attributes(qs, filter_value):
@@ -62,14 +71,64 @@ def sort_qs(qs, sort_by_product_order):
     return qs
 
 
+def filter_attributes(qs, _, value):
+    if value:
+        value = [(v['slug'], v['attribute_value']) for v in value]
+        qs = filter_products_by_attributes(qs, value)
+    return qs
+
+
+def filter_categories(qs, _, value):
+    if value:
+        categories = get_nodes(value, types.Category)
+        qs = filter_products_by_categories(qs, categories)
+    return qs
+
+
+def filter_collections(qs, _, value):
+    if value:
+        collections = get_nodes(value, types.Collection)
+        qs = filter_products_by_collections(qs, collections)
+    return qs
+
+
+def filter_price(qs, _, value):
+    qs = filter_products_by_price(
+        qs, price_lte=value.get('lte'), price_gte=value.get('gte'))
+    return qs
+
+
+def filter_stock_availability(qs, _, value):
+    if value:
+        qs = qs.annotate(total_quantity=Sum('variants__quantity'))
+        if value == StockAvailability.IN_STOCK:
+            qs = qs.filter(total_quantity__gt=0)
+        elif value == StockAvailability.OUT_OF_STOCK:
+            qs = qs.filter(total_quantity__lte=0)
+    return qs
+
+
+def filter_search(qs, _, value):
+    search = picker.pick_backend()
+    qs &= search(value)
+    return qs
+
+
 class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
+    collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
+    categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
+    price = ObjectTypeFilter(input_class=PriceInput, method=filter_price)
+    attributes = ListObjectTypeFilter(
+        input_class=AttributeInput, method=filter_attributes)
+    stock_availability = EnumFilter(
+        input_class=StockAvailability, method=filter_stock_availability)
+    product_type = GlobalIDFilter()
+    search = django_filters.CharFilter(method=filter_search)
 
     class Meta:
         model = Product
-        fields = {
-            'name': ['exact', 'icontains'],
-            'category': ['exact'],
-            'product_type': ['exact'],
-            'price': ['exact', 'lt', 'gt'],
-        }
+        fields = [
+            'is_published', 'collections', 'categories', 'price', 'attributes',
+            'stock_availability', 'product_type', 'search'
+        ]

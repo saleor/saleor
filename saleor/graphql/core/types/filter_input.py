@@ -1,11 +1,13 @@
 import six
+from django_filters import filters
 from graphene import InputField, InputObjectType
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.filter.utils import get_filterset_class
-from graphene_django.forms.converter import convert_form_field
 
 from saleor.graphql.core.filters import EnumFilter
+
+from .filter_converter import convert_form_field
 
 
 class FilterInputObjectType(InputObjectType):
@@ -41,8 +43,8 @@ class FilterInputObjectType(InputObjectType):
         """
         if not cls.custom_filterset_class:
             assert cls.model and cls.fields, (
-                "Provide filterset class or model and fields requested to "
-                "create default filterset")
+                'Provide filterset class or model and fields requested to '
+                'create default filterset')
 
         meta = dict(model=cls.model, fields=cls.fields)
         cls.filterset_class = get_filterset_class(
@@ -52,14 +54,13 @@ class FilterInputObjectType(InputObjectType):
         args = {}
         for name, filter_field in six.iteritems(
                 cls.filterset_class.base_filters):
-            enum_type = isinstance(filter_field, EnumFilter)
-            if enum_type:
-                field_type = filter_field.enum_class()
+            input_class = getattr(filter_field, 'input_class', None)
+            if input_class:
+                field_type = convert_form_field(filter_field)
             else:
                 field_type = convert_form_field(filter_field.field)
                 field_type.description = filter_field.label
             kwargs = getattr(field_type, 'kwargs', {})
-            kwargs['name'] = name
             field_type.kwargs = kwargs
             args[name] = field_type
         return args
