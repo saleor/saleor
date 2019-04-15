@@ -22,7 +22,7 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user, ids):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('account.manage_users')
 
 
@@ -32,5 +32,5 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user, ids):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('account.manage_staff')
