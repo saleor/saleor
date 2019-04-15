@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.utils.dateparse import parse_datetime
+from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
@@ -175,6 +176,43 @@ def test_product_query(staff_api_client, product, permission_manage_products):
         'purchaseCost']['stop']['amount']
     assert margin[0] == product_data['margin']['start']
     assert margin[1] == product_data['margin']['stop']
+
+
+def test_products_query_with_filters_attributes(
+        query_products_with_filters, staff_api_client, product,
+        permission_manage_products):
+
+    product_type = ProductType.objects.create(
+        name='Custom Type', has_variants=True, is_shipping_required=True)
+    attribute = Attribute.objects.create(
+        slug='new_attr', name='Attr', product_type=product_type)
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute, name='First', slug='first')
+    second_product = product
+    second_product.id = None
+    second_product.product_type = product_type
+    second_product.attributes = {smart_text(attribute.pk): smart_text(attr_value.pk)}
+    second_product.save()
+
+    variables = {
+        'filters': {
+            'attributes': [
+                {'slug':attribute.slug, 'attributeValue': attr_value.slug},
+            ]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filters, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
 
 
 def test_products_query_with_filters_product_type(
