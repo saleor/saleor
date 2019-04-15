@@ -10,12 +10,12 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import Skeleton from "../../../components/Skeleton";
+import TableHead from "../../../components/TableHead";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection, translatedTaxRates } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 import { ProductTypeList_productTypes_edges_node } from "../../types/ProductTypeList";
-import TableHead from "../../../components/TableHead";
 
 const styles = createStyles({
   leftText: {
