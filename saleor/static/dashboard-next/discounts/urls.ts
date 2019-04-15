@@ -9,7 +9,12 @@ export const discountSection = "/discounts/";
 
 export const saleSection = urlJoin(discountSection, "sales");
 export const saleListPath = saleSection;
-export const saleListUrl = saleListPath;
+export type SaleListUrlDialog = "remove";
+export type SaleListUrlQueryParams = BulkAction &
+  Dialog<SaleListUrlDialog> &
+  Pagination;
+export const saleListUrl = (params?: SaleListUrlQueryParams) =>
+  saleListPath + "?" + stringifyQs(params);
 export const salePath = (id: string) => urlJoin(saleSection, id);
 export type SaleUrlDialog =
   | "assign-category"
@@ -30,7 +35,12 @@ export const saleAddUrl = saleAddPath;
 
 export const voucherSection = urlJoin(discountSection, "vouchers");
 export const voucherListPath = voucherSection;
-export const voucherListUrl = voucherListPath;
+export type VoucherListUrlDialog = "remove";
+export type VoucherListUrlQueryParams = BulkAction &
+  Dialog<VoucherListUrlDialog> &
+  Pagination;
+export const voucherListUrl = (params?: VoucherListUrlQueryParams) =>
+  voucherListPath + "?" + stringifyQs(params);
 export const voucherPath = (id: string) => urlJoin(voucherSection, id);
 export type VoucherUrlDialog =
   | "assign-category"

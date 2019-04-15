@@ -13,6 +13,7 @@ import {
   SaleUrlQueryParams,
   voucherAddPath,
   voucherListPath,
+  VoucherListUrlQueryParams,
   voucherPath,
   VoucherUrlQueryParams
 } from "./urls";
@@ -21,18 +22,13 @@ import SaleDetailsViewComponent from "./views/SaleDetails";
 import SaleListViewComponent, { SaleListQueryParams } from "./views/SaleList";
 import VoucherCreateView from "./views/VoucherCreate";
 import VoucherDetailsViewComponent from "./views/VoucherDetails";
-import VoucherListViewComponent, {
-  VoucherListQueryParams
-} from "./views/VoucherList";
+import VoucherListViewComponent from "./views/VoucherList";
 
 const SaleListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const { after, before } = parseQs(location.search.substr(1));
-  const params: SaleListQueryParams = {
-    after,
-    before
-  };
+  const qs = parseQs(location.search.substr(1));
+  const params: SaleListQueryParams = qs;
   return <SaleListViewComponent params={params} />;
 };
 
@@ -55,11 +51,8 @@ const SaleDetailsView: React.StatelessComponent<
 const VoucherListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const { after, before } = parseQs(location.search.substr(1));
-  const params: VoucherListQueryParams = {
-    after,
-    before
-  };
+  const qs = parseQs(location.search.substr(1));
+  const params: VoucherListUrlQueryParams = qs;
   return <VoucherListViewComponent params={params} />;
 };
 

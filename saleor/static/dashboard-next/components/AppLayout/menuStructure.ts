@@ -76,12 +76,12 @@ const menuStructure: IMenuItem[] = [
       {
         ariaLabel: "sales",
         label: i18n.t("Sales", { context: "Menu label" }),
-        url: saleListUrl
+        url: saleListUrl()
       },
       {
         ariaLabel: "vouchers",
         label: i18n.t("Vouchers", { context: "Menu label" }),
-        url: voucherListUrl
+        url: voucherListUrl()
       }
     ],
     label: i18n.t("Discounts", { context: "Menu label" }),
