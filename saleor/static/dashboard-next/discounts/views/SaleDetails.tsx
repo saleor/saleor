@@ -260,7 +260,7 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                               onProductClick={id => () =>
                                 navigate(productUrl(id))}
                               activeTab={params.activeTab}
-                              onBack={() => navigate(saleListUrl)}
+                              onBack={() => navigate(saleListUrl())}
                               onTabClick={changeTab}
                               onSubmit={formData =>
                                 saleUpdate({
