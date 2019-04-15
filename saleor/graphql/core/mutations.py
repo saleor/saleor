@@ -157,7 +157,7 @@ class BaseMutation(graphene.Mutation):
         return instance
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         """Determine whether user has rights to perform this mutation.
 
         Default implementation assumes that user is allowed to perform any
@@ -169,7 +169,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         try:
@@ -221,7 +221,7 @@ class ModelMutation(BaseMutation):
             arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, input):
+    def clean_input(cls, info, instance, data):
         """Clean input data received from mutation arguments.
 
         Fields containing IDs or lists of IDs are automatically resolved into
@@ -249,26 +249,26 @@ class ModelMutation(BaseMutation):
                 return field.type.of_type == Upload
             return field.type == Upload
 
-        InputCls = getattr(cls.Arguments, 'input')
+        input_cls = getattr(cls.Arguments, 'input')
         cleaned_input = {}
 
-        for field_name, field in InputCls._meta.fields.items():
-            if field_name in input:
-                value = input[field_name]
+        for field_name, field_item in input_cls._meta.fields.items():
+            if field_name in data:
+                value = data[field_name]
 
                 # handle list of IDs field
-                if value is not None and is_list_of_ids(field):
+                if value is not None and is_list_of_ids(field_item):
                     instances = cls.get_nodes_or_error(
                         value, field_name) if value else []
                     cleaned_input[field_name] = instances
 
                 # handle ID field
-                elif value is not None and is_id_field(field):
+                elif value is not None and is_id_field(field_item):
                     instance = cls.get_node_or_error(info, value, field_name)
                     cleaned_input[field_name] = instance
 
                 # handle uploaded files
-                elif value is not None and is_upload_field(field):
+                elif value is not None and is_upload_field(field_item):
                     value = info.context.FILES.get(value)
                     cleaned_input[field_name] = value
 
@@ -285,6 +285,17 @@ class ModelMutation(BaseMutation):
                 continue
             if f.name in cleaned_data and cleaned_data[f.name] is not None:
                 f.save_form_data(instance, cleaned_data[f.name])
+
+    @classmethod
+    def user_is_allowed(cls, user):
+        """Determine whether user has rights to perform this mutation.
+
+        Default implementation assumes that user is allowed to perform any
+        mutation. By overriding this method, you can restrict access to it.
+        `user` is the User instance associated with the request and `input` is
+        the input data provided as mutation arguments.
+        """
+        return True
 
     @classmethod
     def success_response(cls, instance):
@@ -307,17 +318,17 @@ class ModelMutation(BaseMutation):
         return instance
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         """Perform model mutation.
 
         Depending on the input data, `mutate` either creates a new instance or
-        updates an existing one. If `id` arugment is present, it is assumed
+        updates an existing one. If `id` argument is present, it is assumed
         that this is an "update" mutation. Otherwise, a new instance is
         created based on the model associated with this mutation.
         """
         instance = cls.get_instance(info, **data)
-        input_data = data.get('input')
-        cleaned_input = cls.clean_input(info, instance, input_data)
+        data = data.get('input')
+        cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance)
         cls.save(info, instance, cleaned_input)
@@ -338,9 +349,9 @@ class ModelDeleteMutation(ModelMutation):
         """
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         """Perform a mutation that deletes a model instance."""
-        if not cls.user_is_allowed(info.context.user, data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         node_id = data.get('id')
@@ -401,7 +412,7 @@ class BaseBulkMutation(BaseMutation):
         raise NotImplementedError
 
     @classmethod
-    def perform_mutation(cls, root, info, ids):
+    def perform_mutation(cls, _root, info, ids):
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids, errors = [], {}
         instance_model = cls._meta.model
@@ -492,7 +503,7 @@ class VerifyToken(Verify):
 
     user = graphene.Field(User)
 
-    def resolve_user(self, info, **kwargs):
+    def resolve_user(self, _info, **_kwargs):
         username_field = get_user_model().USERNAME_FIELD
         kwargs = {username_field: self.payload.get(username_field)}
         return models.User.objects.get(**kwargs)

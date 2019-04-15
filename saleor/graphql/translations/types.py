@@ -20,7 +20,7 @@ class BaseTranslationType(CountableDjangoObjectType):
     class Meta:
         abstract = True
 
-    def resolve_language(self, info):
+    def resolve_language(self, *_args):
         try:
             language = next(
                 language[1] for language in settings.LANGUAGES

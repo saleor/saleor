@@ -10,7 +10,7 @@ from .types import Shop
 class ShopQueries(graphene.ObjectType):
     shop = graphene.Field(Shop, description='Represents a shop resources.')
 
-    def resolve_shop(self, info):
+    def resolve_shop(self, _info):
         return Shop()
 
 

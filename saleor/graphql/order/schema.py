@@ -58,28 +58,28 @@ class OrderQueries(graphene.ObjectType):
         token=graphene.Argument(graphene.String, required=True))
 
     @permission_required('order.manage_orders')
-    def resolve_homepage_events(self, info, **kwargs):
-        return resolve_homepage_events(info)
+    def resolve_homepage_events(self, *_args, **_kwargs):
+        return resolve_homepage_events()
 
     @login_required
-    def resolve_order(self, info, id):
-        return resolve_order(info, id)
+    def resolve_order(self, info, **data):
+        return resolve_order(info, data.get('id'))
 
     @permission_required('order.manage_orders')
     def resolve_orders(
-            self, info, created=None, status=None, query=None, **kwargs):
+            self, info, created=None, status=None, query=None, **_kwargs):
         return resolve_orders(info, created, status, query)
 
     @permission_required('order.manage_orders')
-    def resolve_draft_orders(self, info, created=None, query=None, **kwargs):
+    def resolve_draft_orders(self, info, created=None, query=None, **_kwargs):
         return resolve_draft_orders(info, created, query)
 
     @permission_required('order.manage_orders')
-    def resolve_orders_total(self, info, period, **kwargs):
+    def resolve_orders_total(self, info, period, **_kwargs):
         return resolve_orders_total(info, period)
 
-    def resolve_order_by_token(self, info, token):
-        return resolve_order_by_token(info, token)
+    def resolve_order_by_token(self, _info, token):
+        return resolve_order_by_token(token)
 
 
 class OrderMutations(graphene.ObjectType):

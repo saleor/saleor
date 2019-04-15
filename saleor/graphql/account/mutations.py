@@ -124,14 +124,14 @@ class CustomerCreate(ModelMutation, I18nMixin):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        shipping_address_data = input.pop(SHIPPING_ADDRESS_FIELD, None)
-        billing_address_data = input.pop(BILLING_ADDRESS_FIELD, None)
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        shipping_address_data = data.pop(SHIPPING_ADDRESS_FIELD, None)
+        billing_address_data = data.pop(BILLING_ADDRESS_FIELD, None)
+        cleaned_input = super().clean_input(info, instance, data)
 
         if shipping_address_data:
             shipping_address = cls.validate_address(
@@ -189,7 +189,7 @@ class LoggedUserUpdate(CustomerCreate):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.is_authenticated
 
     @classmethod
@@ -214,7 +214,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
             required=True, description='ID of a customer to delete.')
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
 
@@ -230,12 +230,12 @@ class StaffCreate(ModelMutation):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_staff')
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
 
         # set is_staff to True to create a staff user
         cleaned_input['is_staff'] = True
@@ -279,8 +279,8 @@ class StaffUpdate(StaffCreate):
                     'is_active': 'Cannot deactivate superuser\'s account.'})
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         is_active = cleaned_input.get('is_active')
         if is_active is not None:
             cls.clean_is_active(is_active, instance, info.context.user)
@@ -297,12 +297,12 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
             required=True, description='ID of a staff user to delete.')
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_staff')
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
+    def perform_mutation(cls, _root, info, **data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         user_id = data.get('id')
@@ -338,8 +338,8 @@ class SetPassword(ModelMutation):
         model = models.User
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         token = cleaned_input.pop('token')
         if not default_token_generator.check_token(instance, token):
             raise ValidationError({'token': SetPassword.INVALID_TOKEN})
@@ -359,11 +359,11 @@ class PasswordReset(BaseMutation):
         description = 'Sends password reset email'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
     @classmethod
-    def perform_mutation(cls, root, info, email):
+    def perform_mutation(cls, _root, info, email):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
@@ -390,8 +390,8 @@ class CustomerPasswordReset(BaseMutation):
         description = 'Resets the customer\'s password.'
 
     @classmethod
-    def perform_mutation(cls, root, info, input):
-        email = input['email']
+    def perform_mutation(cls, _root, info, **data):
+        email = data.get('input')['email']
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
@@ -428,7 +428,7 @@ class AddressCreate(ModelMutation):
         return response
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
 
@@ -448,12 +448,12 @@ class AddressUpdate(ModelMutation):
         exclude = ['user_addresses']
 
     @classmethod
-    def clean_input(cls, info, instance, input):
+    def clean_input(cls, info, instance, data):
         # Method user_is_allowed cannot be used for permission check, because
         # it doesn't have the address instance.
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
-        return super().clean_input(info, instance, input)
+        return super().clean_input(info, instance, data)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -484,8 +484,8 @@ class AddressDelete(ModelDeleteMutation):
         return super().clean_instance(info, instance)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
+    def perform_mutation(cls, _root, info, **data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         node_id = data.get('id')
@@ -507,7 +507,7 @@ class AddressDelete(ModelDeleteMutation):
 
         # Refresh the user instance to clear the default addresses. If the
         # deleted address was used as default, it would stay cached in the
-        # user instance and the invalid ID returned in the response migt cause
+        # user instance and the invalid ID returned in the response might cause
         # an error.
         user.refresh_from_db()
 
@@ -520,22 +520,24 @@ class AddressSetDefault(BaseMutation):
 
     class Arguments:
         address_id = graphene.ID(
-            required=True, description='ID of the address.')
+            required=True,
+            description='ID of the address.')
         user_id = graphene.ID(
             required=True,
             description='ID of the user to change the address for.')
         type = AddressTypeEnum(
-            required=True, description='The type of address.')
+            required=True,
+            description='The type of address.')
 
     class Meta:
         description = 'Sets a default address for the given user.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('account.manage_users')
 
     @classmethod
-    def perform_mutation(cls, root, info, address_id, user_id, type):
+    def perform_mutation(cls, _root, info, address_id, user_id, **data):
         address = cls.get_node_or_error(
             info, address_id, field='address_id', only_type=Address)
         user = cls.get_node_or_error(
@@ -545,12 +547,10 @@ class AddressSetDefault(BaseMutation):
             raise ValidationError({
                 'address_id': 'The address doesn\'t belong to that user.'})
 
-        if type == AddressTypeEnum.BILLING.value:
+        if data.get('type') == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
-        elif type == AddressTypeEnum.SHIPPING.value:
-            address_type = AddressType.SHIPPING
         else:
-            raise ValueError('Unknown value of AddressTypeEnum: %s' % type)
+            address_type = AddressType.SHIPPING
 
         utils.change_user_default_address(user, address, address_type)
         return cls(user=user)
@@ -572,7 +572,7 @@ class CustomerAddressCreate(ModelMutation):
         exclude = ['user_addresses']
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.is_authenticated
 
     @classmethod
@@ -592,7 +592,7 @@ class CustomerAddressCreate(ModelMutation):
         instance.user_addresses.add(user)
 
 
-# The same as SetDefaultAddress, but for the currenty authenticated user.
+# The same as SetDefaultAddress, but for the currently authenticated user.
 class CustomerSetDefaultAddress(BaseMutation):
     user = graphene.Field(User, description='An updated user instance.')
 
@@ -606,21 +606,21 @@ class CustomerSetDefaultAddress(BaseMutation):
         description = 'Sets a default address for the authenticated user.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.is_authenticated
 
     @classmethod
-    def perform_mutation(cls, root, info, id, type):
-        address = cls.get_node_or_error(info, id, Address)
+    def perform_mutation(cls, _root, info, **data):
+        address = cls.get_node_or_error(info, data.get('id'), Address)
 
         user = info.context.user
         if address not in user.addresses.all():
             raise ValidationError({
                 'id': 'The address doesn\'t belong to that user.'})
 
-        if type == AddressTypeEnum.BILLING.value:
+        if data.get('type') == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
-        elif type == AddressTypeEnum.SHIPPING.value:
+        else:
             address_type = AddressType.SHIPPING
 
         utils.change_user_default_address(user, address, address_type)
@@ -648,7 +648,7 @@ class UserAvatarUpdate(BaseMutation):
 
     @classmethod
     @staff_member_required
-    def perform_mutation(cls, root, info, image):
+    def perform_mutation(cls, _root, info, image):
         user = info.context.user
         image_data = info.context.FILES.get(image)
         validate_image_file(image_data, 'image')
@@ -671,7 +671,7 @@ class UserAvatarDelete(BaseMutation):
 
     @classmethod
     @staff_member_required
-    def perform_mutation(cls, root, info):
+    def perform_mutation(cls, _root, info):
         user = info.context.user
         user.avatar.delete_sized_images()
         user.avatar.delete()

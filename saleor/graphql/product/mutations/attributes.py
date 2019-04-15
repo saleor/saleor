@@ -136,15 +136,16 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         model = models.Attribute
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, type, input):
-        product_type = cls.get_node_or_error(info, id, only_type=ProductType)
+    def perform_mutation(cls, _root, info, **data):
+        product_type = cls.get_node_or_error(
+            info, data.get('id'), only_type=ProductType)
         instance = models.Attribute()
 
-        cleaned_input = cls.clean_input(info, instance, input)
+        cleaned_input = cls.clean_input(info, instance, data.get('input'))
         cls.clean_attribute(
             instance, cleaned_input, product_type=product_type)
         cls.clean_values(cleaned_input, instance)
@@ -152,7 +153,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         cls.clean_instance(instance)
 
         instance.save()
-        if type == AttributeTypeEnum.VARIANT.name:
+        if data.get('type') == AttributeTypeEnum.VARIANT.name:
             product_type.variant_attributes.add(instance)
         else:
             product_type.product_attributes.add(instance)
@@ -196,11 +197,11 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
             attribute_value.delete()
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, input):
+    def perform_mutation(cls, _root, info, id, input):
         instance = cls.get_node_or_error(info, id, only_type=Attribute)
 
         cleaned_input = cls.clean_input(info, instance, input)
@@ -231,7 +232,7 @@ class AttributeDelete(ModelDeleteMutation):
         model = models.Attribute
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -258,17 +259,17 @@ class AttributeValueCreate(ModelMutation):
         model = models.AttributeValue
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, attribute_id, input):
+    def perform_mutation(cls, _root, info, attribute_id, input):
         attribute = cls.get_node_or_error(
             info, attribute_id, only_type=Attribute)
 
@@ -299,12 +300,12 @@ class AttributeValueUpdate(ModelMutation):
         model = models.AttributeValue
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input
@@ -327,7 +328,7 @@ class AttributeValueDelete(ModelDeleteMutation):
         model = models.AttributeValue
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod

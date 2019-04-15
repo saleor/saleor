@@ -105,15 +105,15 @@ class VoucherCreate(ModelMutation):
         model = models.Voucher
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        code = input.get('code', None)
+    def clean_input(cls, info, instance, data):
+        code = data.get('code', None)
         if code == '':
-            input['code'] = generate_voucher_code()
-        cleaned_input = super().clean_input(info, instance, input)
+            data['code'] = generate_voucher_code()
+        cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
 
 
@@ -139,14 +139,14 @@ class VoucherDelete(ModelDeleteMutation):
         model = models.Voucher
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
 
 class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
     voucher = graphene.Field(
         Voucher,
-        description=('Voucher of which catalogue IDs will be modified.'))
+        description='Voucher of which catalogue IDs will be modified.')
 
     class Arguments:
         id = graphene.ID(required=True, description='ID of a voucher.')
@@ -164,14 +164,14 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         description = 'Adds products, categories, collections to a voucher.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, input):
+    def perform_mutation(cls, _root, info, **data):
         voucher = cls.get_node_or_error(
-            info, id, only_type=Voucher, field='voucher_id')
-        cls.add_catalogues_to_node(voucher, input)
+            info, data.get('id'), only_type=Voucher, field='voucher_id')
+        cls.add_catalogues_to_node(voucher, data.get('input'))
         return VoucherAddCatalogues(voucher=voucher)
 
 
@@ -181,14 +181,14 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
             'Removes products, categories, collections from a voucher.')
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, input):
+    def perform_mutation(cls, _root, info, **data):
         voucher = cls.get_node_or_error(
-            info, id, only_type=Voucher, field='voucher_id')
-        cls.remove_catalogues_from_node(voucher, input)
+            info, data.get('id'), only_type=Voucher, field='voucher_id')
+        cls.remove_catalogues_from_node(voucher, data.get('input'))
         return VoucherRemoveCatalogues(voucher=voucher)
 
 
@@ -224,7 +224,7 @@ class SaleCreate(ModelMutation):
         model = models.Sale
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
 
@@ -239,7 +239,7 @@ class SaleUpdate(ModelMutation):
         model = models.Sale
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
 
@@ -252,19 +252,19 @@ class SaleDelete(ModelDeleteMutation):
         model = models.Sale
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
 
 class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
     sale = graphene.Field(
-        Sale, description=('Sale of which catalogue IDs will be modified.'))
+        Sale, description='Sale of which catalogue IDs will be modified.')
 
     class Arguments:
         id = graphene.ID(required=True, description='ID of a sale.')
         input = CatalogueInput(
             required=True,
-            description=('Fields required to modify catalogue IDs of sale.'))
+            description='Fields required to modify catalogue IDs of sale.')
 
     class Meta:
         abstract = True
@@ -275,13 +275,14 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         description = 'Adds products, categories, collections to a voucher.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, input):
-        sale = cls.get_node_or_error(info, id, only_type=Sale, field='sale_id')
-        cls.add_catalogues_to_node(sale, input)
+    def perform_mutation(cls, _root, info, **data):
+        sale = cls.get_node_or_error(
+            info, data.get('id'), only_type=Sale, field='sale_id')
+        cls.add_catalogues_to_node(sale, data.get('input'))
         return SaleAddCatalogues(sale=sale)
 
 
@@ -290,12 +291,12 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         description = 'Removes products, categories, collections from a sale.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('discount.manage_discounts')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, input):
+    def perform_mutation(cls, _root, info, **data):
         sale = cls.get_node_or_error(
-            info, id, only_type=Sale, field='sale_id')
-        cls.remove_catalogues_from_node(sale, input)
+            info, data.get('id'), only_type=Sale, field='sale_id')
+        cls.remove_catalogues_from_node(sale, data.get('input'))
         return SaleRemoveCatalogues(sale=sale)
