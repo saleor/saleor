@@ -7,7 +7,8 @@ import i18n from "../i18n";
 import {
   productTypeAddPath,
   productTypeListPath,
-  productTypePath
+  productTypePath,
+  ProductTypeUrlQueryParams
 } from "./urls";
 import ProductTypeCreate from "./views/ProductTypeCreate";
 import ProductTypeListComponent, {
@@ -31,9 +32,17 @@ interface ProductTypeUpdateRouteParams {
 }
 const ProductTypeUpdate: React.StatelessComponent<
   RouteComponentProps<ProductTypeUpdateRouteParams>
-> = ({ match }) => (
-  <ProductTypeUpdateComponent id={decodeURIComponent(match.params.id)} />
-);
+> = ({ match }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: ProductTypeUrlQueryParams = qs;
+
+  return (
+    <ProductTypeUpdateComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
+};
 
 export const ProductTypeRouter: React.StatelessComponent<
   RouteComponentProps<any>

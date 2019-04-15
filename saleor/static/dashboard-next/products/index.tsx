@@ -7,10 +7,13 @@ import i18n from "../i18n";
 import {
   productAddPath,
   productImagePath,
+  ProductImageUrlQueryParams,
   productListPath,
   productPath,
+  ProductUrlQueryParams,
   productVariantAddPath,
-  productVariantEditPath
+  productVariantEditPath,
+  ProductVariantEditUrlQueryParams
 } from "./urls";
 import ProductCreate from "./views/ProductCreate";
 import ProductImageComponent from "./views/ProductImage";
@@ -36,27 +39,44 @@ const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
 const ProductUpdate: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
-  return <ProductUpdateComponent id={decodeURIComponent(match.params.id)} />;
+  const qs = parseQs(location.search.substr(1));
+  const params: ProductUrlQueryParams = qs;
+
+  return (
+    <ProductUpdateComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
 };
 
 const ProductVariant: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: ProductVariantEditUrlQueryParams = qs;
+
   return (
     <ProductVariantComponent
       variantId={decodeURIComponent(match.params.variantId)}
       productId={decodeURIComponent(match.params.productId)}
+      params={params}
     />
   );
 };
 
 const ProductImage: React.StatelessComponent<RouteComponentProps<any>> = ({
+  location,
   match
 }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: ProductImageUrlQueryParams = qs;
+
   return (
     <ProductImageComponent
       imageId={decodeURIComponent(match.params.imageId)}
       productId={decodeURIComponent(match.params.productId)}
+      params={params}
     />
   );
 };

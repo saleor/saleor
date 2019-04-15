@@ -3,12 +3,14 @@ import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { categoryAddPath, categoryListPath, categoryPath } from "./urls";
+import {
+  categoryAddPath,
+  categoryListPath,
+  categoryPath,
+  CategoryUrlQueryParams
+} from "./urls";
 import { CategoryCreateView } from "./views/CategoryCreate";
-import CategoryDetailsView, {
-  CategoryDetailsQueryParams,
-  getActiveTab
-} from "./views/CategoryDetails";
+import CategoryDetailsView, { getActiveTab } from "./views/CategoryDetails";
 import CategoryListComponent, {
   CategoryListQueryParams
 } from "./views/CategoryList";
@@ -20,10 +22,9 @@ const CategoryDetails: React.StatelessComponent<
   RouteComponentProps<CategoryDetailsRouteParams>
 > = ({ location, match }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: CategoryDetailsQueryParams = {
-    activeTab: getActiveTab(qs.activeTab),
-    after: qs.after,
-    before: qs.before
+  const params: CategoryUrlQueryParams = {
+    ...qs,
+    activeTab: getActiveTab(qs.activeTab)
   };
   return (
     <CategoryDetailsView

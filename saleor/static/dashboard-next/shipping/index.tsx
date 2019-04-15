@@ -7,7 +7,8 @@ import i18n from "../i18n";
 import {
   shippingZoneAddPath,
   shippingZonePath,
-  shippingZonesListPath
+  shippingZonesListPath,
+  ShippingZoneUrlQueryParams
 } from "./urls";
 import ShippingZoneCreate from "./views/ShippingZoneCreate";
 import ShippingZoneDetailsComponent from "./views/ShippingZoneDetails";
@@ -32,9 +33,16 @@ interface ShippingZoneDetailsRouteProps {
 }
 const ShippingZoneDetails: React.StatelessComponent<
   RouteComponentProps<ShippingZoneDetailsRouteProps>
-> = ({ match }) => (
-  <ShippingZoneDetailsComponent id={decodeURIComponent(match.params.id)} />
-);
+> = ({ location, match }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: ShippingZoneUrlQueryParams = qs;
+  return (
+    <ShippingZoneDetailsComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
+};
 
 export const ShippingRouter: React.StatelessComponent = () => (
   <>
