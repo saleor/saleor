@@ -9,7 +9,7 @@
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="{% url 'home' %}">{% trans "Home" context "Main navigation item" %}</a></li>
-    <li><a rel="nofollow" href="{% url 'cart:index' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
+    <li><a rel="nofollow" href="{% url 'checkout:details' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
   </ul>
 {% endblock breadcrumb %}
 
@@ -51,7 +51,7 @@
             <div class="col-5">
               <div class="row">
                 <div class="cart__line__quantity col-md-7 col-12">
-                  <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart">
+                  <form role="form" action="{% url "checkout:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart">
                     <div class="{% if form.quantity.errors %} has-error{% endif %}" tabindex="-1">
                       {{ line.form.quantity }}
                     </div>
@@ -80,7 +80,7 @@
             <a href="{% url "checkout:login" %}" class="btn btn-primary float-right cart__submit">
             {% trans "Checkout" context "Cart primary action" %}
           </a>
-            <button class="btn secondary float-right cart__clear" data-action="{% url 'cart:clear-cart' %}">
+            <button class="btn secondary float-right cart__clear" data-action="{% url 'checkout:clear' %}">
             {% trans "Clear cart" context "cart page: secondary action, empty the cart" %}
           </button>
         </div>

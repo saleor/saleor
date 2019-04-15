@@ -15,7 +15,7 @@ from saleor.checkout.context_processors import checkout_counter
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import (
     add_variant_to_checkout, change_checkout_user, find_open_checkout_for_user)
-from saleor.checkout.views import clear_cart, update_cart_line
+from saleor.checkout.views import clear_checkout, update_checkout_line
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
@@ -431,12 +431,12 @@ def test_replace_checkout_line_form_when_insufficient_stock(
 
 
 def test_view_empty_checkout(client, request_checkout):
-    response = client.get(reverse('cart:index'))
+    response = client.get(reverse('checkout:details'))
     assert response.status_code == 200
 
 
 def test_view_checkout_without_taxes(client, request_checkout_with_item):
-    response = client.get(reverse('cart:index'))
+    response = client.get(reverse('checkout:details'))
     response_checkout_line = response.context[0]['checkout_lines'][0]
     checkout_line = request_checkout_with_item.lines.first()
     assert not response_checkout_line['get_total'].tax.amount
@@ -447,7 +447,7 @@ def test_view_checkout_without_taxes(client, request_checkout_with_item):
 def test_view_checkout_with_taxes(
         settings, client, request_checkout_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
-    response = client.get(reverse('cart:index'))
+    response = client.get(reverse('checkout:details'))
     response_checkout_line = response.context[0]['checkout_lines'][0]
     checkout_line = request_checkout_with_item.lines.first()
     assert response_checkout_line['get_total'].tax.amount
@@ -460,7 +460,7 @@ def test_view_update_checkout_quantity(
         client, local_currency, request_checkout_with_item):
     variant = request_checkout_with_item.lines.get().variant
     response = client.post(
-        reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
+        reverse('checkout:update-line', kwargs={'variant_id': variant.pk}),
         data={'quantity': 3}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
     assert request_checkout_with_item.quantity == 3
@@ -470,7 +470,7 @@ def test_view_update_checkout_quantity_with_taxes(
         client, local_currency, request_checkout_with_item, vatlayer):
     variant = request_checkout_with_item.lines.get().variant
     response = client.post(
-        reverse('cart:update-line', kwargs={'variant_id': variant.id}),
+        reverse('checkout:update-line', kwargs={'variant_id': variant.id}),
         {'quantity': 3}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
     assert request_checkout_with_item.quantity == 3
@@ -479,7 +479,7 @@ def test_view_update_checkout_quantity_with_taxes(
 def test_view_invalid_update_checkout(client, request_checkout_with_item):
     variant = request_checkout_with_item.lines.get().variant
     response = client.post(
-        reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
+        reverse('checkout:update-line', kwargs={'variant_id': variant.pk}),
         data={}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 400
@@ -490,7 +490,7 @@ def test_view_invalid_update_checkout(client, request_checkout_with_item):
 def test_checkout_page_without_openexchagerates(
         client, request_checkout_with_item, settings):
     settings.OPENEXCHANGERATES_API_KEY = None
-    response = client.get(reverse('cart:index'))
+    response = client.get(reverse('checkout:details'))
     context = response.context
     assert context['local_checkout_total'] is None
 
@@ -499,20 +499,20 @@ def test_checkout_page_with_openexchagerates(
         client, monkeypatch, request_checkout_with_item, settings):
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    response = client.get(reverse('cart:index'))
+    response = client.get(reverse('checkout:details'))
     context = response.context
     assert context['local_checkout_total'] is None
     monkeypatch.setattr(
         'django_prices_openexchangerates.models.get_rates',
         lambda c: {'PLN': Mock(rate=2)})
-    response = client.get(reverse('cart:index'))
+    response = client.get(reverse('checkout:details'))
     context = response.context
     assert context['local_checkout_total'].currency == 'PLN'
 
 
 def test_checkout_summary_page(settings, client, request_checkout_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
-    response = client.get(reverse('cart:summary'))
+    response = client.get(reverse('checkout:summary'))
     assert response.status_code == 200
     content = response.context
     assert content['quantity'] == request_checkout_with_item.quantity
@@ -526,7 +526,7 @@ def test_checkout_summary_page(settings, client, request_checkout_with_item, vat
 
 
 def test_checkout_summary_page_empty_checkout(client, request_checkout):
-    response = client.get(reverse('cart:summary'))
+    response = client.get(reverse('checkout:summary'))
     assert response.status_code == 200
     data = response.context
     assert data['quantity'] == 0
@@ -606,7 +606,7 @@ def test_update_view_must_be_ajax(customer_user, rf):
     request = rf.post(reverse('home'))
     request.user = customer_user
     request.discounts = None
-    result = update_cart_line(request, 1)
+    result = update_checkout_line(request, 1)
     assert result.status_code == 302
 
 
@@ -650,18 +650,18 @@ def test_checkout_taxes(request_checkout_with_item, shipping_zone, vatlayer):
     assert checkout.get_subtotal(taxes=vatlayer) == taxed_price
 
 
-def test_clear_cart_must_be_ajax(rf, customer_user):
+def test_clear_checkout_must_be_ajax(rf, customer_user):
     request = rf.post(reverse('home'))
     request.user = customer_user
     request.discounts = None
-    response = clear_cart(request)
+    response = clear_checkout(request)
     assert response.status_code == 302
 
 
-def test_clear_cart(request_checkout_with_item, client):
+def test_clear_checkout(request_checkout_with_item, client):
     checkout = request_checkout_with_item
     response = client.post(
-        reverse('cart:clear-cart'), data={},
+        reverse('checkout:clear'), data={},
         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
     assert len(checkout.lines.all()) == 0

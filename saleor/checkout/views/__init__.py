@@ -73,7 +73,7 @@ def checkout_shipping_method(request, checkout):
         initial={'shipping_method': checkout.shipping_method})
     if form.is_valid():
         form.save()
-        return redirect('checkout:summary')
+        return redirect('checkout:order-summary')
 
     ctx = get_checkout_data_for_checkout(checkout, discounts, taxes)
     ctx.update({'shipping_method_form': form})
@@ -84,7 +84,7 @@ def checkout_shipping_method(request, checkout):
 @validate_voucher
 @validate_checkout
 @add_voucher_form
-def checkout_summary(request, checkout):
+def checkout_order_summary(request, checkout):
     """Display the correct order summary."""
     if checkout.is_shipping_required():
         view = validate_shipping_method(summary_with_shipping_view)
@@ -96,7 +96,7 @@ def checkout_summary(request, checkout):
 
 
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
-def cart_index(request, checkout):
+def checkout_details(request, checkout):
     """Display checkout details."""
     discounts = request.discounts
     taxes = request.taxes
@@ -147,7 +147,7 @@ def cart_index(request, checkout):
 
 
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
-def cart_shipping_options(request, checkout):
+def checkout_shipping_options(request, checkout):
     """Display shipping options to get a price estimate."""
     country_form = CountryForm(request.POST or None, taxes=request.taxes)
     if country_form.is_valid():
@@ -167,10 +167,10 @@ def cart_shipping_options(request, checkout):
 
 
 @get_or_empty_db_checkout()
-def update_cart_line(request, checkout, variant_id):
+def update_checkout_line(request, checkout, variant_id):
     """Update the line quantities."""
     if not request.is_ajax():
-        return redirect('cart:index')
+        return redirect('checkout:details')
     variant = get_object_or_404(ProductVariant, pk=variant_id)
     discounts = request.discounts
     taxes = request.taxes
@@ -205,10 +205,10 @@ def update_cart_line(request, checkout, variant_id):
 
 
 @get_or_empty_db_checkout()
-def clear_cart(request, checkout):
+def clear_checkout(request, checkout):
     """Clear checkout."""
     if not request.is_ajax():
-        return redirect('cart:index')
+        return redirect('checkout:details')
     checkout.lines.all().delete()
     update_checkout_quantity(checkout)
     response = {'numItems': 0}
