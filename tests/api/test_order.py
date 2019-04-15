@@ -1436,7 +1436,7 @@ def test_order_by_token_query(api_client, order):
 
 
 MUTATION_CANCEL_ORDERS = """
-    CancelManyOrders($ids: [ID]!, !restock: Boolean) {
+    mutation CancelManyOrders($ids: [ID]!, $restock: Boolean!) {
         ordersCancel(ids: $ids, restock: $restock) {
             count
             errors {
@@ -1445,7 +1445,7 @@ MUTATION_CANCEL_ORDERS = """
             }
         }
     }
-"""
+    """
 
 
 def test_order_bulk_cancel_with_restock(
