@@ -6,7 +6,7 @@ from ...core.mutations import BaseBulkMutation
 from ..mutations.orders import clean_order_cancel
 
 
-class OrdersCancel(BaseBulkMutation):
+class OrderBulkCancel(BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
