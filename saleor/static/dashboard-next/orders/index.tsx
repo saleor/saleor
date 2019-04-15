@@ -29,10 +29,7 @@ const OrderDraftList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: OrderListQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: OrderListQueryParams = qs;
   return <OrderDraftListComponent params={params} />;
 };
 

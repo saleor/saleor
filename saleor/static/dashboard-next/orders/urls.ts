@@ -1,7 +1,7 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { Dialog, SingleAction } from "../types";
+import { BulkAction, Dialog, Pagination, SingleAction } from "../types";
 import { OrderListQueryParams } from "./views/OrderList";
 
 const orderSectionUrl = "/orders";
@@ -17,7 +17,13 @@ export const orderListUrl = (params?: OrderListQueryParams): string => {
 };
 
 export const orderDraftListPath = urlJoin(orderSectionUrl, "drafts");
-export const orderDraftListUrl = (params?: OrderListQueryParams): string => {
+export type OrderDraftListUrlDialog = "remove";
+export type OrderDraftListUrlQueryParams = BulkAction &
+  Dialog<OrderDraftListUrlDialog> &
+  Pagination;
+export const orderDraftListUrl = (
+  params?: OrderDraftListUrlQueryParams
+): string => {
   const orderDraftList = orderDraftListPath;
   if (params === undefined) {
     return orderDraftList;

@@ -14,6 +14,10 @@ import {
   OrderCreateFulfillmentVariables
 } from "./types/OrderCreateFulfillment";
 import {
+  OrderDraftBulkCancel,
+  OrderDraftBulkCancelVariables
+} from "./types/OrderDraftBulkCancel";
+import {
   OrderDraftCancel,
   OrderDraftCancelVariables
 } from "./types/OrderDraftCancel";
@@ -92,6 +96,21 @@ export const TypedOrderDraftCancelMutation = TypedMutation<
   OrderDraftCancel,
   OrderDraftCancelVariables
 >(orderDraftCancelMutation);
+
+const orderDraftBulkCancelMutation = gql`
+  mutation OrderDraftBulkCancel($ids: [ID]!) {
+    draftOrderBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedOrderDraftBulkCancelMutation = TypedMutation<
+  OrderDraftBulkCancel,
+  OrderDraftBulkCancelVariables
+>(orderDraftBulkCancelMutation);
 
 const orderDraftFinalizeMutation = gql`
   ${fragmentOrderDetails}
