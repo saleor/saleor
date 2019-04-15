@@ -54,7 +54,7 @@ export const SaleDetails: React.StatelessComponent = () => (
                           errors={maybe(
                             () => saleCreateOpts.data.saleCreate.errors
                           )}
-                          onBack={() => navigate(saleListUrl)}
+                          onBack={() => navigate(saleListUrl())}
                           onSubmit={formData =>
                             saleCreate({
                               variables: {
