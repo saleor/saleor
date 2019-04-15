@@ -201,7 +201,8 @@ def test_query_product_image_by_id(user_api_client, product_with_image):
     }
     """
     variables = {
-        'productId': graphene.Node.to_global_id('Product', product_with_image.pk),
+        'productId': graphene.Node.to_global_id('Product',
+                                                product_with_image.pk),
         'imageId': graphene.Node.to_global_id('ProductImage', image.pk)}
     response = user_api_client.post_graphql(query, variables)
     get_graphql_content(response)
@@ -406,23 +407,28 @@ def test_sort_products(user_api_client, product):
         'sort_by_product_order': '{field: PRICE, direction:ASC}'}
     response = user_api_client.post_graphql(asc_price_query)
     content = get_graphql_content(response)
-    price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
-    price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
+    price_0 = content['data']['products']['edges'][0]['node']['price'][
+        'amount']
+    price_1 = content['data']['products']['edges'][1]['node']['price'][
+        'amount']
     assert price_0 < price_1
 
     desc_price_query = query % {
         'sort_by_product_order': '{field: PRICE, direction:DESC}'}
     response = user_api_client.post_graphql(desc_price_query)
     content = get_graphql_content(response)
-    price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
-    price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
+    price_0 = content['data']['products']['edges'][0]['node']['price'][
+        'amount']
+    price_1 = content['data']['products']['edges'][1]['node']['price'][
+        'amount']
     assert price_0 > price_1
 
     asc_date_query = query % {
         'sort_by_product_order': '{field: DATE, direction:ASC}'}
     response = user_api_client.post_graphql(asc_date_query)
     content = get_graphql_content(response)
-    date_0 = content['data']['products']['edges'][0]['node']['updatedAt'] ## parse_datetime
+    date_0 = content['data']['products']['edges'][0]['node'][
+        'updatedAt']  ## parse_datetime
     date_1 = content['data']['products']['edges'][1]['node']['updatedAt']
     assert parse_datetime(date_0) < parse_datetime(date_1)
 
@@ -707,7 +713,8 @@ def test_create_product_without_variants_sku_duplication(
     content = get_graphql_content(response)
     data = content['data']['productCreate']
     assert data['errors'][0]['field'] == 'sku'
-    assert data['errors'][0]['message'] == 'Product with this SKU already exists.'
+    assert data['errors'][0][
+               'message'] == 'Product with this SKU already exists.'
 
 
 def test_product_create_without_product_type(
@@ -929,7 +936,8 @@ def test_update_product_without_variants_sku_duplication(
     data = content['data']['productUpdate']
     assert data['errors']
     assert data['errors'][0]['field'] == 'sku'
-    assert data['errors'][0]['message'] == 'Product with this SKU already exists.'
+    assert data['errors'][0][
+               'message'] == 'Product with this SKU already exists.'
 
 
 def test_delete_product(staff_api_client, product, permission_manage_products):
@@ -1399,7 +1407,8 @@ def test_assign_variant_image_from_different_product(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
-    assert content['data']['variantImageAssign']['errors'][0]['field'] == 'imageId'
+    assert content['data']['variantImageAssign']['errors'][0][
+               'field'] == 'imageId'
 
     # check permissions
     response = user_api_client.post_graphql(query, variables)
@@ -1552,11 +1561,12 @@ def test_product_variants_no_ids_list(user_api_client, variant):
     assert len(data['edges']) == ProductVariant.objects.count()
 
 
-@pytest.mark.parametrize('product_price, variant_override, api_variant_price', [
-    (100, None, 100),
-    (100, 200, 200),
-    (100, 0, 0)
-])
+@pytest.mark.parametrize('product_price, variant_override, api_variant_price',
+                         [
+                             (100, None, 100),
+                             (100, 200, 200),
+                             (100, 0, 0)
+                         ])
 def test_product_variant_price(
         product_price, variant_override, api_variant_price,
         user_api_client, variant):
@@ -1658,15 +1668,15 @@ def test_report_product_sales(
     line_a = order_with_lines.lines.get(product_sku=node_a['sku'])
     assert node_a['quantityOrdered'] == line_a.quantity
     assert (
-        node_a['revenue']['gross']['amount'] ==
-        line_a.quantity * line_a.unit_price_gross.amount)
+            node_a['revenue']['gross']['amount'] ==
+            line_a.quantity * line_a.unit_price_gross.amount)
 
     node_b = edges[1]['node']
     line_b = order_with_lines.lines.get(product_sku=node_b['sku'])
     assert node_b['quantityOrdered'] == line_b.quantity
     assert (
-        node_b['revenue']['gross']['amount'] ==
-        line_b.quantity * line_b.unit_price_gross.amount)
+            node_b['revenue']['gross']['amount'] ==
+            line_b.quantity * line_b.unit_price_gross.amount)
 
 
 def test_variant_revenue_permissions(
@@ -1786,3 +1796,56 @@ def test_variant_digital_content(
     content = get_graphql_content(response)
     assert 'digitalContent' in content['data']['productVariant']
     assert 'id' in content['data']['productVariant']['digitalContent']
+
+
+def test_bulk_publish(
+        staff_api_client, product_list_unpublished,
+        permission_manage_products):
+    product_list = product_list_unpublished
+    assert not any(product.is_published for product in product_list)
+
+    query = """
+        mutation publishManyProducts($ids: [ID]!) {
+            productBulkPublish(ids: $ids) {
+                count
+            }
+        }
+    """
+    variables = {'ids': [
+        graphene.Node.to_global_id('Product', product.id)
+        for product in product_list]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    product_list = Product.objects.filter(
+        id__in=[product.pk for product in product_list])
+
+    assert content['data']['productBulkPublish']['count'] == len(product_list)
+    assert all(product.is_published for product in product_list)
+
+
+def test_bulk_unpublish(
+        staff_api_client, product_list_published,
+        permission_manage_products):
+    product_list = product_list_published
+    assert all(product.is_published for product in product_list)
+
+    query = """
+        mutation unPublishManyProducts($ids: [ID]!) {
+            productBulkUnpublish(ids: $ids) {
+                count
+            }
+        }
+    """
+    variables = {'ids': [
+        graphene.Node.to_global_id('Product', product.id)
+        for product in product_list]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    product_list = Product.objects.filter(
+        id__in=[product.pk for product in product_list])
+
+    assert content['data']['productBulkUnpublish']['count'] == len(
+        product_list)
+    assert not any(product.is_published for product in product_list)
