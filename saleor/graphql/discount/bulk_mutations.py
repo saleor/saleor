@@ -16,7 +16,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         model = models.Sale
 
     @classmethod
-    def user_is_allowed(cls, user, ids):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('discount.manage_discounts')
 
 
@@ -32,5 +32,5 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
         model = models.Voucher
 
     @classmethod
-    def user_is_allowed(cls, user, ids):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('discount.manage_discounts')
