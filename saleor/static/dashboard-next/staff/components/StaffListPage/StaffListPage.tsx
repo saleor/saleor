@@ -6,11 +6,11 @@ import AppHeader from "../../../components/AppHeader";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { ListProps } from "../../../types";
+import { ListActions, ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 import StaffList from "../StaffList/StaffList";
 
-export interface StaffListPageProps extends ListProps {
+export interface StaffListPageProps extends ListProps, ListActions {
   staffMembers: StaffList_staffUsers_edges_node[];
   onAdd: () => void;
   onBack: () => void;
@@ -18,13 +18,9 @@ export interface StaffListPageProps extends ListProps {
 
 const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
   disabled,
-  pageInfo,
-  staffMembers,
   onAdd,
   onBack,
-  onNextPage,
-  onPreviousPage,
-  onRowClick
+  ...listProps
 }) => (
   <Container>
     <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
@@ -39,14 +35,7 @@ const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
         <AddIcon />
       </Button>
     </PageHeader>
-    <StaffList
-      disabled={disabled}
-      pageInfo={pageInfo}
-      staffMembers={staffMembers}
-      onNextPage={onNextPage}
-      onPreviousPage={onPreviousPage}
-      onRowClick={onRowClick}
-    />
+    <StaffList disabled={disabled} {...listProps} />
   </Container>
 );
 StaffListPage.displayName = "StaffListPage";
