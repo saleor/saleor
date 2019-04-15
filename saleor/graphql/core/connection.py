@@ -1,7 +1,7 @@
 import graphene
 from graphene import Field, List, NonNull, ObjectType, String
 from graphene.relay.connection import Connection
-from graphene_django import DjangoObjectType
+from graphene_django_optimizer.types import OptimizedDjangoObjectType
 
 
 class NonNullConnection(Connection):
@@ -44,7 +44,7 @@ class CountableConnection(NonNullConnection):
         return root.length
 
 
-class CountableDjangoObjectType(DjangoObjectType):
+class CountableDjangoObjectType(OptimizedDjangoObjectType):
     class Meta:
         abstract = True
 
