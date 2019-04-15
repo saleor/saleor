@@ -67,3 +67,18 @@ export const TypedStaffMemberDeleteMutation = TypedMutation<
   StaffMemberDelete,
   StaffMemberDeleteVariables
 >(staffMemberDeleteMutation);
+
+const staffMembersBulkDeleteMutation = gql`
+  mutation StaffMembersBulkDelete($ids: [ID]!) {
+    staffBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedStaffMembersBulkDeleteMutation = TypedMutation<
+  StaffMembersBulkDelete,
+  StaffMembersBulkDeleteVariables
+>(staffMembersBulkDeleteMutation);
