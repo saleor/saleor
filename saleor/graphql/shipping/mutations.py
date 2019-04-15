@@ -44,8 +44,8 @@ class ShippingZoneInput(graphene.InputObjectType):
 
 class ShippingZoneMixin:
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         default = cleaned_input.get('default')
         if default:
             if default_shipping_zone_exists(instance.pk):
@@ -72,7 +72,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
         model = models.ShippingZone
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
 
@@ -92,7 +92,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         model = models.ShippingZone
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
 
@@ -106,17 +106,17 @@ class ShippingZoneDelete(ModelDeleteMutation):
         model = models.ShippingZone
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
 
 class ShippingPriceMixin:
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
-        type = cleaned_input.get('type')
-        if type:
-            if type == ShippingMethodTypeEnum.PRICE.value:
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_type = cleaned_input.get('type')
+        if cleaned_type:
+            if cleaned_type == ShippingMethodTypeEnum.PRICE.value:
                 min_price = cleaned_input.get('minimum_order_price')
                 max_price = cleaned_input.get('maximum_order_price')
                 if (min_price is not None and max_price is not None
@@ -152,7 +152,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
         model = models.ShippingMethod
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
     @classmethod
@@ -179,7 +179,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
         model = models.ShippingMethod
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
     @classmethod
@@ -204,13 +204,13 @@ class ShippingPriceDelete(BaseMutation):
         description = 'Deletes a shipping price.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('shipping.manage_shipping')
 
     @classmethod
-    def perform_mutation(cls, root, info, id):
+    def perform_mutation(cls, _root, info, **data):
         shipping_method = cls.get_node_or_error(
-            info, id, only_type=ShippingMethod)
+            info, data.get('id'), only_type=ShippingMethod)
         shipping_method_id = shipping_method.id
         shipping_zone = shipping_method.shipping_zone
         shipping_method.delete()

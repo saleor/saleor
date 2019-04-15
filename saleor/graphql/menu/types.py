@@ -12,7 +12,7 @@ from ..translations.resolvers import resolve_translation
 from ..translations.types import MenuItemTranslation
 
 
-def prefetch_menus(info, *args, **kwargs):
+def prefetch_menus(info, *_args, **_kwargs):
     qs = models.MenuItem.objects.filter(level=0)
     return Prefetch(
         'items', queryset=gql_optimizer.query(qs, info),
@@ -28,13 +28,14 @@ class Menu(CountableDjangoObjectType):
         prefetch_related=prefetch_menus)
 
     class Meta:
-        description = dedent("""Represents a single menu - an object that is used
-        to help navigate through the store.""")
+        description = dedent(
+            """Represents a single menu - an object that is used
+               to help navigate through the store.""")
         interfaces = [relay.Node]
         only_fields = ['id', 'name']
         model = models.Menu
 
-    def resolve_items(self, info, **kwargs):
+    def resolve_items(self, _info, **_kwargs):
         if hasattr(self, 'prefetched_items'):
             return self.prefetched_items
         return self.items.filter(level=0)
@@ -64,5 +65,5 @@ class MenuItem(CountableDjangoObjectType):
             'parent']
         model = models.MenuItem
 
-    def resolve_children(self, info, **kwargs):
+    def resolve_children(self, _info, **_kwargs):
         return self.children.all()

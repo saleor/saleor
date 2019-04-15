@@ -21,7 +21,7 @@ class PageQueries(graphene.ObjectType):
     def resolve_page(self, info, id=None, slug=None):
         return resolve_page(info, id, slug)
 
-    def resolve_pages(self, info, query=None, **kwargs):
+    def resolve_pages(self, info, query=None, **_kwargs):
         return resolve_pages(info, query=query)
 
 

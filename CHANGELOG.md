@@ -12,6 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
 
 
+- Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
+
 ## 2.5.0
 
 ### API

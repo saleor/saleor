@@ -35,7 +35,7 @@ class AccountQueries(graphene.ObjectType):
         return resolve_address_validator(info, input)
 
     @permission_required('account.manage_users')
-    def resolve_customers(self, info, query=None, **kwargs):
+    def resolve_customers(self, info, query=None, **_kwargs):
         return resolve_customers(info, query=query)
 
     @login_required
@@ -43,7 +43,7 @@ class AccountQueries(graphene.ObjectType):
         return info.context.user
 
     @permission_required('account.manage_staff')
-    def resolve_staff_users(self, info, query=None, **kwargs):
+    def resolve_staff_users(self, info, query=None, **_kwargs):
         return resolve_staff_users(info, query=query)
 
     @permission_required('account.manage_users')

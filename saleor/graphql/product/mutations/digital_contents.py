@@ -56,45 +56,45 @@ class DigitalContentCreate(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def clean_input(cls, info, input, instance):
+    def clean_input(cls, info, data, instance):
         if hasattr(instance, 'digital_content'):
             instance.digital_content.delete()
 
-        use_default_settings = input.get('use_default_settings')
+        use_default_settings = data.get('use_default_settings')
         if use_default_settings:
-            return input
+            return data
 
         required_fields = [
             'max_downloads', 'url_valid_days', 'automatic_fulfillment']
 
-        if not all(field in input for field in required_fields):
+        if not all(field in data for field in required_fields):
             msg = ('Use default settings is disabled. Provide all '
                    'missing configuration fields: ')
-            missing_fields = set(required_fields).difference(set(input))
+            missing_fields = set(required_fields).difference(set(data))
             if missing_fields:
                 msg += '{}, ' * len(missing_fields)
                 raise ValidationError(msg.format(*missing_fields))
 
-        return input
+        return data
 
     @classmethod
     @permission_required('product.manage_products')
-    def perform_mutation(cls, root, info, variant_id, input):
+    def perform_mutation(cls, _root, info, variant_id, **data):
         variant = cls.get_node_or_error(
             info, variant_id, 'id', only_type=ProductVariant)
 
-        input = cls.clean_input(info, input, variant)
+        clean_input = cls.clean_input(info, data.get('input'), variant)
 
-        content_data = info.context.FILES.get(input['content_file'])
+        content_data = info.context.FILES.get(clean_input['content_file'])
         digital_content = models.DigitalContent(
             content_file=content_data
         )
-        digital_content.use_default_settings = input.get(
+        digital_content.use_default_settings = clean_input.get(
             'use_default_settings', False)
 
-        digital_content.max_downloads = input.get('max_downloads')
-        digital_content.url_valid_days = input.get('url_valid_days')
-        digital_content.automatic_fulfillment = input.get(
+        digital_content.max_downloads = clean_input.get('max_downloads')
+        digital_content.url_valid_days = clean_input.get('url_valid_days')
+        digital_content.automatic_fulfillment = clean_input.get(
             'automatic_fulfillment', False)
 
         variant.digital_content = digital_content
@@ -118,7 +118,7 @@ class DigitalContentDelete(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def mutate(cls, root, info, variant_id):
+    def mutate(cls, _root, info, variant_id):
         variant = cls.get_node_or_error(
             info, variant_id, 'id', only_type=ProductVariant)
 
@@ -146,27 +146,27 @@ class DigitalContentUpdate(BaseMutation):
 
     @classmethod
     @permission_required('product.manage_products')
-    def clean_input(cls, info, input):
-        use_default_settings = input.get('use_default_settings')
+    def clean_input(cls, info, data):
+        use_default_settings = data.get('use_default_settings')
         if use_default_settings:
             return {'use_default_settings': use_default_settings}
 
         required_fields = [
             'max_downloads', 'url_valid_days', 'automatic_fulfillment']
 
-        if not all(field in input for field in required_fields):
+        if not all(field in data for field in required_fields):
             msg = ('Use default settings is disabled. Provide all '
                    'missing configuration fields: ')
-            missing_fields = set(required_fields).difference(set(input))
+            missing_fields = set(required_fields).difference(set(data))
             if missing_fields:
                 msg += '{}, ' * len(missing_fields)
                 raise ValidationError(msg.format(*missing_fields))
 
-        return input
+        return data
 
     @classmethod
     @permission_required('product.manage_products')
-    def perform_mutation(cls, root, info, variant_id, input):
+    def perform_mutation(cls, _root, info, variant_id, **data):
         variant = cls.get_node_or_error(
             info, variant_id, 'id', only_type=ProductVariant)
 
@@ -174,16 +174,16 @@ class DigitalContentUpdate(BaseMutation):
             msg = 'Variant %s doesn\'t have any digital content' % variant.id
             raise ValidationError({'variantId': msg})
 
-        input = cls.clean_input(info, input)
+        clean_input = cls.clean_input(info, data.get('input'))
 
         digital_content = variant.digital_content
 
-        digital_content.use_default_settings = input.get(
+        digital_content.use_default_settings = clean_input.get(
             'use_default_settings', False)
 
-        digital_content.max_downloads = input.get('max_downloads')
-        digital_content.url_valid_days = input.get('url_valid_days')
-        digital_content.automatic_fulfillment = input.get(
+        digital_content.max_downloads = clean_input.get('max_downloads')
+        digital_content.url_valid_days = clean_input.get('url_valid_days')
+        digital_content.automatic_fulfillment = clean_input.get(
             'automatic_fulfillment', False)
 
         variant.digital_content = digital_content

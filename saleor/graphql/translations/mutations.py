@@ -17,11 +17,11 @@ class BaseTranslateMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_translations')
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         model_type = registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node_or_error(
             info, data['id'], only_type=model_type)
@@ -214,12 +214,12 @@ class ShopSettingsTranslate(BaseMutation):
         description = 'Creates/Updates translations for Shop Settings.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('site.manage_translations')
 
     @classmethod
-    def perform_mutation(cls, root, info, language_code, input):
+    def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
         instance.translations.update_or_create(
-            language_code=language_code, defaults=input)
+            language_code=language_code, defaults=data.get('input'))
         return ShopSettingsTranslate(shop=Shop())

@@ -58,7 +58,7 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds,
             required=True, description='Kind of objects to retrieve.'))
 
-    def resolve_translations(self, info, kind, **kwargs):
+    def resolve_translations(self, info, kind, **_kwargs):
         if kind == TranslatableKinds.PRODUCT:
             return resolve_products(info)
         elif kind == TranslatableKinds.COLLECTION:

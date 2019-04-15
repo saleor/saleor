@@ -16,7 +16,7 @@ class PageBulkDelete(ModelBulkDeleteMutation):
         model = models.Page
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('page.manage_pages')
 
 
@@ -32,7 +32,7 @@ class PageBulkPublish(ModelBulkPublishMutation):
         model = models.Page
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('page.manage_pages')
 
 

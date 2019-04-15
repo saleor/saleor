@@ -48,13 +48,13 @@ class Sale(CountableDjangoObjectType):
         model = models.Sale
         only_fields = ['end_date', 'id', 'name', 'start_date', 'type', 'value']
 
-    def resolve_categories(self, info, **kwargs):
+    def resolve_categories(self, *_args, **_kwargs):
         return self.categories.all()
 
-    def resolve_collections(self, info, **kwargs):
+    def resolve_collections(self, info, **_kwargs):
         return self.collections.visible_to_user(info.context.user)
 
-    def resolve_products(self, info, **kwargs):
+    def resolve_products(self, info, **_kwargs):
         return self.products.visible_to_user(info.context.user)
 
 
@@ -99,16 +99,16 @@ class Voucher(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Voucher
 
-    def resolve_categories(self, info, **kwargs):
+    def resolve_categories(self, *_args, **_kwargs):
         return self.categories.all()
 
-    def resolve_collections(self, info, **kwargs):
+    def resolve_collections(self, info, **_kwargs):
         return self.collections.visible_to_user(info.context.user)
 
-    def resolve_products(self, info, **kwargs):
+    def resolve_products(self, info, **_kwargs):
         return self.products.visible_to_user(info.context.user)
 
-    def resolve_countries(self, info, **kwargs):
+    def resolve_countries(self, *_args, **_kwargs):
         return [
             CountryDisplay(code=country.code, country=country.name)
             for country in self.countries]
