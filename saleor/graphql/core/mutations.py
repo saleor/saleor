@@ -407,7 +407,7 @@ class BaseBulkMutation(BaseMutation):
         """
 
     @classmethod
-    def bulk_action(cls, queryset):
+    def bulk_action(cls, queryset, **kwargs):
         """Implement action performed on queryset."""
         raise NotImplementedError
 
@@ -441,7 +441,6 @@ class BaseBulkMutation(BaseMutation):
         count = len(clean_instance_ids)
         if count:
             qs = instance_model.objects.filter(pk__in=clean_instance_ids)
-            data['user'] = info.context.user
             cls.bulk_action(queryset=qs, **data)
         return count, errors
 
@@ -461,7 +460,7 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         abstract = True
 
     @classmethod
-    def bulk_action(cls, queryset, **kwargs):
+    def bulk_action(cls, queryset):
         queryset.delete()
 
 
@@ -470,7 +469,7 @@ class ModelBulkPublishMutation(BaseBulkMutation):
         abstract = True
 
     @classmethod
-    def bulk_action(cls, queryset, **kwargs):
+    def bulk_action(cls, queryset):
         queryset.update(is_published=True)
 
 
