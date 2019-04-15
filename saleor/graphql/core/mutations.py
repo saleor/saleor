@@ -412,7 +412,7 @@ class BaseBulkMutation(BaseMutation):
         raise NotImplementedError
 
     @classmethod
-    def perform_mutation(cls, root, info, ids, **data):
+    def perform_mutation(cls, _root, info, ids, **data):
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids, errors = [], {}
         instance_model = cls._meta.model
