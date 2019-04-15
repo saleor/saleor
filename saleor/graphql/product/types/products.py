@@ -434,14 +434,10 @@ class Product(CountableDjangoObjectType):
         return self.publication_date
 
     @classmethod
-    def get_node(cls, info, id):
+    def get_node(cls, info, pk):
         if info.context:
-            user = info.context.user
-            try:
-                return cls._meta.model.objects.visible_to_user(
-                    user).get(pk=id)
-            except cls._meta.model.DoesNotExist:
-                return None
+            qs = cls._meta.model.objects.visible_to_user(info.context.user)
+            return cls.optimize_node(info, qs, pk)
         return None
 
 
