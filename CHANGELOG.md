@@ -10,7 +10,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutations for publishing and unpublishing multiple pages - #3954 by @akjanik
 - Prefetch collections when getting sales of a bunch of products - #3961 by @NyanKiyoshi
 - Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
-
 - Add mutation for bulk cancel orders - #3967 by @akjanik
 
 - Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
