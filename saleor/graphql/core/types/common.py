@@ -77,3 +77,8 @@ class Image(graphene.ObjectType):
             url = image.url
         url = info.context.build_absolute_uri(url)
         return Image(url, alt)
+
+
+class PriceInput(graphene.InputObjectType):
+    gte = graphene.Float(description='Minimal price', required=False)
+    lte = graphene.Float(description='Maximal price', required=False)

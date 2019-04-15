@@ -72,8 +72,8 @@ class PrefetchingConnectionField(DjangoConnectionField):
 
 class FilterInputConnectionField(DjangoConnectionField):
     def __init__(self, *args, **kwargs):
-        filters_name = kwargs.get('filters_name', 'filters')
-        self.filters_obj = kwargs.get(filters_name)
+        self.filters_name = kwargs.get('filters_name', 'filters')
+        self.filters_obj = kwargs.get(self.filters_name)
         self.filterset_class = None
         if self.filters_obj:
             self.filterset_class = self.filters_obj.filterset_class
@@ -82,7 +82,8 @@ class FilterInputConnectionField(DjangoConnectionField):
     @classmethod
     def connection_resolver(
             cls, resolver, connection, default_manager, max_limit,
-            enforce_first_or_last, filterset_class, root, info, **args):
+            enforce_first_or_last, filterset_class, filters_name, root, info,
+            **args):
 
         # Disable `enforce_first_or_last` if not querying for `edges`.
         values = [
@@ -91,7 +92,7 @@ class FilterInputConnectionField(DjangoConnectionField):
         if 'edges' not in values:
             enforce_first_or_last = False
 
-        filters_input = args.get('filters')
+        filters_input = args.get(filters_name)
         qs = default_manager
         if filters_input and filterset_class:
             qs = filterset_class(
@@ -118,5 +119,6 @@ class FilterInputConnectionField(DjangoConnectionField):
             self.get_manager(),
             self.max_limit,
             self.enforce_first_or_last,
-            self.filterset_class
+            self.filterset_class,
+            self.filters_name
         )
