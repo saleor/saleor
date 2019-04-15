@@ -29,8 +29,13 @@ class OrdersCancel(BaseBulkMutation):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def bulk_action(cls, instances, user, restock):
-        for order in instances:
+    def perform_mutation(cls, root, info, ids, **data):
+        data['user'] = info.context.user
+        return super().perform_mutation(root, info, ids, **data)
+
+    @classmethod
+    def bulk_action(cls, queryset, user, restock):
+        for order in queryset:
             cancel_order(order=order, restock=restock)
             if restock:
                 order.events.create(
