@@ -3,6 +3,7 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import CardSpacer from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
 import Date from "../../../components/Date";
 import FormSpacer from "../../../components/FormSpacer";
@@ -15,7 +16,6 @@ import { maybe } from "../../../misc";
 import { VoucherDiscountValueType } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
-import CardSpacer from "../../../components/CardSpacer";
 
 export interface VoucherSummaryProps {
   defaultCurrency: string;
