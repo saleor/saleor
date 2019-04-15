@@ -39,6 +39,9 @@ const styles = (theme: Theme) =>
         paddingRight: theme.spacing.unit
       },
       width: ICONBUTTON_SIZE + theme.spacing.unit / 2
+    },
+    row: {
+      cursor: "pointer"
     }
   });
 const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
@@ -101,6 +104,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
 
               return (
                 <TableRow
+                  className={classes.row}
                   hover={!!shippingZone}
                   key={shippingZone ? shippingZone.id : "skeleton"}
                   onClick={shippingZone && onRowClick(shippingZone.id)}
