@@ -1498,8 +1498,9 @@ def test_customer_change_default_address_invalid_address(
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert (
-        content['data']['customerSetDefaultAddress']['errors'][0]['field'] ==
-        'id')
+            content['data']['customerSetDefaultAddress']['errors'][0][
+                'field'] ==
+            'id')
 
 
 USER_AVATAR_UPDATE_MUTATION = """
@@ -1527,8 +1528,13 @@ def test_user_avatar_update_mutation_permission(api_client):
 
     assert_no_permission(response)
 
+<<<<<<< HEAD
 def test_user_avatar_update_mutation(
         monkeypatch, staff_api_client, media_root):
+=======
+
+def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
+>>>>>>> Add initial test
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -1617,3 +1623,35 @@ def test_user_avatar_delete_mutation(staff_api_client):
 
     assert not user.avatar
     assert not content['data']['userAvatarDelete']['user']['avatar']
+
+
+USER_CHANGE_ACTIVE_STATUS_MUTATION = """
+    mutation userChangeActiveStatus($ids: [ID]!, $is_active: Boolean) {
+        userAvatarUpdate(ids: $ids, isActive: $is_active) {
+            count
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+
+def test_staff_bulk_set_active(
+        staff_api_client, user_list, permission_manage_users):
+    users = user_list
+    active_status = True
+    expected_count = sum(
+        not user.is_active and not user.is_superuser for user in users)
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['usersCancel']
+    assert data['count'] == expected_count
