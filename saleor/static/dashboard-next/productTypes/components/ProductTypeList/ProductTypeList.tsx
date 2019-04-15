@@ -54,7 +54,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
       <Table>
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
-            <TableRow />
+            <TableCell />
             <TableCell className={classes.wideCell}>
               {i18n.t("Type Name", { context: "table header" })}
             </TableCell>
