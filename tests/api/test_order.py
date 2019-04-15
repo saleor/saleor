@@ -1437,7 +1437,7 @@ def test_order_by_token_query(api_client, order):
 
 MUTATION_CANCEL_ORDERS = """
     mutation CancelManyOrders($ids: [ID]!, $restock: Boolean!) {
-        ordersCancel(ids: $ids, restock: $restock) {
+        orderBulkCancel(ids: $ids, restock: $restock) {
             count
             errors {
                 field
@@ -1464,7 +1464,7 @@ def test_order_bulk_cancel_with_restock(
         permissions=[permission_manage_orders])
     order_with_lines.refresh_from_db()
     content = get_graphql_content(response)
-    data = content['data']['ordersCancel']
+    data = content['data']['orderBulkCancel']
     assert data['count'] == expected_count
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
