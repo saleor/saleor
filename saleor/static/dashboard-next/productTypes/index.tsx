@@ -11,19 +11,14 @@ import {
   ProductTypeUrlQueryParams
 } from "./urls";
 import ProductTypeCreate from "./views/ProductTypeCreate";
-import ProductTypeListComponent, {
-  ProductTypeListQueryParams
-} from "./views/ProductTypeList";
+import ProductTypeListComponent from "./views/ProductTypeList";
 import ProductTypeUpdateComponent from "./views/ProductTypeUpdate";
 
 const ProductTypeList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: ProductTypeListQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: ProductTypeListUrlQueryParams = qs;
   return <ProductTypeListComponent params={params} />;
 };
 
