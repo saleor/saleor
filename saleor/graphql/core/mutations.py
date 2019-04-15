@@ -388,15 +388,24 @@ class BaseBulkMutation(BaseMutation):
         return True
 
     @classmethod
-    def bulk_action(cls, instances):
-        """Implement action performed on list of instances"""
+    def clean_instance(cls, info, instance):
+        """Perform additional logic.
+
+        Override this method to raise custom validation error and prevent
+        bulk action on the instance.
+        """
+
+    @classmethod
+    def bulk_action(cls, queryset):
+        """Implement action performed on queryset."""
         raise NotImplementedError
 
     @classmethod
     def perform_mutation(cls, root, info, ids):
         """Perform a mutation that deletes a list of model instances."""
-        clean_instances, errors = [], {}
-        model_type = registry.get_type_for_model(cls._meta.model)
+        clean_instance_ids, errors = [], {}
+        instance_model = cls._meta.model
+        model_type = registry.get_type_for_model(instance_model)
         instances = cls.get_nodes_or_error(ids, 'id', model_type)
         for instance, node_id in zip(instances, ids):
             instance_errors = []
@@ -410,7 +419,7 @@ class BaseBulkMutation(BaseMutation):
                 instance_errors.append(msg)
 
             if not instance_errors:
-                clean_instances.append(instance)
+                clean_instance_ids.append(instance.pk)
             else:
                 instance_errors_msg = '. '.join(instance_errors)
                 ValidationError({
@@ -418,8 +427,10 @@ class BaseBulkMutation(BaseMutation):
 
         if errors:
             errors = ValidationError(errors)
-        count = len(clean_instances)
-        cls.bulk_action(clean_instances)
+        count = len(clean_instance_ids)
+        if count:
+            qs = instance_model.objects.filter(pk__in=clean_instance_ids)
+            cls.bulk_action(queryset=qs)
         return count, errors
 
     @classmethod
@@ -438,17 +449,17 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance):
-        """Perform additional logic before deleting the model instance.
+    def bulk_action(cls, queryset):
+        queryset.delete()
 
-        Override this method to raise custom validation error and abort
-        the deletion process.
-        """
+
+class ModelBulkPublishMutation(BaseBulkMutation):
+    class Meta:
+        abstract = True
 
     @classmethod
-    def bulk_action(cls, instances):
-        for instance in instances:
-            instance.delete()
+    def bulk_action(cls, queryset):
+        queryset.update(is_published=True)
 
 
 class CreateToken(ObtainJSONWebToken):
