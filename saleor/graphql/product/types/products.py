@@ -437,7 +437,7 @@ class Product(CountableDjangoObjectType):
     def get_node(cls, info, pk):
         if info.context:
             qs = cls._meta.model.objects.visible_to_user(info.context.user)
-            return cls.optimize_node(info, qs, pk)
+            return cls.get_optimized_node(info, qs, pk)
         return None
 
 
