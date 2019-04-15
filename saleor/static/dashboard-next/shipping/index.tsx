@@ -20,11 +20,7 @@ const ShippingZonesList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: ShippingZonesListQueryParams = {
-    after: qs.after,
-    before: qs.before,
-    delete: qs.delete
-  };
+  const params: ShippingZonesListQueryParams = qs;
   return <ShippingZonesListComponent params={params} />;
 };
 

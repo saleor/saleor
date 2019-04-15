@@ -40,7 +40,7 @@ export const configurationMenu: MenuItem[] = [
     icon: <ShippingMethods fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_SHIPPING,
     title: i18n.t("Shipping Methods"),
-    url: shippingZonesListUrl
+    url: shippingZonesListUrl()
   },
   {
     description: i18n.t("Manage how your store charges tax"),
