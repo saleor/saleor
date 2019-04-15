@@ -15,6 +15,7 @@ import { maybe } from "../../../misc";
 import { VoucherDiscountValueType } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
+import CardSpacer from "../../../components/CardSpacer";
 
 export interface VoucherSummaryProps {
   defaultCurrency: string;
@@ -31,13 +32,13 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
     <Card>
       <CardTitle title={i18n.t("Summary")} />
       <CardContent>
-        <Typography variant="body2">{i18n.t("Name")}</Typography>
+        <Typography variant="caption">{i18n.t("Name")}</Typography>
         <Typography>
           {maybe<React.ReactNode>(() => voucher.name, <Skeleton />)}
         </Typography>
         <FormSpacer />
 
-        <Typography variant="body2">{i18n.t("Applies to")}</Typography>
+        <Typography variant="caption">{i18n.t("Applies to")}</Typography>
         <Typography>
           {maybe<React.ReactNode>(
             () => translatedVoucherTypes[voucher.type],
@@ -46,7 +47,7 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
         </Typography>
         <FormSpacer />
 
-        <Typography variant="body2">{i18n.t("Value")}</Typography>
+        <Typography variant="caption">{i18n.t("Value")}</Typography>
         <Typography>
           {maybe<React.ReactNode>(
             () =>
@@ -63,12 +64,12 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
             <Skeleton />
           )}
         </Typography>
-      </CardContent>
 
-      <Hr />
+        <CardSpacer />
+        <Hr />
+        <CardSpacer />
 
-      <CardContent>
-        <Typography variant="body2">{i18n.t("Start Date")}</Typography>
+        <Typography variant="caption">{i18n.t("Start Date")}</Typography>
         <Typography>
           {maybe<React.ReactNode>(
             () => (
@@ -79,7 +80,7 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
         </Typography>
         <FormSpacer />
 
-        <Typography variant="body2">{i18n.t("End Date")}</Typography>
+        <Typography variant="caption">{i18n.t("End Date")}</Typography>
         <Typography>
           {maybe<React.ReactNode>(
             () =>
@@ -91,12 +92,12 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
             <Skeleton />
           )}
         </Typography>
-      </CardContent>
 
-      <Hr />
+        <CardSpacer />
+        <Hr />
+        <CardSpacer />
 
-      <CardContent>
-        <Typography variant="body2">{i18n.t("Min. Order Value")}</Typography>
+        <Typography variant="caption">{i18n.t("Min. Order Value")}</Typography>
         <Typography>
           {maybe<React.ReactNode>(
             () =>
@@ -110,7 +111,7 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
         </Typography>
         <FormSpacer />
 
-        <Typography variant="body2">{i18n.t("Usage Limit")}</Typography>
+        <Typography variant="caption">{i18n.t("Usage Limit")}</Typography>
         <Typography>
           {maybe<React.ReactNode>(
             () => (voucher.usageLimit === null ? "-" : voucher.usageLimit),
