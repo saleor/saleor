@@ -25,7 +25,7 @@ class OrderBulkCancel(BaseBulkMutation):
         clean_order_cancel(instance)
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('order.manage_orders')
 
     @classmethod

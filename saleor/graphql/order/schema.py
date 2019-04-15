@@ -106,4 +106,4 @@ class OrderMutations(graphene.ObjectType):
     order_update_shipping = OrderUpdateShipping.Field()
     order_void = OrderVoid.Field()
 
-    orders_cancel = OrderBulkCancel.Field()
+    order_bulk_cancel = OrderBulkCancel.Field()
