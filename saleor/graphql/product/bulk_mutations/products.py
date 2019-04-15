@@ -36,6 +36,38 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
+class CollectionBulkPublish(ModelBulkPublishMutation):
+    class Arguments:
+        ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description='List of collections IDs to publish.')
+
+    class Meta:
+        description = 'Publish collections.'
+        model = models.Collection
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
+
+
+class CollectionBulkUnpublish(CollectionBulkPublish):
+    class Arguments:
+        ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description='List of collections IDs to unpublish.')
+
+    class Meta:
+        description = 'Unpublish collections.'
+        model = models.Collection
+
+    @classmethod
+    def bulk_action(cls, queryset):
+        queryset.update(is_published=False)
+
+
 class ProductBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(

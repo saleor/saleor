@@ -12,9 +12,9 @@ from ..translations.mutations import (
 from .bulk_mutations.attributes import (
     AttributeBulkDelete, AttributeValueBulkDelete)
 from .bulk_mutations.products import (
-    CategoryBulkDelete, CollectionBulkDelete, ProductBulkDelete,
-    ProductBulkPublish, ProductImageBulkDelete, ProductTypeBulkDelete,
-    ProductVariantBulkDelete)
+    CategoryBulkDelete, CollectionBulkDelete, CollectionBulkPublish,
+    ProductBulkDelete, ProductBulkPublish, ProductImageBulkDelete,
+    ProductTypeBulkDelete, ProductVariantBulkDelete)
 from .enums import StockAvailability
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
@@ -187,6 +187,7 @@ class ProductMutations(graphene.ObjectType):
     collection_create = CollectionCreate.Field()
     collection_delete = CollectionDelete.Field()
     collection_bulk_delete = CollectionBulkDelete.Field()
+    collection_bulk_publish = CollectionBulkPublish.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
     collection_translate = CollectionTranslate.Field()
