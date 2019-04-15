@@ -129,9 +129,9 @@ def product_add_to_checkout(request, slug, product_id):
         form.save()
         if request.is_ajax():
             response = JsonResponse(
-                {'next': reverse('cart:index')}, status=200)
+                {'next': reverse('checkout:details')}, status=200)
         else:
-            response = redirect('cart:index')
+            response = redirect('checkout:details')
     else:
         if request.is_ajax():
             response = JsonResponse({'error': form.errors}, status=400)

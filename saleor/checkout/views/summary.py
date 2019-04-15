@@ -31,12 +31,12 @@ def handle_order_placement(request, checkout):
             discounts=request.discounts,
             taxes=get_taxes_for_checkout(checkout, request.taxes))
     except InsufficientStock:
-        return redirect('cart:index')
+        return redirect('checkout:details')
     except NotApplicable:
         messages.warning(
             request, pgettext(
                 'Checkout warning', 'Please review your checkout.'))
-        return redirect('checkout:summary')
+        return redirect('checkout:order-summary')
 
     # remove checkout after order is created
     checkout.delete()
