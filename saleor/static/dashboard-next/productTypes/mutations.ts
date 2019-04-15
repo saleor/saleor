@@ -15,6 +15,10 @@ import {
   AttributeUpdateVariables
 } from "./types/AttributeUpdate";
 import {
+  ProductTypeBulkDelete,
+  ProductTypeBulkDeleteVariables
+} from "./types/ProductTypeBulkDelete";
+import {
   ProductTypeCreate,
   ProductTypeCreateVariables
 } from "./types/ProductTypeCreate";
@@ -44,6 +48,21 @@ export const TypedProductTypeDeleteMutation = TypedMutation<
   ProductTypeDelete,
   ProductTypeDeleteVariables
 >(productTypeDeleteMutation);
+
+export const productTypeBulkDeleteMutation = gql`
+  mutation ProductTypeBulkDelete($ids: [ID]!) {
+    productTypeBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedProductTypeBulkDeleteMutation = TypedMutation<
+  ProductTypeBulkDelete,
+  ProductTypeBulkDeleteVariables
+>(productTypeBulkDeleteMutation);
 
 export const productTypeUpdateMutation = gql`
   ${productTypeDetailsFragment}
