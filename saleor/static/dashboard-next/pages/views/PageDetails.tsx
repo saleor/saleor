@@ -54,7 +54,7 @@ export const PageDetails: React.StatelessComponent<PageDetailsProps> = ({
                   context: "notification"
                 })
               });
-              navigate(pageListUrl);
+              navigate(pageListUrl());
             }
           };
           return (

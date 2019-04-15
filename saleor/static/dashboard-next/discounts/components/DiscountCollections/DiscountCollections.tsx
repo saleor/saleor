@@ -18,13 +18,13 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
+import TableHead from "../../../components/TableHead";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 import { SaleDetails_sale } from "../../types/SaleDetails";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
-import TableHead from "../../../components/TableHead";
 
 export interface DiscountCollectionsProps extends ListProps, ListActions {
   discount: SaleDetails_sale | VoucherDetails_voucher;
