@@ -142,7 +142,7 @@ export default (colors: IThemeColors): Theme =>
         },
         head: {
           fontSize: ".875rem",
-          fontWeight: 600
+          fontWeight: 400
         },
         root: {
           "&:first-child": {
