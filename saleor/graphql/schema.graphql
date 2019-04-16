@@ -1121,8 +1121,7 @@ type Mutations {
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productBulkDelete(ids: [ID]!): ProductBulkDelete
-  productBulkPublish(ids: [ID]!): ProductBulkPublish
-  productBulkUnpublish(ids: [ID]!): ProductBulkUnpublish
+  productBulkPublish(ids: [ID]!, isPublished: Boolean!): ProductBulkPublish
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
   productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
@@ -1703,11 +1702,6 @@ type ProductBulkDelete {
 }
 
 type ProductBulkPublish {
-  errors: [Error!]
-  count: Int!
-}
-
-type ProductBulkUnpublish {
   errors: [Error!]
   count: Int!
 }
