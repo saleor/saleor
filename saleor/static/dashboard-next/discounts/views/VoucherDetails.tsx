@@ -91,7 +91,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
           context: "notification"
         })
       });
-      navigate(voucherListUrl, true);
+      navigate(voucherListUrl(), true);
     }
   };
 

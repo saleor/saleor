@@ -7,6 +7,7 @@ import i18n from "../i18n";
 import {
   productTypeAddPath,
   productTypeListPath,
+  ProductTypeListUrlQueryParams,
   productTypePath,
   ProductTypeUrlQueryParams
 } from "./urls";

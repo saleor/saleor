@@ -125,7 +125,7 @@ export const CollectionDetails: React.StatelessComponent<
                 context: "notification"
               })
             });
-            navigate(collectionListUrl);
+            navigate(collectionListUrl());
           }
         };
         return (

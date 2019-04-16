@@ -9,6 +9,7 @@ import { voucherDetailsPageTab } from "./components/VoucherDetailsPage";
 import {
   saleAddPath,
   saleListPath,
+  SaleListUrlQueryParams,
   salePath,
   SaleUrlQueryParams,
   voucherAddPath,
@@ -19,7 +20,7 @@ import {
 } from "./urls";
 import SaleCreateView from "./views/SaleCreate";
 import SaleDetailsViewComponent from "./views/SaleDetails";
-import SaleListViewComponent, { SaleListQueryParams } from "./views/SaleList";
+import SaleListViewComponent from "./views/SaleList";
 import VoucherCreateView from "./views/VoucherCreate";
 import VoucherDetailsViewComponent from "./views/VoucherDetails";
 import VoucherListViewComponent from "./views/VoucherList";
@@ -28,7 +29,7 @@ const SaleListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: SaleListQueryParams = qs;
+  const params: SaleListUrlQueryParams = qs;
   return <SaleListViewComponent params={params} />;
 };
 

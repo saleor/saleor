@@ -85,7 +85,7 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
           context: "notification"
         })
       });
-      navigate(saleListUrl, true);
+      navigate(saleListUrl(), true);
     }
   };
 

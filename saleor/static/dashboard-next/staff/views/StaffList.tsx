@@ -121,8 +121,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                     staffMembersBulkDeleteOpts.loading,
                     maybe(
                       () =>
-                        staffMembersBulkDeleteOpts.data.staffMembersBulkDelete
-                          .errors
+                        staffMembersBulkDeleteOpts.data.staffBulkDelete.errors
                     )
                   );
                   const onSaleBulkDelete = () =>
