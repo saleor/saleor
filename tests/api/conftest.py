@@ -9,6 +9,7 @@ from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
 
 from saleor.account.models import User
+
 from .utils import assert_no_permission
 
 API_PATH = reverse('api')
@@ -101,6 +102,12 @@ def schema_context():
 
 
 @pytest.fixture
+def superuser():
+    superuser = User.objects.create_superuser('superuser@example.com', 'pass')
+    return superuser
+
+
+@pytest.fixture
 def user_list():
     users = User.objects.bulk_create(
         [User(email='user-2@example.com'),
@@ -110,6 +117,11 @@ def user_list():
          User(
              email='staff-2@example.com', is_staff=True),
          ])
-    superuser = User.objects.create_superuser('superuser@example.com', 'pass')
-    users.append(superuser)
+    return users
+
+
+@pytest.fixture
+def user_list_not_active(user_list):
+    users = User.objects.filter(pk__in=[user.pk for user in user_list])
+    users.update(is_active=False)
     return users

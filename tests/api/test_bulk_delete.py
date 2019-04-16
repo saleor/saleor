@@ -527,8 +527,8 @@ def test_delete_shipping_zones(
 
 
 def test_delete_staff_members(
-        staff_api_client, user_list, permission_manage_staff):
-    *users, staff_1, staff_2, superuser = user_list
+        staff_api_client, user_list, permission_manage_staff, superuser):
+    *users, staff_1, staff_2 = user_list
     users.append(superuser)
 
     query = """
