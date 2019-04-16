@@ -265,6 +265,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
               </div>
               <div>
                 <ProductOrganization
+                  canChangeType={false}
                   categories={categories}
                   errors={errors}
                   fetchCategories={fetchCategories}
