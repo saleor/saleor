@@ -1050,7 +1050,7 @@ input MenuItemInput {
 
 type MenuItemMove {
   errors: [Error!]
-  menuItem: [MenuItem]
+  menu: Menu
 }
 
 input MenuItemMoveInput {
@@ -1195,7 +1195,7 @@ type Mutations {
   menuItemBulkDelete(ids: [ID]!): MenuItemBulkDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
-  menuItemMove(moves: [MenuItemMoveInput]!): MenuItemMove
+  menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete

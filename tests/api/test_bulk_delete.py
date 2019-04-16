@@ -76,14 +76,6 @@ def menu_list():
 
 
 @pytest.fixture
-def menu_item_list(menu):
-    menu_item_1 = MenuItem.objects.create(menu=menu, name='Link 1')
-    menu_item_2 = MenuItem.objects.create(menu=menu, name='Link 2')
-    menu_item_3 = MenuItem.objects.create(menu=menu, name='Link 3')
-    return menu_item_1, menu_item_2, menu_item_3
-
-
-@pytest.fixture
 def product_type_list():
     product_type_1 = ProductType.objects.create(name='Type 1')
     product_type_2 = ProductType.objects.create(name='Type 2')

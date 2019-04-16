@@ -4,6 +4,7 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
+from graphql_relay import from_global_id
 
 from ...menu import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -203,10 +204,12 @@ _MenuMoveOperation = namedtuple(
 
 
 class MenuItemMove(BaseMutation):
-    menu_item = graphene.List(
-        MenuItem, description='Assigned menu to move within.')
+    menu = graphene.Field(
+        Menu, description='Assigned menu to move within.')
 
     class Arguments:
+        menu = graphene.ID(
+            required=True, description='ID of the menu.')
         moves = graphene.List(
             MenuItemMoveInput,
             required=True, description='The menu position data')
@@ -234,11 +237,16 @@ class MenuItemMove(BaseMutation):
                         'one of its descendants.')})
 
     @classmethod
-    def get_operation(cls, info, move) -> _MenuMoveOperation:
-        menu_item = cls.get_node_or_error(
-            info, move.item_id,
-            field='item_id', only_type=MenuItem)
+    def get_operation(
+            cls, info, menu_id: int, move) -> _MenuMoveOperation:
         parent_node = None
+
+        _type, menu_item_id = from_global_id(move.item_id)  # type: str, int
+        assert _type == 'MenuItem', \
+            'The menu item node must be of type MenuItem.'
+
+        menu_item = models.MenuItem.objects.get(
+            pk=menu_item_id, menu_id=menu_id)
 
         if move.parent_id is not None:
             parent_node = cls.get_node_or_error(
@@ -252,12 +260,15 @@ class MenuItemMove(BaseMutation):
 
     @classmethod
     def clean_moves(
-            cls, info, move_operations: List) -> List[_MenuMoveOperation]:
+            cls,
+            info,
+            menu_id: int,
+            move_operations: List) -> List[_MenuMoveOperation]:
 
         operations = []
         for move in move_operations:
             cls.clean_move(move)
-            operation = cls.get_operation(info, move)
+            operation = cls.get_operation(info, menu_id, move)
             cls.clean_operation(operation)
             operations.append(operation)
         return operations
@@ -284,15 +295,16 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    def perform_mutation(cls, root, info, moves):
-        operations = cls.clean_moves(info, moves)
-        menu_items = []
+    def perform_mutation(cls, root, info, menu, moves):
+        _type, menu_id = from_global_id(menu)  # type: str, int
+        assert _type == 'Menu', 'Expected a menu of type Menu'
+
+        operations = cls.clean_moves(info, menu_id, moves)
 
         for operation in operations:
             cls.perform_operation(operation)
-            menu_items.append(operation.menu_item)
 
-        return cls(menu_item=menu_items)
+        return cls(menu=models.Menu.objects.get(pk=menu_id))
 
 
 class AssignNavigation(BaseMutation):
