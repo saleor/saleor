@@ -32,7 +32,9 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
 }) => {
   const navigate = useNavigator();
   const paginate = usePaginator();
-  const { isSelected, listElements, toggle, reset } = useBulkActions();
+  const { isSelected, listElements, toggle, reset } = useBulkActions(
+    params.ids
+  );
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
   return (

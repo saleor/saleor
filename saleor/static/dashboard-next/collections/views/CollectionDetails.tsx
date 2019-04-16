@@ -43,7 +43,9 @@ export const CollectionDetails: React.StatelessComponent<
 > = ({ id, params }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
-  const { isSelected, listElements, reset, toggle } = useBulkActions();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
   const paginate = usePaginator();
 
   const closeModal = () =>

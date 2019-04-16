@@ -70,7 +70,9 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
   const paginate = usePaginator();
   const notify = useNotifier();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
   const changeTab = (tab: VoucherDetailsPageTab) => {

@@ -37,7 +37,9 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
   const notify = useNotifier();
   const paginate = usePaginator();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
 
   const closeModal = () => navigate(voucherListUrl(), true);
 

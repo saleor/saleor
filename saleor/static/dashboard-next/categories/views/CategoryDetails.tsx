@@ -56,7 +56,9 @@ export const CategoryDetails: React.StatelessComponent<
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
-  const { isSelected, listElements, reset, toggle } = useBulkActions();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
 
   const handleCategoryDelete = (data: CategoryDelete) => {
     if (data.categoryDelete.errors.length === 0) {

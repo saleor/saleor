@@ -37,7 +37,9 @@ export const SaleList: React.StatelessComponent<SaleListProps> = ({
   const notify = useNotifier();
   const paginate = usePaginator();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
 
   const closeModal = () => navigate(saleListUrl(), true);
 

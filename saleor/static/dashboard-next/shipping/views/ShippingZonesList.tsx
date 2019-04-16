@@ -43,7 +43,9 @@ export const ShippingZonesList: React.StatelessComponent<
   const notify = useNotifier();
   const paginate = usePaginator();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
 
