@@ -1798,24 +1798,27 @@ def test_variant_digital_content(
     assert 'id' in content['data']['productVariant']['digitalContent']
 
 
-def test_bulk_publish(
+MUTATION_BULK_PUBLISH_PRODUCTS = """
+        mutation publishManyProducts($ids: [ID]!, $is_published: Boolean!) {
+            productBulkPublish(ids: $ids, isPublished: $is_published) {
+                count
+            }
+        }
+    """
+
+
+def test_bulk_publish_products(
         staff_api_client, product_list_unpublished,
         permission_manage_products):
     product_list = product_list_unpublished
     assert not any(product.is_published for product in product_list)
 
-    query = """
-        mutation publishManyProducts($ids: [ID]!) {
-            productBulkPublish(ids: $ids) {
-                count
-            }
-        }
-    """
     variables = {'ids': [
         graphene.Node.to_global_id('Product', product.id)
-        for product in product_list]}
+        for product in product_list], 'is_published': True}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        MUTATION_BULK_PUBLISH_PRODUCTS, variables,
+        permissions=[permission_manage_products])
     content = get_graphql_content(response)
     product_list = Product.objects.filter(
         id__in=[product.pk for product in product_list])
@@ -1824,28 +1827,22 @@ def test_bulk_publish(
     assert all(product.is_published for product in product_list)
 
 
-def test_bulk_unpublish(
+def test_bulk_unpublish_products(
         staff_api_client, product_list_published,
         permission_manage_products):
     product_list = product_list_published
     assert all(product.is_published for product in product_list)
 
-    query = """
-        mutation unPublishManyProducts($ids: [ID]!) {
-            productBulkUnpublish(ids: $ids) {
-                count
-            }
-        }
-    """
     variables = {'ids': [
         graphene.Node.to_global_id('Product', product.id)
-        for product in product_list]}
+        for product in product_list], 'is_published': False}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        MUTATION_BULK_PUBLISH_PRODUCTS, variables,
+        permissions=[permission_manage_products])
     content = get_graphql_content(response)
     product_list = Product.objects.filter(
         id__in=[product.pk for product in product_list])
 
-    assert content['data']['productBulkUnpublish']['count'] == len(
+    assert content['data']['productBulkPublish']['count'] == len(
         product_list)
     assert not any(product.is_published for product in product_list)

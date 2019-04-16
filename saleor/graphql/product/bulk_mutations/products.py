@@ -106,27 +106,18 @@ class ProductBulkPublish(ModelBulkPublishMutation):
             graphene.ID,
             required=True,
             description='List of products IDs to publish.')
+        is_published = graphene.Boolean(
+            required=True,
+            description='Determine if product will be published or not.')
 
     class Meta:
         description = 'Publish products.'
         model = models.Product
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('product.manage_products')
 
-
-class ProductBulkUnpublish(ProductBulkPublish):
-    class Arguments:
-        ids = graphene.List(
-            graphene.ID,
-            required=True,
-            description='List of products IDs to unpublish.')
-
-    class Meta:
-        description = 'Unpublish products.'
-        model = models.Product
-
     @classmethod
-    def bulk_action(cls, queryset):
-        queryset.update(is_published=False)
+    def bulk_action(cls, queryset, is_published):
+        queryset.update(is_published=is_published)
