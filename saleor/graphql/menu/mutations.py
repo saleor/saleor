@@ -263,7 +263,7 @@ class MenuItemMove(BaseMutation):
         return operations
 
     @classmethod
-    def user_is_allowed(cls, user, _input):
+    def user_is_allowed(cls, user):
         return user.has_perm('menu.manage_menus')
 
     @staticmethod
