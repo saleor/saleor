@@ -10,10 +10,6 @@ import {
   PageBulkRemove,
   PageBulkRemoveVariables
 } from "./types/PageBulkRemove";
-import {
-  PageBulkUnpublish,
-  PageBulkUnpublishVariables
-} from "./types/PageBulkUnpublish";
 import { PageCreate, PageCreateVariables } from "./types/PageCreate";
 import { PageRemove, PageRemoveVariables } from "./types/PageRemove";
 import { PageUpdate, PageUpdateVariables } from "./types/PageUpdate";
@@ -69,8 +65,8 @@ export const TypedPageRemove = TypedMutation<PageRemove, PageRemoveVariables>(
 );
 
 const pageBulkPublish = gql`
-  mutation PageBulkPublish($ids: [ID]!) {
-    pageBulkPublish(ids: $ids) {
+  mutation PageBulkPublish($ids: [ID]!, $isPublished: Boolean!) {
+    pageBulkPublish(ids: $ids, isPublished: $isPublished) {
       errors {
         field
         message
@@ -82,21 +78,6 @@ export const TypedPageBulkPublish = TypedMutation<
   PageBulkPublish,
   PageBulkPublishVariables
 >(pageBulkPublish);
-
-const pageBulkUnpublish = gql`
-  mutation PageBulkUnpublish($ids: [ID]!) {
-    pageBulkUnpublish(ids: $ids) {
-      errors {
-        field
-        message
-      }
-    }
-  }
-`;
-export const TypedPageBulkUnpublish = TypedMutation<
-  PageBulkUnpublish,
-  PageBulkUnpublishVariables
->(pageBulkUnpublish);
 
 const pageBulkRemove = gql`
   mutation PageBulkRemove($ids: [ID]!) {
