@@ -89,6 +89,8 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
                   className={!!customer ? classes.tableRow : undefined}
                   hover={!!customer}
                   key={customer ? customer.id : "skeleton"}
+                  selected={isSelected}
+                  onClick={customer ? onRowClick(customer.id) : undefined}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
@@ -101,11 +103,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell
-                    onClick={customer ? onRowClick(customer.id) : undefined}
-                  >
-                    {getUserName(customer)}
-                  </TableCell>
+                  <TableCell>{getUserName(customer)}</TableCell>
                   <TableCell>
                     {maybe<React.ReactNode>(() => customer.email, <Skeleton />)}
                   </TableCell>

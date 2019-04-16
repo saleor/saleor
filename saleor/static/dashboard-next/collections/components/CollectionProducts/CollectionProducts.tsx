@@ -124,6 +124,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                   hover={!!product}
                   onClick={!!product ? onRowClick(product.id) : undefined}
                   key={product ? product.id : "skeleton"}
+                  selected={isSelected}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
