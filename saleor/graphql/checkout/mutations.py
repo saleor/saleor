@@ -353,7 +353,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         arguments = (shipping_address, shipping_address_id)
         if not any(arguments) or all(arguments):
             raise ValidationError(
-                'One and only one of shipping address or shipping address ID '
+                'One and only one shipping address or shipping address ID '
                 'should be provided.')
 
         if shipping_address is not None:
@@ -411,7 +411,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         arguments = (billing_address, billing_address_id)
         if not any(arguments) or all(arguments):
             raise ValidationError(
-                'One and only one of billing address or billing address ID '
+                'One and only one billing address or billing address ID '
                 'should be provided.')
 
         if billing_address is not None:

@@ -775,7 +775,7 @@ def test_checkout_shipping_address_update_invalid_argument(
     data = content['data']['checkoutShippingAddressUpdate']
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == (
-        'One and only one of shipping address or shipping address ID '
+        'One and only one shipping address or shipping address ID '
         'should be provided.')
 
 
@@ -920,7 +920,7 @@ def test_checkout_billling_address_update_invalid_argument(
     data = content['data']['checkoutBillingAddressUpdate']
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == (
-        'One and only one of billing address or billing address ID '
+        'One and only one billing address or billing address ID '
         'should be provided.')
 
 
