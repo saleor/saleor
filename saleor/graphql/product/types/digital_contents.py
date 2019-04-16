@@ -1,6 +1,7 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
+
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
 
@@ -13,7 +14,7 @@ class DigitalContentUrl(CountableDjangoObjectType):
         only_fields = ['content', 'created', 'download_num', 'token', 'url']
         interfaces = (relay.Node,)
 
-    def resolve_url(self, info):
+    def resolve_url(self, *_args):
         return self.get_absolute_url()
 
 
@@ -32,6 +33,6 @@ class DigitalContent(CountableDjangoObjectType):
             'use_default_settings']
         interfaces = (relay.Node,)
 
-    def resolve_urls(self, info, **kwargs):
+    def resolve_urls(self, info, **_kwargs):
         qs = self.urls.all()
         return gql_optimizer.query(qs, info)

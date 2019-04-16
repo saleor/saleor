@@ -794,6 +794,11 @@ type DraftOrderLineUpdate {
   orderLine: OrderLine
 }
 
+type DraftOrderLinesBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
 type DraftOrderLinesCreate {
   errors: [Error!]
   order: Order
@@ -1149,12 +1154,15 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
+  pageBulkPublish(ids: [ID]!): PageBulkPublish
+  pageBulkUnpublish(ids: [ID]!): PageBulkUnpublish
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
   draftOrderBulkDelete(ids: [ID]!): DraftOrderBulkDelete
+  draftOrderLinesBulkDelete(ids: [ID]!): DraftOrderLinesBulkDelete
   draftOrderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): DraftOrderLinesCreate
   draftOrderLineDelete(id: ID!): DraftOrderLineDelete
   draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
@@ -1170,6 +1178,7 @@ type Mutations {
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
+  orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
@@ -1307,6 +1316,11 @@ type OrderAddNote {
 
 input OrderAddNoteInput {
   message: String
+}
+
+type OrderBulkCancel {
+  errors: [Error!]
+  count: Int!
 }
 
 type OrderCancel {
@@ -1478,6 +1492,16 @@ type Page implements Node {
 }
 
 type PageBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
+type PageBulkPublish {
+  errors: [Error!]
+  count: Int!
+}
+
+type PageBulkUnpublish {
   errors: [Error!]
   count: Int!
 }

@@ -4,7 +4,12 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { pageCreatePath, pageListPath, pagePath } from "./urls";
+import {
+  pageCreatePath,
+  pageListPath,
+  pagePath,
+  PageUrlQueryParams
+} from "./urls";
 import PageCreate from "./views/PageCreate";
 import PageDetailsComponent from "./views/PageDetails";
 import PageListComponent, { PageListQueryParams } from "./views/PageList";
@@ -23,7 +28,15 @@ const PageList: React.StatelessComponent<RouteComponentProps<any>> = ({
 const PageDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
-  return <PageDetailsComponent id={decodeURIComponent(match.params.id)} />;
+  const qs = parseQs(location.search.substr(1));
+  const params: PageUrlQueryParams = qs;
+
+  return (
+    <PageDetailsComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
 };
 
 const Component = () => (

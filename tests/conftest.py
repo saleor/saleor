@@ -27,15 +27,14 @@ from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import recalculate_order, fulfill_order_line
+from saleor.order.utils import fulfill_order_line, recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
-    Product, ProductImage, ProductTranslation, ProductType, ProductVariant,
-    DigitalContent
-)
+    DigitalContent, Product, ProductImage, ProductTranslation, ProductType,
+    ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site import AuthenticationBackends
@@ -750,6 +749,29 @@ def page(db):
         'content': 'test content'}
     page = Page.objects.create(**data)
     return page
+
+
+@pytest.fixture
+def page_list(db):
+    data_1 = {
+        'slug': 'test-url',
+        'title': 'Test page',
+        'content': 'test content'}
+    data_2 = {
+        'slug': 'test-url-2',
+        'title': 'Test page',
+        'content': 'test content'}
+    pages = Page.objects.bulk_create([Page(**data_1), Page(**data_2)])
+    return pages
+
+
+@pytest.fixture
+def page_list_unpublished(db):
+    pages = Page.objects.bulk_create(
+        [Page(slug='page-1', title='Page 1', is_published=False),
+         Page(slug='page-2', title='Page 2', is_published=False),
+         Page(slug='page-3', title='Page 3', is_published=False)])
+    return pages
 
 
 @pytest.fixture

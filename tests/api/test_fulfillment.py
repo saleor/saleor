@@ -144,7 +144,7 @@ def test_create_fulfillment_with_invalid_input(
     assert data['errors']
     assert data['errors'][0]['field'] == 'lines'
     assert data['errors'][0]['message'] == (
-        'Could not resolve to a nodes with the global id list'
+        'Could not resolve to a node with the global id list'
         ' of \'[\'fake-orderline-id\']\'.')
 
 

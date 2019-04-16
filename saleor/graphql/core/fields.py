@@ -14,17 +14,17 @@ from .types.money import Money, TaxedMoney
 
 
 @convert_django_field.register(TaxedMoneyField)
-def convert_field_taxed_money(field, registry=None):
+def convert_field_taxed_money(*_args):
     return graphene.Field(TaxedMoney)
 
 
 @convert_django_field.register(MoneyField)
-def convert_field_money(field, registry=None):
+def convert_field_money(*_args):
     return graphene.Field(Money)
 
 
 @convert_django_field.register(MeasurementField)
-def convert_field_measurements(field, registry=None):
+def convert_field_measurements(*_args):
     return graphene.Field(Weight)
 
 

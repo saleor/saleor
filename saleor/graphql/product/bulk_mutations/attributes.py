@@ -16,7 +16,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         model = models.Attribute
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('product.manage_products')
 
 
@@ -32,5 +32,5 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         model = models.AttributeValue
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('product.manage_products')

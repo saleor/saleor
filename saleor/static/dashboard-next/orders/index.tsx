@@ -4,7 +4,12 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { orderDraftListPath, orderListPath, orderPath } from "./urls";
+import {
+  orderDraftListPath,
+  orderListPath,
+  orderPath,
+  OrderUrlQueryParams
+} from "./urls";
 import OrderDetailsComponent from "./views/OrderDetails";
 import OrderDraftListComponent from "./views/OrderDraftList";
 import OrderListComponent, { OrderListQueryParams } from "./views/OrderList";
@@ -32,9 +37,18 @@ const OrderDraftList: React.StatelessComponent<RouteComponentProps<any>> = ({
 };
 
 const OrderDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
+  location,
   match
 }) => {
-  return <OrderDetailsComponent id={decodeURIComponent(match.params.id)} />;
+  const qs = parseQs(location.search.substr(1));
+  const params: OrderUrlQueryParams = qs;
+
+  return (
+    <OrderDetailsComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
 };
 
 const Component = () => (
