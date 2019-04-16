@@ -116,6 +116,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
                   hover={!!category}
                   onClick={category ? onRowClick(category.id) : undefined}
                   key={category ? category.id : "skeleton"}
+                  selected={isSelected}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox

@@ -95,6 +95,7 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
                   hover={!!collection}
                   onClick={collection ? onRowClick(collection.id) : undefined}
                   key={collection ? collection.id : "skeleton"}
+                  selected={isSelected}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox

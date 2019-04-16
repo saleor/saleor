@@ -81,6 +81,7 @@ const PageList = withStyles(styles, { name: "PageList" })(
                   className={!!page ? classes.link : undefined}
                   onClick={page ? onRowClick(page.id) : undefined}
                   key={page ? page.id : "skeleton"}
+                  selected={isSelected}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
