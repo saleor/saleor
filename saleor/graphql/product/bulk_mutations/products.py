@@ -1,7 +1,7 @@
 import graphene
 
 from ....product import models
-from ...core.mutations import ModelBulkDeleteMutation
+from ...core.mutations import ModelBulkDeleteMutation, ModelBulkPublishMutation
 
 
 class CategoryBulkDelete(ModelBulkDeleteMutation):
@@ -98,3 +98,26 @@ class ProductImageBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def user_is_allowed(cls, user, _ids):
         return user.has_perm('product.manage_products')
+
+
+class ProductBulkPublish(ModelBulkPublishMutation):
+    class Arguments:
+        ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description='List of products IDs to publish.')
+        is_published = graphene.Boolean(
+            required=True,
+            description='Determine if products will be published or not.')
+
+    class Meta:
+        description = 'Publish products.'
+        model = models.Product
+
+    @classmethod
+    def user_is_allowed(cls, user, _ids):
+        return user.has_perm('product.manage_products')
+
+    @classmethod
+    def bulk_action(cls, queryset, is_published):
+        queryset.update(is_published=is_published)
