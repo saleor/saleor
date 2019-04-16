@@ -1,7 +1,7 @@
 import graphene
 
 from ...page import models
-from ..core.mutations import ModelBulkDeleteMutation, BaseBulkMutation
+from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 
 
 class PageBulkDelete(ModelBulkDeleteMutation):
