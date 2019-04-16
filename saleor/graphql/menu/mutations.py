@@ -215,7 +215,7 @@ class MenuItemMove(BaseMutation):
         description = 'Moves items of menus'
 
     @staticmethod
-    def pre_validate_move(move):
+    def clean_move(move):
         """Validate if the given move could be possibly possible."""
         if move.parent_id:
             if move.item_id == move.parent_id:
@@ -223,7 +223,7 @@ class MenuItemMove(BaseMutation):
                     'parent': 'Cannot assign a node to itself.'})
 
     @staticmethod
-    def post_validate_move(operation: _MenuMoveOperation):
+    def clean_operation(operation: _MenuMoveOperation):
         """Validate if the given move will be actually possible."""
 
         if operation.parent:
@@ -234,7 +234,7 @@ class MenuItemMove(BaseMutation):
                         'one of its descendants.')})
 
     @classmethod
-    def move_to_operation(cls, info, move) -> _MenuMoveOperation:
+    def get_operation(cls, info, move) -> _MenuMoveOperation:
         menu_item = cls.get_node_or_error(
             info, move.item_id,
             field='item_id', only_type=MenuItem)
@@ -256,30 +256,30 @@ class MenuItemMove(BaseMutation):
 
         operations = []
         for move in move_operations:
-            cls.pre_validate_move(move)
-            operation = cls.move_to_operation(info, move)
-            cls.post_validate_move(operation)
+            cls.clean_move(move)
+            operation = cls.get_operation(info, move)
+            cls.clean_operation(operation)
             operations.append(operation)
         return operations
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _input):
         return user.has_perm('menu.manage_menus')
 
     @staticmethod
-    def perform_operation(item: _MenuMoveOperation):
-        menu_item = item.menu_item  # type: models.MenuItem
+    def perform_operation(operation: _MenuMoveOperation):
+        menu_item = operation.menu_item  # type: models.MenuItem
 
         # Move the parent if provided
-        if item.parent:
-            menu_item.move_to(item.parent)
+        if operation.parent:
+            menu_item.move_to(operation.parent)
         # Remove the menu item's parent if was set to none (root node)
         elif menu_item.parent_id:
             menu_item.parent_id = None
 
         # Move the menu item
-        if item.sort_order is not None:
-            menu_item.sort_order = item.sort_order
+        if operation.sort_order is not None:
+            menu_item.sort_order = operation.sort_order
 
         menu_item.save()
 
