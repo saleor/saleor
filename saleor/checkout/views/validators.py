@@ -15,7 +15,7 @@ def validate_checkout(view):
     def func(request, checkout):
         if checkout:
             return view(request, checkout)
-        return redirect('checkout:details')
+        return redirect('checkout:index')
     return func
 
 
@@ -66,6 +66,6 @@ def validate_is_shipping_required(view):
     @wraps(view)
     def func(request, checkout):
         if not checkout.is_shipping_required():
-            return redirect('checkout:order-summary')
+            return redirect('checkout:summary')
         return view(request, checkout)
     return func

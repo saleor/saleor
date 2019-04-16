@@ -61,7 +61,7 @@ def validate_voucher(view):
                     'Checkout warning',
                     'This voucher has expired. Please review your checkout.')
                 messages.warning(request, msg)
-                return redirect('checkout:order-summary')
+                return redirect('checkout:summary')
         return view(request, checkout)
     return func
 

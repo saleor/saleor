@@ -31,7 +31,7 @@ from .validators import (
 def checkout_login(request, checkout):
     """Allow the user to log in prior to checkout."""
     if request.user.is_authenticated:
-        return redirect('checkout:index')
+        return redirect('checkout:start')
     ctx = {'form': LoginForm()}
     return TemplateResponse(request, 'checkout/login.html', ctx)
 
@@ -39,7 +39,7 @@ def checkout_login(request, checkout):
 @get_or_empty_db_checkout(Checkout.objects.for_display())
 @validate_checkout
 @validate_is_shipping_required
-def checkout_index(request, checkout):
+def checkout_start(request, checkout):
     """Redirect to the initial step of checkout."""
     return redirect('checkout:shipping-address')
 
@@ -73,7 +73,7 @@ def checkout_shipping_method(request, checkout):
         initial={'shipping_method': checkout.shipping_method})
     if form.is_valid():
         form.save()
-        return redirect('checkout:order-summary')
+        return redirect('checkout:summary')
 
     ctx = get_checkout_data_for_checkout(checkout, discounts, taxes)
     ctx.update({'shipping_method_form': form})
@@ -96,7 +96,7 @@ def checkout_order_summary(request, checkout):
 
 
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
-def checkout_details(request, checkout):
+def checkout_index(request, checkout):
     """Display checkout details."""
     discounts = request.discounts
     taxes = request.taxes
@@ -170,7 +170,7 @@ def checkout_shipping_options(request, checkout):
 def update_checkout_line(request, checkout, variant_id):
     """Update the line quantities."""
     if not request.is_ajax():
-        return redirect('checkout:details')
+        return redirect('checkout:index')
     variant = get_object_or_404(ProductVariant, pk=variant_id)
     discounts = request.discounts
     taxes = request.taxes
@@ -208,7 +208,7 @@ def update_checkout_line(request, checkout, variant_id):
 def clear_checkout(request, checkout):
     """Clear checkout."""
     if not request.is_ajax():
-        return redirect('checkout:details')
+        return redirect('checkout:index')
     checkout.lines.all().delete()
     update_checkout_quantity(checkout)
     response = {'numItems': 0}
@@ -216,7 +216,7 @@ def clear_checkout(request, checkout):
 
 
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
-def cart_summary(request, checkout):
+def checkout_dropdown(request, checkout):
     """Display a checkout summary suitable for displaying on all pages."""
     discounts = request.discounts
     taxes = request.taxes

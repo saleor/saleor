@@ -431,12 +431,12 @@ def test_replace_checkout_line_form_when_insufficient_stock(
 
 
 def test_view_empty_checkout(client, request_checkout):
-    response = client.get(reverse('checkout:details'))
+    response = client.get(reverse('checkout:index'))
     assert response.status_code == 200
 
 
 def test_view_checkout_without_taxes(client, request_checkout_with_item):
-    response = client.get(reverse('checkout:details'))
+    response = client.get(reverse('checkout:index'))
     response_checkout_line = response.context[0]['checkout_lines'][0]
     checkout_line = request_checkout_with_item.lines.first()
     assert not response_checkout_line['get_total'].tax.amount
@@ -447,7 +447,7 @@ def test_view_checkout_without_taxes(client, request_checkout_with_item):
 def test_view_checkout_with_taxes(
         settings, client, request_checkout_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
-    response = client.get(reverse('checkout:details'))
+    response = client.get(reverse('checkout:index'))
     response_checkout_line = response.context[0]['checkout_lines'][0]
     checkout_line = request_checkout_with_item.lines.first()
     assert response_checkout_line['get_total'].tax.amount
@@ -490,7 +490,7 @@ def test_view_invalid_update_checkout(client, request_checkout_with_item):
 def test_checkout_page_without_openexchagerates(
         client, request_checkout_with_item, settings):
     settings.OPENEXCHANGERATES_API_KEY = None
-    response = client.get(reverse('checkout:details'))
+    response = client.get(reverse('checkout:index'))
     context = response.context
     assert context['local_checkout_total'] is None
 
@@ -499,20 +499,20 @@ def test_checkout_page_with_openexchagerates(
         client, monkeypatch, request_checkout_with_item, settings):
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    response = client.get(reverse('checkout:details'))
+    response = client.get(reverse('checkout:index'))
     context = response.context
     assert context['local_checkout_total'] is None
     monkeypatch.setattr(
         'django_prices_openexchangerates.models.get_rates',
         lambda c: {'PLN': Mock(rate=2)})
-    response = client.get(reverse('checkout:details'))
+    response = client.get(reverse('checkout:index'))
     context = response.context
     assert context['local_checkout_total'].currency == 'PLN'
 
 
 def test_checkout_summary_page(settings, client, request_checkout_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
-    response = client.get(reverse('checkout:summary'))
+    response = client.get(reverse('checkout:dropdown'))
     assert response.status_code == 200
     content = response.context
     assert content['quantity'] == request_checkout_with_item.quantity
@@ -526,7 +526,7 @@ def test_checkout_summary_page(settings, client, request_checkout_with_item, vat
 
 
 def test_checkout_summary_page_empty_checkout(client, request_checkout):
-    response = client.get(reverse('checkout:summary'))
+    response = client.get(reverse('checkout:dropdown'))
     assert response.status_code == 200
     data = response.context
     assert data['quantity'] == 0

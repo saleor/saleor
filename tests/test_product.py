@@ -209,7 +209,7 @@ def test_adding_to_checkout_with_current_user_token(
     request_checkout_with_item.user = customer_user
     request_checkout_with_item.save()
 
-    response = authorized_client.get(reverse('checkout:details'))
+    response = authorized_client.get(reverse('checkout:index'))
 
     utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
@@ -233,7 +233,7 @@ def test_adding_to_checkout_with_another_user_token(
     request_checkout_with_item.user = customer_user
     request_checkout_with_item.save()
 
-    response = client.get(reverse('checkout:details'))
+    response = client.get(reverse('checkout:index'))
 
     utils.set_checkout_cookie(request_checkout_with_item, response)
     client.cookies[key] = response.cookies[key]
@@ -255,7 +255,7 @@ def test_anonymous_adding_to_checkout_with_another_user_token(
     request_checkout_with_item.user = customer_user
     request_checkout_with_item.save()
 
-    response = client.get(reverse('checkout:details'))
+    response = client.get(reverse('checkout:index'))
 
     utils.set_checkout_cookie(request_checkout_with_item, response)
     client.cookies[key] = response.cookies[key]
@@ -278,7 +278,7 @@ def test_adding_to_checkout_with_deleted_checkout_token(
     request_checkout_with_item.save()
     old_token = request_checkout_with_item.token
 
-    response = authorized_client.get(reverse('checkout:details'))
+    response = authorized_client.get(reverse('checkout:index'))
 
     utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
@@ -301,7 +301,7 @@ def test_adding_to_checkout_with_closed_checkout_token(
     request_checkout_with_item.user = customer_user
     request_checkout_with_item.save()
 
-    response = authorized_client.get(reverse('checkout:details'))
+    response = authorized_client.get(reverse('checkout:index'))
     utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
     variant = product.variants.get()

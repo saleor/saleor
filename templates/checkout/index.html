@@ -9,7 +9,7 @@
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="{% url 'home' %}">{% trans "Home" context "Main navigation item" %}</a></li>
-    <li><a rel="nofollow" href="{% url 'checkout:details' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
+    <li><a rel="nofollow" href="{% url 'checkout:index' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
   </ul>
 {% endblock breadcrumb %}
 
