@@ -264,7 +264,7 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def image(media_root):
+def image():
     img_data = BytesIO()
     image = Image.new('RGB', size=(1, 1))
     image.save(img_data, format='JPEG')
@@ -277,7 +277,7 @@ def category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def category_with_image(db, image):  # pylint: disable=W0613
+def category_with_image(db, image, media_root):  # pylint: disable=W0613
     return Category.objects.create(
         name='Default', slug='default', background_image=image)
 
@@ -422,7 +422,7 @@ def order_list(customer_user):
 
 
 @pytest.fixture
-def product_with_image(product, image):
+def product_with_image(product, image, media_root):
     ProductImage.objects.create(product=product, image=image)
     return product
 
@@ -718,7 +718,7 @@ def collection(db):
 
 
 @pytest.fixture
-def collection_with_image(db, image):
+def collection_with_image(db, image, media_root):
     collection = Collection.objects.create(
         name='Collection', slug='collection',
         description='Test description', background_image=image)
