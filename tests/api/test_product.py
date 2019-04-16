@@ -24,10 +24,10 @@ from .utils import assert_no_permission, get_multipart_request_body
 
 
 @pytest.fixture
-def query_products_with_filters():
+def query_products_with_filter():
     query = """
-        query ($filters: ProductFilterInput!, ) {
-          products(first:5, filters: $filters) {
+        query ($filter: ProductFilterInput!, ) {
+          products(first:5, filter: $filter) {
             edges{
               node{
                 id
@@ -182,26 +182,24 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     'stock, quantity, count', [
         ('IN_STOCK', 5, 1), ('OUT_OF_STOCK', 0, 1), ('OUT_OF_STOCK', 1, 0),
         ('IN_STOCK', 0, 0)])
-def test_products_query_with_filters_stock_availability(
-        stock, quantity, count, query_products_with_filters, staff_api_client,
+def test_products_query_with_filter_stock_availability(
+        stock, quantity, count, query_products_with_filter, staff_api_client,
         product, permission_manage_products):
 
     product.variants.update(quantity=quantity)
 
-    variables = {'filters': {'stockAvailability': stock}}
+    variables = {'filter': {'stockAvailability': stock}}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(
-        query_products_with_filters, variables)
+        query_products_with_filter, variables)
     content = get_graphql_content(response)
-    product_id = graphene.Node.to_global_id(
-        'Product', product.id)
     products = content['data']['products']['edges']
 
     assert len(products) == count
 
 
-def test_products_query_with_filters_attributes(
-        query_products_with_filters, staff_api_client, product,
+def test_products_query_with_filter_attributes(
+        query_products_with_filter, staff_api_client, product,
         permission_manage_products):
 
     product_type = ProductType.objects.create(
@@ -217,7 +215,7 @@ def test_products_query_with_filters_attributes(
     second_product.save()
 
     variables = {
-        'filters': {
+        'filter': {
             'attributes': [
                 {'slug': attribute.slug, 'attributeValue': attr_value.slug},
             ]
@@ -226,7 +224,7 @@ def test_products_query_with_filters_attributes(
 
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(
-        query_products_with_filters, variables)
+        query_products_with_filter, variables)
     content = get_graphql_content(response)
     second_product_id = graphene.Node.to_global_id(
         'Product', second_product.id)
@@ -237,8 +235,8 @@ def test_products_query_with_filters_attributes(
     assert products[0]['node']['name'] == second_product.name
 
 
-def test_products_query_with_filters_product_type(
-        query_products_with_filters, staff_api_client, product,
+def test_products_query_with_filter_product_type(
+        query_products_with_filter, staff_api_client, product,
         permission_manage_products):
     product_type = ProductType.objects.create(
         name='Custom Type', has_variants=True, is_shipping_required=True)
@@ -249,11 +247,11 @@ def test_products_query_with_filters_product_type(
 
     product_type_id = graphene.Node.to_global_id(
         'ProductType', product_type.id)
-    variables = {'filters': {'productType': product_type_id}}
+    variables = {'filter': {'productType': product_type_id}}
 
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(
-        query_products_with_filters, variables)
+        query_products_with_filter, variables)
     content = get_graphql_content(response)
     second_product_id = graphene.Node.to_global_id(
         'Product', second_product.id)
@@ -264,8 +262,8 @@ def test_products_query_with_filters_product_type(
     assert products[0]['node']['name'] == second_product.name
 
 
-def test_products_query_with_filters_category(
-        query_products_with_filters, staff_api_client, product,
+def test_products_query_with_filter_category(
+        query_products_with_filter, staff_api_client, product,
         permission_manage_products):
     category = Category.objects.create(name='Custom', slug='custom')
     second_product = product
@@ -274,10 +272,10 @@ def test_products_query_with_filters_category(
     second_product.save()
 
     category_id = graphene.Node.to_global_id('Category', category.id)
-    variables = {'filters': {'categories': [category_id, ]}}
+    variables = {'filter': {'categories': [category_id, ]}}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(
-        query_products_with_filters, variables)
+        query_products_with_filter, variables)
     content = get_graphql_content(response)
     second_product_id = graphene.Node.to_global_id(
         'Product', second_product.id)
@@ -288,8 +286,8 @@ def test_products_query_with_filters_category(
     assert products[0]['node']['name'] == second_product.name
 
 
-def test_products_query_with_filters_collection(
-        query_products_with_filters, staff_api_client, product, collection,
+def test_products_query_with_filter_collection(
+        query_products_with_filter, staff_api_client, product, collection,
         permission_manage_products):
     second_product = product
     second_product.id = None
@@ -297,10 +295,10 @@ def test_products_query_with_filters_collection(
     second_product.collections.add(collection)
 
     collection_id = graphene.Node.to_global_id('Collection', collection.id)
-    variables = {'filters': {'collections': [collection_id, ]}}
+    variables = {'filter': {'collections': [collection_id, ]}}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(
-        query_products_with_filters, variables)
+        query_products_with_filter, variables)
     content = get_graphql_content(response)
     second_product_id = graphene.Node.to_global_id(
         'Product', second_product.id)
@@ -312,25 +310,25 @@ def test_products_query_with_filters_collection(
 
 
 @pytest.mark.parametrize(
-    'filters', (
+    'filter', (
             {'price': {'gte': 5.0, 'lte': 9.0}}, {'isPublished': False},
             {'search': 'Juice1'})
 )
-def test_products_query_with_filters(
-        filters, query_products_with_filters, staff_api_client, product,
+def test_products_query_with_filter(
+        filter, query_products_with_filter, staff_api_client, product,
         permission_manage_products):
 
     second_product = product
     second_product.id = None
     second_product.name = 'Apple Juice1'
     second_product.price = Money('6.00', 'USD')
-    second_product.is_published = filters.get('isPublished', True)
+    second_product.is_published = filter.get('isPublished', True)
     second_product.save()
 
-    variables = {'filters': filters}
+    variables = {'filter': filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(
-        query_products_with_filters, variables)
+        query_products_with_filter, variables)
     content = get_graphql_content(response)
     second_product_id = graphene.Node.to_global_id(
         'Product', second_product.id)
