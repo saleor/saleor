@@ -11,6 +11,10 @@ import {
   StaffMemberDeleteVariables
 } from "./types/StaffMemberDelete";
 import {
+  StaffMembersBulkDelete,
+  StaffMembersBulkDeleteVariables
+} from "./types/StaffMembersBulkDelete";
+import {
   StaffMemberUpdate,
   StaffMemberUpdateVariables
 } from "./types/StaffMemberUpdate";

@@ -6,15 +6,14 @@ import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
 import {
   orderDraftListPath,
+  OrderDraftListUrlQueryParams,
   orderListPath,
   OrderListUrlQueryParams,
   orderPath,
   OrderUrlQueryParams
 } from "./urls";
 import OrderDetailsComponent from "./views/OrderDetails";
-import OrderDraftListComponent, {
-  OrderDraftListQueryParams
-} from "./views/OrderDraftList";
+import OrderDraftListComponent from "./views/OrderDraftList";
 import OrderListComponent from "./views/OrderList";
 
 const OrderList: React.StatelessComponent<RouteComponentProps<any>> = ({
@@ -28,7 +27,7 @@ const OrderDraftList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: OrderDraftListQueryParams = qs;
+  const params: OrderDraftListUrlQueryParams = qs;
   return <OrderDraftListComponent params={params} />;
 };
 

@@ -67,7 +67,7 @@ export const CategoryDetails: React.StatelessComponent<
           context: "notification"
         })
       });
-      navigate(categoryListUrl);
+      navigate(categoryListUrl());
     }
   };
   const handleCategoryUpdate = (data: CategoryUpdate) => {

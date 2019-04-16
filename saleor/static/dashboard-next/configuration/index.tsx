@@ -26,7 +26,7 @@ export const configurationMenu: MenuItem[] = [
     icon: <ProductTypes fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PRODUCTS,
     title: i18n.t("Product Types"),
-    url: productTypeListUrl
+    url: productTypeListUrl()
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
