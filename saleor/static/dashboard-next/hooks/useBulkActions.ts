@@ -16,7 +16,7 @@ function useBulkActions(initial: string[] = []) {
   }
 
   function reset() {
-    setListElements(initial);
+    setListElements([]);
   }
 
   function toggle(id: string) {

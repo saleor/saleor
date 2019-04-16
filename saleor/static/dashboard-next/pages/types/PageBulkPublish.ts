@@ -23,4 +23,5 @@ export interface PageBulkPublish {
 
 export interface PageBulkPublishVariables {
   ids: (string | null)[];
+  isPublished: boolean;
 }
