@@ -498,6 +498,11 @@ type CollectionBulkDelete {
   count: Int!
 }
 
+type CollectionBulkPublish {
+  errors: [Error!]
+  count: Int!
+}
+
 type CollectionCountableConnection {
   pageInfo: PageInfo!
   edges: [CollectionCountableEdge!]!
@@ -950,7 +955,6 @@ type Margin {
 type Menu implements Node {
   id: ID!
   name: String!
-  children: [MenuItem]!
   items: [MenuItem]
 }
 
@@ -1127,12 +1131,14 @@ type Mutations {
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
   collectionBulkDelete(ids: [ID]!): CollectionBulkDelete
+  collectionBulkPublish(ids: [ID]!, isPublished: Boolean!): CollectionBulkPublish
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
   collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CollectionTranslate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productBulkDelete(ids: [ID]!): ProductBulkDelete
+  productBulkPublish(ids: [ID]!, isPublished: Boolean!): ProductBulkPublish
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
   productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
@@ -1161,8 +1167,7 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
-  pageBulkPublish(ids: [ID]!): PageBulkPublish
-  pageBulkUnpublish(ids: [ID]!): PageBulkUnpublish
+  pageBulkPublish(ids: [ID]!, isPublished: Boolean!): PageBulkPublish
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
   draftOrderComplete(id: ID!): DraftOrderComplete
@@ -1185,6 +1190,7 @@ type Mutations {
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
+  orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
@@ -1323,6 +1329,11 @@ type OrderAddNote {
 
 input OrderAddNoteInput {
   message: String
+}
+
+type OrderBulkCancel {
+  errors: [Error!]
+  count: Int!
 }
 
 type OrderCancel {
@@ -1499,11 +1510,6 @@ type PageBulkDelete {
 }
 
 type PageBulkPublish {
-  errors: [Error!]
-  count: Int!
-}
-
-type PageBulkUnpublish {
   errors: [Error!]
   count: Int!
 }
@@ -1703,6 +1709,11 @@ type ProductAvailability {
 }
 
 type ProductBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
+type ProductBulkPublish {
   errors: [Error!]
   count: Int!
 }

@@ -153,7 +153,7 @@ context_processors = [
     'django.contrib.messages.context_processors.messages',
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
-    'saleor.checkout.context_processors.cart_counter',
+    'saleor.checkout.context_processors.checkout_counter',
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.site',
     'social_django.context_processors.backends',
@@ -368,7 +368,7 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
 
 LOW_STOCK_THRESHOLD = 10
-MAX_CART_LINE_QUANTITY = int(os.environ.get('MAX_CART_LINE_QUANTITY', 50))
+MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get('MAX_CHECKOUT_LINE_QUANTITY', 50))
 
 PAGINATE_BY = 16
 DASHBOARD_PAGINATE_BY = 30

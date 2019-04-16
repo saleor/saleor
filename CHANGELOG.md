@@ -10,12 +10,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutations for publishing and unpublishing multiple pages - #3954 by @akjanik
 - Prefetch collections when getting sales of a bunch of products - #3961 by @NyanKiyoshi
 - Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
-
-
+- Add mutation for bulk cancel orders - #3967 by @akjanik
 - Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
-- Add mutation for bulk delete order lines - #3935 by @akjanik 
-
+- Removed the dead `children` field from the `Menu` type - #3973 by @NyanKiyoshi
+- Add mutations for bulk publishing and unpublishing products - #3969 by akjanik
+- Add mutation for bulk publishing and unpublishing collections - #3970 by @akjanik
+- Rename Cart to Checkout - #3963 by @michaljelonek
 - Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
+
 
 ## 2.5.0
 

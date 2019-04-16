@@ -60,14 +60,6 @@ def category_list():
 
 
 @pytest.fixture
-def collection_list():
-    collection_1 = Collection.objects.create(name='Collection 1')
-    collection_2 = Collection.objects.create(name='Collection 2')
-    collection_3 = Collection.objects.create(name='Collection 3')
-    return collection_1, collection_2, collection_3
-
-
-@pytest.fixture
 def menu_list():
     menu_1 = Menu.objects.create(name='test-navbar-1', json_content={})
     menu_2 = Menu.objects.create(name='test-navbar-2', json_content={})
