@@ -123,7 +123,7 @@ class ProductImageBulkDelete(ModelBulkDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductBulkPublish(ModelBulkPublishMutation):
+class ProductBulkPublish(BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
