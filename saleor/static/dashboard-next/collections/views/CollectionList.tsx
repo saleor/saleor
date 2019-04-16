@@ -13,9 +13,13 @@ import usePaginator from "../../hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import CollectionListPage from "../components/CollectionListPage/CollectionListPage";
-import { TypedCollectionBulkDelete } from "../mutations";
+import {
+  TypedCollectionBulkDelete,
+  TypedCollectionBulkPublish
+} from "../mutations";
 import { TypedCollectionListQuery } from "../queries";
 import { CollectionBulkDelete } from "../types/CollectionBulkDelete";
+import { CollectionBulkPublish } from "../types/CollectionBulkPublish";
 import {
   collectionAddUrl,
   collectionListUrl,
@@ -75,141 +79,179 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
             });
             refetch();
             reset();
-            navigate(
-              collectionListUrl({
-                ...params,
-                action: undefined,
-                ids: undefined
-              })
-            );
+            closeModal();
+          }
+        };
+
+        const handleCollectionBulkPublish = (data: CollectionBulkPublish) => {
+          if (data.collectionBulkPublish.errors.length === 0) {
+            notify({
+              text: i18n.t("Changed publication status")
+            });
+            refetch();
+            reset();
+            closeModal();
           }
         };
 
         return (
           <TypedCollectionBulkDelete onCompleted={handleCollectionBulkDelete}>
-            {(collectionBulkDelete, collectionBulkDeleteOpts) => {
-              const bulkDeleteTransitionState = getMutationState(
-                collectionBulkDeleteOpts.called,
-                collectionBulkDeleteOpts.loading,
-                maybe(
-                  () =>
-                    collectionBulkDeleteOpts.data.collectionBulkDelete.errors
-                )
-              );
+            {(collectionBulkDelete, collectionBulkDeleteOpts) => (
+              <TypedCollectionBulkPublish
+                onCompleted={handleCollectionBulkPublish}
+              >
+                {(collectionBulkPublish, collectionBulkPublishOpts) => {
+                  const bulkDeleteTransitionState = getMutationState(
+                    collectionBulkDeleteOpts.called,
+                    collectionBulkDeleteOpts.loading,
+                    maybe(
+                      () =>
+                        collectionBulkDeleteOpts.data.collectionBulkDelete
+                          .errors
+                    )
+                  );
 
-              return (
-                <>
-                  <CollectionListPage
-                    onAdd={() => navigate(collectionAddUrl)}
-                    disabled={loading}
-                    collections={maybe(() =>
-                      data.collections.edges.map(edge => edge.node)
-                    )}
-                    onNextPage={loadNextPage}
-                    onPreviousPage={loadPreviousPage}
-                    pageInfo={pageInfo}
-                    onRowClick={id => () => navigate(collectionUrl(id))}
-                    toolbar={
-                      <>
-                        <Button
-                          color="primary"
-                          onClick={() => openModal("unpublish", listElements)}
-                        >
-                          {i18n.t("Unpublish")}
-                        </Button>
-                        <Button
-                          color="primary"
-                          onClick={() => openModal("publish", listElements)}
-                        >
-                          {i18n.t("Publish")}
-                        </Button>
-                        <IconButton
-                          color="primary"
-                          onClick={() => openModal("remove", listElements)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </>
-                    }
-                    isChecked={isSelected}
-                    selected={listElements.length}
-                    toggle={toggle}
-                  />
-                  <ActionDialog
-                    open={params.action === "publish"}
-                    onClose={closeModal}
-                    confirmButtonState={"default"}
-                    onConfirm={() => undefined}
-                    variant="default"
-                    title={i18n.t("Publish collections")}
-                  >
-                    <DialogContentText
-                      dangerouslySetInnerHTML={{
-                        __html: i18n.t(
-                          "Are you sure you want to publish <strong>{{ number }}</strong> collections?",
-                          {
-                            number: maybe(
-                              () => params.ids.length.toString(),
-                              "..."
-                            )
-                          }
-                        )
-                      }}
-                    />
-                  </ActionDialog>
-                  <ActionDialog
-                    open={params.action === "unpublish"}
-                    onClose={closeModal}
-                    confirmButtonState={"default"}
-                    onConfirm={() => undefined}
-                    variant="default"
-                    title={i18n.t("Unpublish collections")}
-                  >
-                    <DialogContentText
-                      dangerouslySetInnerHTML={{
-                        __html: i18n.t(
-                          "Are you sure you want to unpublish <strong>{{ number }}</strong> collections?",
-                          {
-                            number: maybe(
-                              () => params.ids.length.toString(),
-                              "..."
-                            )
-                          }
-                        )
-                      }}
-                    />
-                  </ActionDialog>
-                  <ActionDialog
-                    open={params.action === "remove"}
-                    onClose={closeModal}
-                    confirmButtonState={bulkDeleteTransitionState}
-                    onConfirm={() =>
-                      collectionBulkDelete({
-                        variables: {
-                          ids: params.ids
+                  const bulkPublishTransitionState = getMutationState(
+                    collectionBulkPublishOpts.called,
+                    collectionBulkPublishOpts.loading,
+                    maybe(
+                      () =>
+                        collectionBulkPublishOpts.data.collectionBulkPublish
+                          .errors
+                    )
+                  );
+
+                  return (
+                    <>
+                      <CollectionListPage
+                        onAdd={() => navigate(collectionAddUrl)}
+                        disabled={loading}
+                        collections={maybe(() =>
+                          data.collections.edges.map(edge => edge.node)
+                        )}
+                        onNextPage={loadNextPage}
+                        onPreviousPage={loadPreviousPage}
+                        pageInfo={pageInfo}
+                        onRowClick={id => () => navigate(collectionUrl(id))}
+                        toolbar={
+                          <>
+                            <Button
+                              color="primary"
+                              onClick={() =>
+                                openModal("unpublish", listElements)
+                              }
+                            >
+                              {i18n.t("Unpublish")}
+                            </Button>
+                            <Button
+                              color="primary"
+                              onClick={() => openModal("publish", listElements)}
+                            >
+                              {i18n.t("Publish")}
+                            </Button>
+                            <IconButton
+                              color="primary"
+                              onClick={() => openModal("remove", listElements)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </>
                         }
-                      })
-                    }
-                    variant="delete"
-                    title={i18n.t("Remove collections")}
-                  >
-                    <DialogContentText
-                      dangerouslySetInnerHTML={{
-                        __html: i18n.t(
-                          "Are you sure you want to remove <strong>{{ number }}</strong> collections?",
-                          {
-                            number: maybe(
-                              () => params.ids.length.toString(),
-                              "..."
+                        isChecked={isSelected}
+                        selected={listElements.length}
+                        toggle={toggle}
+                      />
+                      <ActionDialog
+                        open={params.action === "publish"}
+                        onClose={closeModal}
+                        confirmButtonState={bulkPublishTransitionState}
+                        onConfirm={() =>
+                          collectionBulkPublish({
+                            variables: {
+                              ids: params.ids,
+                              isPublished: true
+                            }
+                          })
+                        }
+                        variant="default"
+                        title={i18n.t("Publish collections")}
+                      >
+                        <DialogContentText
+                          dangerouslySetInnerHTML={{
+                            __html: i18n.t(
+                              "Are you sure you want to publish <strong>{{ number }}</strong> collections?",
+                              {
+                                number: maybe(
+                                  () => params.ids.length.toString(),
+                                  "..."
+                                )
+                              }
                             )
-                          }
-                        )
-                      }}
-                    />
-                  </ActionDialog>
-                </>
-              );
-            }}
+                          }}
+                        />
+                      </ActionDialog>
+                      <ActionDialog
+                        open={params.action === "unpublish"}
+                        onClose={closeModal}
+                        confirmButtonState={bulkPublishTransitionState}
+                        onConfirm={() =>
+                          collectionBulkPublish({
+                            variables: {
+                              ids: params.ids,
+                              isPublished: false
+                            }
+                          })
+                        }
+                        variant="default"
+                        title={i18n.t("Unpublish collections")}
+                      >
+                        <DialogContentText
+                          dangerouslySetInnerHTML={{
+                            __html: i18n.t(
+                              "Are you sure you want to unpublish <strong>{{ number }}</strong> collections?",
+                              {
+                                number: maybe(
+                                  () => params.ids.length.toString(),
+                                  "..."
+                                )
+                              }
+                            )
+                          }}
+                        />
+                      </ActionDialog>
+                      <ActionDialog
+                        open={params.action === "remove"}
+                        onClose={closeModal}
+                        confirmButtonState={bulkDeleteTransitionState}
+                        onConfirm={() =>
+                          collectionBulkDelete({
+                            variables: {
+                              ids: params.ids
+                            }
+                          })
+                        }
+                        variant="delete"
+                        title={i18n.t("Remove collections")}
+                      >
+                        <DialogContentText
+                          dangerouslySetInnerHTML={{
+                            __html: i18n.t(
+                              "Are you sure you want to remove <strong>{{ number }}</strong> collections?",
+                              {
+                                number: maybe(
+                                  () => params.ids.length.toString(),
+                                  "..."
+                                )
+                              }
+                            )
+                          }}
+                        />
+                      </ActionDialog>
+                    </>
+                  );
+                }}
+              </TypedCollectionBulkPublish>
+            )}
           </TypedCollectionBulkDelete>
         );
       }}

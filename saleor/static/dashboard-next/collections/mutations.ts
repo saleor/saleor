@@ -14,6 +14,10 @@ import {
   CollectionBulkDeleteVariables
 } from "./types/CollectionBulkDelete";
 import {
+  CollectionBulkPublish,
+  CollectionBulkPublishVariables
+} from "./types/CollectionBulkPublish";
+import {
   CollectionUpdate,
   CollectionUpdateVariables
 } from "./types/CollectionUpdate";
@@ -222,3 +226,18 @@ export const TypedCollectionBulkDelete = TypedMutation<
   CollectionBulkDelete,
   CollectionBulkDeleteVariables
 >(collectionBulkDelete);
+
+const collectionBulkPublish = gql`
+  mutation CollectionBulkPublish($ids: [ID]!, $isPublished: Boolean!) {
+    collectionBulkPublish(ids: $ids, isPublished: $isPublished) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedCollectionBulkPublish = TypedMutation<
+  CollectionBulkPublish,
+  CollectionBulkPublishVariables
+>(collectionBulkPublish);
