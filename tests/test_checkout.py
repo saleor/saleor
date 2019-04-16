@@ -71,10 +71,10 @@ def test_clear_shipping_method(checkout, shipping_method):
 
 
 @pytest.mark.parametrize('checkout_length, is_shipping_required, redirect_url', [
-    (0, True, reverse('checkout:details')),
-    (0, False, reverse('checkout:details')),
+    (0, True, reverse('checkout:index')),
+    (0, False, reverse('checkout:index')),
     (1, True, reverse('checkout:shipping-address')),
-    (1, False, reverse('checkout:order-summary'))])
+    (1, False, reverse('checkout:summary'))])
 def test_view_checkout_index(
         monkeypatch, rf, checkout_length, is_shipping_required, redirect_url):
     checkout = Mock(
@@ -82,10 +82,10 @@ def test_view_checkout_index(
         is_shipping_required=Mock(return_value=is_shipping_required))
     monkeypatch.setattr(
         'saleor.checkout.utils.get_checkout_from_request', lambda req, qs: checkout)
-    url = reverse('checkout:index')
+    url = reverse('checkout:start')
     request = rf.get(url, follow=True)
 
-    response = views.checkout_index(request)
+    response = views.checkout_start(request)
 
     assert response.url == redirect_url
 
@@ -94,7 +94,7 @@ def test_view_checkout_index_authorized_user(
         authorized_client, customer_user, request_checkout_with_item):
     request_checkout_with_item.user = customer_user
     request_checkout_with_item.save()
-    url = reverse('checkout:index')
+    url = reverse('checkout:start')
 
     response = authorized_client.get(url, follow=True)
 
@@ -171,7 +171,7 @@ def test_view_checkout_shipping_address_without_shipping(
     response = client.get(url)
 
     assert response.status_code == 302
-    assert get_redirect_location(response) == reverse('checkout:order-summary')
+    assert get_redirect_location(response) == reverse('checkout:summary')
     assert not request_checkout.email
 
 
@@ -189,7 +189,7 @@ def test_view_checkout_shipping_method(
 
     response = client.post(url, data, follow=True)
 
-    redirect_url = reverse('checkout:order-summary')
+    redirect_url = reverse('checkout:summary')
     assert response.request['PATH_INFO'] == redirect_url
 
 
@@ -209,7 +209,7 @@ def test_view_checkout_shipping_method_authorized_user(
 
     response = authorized_client.post(url, data, follow=True)
 
-    redirect_url = reverse('checkout:order-summary')
+    redirect_url = reverse('checkout:summary')
     assert response.request['PATH_INFO'] == redirect_url
 
 
@@ -222,7 +222,7 @@ def test_view_checkout_shipping_method_without_shipping(
     response = client.get(url)
 
     assert response.status_code == 302
-    assert get_redirect_location(response) == reverse('checkout:order-summary')
+    assert get_redirect_location(response) == reverse('checkout:summary')
 
 
 def test_view_checkout_shipping_method_without_address(
@@ -245,7 +245,7 @@ def test_view_checkout_summary(
     request_checkout_with_item.shipping_method = (
         shipping_zone.shipping_methods.first())
     request_checkout_with_item.save()
-    url = reverse('checkout:order-summary')
+    url = reverse('checkout:summary')
     data = {'address': 'shipping_address'}
 
     response = client.get(url)
@@ -274,7 +274,7 @@ def test_view_checkout_summary_authorized_user(
     request_checkout_with_item.shipping_method = (
         shipping_zone.shipping_methods.first())
     request_checkout_with_item.save()
-    url = reverse('checkout:order-summary')
+    url = reverse('checkout:summary')
     data = {'address': 'shipping_address'}
 
     response = authorized_client.get(url)
@@ -308,7 +308,7 @@ def test_view_checkout_summary_save_language(
     request_checkout_with_item.shipping_method = (
         shipping_zone.shipping_methods.first())
     request_checkout_with_item.save()
-    url = reverse('checkout:order-summary')
+    url = reverse('checkout:summary')
     data = {'address': 'shipping_address'}
 
     response = authorized_client.get(url, HTTP_ACCEPT_LANGUAGE=user_language)
@@ -327,7 +327,7 @@ def test_view_checkout_summary_save_language(
 
 
 def test_view_checkout_summary_without_address(request_checkout_with_item, client):
-    url = reverse('checkout:order-summary')
+    url = reverse('checkout:summary')
 
     response = client.get(url)
 
@@ -342,7 +342,7 @@ def test_view_checkout_summary_without_shipping_zone(
     request_checkout_with_item.email = 'test@example.com'
     request_checkout_with_item.save()
 
-    url = reverse('checkout:order-summary')
+    url = reverse('checkout:summary')
     response = client.get(url)
 
     assert response.status_code == 302
@@ -361,7 +361,7 @@ def test_view_checkout_summary_with_invalid_voucher(
         shipping_zone.shipping_methods.first())
     request_checkout_with_item.save()
 
-    url = reverse('checkout:order-summary')
+    url = reverse('checkout:summary')
     voucher_url = '{url}?next={url}'.format(url=url)
     data = {'discount-voucher': voucher.code}
 
@@ -394,7 +394,7 @@ def test_view_checkout_summary_with_invalid_voucher_code(
         shipping_zone.shipping_methods.first())
     request_checkout_with_item.save()
 
-    url = reverse('checkout:order-summary')
+    url = reverse('checkout:summary')
     voucher_url = '{url}?next={url}'.format(url=url)
     data = {'discount-voucher': 'invalid-code'}
 
@@ -426,7 +426,7 @@ def test_view_checkout_place_order_with_expired_voucher_code(
     # save the checkout
     checkout.save()
 
-    checkout_url = reverse('checkout:order-summary')
+    checkout_url = reverse('checkout:summary')
 
     # place order
     data = {'address': 'shipping_address'}
@@ -457,8 +457,8 @@ def test_view_checkout_place_order_with_item_out_of_stock(
     variant.quantity = 0
     variant.save()
 
-    checkout_url = reverse('checkout:order-summary')
-    redirect_url = reverse('checkout:details')
+    checkout_url = reverse('checkout:summary')
+    redirect_url = reverse('checkout:index')
 
     # place order
     data = {'address': 'shipping_address'}
@@ -482,7 +482,7 @@ def test_view_checkout_place_order_without_shipping_address(
     # save the checkout
     checkout.save()
 
-    checkout_url = reverse('checkout:order-summary')
+    checkout_url = reverse('checkout:summary')
     redirect_url = reverse('checkout:shipping-address')
 
     # place order
@@ -502,7 +502,7 @@ def test_view_checkout_summary_remove_voucher(
         shipping_zone.shipping_methods.first())
     request_checkout_with_item.save()
 
-    remove_voucher_url = reverse('checkout:order-summary')
+    remove_voucher_url = reverse('checkout:summary')
     voucher_url = '{url}?next={url}'.format(url=remove_voucher_url)
     data = {'discount-voucher': voucher.code}
 

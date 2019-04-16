@@ -6,7 +6,7 @@
 {% load static %}
 {% load translate_url from urls %}
 
-<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'checkout:shipping-options' %}" data-cart-summary-url="{% url 'checkout:summary' %}">
+<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'checkout:shipping-options' %}" data-cart-summary-url="{% url 'checkout:dropdown' %}">
 <head>
   <title>{% block title %}{{ site.name }}{% endblock %}</title>
   {% block meta %}
@@ -143,7 +143,7 @@
           </div>
           <div class="col-2 col-md-3">
             <div class="navbar__brand__cart float-right">
-              <a rel="nofollow" class="cart__icon" href="{% url "checkout:details" %}">
+              <a rel="nofollow" class="cart__icon" href="{% url "checkout:index" %}">
                 <span class="cart-label d-none d-md-inline-block">
                   {% trans "Your Cart" context "Main navigation item" %}
                 </span>
@@ -204,7 +204,7 @@
             </a>
             <hr />
             <li>
-              <a rel="nofollow" href="{% url "checkout:details" %}">
+              <a rel="nofollow" href="{% url "checkout:index" %}">
                 {% trans "Your Cart" context "Main navigation item" %}
               </a>
             </li>
