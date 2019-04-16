@@ -12,8 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
 - Add mutation for bulk cancel orders - #3967 by @akjanik
 - Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
+- Removed the dead `children` field from the `Menu` type - #3973 by @NyanKiyoshi
 - Add mutations for bulk publishing and unpublishing products - #3969 by akjanik
-
 
 ## 2.5.0
 

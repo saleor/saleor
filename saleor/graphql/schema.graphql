@@ -950,7 +950,6 @@ type Margin {
 type Menu implements Node {
   id: ID!
   name: String!
-  children: [MenuItem]!
   items: [MenuItem]
 }
 
