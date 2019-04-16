@@ -86,7 +86,7 @@ class ProductQueries(graphene.ObjectType):
         description='Lookup a product by ID.')
     products = FilterInputConnectionField(
         Product,
-        filters=ProductFilterInput(),
+        filter=ProductFilterInput(),
         attributes=graphene.List(
             AttributeScalar, description='Filter products by attributes.'),
         categories=graphene.List(
