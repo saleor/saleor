@@ -108,7 +108,7 @@ class ProductBulkPublish(ModelBulkPublishMutation):
             description='List of products IDs to publish.')
         is_published = graphene.Boolean(
             required=True,
-            description='Determine if product will be published or not.')
+            description='Determine if products will be published or not.')
 
     class Meta:
         description = 'Publish products.'

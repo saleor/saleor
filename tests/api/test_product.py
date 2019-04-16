@@ -201,8 +201,8 @@ def test_query_product_image_by_id(user_api_client, product_with_image):
     }
     """
     variables = {
-        'productId': graphene.Node.to_global_id('Product',
-                                                product_with_image.pk),
+        'productId': graphene.Node.to_global_id(
+            'Product', product_with_image.pk),
         'imageId': graphene.Node.to_global_id('ProductImage', image.pk)}
     response = user_api_client.post_graphql(query, variables)
     get_graphql_content(response)
@@ -427,8 +427,8 @@ def test_sort_products(user_api_client, product):
         'sort_by_product_order': '{field: DATE, direction:ASC}'}
     response = user_api_client.post_graphql(asc_date_query)
     content = get_graphql_content(response)
-    date_0 = content['data']['products']['edges'][0]['node'][
-        'updatedAt']  ## parse_datetime
+    ## parse_datetime
+    date_0 = content['data']['products']['edges'][0]['node']['updatedAt']
     date_1 = content['data']['products']['edges'][1]['node']['updatedAt']
     assert parse_datetime(date_0) < parse_datetime(date_1)
 
