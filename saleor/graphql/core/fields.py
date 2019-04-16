@@ -93,7 +93,7 @@ class FilterInputConnectionField(DjangoConnectionField):
             enforce_first_or_last = False
 
         filters_input = args.get(filters_name)
-        qs = default_manager
+        qs = default_manager.get_queryset()
         if filters_input and filterset_class:
             qs = filterset_class(
                 data=dict(filters_input),
