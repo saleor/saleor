@@ -87,15 +87,15 @@ CREATE_QUERY = """
 
 
 def test_checkout_add_payment(
-        user_api_client, cart_with_item, graphql_address_data):
-    cart = cart_with_item
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+        user_api_client, checkout_with_item, graphql_address_data):
+    checkout = checkout_with_item
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     variables = {
         'checkoutId': checkout_id,
         'input': {
             'gateway': 'DUMMY',
             'token': 'sample-token',
-            'amount': str(cart.get_total().gross.amount),
+            'amount': str(checkout.get_total().gross.amount),
             'billingAddress': graphql_address_data}}
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
@@ -104,25 +104,25 @@ def test_checkout_add_payment(
     transactions = data['payment']['transactions']
     assert not transactions
     payment = Payment.objects.get()
-    assert payment.checkout == cart
+    assert payment.checkout == checkout
     assert payment.is_active
     assert payment.token == 'sample-token'
-    total = cart.get_total().gross
+    total = checkout.get_total().gross
     assert payment.total == total.amount
     assert payment.currency == total.currency
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
 def test_use_checkout_billing_address_as_payment_billing(
-        user_api_client, cart_with_item, address):
-    cart = cart_with_item
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+        user_api_client, checkout_with_item, address):
+    checkout = checkout_with_item
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     variables = {
         'checkoutId': checkout_id,
         'input': {
             'gateway': 'DUMMY',
             'token': 'sample-token',
-            'amount': str(cart.get_total().gross.amount)}}
+            'amount': str(checkout.get_total().gross.amount)}}
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutPaymentCreate']
@@ -133,15 +133,15 @@ def test_use_checkout_billing_address_as_payment_billing(
     # assign the address and try again
     address.street_address_1 = 'spanish-inqusition'
     address.save()
-    cart.billing_address = address
-    cart.save()
+    checkout.billing_address = address
+    checkout.save()
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutPaymentCreate']
 
-    cart.refresh_from_db()
-    assert cart.payments.count() == 1
-    payment = cart.payments.first()
+    checkout.refresh_from_db()
+    assert checkout.payments.count() == 1
+    payment = checkout.payments.first()
     assert payment.billing_address_1 == address.street_address_1
 
 
