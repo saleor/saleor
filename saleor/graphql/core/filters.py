@@ -4,16 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters.fields import MultipleChoiceField
 
 
-class BaseFilter:
-    def __init__(self, *args, **kwargs):
-        assert self.input_class, (
-            'Providing input_class is required to generate correct InputField')
-
-    class Meta:
-        abstract = True
-
-
-class EnumFilter(django_filters.CharFilter, BaseFilter):
+class EnumFilter(django_filters.CharFilter):
     """ Filter class for graphene enum object.
     enum_class needs to be passed explicitly  as well as the method."""
 
@@ -53,7 +44,7 @@ class ListObjectTypeFilter(django_filters.MultipleChoiceFilter):
         super().__init__(*args, **kwargs)
 
 
-class ObjectTypeFilter(django_filters.Filter, BaseFilter):
+class ObjectTypeFilter(django_filters.Filter):
     def __init__(self, input_class, *args, **kwargs):
         self.input_class = input_class
         super().__init__(*args, **kwargs)
