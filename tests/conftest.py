@@ -972,4 +972,4 @@ def digital_content(category, media_root):
 
 @pytest.fixture()
 def media_root(tmpdir, settings):
-    settings.MEDIA_ROOT = tmpdir.mkdir("media")
+    settings.MEDIA_ROOT = str(tmpdir.mkdir("media"))
