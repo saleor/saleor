@@ -28,7 +28,8 @@ def test_category_add(monkeypatch, admin_client):
     assert mock_create_thumbnails.call_count == 0
 
 
-def test_category_add_with_background_image(monkeypatch, admin_client):
+def test_category_add_with_background_image(
+        monkeypatch, admin_client, media_root):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.category.forms.'
@@ -89,7 +90,7 @@ def test_category_edit(monkeypatch, admin_client, category):
 
 
 def test_category_edit_with_background_image(
-        monkeypatch, admin_client, category):
+        monkeypatch, admin_client, category, media_root):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.category.forms.'

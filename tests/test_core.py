@@ -64,7 +64,7 @@ def test_get_currency_for_country(country, expected_currency, monkeypatch):
     assert currency == expected_currency
 
 
-def test_create_superuser(db, client):
+def test_create_superuser(db, client, media_root):
     credentials = {'email': 'admin@example.com', 'password': 'admin'}
     # Test admin creation
     assert User.objects.all().count() == 0

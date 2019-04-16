@@ -264,7 +264,7 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def image():
+def image(media_root):
     img_data = BytesIO()
     image = Image.new('RGB', size=(1, 1))
     image.save(img_data, format='JPEG')
@@ -454,7 +454,7 @@ def unavailable_product_with_variant(product_type, category):
 
 
 @pytest.fixture
-def product_with_images(product_type, category):
+def product_with_images(product_type, category, media_root):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=category)
@@ -913,7 +913,7 @@ def payment_dummy(db, settings, order_with_lines):
 
 
 @pytest.fixture
-def digital_content(category):
+def digital_content(category, media_root):
     product_type = ProductType.objects.create(
         name='Digital Type', has_variants=True, is_shipping_required=False,
         is_digital=True
@@ -930,3 +930,8 @@ def digital_content(category):
         content_file=image_file, product_variant=product_variant,
         use_default_settings=True)
     return d_content
+
+
+@pytest.fixture()
+def media_root(tmpdir, settings):
+    settings.MEDIA_ROOT = tmpdir.mkdir("media")
