@@ -178,6 +178,7 @@ export const ProductCreatePage: React.StatelessComponent<
               </div>
               <div>
                 <ProductOrganization
+                  canChangeType={true}
                   categories={maybe(
                     () =>
                       categories.map(category => ({
