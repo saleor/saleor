@@ -1,5 +1,4 @@
 import Card from "@material-ui/core/Card";
-import Checkbox from "@material-ui/core/Checkbox";
 import {
   createStyles,
   Theme,
@@ -10,17 +9,17 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
+import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import * as classNames from "classnames";
 import * as React from "react";
 
 import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { getUserName, maybe, renderCollection } from "../../../misc";
-import { ListActions, ListProps } from "../../../types";
+import { ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
 const styles = (theme: Theme) =>
@@ -50,10 +49,7 @@ const styles = (theme: Theme) =>
     }
   });
 
-interface StaffListProps
-  extends ListProps,
-    ListActions,
-    WithStyles<typeof styles> {
+interface StaffListProps extends ListProps, WithStyles<typeof styles> {
   staffMembers: StaffList_staffUsers_edges_node[];
 }
 
@@ -65,17 +61,12 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
     onPreviousPage,
     onRowClick,
     pageInfo,
-    staffMembers,
-    isChecked,
-    selected,
-    toggle,
-    toolbar
+    staffMembers
   }: StaffListProps) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
+        <TableHead>
           <TableRow>
-            <TableCell />
             <TableCell className={classes.wideColumn}>
               {i18n.t("Name", { context: "object" })}
             </TableCell>
@@ -87,7 +78,7 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={3}
               hasNextPage={
                 pageInfo && !disabled ? pageInfo.hasNextPage : undefined
               }
@@ -102,69 +93,49 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
         <TableBody>
           {renderCollection(
             staffMembers,
-            staffMember => {
-              const isSelected = staffMember
-                ? isChecked(staffMember.id)
-                : false;
-
-              return (
-                <TableRow
-                  className={classNames({
-                    [classes.tableRow]: !!staffMember
-                  })}
-                  hover={!!staffMember}
-                  onClick={
-                    !!staffMember ? onRowClick(staffMember.id) : undefined
-                  }
-                  key={staffMember ? staffMember.id : "skeleton"}
-                  selected={isSelected}
-                >
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      checked={isSelected}
-                      disabled={disabled}
-                      onClick={event => {
-                        toggle(staffMember.id);
-                        event.stopPropagation();
-                      }}
+            staffMember => (
+              <TableRow
+                className={classNames({
+                  [classes.tableRow]: !!staffMember
+                })}
+                hover={!!staffMember}
+                onClick={!!staffMember ? onRowClick(staffMember.id) : undefined}
+                key={staffMember ? staffMember.id : "skeleton"}
+              >
+                <TableCell>
+                  <div className={classes.avatar}>
+                    <img
+                      className={classes.avatarImage}
+                      src={maybe(() => staffMember.avatar.url)}
                     />
-                  </TableCell>
-                  <TableCell>
-                    <div className={classes.avatar}>
-                      <img
-                        className={classes.avatarImage}
-                        src={maybe(() => staffMember.avatar.url)}
-                      />
-                    </div>
-                    <Typography>
-                      {getUserName(staffMember) || <Skeleton />}
-                    </Typography>
-                    <Typography
-                      variant={"caption"}
-                      className={classes.statusText}
-                    >
-                      {maybe<React.ReactNode>(
-                        () =>
-                          staffMember.isActive
-                            ? i18n.t("Active", { context: "status" })
-                            : i18n.t("Inactive", { context: "status" }),
-                        <Skeleton />
-                      )}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
+                  </div>
+                  <Typography>
+                    {getUserName(staffMember) || <Skeleton />}
+                  </Typography>
+                  <Typography
+                    variant={"caption"}
+                    className={classes.statusText}
+                  >
                     {maybe<React.ReactNode>(
-                      () => staffMember.email,
+                      () =>
+                        staffMember.isActive
+                          ? i18n.t("Active", { context: "status" })
+                          : i18n.t("Inactive", { context: "status" }),
                       <Skeleton />
                     )}
-                  </TableCell>
-                </TableRow>
-              );
-            },
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  {maybe<React.ReactNode>(
+                    () => staffMember.email,
+                    <Skeleton />
+                  )}
+                </TableCell>
+              </TableRow>
+            ),
             () => (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={3}>
                   {i18n.t("No staff members found")}
                 </TableCell>
               </TableRow>
