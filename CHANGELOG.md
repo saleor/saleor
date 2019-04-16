@@ -5,7 +5,13 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 - Refactor error handling in mutations #3891 by @maarcingebala @akjanik
 - Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
-
+- Add mutation for bulk delete order lines - #3935 by @akjanik
+- Fix dashboard 1.0 missing logo and missing back arrow on collections - #3958 by @NyanKiyoshi
+- Add mutations for publishing and unpublishing multiple pages - #3954 by @akjanik
+- Prefetch collections when getting sales of a bunch of products - #3961 by @NyanKiyoshi
+- Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
+- Add mutation for bulk cancel orders - #3967 by @akjanik
+- Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
 
 ## 2.5.0
 

@@ -16,7 +16,7 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
         model = models.Menu
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('menu.manage_menus')
 
 
@@ -32,5 +32,5 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
         model = models.MenuItem
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('menu.manage_menus')

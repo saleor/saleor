@@ -48,23 +48,23 @@ class CategoryCreate(ModelMutation):
         model = models.Category
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
-        parent_id = input['parent_id']
+        parent_id = data['parent_id']
         if parent_id:
             parent = cls.get_node_or_error(
                 info, parent_id, field='parent', only_type=Category)
             cleaned_input['parent'] = parent
-        if input.get('background_image'):
-            image_data = info.context.FILES.get(input['background_image'])
+        if data.get('background_image'):
+            image_data = info.context.FILES.get(data['background_image'])
             validate_image_file(image_data, 'background_image')
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -108,7 +108,7 @@ class CategoryDelete(ModelDeleteMutation):
         model = models.Category
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -147,16 +147,16 @@ class CollectionCreate(ModelMutation):
         model = models.Collection
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
-        if input.get('background_image'):
-            image_data = info.context.FILES.get(input['background_image'])
+        if data.get('background_image'):
+            image_data = info.context.FILES.get(data['background_image'])
             validate_image_file(image_data, 'background_image')
         clean_seo_fields(cleaned_input)
         return cleaned_input
@@ -197,7 +197,7 @@ class CollectionDelete(ModelDeleteMutation):
         model = models.Collection
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -218,11 +218,11 @@ class CollectionAddProducts(BaseMutation):
         description = 'Adds products to a collection.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, collection_id, products):
+    def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
             info, collection_id, field='collection_id', only_type=Collection)
         products = cls.get_nodes_or_error(products, 'products', Product)
@@ -245,11 +245,11 @@ class CollectionRemoveProducts(BaseMutation):
         description = 'Remove products from a collection.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, collection_id, products):
+    def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
             info, collection_id, field='collection_id', only_type=Collection)
         products = cls.get_nodes_or_error(
@@ -321,8 +321,8 @@ class ProductCreate(ModelMutation):
         model = models.Product
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -383,7 +383,7 @@ class ProductCreate(ModelMutation):
             instance.collections.set(collections)
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -437,7 +437,7 @@ class ProductDelete(ModelDeleteMutation):
         model = models.Product
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -452,9 +452,10 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        description=dedent("""Determines if the inventory of this variant should
-        be tracked. If false, the quantity won't change when customers
-        buy this item."""))
+        description=dedent(
+            """Determines if the inventory of this variant should
+               be tracked. If false, the quantity won't change when customers
+               buy this item."""))
     weight = WeightScalar(
         description='Weight of the Product Variant.', required=False)
 
@@ -492,15 +493,15 @@ class ProductVariantCreate(ModelMutation):
                     fieldname: 'This field cannot be blank.'})
 
     @classmethod
-    def clean_input(cls, info, instance, input):
-        cleaned_input = super().clean_input(info, instance, input)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
 
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
 
-        if 'attributes' in input:
+        if 'attributes' in data:
             attributes_input = cleaned_input.pop('attributes')
             product = instance.product if instance.pk else cleaned_input.get(
                 'product')
@@ -525,7 +526,7 @@ class ProductVariantCreate(ModelMutation):
         instance.save()
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -552,7 +553,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         model = models.ProductVariant
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -593,7 +594,7 @@ class ProductTypeCreate(ModelMutation):
         model = models.ProductType
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
@@ -637,7 +638,7 @@ class ProductTypeDelete(ModelDeleteMutation):
         model = models.ProductType
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
 
@@ -666,18 +667,19 @@ class ProductImageCreate(BaseMutation):
         https://github.com/jaydenseric/graphql-multipart-request-spec''')
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, input):
+    def perform_mutation(cls, _root, info, **data):
+        data = data.get('input')
         product = cls.get_node_or_error(
-            info, input['product'], field='product', only_type=Product)
-        image_data = info.context.FILES.get(input['image'])
+            info, data['product'], field='product', only_type=Product)
+        image_data = info.context.FILES.get(data['image'])
         validate_image_file(image_data, 'image')
 
         image = product.images.create(
-            image=image_data, alt=input.get('alt', ''))
+            image=image_data, alt=data.get('alt', ''))
         create_product_thumbnails.delay(image.pk)
         return ProductImageCreate(product=product, image=image)
 
@@ -701,14 +703,15 @@ class ProductImageUpdate(BaseMutation):
         description = 'Updates a product image.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, id, input):
-        image = cls.get_node_or_error(info, id, only_type=ProductImage)
+    def perform_mutation(cls, _root, info, **data):
+        image = cls.get_node_or_error(
+            info, data.get('id'), only_type=ProductImage)
         product = image.product
-        alt = input.get('alt')
+        alt = data.get('input').get('alt')
         if alt is not None:
             image.alt = alt
             image.save(update_fields=['alt'])
@@ -731,11 +734,11 @@ class ProductImageReorder(BaseMutation):
         description = 'Changes ordering of the product image.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, product_id, images_ids):
+    def perform_mutation(cls, _root, info, product_id, images_ids):
         product = cls.get_node_or_error(
             info, product_id, field='product_id', only_type=Product)
         if len(images_ids) != product.images.count():
@@ -773,12 +776,13 @@ class ProductImageDelete(BaseMutation):
         description = 'Deletes a product image.'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, id):
-        image = cls.get_node_or_error(info, id, only_type=ProductImage)
+    def perform_mutation(cls, _root, info, **data):
+        image = cls.get_node_or_error(
+            info, data.get('id'), only_type=ProductImage)
         image_id = image.id
         image.delete()
         image.id = image_id
@@ -802,11 +806,11 @@ class VariantImageAssign(BaseMutation):
         description = 'Assign an image to a product variant'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, image_id, variant_id):
+    def perform_mutation(cls, _root, info, image_id, variant_id):
         image = cls.get_node_or_error(
             info, image_id, field='image_id', only_type=ProductImage)
         variant = cls.get_node_or_error(
@@ -839,11 +843,11 @@ class VariantImageUnassign(BaseMutation):
         description = 'Unassign an image from a product variant'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('product.manage_products')
 
     @classmethod
-    def perform_mutation(cls, root, info, image_id, variant_id):
+    def perform_mutation(cls, _root, info, image_id, variant_id):
         image = cls.get_node_or_error(
             info, image_id, field='image_id', only_type=ProductImage)
         variant = cls.get_node_or_error(

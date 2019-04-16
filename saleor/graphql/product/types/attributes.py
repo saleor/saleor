@@ -50,7 +50,7 @@ class AttributeValue(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.AttributeValue
 
-    def resolve_type(self, info):
+    def resolve_type(self, *_args):
         return resolve_attribute_value_type(self.value)
 
 
@@ -73,13 +73,14 @@ class Attribute(CountableDjangoObjectType):
         resolver=resolve_translation)
 
     class Meta:
-        description = dedent("""Custom attribute of a product. Attributes can be
-        assigned to products and variants at the product type level.""")
+        description = dedent("""
+            Custom attribute of a product. Attributes can be
+            assigned to products and variants at the product type level.""")
         only_fields = ['id', 'product_type', 'product_variant_type']
         interfaces = [relay.Node]
         model = models.Attribute
 
-    def resolve_values(self, info):
+    def resolve_values(self, *_args):
         return self.values.all()
 
 

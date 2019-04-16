@@ -40,7 +40,7 @@ class CountableConnection(NonNullConnection):
         description='A total count of items in the collection')
 
     @staticmethod
-    def resolve_total_count(root, info, *args, **kwargs):
+    def resolve_total_count(root, *_args, **_kwargs):
         return root.length
 
 

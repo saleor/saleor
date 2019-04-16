@@ -22,5 +22,27 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
             raise ValidationError({'id': 'Cannot delete non-draft orders.'})
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user, _ids):
+        return user.has_perm('order.manage_orders')
+
+
+class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
+    class Arguments:
+        ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description='List of order lines IDs to delete.')
+
+    class Meta:
+        description = 'Deletes order lines.'
+        model = models.OrderLine
+
+    @classmethod
+    def clean_instance(cls, _info, instance):
+        if instance.order.status != OrderStatus.DRAFT:
+            raise ValidationError(
+                {'id': 'Cannot delete line for non-draft orders.'})
+
+    @classmethod
+    def user_is_allowed(cls, user, _ids):
         return user.has_perm('order.manage_orders')

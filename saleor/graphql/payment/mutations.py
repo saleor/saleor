@@ -54,13 +54,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         description = 'Create a new payment for given checkout.'
 
     @classmethod
-    def perform_mutation(cls, root, info, checkout_id, input):
+    def perform_mutation(cls, _root, info, checkout_id, **data):
         checkout = cls.get_node_or_error(
             info, checkout_id, field='checkout_id', only_type=Checkout)
 
+        data = data.get('input')
         billing_address = checkout.billing_address
-        if 'billing_address' in input:
-            billing_address = cls.validate_address(input['billing_address'])
+        if 'billing_address' in data:
+            billing_address = cls.validate_address(data['billing_address'])
         if billing_address is None:
             raise ValidationError({
                 'billing_address':
@@ -69,7 +70,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         checkout_total = checkout.get_total(
             discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.billing_address))
-        amount = input.get('amount', checkout_total)
+        amount = data.get('amount', checkout_total)
         if amount < checkout_total.gross.amount:
             raise ValidationError({
                 'amount':
@@ -80,8 +81,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             'customer_user_agent': info.context.META.get('HTTP_USER_AGENT')}
 
         payment = create_payment(
-            gateway=input['gateway'],
-            payment_token=input['token'],
+            gateway=data['gateway'],
+            payment_token=data['token'],
             total=amount,
             currency=settings.DEFAULT_CURRENCY,
             email=checkout.email,
@@ -103,11 +104,11 @@ class PaymentCapture(BaseMutation):
         description = 'Captures the authorized payment amount'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, payment_id, amount=None):
+    def perform_mutation(cls, _root, info, payment_id, amount=None):
         payment = cls.get_node_or_error(
             info, payment_id, field='payment_id', only_type=Payment)
         try:
@@ -123,11 +124,11 @@ class PaymentRefund(PaymentCapture):
         description = 'Refunds the captured payment amount'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, payment_id, amount=None):
+    def perform_mutation(cls, _root, info, payment_id, amount=None):
         payment = cls.get_node_or_error(
             info, payment_id, field='payment_id', only_type=Payment)
         try:
@@ -147,11 +148,11 @@ class PaymentVoid(BaseMutation):
         description = 'Voids the authorized payment'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
+    def user_is_allowed(cls, user):
         return user.has_perm('order.manage_orders')
 
     @classmethod
-    def perform_mutation(cls, root, info, payment_id, amount=None):
+    def perform_mutation(cls, _root, info, payment_id):
         payment = cls.get_node_or_error(
             info, payment_id, field='payment_id', only_type=Payment)
         try:

@@ -33,7 +33,7 @@ export const configurationMenu: MenuItem[] = [
     icon: <StaffMembers fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_STAFF,
     title: i18n.t("Staff Members"),
-    url: staffListUrl
+    url: staffListUrl()
   },
   {
     description: i18n.t("Manage how you ship out orders."),
@@ -60,7 +60,7 @@ export const configurationMenu: MenuItem[] = [
     icon: <SiteSettings fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_SETTINGS,
     title: i18n.t("Site Settings"),
-    url: siteSettingsUrl
+    url: siteSettingsUrl()
   },
   {
     description: i18n.t("Manage and add additional pages"),
