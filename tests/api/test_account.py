@@ -1674,3 +1674,23 @@ def test_staff_bulk_set_not_active(
     assert data['count'] == len(users)
     users = User.objects.filter(pk__in=[user.pk for user in users])
     assert not any(user.is_active for user in users)
+
+
+def test_change_active_status_for_superuser(
+        staff_api_client, superuser, permission_manage_users):
+    users = [superuser]
+    superuser_id = graphene.Node.to_global_id('User', superuser.id)
+    active_status = False
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['errors'][0]['field'] == superuser_id
+    assert data['errors'][0]['message'] == 'Cannot activate or deactivate ' \
+                                           'superuser\'s account.'
