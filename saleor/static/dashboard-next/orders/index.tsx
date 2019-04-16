@@ -7,29 +7,28 @@ import i18n from "../i18n";
 import {
   orderDraftListPath,
   orderListPath,
+  OrderListUrlQueryParams,
   orderPath,
   OrderUrlQueryParams
 } from "./urls";
 import OrderDetailsComponent from "./views/OrderDetails";
-import OrderDraftListComponent from "./views/OrderDraftList";
-import OrderListComponent, { OrderListQueryParams } from "./views/OrderList";
+import OrderDraftListComponent, {
+  OrderDraftListQueryParams
+} from "./views/OrderDraftList";
+import OrderListComponent from "./views/OrderList";
 
 const OrderList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: OrderListQueryParams = {
-    after: qs.after,
-    before: qs.before,
-    status: qs.status
-  };
+  const params: OrderListUrlQueryParams = qs;
   return <OrderListComponent params={params} />;
 };
 const OrderDraftList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: OrderListQueryParams = qs;
+  const params: OrderDraftListQueryParams = qs;
   return <OrderDraftListComponent params={params} />;
 };
 
