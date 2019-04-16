@@ -59,10 +59,12 @@ class UserBulkSetActive(BaseBulkMutation):
     def clean_instance(cls, info, instance):
         if info.context.user == instance:
             raise ValidationError({
-                'is_active': 'Cannot activate or deactivate your own account.'})
+                'is_active':
+                    'Cannot activate or deactivate your own account.'})
         elif instance.is_superuser:
             raise ValidationError({
-                'is_active': 'Cannot activate or deactivate superuser\'s account.'})
+                'is_active':
+                    'Cannot activate or deactivate superuser\'s account.'})
 
     @classmethod
     def bulk_action(cls, queryset, is_active):
