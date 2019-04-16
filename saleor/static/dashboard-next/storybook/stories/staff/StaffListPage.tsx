@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { listActionsProps, pageListProps } from "../../../fixtures";
+import { pageListProps } from "../../../fixtures";
 import StaffListPage, {
   StaffListPageProps
 } from "../../../staff/components/StaffListPage";
@@ -12,7 +12,6 @@ const props: StaffListPageProps = {
   onAdd: undefined,
   onBack: () => undefined,
   staffMembers,
-  ...listActionsProps,
   ...pageListProps.default
 };
 

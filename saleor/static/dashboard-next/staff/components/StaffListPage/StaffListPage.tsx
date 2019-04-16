@@ -6,11 +6,11 @@ import AppHeader from "../../../components/AppHeader";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { ListActions, ListProps } from "../../../types";
+import { ListProps } from "../../../types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 import StaffList from "../StaffList/StaffList";
 
-export interface StaffListPageProps extends ListProps, ListActions {
+export interface StaffListPageProps extends ListProps {
   staffMembers: StaffList_staffUsers_edges_node[];
   onAdd: () => void;
   onBack: () => void;

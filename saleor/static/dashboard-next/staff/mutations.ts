@@ -11,10 +11,6 @@ import {
   StaffMemberDeleteVariables
 } from "./types/StaffMemberDelete";
 import {
-  StaffMembersBulkDelete,
-  StaffMembersBulkDeleteVariables
-} from "./types/StaffMembersBulkDelete";
-import {
   StaffMemberUpdate,
   StaffMemberUpdateVariables
 } from "./types/StaffMemberUpdate";
@@ -71,18 +67,3 @@ export const TypedStaffMemberDeleteMutation = TypedMutation<
   StaffMemberDelete,
   StaffMemberDeleteVariables
 >(staffMemberDeleteMutation);
-
-const staffMembersBulkDeleteMutation = gql`
-  mutation StaffMembersBulkDelete($ids: [ID]!) {
-    staffBulkDelete(ids: $ids) {
-      errors {
-        field
-        message
-      }
-    }
-  }
-`;
-export const TypedStaffMembersBulkDeleteMutation = TypedMutation<
-  StaffMembersBulkDelete,
-  StaffMembersBulkDeleteVariables
->(staffMembersBulkDeleteMutation);
