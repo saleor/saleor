@@ -41,7 +41,7 @@ class CollectionBulkPublish(BaseBulkMutation):
         ids = graphene.List(
             graphene.ID,
             required=True,
-            description='List of collections IDs to publish.')
+            description='List of collections IDs to (un)publish.')
         is_published = graphene.Boolean(
             required=True,
             description='Determine if collections will be published or not.')
