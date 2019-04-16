@@ -42,6 +42,10 @@ import {
   productBulkDeleteVariables
 } from "./types/productBulkDelete";
 import {
+  productBulkPublish,
+  productBulkPublishVariables
+} from "./types/productBulkPublish";
+import {
   ProductVariantBulkDelete,
   ProductVariantBulkDeleteVariables
 } from "./types/ProductVariantBulkDelete";
@@ -432,6 +436,21 @@ export const TypedProductBulkDeleteMutation = TypedMutation<
   productBulkDelete,
   productBulkDeleteVariables
 >(productBulkDeleteMutation);
+
+export const productBulkPublishMutation = gql`
+  mutation productBulkPublish($ids: [ID!]!, $isPublished: Boolean!) {
+    productBulkPublish(ids: $ids, isPublished: $isPublished) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedProductBulkPublishMutation = TypedMutation<
+  productBulkPublish,
+  productBulkPublishVariables
+>(productBulkPublishMutation);
 
 export const ProductVariantBulkDeleteMutation = gql`
   mutation ProductVariantBulkDelete($ids: [ID!]!) {
