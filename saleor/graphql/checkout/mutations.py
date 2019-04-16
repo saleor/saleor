@@ -331,25 +331,42 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         shipping_address = AddressInput(
             required=False,
             description=(
-                'The mailling address to where the checkout will be shipped.'))
+                'The mailing address to where the checkout will be shipped.'))
         shipping_address_id = graphene.ID(
             required=False,
             description=(
                 'ID of the mailing address '
                 'to where the checkout will be shipped.'))
-                'The mailing address to where the checkout will be shipped.'))
 
     class Meta:
         description = 'Update shipping address in the existing Checkout.'
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id,
-            shipping_address=None, shipping_address_id=Nonev):
-    def perform_mutation(cls, _root, info, checkout_id, shipping_address):
+    def perform_mutation(
+            cls, _root, info, checkout_id,
+            shipping_address=None, shipping_address_id=None):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
-        shipping_address = cls.validate_address(
-            shipping_address, instance=checkout.shipping_address)
+
+        # Validate that one and only one of
+        # shipping address or shipping address ID is provided
+        arguments = (shipping_address, shipping_address_id)
+        if not any(arguments) or all(arguments):
+            raise ValidationError(
+                'One and only one of shipping address or shipping address ID '
+                'should be provided.')
+
+        if shipping_address is not None:
+            # Validate shipping address
+            # if shipping address is provided directly
+            shipping_address = cls.validate_address(
+                shipping_address, instance=checkout.shipping_address)
+        elif shipping_address_id is not None:
+            # Query and validate shipping address
+            # if shipping address ID is provided
+            shipping_address = cls.get_node_or_error(
+                info, shipping_address_id,
+                only_type=Address, field='shipping_address_id')
 
         # FIXME test if below function is called
         clean_shipping_method(
@@ -373,31 +390,46 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         checkout_id = graphene.ID(
             required=True, description='ID of the Checkout.')
         billing_address = AddressInput(
-            required=True,
+            required=False,
             description=('The billing address of the checkout.'))
+        billing_address_id = graphene.ID(
+            required=False,
+            description=('ID of the billing address of the checkout'))
 
     class Meta:
         description = 'Update billing address in the existing Checkout.'
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, billing_address):
+    def perform_mutation(
+            cls, _root, info, checkout_id,
+            billing_address=None, billing_address_id=None):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
 
-        billing_address = cls.validate_address(
-            billing_address, instance=checkout.billing_address)
-        with transaction.atomic():
-            billing_address.save()
-            change_billing_address_in_checkout(checkout, billing_address)
-        return CheckoutShippingAddressUpdate(checkout=checkout)
+        # Validate that one and only one of
+        # billing address or billing address ID is provided
+        arguments = (billing_address, billing_address_id)
+        if not any(arguments) or all(arguments):
+            raise ValidationError(
+                'One and only one of billing address or billing address ID '
+                'should be provided.')
 
-        if errors:
-            return CheckoutBillingAddressUpdate(errors=errors)
+        if billing_address is not None:
+            # Validate billing address
+            # if billing address is provided directly
+            billing_address = cls.validate_address(
+                billing_address, instance=checkout.billing_address)
+        elif billing_address_id is not None:
+            # Query and validate billing address
+            # if billing address ID is provided
+            billing_address = cls.get_node_or_error(
+                info, billing_address_id,
+                only_type=Address, field='billing_address_id')
 
         with transaction.atomic():
             billing_address.save()
             change_billing_address_in_cart(checkout, billing_address)
-        return CheckoutBillingAddressUpdate(checkout=checkout, errors=errors)
+        return CheckoutBillingAddressUpdate(checkout=checkout)
 
 
 class CheckoutEmailUpdate(BaseMutation):

@@ -773,11 +773,10 @@ def test_checkout_shipping_address_update_invalid_argument(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutShippingAddressUpdate']
-    assert len(data['errors']) == 2
-    for error in data['errors']:
-        assert error['message'] == (
-            'One and only one of shipping address or shipping address ID '
-            'can be provided.')
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == (
+        'One and only one of shipping address or shipping address ID '
+        'should be provided.')
 
 
 def test_checkout_billing_address_update(
@@ -919,11 +918,10 @@ def test_checkout_billling_address_update_invalid_argument(
         MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutBillingAddressUpdate']
-    assert len(data['errors']) == 2
-    for error in data['errors']:
-        assert error['message'] == (
-            'One and only one of billing address or billing address ID '
-            'can be provided.')
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == (
+        'One and only one of billing address or billing address ID '
+        'should be provided.')
 
 
 CHECKOUT_EMAIL_UPDATE_MUTATION = """
