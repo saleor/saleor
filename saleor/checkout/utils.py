@@ -237,32 +237,6 @@ def get_or_empty_db_checkout(checkout_queryset=Checkout.objects.all()):
     return get_checkout
 
 
-def get_checkout_data(checkout, shipping_range, currency, discounts, taxes):
-    """Return a JSON-serializable representation of the checkout."""
-    checkout_total = None
-    local_checkout_total = None
-    shipping_required = False
-    total_with_shipping = None
-    local_total_with_shipping = None
-    if checkout:
-        checkout_total = checkout.get_subtotal(discounts, taxes)
-        local_checkout_total = to_local_currency(checkout_total, currency)
-        shipping_required = checkout.is_shipping_required()
-        total_with_shipping = TaxedMoneyRange(
-            start=checkout_total, stop=checkout_total)
-        if shipping_required and shipping_range:
-            total_with_shipping = shipping_range + checkout_total
-        local_total_with_shipping = to_local_currency(
-            total_with_shipping, currency)
-
-    return {
-        'checkout_total': checkout_total,
-        'local_checkout_total': local_checkout_total,
-        'shipping_required': shipping_required,
-        'total_with_shipping': total_with_shipping,
-        'local_total_with_shipping': local_total_with_shipping}
-
-
 def find_open_checkout_for_user(user):
     """Find an open checkout for the given user."""
     checkouts = user.checkouts.all()
@@ -608,19 +582,38 @@ def change_shipping_address_in_checkout(checkout, address):
         checkout.save(update_fields=['shipping_address'])
 
 
-def get_checkout_data_for_checkout(checkout, discounts, taxes):
+def get_checkout_context(checkout, discounts, taxes, currency=None, shipping_range=None):
     """Data shared between views in checkout process."""
-    lines = [(line, line.get_total(discounts, taxes)) for line in checkout]
-    subtotal = checkout.get_subtotal(discounts, taxes)
-    total = checkout.get_total(discounts, taxes)
-    shipping_price = checkout.get_shipping_price(taxes)
-    return {
+    checkout_total = checkout.get_total(discounts, taxes)
+    checkout_subtotal = checkout.get_subtotal(discounts, taxes)
+    shipping_required = checkout.is_shipping_required()
+    checkout_subtotal = checkout.get_subtotal(discounts, taxes)
+    total_with_shipping = TaxedMoneyRange(
+        start=checkout_subtotal, stop=checkout_subtotal)
+    if shipping_required and shipping_range:
+        total_with_shipping = shipping_range + checkout_subtotal
+
+    context = {
         'checkout': checkout,
         'checkout_are_taxes_handled': bool(taxes),
-        'checkout_lines': lines,
-        'checkout_shipping_price': shipping_price,
-        'checkout_subtotal': subtotal,
-        'checkout_total': total}
+        'checkout_lines': [
+            (line, line.get_total(discounts, taxes)) for line in checkout],
+        'checkout_shipping_price': checkout.get_shipping_price(taxes),
+        'checkout_subtotal': checkout_subtotal,
+        'checkout_total': checkout_total,
+        'shipping_required': checkout.is_shipping_required(),
+        'total_with_shipping': total_with_shipping}
+
+    if currency:
+        context.update(
+            local_checkout_total=to_local_currency(
+                checkout_total, currency),
+            local_checkout_subtotal=to_local_currency(
+                checkout_subtotal, currency),
+            local_total_with_shipping=to_local_currency(
+                total_with_shipping, currency))
+
+    return context
 
 
 def _get_shipping_voucher_discount_for_checkout(voucher, checkout):

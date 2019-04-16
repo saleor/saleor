@@ -11,7 +11,7 @@ from ...order import OrderEvents, OrderEventsEmails
 from ...order.emails import send_order_confirmation
 from ..forms import CheckoutNoteForm
 from ..utils import (
-    create_order, get_checkout_data_for_checkout, get_taxes_for_checkout,
+    create_order, get_checkout_context, get_taxes_for_checkout,
     update_billing_address_in_anonymous_checkout,
     update_billing_address_in_checkout,
     update_billing_address_in_checkout_with_shipping)
@@ -70,7 +70,7 @@ def summary_with_shipping_view(request, checkout):
         return handle_order_placement(request, checkout)
 
     taxes = get_taxes_for_checkout(checkout, request.taxes)
-    ctx = get_checkout_data_for_checkout(checkout, request.discounts, taxes)
+    ctx = get_checkout_context(checkout, request.discounts, taxes)
     ctx.update({
         'additional_addresses': user_addresses,
         'address_form': address_form,
@@ -96,7 +96,7 @@ def anonymous_summary_without_shipping(request, checkout):
         return handle_order_placement(request, checkout)
 
     taxes = get_taxes_for_checkout(checkout, request.taxes)
-    ctx = get_checkout_data_for_checkout(checkout, request.discounts, taxes)
+    ctx = get_checkout_context(checkout, request.discounts, taxes)
     ctx.update({
         'address_form': address_form,
         'note_form': note_form,
@@ -123,7 +123,7 @@ def summary_without_shipping(request, checkout):
         return handle_order_placement(request, checkout)
 
     taxes = get_taxes_for_checkout(checkout, request.taxes)
-    ctx = get_checkout_data_for_checkout(checkout, request.discounts, taxes)
+    ctx = get_checkout_context(checkout, request.discounts, taxes)
     ctx.update({
         'additional_addresses': user_addresses,
         'address_form': address_form,
