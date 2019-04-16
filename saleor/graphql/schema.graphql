@@ -1172,6 +1172,7 @@ type Mutations {
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
+  orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
@@ -1309,6 +1310,11 @@ type OrderAddNote {
 
 input OrderAddNoteInput {
   message: String
+}
+
+type OrderBulkCancel {
+  errors: [Error!]
+  count: Int!
 }
 
 type OrderCancel {
