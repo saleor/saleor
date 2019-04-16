@@ -80,7 +80,7 @@ def test_collection_create_view(monkeypatch, admin_client):
 
 
 def test_collection_create_with_background_image(
-        monkeypatch, admin_client):
+        monkeypatch, admin_client, media_root):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.collection.forms.'
@@ -125,7 +125,7 @@ def test_collection_update_view(
 
 
 def test_collection_update_background_image(
-        monkeypatch, admin_client, collection, product):
+        monkeypatch, admin_client, collection, product, media_root):
     mock_create_category_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.collection.forms.'
