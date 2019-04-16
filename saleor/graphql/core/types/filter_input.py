@@ -1,13 +1,10 @@
 import six
-from django_filters import filters
 from graphene import InputField, InputObjectType
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django.filter.utils import get_filterset_class
 
-from saleor.graphql.core.filters import EnumFilter
-
-from .filter_converter import convert_form_field
+from .converter import convert_form_field
 
 
 class FilterInputObjectType(InputObjectType):

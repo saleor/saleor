@@ -71,6 +71,15 @@ def sort_qs(qs, sort_by_product_order):
     return qs
 
 
+def filter_products_by_stock_availability(qs, stock_availability):
+    qs = qs.annotate(total_quantity=Sum('variants__quantity'))
+    if stock_availability == StockAvailability.IN_STOCK:
+        qs = qs.filter(total_quantity__gt=0)
+    elif stock_availability == StockAvailability.OUT_OF_STOCK:
+        qs = qs.filter(total_quantity__lte=0)
+    return qs
+
+
 def filter_attributes(qs, _, value):
     if value:
         value = [(v['slug'], v['attribute_value']) for v in value]
@@ -100,11 +109,7 @@ def filter_price(qs, _, value):
 
 def filter_stock_availability(qs, _, value):
     if value:
-        qs = qs.annotate(total_quantity=Sum('variants__quantity'))
-        if value == StockAvailability.IN_STOCK:
-            qs = qs.filter(total_quantity__gt=0)
-        elif value == StockAvailability.OUT_OF_STOCK:
-            qs = qs.filter(total_quantity__lte=0)
+        qs = filter_products_by_stock_availability(qs, value)
     return qs
 
 
