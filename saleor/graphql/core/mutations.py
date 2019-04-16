@@ -464,15 +464,6 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         queryset.delete()
 
 
-class ModelBulkPublishMutation(BaseBulkMutation):
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def bulk_action(cls, queryset):
-        queryset.update(is_published=True)
-
-
 class CreateToken(ObtainJSONWebToken):
     """Mutation that authenticates a user and returns token and user data.
 

@@ -12,8 +12,9 @@ from ..translations.mutations import (
 from .bulk_mutations.attributes import (
     AttributeBulkDelete, AttributeValueBulkDelete)
 from .bulk_mutations.products import (
-    CategoryBulkDelete, CollectionBulkDelete, ProductBulkDelete,
-    ProductImageBulkDelete, ProductTypeBulkDelete, ProductVariantBulkDelete)
+    CategoryBulkDelete, CollectionBulkDelete, CollectionBulkPublish,
+    ProductBulkDelete, ProductBulkPublish, ProductImageBulkDelete,
+    ProductTypeBulkDelete, ProductVariantBulkDelete)
 from .enums import StockAvailability
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
@@ -57,7 +58,7 @@ class ProductQueries(graphene.ObjectType):
         in_collection=graphene.Argument(
             graphene.ID, description=dedent(
                 '''Return attributes for products belonging to the given
-                collection.''')),)
+                collection.''')), )
     categories = PrefetchingConnectionField(
         Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
@@ -186,6 +187,7 @@ class ProductMutations(graphene.ObjectType):
     collection_create = CollectionCreate.Field()
     collection_delete = CollectionDelete.Field()
     collection_bulk_delete = CollectionBulkDelete.Field()
+    collection_bulk_publish = CollectionBulkPublish.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
     collection_translate = CollectionTranslate.Field()
@@ -193,6 +195,7 @@ class ProductMutations(graphene.ObjectType):
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
     product_bulk_delete = ProductBulkDelete.Field()
+    product_bulk_publish = ProductBulkPublish.Field()
     product_update = ProductUpdate.Field()
     product_translate = ProductTranslate.Field()
 

@@ -390,22 +390,40 @@ def product_list(product_type, category):
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
-    product_1 = Product.objects.create(
-        pk=1486, name='Test product 1', price=Money('10.00', 'USD'),
-        category=category, product_type=product_type, attributes=attributes,
-        is_published=True)
+    products = Product.objects.bulk_create(
+        [Product(pk=1486, name='Test product 1',
+                 price=Money('10.00', 'USD'),
+                 category=category, product_type=product_type,
+                 attributes=attributes,
+                 is_published=True),
+         Product(pk=1487, name='Test product 2',
+                 price=Money('20.00', 'USD'),
+                 category=category, product_type=product_type,
+                 attributes=attributes,
+                 is_published=False),
+         Product(pk=1489, name='Test product 3',
+                 price=Money('20.00', 'USD'),
+                 category=category, product_type=product_type,
+                 attributes=attributes,
+                 is_published=True)]
+    )
+    return products
 
-    product_2 = Product.objects.create(
-        pk=1487, name='Test product 2', price=Money('20.00', 'USD'),
-        category=category, product_type=product_type, attributes=attributes,
-        is_published=False)
 
-    product_3 = Product.objects.create(
-        pk=1489, name='Test product 3', price=Money('20.00', 'USD'),
-        category=category, product_type=product_type, attributes=attributes,
-        is_published=True)
+@pytest.fixture
+def product_list_unpublished(product_list):
+    products = Product.objects.filter(
+        pk__in=[product.pk for product in product_list])
+    products.update(is_published=False)
+    return products
 
-    return [product_1, product_2, product_3]
+
+@pytest.fixture
+def product_list_published(product_list):
+    products = Product.objects.filter(
+        pk__in=[product.pk for product in product_list])
+    products.update(is_published=True)
+    return products
 
 
 @pytest.fixture
@@ -723,6 +741,26 @@ def collection_with_image(db, image, media_root):
         name='Collection', slug='collection',
         description='Test description', background_image=image)
     return collection
+
+
+@pytest.fixture
+def collection_list(db):
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(name='Collection 1'),
+            Collection(name='Collection 2'),
+            Collection(name='Collection 3'),
+        ]
+    )
+    return collections
+
+
+@pytest.fixture
+def collection_list_unpublished(collection_list):
+    collections = Collection.objects.filter(
+        pk__in=[collection.pk for collection in collection_list])
+    collections.update(is_published=False)
+    return collections
 
 
 @pytest.fixture

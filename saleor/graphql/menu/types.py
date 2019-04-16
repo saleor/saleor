@@ -20,9 +20,6 @@ def prefetch_menus(info, *_args, **_kwargs):
 
 
 class Menu(CountableDjangoObjectType):
-    children = graphene.List(
-        lambda: MenuItem, required=True,
-        description='List of menu item children items')
     items = gql_optimizer.field(
         graphene.List(lambda: MenuItem),
         prefetch_related=prefetch_menus)
