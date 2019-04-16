@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 import pytest
 from django.shortcuts import reverse
 from django.templatetags.static import static
+from django.test import override_settings
 from django.urls import translate_url
 from measurement.measures import Weight
 from prices import Money
@@ -163,8 +164,9 @@ def test_utils_strip_html():
     assert text == 'Hello World'
 
 
+@override_settings(
+    VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
 def test_create_thumbnails(product_with_image, settings):
-    settings.VERSATILEIMAGEFIELD_SETTINGS['create_images_on_demand'] = False
     sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['products']
     product_image = product_with_image.images.first()
 
