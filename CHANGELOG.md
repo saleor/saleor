@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
 - Add mutation for bulk cancel orders - #3967 by @akjanik
 - Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
+- Rename Cart to Checkout - #3963 by @michaljelonek
 
 ## 2.5.0
 
