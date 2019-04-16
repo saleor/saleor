@@ -156,7 +156,8 @@ def order_add_note(request, order_pk):
 @permission_required('order.manage_orders')
 def capture_payment(request, order_pk, payment_pk):
     orders = Order.objects.confirmed().prefetch_related('payments')
-    order = get_object_or_404(orders, pk=order_pk)
+    order = get_object_or_404(orders.prefetch_related(
+        'lines', 'user'), pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
     amount = order.total.gross
     form = CapturePaymentForm(
