@@ -8,7 +8,7 @@ import CollectionDetailsPage, {
   CollectionDetailsPageProps
 } from "../../../collections/components/CollectionDetailsPage";
 import { collection as collectionFixture } from "../../../collections/fixtures";
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
 const collection = collectionFixture(
@@ -17,6 +17,7 @@ const collection = collectionFixture(
 );
 
 const props: Omit<CollectionDetailsPageProps, "classes"> = {
+  ...listActionsProps,
   ...pageListProps.default,
   collection,
   disabled: false,

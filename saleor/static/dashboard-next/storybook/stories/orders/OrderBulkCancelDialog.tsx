@@ -7,7 +7,11 @@ import OrderBulkCancelDialog, {
 import Decorator from "../../Decorator";
 
 const props: OrderBulkCancelDialogProps = {
-
+  confirmButtonState: "default",
+  numberOfOrders: "10",
+  onClose: () => undefined,
+  onConfirm: () => undefined,
+  open: true
 };
 
 storiesOf("Orders / OrderBulkCancelDialog", module)
