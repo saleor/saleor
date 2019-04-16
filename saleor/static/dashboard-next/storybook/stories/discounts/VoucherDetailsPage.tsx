@@ -7,13 +7,16 @@ import VoucherDetailsPage, {
   VoucherDetailsPageTab
 } from "../../../discounts/components/VoucherDetailsPage";
 import { voucherDetails } from "../../../discounts/fixtures";
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 import { formError } from "../../misc";
 
 const props: VoucherDetailsPageProps = {
+  ...listActionsProps,
   ...pageListProps.default,
   activeTab: VoucherDetailsPageTab.products,
+  categoryListToolbar: null,
+  collectionListToolbar: null,
   defaultCurrency: "USD",
   errors: [],
   onBack: () => undefined,
@@ -31,6 +34,7 @@ const props: VoucherDetailsPageProps = {
   onRemove: () => undefined,
   onSubmit: () => undefined,
   onTabClick: () => undefined,
+  productListToolbar: null,
   saveButtonBarState: "default",
   voucher: voucherDetails
 };

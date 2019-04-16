@@ -5007,6 +5007,12 @@ exports[`Storyshots Orders / OrderAddressEditDialog shipping address 1`] = `
 />
 `;
 
+exports[`Storyshots Orders / OrderBulkCancelDialog default 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
 exports[`Storyshots Orders / OrderCancelDialog default 1`] = `
 <div
   style="padding:24px"
