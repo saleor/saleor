@@ -498,6 +498,11 @@ type CollectionBulkDelete {
   count: Int!
 }
 
+type CollectionBulkPublish {
+  errors: [Error!]
+  count: Int!
+}
+
 type CollectionCountableConnection {
   pageInfo: PageInfo!
   edges: [CollectionCountableEdge!]!
@@ -1114,6 +1119,7 @@ type Mutations {
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
   collectionBulkDelete(ids: [ID]!): CollectionBulkDelete
+  collectionBulkPublish(ids: [ID]!, isPublished: Boolean!): CollectionBulkPublish
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
   collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CollectionTranslate
