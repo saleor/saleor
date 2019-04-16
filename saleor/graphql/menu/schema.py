@@ -6,7 +6,7 @@ from ..translations.mutations import MenuItemTranslate
 from .bulk_mutations import MenuBulkDelete, MenuItemBulkDelete
 from .mutations import (
     AssignNavigation, MenuCreate, MenuDelete, MenuItemCreate, MenuItemDelete,
-    MenuItemUpdate, MenuUpdate)
+    MenuItemMove, MenuItemUpdate, MenuUpdate)
 from .resolvers import resolve_menu, resolve_menu_items, resolve_menus
 from .types import Menu, MenuItem
 
@@ -53,3 +53,4 @@ class MenuMutations(graphene.ObjectType):
     menu_item_bulk_delete = MenuItemBulkDelete.Field()
     menu_item_update = MenuItemUpdate.Field()
     menu_item_translate = MenuItemTranslate.Field()
+    menu_item_move = MenuItemMove.Field()
