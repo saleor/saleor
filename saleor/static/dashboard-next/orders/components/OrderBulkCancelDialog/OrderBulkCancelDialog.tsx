@@ -8,7 +8,7 @@ import i18n from "../../../i18n";
 
 export interface OrderBulkCancelDialogProps {
   confirmButtonState: ConfirmButtonTransitionState;
-  number: string;
+  numberOfOrders: string;
   open: boolean;
   onClose: () => void;
   onConfirm: (restock: boolean) => void;
@@ -16,7 +16,7 @@ export interface OrderBulkCancelDialogProps {
 
 const OrderBulkCancelDialog: React.StatelessComponent<
   OrderBulkCancelDialogProps
-> = ({ confirmButtonState, number, open, onClose, onConfirm }) => {
+> = ({ confirmButtonState, numberOfOrders, open, onClose, onConfirm }) => {
   const [restock, setRestock] = React.useState(true);
 
   return (
@@ -33,7 +33,7 @@ const OrderBulkCancelDialog: React.StatelessComponent<
           __html: i18n.t(
             "Are you sure you want to cancel <strong>{{ number }}</strong> orders?",
             {
-              number
+              number: numberOfOrders
             }
           )
         }}

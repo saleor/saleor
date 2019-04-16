@@ -11,6 +11,7 @@ import { DateTime } from "../../../components/Date";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
+import TableHead from "../../../components/TableHead";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import {
@@ -21,7 +22,6 @@ import {
 } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
-import TableHead from "../../../components/TableHead";
 
 const styles = createStyles({
   link: {

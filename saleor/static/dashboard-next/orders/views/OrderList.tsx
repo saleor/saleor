@@ -174,7 +174,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                       />
                       <OrderBulkCancelDialog
                         confirmButtonState={orderBulkCancelTransitionState}
-                        number={maybe(
+                        numberOfOrders={maybe(
                           () => params.ids.length.toString(),
                           "..."
                         )}
