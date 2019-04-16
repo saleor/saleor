@@ -500,24 +500,26 @@ def test_fetch_unpublished_collection_anonymous_user(
     assert collection_data is None
 
 
+MUTATION_BULK_PUBLISH_COLLECTIONS = """
+        mutation publishManyCollections($ids: [ID]!, $is_published: Boolean!) {
+            collectionBulkPublish(ids: $ids, isPublished: $is_published) {
+                count
+            }
+        }
+    """
+
+
 def test_bulk_publish_collection(
         staff_api_client, collection_list_unpublished,
         permission_manage_products):
     collection_list = collection_list_unpublished
     assert not any(collection.is_published for collection in collection_list)
 
-    query = """
-        mutation publishManyCollections($ids: [ID]!) {
-            collectionBulkPublish(ids: $ids) {
-                count
-            }
-        }
-    """
     variables = {'ids': [
         graphene.Node.to_global_id('Collection', collection.id)
-        for collection in collection_list]}
+        for collection in collection_list], 'is_published': True}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        MUTATION_BULK_PUBLISH_COLLECTIONS, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     collection_list = Collection.objects.filter(
         id__in=[collection.pk for collection in collection_list])
@@ -532,22 +534,15 @@ def test_bulk_unpublish_collection(
         permission_manage_products):
     assert all(collection.is_published for collection in collection_list)
 
-    query = """
-        mutation unPublishManyCollections($ids: [ID]!) {
-            collectionBulkUnpublish(ids: $ids) {
-                count
-            }
-        }
-    """
     variables = {'ids': [
         graphene.Node.to_global_id('Collection', collection.id)
-        for collection in collection_list]}
+        for collection in collection_list], 'is_published': False}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        MUTATION_BULK_PUBLISH_COLLECTIONS, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     collection_list = Collection.objects.filter(
         id__in=[collection.pk for collection in collection_list])
 
-    assert content['data']['collectionBulkUnpublish']['count'] == len(
+    assert content['data']['collectionBulkPublish']['count'] == len(
         collection_list)
     assert not any(collection.is_published for collection in collection_list)
