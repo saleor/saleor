@@ -71,8 +71,8 @@ class PrefetchingConnectionField(DjangoConnectionField):
 
 
 class FilterInputConnectionField(DjangoConnectionField):
-    def __init__(self, *args, **kwargs):
-        self.filters_name = kwargs.get('filters_name', 'filters')
+    def __init__(self,  *args, **kwargs):
+        self.filters_name = kwargs.pop('filters_name', 'filters')
         self.filters_obj = kwargs.get(self.filters_name)
         self.filterset_class = None
         if self.filters_obj:
