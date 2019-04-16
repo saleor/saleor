@@ -5,7 +5,7 @@ import pytest
 from django.urls import reverse
 from django_countries.fields import Country
 from freezegun import freeze_time
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.account.models import Address
 from saleor.checkout import views
@@ -13,7 +13,7 @@ from saleor.checkout.forms import CheckoutVoucherForm, CountryForm
 from saleor.checkout.utils import (
     add_variant_to_checkout, add_voucher_to_checkout,
     change_billing_address_in_checkout, change_shipping_address_in_checkout,
-    clear_shipping_method, create_order, get_checkout_data_for_checkout,
+    clear_shipping_method, create_order, get_checkout_context,
     get_prices_of_products_in_discounted_categories, get_taxes_for_checkout,
     get_voucher_discount_for_checkout, get_voucher_for_checkout,
     is_valid_shipping_method, recalculate_checkout_discount,
@@ -874,7 +874,7 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
     assert checkout.discount_amount == ZERO_MONEY
 
 
-def test_get_checkout_data_for_checkout(checkout_with_voucher, vatlayer):
+def test_get_checkout_context(checkout_with_voucher, vatlayer):
     line_price = TaxedMoney(
         net=Money('24.39', 'USD'), gross=Money('30.00', 'USD'))
     expected_data = {
@@ -883,9 +883,12 @@ def test_get_checkout_data_for_checkout(checkout_with_voucher, vatlayer):
         'checkout_lines': [(checkout_with_voucher.lines.first(), line_price)],
         'checkout_shipping_price': ZERO_TAXED_MONEY,
         'checkout_subtotal': line_price,
-        'checkout_total': line_price - checkout_with_voucher.discount_amount}
+        'checkout_total': line_price - checkout_with_voucher.discount_amount,
+        'shipping_required': checkout_with_voucher.is_shipping_required(),
+        'total_with_shipping': TaxedMoneyRange(
+            start=line_price, stop=line_price)}
 
-    data = get_checkout_data_for_checkout(
+    data = get_checkout_context(
         checkout_with_voucher, discounts=None, taxes=vatlayer)
 
     assert data == expected_data

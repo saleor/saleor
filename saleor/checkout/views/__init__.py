@@ -12,9 +12,9 @@ from ..forms import (
     CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm)
 from ..models import Checkout
 from ..utils import (
-    check_product_availability_and_warn, get_checkout_data,
-    get_checkout_data_for_checkout, get_or_empty_db_checkout,
-    get_taxes_for_checkout, is_valid_shipping_method, update_checkout_quantity)
+    check_product_availability_and_warn, get_checkout_context,
+    get_or_empty_db_checkout, get_taxes_for_checkout, is_valid_shipping_method,
+    update_checkout_quantity)
 from .discount import add_voucher_form, validate_voucher
 from .shipping import (
     anonymous_user_shipping_address_view, user_shipping_address_view)
@@ -75,7 +75,7 @@ def checkout_shipping_method(request, checkout):
         form.save()
         return redirect('checkout:summary')
 
-    ctx = get_checkout_data_for_checkout(checkout, discounts, taxes)
+    ctx = get_checkout_context(checkout, discounts, taxes)
     ctx.update({'shipping_method_form': form})
     return TemplateResponse(request, 'checkout/shipping_method.html', ctx)
 
@@ -135,15 +135,15 @@ def checkout_index(request, checkout):
         weight=checkout.get_total_weight(), country_code=default_country,
         taxes=taxes)
 
-    checkout_data = get_checkout_data(
-        checkout, shipping_price_range, request.currency, discounts, taxes)
-    ctx = {
+    context = get_checkout_context(
+        checkout, discounts, taxes,
+        currency=request.currency, shipping_range=shipping_price_range)
+    context.update({
         'checkout_lines': checkout_lines,
         'country_form': country_form,
-        'shipping_price_range': shipping_price_range}
-    ctx.update(checkout_data)
+        'shipping_price_range': shipping_price_range})
 
-    return TemplateResponse(request, 'checkout/index.html', ctx)
+    return TemplateResponse(request, 'checkout/index.html', context)
 
 
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
@@ -159,9 +159,9 @@ def checkout_shipping_options(request, checkout):
     ctx = {
         'shipping_price_range': shipping_price_range,
         'country_form': country_form}
-    checkout_data = get_checkout_data(
-        checkout, shipping_price_range, request.currency, request.discounts,
-        request.taxes)
+    checkout_data = get_checkout_context(
+        checkout, request.discounts,request.taxes,
+        currency=request.currency, shipping_range=shipping_price_range)
     ctx.update(checkout_data)
     return TemplateResponse(request, 'checkout/_subtotal_table.html', ctx)
 

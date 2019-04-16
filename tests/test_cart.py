@@ -614,8 +614,8 @@ def test_get_checkout_data(request_checkout_with_item, shipping_zone, vatlayer):
     checkout = request_checkout_with_item
     shipment_option = get_shipping_price_estimate(
         checkout.get_subtotal().gross, checkout.get_total_weight(), 'PL', vatlayer)
-    checkout_data = utils.get_checkout_data(
-        checkout, shipment_option, 'USD', None, vatlayer)
+    checkout_data = utils.get_checkout_context(
+        checkout, None, vatlayer, currency='USD', shipping_range=shipment_option)
     assert checkout_data['checkout_total'] == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert checkout_data['total_with_shipping'].start == TaxedMoney(
@@ -626,8 +626,9 @@ def test_get_checkout_data_no_shipping(request_checkout_with_item, vatlayer):
     checkout = request_checkout_with_item
     shipment_option = get_shipping_price_estimate(
         checkout.get_subtotal().gross, checkout.get_total_weight(), 'PL', vatlayer)
-    checkout_data = utils.get_checkout_data(
-        checkout, shipment_option, 'USD', None, vatlayer)
+    checkout_data = utils.get_checkout_context(
+        checkout, None, vatlayer,
+        currency='USD', shipping_range=shipment_option)
     checkout_total = checkout_data['checkout_total']
     assert checkout_total == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
