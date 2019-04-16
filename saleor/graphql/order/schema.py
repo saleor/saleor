@@ -9,6 +9,7 @@ from ..core.types import TaxedMoney
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations.draft_orders import (
     DraftOrderBulkDelete, DraftOrderLinesBulkDelete)
+from .bulk_mutations.orders import OrderBulkCancel
 from .enums import OrderStatusFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
@@ -104,3 +105,5 @@ class OrderMutations(graphene.ObjectType):
     order_update = OrderUpdate.Field()
     order_update_shipping = OrderUpdateShipping.Field()
     order_void = OrderVoid.Field()
+
+    order_bulk_cancel = OrderBulkCancel.Field()

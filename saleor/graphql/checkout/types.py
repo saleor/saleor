@@ -23,11 +23,11 @@ class CheckoutLine(CountableDjangoObjectType):
         only_fields = ['id', 'quantity', 'variant']
         description = 'Represents an item in the checkout.'
         interfaces = [graphene.relay.Node]
-        model = models.CartLine
+        model = models.CheckoutLine
         filter_fields = ['id']
 
     def resolve_total_price(self, info):
-        taxes = get_taxes_for_address(self.cart.shipping_address)
+        taxes = get_taxes_for_address(self.checkout.shipping_address)
         return self.get_total(discounts=info.context.discounts, taxes=taxes)
 
     def resolve_requires_shipping(self, *_args):
@@ -71,7 +71,7 @@ class Checkout(CountableDjangoObjectType):
             'shipping_address', 'shipping_method', 'token',
             'translated_discount_name', 'user', 'voucher_code']
         description = 'Checkout object'
-        model = models.Cart
+        model = models.Checkout
         interfaces = [graphene.relay.Node]
         filter_fields = ['token']
 

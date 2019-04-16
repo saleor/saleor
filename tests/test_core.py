@@ -213,7 +213,7 @@ def test_set_language_redirects_to_current_endpoint(client):
     user_language_point = 'en'
     new_user_language = 'fr'
     new_user_language_point = '/fr/'
-    test_endpoint = 'cart:index'
+    test_endpoint = 'checkout:index'
 
     # get a English translated url (.../en/...)
     # and the expected url after we change it
@@ -244,7 +244,7 @@ def test_set_language_redirects_to_current_endpoint(client):
     assert new_url != current_url
 
     # now check if we got redirect the endpoint we wanted to go back
-    # in the new language (cart:index)
+    # in the new language (checkout:index)
     assert expected_url == new_url
 
 
