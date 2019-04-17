@@ -356,8 +356,8 @@ def test_view_change_order_line_quantity_with_invalid_data(
     assert response.status_code == 400
 
 
-def test_dashboard_change_quantity_form(request_cart_with_item, order):
-    for line in request_cart_with_item:
+def test_dashboard_change_quantity_form(request_checkout_with_item, order):
+    for line in request_checkout_with_item:
         add_variant_to_order(order, line.variant, line.quantity)
     order_line = order.lines.get()
     quantity_before = order_line.variant.quantity_allocated

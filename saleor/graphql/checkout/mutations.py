@@ -6,10 +6,11 @@ from django.db import transaction
 
 from ...checkout import models
 from ...checkout.utils import (
-    add_variant_to_cart, add_voucher_to_cart, change_billing_address_in_cart,
-    change_shipping_address_in_cart, clean_checkout, create_order,
-    get_or_create_user_cart, get_taxes_for_cart, get_voucher_for_cart,
-    recalculate_cart_discount, remove_voucher_from_cart)
+    add_variant_to_checkout, add_voucher_to_checkout,
+    change_billing_address_in_checkout, change_shipping_address_in_checkout,
+    clean_checkout, create_order, get_or_create_user_checkout,
+    get_taxes_for_checkout, get_voucher_for_checkout,
+    recalculate_checkout_discount, remove_voucher_from_checkout)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
@@ -102,7 +103,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     class Meta:
         description = 'Create a new checkout.'
-        model = models.Cart
+        model = models.Checkout
         return_field_name = 'checkout'
 
     @classmethod
@@ -165,7 +166,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         quantities = cleaned_input.get('quantities')
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
-                add_variant_to_cart(instance, variant, quantity)
+                add_variant_to_checkout(instance, variant, quantity)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -174,13 +175,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
-            checkout, created = get_or_create_user_cart(user)
+            checkout, created = get_or_create_user_checkout(user)
             # If user has an active checkout, return it without any
             # modifications.
             if not created:
                 return CheckoutCreate(checkout=checkout)
         else:
-            checkout = models.Cart()
+            checkout = models.Checkout()
 
         cleaned_input = cls.clean_input(info, checkout, data.get('input'))
         checkout = cls.construct_instance(checkout, cleaned_input)
@@ -226,10 +227,10 @@ class CheckoutLinesAdd(BaseMutation):
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
-                add_variant_to_cart(
+                add_variant_to_checkout(
                     checkout, variant, quantity, replace=replace)
 
-        recalculate_cart_discount(
+        recalculate_checkout_discount(
             checkout, info.context.discounts, info.context.taxes)
 
         return CheckoutLinesAdd(checkout=checkout)
@@ -274,7 +275,7 @@ class CheckoutLineDelete(BaseMutation):
             discounts=info.context.discounts,
             taxes=get_taxes_for_address(checkout.shipping_address))
 
-        recalculate_cart_discount(
+        recalculate_checkout_discount(
             checkout, info.context.discounts, info.context.taxes)
 
         return CheckoutLineDelete(checkout=checkout)
@@ -349,8 +350,8 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         with transaction.atomic():
             shipping_address.save()
-            change_shipping_address_in_cart(checkout, shipping_address)
-        recalculate_cart_discount(
+            change_shipping_address_in_checkout(checkout, shipping_address)
+        recalculate_checkout_discount(
             checkout, info.context.discounts, info.context.taxes)
 
         return CheckoutShippingAddressUpdate(checkout=checkout)
@@ -377,7 +378,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             billing_address, instance=checkout.billing_address)
         with transaction.atomic():
             billing_address.save()
-            change_billing_address_in_cart(checkout, billing_address)
+            change_billing_address_in_checkout(checkout, billing_address)
         return CheckoutShippingAddressUpdate(checkout=checkout)
 
 
@@ -428,7 +429,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=['shipping_method'])
-        recalculate_cart_discount(
+        recalculate_checkout_discount(
             checkout, info.context.discounts, info.context.taxes)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)
@@ -451,12 +452,12 @@ class CheckoutComplete(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field='checkout_id')
 
-        taxes = get_taxes_for_cart(checkout, info.context.taxes)
+        taxes = get_taxes_for_checkout(checkout, info.context.taxes)
         clean_checkout(checkout, taxes, info.context.discounts)
 
         try:
             order = create_order(
-                cart=checkout,
+                checkout=checkout,
                 tracking_code=analytics.get_client_id(info.context),
                 discounts=info.context.discounts, taxes=taxes)
         except InsufficientStock:
@@ -466,7 +467,7 @@ class CheckoutComplete(BaseMutation):
 
         payment = checkout.get_last_active_payment()
 
-        # remove cart after checkout is created
+        # remove checkout after checkout is created
         checkout.delete()
         order.events.create(type=OrderEvents.PLACED.value)
         send_order_confirmation.delay(order.pk)
@@ -511,14 +512,14 @@ class CheckoutUpdateVoucher(BaseMutation):
                     'voucher_code': 'Voucher with given code does not exist.'})
 
             try:
-                add_voucher_to_cart(voucher, checkout)
+                add_voucher_to_checkout(voucher, checkout)
             except voucher_model.NotApplicable:
                 raise ValidationError({
                     'voucher_code':
                     'Voucher is not applicable to that checkout.'})
         else:
-            existing_voucher = get_voucher_for_cart(checkout)
+            existing_voucher = get_voucher_for_checkout(checkout)
             if existing_voucher:
-                remove_voucher_from_cart(checkout)
+                remove_voucher_from_checkout(checkout)
 
         return CheckoutUpdateVoucher(checkout=checkout)
