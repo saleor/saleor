@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import Checkbox from "@material-ui/core/Checkbox";
-import { createStyles, WithStyles, withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  WithStyles,
+  withStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -25,17 +30,49 @@ export interface VoucherListProps extends ListProps, ListActions {
   vouchers: VoucherList_vouchers_edges_node[];
 }
 
-const styles = createStyles({
-  tableRow: {
-    cursor: "pointer"
-  },
-  textRight: {
-    textAlign: "right"
-  },
-  wideColumn: {
-    width: "40%"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colEnd: {
+        width: 180
+      },
+      colMinSpent: {
+        width: 150
+      },
+      colName: {},
+      colStart: {
+        width: 180
+      },
+      colUses: {
+        width: 150
+      },
+      colValue: {
+        width: 150
+      }
+    },
+    colEnd: {
+      textAlign: "right"
+    },
+    colMinSpent: {
+      textAlign: "right"
+    },
+    colName: {},
+    colStart: {
+      textAlign: "right"
+    },
+    colUses: {
+      textAlign: "right"
+    },
+    colValue: {
+      textAlign: "right"
+    },
+    tableRow: {
+      cursor: "pointer"
+    },
+    textRight: {
+      textAlign: "right"
+    }
+  });
 
 const VoucherList = withStyles(styles, {
   name: "VoucherList"
@@ -59,32 +96,32 @@ const VoucherList = withStyles(styles, {
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell className={classes.wideColumn}>
+            <TableCell className={classes.colName}>
               {i18n.t("Name", {
                 context: "voucher list table header"
               })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colMinSpent}>
               {i18n.t("Min. Spent", {
                 context: "voucher list table header"
               })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colStart}>
               {i18n.t("Starts", {
                 context: "voucher list table header"
               })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colEnd}>
               {i18n.t("Ends", {
                 context: "voucher list table header"
               })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colValue}>
               {i18n.t("Value", {
                 context: "voucher list table header"
               })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colUses}>
               {i18n.t("Uses", {
                 context: "voucher list table header"
               })}
@@ -129,10 +166,10 @@ const VoucherList = withStyles(styles, {
                       }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colName}>
                     {maybe<React.ReactNode>(() => voucher.name, <Skeleton />)}
                   </TableCell>
-                  <TableCell className={classes.textRight}>
+                  <TableCell className={classes.colMinSpent}>
                     {voucher && voucher.minAmountSpent ? (
                       <Money money={voucher.minAmountSpent} />
                     ) : voucher && voucher.minAmountSpent === null ? (
@@ -141,14 +178,14 @@ const VoucherList = withStyles(styles, {
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.textRight}>
+                  <TableCell className={classes.colStart}>
                     {voucher && voucher.startDate ? (
                       <Date date={voucher.startDate} />
                     ) : (
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.textRight}>
+                  <TableCell className={classes.colEnd}>
                     {voucher && voucher.endDate ? (
                       <Date date={voucher.endDate} />
                     ) : voucher && voucher.endDate === null ? (
@@ -158,7 +195,7 @@ const VoucherList = withStyles(styles, {
                     )}
                   </TableCell>
                   <TableCell
-                    className={classes.textRight}
+                    className={classes.colValue}
                     onClick={voucher ? onRowClick(voucher.id) : undefined}
                   >
                     {voucher &&
@@ -179,7 +216,7 @@ const VoucherList = withStyles(styles, {
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.textRight}>
+                  <TableCell className={classes.colUses}>
                     {voucher && voucher.usageLimit ? (
                       voucher.usageLimit
                     ) : voucher && voucher.usageLimit === null ? (

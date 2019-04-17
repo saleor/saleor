@@ -25,11 +25,31 @@ import TablePagination from "../TablePagination";
 
 const styles = (theme: Theme) =>
   createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colName: {
+        width: 430
+      },
+      colPrice: {
+        width: 200
+      },
+      colPublished: {
+        width: 200
+      },
+      colType: {
+        width: 200
+      }
+    },
     avatarCell: {
       paddingLeft: theme.spacing.unit * 2,
       paddingRight: 0,
       width: theme.spacing.unit * 5
     },
+    colName: {},
+    colPrice: {
+      textAlign: "right"
+    },
+    colPublished: {},
+    colType: {},
     link: {
       cursor: "pointer"
     },
@@ -67,12 +87,16 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
         <TableRow>
           <TableCell />
           <TableCell />
-          <TableCell className={classes.textLeft}>
+          <TableCell className={classes.colName}>
             {i18n.t("Name", { context: "object" })}
           </TableCell>
-          <TableCell>{i18n.t("Type", { context: "object" })}</TableCell>
-          <TableCell>{i18n.t("Published", { context: "object" })}</TableCell>
-          <TableCell className={classes.textRight}>
+          <TableCell className={classes.colType}>
+            {i18n.t("Type", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colPublished}>
+            {i18n.t("Published", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colPrice}>
             {i18n.t("Price", { context: "object" })}
           </TableCell>
         </TableRow>
@@ -118,17 +142,17 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
                 <TableCellAvatar
                   thumbnail={maybe(() => product.thumbnail.url)}
                 />
-                <TableCell className={classes.textLeft}>
+                <TableCell className={classes.colName}>
                   {product ? product.name : <Skeleton />}
                 </TableCell>
-                <TableCell>
+                <TableCell className={classes.colType}>
                   {product && product.productType ? (
                     product.productType.name
                   ) : (
                     <Skeleton />
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className={classes.colPublished}>
                   {product &&
                   product.availability &&
                   product.availability.available !== undefined ? (
@@ -148,7 +172,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
                     <Skeleton />
                   )}
                 </TableCell>
-                <TableCell className={classes.textRight}>
+                <TableCell className={classes.colPrice}>
                   {product &&
                   product.price &&
                   product.price.amount !== undefined &&

@@ -29,6 +29,24 @@ import { ProductVariant_costPrice } from "../../types/ProductVariant";
 
 const styles = (theme: Theme) =>
   createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colName: {},
+      colPrice: {
+        width: 200
+      },
+      colSku: {
+        width: 250
+      },
+      colStatus: {
+        width: 200
+      }
+    },
+    colName: {},
+    colPrice: {
+      textAlign: "right"
+    },
+    colSku: {},
+    colStatus: {},
     denseTable: {
       "& td, & th": {
         paddingRight: theme.spacing.unit * 3
@@ -93,11 +111,13 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell className={classes.textLeft}>{i18n.t("Name")}</TableCell>
-            <TableCell>{i18n.t("Status")}</TableCell>
-            <TableCell>{i18n.t("SKU")}</TableCell>
+            <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
+            <TableCell className={classes.colStatus}>
+              {i18n.t("Status")}
+            </TableCell>
+            <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
             <Hidden smDown>
-              <TableCell className={classes.textRight}>
+              <TableCell className={classes.colPrice}>
                 {i18n.t("Price")}
               </TableCell>
             </Hidden>
@@ -128,10 +148,10 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell className={classes.textLeft}>
+                  <TableCell className={classes.colName}>
                     {variant ? variant.name || variant.sku : <Skeleton />}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colStatus}>
                     {variant ? (
                       <StatusLabel
                         status={variant.stockQuantity > 0 ? "success" : "error"}
@@ -145,9 +165,11 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell>{variant ? variant.sku : <Skeleton />}</TableCell>
+                  <TableCell className={classes.colSku}>
+                    {variant ? variant.sku : <Skeleton />}
+                  </TableCell>
                   <Hidden smDown>
-                    <TableCell className={classes.textRight}>
+                    <TableCell className={classes.colPrice}>
                       {variant ? (
                         variant.priceOverride ? (
                           <Money money={variant.priceOverride} />

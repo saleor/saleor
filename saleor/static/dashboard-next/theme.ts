@@ -145,7 +145,7 @@ export default (colors: IThemeColors): Theme =>
           fontWeight: 400
         },
         paddingCheckbox: {
-          width: "1%"
+          width: 72
         },
         root: {
           "&:first-child": {

@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import Checkbox from "@material-ui/core/Checkbox";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -17,20 +22,26 @@ import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 import { CollectionList_collections_edges_node } from "../../types/CollectionList";
 
-const styles = createStyles({
-  name: {
-    width: "50%"
-  },
-  tableRow: {
-    cursor: "pointer" as "pointer"
-  },
-  textCenter: {
-    textAlign: "center" as "center"
-  },
-  textLeft: {
-    textAlign: "left" as "left"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colAvailability: {
+        width: 240
+      },
+      colName: {},
+      colProducts: {
+        width: 240
+      }
+    },
+    colAvailability: {},
+    colName: {},
+    colProducts: {
+      textAlign: "center"
+    },
+    tableRow: {
+      cursor: "pointer" as "pointer"
+    }
+  });
 
 interface CollectionListProps
   extends ListProps,
@@ -58,15 +69,15 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell className={classes.name}>
+            <TableCell className={classes.colName}>
               {i18n.t("Category Name", { context: "table cell" })}
             </TableCell>
-            <TableCell className={classes.textCenter}>
+            <TableCell className={classes.colProducts}>
               {i18n
                 .t("No. Products", { context: "table cell" })
                 .replace(" ", "\xa0")}
             </TableCell>
-            <TableCell className={classes.textLeft}>
+            <TableCell className={classes.colAvailability}>
               {i18n.t("Availability", { context: "table cell" })}
             </TableCell>
           </TableRow>
@@ -108,19 +119,19 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colName}>
                     {maybe<React.ReactNode>(
                       () => collection.name,
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.textCenter}>
+                  <TableCell className={classes.colProducts}>
                     {maybe<React.ReactNode>(
                       () => collection.products.totalCount,
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.textLeft}>
+                  <TableCell className={classes.colAvailability}>
                     {maybe(
                       () => (
                         <StatusLabel
