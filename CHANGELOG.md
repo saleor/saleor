@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unittests use none as media root - #3975 by @korycins
 - Rename Cart to Checkout - #3963 by @michaljelonek
 - Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
+- Add bulk actions - #3955 by @dominik-zeglen
 
 
 ## 2.5.0
