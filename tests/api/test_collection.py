@@ -56,7 +56,7 @@ def test_collections_query(
 
 
 def test_create_collection(
-        monkeypatch, staff_api_client, product_list,
+        monkeypatch, staff_api_client, product_list, media_root,
         permission_manage_products):
     query = """
         mutation createCollection(
@@ -226,7 +226,8 @@ MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
 
 
 def test_update_collection_with_background_image(
-        monkeypatch, staff_api_client, collection, permission_manage_products):
+        monkeypatch, staff_api_client, collection, permission_manage_products,
+        media_root):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.collection.forms.'
@@ -397,7 +398,7 @@ FETCH_COLLECTION_QUERY = """
 """
 
 
-def test_collection_image_query(user_api_client, collection):
+def test_collection_image_query(user_api_client, collection, media_root):
     alt_text = 'Alt text for an image.'
     image_file, image_name = create_image()
     collection.background_image = image_file

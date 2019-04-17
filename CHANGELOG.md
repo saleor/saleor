@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the dead `children` field from the `Menu` type - #3973 by @NyanKiyoshi
 - Add mutations for bulk publishing and unpublishing products - #3969 by akjanik
 - Add mutation for bulk publishing and unpublishing collections - #3970 by @akjanik
+- Unittests use none as media root - #3975 by @korycins
 - Rename Cart to Checkout - #3963 by @michaljelonek
 - Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
 
