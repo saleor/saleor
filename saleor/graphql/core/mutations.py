@@ -11,6 +11,7 @@ from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
+from typing import Tuple
 
 from ...account import models
 from ..account.types import User
@@ -70,11 +71,23 @@ class BaseMutation(graphene.Mutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, description=None, **options):
+    def __init_subclass_with_meta__(
+            cls, description=None, permissions: Tuple = None,
+            _meta=None, **options):
+
+        if not _meta:
+            _meta = MutationOptions(cls)
+
         if not description:
             raise ImproperlyConfigured('No description provided in Meta')
         description = dedent(description)
-        super().__init_subclass_with_meta__(description=description, **options)
+
+        if isinstance(permissions, str):
+            permissions = (permissions,)
+
+        _meta.permissions = permissions
+        super().__init_subclass_with_meta__(
+            description=description, _meta=_meta, **options)
 
     @classmethod
     def _update_mutation_arguments_and_fields(cls, arguments, fields):
@@ -161,10 +174,13 @@ class BaseMutation(graphene.Mutation):
         """Determine whether user has rights to perform this mutation.
 
         Default implementation assumes that user is allowed to perform any
-        mutation. By overriding this method, you can restrict access to it.
-        `user` is the User instance associated with the request and `input` is
+        mutation. By overriding this method or defining required permissions
+        in the meta-class, you can restrict access to it. `user` is
+        the User instance associated with the request and `input` is
         the input data provided as mutation arguments.
         """
+        if cls._meta.permissions:
+            return user.has_perms(cls._meta.permissions)
         return True
 
     @classmethod
@@ -287,17 +303,6 @@ class ModelMutation(BaseMutation):
                 f.save_form_data(instance, cleaned_data[f.name])
 
     @classmethod
-    def user_is_allowed(cls, user):
-        """Determine whether user has rights to perform this mutation.
-
-        Default implementation assumes that user is allowed to perform any
-        mutation. By overriding this method, you can restrict access to it.
-        `user` is the User instance associated with the request and `input` is
-        the input data provided as mutation arguments.
-        """
-        return True
-
-    @classmethod
     def success_response(cls, instance):
         """Return a success response."""
         return cls(**{cls._meta.return_field_name: instance, 'errors': []})
@@ -388,17 +393,6 @@ class BaseBulkMutation(BaseMutation):
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 
     @classmethod
-    def user_is_allowed(cls, user, ids):
-        """Determine whether user has rights to perform this mutation.
-
-        Default implementation assumes that user is allowed to perform any
-        mutation. By overriding this method, you can restrict access to it.
-        `user` is the User instance associated with the request and `input` is
-        the input data provided as mutation arguments.
-        """
-        return True
-
-    @classmethod
     def clean_instance(cls, info, instance):
         """Perform additional logic.
 
@@ -446,7 +440,7 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user, data):
+        if not cls.user_is_allowed(info.context.user):
             raise PermissionDenied()
 
         count, errors = cls.perform_mutation(root, info, **data)

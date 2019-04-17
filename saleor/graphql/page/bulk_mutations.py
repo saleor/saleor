@@ -14,10 +14,7 @@ class PageBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes pages.'
         model = models.Page
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('page.manage_pages')
+        permissions = ('page.manage_pages', )
 
 
 class PageBulkPublish(BaseBulkMutation):
@@ -33,10 +30,7 @@ class PageBulkPublish(BaseBulkMutation):
     class Meta:
         description = 'Publish pages.'
         model = models.Page
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('page.manage_pages')
+        permissions = ('page.manage_pages', )
 
     @classmethod
     def bulk_action(cls, queryset, is_published):
