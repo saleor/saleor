@@ -1528,13 +1528,8 @@ def test_user_avatar_update_mutation_permission(api_client):
 
     assert_no_permission(response)
 
-<<<<<<< HEAD
 def test_user_avatar_update_mutation(
         monkeypatch, staff_api_client, media_root):
-=======
-
-def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
->>>>>>> Add initial test
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
