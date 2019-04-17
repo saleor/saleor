@@ -114,8 +114,9 @@ def filter_stock_availability(qs, _, value):
 
 
 def filter_search(qs, _, value):
-    search = picker.pick_backend()
-    qs &= search(value)
+    if value:
+        search = picker.pick_backend()
+        qs &= search(value)
     return qs
 
 
