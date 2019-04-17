@@ -277,7 +277,7 @@ def category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def category_with_image(db, image):  # pylint: disable=W0613
+def category_with_image(db, image, media_root):  # pylint: disable=W0613
     return Category.objects.create(
         name='Default', slug='default', background_image=image)
 
@@ -440,7 +440,7 @@ def order_list(customer_user):
 
 
 @pytest.fixture
-def product_with_image(product, image):
+def product_with_image(product, image, media_root):
     ProductImage.objects.create(product=product, image=image)
     return product
 
@@ -472,7 +472,7 @@ def unavailable_product_with_variant(product_type, category):
 
 
 @pytest.fixture
-def product_with_images(product_type, category):
+def product_with_images(product_type, category, media_root):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=category)
@@ -736,7 +736,7 @@ def collection(db):
 
 
 @pytest.fixture
-def collection_with_image(db, image):
+def collection_with_image(db, image, media_root):
     collection = Collection.objects.create(
         name='Collection', slug='collection',
         description='Test description', background_image=image)
@@ -959,7 +959,7 @@ def payment_dummy(db, settings, order_with_lines):
 
 
 @pytest.fixture
-def digital_content(category):
+def digital_content(category, media_root):
     product_type = ProductType.objects.create(
         name='Digital Type', has_variants=True, is_shipping_required=False,
         is_digital=True
@@ -976,3 +976,8 @@ def digital_content(category):
         content_file=image_file, product_variant=product_variant,
         use_default_settings=True)
     return d_content
+
+
+@pytest.fixture()
+def media_root(tmpdir, settings):
+    settings.MEDIA_ROOT = str(tmpdir.mkdir("media"))

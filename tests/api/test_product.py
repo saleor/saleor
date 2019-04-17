@@ -1202,7 +1202,8 @@ def test_product_type_delete_mutation(
 
 
 def test_product_image_create_mutation(
-        monkeypatch, staff_api_client, product, permission_manage_products):
+        monkeypatch, staff_api_client, product, permission_manage_products,
+        media_root):
     query = """
     mutation createProductImage($image: Upload!, $product: ID!) {
         productImageCreate(input: {image: $image, product: $product}) {
