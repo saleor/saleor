@@ -184,7 +184,9 @@ class ProductOrder(graphene.InputObjectType):
 
 class BasePricingInfo(graphene.ObjectType):
     available = graphene.Boolean(
-        description='Whether it is in stock and visible or not.')
+        description='Whether it is in stock and visible or not.',
+        deprecation_reason=(
+            'This has been moved to the parent type as \'is_available\'.'))
     on_sale = graphene.Boolean(
         description='Whether it is in sale or not.')
     discount = graphene.Field(
@@ -253,6 +255,8 @@ class ProductVariant(CountableDjangoObjectType):
         description=dedent(
             """Lists the storefront product's pricing, 
             the current price and discounts, only meant for displaying"""))
+    is_available = graphene.Boolean(
+        description='Whether the variant is in stock and visible or not.')
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this variant.')
@@ -326,6 +330,9 @@ class ProductVariant(CountableDjangoObjectType):
 
     resolve_availability = resolve_pricing
 
+    def resolve_is_available(self, _info):
+        return self.is_available
+
     @permission_required('product.manage_products')
     def resolve_price_override(self, *_args):
         return self.price_override
@@ -385,6 +392,8 @@ class Product(CountableDjangoObjectType):
         ProductPricingInfo, description=dedent(
             """Lists the storefront product's pricing, 
             the current price and discounts, only meant for displaying."""))
+    is_available = graphene.Boolean(
+        description='Whether the product is in stock and visible or not.')
     base_price = graphene.Field(
         Money,
         description='The product\'s default base price.')
@@ -472,6 +481,9 @@ class Product(CountableDjangoObjectType):
         return ProductPricingInfo(**availability._asdict())
 
     resolve_availability = resolve_pricing
+
+    def resolve_is_available(self, _info):
+        return self.is_available
 
     @permission_required('product.manage_products')
     def resolve_price(self, _info):

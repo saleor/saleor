@@ -143,6 +143,10 @@ class Product(SeoModel, PublishableModel):
     def __str__(self):
         return self.name
 
+    @property
+    def is_available(self):
+        return self.is_visible and self.is_in_stock()
+
     def get_absolute_url(self):
         return reverse(
             'product:details',
@@ -230,6 +234,10 @@ class ProductVariant(models.Model):
     @property
     def is_visible(self):
         return self.product.is_visible
+
+    @property
+    def is_available(self):
+        return self.product.is_in_stock()
 
     def check_quantity(self, quantity):
         """Check if there is at least the given quantity in stock

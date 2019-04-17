@@ -1686,7 +1686,9 @@ type Product implements Node {
   thumbnail(size: Int): Image
   availability: ProductPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
   pricing: ProductPricingInfo
-  price: Money @deprecated(reason: "Has been replaced by 'pricing.price_range_undiscounted'")
+  isAvailable: Boolean
+  basePrice: Money
+  price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
   taxRate: TaxRateType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
@@ -1827,7 +1829,7 @@ enum ProductOrderField {
 }
 
 type ProductPricingInfo {
-  available: Boolean
+  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -1922,9 +1924,10 @@ type ProductVariant implements Node {
   weight: Weight
   stockQuantity: Int!
   priceOverride: Money
-  price: Money
+  price: Money @deprecated(reason: "Has been replaced by 'pricing.price_undiscounted'")
   availability: VariantPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
   pricing: VariantPricingInfo
+  isAvailable: Boolean
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
@@ -2581,7 +2584,7 @@ type VariantImageUnassign {
 }
 
 type VariantPricingInfo {
-  available: Boolean
+  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
