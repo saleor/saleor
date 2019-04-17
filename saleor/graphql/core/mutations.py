@@ -170,7 +170,7 @@ class BaseMutation(graphene.Mutation):
         return instance
 
     @classmethod
-    def user_is_allowed(cls, user):
+    def check_permissions(cls, user):
         """Determine whether user has rights to perform this mutation.
 
         Default implementation assumes that user is allowed to perform any
@@ -185,7 +185,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user):
+        if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
         try:
@@ -356,7 +356,7 @@ class ModelDeleteMutation(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         """Perform a mutation that deletes a model instance."""
-        if not cls.user_is_allowed(info.context.user):
+        if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
         node_id = data.get('id')
@@ -440,7 +440,7 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        if not cls.user_is_allowed(info.context.user):
+        if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
         count, errors = cls.perform_mutation(root, info, **data)

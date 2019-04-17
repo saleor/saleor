@@ -186,7 +186,7 @@ class LoggedUserUpdate(CustomerCreate):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user):
+    def check_permissions(cls, user):
         return user.is_authenticated
 
     @classmethod
@@ -291,7 +291,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.user_is_allowed(info.context.user):
+        if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
         user_id = data.get('id')
@@ -432,7 +432,7 @@ class AddressUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        # Method user_is_allowed cannot be used for permission check, because
+        # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
@@ -460,7 +460,7 @@ class AddressDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        # Method user_is_allowed cannot be used for permission check, because
+        # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
@@ -468,7 +468,7 @@ class AddressDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.user_is_allowed(info.context.user):
+        if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
         node_id = data.get('id')
@@ -552,7 +552,7 @@ class CustomerAddressCreate(ModelMutation):
         exclude = ['user_addresses']
 
     @classmethod
-    def user_is_allowed(cls, user):
+    def check_permissions(cls, user):
         return user.is_authenticated
 
     @classmethod
@@ -586,7 +586,7 @@ class CustomerSetDefaultAddress(BaseMutation):
         description = 'Sets a default address for the authenticated user.'
 
     @classmethod
-    def user_is_allowed(cls, user):
+    def check_permissions(cls, user):
         return user.is_authenticated
 
     @classmethod

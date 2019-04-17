@@ -17,7 +17,7 @@ class BaseTranslateMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def user_is_allowed(cls, user):
+    def check_permissions(cls, user):
         return user.has_perm('site.manage_translations')
 
     @classmethod
