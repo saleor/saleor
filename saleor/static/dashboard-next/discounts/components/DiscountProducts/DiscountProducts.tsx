@@ -36,6 +36,18 @@ export interface SaleProductsProps extends ListProps, ListActions {
 
 const styles = (theme: Theme) =>
   createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colName: {},
+      colPublished: {
+        width: 150
+      },
+      colType: {
+        width: 200
+      }
+    },
+    colName: {},
+    colPublished: {},
+    colType: {},
     iconCell: {
       "&:last-child": {
         paddingRight: 0
@@ -44,12 +56,6 @@ const styles = (theme: Theme) =>
     },
     tableRow: {
       cursor: "pointer"
-    },
-    textRight: {
-      textAlign: "right"
-    },
-    wideColumn: {
-      width: "40%"
     }
   });
 const DiscountProducts = withStyles(styles, {
@@ -86,13 +92,13 @@ const DiscountProducts = withStyles(styles, {
           <TableRow>
             <TableCell />
             <TableCell />
-            <TableCell className={classes.wideColumn}>
+            <TableCell className={classes.colName}>
               {i18n.t("Product name")}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colType}>
               {i18n.t("Product Type")}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colPublished}>
               {i18n.t("Published")}
             </TableCell>
             <TableCell />
@@ -138,16 +144,16 @@ const DiscountProducts = withStyles(styles, {
                   <TableCellAvatar
                     thumbnail={maybe(() => product.thumbnail.url)}
                   />
-                  <TableCell>
+                  <TableCell className={classes.colName}>
                     {maybe<React.ReactNode>(() => product.name, <Skeleton />)}
                   </TableCell>
-                  <TableCell className={classes.textRight}>
+                  <TableCell className={classes.colType}>
                     {maybe<React.ReactNode>(
                       () => product.productType.name,
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.textRight}>
+                  <TableCell className={classes.colPublished}>
                     {product && product.isPublished !== undefined ? (
                       <StatusLabel
                         label={

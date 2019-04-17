@@ -1,7 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import Checkbox from "@material-ui/core/Checkbox";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -17,17 +22,30 @@ import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 
-const styles = createStyles({
-  centerText: {
-    textAlign: "center"
-  },
-  tableRow: {
-    cursor: "pointer"
-  },
-  wideColumn: {
-    width: "100%"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colName: {
+        width: 840
+      },
+      colProducts: {
+        width: 160
+      },
+      colSubcategories: {
+        width: 160
+      }
+    },
+    colName: {},
+    colProducts: {
+      textAlign: "center"
+    },
+    colSubcategories: {
+      textAlign: "center"
+    },
+    tableRow: {
+      cursor: "pointer"
+    }
+  });
 
 interface CategoryListProps
   extends ListProps,
@@ -78,13 +96,13 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell className={classes.wideColumn}>
+            <TableCell className={classes.colName}>
               {i18n.t("Category Name", { context: "object" })}
             </TableCell>
-            <TableCell className={classes.centerText}>
+            <TableCell className={classes.colSubcategories}>
               {i18n.t("Subcategories", { context: "object" })}
             </TableCell>
-            <TableCell className={classes.centerText}>
+            <TableCell className={classes.colProducts}>
               {i18n
                 .t("No. Products", { context: "object" })
                 .replace(" ", "\xa0")}
@@ -129,10 +147,10 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell className={classes.wideColumn}>
+                  <TableCell className={classes.colName}>
                     {category && category.name ? category.name : <Skeleton />}
                   </TableCell>
-                  <TableCell className={classes.centerText}>
+                  <TableCell className={classes.colSubcategories}>
                     {category &&
                     category.children &&
                     category.children.totalCount !== undefined ? (
@@ -141,7 +159,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.centerText}>
+                  <TableCell className={classes.colProducts}>
                     {category &&
                     category.products &&
                     category.products.totalCount !== undefined ? (

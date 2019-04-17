@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import Checkbox from "@material-ui/core/Checkbox";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -17,17 +22,24 @@ import { maybe, renderCollection, translatedTaxRates } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 import { ProductTypeList_productTypes_edges_node } from "../../types/ProductTypeList";
 
-const styles = createStyles({
-  leftText: {
-    textAlign: "left"
-  },
-  link: {
-    cursor: "pointer"
-  },
-  wideCell: {
-    width: "60%"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colName: {},
+      colTax: {
+        width: 300
+      },
+      colType: {
+        width: 300
+      }
+    },
+    colName: {},
+    colTax: {},
+    colType: {},
+    link: {
+      cursor: "pointer"
+    }
+  });
 
 interface ProductTypeListProps
   extends ListProps,
@@ -55,13 +67,13 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell className={classes.wideCell}>
+            <TableCell className={classes.colName}>
               {i18n.t("Type Name", { context: "table header" })}
             </TableCell>
-            <TableCell className={classes.leftText}>
+            <TableCell className={classes.colType}>
               {i18n.t("Type", { context: "table header" })}
             </TableCell>
-            <TableCell className={classes.leftText}>
+            <TableCell className={classes.colTax}>
               {i18n.t("Tax", { context: "table header" })}
             </TableCell>
           </TableRow>
@@ -105,7 +117,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colName}>
                     {productType ? (
                       <>
                         {productType.name}
@@ -123,7 +135,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.leftText}>
+                  <TableCell className={classes.colType}>
                     {maybe(() => productType.isShippingRequired) !==
                     undefined ? (
                       productType.isShippingRequired ? (
@@ -135,7 +147,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.leftText}>
+                  <TableCell className={classes.colTax}>
                     {maybe(() => productType.taxRate) ? (
                       translatedTaxRates()[productType.taxRate]
                     ) : (

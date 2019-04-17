@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import Checkbox from "@material-ui/core/Checkbox";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -16,17 +21,24 @@ import { getUserName, maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 import { ListCustomers_customers_edges_node } from "../../types/ListCustomers";
 
-const styles = createStyles({
-  tableRow: {
-    cursor: "pointer"
-  },
-  textCenter: {
-    textAlign: "center"
-  },
-  wideCell: {
-    width: "60%"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colEmail: {},
+      colName: {},
+      colOrders: {
+        width: 200
+      }
+    },
+    colEmail: {},
+    colName: {},
+    colOrders: {
+      textAlign: "center"
+    },
+    tableRow: {
+      cursor: "pointer"
+    }
+  });
 
 export interface CustomerListProps
   extends ListProps,
@@ -54,13 +66,13 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell>
+            <TableCell className={classes.colName}>
               {i18n.t("Customer Name", { context: "table header" })}
             </TableCell>
-            <TableCell className={classes.wideCell}>
+            <TableCell className={classes.colEmail}>
               {i18n.t("Customer e-mail", { context: "table header" })}
             </TableCell>
-            <TableCell className={classes.textCenter}>
+            <TableCell className={classes.colOrders}>
               {i18n.t("Orders", { context: "table header" })}
             </TableCell>
           </TableRow>
@@ -103,11 +115,13 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell>{getUserName(customer)}</TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colName}>
+                    {getUserName(customer)}
+                  </TableCell>
+                  <TableCell className={classes.colEmail}>
                     {maybe<React.ReactNode>(() => customer.email, <Skeleton />)}
                   </TableCell>
-                  <TableCell className={classes.textCenter}>
+                  <TableCell className={classes.colOrders}>
                     {maybe<React.ReactNode>(
                       () => customer.orders.totalCount,
                       <Skeleton />

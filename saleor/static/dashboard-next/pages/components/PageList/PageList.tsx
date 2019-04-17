@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import Checkbox from "@material-ui/core/Checkbox";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -21,11 +26,24 @@ export interface PageListProps extends ListProps, ListActions {
   pages: PageList_pages_edges_node[];
 }
 
-const styles = createStyles({
-  link: {
-    cursor: "pointer"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colSlug: {
+        width: 250
+      },
+      colTitle: {},
+      colVisibility: {
+        width: 200
+      }
+    },
+    colSlug: {},
+    colTitle: {},
+    colVisibility: {},
+    link: {
+      cursor: "pointer"
+    }
+  });
 const PageList = withStyles(styles, { name: "PageList" })(
   ({
     classes,
@@ -45,13 +63,13 @@ const PageList = withStyles(styles, { name: "PageList" })(
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell padding="dense">
+            <TableCell className={classes.colTitle} padding="dense">
               {i18n.t("Title", { context: "table header" })}
             </TableCell>
-            <TableCell padding="dense">
+            <TableCell className={classes.colSlug} padding="dense">
               {i18n.t("Slug", { context: "table header" })}
             </TableCell>
-            <TableCell padding="dense">
+            <TableCell className={classes.colVisibility} padding="dense">
               {i18n.t("Visibility", { context: "table header" })}
             </TableCell>
           </TableRow>
@@ -94,13 +112,13 @@ const PageList = withStyles(styles, { name: "PageList" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colTitle}>
                     {maybe<React.ReactNode>(() => page.title, <Skeleton />)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colSlug}>
                     {maybe<React.ReactNode>(() => page.slug, <Skeleton />)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colVisibility}>
                     {maybe<React.ReactNode>(
                       () => (
                         <StatusLabel

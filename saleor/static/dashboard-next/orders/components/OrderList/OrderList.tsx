@@ -1,5 +1,10 @@
 import Checkbox from "@material-ui/core/Checkbox";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -23,14 +28,36 @@ import {
 import { ListActions, ListProps } from "../../../types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 
-const styles = createStyles({
-  link: {
-    cursor: "pointer"
-  },
-  textRight: {
-    textAlign: "right"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colCustomer: {
+        width: 220
+      },
+      colDate: {},
+      colFulfillment: {
+        width: 230
+      },
+      colNumber: {
+        width: 120
+      },
+      colPayment: {
+        width: 220
+      },
+      colTotal: {}
+    },
+    colCustomer: {},
+    colDate: {},
+    colFulfillment: {},
+    colNumber: {},
+    colPayment: {},
+    colTotal: {
+      textAlign: "right"
+    },
+    link: {
+      cursor: "pointer"
+    }
+  });
 
 interface OrderListProps
   extends ListProps,
@@ -65,22 +92,22 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell padding="dense">
+            <TableCell padding="dense" className={classes.colNumber}>
               {i18n.t("No. of Order", { context: "table header" })}
             </TableCell>
-            <TableCell padding="dense">
+            <TableCell padding="dense" className={classes.colDate}>
               {i18n.t("Date", { context: "table header" })}
             </TableCell>
-            <TableCell padding="dense">
+            <TableCell padding="dense" className={classes.colCustomer}>
               {i18n.t("Customer", { context: "table header" })}
             </TableCell>
-            <TableCell padding="dense">
+            <TableCell padding="dense" className={classes.colPayment}>
               {i18n.t("Payment", { context: "table header" })}
             </TableCell>
-            <TableCell padding="dense">
+            <TableCell padding="dense" className={classes.colFulfillment}>
               {i18n.t("Fulfillment status", { context: "table header" })}
             </TableCell>
-            <TableCell className={classes.textRight} padding="dense">
+            <TableCell className={classes.colTotal} padding="dense">
               {i18n.t("Total", { context: "table header" })}
             </TableCell>
           </TableRow>
@@ -123,21 +150,21 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell padding="dense">
+                  <TableCell padding="dense" className={classes.colNumber}>
                     {maybe(() => order.number) ? (
                       "#" + order.number
                     ) : (
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell padding="dense">
+                  <TableCell padding="dense" className={classes.colDate}>
                     {maybe(() => order.created) ? (
                       <DateTime date={order.created} />
                     ) : (
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell padding="dense">
+                  <TableCell padding="dense" className={classes.colCustomer}>
                     {maybe(() => order.billingAddress) ? (
                       <>
                         {order.billingAddress.firstName}
@@ -150,7 +177,7 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell padding="dense">
+                  <TableCell padding="dense" className={classes.colPayment}>
                     {maybe(() => order.paymentStatus.status) !== undefined ? (
                       order.paymentStatus.status === null ? null : (
                         <StatusLabel
@@ -162,7 +189,7 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell padding="dense">
+                  <TableCell padding="dense" className={classes.colFulfillment}>
                     {maybe(() => order.status) ? (
                       <StatusLabel
                         status={order.status.status}
@@ -172,7 +199,7 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.textRight} padding="dense">
+                  <TableCell className={classes.colTotal} padding="dense">
                     {maybe(() => order.total.gross) ? (
                       <Money money={order.total.gross} />
                     ) : (

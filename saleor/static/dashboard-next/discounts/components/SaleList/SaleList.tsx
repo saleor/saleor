@@ -1,6 +1,11 @@
 import Card from "@material-ui/core/Card";
 import Checkbox from "@material-ui/core/Checkbox";
-import { createStyles, WithStyles, withStyles } from "@material-ui/core/styles";
+import {
+  createStyles,
+  Theme,
+  WithStyles,
+  withStyles
+} from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -25,17 +30,34 @@ export interface SaleListProps extends ListProps, ListActions {
   sales: SaleList_sales_edges_node[];
 }
 
-const styles = createStyles({
-  tableRow: {
-    cursor: "pointer"
-  },
-  textRight: {
-    textAlign: "right"
-  },
-  wideColumn: {
-    width: "40%"
-  }
-});
+const styles = (theme: Theme) =>
+  createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colEnd: {
+        width: 250
+      },
+      colName: {},
+      colStart: {
+        width: 250
+      },
+      colValue: {
+        width: 200
+      }
+    },
+    colEnd: {
+      textAlign: "right"
+    },
+    colName: {},
+    colStart: {
+      textAlign: "right"
+    },
+    colValue: {
+      textAlign: "right"
+    },
+    tableRow: {
+      cursor: "pointer"
+    }
+  });
 
 const SaleList = withStyles(styles, {
   name: "SaleList"
@@ -59,22 +81,22 @@ const SaleList = withStyles(styles, {
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell className={classes.wideColumn}>
+            <TableCell className={classes.colName}>
               {i18n.t("Name", {
                 context: "sale list table header"
               })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colStart}>
               {i18n.t("Starts", {
                 context: "sale list table header"
               })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colEnd}>
               {i18n.t("Ends", {
                 context: "sale list table header"
               })}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colValue}>
               {i18n.t("Value", {
                 context: "sale list table header"
               })}
@@ -119,17 +141,17 @@ const SaleList = withStyles(styles, {
                       }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colName}>
                     {maybe<React.ReactNode>(() => sale.name, <Skeleton />)}
                   </TableCell>
-                  <TableCell className={classes.textRight}>
+                  <TableCell className={classes.colStart}>
                     {sale && sale.startDate ? (
                       <Date date={sale.startDate} />
                     ) : (
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.textRight}>
+                  <TableCell className={classes.colEnd}>
                     {sale && sale.endDate ? (
                       <Date date={sale.endDate} />
                     ) : sale && sale.endDate === null ? (
@@ -139,7 +161,7 @@ const SaleList = withStyles(styles, {
                     )}
                   </TableCell>
                   <TableCell
-                    className={classes.textRight}
+                    className={classes.colValue}
                     onClick={sale ? onRowClick(sale.id) : undefined}
                   >
                     {sale && sale.type && sale.value ? (

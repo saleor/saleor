@@ -34,12 +34,18 @@ export interface ShippingZonesListProps extends ListProps, ListActions {
 
 const styles = (theme: Theme) =>
   createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colCountries: {},
+      colName: { width: 200 }
+    },
     alignRight: {
       "&:last-child": {
         paddingRight: theme.spacing.unit
       },
       width: ICONBUTTON_SIZE + theme.spacing.unit / 2
     },
+    colCountries: {},
+    colName: {},
     row: {
       cursor: "pointer"
     }
@@ -76,8 +82,12 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
         <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell />
-            <TableCell>{i18n.t("Name", { context: "object" })}</TableCell>
-            <TableCell>{i18n.t("Countries", { context: "object" })}</TableCell>
+            <TableCell className={classes.colName}>
+              {i18n.t("Name", { context: "object" })}
+            </TableCell>
+            <TableCell className={classes.colCountries}>
+              {i18n.t("Countries", { context: "object" })}
+            </TableCell>
             <TableCell />
           </TableRow>
         </TableHead>
@@ -121,13 +131,13 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
                       }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colName}>
                     {maybe<React.ReactNode>(
                       () => shippingZone.name,
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colCountries}>
                     {maybe<React.ReactNode>(
                       () => shippingZone.countries.length,
                       <Skeleton />
