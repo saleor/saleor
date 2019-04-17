@@ -122,10 +122,7 @@ class CustomerCreate(ModelMutation, I18nMixin):
         description = 'Creates a new customer.'
         exclude = ['password']
         model = models.User
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
+        permissions = ('account.manage_users', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -208,14 +205,11 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Meta:
         description = 'Deletes a customer.'
         model = models.User
+        permissions = ('account.manage_users', )
 
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a customer to delete.')
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
 
 
 class StaffCreate(ModelMutation):
@@ -228,10 +222,7 @@ class StaffCreate(ModelMutation):
         description = 'Creates a new staff user.'
         exclude = ['password']
         model = models.User
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_staff')
+        permissions = ('account.manage_staff', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -267,6 +258,7 @@ class StaffUpdate(StaffCreate):
         description = 'Updates an existing staff user.'
         exclude = ['password']
         model = models.User
+        permissions = ('account.manage_staff', )
 
     @classmethod
     def clean_is_active(cls, is_active, instance, user):
@@ -291,14 +283,11 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
         description = 'Deletes a staff user.'
         model = models.User
+        permissions = ('account.manage_staff', )
 
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a staff user to delete.')
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_staff')
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -357,10 +346,7 @@ class PasswordReset(BaseMutation):
 
     class Meta:
         description = 'Sends password reset email'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
+        permissions = ('account.manage_users', )
 
     @classmethod
     def perform_mutation(cls, _root, info, email):
@@ -415,6 +401,7 @@ class AddressCreate(ModelMutation):
     class Meta:
         description = 'Creates user address'
         model = models.Address
+        permissions = ('account.manage_users', )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -426,10 +413,6 @@ class AddressCreate(ModelMutation):
             user.addresses.add(response.address)
             response.user = user
         return response
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
 
 
 class AddressUpdate(ModelMutation):
@@ -531,10 +514,7 @@ class AddressSetDefault(BaseMutation):
 
     class Meta:
         description = 'Sets a default address for the given user.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
+        permissions = ('account.manage_users', )
 
     @classmethod
     def perform_mutation(cls, _root, info, address_id, user_id, **data):

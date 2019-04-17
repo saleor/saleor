@@ -21,20 +21,14 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
     class Meta:
         description = 'Deletes customers.'
         model = models.User
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('account.manage_users')
+        permissions = ('account.manage_users', )
 
 
 class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     class Meta:
         description = 'Deletes staff users.'
         model = models.User
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('account.manage_staff')
+        permissions = ('account.manage_staff', )
 
 
 class UserBulkSetActive(BaseBulkMutation):
@@ -50,10 +44,7 @@ class UserBulkSetActive(BaseBulkMutation):
     class Meta:
         description = 'Activate or deactivate users.'
         model = models.User
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('account.manage_users')
+        permissions = ('account.manage_users', )
 
     @classmethod
     def clean_instance(cls, info, instance):
