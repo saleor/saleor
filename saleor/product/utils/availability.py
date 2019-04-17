@@ -101,12 +101,10 @@ def get_product_availability(
     price_range_local, discount_local_currency = _get_product_price_range(
         discounted, undiscounted, local_currency)
 
-    is_visible = product.is_visible
-    is_available = product.is_in_stock() and is_visible
-    is_on_sale = is_visible and discount is not None
+    is_on_sale = product.is_visible and discount is not None
 
     return ProductAvailability(
-        available=is_available,
+        available=product.is_available,
         on_sale=is_on_sale,
         price_range=discounted,
         price_range_undiscounted=undiscounted,
@@ -132,12 +130,10 @@ def get_variant_availability(
         price_local_currency = None
         discount_local_currency = None
 
-    is_visible = variant.is_visible
-    is_available = variant.is_in_stock() and is_visible
-    is_on_sale = is_visible and discount is not None
+    is_on_sale = variant.is_visible and discount is not None
 
     return VariantAvailability(
-        available=is_available,
+        available=variant.is_available,
         on_sale=is_on_sale,
         price=discounted,
         price_undiscounted=undiscounted,
