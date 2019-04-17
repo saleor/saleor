@@ -253,7 +253,7 @@ class ProductVariant(CountableDjangoObjectType):
     pricing = graphene.Field(
         VariantPricingInfo,
         description=dedent(
-            """Lists the storefront product's pricing, 
+            """Lists the storefront variant's pricing,
             the current price and discounts, only meant for displaying"""))
     is_available = graphene.Boolean(
         description='Whether the variant is in stock and visible or not.')
@@ -390,7 +390,7 @@ class Product(CountableDjangoObjectType):
         deprecation_reason='Has been renamed to \'pricing\'.')
     pricing = graphene.Field(
         ProductPricingInfo, description=dedent(
-            """Lists the storefront product's pricing, 
+            """Lists the storefront product's pricing,
             the current price and discounts, only meant for displaying."""))
     is_available = graphene.Boolean(
         description='Whether the product is in stock and visible or not.')
@@ -486,10 +486,15 @@ class Product(CountableDjangoObjectType):
         return self.is_available
 
     @permission_required('product.manage_products')
-    def resolve_price(self, _info):
+    def resolve_base_price(self, _info):
         return self.price
 
-    resolve_base_price = resolve_price
+    @gql_optimizer.resolver_hints(
+        prefetch_related=('variants', 'collections'),
+        only=['publication_date', 'charge_taxes', 'price', 'tax_rate'])
+    def resolve_price(self, info):
+        price_range = self.get_price_range(info.context.discounts)
+        return price_range.start.net
 
     @gql_optimizer.resolver_hints(
         prefetch_related='product_type__product_attributes__values')

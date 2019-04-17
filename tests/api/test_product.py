@@ -104,6 +104,9 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                             stockQuantity
                         }
                         isAvailable
+                        price {
+                            amount
+                        }
                         pricing {
                             available,
                             priceRange {
@@ -159,6 +162,7 @@ def test_product_query(staff_api_client, product, permission_manage_products):
         'purchaseCost']['stop']['amount']
     assert product_data['isAvailable'] is product.is_visible
     assert product_data['pricing']['available'] is product.is_visible
+    assert product_data['price']['amount'] == product.price.amount
     assert margin[0] == product_data['margin']['start']
     assert margin[1] == product_data['margin']['stop']
 
