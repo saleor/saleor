@@ -496,3 +496,10 @@ class VerifyToken(Verify):
         username_field = get_user_model().USERNAME_FIELD
         kwargs = {username_field: self.payload.get(username_field)}
         return models.User.objects.get(**kwargs)
+
+    @classmethod
+    def mutate(cls, root, info, token, **kwargs):
+        try:
+            return super().mutate(root, info, token, **kwargs)
+        except JSONWebTokenError:
+            return None
