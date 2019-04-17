@@ -23,7 +23,7 @@ const styles = (theme: Theme) =>
     },
     root: {
       paddingRight: theme.spacing.unit * 3,
-      width: 64
+      width: "1%"
     }
   });
 
