@@ -83,7 +83,11 @@ class BaseMutation(graphene.Mutation):
         description = dedent(description)
 
         if isinstance(permissions, str):
-            permissions = (permissions,)
+            permissions = (permissions, )
+
+        if permissions and not isinstance(permissions, tuple):
+            raise ImproperlyConfigured(
+                'Permissions should be a tuple or a string in Meta')
 
         _meta.permissions = permissions
         super().__init_subclass_with_meta__(
