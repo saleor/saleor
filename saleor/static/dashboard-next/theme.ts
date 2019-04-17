@@ -54,7 +54,6 @@ export default (colors: IThemeColors): Theme =>
           flexDirection: "row-reverse" as "row-reverse"
         }
       },
-
       MuiInput: {
         input: {
           "&:-webkit-autofill": {
@@ -143,7 +142,7 @@ export default (colors: IThemeColors): Theme =>
         },
         head: {
           fontSize: ".875rem",
-          fontWeight: 600
+          fontWeight: 400
         },
         root: {
           "&:first-child": {
@@ -151,6 +150,7 @@ export default (colors: IThemeColors): Theme =>
             textAlign: "left" as "left"
           },
           borderBottomColor: colors.paperBorder,
+          height: 56,
           padding: "4px 24px 4px 0"
         }
       },

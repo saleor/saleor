@@ -3,6 +3,7 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import CardSpacer from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
 import Date from "../../../components/Date";
 import FormSpacer from "../../../components/FormSpacer";
@@ -27,13 +28,13 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
   <Card>
     <CardTitle title={i18n.t("Summary")} />
     <CardContent>
-      <Typography variant="body2">{i18n.t("Name")}</Typography>
+      <Typography variant="caption">{i18n.t("Name")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(() => sale.name, <Skeleton />)}
       </Typography>
       <FormSpacer />
 
-      <Typography variant="body2">{i18n.t("Value")}</Typography>
+      <Typography variant="caption">{i18n.t("Value")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(
           () =>
@@ -50,12 +51,12 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
           <Skeleton />
         )}
       </Typography>
-    </CardContent>
 
-    <Hr />
+      <CardSpacer />
+      <Hr />
+      <CardSpacer />
 
-    <CardContent>
-      <Typography variant="body2">{i18n.t("Start Date")}</Typography>
+      <Typography variant="caption">{i18n.t("Start Date")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(
           () => (
@@ -66,7 +67,7 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
       </Typography>
       <FormSpacer />
 
-      <Typography variant="body2">{i18n.t("End Date")}</Typography>
+      <Typography variant="caption">{i18n.t("End Date")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(
           () =>

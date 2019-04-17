@@ -18,8 +18,8 @@ from prices import Money
 from saleor.account.backends import BaseBackend
 from saleor.account.models import Address, User
 from saleor.checkout import utils
-from saleor.checkout.models import Cart
-from saleor.checkout.utils import add_variant_to_cart
+from saleor.checkout.models import Checkout
+from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import VoucherType
@@ -68,26 +68,26 @@ def site_settings(db, settings):
 
 
 @pytest.fixture
-def cart(db):
-    return Cart.objects.create()
+def checkout(db):
+    return Checkout.objects.create()
 
 
 @pytest.fixture
-def cart_with_item(cart, product):
+def checkout_with_item(checkout, product):
     variant = product.variants.get()
-    add_variant_to_cart(cart, variant, 3)
-    cart.save()
-    return cart
+    add_variant_to_checkout(checkout, variant, 3)
+    checkout.save()
+    return checkout
 
 
 @pytest.fixture
-def cart_with_voucher(cart, product, voucher):
+def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
-    add_variant_to_cart(cart, variant, 3)
-    cart.voucher_code = voucher.code
-    cart.discount_amount = Money('20.00', 'USD')
-    cart.save()
-    return cart
+    add_variant_to_checkout(checkout, variant, 3)
+    checkout.voucher_code = voucher.code
+    checkout.discount_amount = Money('20.00', 'USD')
+    checkout.save()
+    return checkout
 
 
 @pytest.fixture
@@ -142,19 +142,19 @@ def customer_user(address):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def request_cart(cart, monkeypatch):
+def request_checkout(checkout, monkeypatch):
     # FIXME: Fixtures should not have any side effects
     monkeypatch.setattr(
-        utils, 'get_cart_from_request',
-        lambda request, cart_queryset=None: cart)
-    return cart
+        utils, 'get_checkout_from_request',
+        lambda request, checkout_queryset=None: checkout)
+    return checkout
 
 
 @pytest.fixture
-def request_cart_with_item(product, request_cart):
+def request_checkout_with_item(product, request_checkout):
     variant = product.variants.get()
-    add_variant_to_cart(request_cart, variant)
-    return request_cart
+    add_variant_to_checkout(request_checkout, variant)
+    return request_checkout
 
 
 @pytest.fixture
@@ -832,6 +832,14 @@ def menu_item(menu):
         menu=menu,
         name='Link 1',
         url='http://example.com/')
+
+
+@pytest.fixture
+def menu_item_list(menu):
+    menu_item_1 = MenuItem.objects.create(menu=menu, name='Link 1')
+    menu_item_2 = MenuItem.objects.create(menu=menu, name='Link 2')
+    menu_item_3 = MenuItem.objects.create(menu=menu, name='Link 3')
+    return menu_item_1, menu_item_2, menu_item_3
 
 
 @pytest.fixture

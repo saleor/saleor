@@ -19939,11 +19939,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -19962,11 +19962,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -20437,11 +20437,11 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -20460,11 +20460,11 @@ exports[`Storyshots Views / Customers / Customer details different addresses 1`]
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -20913,11 +20913,11 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -20936,11 +20936,11 @@ exports[`Storyshots Views / Customers / Customer details form errors 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -21369,11 +21369,11 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <span
                 class="Skeleton-skeleton-id"
               >
@@ -21386,11 +21386,11 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <span
                 class="Skeleton-skeleton-id"
               >
@@ -21818,11 +21818,11 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -21835,11 +21835,11 @@ exports[`Storyshots Views / Customers / Customer details never logged 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -22273,11 +22273,11 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -22296,11 +22296,11 @@ exports[`Storyshots Views / Customers / Customer details never placed order 1`] 
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -22703,11 +22703,11 @@ exports[`Storyshots Views / Customers / Customer details no address at all 1`] =
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -22726,11 +22726,11 @@ exports[`Storyshots Views / Customers / Customer details no address at all 1`] =
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -23164,11 +23164,11 @@ exports[`Storyshots Views / Customers / Customer details no default billing addr
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -23187,11 +23187,11 @@ exports[`Storyshots Views / Customers / Customer details no default billing addr
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -23625,11 +23625,11 @@ exports[`Storyshots Views / Customers / Customer details no default shipping add
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last login
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -23648,11 +23648,11 @@ exports[`Storyshots Views / Customers / Customer details no default shipping add
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id CustomerStats-label-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id CustomerStats-label-id"
               >
                 Last order
-              </p>
+              </span>
               <h2
                 class="MuiTypography-root-id MuiTypography-title-id CustomerStats-value-id"
               >
@@ -25735,11 +25735,11 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Name
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -25748,28 +25748,30 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
                 30%
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Start Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -25778,11 +25780,11 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 End Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -26232,11 +26234,11 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Name
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -26245,28 +26247,30 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
                 30%
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Start Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -26275,11 +26279,11 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 End Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -26749,11 +26753,11 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Name
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -26762,28 +26766,30 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
                 30%
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Start Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -26792,11 +26798,11 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 End Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -27265,11 +27271,11 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Name
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -27282,11 +27288,11 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -27296,18 +27302,20 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
                   ‌
                 </span>
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Start Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -27320,11 +27328,11 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 End Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -28001,11 +28009,11 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Name
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -28014,28 +28022,30 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
                 30%
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Start Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -28044,11 +28054,11 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 End Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30024,11 +30034,11 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Name
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30037,11 +30047,11 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Applies to
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30050,28 +30060,30 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
                 $25.00
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Start Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30080,28 +30092,30 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 End Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
                 -
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Min. Order Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30110,11 +30124,11 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Usage Limit
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30580,11 +30594,11 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Name
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30593,11 +30607,11 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Applies to
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30606,28 +30620,30 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
                 $25.00
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Start Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30636,28 +30652,30 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 End Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
                 -
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Min. Order Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -30666,11 +30684,11 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Usage Limit
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -31121,11 +31139,11 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
             <div
               class="MuiCardContent-root-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Name
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -31138,11 +31156,11 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Applies to
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -31155,11 +31173,11 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -31169,18 +31187,20 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                   ‌
                 </span>
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Start Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -31193,11 +31213,11 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 End Date
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -31207,18 +31227,20 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                   ‌
                 </span>
               </p>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Min. Order Value
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -31231,11 +31253,11 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <div
                 class="FormSpacer-spacer-id"
               />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id"
               >
                 Usage Limit
-              </p>
+              </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
               >
@@ -57480,51 +57502,6 @@ Ctrl + K"
               <div
                 class="FormSpacer-spacer-id"
               />
-              <div
-                class="MuiFormControl-root-id SingleSelectField-formControl-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
-                >
-                  Is it configurable?
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                >
-                  <div
-                    class="MuiSelect-root-id"
-                  >
-                    <div
-                      aria-haspopup="true"
-                      aria-pressed="false"
-                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
-                      role="button"
-                    >
-                      No
-                    </div>
-                    <input
-                      name="hasVariants"
-                      type="hidden"
-                      value="false"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
               <hr
                 class="ProductOrganization-hr-id"
               />
@@ -58352,51 +58329,6 @@ Ctrl + K"
                           d="M7 10l5 5 5-5z"
                         />
                       </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="MuiFormControl-root-id SingleSelectField-formControl-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
-                >
-                  Is it configurable?
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                >
-                  <div
-                    class="MuiSelect-root-id"
-                  >
-                    <div
-                      aria-haspopup="true"
-                      aria-pressed="false"
-                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
-                      role="button"
-                    >
-                      No
-                    </div>
-                    <input
-                      name="hasVariants"
-                      type="hidden"
-                      value="false"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
                     </svg>
                   </div>
                 </div>
@@ -60801,100 +60733,40 @@ Ctrl + K"
             <div
               class="MuiCardContent-root-id"
             >
-              <div
-                class="SingleAutocompleteSelectField-container-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id ProductOrganization-label-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Product Type
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
-                      disabled=""
-                      type="text"
-                      value="Versatile"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                Product Type
+              </span>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Versatile
+              </p>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardSpacer-spacer-id"
               />
-              <div
-                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id ProductOrganization-label-id"
               >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
-                >
-                  Is it configurable?
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                >
-                  <div
-                    class="MuiSelect-root-id"
-                  >
-                    <div
-                      aria-haspopup="true"
-                      aria-pressed="false"
-                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
-                      role="button"
-                    >
-                      Yes
-                    </div>
-                    <input
-                      name="hasVariants"
-                      type="hidden"
-                      value="true"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                Product Type
+              </span>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Configurable
+              </p>
+              <div
+                class="CardSpacer-spacer-id"
+              />
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
               >
                 Attributes
               </p>
+              <hr
+                class="ProductOrganization-hr-id"
+              />
               <div
                 class="SingleAutocompleteSelectField-container-id"
               >
@@ -61880,95 +61752,29 @@ Ctrl + K"
             <div
               class="MuiCardContent-root-id"
             >
-              <div
-                class="SingleAutocompleteSelectField-container-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id ProductOrganization-label-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
-                  >
-                    Product Type
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
-                      disabled=""
-                      type="text"
-                      value=""
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                Product Type
+              </span>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                ...
+              </p>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardSpacer-spacer-id"
               />
-              <div
-                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id ProductOrganization-label-id"
               >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
-                >
-                  Is it configurable?
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                >
-                  <div
-                    class="MuiSelect-root-id"
-                  >
-                    <div
-                      aria-haspopup="true"
-                      aria-pressed="false"
-                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
-                      role="button"
-                    >
-                      No
-                    </div>
-                    <input
-                      name="hasVariants"
-                      type="hidden"
-                      value="false"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                Product Type
+              </span>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                ...
+              </p>
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -63092,100 +62898,40 @@ Ctrl + K"
             <div
               class="MuiCardContent-root-id"
             >
-              <div
-                class="SingleAutocompleteSelectField-container-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id ProductOrganization-label-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Product Type
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
-                      disabled=""
-                      type="text"
-                      value="Versatile"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                Product Type
+              </span>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Versatile
+              </p>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardSpacer-spacer-id"
               />
-              <div
-                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id ProductOrganization-label-id"
               >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
-                >
-                  Is it configurable?
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                >
-                  <div
-                    class="MuiSelect-root-id"
-                  >
-                    <div
-                      aria-haspopup="true"
-                      aria-pressed="false"
-                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
-                      role="button"
-                    >
-                      Yes
-                    </div>
-                    <input
-                      name="hasVariants"
-                      type="hidden"
-                      value="true"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                Product Type
+              </span>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Configurable
+              </p>
+              <div
+                class="CardSpacer-spacer-id"
+              />
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
               >
                 Attributes
               </p>
+              <hr
+                class="ProductOrganization-hr-id"
+              />
               <div
                 class="SingleAutocompleteSelectField-container-id"
               >
@@ -64470,100 +64216,40 @@ Ctrl + K"
             <div
               class="MuiCardContent-root-id"
             >
-              <div
-                class="SingleAutocompleteSelectField-container-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id ProductOrganization-label-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                    data-shrink="true"
-                  >
-                    Product Type
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-inputAdornedEnd-id"
-                      disabled=""
-                      type="text"
-                      value="Versatile"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                Product Type
+              </span>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Versatile
+              </p>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardSpacer-spacer-id"
               />
-              <div
-                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id ProductOrganization-label-id"
               >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
-                >
-                  Is it configurable?
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-disabled-id MuiInput-disabled-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
-                >
-                  <div
-                    class="MuiSelect-root-id"
-                  >
-                    <div
-                      aria-haspopup="true"
-                      aria-pressed="false"
-                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInputBase-input-id MuiInput-input-id MuiInputBase-disabled-id MuiInput-disabled-id"
-                      role="button"
-                    >
-                      No
-                    </div>
-                    <input
-                      name="hasVariants"
-                      type="hidden"
-                      value="false"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                Product Type
+              </span>
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Simple
+              </p>
+              <div
+                class="CardSpacer-spacer-id"
+              />
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id ProductOrganization-cardSubtitle-id"
               >
                 Attributes
               </p>
+              <hr
+                class="ProductOrganization-hr-id"
+              />
               <div
                 class="SingleAutocompleteSelectField-container-id"
               >
