@@ -428,7 +428,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
 
         with transaction.atomic():
             billing_address.save()
-            change_billing_address_in_cart(checkout, billing_address)
+            change_billing_address_in_checkout(checkout, billing_address)
         return CheckoutBillingAddressUpdate(checkout=checkout)
 
 

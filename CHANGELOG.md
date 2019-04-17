@@ -17,7 +17,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutation for bulk publishing and unpublishing collections - #3970 by @akjanik
 - Rename Cart to Checkout - #3963 by @michaljelonek
 - Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
-- Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
 - Support assigning other shipping/billing addresses in update checkout addresses API - #3808 by @jxltom
 
 
