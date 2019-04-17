@@ -22,7 +22,7 @@ import {
   ProductImageCreate,
   ProductImageCreateVariables
 } from "../types/ProductImageCreate";
-import { ProductVariantBulkDelete } from "../types/productVariantBulkDelete";
+import { ProductVariantBulkDelete } from "../types/ProductVariantBulkDelete";
 import {
   productImageUrl,
   productListUrl,
