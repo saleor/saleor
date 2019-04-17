@@ -70221,7 +70221,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id ProductList-colPublished-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id ProductList-colType-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -70230,7 +70230,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id ProductList-colType-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id ProductList-colPublished-id"
             >
               <span
                 class="Skeleton-skeleton-id"
