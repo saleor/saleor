@@ -616,7 +616,7 @@ type CustomerDelete {
 
 input CustomerFilterInput {
   dateJoined: DateRangeInput
-  moneySpent: PriceInput
+  moneySpent: PriceRangeInput
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
 }
@@ -1692,7 +1692,7 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
 }
 
-input PriceInput {
+input PriceRangeInput {
   gte: Float
   lte: Float
 }
@@ -1788,7 +1788,7 @@ input ProductFilterInput {
   isPublished: Boolean
   collections: [ID]
   categories: [ID]
-  price: PriceInput
+  price: PriceRangeInput
   attributes: [AttributeInput]
   stockAvailability: StockAvailability
   productType: ID
@@ -2068,7 +2068,7 @@ type Query {
   sale(id: ID!): Sale
   sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
-  vouchers(query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
@@ -2669,9 +2669,22 @@ type VoucherDelete {
   voucher: Voucher
 }
 
+enum VoucherDiscountType {
+  FIXED
+  PERCENTAGE
+  SHIPPING
+}
+
 enum VoucherDiscountValueType {
   FIXED
   PERCENTAGE
+}
+
+input VoucherFilterInput {
+  status: VoucherStatusEnum
+  timesUsed: IntRangeInput
+  discountType: VoucherDiscountType
+  started: DateRangeInput
 }
 
 input VoucherInput {
@@ -2692,6 +2705,12 @@ input VoucherInput {
 type VoucherRemoveCatalogues {
   errors: [Error!]
   voucher: Voucher
+}
+
+enum VoucherStatusEnum {
+  ACTIVE
+  EXPIRED
+  SCHEDULED
 }
 
 type VoucherTranslate {
