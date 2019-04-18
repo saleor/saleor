@@ -1145,20 +1145,13 @@
             &.roomLab {
               width: 100%;
               & .imageLayer {
-                background-image: image-set(
-                  url('../../images/implementation-roomLab.jpg') 1x,
-                  url('../../images/implementation-roomLab-2x.jpg') 2x,
-                  url('../../images/implementation-roomLab-3x.jpg') 3x
-                );
+                background-image: url('../../images/implementation-roomLab-2x.jpg');
               }
             }
             &.patchGarden {
+              width: 100%;
               & .imageLayer {
-                background-image: image-set(
-                  url('../../images/implementation-patchGarden.jpg') 1x,
-                  url('../../images/implementation-patchGarden-2x.jpg') 2x,
-                  url('../../images/implementation-patchGarden-3x.jpg') 3x
-                );
+                background-image: url('../../images/implementation-patchGarden-2x.jpg');
               }
               @media (max-width: 450px) {
                 & .logo {
