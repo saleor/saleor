@@ -20,14 +20,30 @@ def filter_status(qs, _, value):
 
 
 def filter_times_used(qs, _, value):
+    gte = value.get('gte')
+    lte = value.get('lte')
+    if gte:
+        qs = qs.filter(used__gte=gte)
+    if lte:
+        qs = qs.filter(used__lte=lte)
     return qs
 
 
 def filter_discount_type(qs, _, value):
+    if value in [VoucherDiscountType.PERCENTAGE, VoucherDiscountType.FIXED]:
+        qs = qs.filter(discount_value_type=value)
+    elif value == VoucherDiscountType.SHIPPING:
+        qs = qs.filter(type=value)
     return qs
 
 
 def filter_started(qs, _, value):
+    from_date = value.get('from_date')
+    to_date = value.get('to_date')
+    if from_date:
+        qs = qs.filter(start_date__gte=from_date)
+    if to_date:
+        qs = qs.filter(start_date__gte=to_date)
     return qs
 
 

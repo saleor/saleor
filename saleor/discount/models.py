@@ -37,11 +37,7 @@ class VoucherQueryset(models.QuerySet):
 
     def expired(self, date):
         return self.filter(
-            Q(usage_limit__isnull=True) | Q(used__gte=F('usage_limit')),
-            Q(end_date__isnull=True) | Q(end_date__lt=date),
-            start_date__lte=date)
-
-
+             Q(used__gte=F('usage_limit')) | Q(end_date__lt=date))
 
 
 class Voucher(models.Model):
