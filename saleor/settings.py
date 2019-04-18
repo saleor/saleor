@@ -250,7 +250,9 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'captcha']
 
-if DEBUG:
+
+ENABLE_DEBUG_TOOLBAR = get_bool_from_env('ENABLE_DEBUG_TOOLBAR', False)
+if ENABLE_DEBUG_TOOLBAR:
     MIDDLEWARE.append(
         'debug_toolbar.middleware.DebugToolbarMiddleware')
     INSTALLED_APPS.append('debug_toolbar')
