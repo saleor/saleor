@@ -19,7 +19,7 @@ import IconButtonTableCell from "../../../components/IconButtonTableCell";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection, stopPropagation } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 import { ListProps } from "../../../types";
 import { MenuList_menus_edges_node } from "../../types/MenuList";
 
