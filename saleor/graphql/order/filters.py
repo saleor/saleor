@@ -1,7 +1,7 @@
 import django_filters
 
 from ...order.models import Order
-from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
+from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import filter_by_query_param
