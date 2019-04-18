@@ -9,24 +9,20 @@ import {
   customerAddressesPath,
   CustomerAddressesUrlQueryParams,
   customerListPath,
+  CustomerListUrlQueryParams,
   customerPath,
   CustomerUrlQueryParams
 } from "./urls";
 import CustomerAddressesViewComponent from "./views/CustomerAddresses";
 import CustomerCreateView from "./views/CustomerCreate";
 import CustomerDetailsViewComponent from "./views/CustomerDetails";
-import CustomerListViewComponent, {
-  CustomerListQueryParams
-} from "./views/CustomerList";
+import CustomerListViewComponent from "./views/CustomerList";
 
 const CustomerListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: CustomerListQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: CustomerListUrlQueryParams = qs;
   return <CustomerListViewComponent params={params} />;
 };
 

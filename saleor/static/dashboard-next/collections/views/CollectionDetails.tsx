@@ -1,13 +1,16 @@
+import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
 import ActionDialog from "../../components/ActionDialog";
 import AssignProductDialog from "../../components/AssignProductDialog";
-import { createPaginationState, Paginator } from "../../components/Paginator";
+import { createPaginationState } from "../../components/Paginator";
 import { WindowTitle } from "../../components/WindowTitle";
 import { SearchProductsProvider } from "../../containers/SearchProducts";
+import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
+import usePaginator from "../../hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
@@ -40,6 +43,10 @@ export const CollectionDetails: React.StatelessComponent<
 > = ({ id, params }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
+  const paginate = usePaginator();
 
   const closeModal = () =>
     navigate(
@@ -106,6 +113,8 @@ export const CollectionDetails: React.StatelessComponent<
                 context: "notification"
               })
             });
+            reset();
+            closeModal();
           }
         };
 
@@ -116,7 +125,7 @@ export const CollectionDetails: React.StatelessComponent<
                 context: "notification"
               })
             });
-            navigate(collectionListUrl);
+            navigate(collectionListUrl());
           }
         };
         return (
@@ -188,6 +197,14 @@ export const CollectionDetails: React.StatelessComponent<
                   () => assignProduct.opts.data.collectionAddProducts.errors
                 )
               );
+              const unassignTransitionState = getMutationState(
+                unassignProduct.opts.called,
+                unassignProduct.opts.loading,
+                maybe(
+                  () =>
+                    unassignProduct.opts.data.collectionRemoveProducts.errors
+                )
+              );
               const removeTransitionState = getMutationState(
                 removeCollection.opts.called,
                 removeCollection.opts.loading,
@@ -199,53 +216,68 @@ export const CollectionDetails: React.StatelessComponent<
                 maybe(() => updateCollection.opts.data.collectionUpdate.errors)
               );
 
+              const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
+                maybe(() => data.collection.products.pageInfo),
+                paginationState,
+                params
+              );
+
               return (
                 <>
                   <WindowTitle title={maybe(() => data.collection.name)} />
-                  <Paginator
-                    pageInfo={maybe(() => data.collection.products.pageInfo)}
-                    paginationState={paginationState}
-                    queryString={params}
-                  >
-                    {({ loadNextPage, loadPreviousPage, pageInfo }) => (
-                      <CollectionDetailsPage
-                        onAdd={() => openModal("assign")}
-                        onBack={() => navigate(collectionListUrl)}
-                        disabled={loading}
-                        collection={data.collection}
-                        isFeatured={maybe(
-                          () =>
-                            data.shop.homepageCollection.id ===
-                            data.collection.id,
-                          false
-                        )}
-                        onCollectionRemove={() => openModal("remove")}
-                        onImageDelete={() => openModal("removeImage")}
-                        onImageUpload={file =>
-                          updateCollection.mutate({
-                            id,
-                            input: {
-                              backgroundImage: file
-                            }
-                          })
-                        }
-                        onSubmit={handleSubmit}
-                        onNextPage={loadNextPage}
-                        onPreviousPage={loadPreviousPage}
-                        pageInfo={pageInfo}
-                        onProductUnassign={(productId, event) => {
-                          event.stopPropagation();
-                          unassignProduct.mutate({
-                            collectionId: id,
-                            productId,
-                            ...paginationState
-                          });
-                        }}
-                        onRowClick={id => () => navigate(productUrl(id))}
-                        saveButtonBarState={formTransitionState}
-                      />
+                  <CollectionDetailsPage
+                    onAdd={() => openModal("assign")}
+                    onBack={() => navigate(collectionListUrl())}
+                    disabled={loading}
+                    collection={data.collection}
+                    isFeatured={maybe(
+                      () =>
+                        data.shop.homepageCollection.id === data.collection.id,
+                      false
                     )}
-                  </Paginator>
+                    onCollectionRemove={() => openModal("remove")}
+                    onImageDelete={() => openModal("removeImage")}
+                    onImageUpload={file =>
+                      updateCollection.mutate({
+                        id,
+                        input: {
+                          backgroundImage: file
+                        }
+                      })
+                    }
+                    onSubmit={handleSubmit}
+                    onNextPage={loadNextPage}
+                    onPreviousPage={loadPreviousPage}
+                    pageInfo={pageInfo}
+                    onProductUnassign={(productId, event) => {
+                      event.stopPropagation();
+                      unassignProduct.mutate({
+                        collectionId: id,
+                        productIds: [productId],
+                        ...paginationState
+                      });
+                    }}
+                    onRowClick={id => () => navigate(productUrl(id))}
+                    saveButtonBarState={formTransitionState}
+                    toolbar={
+                      <Button
+                        color="primary"
+                        onClick={() =>
+                          navigate(
+                            collectionUrl(id, {
+                              action: "unassign",
+                              ids: listElements
+                            })
+                          )
+                        }
+                      >
+                        {i18n.t("Unassign")}
+                      </Button>
+                    }
+                    isChecked={isSelected}
+                    selected={listElements.length}
+                    toggle={toggle}
+                  />
                   <SearchProductsProvider>
                     {(searchProducts, searchProductsOpts) => (
                       <AssignProductDialog
@@ -291,6 +323,36 @@ export const CollectionDetails: React.StatelessComponent<
                               "..."
                             ),
                             context: "modal"
+                          }
+                        )
+                      }}
+                    />
+                  </ActionDialog>
+                  <ActionDialog
+                    confirmButtonState={unassignTransitionState}
+                    onClose={closeModal}
+                    onConfirm={() =>
+                      unassignProduct.mutate({
+                        ...paginationState,
+                        collectionId: id,
+                        productIds: params.ids
+                      })
+                    }
+                    open={params.action === "unassign"}
+                    title={i18n.t("Unassign products from collection", {
+                      context: "modal title"
+                    })}
+                  >
+                    <DialogContentText
+                      dangerouslySetInnerHTML={{
+                        __html: i18n.t(
+                          "Are you sure you want to unassign <strong>{{ number }}</strong> products?",
+                          {
+                            context: "modal",
+                            number: maybe(
+                              () => params.ids.length.toString(),
+                              "..."
+                            )
                           }
                         )
                       }}

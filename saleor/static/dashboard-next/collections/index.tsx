@@ -7,23 +7,19 @@ import i18n from "../i18n";
 import {
   collectionAddPath,
   collectionListPath,
+  CollectionListUrlQueryParams,
   collectionPath,
   CollectionUrlQueryParams
 } from "./urls";
 import CollectionCreate from "./views/CollectionCreate";
 import CollectionDetailsView from "./views/CollectionDetails";
-import CollectionListView, {
-  CollectionListQueryParams
-} from "./views/CollectionList";
+import CollectionListView from "./views/CollectionList";
 
 const CollectionList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: CollectionListQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: CollectionListUrlQueryParams = qs;
   return <CollectionListView params={params} />;
 };
 

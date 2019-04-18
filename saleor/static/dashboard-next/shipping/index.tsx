@@ -8,23 +8,18 @@ import {
   shippingZoneAddPath,
   shippingZonePath,
   shippingZonesListPath,
+  ShippingZonesListUrlQueryParams,
   ShippingZoneUrlQueryParams
 } from "./urls";
 import ShippingZoneCreate from "./views/ShippingZoneCreate";
 import ShippingZoneDetailsComponent from "./views/ShippingZoneDetails";
-import ShippingZonesListComponent, {
-  ShippingZonesListQueryParams
-} from "./views/ShippingZonesList";
+import ShippingZonesListComponent from "./views/ShippingZonesList";
 
 const ShippingZonesList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: ShippingZonesListQueryParams = {
-    after: qs.after,
-    before: qs.before,
-    delete: qs.delete
-  };
+  const params: ShippingZonesListUrlQueryParams = qs;
   return <ShippingZonesListComponent params={params} />;
 };
 

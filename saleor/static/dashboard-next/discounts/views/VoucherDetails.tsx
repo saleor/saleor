@@ -1,3 +1,4 @@
+import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
@@ -12,6 +13,7 @@ import { WindowTitle } from "../../components/WindowTitle";
 import { SearchCategoriesProvider } from "../../containers/SearchCategories";
 import { SearchCollectionsProvider } from "../../containers/SearchCollections";
 import { SearchProductsProvider } from "../../containers/SearchProducts";
+import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import usePaginator from "../../hooks/usePaginator";
@@ -35,6 +37,7 @@ import {
 } from "../mutations";
 import { TypedVoucherDetails } from "../queries";
 import { VoucherCataloguesAdd } from "../types/VoucherCataloguesAdd";
+import { VoucherCataloguesRemove } from "../types/VoucherCataloguesRemove";
 import { VoucherDelete } from "../types/VoucherDelete";
 import { VoucherUpdate } from "../types/VoucherUpdate";
 import {
@@ -67,19 +70,18 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
   const paginate = usePaginator();
   const notify = useNotifier();
   const shop = useShop();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
-  const changeTab = (tab: VoucherDetailsPageTab) =>
+  const changeTab = (tab: VoucherDetailsPageTab) => {
+    reset();
     navigate(
       voucherUrl(id, {
         activeTab: tab
       })
     );
-
-  const handleCatalogueAdd = (data: VoucherCataloguesAdd) => {
-    if (data.voucherCataloguesAdd.errors.length === 0) {
-      closeModal();
-    }
   };
 
   const handleVoucherDelete = (data: VoucherDelete) => {
@@ -89,7 +91,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
           context: "notification"
         })
       });
-      navigate(voucherListUrl, true);
+      navigate(voucherListUrl(), true);
     }
   };
 
@@ -113,16 +115,30 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
       true
     );
 
-  const openModal = (action: VoucherUrlDialog) =>
+  const openModal = (action: VoucherUrlDialog, ids?: string[]) =>
     navigate(
       voucherUrl(id, {
         ...params,
-        action
+        action,
+        ids
       })
     );
 
+  const handleCatalogueAdd = (data: VoucherCataloguesAdd) => {
+    if (data.voucherCataloguesAdd.errors.length === 0) {
+      closeModal();
+    }
+  };
+
+  const handleCatalogueRemove = (data: VoucherCataloguesRemove) => {
+    if (data.voucherCataloguesRemove.errors.length === 0) {
+      closeModal();
+      reset();
+    }
+  };
+
   return (
-    <TypedVoucherCataloguesRemove>
+    <TypedVoucherCataloguesRemove onCompleted={handleCatalogueRemove}>
       {(voucherCataloguesRemove, voucherCataloguesRemoveOpts) => (
         <TypedVoucherCataloguesAdd onCompleted={handleCatalogueAdd}>
           {(voucherCataloguesAdd, voucherCataloguesAddOpts) => (
@@ -158,6 +174,15 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                 .errors
                           )
                         );
+                        const unassignTransitionState = getMutationState(
+                          voucherCataloguesRemoveOpts.called,
+                          voucherCataloguesRemoveOpts.loading,
+                          maybe(
+                            () =>
+                              voucherCataloguesRemoveOpts.data
+                                .voucherCataloguesRemove.errors
+                          )
+                        );
                         const removeTransitionState = getMutationState(
                           voucherDeleteOpts.called,
                           voucherDeleteOpts.loading,
@@ -165,6 +190,39 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                             () => voucherDeleteOpts.data.voucherDelete.errors
                           )
                         );
+
+                        const handleCategoriesUnassign = (ids: string[]) =>
+                          voucherCataloguesRemove({
+                            variables: {
+                              ...paginationState,
+                              id,
+                              input: {
+                                categories: ids
+                              }
+                            }
+                          });
+
+                        const handleCollectionsUnassign = (ids: string[]) =>
+                          voucherCataloguesRemove({
+                            variables: {
+                              ...paginationState,
+                              id,
+                              input: {
+                                collections: ids
+                              }
+                            }
+                          });
+
+                        const handleProductsUnassign = (ids: string[]) =>
+                          voucherCataloguesRemove({
+                            variables: {
+                              ...paginationState,
+                              id,
+                              input: {
+                                products: ids
+                              }
+                            }
+                          });
 
                         const {
                           loadNextPage,
@@ -258,7 +316,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               onProductClick={id => () =>
                                 navigate(productUrl(id))}
                               activeTab={params.activeTab}
-                              onBack={() => navigate(voucherListUrl)}
+                              onBack={() => navigate(voucherListUrl())}
                               onTabClick={changeTab}
                               onSubmit={formData =>
                                 voucherUpdate({
@@ -284,6 +342,42 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               }
                               onRemove={() => openModal("remove")}
                               saveButtonBarState={formTransitionState}
+                              categoryListToolbar={
+                                <Button
+                                  color="primary"
+                                  onClick={() =>
+                                    openModal("unassign-category", listElements)
+                                  }
+                                >
+                                  {i18n.t("Unassign")}
+                                </Button>
+                              }
+                              collectionListToolbar={
+                                <Button
+                                  color="primary"
+                                  onClick={() =>
+                                    openModal(
+                                      "unassign-collection",
+                                      listElements
+                                    )
+                                  }
+                                >
+                                  {i18n.t("Unassign")}
+                                </Button>
+                              }
+                              productListToolbar={
+                                <Button
+                                  color="primary"
+                                  onClick={() =>
+                                    openModal("unassign-product", listElements)
+                                  }
+                                >
+                                  {i18n.t("Unassign")}
+                                </Button>
+                              }
+                              isChecked={isSelected}
+                              selected={listElements.length}
+                              toggle={toggle}
                             />
                             <SearchCategoriesProvider>
                               {(searchCategories, searchCategoriesOpts) => (
@@ -403,6 +497,75 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                 />
                               )}
                             </SearchProductsProvider>
+                            <ActionDialog
+                              open={params.action === "unassign-category"}
+                              title={i18n.t("Unassign Categories From Sale")}
+                              confirmButtonState={unassignTransitionState}
+                              onClose={closeModal}
+                              onConfirm={() =>
+                                handleCategoriesUnassign(params.ids)
+                              }
+                            >
+                              <DialogContentText
+                                dangerouslySetInnerHTML={{
+                                  __html: i18n.t(
+                                    "Are you sure you want to unassign <strong>{{ saleName }}</strong> categories?",
+                                    {
+                                      saleName: maybe(
+                                        () => params.ids.length.toString(),
+                                        "..."
+                                      )
+                                    }
+                                  )
+                                }}
+                              />
+                            </ActionDialog>
+                            <ActionDialog
+                              open={params.action === "unassign-collection"}
+                              title={i18n.t("Unassign Collections From Sale")}
+                              confirmButtonState={unassignTransitionState}
+                              onClose={closeModal}
+                              onConfirm={() =>
+                                handleCollectionsUnassign(params.ids)
+                              }
+                            >
+                              <DialogContentText
+                                dangerouslySetInnerHTML={{
+                                  __html: i18n.t(
+                                    "Are you sure you want to unassign <strong>{{ saleName }}</strong> collections?",
+                                    {
+                                      saleName: maybe(
+                                        () => params.ids.length.toString(),
+                                        "..."
+                                      )
+                                    }
+                                  )
+                                }}
+                              />
+                            </ActionDialog>
+                            <ActionDialog
+                              open={params.action === "unassign-product"}
+                              title={i18n.t("Unassign Products From Sale")}
+                              confirmButtonState={unassignTransitionState}
+                              onClose={closeModal}
+                              onConfirm={() =>
+                                handleProductsUnassign(params.ids)
+                              }
+                            >
+                              <DialogContentText
+                                dangerouslySetInnerHTML={{
+                                  __html: i18n.t(
+                                    "Are you sure you want to unassign <strong>{{ saleName }}</strong> products?",
+                                    {
+                                      saleName: maybe(
+                                        () => params.ids.length.toString(),
+                                        "..."
+                                      )
+                                    }
+                                  )
+                                }}
+                              />
+                            </ActionDialog>
                             <ActionDialog
                               open={params.action === "remove"}
                               title={i18n.t("Remove Voucher")}

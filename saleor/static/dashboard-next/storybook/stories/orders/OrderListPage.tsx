@@ -2,7 +2,7 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import { Filter } from "../../../components/TableFilter/";
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import OrderListPage from "../../../orders/components/OrderListPage";
 import { orders } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
@@ -27,6 +27,7 @@ storiesOf("Views / Orders / Order list", module)
   .add("default", () => (
     <OrderListPage
       orders={orders}
+      {...listActionsProps}
       {...pageListProps.default}
       filtersList={[]}
       onAllProducts={() => undefined}
@@ -39,6 +40,7 @@ storiesOf("Views / Orders / Order list", module)
   .add("with custom filters", () => (
     <OrderListPage
       orders={orders}
+      {...listActionsProps}
       {...pageListProps.loading}
       filtersList={filtersList}
       currentTab="custom"
@@ -51,6 +53,7 @@ storiesOf("Views / Orders / Order list", module)
   .add("loading", () => (
     <OrderListPage
       orders={undefined}
+      {...listActionsProps}
       {...pageListProps.loading}
       filtersList={undefined}
       currentTab={undefined}
@@ -63,6 +66,7 @@ storiesOf("Views / Orders / Order list", module)
   .add("when no data", () => (
     <OrderListPage
       orders={[]}
+      {...listActionsProps}
       {...pageListProps.default}
       filtersList={[]}
       currentTab="all"

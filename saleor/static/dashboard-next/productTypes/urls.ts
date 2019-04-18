@@ -1,13 +1,18 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { Dialog, SingleAction } from "../types";
+import { BulkAction, Dialog, Pagination, SingleAction } from "../types";
 import { AttributeTypeEnum } from "../types/globalTypes";
 
 const productTypeSection = "/product-types/";
 
 export const productTypeListPath = productTypeSection;
-export const productTypeListUrl = productTypeListPath;
+export type ProductTypeListUrlDialog = "remove";
+export type ProductTypeListUrlQueryParams = BulkAction &
+  Dialog<ProductTypeListUrlDialog> &
+  Pagination;
+export const productTypeListUrl = (params?: ProductTypeListUrlQueryParams) =>
+  productTypeListPath + "?" + stringifyQs(params);
 
 export const productTypeAddPath = urlJoin(productTypeSection, "add");
 export const productTypeAddUrl = productTypeAddPath;
