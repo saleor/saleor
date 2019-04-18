@@ -79,7 +79,7 @@ class Image(graphene.ObjectType):
         return Image(url, alt)
 
 
-class PriceInput(graphene.InputObjectType):
+class PriceRangeInput(graphene.InputObjectType):
     gte = graphene.Float(
         description='Price greater than or equal', required=False)
     lte = graphene.Float(

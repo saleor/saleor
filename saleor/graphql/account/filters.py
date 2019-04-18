@@ -3,7 +3,7 @@ from django.db.models import Count, Sum
 
 from ...account.models import User
 from ..core.filters import ObjectTypeFilter
-from ..core.types.common import DateRangeInput, IntRangeInput, PriceInput
+from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
 
 
 def filter_date_joined(qs, _, value):
@@ -53,7 +53,7 @@ class CustomerFilter(django_filters.FilterSet):
         input_class=DateRangeInput, method=filter_date_joined
     )
     money_spent = ObjectTypeFilter(
-        input_class=PriceInput, method=filter_money_spent
+        input_class=PriceRangeInput, method=filter_money_spent
     )
     number_of_orders = ObjectTypeFilter(
         input_class=IntRangeInput, method=filter_number_of_orders
