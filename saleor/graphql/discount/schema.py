@@ -1,7 +1,8 @@
 import graphene
 from graphql_jwt.decorators import permission_required
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import (
+    FilterInputConnectionField, PrefetchingConnectionField)
 from ..core.types import FilterInputObjectType
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
@@ -30,7 +31,7 @@ class DiscountQueries(graphene.ObjectType):
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a voucher by ID.')
-    vouchers = PrefetchingConnectionField(
+    vouchers = FilterInputConnectionField(
         Voucher, filter=VoucherFilterInput(),
         query=graphene.String(
             description='Search vouchers by name or code.'),
