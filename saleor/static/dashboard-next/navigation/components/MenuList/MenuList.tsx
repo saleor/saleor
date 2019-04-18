@@ -15,13 +15,13 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
+import IconButtonTableCell from "../../../components/IconButtonTableCell";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection, stopPropagation } from "../../../misc";
 import { ListProps } from "../../../types";
 import { MenuList_menus_edges_node } from "../../types/MenuList";
-import IconButtonTableCell from "../../../components/IconButtonTableCell";
 
 export interface MenuListProps extends ListProps {
   menus: MenuList_menus_edges_node[];
