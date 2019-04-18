@@ -29,7 +29,7 @@ const styles = (theme: Theme) =>
       borderRadius: "100%",
       display: "grid",
       float: "left",
-      height: 37,
+      height: 47,
       justifyContent: "center",
       marginRight: theme.spacing.unit * 1 + "px",
       width: 37
@@ -135,7 +135,7 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
             ),
             () => (
               <TableRow>
-                <TableCell colSpan={2}>
+                <TableCell colSpan={3}>
                   {i18n.t("No staff members found")}
                 </TableCell>
               </TableRow>

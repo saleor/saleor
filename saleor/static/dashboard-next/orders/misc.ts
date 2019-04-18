@@ -1,9 +1,11 @@
 import { empty, only } from "../misc";
 import { OrderStatusFilter } from "../types/globalTypes";
 import { OrderListFilterTabs } from "./components/OrderListFilter";
-import { OrderListQueryParams } from "./views/OrderList";
+import { OrderListUrlQueryParams } from "./urls";
 
-export const getTabName = (qs: OrderListQueryParams): OrderListFilterTabs => {
+export const getTabName = (
+  qs: OrderListUrlQueryParams
+): OrderListFilterTabs => {
   const filters = {
     status: qs.status
   };

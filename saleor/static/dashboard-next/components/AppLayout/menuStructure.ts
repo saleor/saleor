@@ -33,12 +33,12 @@ const menuStructure: IMenuItem[] = [
       {
         ariaLabel: "categories",
         label: i18n.t("Categories", { context: "Menu label" }),
-        url: categoryListUrl
+        url: categoryListUrl()
       },
       {
         ariaLabel: "collections",
         label: i18n.t("Collections", { context: "Menu label" }),
-        url: collectionListUrl
+        url: collectionListUrl()
       }
     ],
     label: i18n.t("Catalogue", { context: "Menu label" }),
@@ -67,7 +67,7 @@ const menuStructure: IMenuItem[] = [
     ariaLabel: "customers",
     label: i18n.t("Customers", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_USERS,
-    url: customerListUrl
+    url: customerListUrl()
   },
 
   {
@@ -76,12 +76,12 @@ const menuStructure: IMenuItem[] = [
       {
         ariaLabel: "sales",
         label: i18n.t("Sales", { context: "Menu label" }),
-        url: saleListUrl
+        url: saleListUrl()
       },
       {
         ariaLabel: "vouchers",
         label: i18n.t("Vouchers", { context: "Menu label" }),
-        url: voucherListUrl
+        url: voucherListUrl()
       }
     ],
     label: i18n.t("Discounts", { context: "Menu label" }),

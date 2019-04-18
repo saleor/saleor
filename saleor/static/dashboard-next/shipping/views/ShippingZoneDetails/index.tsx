@@ -71,7 +71,7 @@ const ShippingZoneDetails: React.StatelessComponent<
       notify({
         text: i18n.t("Successfully deleted shipping zone")
       });
-      navigate(shippingZonesListUrl);
+      navigate(shippingZonesListUrl(), true);
     }
   };
 
@@ -142,7 +142,7 @@ const ShippingZoneDetails: React.StatelessComponent<
                     () =>
                       ops.shippingZoneUpdate.opts.data.shippingZoneUpdate.errors
                   )}
-                  onBack={() => navigate(shippingZonesListUrl)}
+                  onBack={() => navigate(shippingZonesListUrl())}
                   onCountryAdd={() =>
                     navigate(
                       shippingZoneUrl(id, {

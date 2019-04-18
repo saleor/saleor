@@ -6,11 +6,14 @@ import SaleDetailsPage, {
   SaleDetailsPageTab
 } from "../../../discounts/components/SaleDetailsPage";
 import { sale } from "../../../discounts/fixtures";
+import { listActionsProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 import { formError } from "../../misc";
 
 const props: SaleDetailsPageProps = {
   activeTab: SaleDetailsPageTab.categories,
+  categoryListToolbar: null,
+  collectionListToolbar: null,
   defaultCurrency: "USD",
   disabled: false,
   errors: [],
@@ -33,8 +36,10 @@ const props: SaleDetailsPageProps = {
     hasNextPage: true,
     hasPreviousPage: false
   },
+  productListToolbar: null,
   sale,
-  saveButtonBarState: "default"
+  saveButtonBarState: "default",
+  ...listActionsProps
 };
 
 storiesOf("Views / Discounts / Sale details", module)

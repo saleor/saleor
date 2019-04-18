@@ -5,10 +5,11 @@ import CustomerListPage, {
   CustomerListPageProps
 } from "../../../customers/components/CustomerListPage";
 import { customerList } from "../../../customers/fixtures";
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
 const props: CustomerListPageProps = {
+  ...listActionsProps,
   ...pageListProps.default,
   customers: customerList
 };

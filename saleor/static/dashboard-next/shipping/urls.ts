@@ -1,13 +1,20 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { Dialog, SingleAction } from "../types";
+import { BulkAction, Dialog, Pagination, SingleAction } from "../types";
 import { ShippingMethodTypeEnum } from "../types/globalTypes";
 
 export const shippingSection = "/shipping/";
 
 export const shippingZonesListPath = shippingSection;
-export const shippingZonesListUrl = shippingZonesListPath;
+export type ShippingZonesListUrlDialog = "remove" | "remove-many";
+export type ShippingZonesListUrlQueryParams = BulkAction &
+  Dialog<ShippingZonesListUrlDialog> &
+  Pagination &
+  SingleAction;
+export const shippingZonesListUrl = (
+  params?: ShippingZonesListUrlQueryParams
+) => shippingZonesListPath + "?" + stringifyQs(params);
 
 export const shippingZonePath = (id: string) =>
   urlJoin(shippingZonesListPath, id);

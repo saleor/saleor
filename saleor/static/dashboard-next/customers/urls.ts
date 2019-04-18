@@ -1,12 +1,17 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { Dialog, SingleAction } from "../types";
+import { BulkAction, Dialog, Pagination, SingleAction } from "../types";
 
 export const customerSection = "/customers/";
 
 export const customerListPath = customerSection;
-export const customerListUrl = customerListPath;
+export type CustomerListUrlDialog = "remove";
+export type CustomerListUrlQueryParams = BulkAction &
+  Dialog<CustomerListUrlDialog> &
+  Pagination;
+export const customerListUrl = (params?: CustomerListUrlQueryParams) =>
+  customerListPath + "?" + stringifyQs(params);
 
 export const customerPath = (id: string) => urlJoin(customerSection, id);
 export type CustomerUrlDialog = "remove";

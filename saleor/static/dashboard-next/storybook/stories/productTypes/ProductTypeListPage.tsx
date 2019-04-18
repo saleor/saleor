@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import ProductTypeListPage from "../../../productTypes/components/ProductTypeListPage";
 import { productTypes } from "../../../productTypes/fixtures";
 import Decorator from "../../Decorator";
@@ -12,6 +12,7 @@ storiesOf("Views / Product types / Product types list", module)
     <ProductTypeListPage
       onBack={() => undefined}
       productTypes={productTypes}
+      {...listActionsProps}
       {...pageListProps.default}
     />
   ))
@@ -19,6 +20,7 @@ storiesOf("Views / Product types / Product types list", module)
     <ProductTypeListPage
       onBack={() => undefined}
       productTypes={undefined}
+      {...listActionsProps}
       {...pageListProps.loading}
     />
   ));

@@ -33,18 +33,29 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
   const notify = useNotifier();
   const paginate = usePaginator();
 
+  const closeModal = () =>
+    navigate(
+      staffListUrl({
+        ...params,
+        action: undefined,
+        ids: undefined
+      }),
+      true
+    );
+
   const paginationState = createPaginationState(PAGINATE_BY, params);
   return (
     <TypedStaffListQuery displayLoader variables={paginationState}>
       {({ data, loading }) => {
         const handleStaffMemberAddSuccess = (data: StaffMemberAdd) => {
-          if (!maybe(() => data.staffCreate.errors.length)) {
+          if (data.staffCreate.errors.length === 0) {
             notify({
               text: i18n.t("Succesfully added staff member")
             });
             navigate(staffMemberDetailsUrl(data.staffCreate.user.id));
           }
         };
+
         return (
           <TypedStaffMemberAddMutation
             onCompleted={handleStaffMemberAddSuccess}
@@ -75,6 +86,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                 paginationState,
                 params
               );
+
               return (
                 <>
                   <StaffListPage
@@ -102,7 +114,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                       []
                     )}
                     open={params.action === "add"}
-                    onClose={() => navigate(staffListUrl())}
+                    onClose={closeModal}
                     onConfirm={handleStaffMemberAdd}
                   />
                 </>

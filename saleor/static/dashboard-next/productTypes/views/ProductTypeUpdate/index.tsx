@@ -101,7 +101,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                     context: "notification"
                   })
                 });
-                navigate(productTypeListUrl);
+                navigate(productTypeListUrl(), true);
               }
             };
             const handleProductTypeUpdateSuccess = (
@@ -258,7 +258,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                             })
                           )
                         }
-                        onBack={() => navigate(productTypeListUrl)}
+                        onBack={() => navigate(productTypeListUrl())}
                         onDelete={() =>
                           navigate(
                             productTypeUrl(id, {
