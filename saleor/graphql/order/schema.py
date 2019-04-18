@@ -12,7 +12,7 @@ from .bulk_mutations.draft_orders import (
     DraftOrderBulkDelete, DraftOrderLinesBulkDelete)
 from .bulk_mutations.orders import OrderBulkCancel
 from .enums import OrderStatusFilter
-from .filters import OrderFilter
+from .filters import DraftOrderFilter, OrderFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
     DraftOrderLineDelete, DraftOrderLinesCreate, DraftOrderLineUpdate,
@@ -33,6 +33,11 @@ class OrderFilterInput(FilterInputObjectType):
         filterset_class = OrderFilter
 
 
+class OrderDraftFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = DraftOrderFilter
+
+
 class OrderQueries(graphene.ObjectType):
     homepage_events = PrefetchingConnectionField(
         OrderEvent, description=dedent('''List of activity events to display on
@@ -50,8 +55,9 @@ class OrderQueries(graphene.ObjectType):
         status=graphene.Argument(
             OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
-    draft_orders = PrefetchingConnectionField(
+    draft_orders = FilterInputConnectionField(
         Order,
+        filter=OrderDraftFilterInput(),
         query=graphene.String(description=DESCRIPTIONS['order']),
         created=graphene.Argument(
             ReportingPeriod,

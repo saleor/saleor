@@ -39,6 +39,22 @@ def orders_query_with_filter():
     """
     return query
 
+
+@pytest.fixture
+def draft_orders_query_with_filter():
+    query = """
+      query ($filter: OrderDraftFilterInput!, ) {
+        draftOrders(first: 5, filter:$filter) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    """
+    return query
+
 @pytest.fixture
 def orders(customer_user):
     return Order.objects.bulk_create([
@@ -1629,3 +1645,71 @@ def test_order_query_with_filter_customer_fields(
 
     assert len(orders) == 1
     assert orders[0]['node']['id'] == order_id
+
+
+@pytest.mark.parametrize('orders_filter, user_field, user_value', [
+        ({'customer': 'admin'}, 'email', 'admin@example.com'),
+        (
+            {'customer': 'John'},
+            'first_name',
+            'johnny'
+        ),
+        (
+            {'customer': 'Snow'},
+            'last_name',
+            'snow'
+        ),
+    ]
+)
+def test_draft_order_query_with_filter_customer_fields(
+        orders_filter, user_field, user_value, draft_orders_query_with_filter,
+        staff_api_client, permission_manage_orders,
+        customer_user):
+    setattr(customer_user, user_field, user_value)
+    customer_user.save()
+    customer_user.refresh_from_db()
+
+    order = Order(
+        status=OrderStatus.DRAFT, user=customer_user, token=str(uuid.uuid4()))
+    Order.objects.bulk_create([
+        order,
+        Order(token=str(uuid.uuid4()), status=OrderStatus.DRAFT)
+    ])
+
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        draft_orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['draftOrders']['edges']
+    order_id = graphene.Node.to_global_id('Order', order.pk)
+
+    assert len(orders) == 1
+    assert orders[0]['node']['id'] == order_id
+
+                
+@pytest.mark.parametrize('orders_filter, count', [
+    (
+      {
+        'created': {'fromDate': str(date.today() - timedelta(days=3)),
+                    'toDate': str(date.today())}}, 1
+    ),
+    ({'created': {'fromDate': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'toDate': str(date.today())}}, 2),
+    ({'created': {'toDate': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'fromDate': str(date.today() + timedelta(days=1))}}, 0),
+])
+def test_order_query_with_filter_created(
+        orders_filter, count, draft_orders_query_with_filter, staff_api_client,
+        permission_manage_orders):
+    Order.objects.create(status=OrderStatus.DRAFT)
+    with freeze_time("2012-01-14"):
+        Order.objects.create(status=OrderStatus.DRAFT)
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        draft_orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['draftOrders']['edges']
+
+    assert len(orders) == count

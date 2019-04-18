@@ -43,7 +43,18 @@ def filter_created_range(qs, _, value):
     return qs
 
 
-class OrderFilter(django_filters.FilterSet):
+class DraftOrderFilter(django_filters.FilterSet):
+    customer = django_filters.CharFilter(method=filter_customer)
+    created = ObjectTypeFilter(
+        input_class=DateRangeInput, method=filter_created_range
+    )
+
+    class Meta:
+        model = Order
+        fields = ["customer", "created"]
+
+
+class OrderFilter(DraftOrderFilter):
     payment_status = EnumFilter(
         input_class=PaymentChargeStatusEnum, method=filter_payment_status
     )
