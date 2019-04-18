@@ -80,5 +80,12 @@ class Image(graphene.ObjectType):
 
 
 class PriceInput(graphene.InputObjectType):
-    gte = graphene.Float(description='Minimal price', required=False)
-    lte = graphene.Float(description='Maximal price', required=False)
+    gte = graphene.Float(
+        description='Price greater than or equal', required=False)
+    lte = graphene.Float(
+        description='Price less than or equal', required=False)
+
+
+class DateRangeInput(graphene.InputObjectType):
+    from_date = graphene.Date(description='Starting date from', required=False)
+    to_date = graphene.Date(description='To date', required=False)
