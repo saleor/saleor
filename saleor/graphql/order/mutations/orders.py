@@ -82,6 +82,7 @@ class OrderUpdate(DraftOrderUpdate):
     class Meta:
         description = 'Updates an order.'
         model = models.Order
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -112,10 +113,7 @@ class OrderUpdateShipping(BaseMutation):
 
     class Meta:
         description = 'Updates a shipping method of the order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -172,10 +170,7 @@ class OrderAddNote(BaseMutation):
 
     class Meta:
         description = 'Adds note to the order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -201,10 +196,7 @@ class OrderCancel(BaseMutation):
 
     class Meta:
         description = 'Cancel an order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, restock, **data):
@@ -232,10 +224,7 @@ class OrderMarkAsPaid(BaseMutation):
 
     class Meta:
         description = 'Mark order as manually paid.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -260,10 +249,7 @@ class OrderCapture(BaseMutation):
 
     class Meta:
         description = 'Capture an order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, amount, **data):
@@ -297,10 +283,7 @@ class OrderVoid(BaseMutation):
 
     class Meta:
         description = 'Void an order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -329,10 +312,7 @@ class OrderRefund(BaseMutation):
 
     class Meta:
         description = 'Refund an order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, amount, **data):

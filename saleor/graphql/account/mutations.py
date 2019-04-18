@@ -122,10 +122,7 @@ class CustomerCreate(ModelMutation, I18nMixin):
         description = 'Creates a new customer.'
         exclude = ['password']
         model = models.User
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
+        permissions = ('account.manage_users', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -189,7 +186,7 @@ class LoggedUserUpdate(CustomerCreate):
         model = models.User
 
     @classmethod
-    def user_is_allowed(cls, user):
+    def check_permissions(cls, user):
         return user.is_authenticated
 
     @classmethod
@@ -208,14 +205,11 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Meta:
         description = 'Deletes a customer.'
         model = models.User
+        permissions = ('account.manage_users', )
 
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a customer to delete.')
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
 
 
 class StaffCreate(ModelMutation):
@@ -228,10 +222,7 @@ class StaffCreate(ModelMutation):
         description = 'Creates a new staff user.'
         exclude = ['password']
         model = models.User
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_staff')
+        permissions = ('account.manage_staff', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -267,6 +258,7 @@ class StaffUpdate(StaffCreate):
         description = 'Updates an existing staff user.'
         exclude = ['password']
         model = models.User
+        permissions = ('account.manage_staff', )
 
     @classmethod
     def clean_is_active(cls, is_active, instance, user):
@@ -291,18 +283,15 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
         description = 'Deletes a staff user.'
         model = models.User
+        permissions = ('account.manage_staff', )
 
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a staff user to delete.')
 
     @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_staff')
-
-    @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.user_is_allowed(info.context.user):
+        if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
         user_id = data.get('id')
@@ -357,10 +346,7 @@ class PasswordReset(BaseMutation):
 
     class Meta:
         description = 'Sends password reset email'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
+        permissions = ('account.manage_users', )
 
     @classmethod
     def perform_mutation(cls, _root, info, email):
@@ -415,6 +401,7 @@ class AddressCreate(ModelMutation):
     class Meta:
         description = 'Creates user address'
         model = models.Address
+        permissions = ('account.manage_users', )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -426,10 +413,6 @@ class AddressCreate(ModelMutation):
             user.addresses.add(response.address)
             response.user = user
         return response
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
 
 
 class AddressUpdate(ModelMutation):
@@ -449,7 +432,7 @@ class AddressUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        # Method user_is_allowed cannot be used for permission check, because
+        # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
@@ -477,7 +460,7 @@ class AddressDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        # Method user_is_allowed cannot be used for permission check, because
+        # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
@@ -485,7 +468,7 @@ class AddressDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.user_is_allowed(info.context.user):
+        if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
         node_id = data.get('id')
@@ -531,10 +514,7 @@ class AddressSetDefault(BaseMutation):
 
     class Meta:
         description = 'Sets a default address for the given user.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('account.manage_users')
+        permissions = ('account.manage_users', )
 
     @classmethod
     def perform_mutation(cls, _root, info, address_id, user_id, **data):
@@ -572,7 +552,7 @@ class CustomerAddressCreate(ModelMutation):
         exclude = ['user_addresses']
 
     @classmethod
-    def user_is_allowed(cls, user):
+    def check_permissions(cls, user):
         return user.is_authenticated
 
     @classmethod
@@ -606,7 +586,7 @@ class CustomerSetDefaultAddress(BaseMutation):
         description = 'Sets a default address for the authenticated user.'
 
     @classmethod
-    def user_is_allowed(cls, user):
+    def check_permissions(cls, user):
         return user.is_authenticated
 
     @classmethod
