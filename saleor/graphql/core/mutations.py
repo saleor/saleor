@@ -179,9 +179,9 @@ class BaseMutation(graphene.Mutation):
 
         Default implementation assumes that user is allowed to perform any
         mutation. By overriding this method or defining required permissions
-        in the meta-class, you can restrict access to it. `user` is
-        the User instance associated with the request and `input` is
-        the input data provided as mutation arguments.
+        in the meta-class, you can restrict access to it.
+
+        The `user` parameter is the User instance associated with the request.
         """
         if cls._meta.permissions:
             return user.has_perms(cls._meta.permissions)
