@@ -35,6 +35,25 @@ def query_vouchers_with_filter():
     """
     return query
 
+
+@pytest.fixture
+def query_sales_with_filter():
+    query = """
+    query ($filter: SaleFilterInput!, ) {
+      sales(first:5, filter: $filter){
+        edges{
+          node{
+            id
+            name
+            startDate
+          }
+        }
+      }
+    }
+    """
+    return query
+
+
 @pytest.fixture
 def sale():
     return Sale.objects.create(name='Sale', value=123)
@@ -731,4 +750,133 @@ def test_query_vouchers_with_filter_discount_type(
         permissions=[permission_manage_discounts])
     content = get_graphql_content(response)
     data = content['data']['vouchers']['edges']
+    assert len(data) == count
+
+
+@pytest.mark.parametrize('voucher_filter, count', [
+    ({'search': "Big"}, 1),
+    ({'search': "GIFT"}, 2),
+])
+def test_query_vouchers_with_filter_search(
+        voucher_filter, count, staff_api_client, query_vouchers_with_filter,
+        permission_manage_discounts):
+    Voucher.objects.bulk_create(
+        [
+            Voucher(
+                name='The Biggest Voucher', discount_value=123, code='GIFT'),
+            Voucher(
+                name='Voucher2', discount_value=123, code='GIFT-COUPON')
+        ]
+    )
+    variables = {'filter': voucher_filter}
+    response = staff_api_client.post_graphql(
+        query_vouchers_with_filter, variables,
+        permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['vouchers']['edges']
+    assert len(data) == count
+
+
+@pytest.mark.parametrize('sale_filter, start_date, end_date, count', [
+    ({'status': 'ACTIVE'}, date(2015, 1, 1), date(2020, 1, 1), 2),
+    ({'status': 'EXPIRED'}, date(2015, 1, 1), date(2018, 1, 1), 1),
+    (
+      {'status': 'SCHEDULED'},
+      date.today() + timedelta(days=3),
+      date.today() + timedelta(days=10), 1
+    ),
+])
+def test_query_sales_with_filter_status(
+        sale_filter, start_date, end_date, count, staff_api_client,
+        query_sales_with_filter, permission_manage_discounts):
+    Sale.objects.bulk_create(
+        [
+            Sale(
+                name='Sale1', value=123, start_date=date.today()),
+            Sale(
+                name='Sale2', value=123, start_date=start_date,
+                end_date=end_date)
+        ]
+    )
+    variables = {'filter': sale_filter}
+    response = staff_api_client.post_graphql(
+        query_sales_with_filter, variables,
+        permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['sales']['edges']
+    assert len(data) == count
+
+
+@pytest.mark.parametrize('sale_filter, count, sale_type', [
+    ({'saleType': 'PERCENTAGE'}, 1, DiscountValueType.PERCENTAGE),
+    ({'saleType': 'FIXED'}, 2, DiscountValueType.FIXED)])
+def test_query_sales_with_filter_discount_type(
+        sale_filter, count, sale_type, staff_api_client,
+        query_sales_with_filter, permission_manage_discounts):
+    Sale.objects.bulk_create(
+        [
+            Sale(
+                name='Sale1', value=123, type=DiscountValueType.FIXED),
+            Sale(
+                name='Sale2', value=123, type=sale_type)
+        ]
+    )
+    variables = {'filter': sale_filter}
+    response = staff_api_client.post_graphql(
+        query_sales_with_filter, variables,
+        permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['sales']['edges']
+    assert len(data) == count
+
+
+@pytest.mark.parametrize('sale_filter, count', [
+    ({'started': {'fromDate': '2019-04-18'}}, 1),
+    ({'started': {'toDate': '2012-01-14'}}, 1),
+    ({'started': {'toDate': '2012-01-15', 'fromDate': '2012-01-01'}}, 1),
+    ({'started': {'fromDate': '2012-01-03'}}, 2),
+])
+def test_query_sales_with_filter_started(
+        sale_filter, count, staff_api_client, query_sales_with_filter,
+        permission_manage_discounts):
+    Sale.objects.bulk_create(
+        [
+            Sale(name='Sale1', value=123),
+            Sale(name='Sale2', value=123, start_date=date(2012, 1, 5))
+        ]
+    )
+    variables = {'filter': sale_filter}
+    response = staff_api_client.post_graphql(
+        query_sales_with_filter, variables,
+        permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['sales']['edges']
+    assert len(data) == count
+
+
+@pytest.mark.parametrize('sale_filter, count', [
+    ({'search': 'Big'}, 1),
+    ({'search': '69'}, 1),
+    ({'search': 'FIX'}, 2),
+])
+def test_query_sales_with_filter_search(
+        sale_filter, count, staff_api_client, query_sales_with_filter,
+        permission_manage_discounts):
+    Sale.objects.bulk_create(
+        [
+            Sale(name='BigSale', value=123, type='PERCENTAGE'),
+            Sale(
+                name='Sale2', value=123, type='FIXED',
+                start_date=date(2012, 1, 5)),
+            Sale(
+                name='Sale3', value=69, type='FIXED',
+                start_date=date(2012, 1, 5))
+        ]
+    )
+    variables = {'filter': sale_filter}
+    response = staff_api_client.post_graphql(
+        query_sales_with_filter, variables,
+        permissions=[permission_manage_discounts])
+    content = get_graphql_content(response)
+    data = content['data']['sales']['edges']
     assert len(data) == count
