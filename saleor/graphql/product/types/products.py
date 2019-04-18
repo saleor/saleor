@@ -265,11 +265,9 @@ class ProductVariant(CountableDjangoObjectType):
         user = info.context.user
         visible_products = models.Product.objects.visible_to_user(
             user).values_list('pk', flat=True)
-        try:
-            return cls._meta.model.objects.filter(
-                product__id__in=visible_products).get(pk=id)
-        except cls._meta.model.DoesNotExist:
-            return None
+        qs = cls._meta.model.objects.filter(
+            product__id__in=visible_products)
+        return cls.maybe_optimize(info, qs, id)
 
 
 class Product(CountableDjangoObjectType):
@@ -436,10 +434,8 @@ class Product(CountableDjangoObjectType):
     @classmethod
     def get_node(cls, info, pk):
         if info.context:
-            if not cls.can_optimize_resolver(info):
-                return super().get_node(info, pk)
             qs = cls._meta.model.objects.visible_to_user(info.context.user)
-            return cls.get_optimized_node(info, qs, pk)
+            return cls.maybe_optimize(info, qs, pk)
         return None
 
 
@@ -530,11 +526,8 @@ class Collection(CountableDjangoObjectType):
     def get_node(cls, info, id):
         if info.context:
             user = info.context.user
-            try:
-                return cls._meta.model.objects.visible_to_user(
-                    user).get(pk=id)
-            except cls._meta.model.DoesNotExist:
-                return None
+            qs = cls._meta.model.objects.visible_to_user(user)
+            return cls.maybe_optimize(info, qs, id)
         return None
 
 
