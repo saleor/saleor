@@ -742,6 +742,12 @@ input DigitalContentUrlCreateInput {
   content: ID!
 }
 
+enum DiscountStatusEnum {
+  ACTIVE
+  EXPIRED
+  SCHEDULED
+}
+
 enum DiscountValueTypeEnum {
   FIXED
   PERCENTAGE
@@ -2066,7 +2072,7 @@ type Query {
   menuItem(id: ID!): MenuItem
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   sale(id: ID!): Sale
-  sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
+  sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
   vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
   checkout(token: UUID): Checkout
@@ -2138,6 +2144,13 @@ type SaleCreate {
 type SaleDelete {
   errors: [Error!]
   sale: Sale
+}
+
+input SaleFilterInput {
+  status: DiscountStatusEnum
+  saleType: DiscountValueTypeEnum
+  started: DateRangeInput
+  search: String
 }
 
 input SaleInput {
@@ -2681,10 +2694,11 @@ enum VoucherDiscountValueType {
 }
 
 input VoucherFilterInput {
-  status: VoucherStatusEnum
+  status: DiscountStatusEnum
   timesUsed: IntRangeInput
   discountType: VoucherDiscountType
   started: DateRangeInput
+  search: String
 }
 
 input VoucherInput {
@@ -2705,12 +2719,6 @@ input VoucherInput {
 type VoucherRemoveCatalogues {
   errors: [Error!]
   voucher: Voucher
-}
-
-enum VoucherStatusEnum {
-  ACTIVE
-  EXPIRED
-  SCHEDULED
 }
 
 type VoucherTranslate {

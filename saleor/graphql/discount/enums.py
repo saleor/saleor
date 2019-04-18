@@ -16,7 +16,7 @@ class VoucherTypeEnum(graphene.Enum):
     VALUE = VoucherType.VALUE
 
 
-class VoucherStatusEnum(graphene.Enum):
+class DiscountStatusEnum(graphene.Enum):
     ACTIVE = 'active'
     EXPIRED = 'expired'
     SCHEDULED = 'scheduled'

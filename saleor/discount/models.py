@@ -150,6 +150,10 @@ class SaleQueryset(models.QuerySet):
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date)
 
+    def expired(self, date):
+        return self.filter(
+            end_date__lt=date, start_date__lt=date)
+
 
 class VoucherTranslation(models.Model):
     language_code = models.CharField(max_length=10)

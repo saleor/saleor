@@ -6,7 +6,7 @@ from ..core.fields import (
 from ..core.types import FilterInputObjectType
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
-from .filters import VoucherFilter
+from .filters import SaleFilter, VoucherFilter
 from .mutations import (
     SaleAddCatalogues, SaleCreate, SaleDelete, SaleRemoveCatalogues,
     SaleUpdate, VoucherAddCatalogues, VoucherCreate, VoucherDelete,
@@ -20,12 +20,18 @@ class VoucherFilterInput(FilterInputObjectType):
         filterset_class = VoucherFilter
 
 
+class SaleFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = SaleFilter
+
+
 class DiscountQueries(graphene.ObjectType):
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a sale by ID.')
-    sales = PrefetchingConnectionField(
-        Sale, query=graphene.String(
+    sales = FilterInputConnectionField(
+        Sale, filter=SaleFilterInput(),
+        query=graphene.String(
             description='Search sales by name, value or type.'),
         description='List of the shop\'s sales.')
     voucher = graphene.Field(
