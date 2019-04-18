@@ -1,9 +1,12 @@
 import graphene
 from graphql_jwt.decorators import login_required, permission_required
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import (
+    FilterInputConnectionField, PrefetchingConnectionField)
+from ..core.types import FilterInputObjectType
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete
+from .filters import CustomerFilter
 from .mutations import (
     AddressCreate, AddressDelete, AddressSetDefault, AddressUpdate,
     CustomerAddressCreate, CustomerCreate, CustomerDelete,
@@ -15,12 +18,18 @@ from .resolvers import (
 from .types import AddressValidationData, AddressValidationInput, User
 
 
+class CustomerFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = CustomerFilter
+
+
 class AccountQueries(graphene.ObjectType):
     address_validator = graphene.Field(
         AddressValidationData,
         input=graphene.Argument(AddressValidationInput, required=True))
-    customers = PrefetchingConnectionField(
-        User, description='List of the shop\'s customers.',
+    customers = FilterInputConnectionField(
+        User, filter=CustomerFilterInput(),
+        description='List of the shop\'s customers.',
         query=graphene.String(description=DESCRIPTIONS['user']))
     me = graphene.Field(
         User, description='Logged in user data.')

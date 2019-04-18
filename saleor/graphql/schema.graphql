@@ -614,6 +614,13 @@ type CustomerDelete {
   user: User
 }
 
+input CustomerFilterInput {
+  dateJoined: DateRangeInput
+  moneySpent: PriceInput
+  numberOfOrders: IntRangeInput
+  placedOrders: DateRangeInput
+}
+
 input CustomerInput {
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
@@ -897,6 +904,11 @@ type HomepageCollectionUpdate {
 type Image {
   url: String!
   alt: String
+}
+
+input IntRangeInput {
+  gte: Int
+  lte: Int
 }
 
 scalar JSONString
@@ -2062,7 +2074,7 @@ type Query {
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   addressValidator(input: AddressValidationInput!): AddressValidationData
-  customers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  customers(filter: CustomerFilterInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   me: User
   staffUsers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   user(id: ID!): User
