@@ -1,7 +1,7 @@
 import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
-import Navigator from "./Navigator";
+import useNavigator from "../hooks/useNavigator";
 
 export interface PageInfo {
   endCursor: string;
@@ -56,44 +56,42 @@ export const Paginator: React.StatelessComponent<PaginatorProps> = ({
   pageInfo,
   paginationState,
   queryString
-}) => (
-  <Navigator>
-    {navigate => {
-      const loadNextPage = () =>
-        navigate(
-          "?" +
-            stringifyQs({
-              ...queryString,
-              after: pageInfo.endCursor,
-              before: undefined
-            }),
-          true
-        );
+}) => {
+  const navigate = useNavigator();
 
-      const loadPreviousPage = () =>
-        navigate(
-          "?" +
-            stringifyQs({
-              ...queryString,
-              after: undefined,
-              before: pageInfo.startCursor
-            }),
-          true
-        );
+  const loadNextPage = () =>
+    navigate(
+      "?" +
+        stringifyQs({
+          ...queryString,
+          after: pageInfo.endCursor,
+          before: undefined
+        }),
+      true
+    );
 
-      const newPageInfo = pageInfo
-        ? {
-            ...pageInfo,
-            hasNextPage: !!paginationState.before || pageInfo.hasNextPage,
-            hasPreviousPage: !!paginationState.after || pageInfo.hasPreviousPage
-          }
-        : undefined;
+  const loadPreviousPage = () =>
+    navigate(
+      "?" +
+        stringifyQs({
+          ...queryString,
+          after: undefined,
+          before: pageInfo.startCursor
+        }),
+      true
+    );
 
-      return children({
-        loadNextPage,
-        loadPreviousPage,
-        pageInfo: newPageInfo
-      });
-    }}
-  </Navigator>
-);
+  const newPageInfo = pageInfo
+    ? {
+        ...pageInfo,
+        hasNextPage: !!paginationState.before || pageInfo.hasNextPage,
+        hasPreviousPage: !!paginationState.after || pageInfo.hasPreviousPage
+      }
+    : undefined;
+
+  return children({
+    loadNextPage,
+    loadPreviousPage,
+    pageInfo: newPageInfo
+  });
+};
