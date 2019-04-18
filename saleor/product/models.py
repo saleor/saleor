@@ -237,7 +237,7 @@ class ProductVariant(models.Model):
 
     @property
     def is_available(self):
-        return self.product.is_in_stock()
+        return self.product.is_available
 
     def check_quantity(self, quantity):
         """Check if there is at least the given quantity in stock
