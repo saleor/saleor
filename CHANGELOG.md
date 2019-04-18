@@ -25,6 +25,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add settings to enable Django Debug Toolbar - #3983 by @koradon
 
 
+- Implement variant availability, introducing discounts in variants - #3948 by @NyanKiyoshi
+
 ## 2.5.0
 
 ### API
