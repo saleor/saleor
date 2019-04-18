@@ -34,6 +34,8 @@ import { CustomerSection } from "./customers";
 import DiscountSection from "./discounts";
 import HomePage from "./home";
 import i18n from "./i18n";
+import NavigationSection from "./navigation";
+import { navigationSection } from "./navigation/urls";
 import { NotFound } from "./NotFound";
 import OrdersSection from "./orders";
 import PageSection from "./pages";
@@ -201,6 +203,11 @@ const App: React.FC = () => {
                                 ]}
                                 path="/translations"
                                 component={TranslationsSection}
+                              />
+                              <SectionRoute
+                                permissions={[PermissionEnum.MANAGE_MENUS]}
+                                path={navigationSection}
+                                component={NavigationSection}
                               />
                               {configurationMenu.filter(menuItem =>
                                 hasPermission(menuItem.permission, user)
