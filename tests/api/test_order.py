@@ -1,9 +1,11 @@
 import uuid
+from datetime import date, timedelta
 from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from freezegun import freeze_time
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
@@ -21,6 +23,21 @@ from saleor.shipping.models import ShippingMethod
 
 from .utils import assert_no_permission, get_graphql_content
 
+
+@pytest.fixture
+def orders_query_with_filter():
+    query = """
+      query ($filter: OrderFilterInput!, ) {
+        orders(first: 5, filter:$filter) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    """
+    return query
 
 @pytest.fixture
 def orders(customer_user):
@@ -1469,3 +1486,146 @@ def test_order_bulk_cancel_with_restock(
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
     assert event.user == staff_api_client.user
+
+
+
+@pytest.mark.parametrize('orders_filter, count', [
+    (
+      {
+        'created': {'fromDate': str(date.today() - timedelta(days=3)),
+                    'toDate': str(date.today())}}, 1
+    ),
+    ({'created': {'fromDate': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'toDate': str(date.today())}}, 2),
+    ({'created': {'toDate': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'fromDate': str(date.today() + timedelta(days=1))}}, 0),
+])
+def test_order_query_with_filter_created(
+        orders_filter, count, orders_query_with_filter, staff_api_client,
+        permission_manage_orders):
+    Order.objects.create()
+    with freeze_time("2012-01-14"):
+        Order.objects.create()
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['orders']['edges']
+
+    assert len(orders) == count
+
+
+@pytest.mark.parametrize('orders_filter, count, payment_status', [
+        ({'paymentStatus': 'FULLY_CHARGED'}, 1, ChargeStatus.FULLY_CHARGED),
+        ({'paymentStatus': 'NOT_CHARGED'}, 2, ChargeStatus.NOT_CHARGED),
+        (
+            {'paymentStatus': 'PARTIALLY_CHARGED'},
+            1,
+            ChargeStatus.PARTIALLY_CHARGED
+        ),
+        (
+            {'paymentStatus': 'PARTIALLY_REFUNDED'},
+            1,
+            ChargeStatus.PARTIALLY_REFUNDED
+        ),
+        ({'paymentStatus': 'FULLY_REFUNDED'}, 1, ChargeStatus.FULLY_REFUNDED),
+        ({'paymentStatus': 'FULLY_CHARGED'}, 0, ChargeStatus.FULLY_REFUNDED),
+        ({'paymentStatus': 'NOT_CHARGED'}, 1, ChargeStatus.FULLY_REFUNDED),
+    ]
+)
+def test_order_query_with_filter_payment_status(
+        orders_filter, count, payment_status, orders_query_with_filter,
+        staff_api_client, payment_dummy, permission_manage_orders):
+    payment_dummy.charge_status = payment_status
+    payment_dummy.save()
+
+    payment_dummy.id = None
+    payment_dummy.order = Order.objects.create()
+    payment_dummy.charge_status = ChargeStatus.NOT_CHARGED
+    payment_dummy.save()
+
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['orders']['edges']
+
+    assert len(orders) == count
+
+
+@pytest.mark.parametrize('orders_filter, count, status', [
+        ({'status': 'UNFULFILLED'}, 2, OrderStatus.UNFULFILLED),
+        (
+            {'status': 'PARTIALLY_FULFILLED'},
+            1,
+            OrderStatus.PARTIALLY_FULFILLED
+        ),
+        (
+            {'status': 'FULFILLED'},
+            1,
+            OrderStatus.FULFILLED
+        ),
+        ({'status': 'CANCELED'}, 1, OrderStatus.CANCELED),
+    ]
+)
+def test_order_query_with_filter_status(
+        orders_filter, count, status, orders_query_with_filter,
+        staff_api_client, payment_dummy, permission_manage_orders, order):
+    order.status = status
+    order.save()
+
+    Order.objects.create()
+
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['orders']['edges']
+    order_id = graphene.Node.to_global_id('Order', order.pk)
+
+    orders_ids_from_response = [o['node']['id'] for o in orders]
+    assert len(orders) == count
+    assert order_id in orders_ids_from_response
+
+
+@pytest.mark.parametrize('orders_filter, user_field, user_value', [
+        ({'customer': 'admin'}, 'email', 'admin@example.com'),
+        (
+            {'customer': 'John'},
+            'first_name',
+            'johnny'
+        ),
+        (
+            {'customer': 'Snow'},
+            'last_name',
+            'snow'
+        ),
+    ]
+)
+def test_order_query_with_filter_customer_fields(
+        orders_filter, user_field, user_value, orders_query_with_filter,
+        staff_api_client, permission_manage_orders,
+        customer_user):
+    setattr(customer_user, user_field, user_value)
+    customer_user.save()
+    customer_user.refresh_from_db()
+
+    order = Order(user=customer_user, token=str(uuid.uuid4()))
+    Order.objects.bulk_create([
+        order,
+        Order(token=str(uuid.uuid4()))]
+    )
+
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['orders']['edges']
+    order_id = graphene.Node.to_global_id('Order', order.pk)
+
+    assert len(orders) == 1
+    assert orders[0]['node']['id'] == order_id

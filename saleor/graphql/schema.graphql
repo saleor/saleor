@@ -654,6 +654,11 @@ type CustomerUpdate {
 
 scalar Date
 
+input DateRangeInput {
+  fromDate: Date
+  toDate: Date
+}
+
 scalar DateTime
 
 scalar Decimal
@@ -1402,6 +1407,13 @@ enum OrderEventsEmails {
   FULFILLMENT
 }
 
+input OrderFilterInput {
+  paymentStatus: PaymentChargeStatusEnum
+  status: OrderStatusFilter
+  customer: String
+  created: DateRangeInput
+}
+
 type OrderLine implements Node {
   id: ID!
   productName: String!
@@ -1448,6 +1460,10 @@ enum OrderStatus {
 enum OrderStatusFilter {
   READY_TO_FULFILL
   READY_TO_CAPTURE
+  UNFULFILLED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  CANCELED
 }
 
 type OrderUpdate {
@@ -2024,7 +2040,7 @@ type Query {
   pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
-  orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  orders(filter: OrderFilterInput, query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   draftOrders(query: String, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: String!): Order
