@@ -10,7 +10,7 @@ from saleor.search.backends import picker
 
 from ...product.models import Attribute, Product
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types.common import PriceInput
+from ..core.types.common import PriceRangeInput
 from ..utils import get_nodes
 from . import types
 from .enums import StockAvailability
@@ -124,7 +124,7 @@ class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
-    price = ObjectTypeFilter(input_class=PriceInput, method=filter_price)
+    price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_price)
     attributes = ListObjectTypeFilter(
         input_class=AttributeInput, method=filter_attributes)
     stock_availability = EnumFilter(
