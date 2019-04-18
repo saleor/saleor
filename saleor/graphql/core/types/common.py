@@ -89,3 +89,10 @@ class PriceInput(graphene.InputObjectType):
 class DateRangeInput(graphene.InputObjectType):
     from_date = graphene.Date(description='Starting date from', required=False)
     to_date = graphene.Date(description='To date', required=False)
+
+
+class IntRangeInput(graphene.InputObjectType):
+    gte = graphene.Int(
+        description='Value greater than or equal', required=False)
+    lte = graphene.Int(
+        description='Value less than or equal', required=False)

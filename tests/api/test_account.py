@@ -1,7 +1,8 @@
 import json
 import re
+import uuid
 from unittest.mock import MagicMock, Mock, patch
-
+from prices import Money
 import graphene
 import pytest
 from django.contrib.auth import get_user_model
@@ -9,13 +10,14 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.shortcuts import reverse
+from freezegun import freeze_time
 
 from saleor.account.models import Address, User
 from saleor.checkout import AddressType
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
 from saleor.graphql.core.enums import PermissionEnum
-from saleor.order.models import FulfillmentStatus
+from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
 from .utils import (
@@ -23,6 +25,24 @@ from .utils import (
     convert_dict_keys_to_camel_case,
     get_multipart_request_body,
 )
+
+@pytest.fixture
+def query_customer_with_filter():
+    query = """
+    query ($filter: CustomerFilterInput!, ) {
+        customers(first: 5, filter: $filter) {
+            totalCount
+            edges {
+                node {
+                    id
+                    lastName
+                    firstName
+                }
+            }
+        }
+    }
+    """
+    return query
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -1614,3 +1634,110 @@ def test_user_avatar_delete_mutation(staff_api_client):
 
     assert not user.avatar
     assert not content['data']['userAvatarDelete']['user']['avatar']
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'placedOrders': {'fromDate': '2019-04-18'}}, 1),
+    ({'placedOrders': {'toDate': '2012-01-14'}}, 1),
+    ({'placedOrders': {'toDate': '2012-01-14', 'fromDate': '2012-01-13'}}, 1),
+    ({'placedOrders': {'fromDate': '2012-01-14'}}, 2),
+
+])
+def test_query_customers_with_filter_placed_orders(
+        customer_filter, count, query_customer_with_filter, staff_api_client,
+        permission_manage_users, customer_user):
+    Order.objects.create(user=customer_user)
+    second_customer = User.objects.create(email='second_example@example.com')
+    with freeze_time("2012-01-14 11:00:00"):
+        o = Order.objects.create(user=second_customer)
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+            query_customer_with_filter, variables,
+            permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'dateJoined': {'fromDate': '2019-04-18'}}, 1),
+    ({'dateJoined': {'toDate': '2012-01-14'}}, 1),
+    ({'dateJoined': {'toDate': '2012-01-14', 'fromDate': '2012-01-13'}},
+     1),
+    ({'dateJoined': {'fromDate': '2012-01-14'}}, 2),
+
+])
+def test_query_customers_with_filter_date_joined(
+        customer_filter, count, query_customer_with_filter,
+        staff_api_client,
+        permission_manage_users, customer_user):
+    with freeze_time("2012-01-14 11:00:00"):
+        User.objects.create(
+            email='second_example@example.com')
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'numberOfOrders': {"gte": 0, "lte": 1}}, 1),
+    ({'numberOfOrders': {"gte": 1, "lte": 3}}, 2),
+    ({'numberOfOrders': {"gte": 0}}, 2),
+    ({'numberOfOrders': {"lte": 3}}, 2),
+
+])
+def test_query_customers_with_filter_placed_orders(
+        customer_filter, count, query_customer_with_filter, staff_api_client,
+        permission_manage_users, customer_user):
+    Order.objects.bulk_create([
+        Order(user=customer_user, token=str(uuid.uuid4())),
+        Order(user=customer_user, token=str(uuid.uuid4())),
+        Order(user=customer_user, token=str(uuid.uuid4()))
+    ])
+    second_customer = User.objects.create(email='second_example@example.com')
+    with freeze_time("2012-01-14 11:00:00"):
+        Order.objects.create(user=second_customer)
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+            query_customer_with_filter, variables,
+            permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'moneySpent': {"gte": 16, "lte": 25}}, 1),
+    ({'moneySpent': {"gte": 15, "lte": 26}}, 2),
+    ({'moneySpent': {"gte": 0}}, 2),
+    ({'moneySpent': {"lte": 16}}, 1),
+
+])
+def test_query_customers_with_filter_placed_orders(
+        customer_filter, count, query_customer_with_filter, staff_api_client,
+        permission_manage_users, customer_user):
+    second_customer = User.objects.create(email='second_example@example.com')
+    Order.objects.bulk_create([
+        Order(
+            user=customer_user, token=str(uuid.uuid4()),
+            total_gross=Money(15, 'USD')),
+        Order(
+            user=second_customer, token=str(uuid.uuid4()),
+            total_gross=Money(25, 'USD'))
+    ])
+
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+            query_customer_with_filter, variables,
+            permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
