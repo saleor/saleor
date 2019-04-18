@@ -30,10 +30,7 @@ class PageCreate(ModelMutation):
     class Meta:
         description = 'Creates a new page.'
         model = models.Page
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('page.manage_pages')
+        permissions = ('page.manage_pages', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -63,7 +60,4 @@ class PageDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a page.'
         model = models.Page
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('page.manage_pages')
+        permissions = ('page.manage_pages', )

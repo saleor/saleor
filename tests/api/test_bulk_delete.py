@@ -118,18 +118,6 @@ def voucher_list():
     return voucher_1, voucher_2, voucher_3
 
 
-@pytest.fixture
-def user_list():
-    user_1 = User.objects.create_user('user-1@example.com', 'pass')
-    user_2 = User.objects.create_user('user-2@example.com', 'pass')
-    staff_1 = User.objects.create_user(
-        'staff-1@example.com', 'pass', is_staff=True)
-    staff_2 = User.objects.create_user(
-        'staff-2@example.com', 'pass', is_staff=True)
-    superuser = User.objects.create_superuser('superuser@example.com', 'pass')
-    return user_1, user_2, staff_1, staff_2, superuser
-
-
 def test_delete_attributes(
         staff_api_client, attribute_list, permission_manage_products):
     query = """
@@ -539,8 +527,8 @@ def test_delete_shipping_zones(
 
 
 def test_delete_staff_members(
-        staff_api_client, user_list, permission_manage_staff):
-    *users, staff_1, staff_2, superuser = user_list
+        staff_api_client, user_list, permission_manage_staff, superuser):
+    *users, staff_1, staff_2 = user_list
     users.append(superuser)
 
     query = """
