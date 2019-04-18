@@ -8,6 +8,7 @@ from graphene.relay import PageInfo
 from graphene_django.converter import convert_django_field
 from graphene_django.fields import DjangoConnectionField
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
+from promise import Promise
 
 from .types.common import Weight
 from .types.money import Money, TaxedMoney
@@ -92,24 +93,45 @@ class FilterInputConnectionField(DjangoConnectionField):
         if 'edges' not in values:
             enforce_first_or_last = False
 
+        first = args.get('first')
+        last = args.get('last')
+
+        if enforce_first_or_last:
+            assert first or last, (
+                'You must provide a `first` or `last` value to properly '
+                'paginate the `{}` connection.'
+            ).format(info.field_name)
+
+        if max_limit:
+            if first:
+                assert first <= max_limit, (
+                    'Requesting {} records on the `{}` connection exceeds the '
+                    '`first` limit of {} records.'
+                ).format(first, info.field_name, max_limit)
+                args['first'] = min(first, max_limit)
+
+            if last:
+                assert last <= max_limit, (
+                    'Requesting {} records on the `{}` connection exceeds the '
+                    '`last` limit of {} records.'
+                ).format(last, info.field_name, max_limit)
+                args['last'] = min(last, max_limit)
+
+        iterable = resolver(root, info, **args)
+
+        on_resolve = partial(cls.resolve_connection, connection,
+                             default_manager, args)
+
         filter_input = args.get(filters_name)
-        qs = default_manager.get_queryset()
         if filter_input and filterset_class:
-            qs = filterset_class(
+            iterable = filterset_class(
                 data=dict(filter_input),
-                queryset=default_manager.get_queryset(),
+                queryset=iterable,
                 request=info.context).qs
 
-        return super().connection_resolver(
-            resolver,
-            connection,
-            qs,
-            max_limit,
-            enforce_first_or_last,
-            root,
-            info,
-            **args
-        )
+        if Promise.is_thenable(iterable):
+            return Promise.resolve(iterable).then(on_resolve)
+        return on_resolve(iterable)
 
     def get_resolver(self, parent_resolver):
         return partial(

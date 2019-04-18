@@ -87,11 +87,6 @@ def resolve_products(
     user = info.context.user
     qs = models.Product.objects.visible_to_user(user)
 
-    # Graphene merges resolve_queryset and filter_queryset. This process drops
-    # all annotations from the filter_queryset. We have to add them to
-    # resolve_queryset also.
-    qs = qs.annotate(total_quantity=Sum('variants__quantity'))
-
     if query:
         search = picker.pick_backend()
         qs &= search(query)
