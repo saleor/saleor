@@ -134,10 +134,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
     class Meta:
         description = 'Creates an attribute.'
         model = models.Attribute
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -177,6 +174,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     class Meta:
         description = 'Updates attribute.'
         model = models.Attribute
+        permissions = ('product.manage_products', )
 
     @classmethod
     def clean_remove_values(cls, cleaned_input, instance):
@@ -195,10 +193,6 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         super()._save_m2m(info, instance, cleaned_data)
         for attribute_value in cleaned_data.get('remove_values', []):
             attribute_value.delete()
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('product.manage_products')
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -230,10 +224,7 @@ class AttributeDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes an attribute.'
         model = models.Attribute
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
     @classmethod
     def success_response(cls, instance):
@@ -257,16 +248,13 @@ class AttributeValueCreate(ModelMutation):
     class Meta:
         description = 'Creates a value for an attribute.'
         model = models.AttributeValue
+        permissions = ('product.manage_products', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         cleaned_input['slug'] = slugify(cleaned_input['name'])
         return cleaned_input
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('product.manage_products')
 
     @classmethod
     def perform_mutation(cls, _root, info, attribute_id, input):
@@ -298,10 +286,7 @@ class AttributeValueUpdate(ModelMutation):
     class Meta:
         description = 'Updates value of an attribute.'
         model = models.AttributeValue
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -326,10 +311,7 @@ class AttributeValueDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a value of an attribute.'
         model = models.AttributeValue
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
     @classmethod
     def success_response(cls, instance):

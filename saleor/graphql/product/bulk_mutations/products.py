@@ -14,10 +14,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes categories.'
         model = models.Category
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class CollectionBulkDelete(ModelBulkDeleteMutation):
@@ -30,10 +27,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes collections.'
         model = models.Collection
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class CollectionBulkPublish(BaseBulkMutation):
@@ -49,10 +43,7 @@ class CollectionBulkPublish(BaseBulkMutation):
     class Meta:
         description = 'Publish collections.'
         model = models.Collection
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
     @classmethod
     def bulk_action(cls, queryset, is_published):
@@ -69,10 +60,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes products.'
         model = models.Product
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class ProductVariantBulkDelete(ModelBulkDeleteMutation):
@@ -85,10 +73,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes product variants.'
         model = models.ProductVariant
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class ProductTypeBulkDelete(ModelBulkDeleteMutation):
@@ -101,10 +86,7 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes product types.'
         model = models.ProductType
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class ProductImageBulkDelete(ModelBulkDeleteMutation):
@@ -117,10 +99,7 @@ class ProductImageBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes product images.'
         model = models.ProductImage
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class ProductBulkPublish(BaseBulkMutation):
@@ -136,10 +115,7 @@ class ProductBulkPublish(BaseBulkMutation):
     class Meta:
         description = 'Publish products.'
         model = models.Product
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
     @classmethod
     def bulk_action(cls, queryset, is_published):
