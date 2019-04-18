@@ -1253,6 +1253,7 @@ type Mutations {
   addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
   userAvatarUpdate(image: Upload!): UserAvatarUpdate
   userAvatarDelete: UserAvatarDelete
+  userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
 }
 
 input NameTranslationInput {
@@ -1684,8 +1685,11 @@ type Product implements Node {
   url: String!
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
   thumbnail(size: Int): Image
-  availability: ProductAvailability
-  price: Money
+  availability: ProductPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  pricing: ProductPricingInfo
+  isAvailable: Boolean
+  basePrice: Money
+  price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
   taxRate: TaxRateType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
@@ -1696,16 +1700,6 @@ type Product implements Node {
   collections: [Collection]
   availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
-}
-
-type ProductAvailability {
-  available: Boolean
-  onSale: Boolean
-  discount: TaxedMoney
-  discountLocalCurrency: TaxedMoney
-  priceRange: TaxedMoneyRange
-  priceRangeUndiscounted: TaxedMoneyRange
-  priceRangeLocalCurrency: TaxedMoneyRange
 }
 
 type ProductBulkDelete {
@@ -1835,6 +1829,16 @@ enum ProductOrderField {
   DATE
 }
 
+type ProductPricingInfo {
+  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
+  onSale: Boolean
+  discount: TaxedMoney
+  discountLocalCurrency: TaxedMoney
+  priceRange: TaxedMoneyRange
+  priceRangeUndiscounted: TaxedMoneyRange
+  priceRangeLocalCurrency: TaxedMoneyRange
+}
+
 type ProductTranslate {
   errors: [Error!]
   product: Product
@@ -1921,7 +1925,10 @@ type ProductVariant implements Node {
   weight: Weight
   stockQuantity: Int!
   priceOverride: Money
-  price: Money
+  price: Money @deprecated(reason: "Has been replaced by 'pricing.price_undiscounted'")
+  availability: VariantPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  pricing: VariantPricingInfo
+  isAvailable: Boolean
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
@@ -2537,6 +2544,11 @@ type UserAvatarUpdate {
   user: User
 }
 
+type UserBulkSetActive {
+  errors: [Error!]
+  count: Int!
+}
+
 type UserCountableConnection {
   pageInfo: PageInfo!
   edges: [UserCountableEdge!]!
@@ -2575,6 +2587,16 @@ type VariantImageUnassign {
   errors: [Error!]
   productVariant: ProductVariant
   image: ProductImage
+}
+
+type VariantPricingInfo {
+  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
+  onSale: Boolean
+  discount: TaxedMoney
+  discountLocalCurrency: TaxedMoney
+  price: TaxedMoney
+  priceUndiscounted: TaxedMoney
+  priceLocalCurrency: TaxedMoney
 }
 
 type VerifyToken {

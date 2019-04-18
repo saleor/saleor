@@ -102,6 +102,8 @@ def format_money(money):
 
 
 def to_local_currency(price, currency):
+    if price is None:
+        return None
     if not settings.OPENEXCHANGERATES_API_KEY:
         return None
     if isinstance(price, MoneyRange):

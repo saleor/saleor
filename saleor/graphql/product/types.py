@@ -12,7 +12,8 @@ from ...product import models
 from ...product.templatetags.product_images import (
     get_product_image_thumbnail, get_thumbnail)
 from ...product.utils import calculate_revenue_for_variant
-from ...product.utils.availability import get_availability
+from ...product.utils.availability import (
+    get_product_availability, get_variant_availability)
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..core.connection import CountableDjangoObjectType
@@ -181,6 +182,56 @@ class ProductOrder(graphene.InputObjectType):
         description='Specifies the direction in which to sort products')
 
 
+class BasePricingInfo(graphene.ObjectType):
+    available = graphene.Boolean(
+        description='Whether it is in stock and visible or not.',
+        deprecation_reason=(
+            'This has been moved to the parent type as \'is_available\'.'))
+    on_sale = graphene.Boolean(
+        description='Whether it is in sale or not.')
+    discount = graphene.Field(
+        TaxedMoney,
+        description='The discount amount if in sale (null otherwise).')
+    discount_local_currency = graphene.Field(
+        TaxedMoney,
+        description='The discount amount in the local currency.')
+
+
+class VariantPricingInfo(BasePricingInfo):
+    discount_local_currency = graphene.Field(
+        TaxedMoney,
+        description='The discount amount in the local currency.')
+    price = graphene.Field(
+        TaxedMoney,
+        description='The price, with any discount subtracted.')
+    price_undiscounted = graphene.Field(
+        TaxedMoney,
+        description='The price without any discount.')
+    price_local_currency = graphene.Field(
+        TaxedMoney,
+        description='The discounted price in the local currency.')
+
+    class Meta:
+        description = 'Represents availability of a variant in the storefront.'
+
+
+class ProductPricingInfo(BasePricingInfo):
+    price_range = graphene.Field(
+        TaxedMoneyRange,
+        description='The discounted price range of the product variants.')
+    price_range_undiscounted = graphene.Field(
+        TaxedMoneyRange,
+        description='The undiscounted price range of the product variants.')
+    price_range_local_currency = graphene.Field(
+        TaxedMoneyRange,
+        description=(
+            'The discounted price range of the product variants '
+            'in the local currency.'))
+
+    class Meta:
+        description = 'Represents availability of a product in the storefront.'
+
+
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int(
         required=True, description='Quantity of a product available for sale.')
@@ -190,7 +241,22 @@ class ProductVariant(CountableDjangoObjectType):
             """Override the base price of a product if necessary.
                A value of `null` indicates that the default product
                price is used."""))
-    price = graphene.Field(Money, description='Price of the product variant.')
+    price = graphene.Field(
+        Money, description='Price of the product variant.',
+        deprecation_reason=(
+            'Has been replaced by \'pricing.price_undiscounted\''))
+    availability = graphene.Field(
+        VariantPricingInfo, description=dedent(
+            """Informs about variant's availability in the
+               storefront, current price and discounted price."""),
+        deprecation_reason='Has been renamed to \'pricing\'.')
+    pricing = graphene.Field(
+        VariantPricingInfo,
+        description=dedent(
+            """Lists the storefront variant's pricing,
+            the current price and discounts, only meant for displaying"""))
+    is_available = graphene.Boolean(
+        description='Whether the variant is in stock and visible or not.')
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
         description='List of attributes assigned to this variant.')
@@ -254,6 +320,19 @@ class ProductVariant(CountableDjangoObjectType):
             self.price_override
             if self.price_override is not None else self.product.price)
 
+    @gql_optimizer.resolver_hints(
+        prefetch_related=('product', ), only=['price_override'])
+    def resolve_pricing(self, info):
+        context = info.context
+        availability = get_variant_availability(
+            self, context.discounts, context.taxes, context.currency)
+        return VariantPricingInfo(**availability._asdict())
+
+    resolve_availability = resolve_pricing
+
+    def resolve_is_available(self, _info):
+        return self.is_available
+
     @permission_required('product.manage_products')
     def resolve_price_override(self, *_args):
         return self.price_override
@@ -292,19 +371,6 @@ class ProductVariant(CountableDjangoObjectType):
             return None
 
 
-class ProductAvailability(graphene.ObjectType):
-    available = graphene.Boolean()
-    on_sale = graphene.Boolean()
-    discount = graphene.Field(TaxedMoney)
-    discount_local_currency = graphene.Field(TaxedMoney)
-    price_range = graphene.Field(TaxedMoneyRange)
-    price_range_undiscounted = graphene.Field(TaxedMoneyRange)
-    price_range_local_currency = graphene.Field(TaxedMoneyRange)
-
-    class Meta:
-        description = 'Represents availability of a product in the storefront.'
-
-
 class Product(CountableDjangoObjectType):
     url = graphene.String(
         description='The storefront URL for the product.', required=True)
@@ -317,13 +383,25 @@ class Product(CountableDjangoObjectType):
         Image, description='The main thumbnail for a product.',
         size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     availability = graphene.Field(
-        ProductAvailability, description=dedent(
+        ProductPricingInfo,
+        description=dedent(
             """Informs about product's availability in the
-               storefront, current price and discounts."""))
+               storefront, current price and discounts."""),
+        deprecation_reason='Has been renamed to \'pricing\'.')
+    pricing = graphene.Field(
+        ProductPricingInfo, description=dedent(
+            """Lists the storefront product's pricing,
+            the current price and discounts, only meant for displaying."""))
+    is_available = graphene.Boolean(
+        description='Whether the product is in stock and visible or not.')
+    base_price = graphene.Field(
+        Money,
+        description='The product\'s default base price.')
     price = graphene.Field(
         Money,
-        description=dedent("""The product's base price (without any discounts
-        applied)."""))
+        description='The product\'s default base price.',
+        deprecation_reason=(
+            'Has been replaced by \'basePrice\''))
     tax_rate = TaxRateType(description='A type of tax rate.')
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute), required=True,
@@ -396,11 +474,27 @@ class Product(CountableDjangoObjectType):
     @gql_optimizer.resolver_hints(
         prefetch_related=('variants', 'collections'),
         only=['publication_date', 'charge_taxes', 'price', 'tax_rate'])
-    def resolve_availability(self, info):
+    def resolve_pricing(self, info):
         context = info.context
-        availability = get_availability(
+        availability = get_product_availability(
             self, context.discounts, context.taxes, context.currency)
-        return ProductAvailability(**availability._asdict())
+        return ProductPricingInfo(**availability._asdict())
+
+    resolve_availability = resolve_pricing
+
+    def resolve_is_available(self, _info):
+        return self.is_available
+
+    @permission_required('product.manage_products')
+    def resolve_base_price(self, _info):
+        return self.price
+
+    @gql_optimizer.resolver_hints(
+        prefetch_related=('variants', 'collections'),
+        only=['publication_date', 'charge_taxes', 'price', 'tax_rate'])
+    def resolve_price(self, info):
+        price_range = self.get_price_range(info.context.discounts)
+        return price_range.start.net
 
     @gql_optimizer.resolver_hints(
         prefetch_related='product_type__product_attributes__values')

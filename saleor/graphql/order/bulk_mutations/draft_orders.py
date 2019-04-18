@@ -15,15 +15,12 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes draft orders.'
         model = models.Order
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def clean_instance(cls, info, instance):
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError({'id': 'Cannot delete non-draft orders.'})
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('order.manage_orders')
 
 
 class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
@@ -36,13 +33,10 @@ class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes order lines.'
         model = models.OrderLine
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def clean_instance(cls, _info, instance):
         if instance.order.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {'id': 'Cannot delete line for non-draft orders.'})
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('order.manage_orders')

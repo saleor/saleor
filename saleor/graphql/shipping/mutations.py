@@ -70,10 +70,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = 'Creates a new shipping zone.'
         model = models.ShippingZone
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
 
 class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
@@ -90,10 +87,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = 'Updates a new shipping zone.'
         model = models.ShippingZone
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
 
 class ShippingZoneDelete(ModelDeleteMutation):
@@ -104,10 +98,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a shipping zone.'
         model = models.ShippingZone
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
 
 class ShippingPriceMixin:
@@ -150,10 +141,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
     class Meta:
         description = 'Creates a new shipping price.'
         model = models.ShippingMethod
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
     @classmethod
     def success_response(cls, instance):
@@ -177,10 +165,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
     class Meta:
         description = 'Updates a new shipping price.'
         model = models.ShippingMethod
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
     @classmethod
     def success_response(cls, instance):
@@ -202,10 +187,7 @@ class ShippingPriceDelete(BaseMutation):
 
     class Meta:
         description = 'Deletes a shipping price.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
