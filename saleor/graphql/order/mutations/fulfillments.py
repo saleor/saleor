@@ -65,6 +65,7 @@ class FulfillmentCreate(BaseMutation):
 
     class Meta:
         description = 'Creates a new fulfillment for an order.'
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def clean_lines(cls, order_lines, quantities):
@@ -124,10 +125,6 @@ class FulfillmentCreate(BaseMutation):
         return fulfillment
 
     @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
-
-    @classmethod
     def perform_mutation(cls, _root, info, order, **data):
         order = cls.get_node_or_error(
             info, order, field='order', only_type=Order)
@@ -157,10 +154,7 @@ class FulfillmentUpdateTracking(BaseMutation):
 
     class Meta:
         description = 'Updates a fulfillment for an order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -195,10 +189,7 @@ class FulfillmentCancel(BaseMutation):
     class Meta:
         description = dedent("""Cancels existing fulfillment
         and optionally restocks items.""")
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

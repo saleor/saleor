@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unittests use none as media root - #3975 by @korycins
 - Rename Cart to Checkout - #3963 by @michaljelonek
 - Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
+- Simplify permission management in API through the meta classes - #3980 by @NyanKiyoshi
 - Add settings to enable Django Debug Toolbar - #3983 by @koradon
 
 
