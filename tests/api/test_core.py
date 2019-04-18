@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
+from graphql_jwt.shortcuts import get_token
 
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.core.mutations import BaseMutation
@@ -219,3 +220,34 @@ def test_mutation_invalid_permission_in_meta(
             ImproperlyConfigured,
             message='Permissions should be a tuple or a string in Meta'):
         _run_test()
+
+
+MUTATION_TOKEN_VERIFY = """
+    mutation tokenVerify($token: String!){
+        tokenVerify(token: $token){
+            user{
+                email
+            }
+        }
+    }
+"""
+
+
+def test_verify_token(api_client, customer_user):
+    variables = {
+        "token": get_token(customer_user)
+    }
+    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
+    content = get_graphql_content(response)
+    user_email = content['data']['tokenVerify']['user']['email']
+    assert customer_user.email == user_email
+
+
+def test_verify_token_incorrect_token(api_client):
+    variables = {
+        "token": "incorrect_token"
+    }
+    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
+    content = get_graphql_content(response)
+    assert not content['data']['tokenVerify']
+
