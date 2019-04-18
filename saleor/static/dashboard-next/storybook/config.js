@@ -73,6 +73,9 @@ function loadStories() {
   // Homepage
   require("./stories/home/HomePage");
 
+  // Navigation
+  require("./stories/navigation/MenuListPage");
+
   // Staff
   require("./stories/staff/StaffListPage");
   require("./stories/staff/StaffDetailsPage");
