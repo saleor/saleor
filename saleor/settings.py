@@ -252,7 +252,7 @@ INSTALLED_APPS = [
 
 
 ENABLE_DEBUG_TOOLBAR = get_bool_from_env('ENABLE_DEBUG_TOOLBAR', False)
-if DEBUG and ENABLE_DEBUG_TOOLBAR:
+if ENABLE_DEBUG_TOOLBAR:
     MIDDLEWARE.append(
         'debug_toolbar.middleware.DebugToolbarMiddleware')
     INSTALLED_APPS.append('debug_toolbar')
@@ -278,7 +278,7 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
         'RESULTS_CACHE_SIZE': 100}
 
 ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
-if DEBUG and ENABLE_SILK:
+if ENABLE_SILK:
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
     INSTALLED_APPS.append('silk')
 
