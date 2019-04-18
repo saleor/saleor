@@ -8,7 +8,7 @@ import {
   MutationUpdaterFn
 } from "react-apollo";
 
-import Messages from "./components/messages";
+import useNotifier from "./hooks/useNotifier";
 import i18n from "./i18n";
 
 export interface TypedMutationInnerProps<TData, TVariables> {
@@ -27,6 +27,7 @@ export function TypedMutation<TData, TVariables>(
 ) {
   class StrictTypedMutation extends Mutation<TData, TVariables> {}
   return (props: TypedMutationInnerProps<TData, TVariables>) => {
+    const notify = useNotifier();
     // Obviously, this is workaround to the problem described here:
     // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/32588
     const {
@@ -39,27 +40,23 @@ export function TypedMutation<TData, TVariables>(
       typeof props
     >;
     return (
-      <Messages>
-        {pushMessage => (
-          <StrictTypedMutation
-            mutation={mutation}
-            onCompleted={onCompleted}
-            onError={err => {
-              const msg = i18n.t("Something went wrong: {{ message }}", {
-                message: err.message
-              });
-              pushMessage({ text: msg });
-              if (onError) {
-                onError(err);
-              }
-            }}
-            variables={variables}
-            update={update}
-          >
-            {children}
-          </StrictTypedMutation>
-        )}
-      </Messages>
+      <StrictTypedMutation
+        mutation={mutation}
+        onCompleted={onCompleted}
+        onError={err => {
+          const msg = i18n.t("Something went wrong: {{ message }}", {
+            message: err.message
+          });
+          notify({ text: msg });
+          if (onError) {
+            onError(err);
+          }
+        }}
+        variables={variables}
+        update={update}
+      >
+        {children}
+      </StrictTypedMutation>
     );
   };
 }
