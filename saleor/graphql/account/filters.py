@@ -7,8 +7,8 @@ from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
 
 
 def filter_date_joined(qs, _, value):
-    from_date = value.get("from_date")
-    to_date = value.get("to_date")
+    from_date = value.get('from_date')
+    to_date = value.get('to_date')
     if from_date:
         qs = qs.filter(date_joined__date__gte=from_date)
     if to_date:
@@ -39,8 +39,8 @@ def filter_number_of_orders(qs, _, value):
 
 
 def filter_placed_orders(qs, _, value):
-    from_date = value.get("from_date")
-    to_date = value.get("to_date")
+    from_date = value.get('from_date')
+    to_date = value.get('to_date')
     if from_date:
         qs = qs.filter(orders__created__date__gte=from_date)
     if to_date:
@@ -65,8 +65,8 @@ class CustomerFilter(django_filters.FilterSet):
     class Meta:
         model = User
         fields = [
-            "date_joined",
-            "money_spent",
-            "number_of_orders",
-            "placed_orders",
+            'date_joined',
+            'money_spent',
+            'number_of_orders',
+            'placed_orders',
         ]
