@@ -2,7 +2,7 @@ import json
 import re
 import uuid
 from unittest.mock import MagicMock, Mock, patch
-from prices import Money
+
 import graphene
 import pytest
 from django.contrib.auth import get_user_model
@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.shortcuts import reverse
 from freezegun import freeze_time
+from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.checkout import AddressType
@@ -20,11 +21,11 @@ from saleor.graphql.core.enums import PermissionEnum
 from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
+
 from .utils import (
-    assert_no_permission,
-    convert_dict_keys_to_camel_case,
-    get_multipart_request_body,
-)
+    assert_no_permission, convert_dict_keys_to_camel_case,
+    get_multipart_request_body)
+
 
 @pytest.fixture
 def query_customer_with_filter():
