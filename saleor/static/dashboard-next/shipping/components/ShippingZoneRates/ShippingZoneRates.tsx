@@ -25,6 +25,7 @@ import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ICONBUTTON_SIZE } from "../../../theme";
 import { ShippingZoneDetailsFragment_shippingMethods } from "../../types/ShippingZoneDetailsFragment";
+import IconButtonTableCell from "../../../components/IconButtonTableCell";
 
 export interface ShippingZoneRatesProps {
   disabled: boolean;
@@ -132,30 +133,18 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
                     <Skeleton />
                   )}
                 </TableCell>
-                <TableCell className={classes.alignRight}>
-                  <IconButton
-                    color="primary"
-                    disabled={disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onRateEdit(rate.id);
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </TableCell>
-                <TableCell className={classes.alignRight}>
-                  <IconButton
-                    color="primary"
-                    disabled={disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onRateRemove(rate.id);
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+                <IconButtonTableCell
+                  disabled={disabled}
+                  onClick={() => onRateEdit(rate.id)}
+                >
+                  <EditIcon />
+                </IconButtonTableCell>
+                <IconButtonTableCell
+                  disabled={disabled}
+                  onClick={() => onRateRemove(rate.id)}
+                >
+                  <DeleteIcon />
+                </IconButtonTableCell>
               </TableRow>
             ),
             () => (
