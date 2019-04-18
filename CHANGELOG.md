@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Prefetch collections when getting sales of a bunch of products - #3961 by @NyanKiyoshi
 - Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
 - Add mutation for bulk cancel orders - #3967 by @akjanik
+- Hide errors in TokenVerify mutation - #3981 by @fowczarek
 - Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
 - Removed the dead `children` field from the `Menu` type - #3973 by @NyanKiyoshi
 - Add mutations for bulk publishing and unpublishing products - #3969 by akjanik
@@ -18,6 +19,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unittests use none as media root - #3975 by @korycins
 - Rename Cart to Checkout - #3963 by @michaljelonek
 - Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
+- Simplify permission management in API through the meta classes - #3980 by @NyanKiyoshi
+- Add settings to enable Django Debug Toolbar - #3983 by @koradon
+- Implement variant availability, introducing discounts in variants - #3948 by @NyanKiyoshi
 - Add bulk actions - #3955 by @dominik-zeglen
 
 

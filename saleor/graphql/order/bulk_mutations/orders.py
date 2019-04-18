@@ -19,14 +19,11 @@ class OrderBulkCancel(BaseBulkMutation):
     class Meta:
         description = 'Cancels orders.'
         model = models.Order
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def clean_instance(cls, info, instance):
         clean_order_cancel(instance)
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('order.manage_orders')
 
     @classmethod
     def perform_mutation(cls, root, info, ids, **data):

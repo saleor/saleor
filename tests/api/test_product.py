@@ -103,7 +103,11 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                             name
                             stockQuantity
                         }
-                        availability {
+                        isAvailable
+                        price {
+                            amount
+                        }
+                        pricing {
                             available,
                             priceRange {
                                 start {
@@ -148,7 +152,7 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     product_data = product_edges_data[0]['node']
     assert product_data['name'] == product.name
     assert product_data['url'] == product.get_absolute_url()
-    gross = product_data['availability']['priceRange']['start']['gross']
+    gross = product_data['pricing']['priceRange']['start']['gross']
     assert float(gross['amount']) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
     purchase_cost, margin = get_product_costs_data(product)
@@ -156,6 +160,9 @@ def test_product_query(staff_api_client, product, permission_manage_products):
         'purchaseCost']['start']['amount']
     assert purchase_cost.stop.amount == product_data[
         'purchaseCost']['stop']['amount']
+    assert product_data['isAvailable'] is product.is_visible
+    assert product_data['pricing']['available'] is product.is_visible
+    assert product_data['price']['amount'] == product.price.amount
     assert margin[0] == product_data['margin']['start']
     assert margin[1] == product_data['margin']['stop']
 
@@ -393,8 +400,14 @@ def test_sort_products(user_api_client, product):
         products(sortBy: %(sort_by_product_order)s, first: 2) {
             edges {
                 node {
-                    price {
-                        amount
+                    pricing {
+                        priceRangeUndiscounted {
+                            start {
+                                gross {
+                                    amount
+                                }
+                            }
+                        }
                     }
                     updatedAt
                 }
@@ -403,25 +416,23 @@ def test_sort_products(user_api_client, product):
     }
     """
 
+    def _get_node_price(data, node):
+        return (
+            data['data']['products']['edges'][node]['node']['pricing'][
+                'priceRangeUndiscounted']['start']['gross']['amount'])
+
     asc_price_query = query % {
         'sort_by_product_order': '{field: PRICE, direction:ASC}'}
     response = user_api_client.post_graphql(asc_price_query)
     content = get_graphql_content(response)
-    price_0 = content['data']['products']['edges'][0]['node']['price'][
-        'amount']
-    price_1 = content['data']['products']['edges'][1]['node']['price'][
-        'amount']
-    assert price_0 < price_1
+
+    assert _get_node_price(content, 0) < _get_node_price(content, 1)
 
     desc_price_query = query % {
         'sort_by_product_order': '{field: PRICE, direction:DESC}'}
     response = user_api_client.post_graphql(desc_price_query)
     content = get_graphql_content(response)
-    price_0 = content['data']['products']['edges'][0]['node']['price'][
-        'amount']
-    price_1 = content['data']['products']['edges'][1]['node']['price'][
-        'amount']
-    assert price_0 > price_1
+    assert _get_node_price(content, 0) > _get_node_price(content, 1)
 
     asc_date_query = query % {
         'sort_by_product_order': '{field: DATE, direction:ASC}'}
@@ -1519,7 +1530,7 @@ def test_product_update_variants_names(mock__update_variants_names,
     variant_attributes = [product_type.variant_attributes.first()]
     variant_attr_ids = [attr.pk for attr in variant_attributes]
     update_variants_names(product_type.pk, variant_attr_ids)
-    mock__update_variants_names.call_count == 1
+    assert mock__update_variants_names.call_count == 1
 
 
 def test_product_variants_by_ids(user_api_client, variant):
@@ -1847,3 +1858,28 @@ def test_bulk_unpublish_products(
     assert content['data']['productBulkPublish']['count'] == len(
         product_list)
     assert not any(product.is_published for product in product_list)
+
+
+def test_product_base_price_permission(
+        staff_api_client, permission_manage_products, product):
+    query = """
+    query basePrice($productID: ID!) {
+        product(id: $productID) {
+            basePrice {
+                amount
+            }
+        }
+    }
+    """
+    product_id = graphene.Node.to_global_id('Product', product.id)
+
+    variables = {'productID': product_id}
+    permissions = [permission_manage_products]
+
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+
+    assert 'basePrice' in content['data']['product']
+    assert (
+        content['data']['product']['basePrice'][
+            'amount'] == product.price.amount)
