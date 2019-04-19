@@ -66,7 +66,7 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
 
     return (
       <AppProgress>
-        {({ funcs: changeProgressState }) => {
+        {({ setProgressState }) => {
           // Obviously, this is workaround to the problem described here:
           // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/32588
           const {
@@ -135,8 +135,8 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
                   return (
                     <QueryProgress
                       loading={queryData.loading}
-                      onCompleted={changeProgressState.disable}
-                      onLoading={changeProgressState.enable}
+                      onCompleted={() => setProgressState(true)}
+                      onLoading={() => setProgressState(false)}
                     >
                       {childrenOrNotFound}
                     </QueryProgress>
