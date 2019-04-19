@@ -14,9 +14,10 @@ import CardTitle from "../../../components/CardTitle";
 import ExternalLink from "../../../components/ExternalLink";
 import Form from "../../../components/Form";
 import Hr from "../../../components/Hr";
+import Link from "../../../components/Link";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Skeleton from "../../../components/Skeleton";
-import Toggle from "../../../components/Toggle";
+import { customerUrl } from "../../../customers/urls";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
@@ -51,12 +52,8 @@ export interface OrderCustomerProps extends WithStyles<typeof styles> {
   canEditAddresses: boolean;
   canEditCustomer: boolean;
   fetchUsers?: (query: string) => void;
-  onCustomerEdit?: (
-    data: {
-      user?: string;
-      userEmail?: string;
-    }
-  ) => void;
+  onCustomerEdit?: (data: { user?: string; userEmail?: string }) => void;
+  onProfileView: () => void;
   onBillingAddressEdit?: () => void;
   onShippingAddressEdit?: () => void;
 }
@@ -72,83 +69,88 @@ const OrderCustomer = withStyles(styles, { name: "OrderCustomer" })(
     users,
     onCustomerEdit,
     onBillingAddressEdit,
+    onProfileView,
     onShippingAddressEdit
   }: OrderCustomerProps) => {
+    const [isInEditMode, setEditModeStatus] = React.useState(false);
+    const toggleEditMode = () => setEditModeStatus(!isInEditMode);
+
     const billingAddress = maybe(() => order.billingAddress);
     const shippingAddress = maybe(() => order.shippingAddress);
     const user = maybe(() => order.user);
     return (
       <Card>
-        <Toggle>
-          {(editMode, { toggle: toggleEditMode }) => (
+        <CardTitle
+          title={i18n.t("Customer")}
+          toolbar={
+            !!canEditCustomer && (
+              <Button
+                color="primary"
+                variant="text"
+                disabled={!onCustomerEdit}
+                onClick={toggleEditMode}
+              >
+                {i18n.t("Edit")}
+              </Button>
+            )
+          }
+        />
+        <CardContent>
+          {user === undefined ? (
+            <Skeleton />
+          ) : isInEditMode && canEditCustomer ? (
+            <Form initial={{ query: { label: "", value: "" } }}>
+              {({ change, data }) => {
+                const handleChange = (event: React.ChangeEvent<any>) => {
+                  change(event);
+                  onCustomerEdit({
+                    [event.target.value.value.includes("@")
+                      ? "userEmail"
+                      : "user"]: event.target.value.value
+                  });
+                  toggleEditMode();
+                };
+                return (
+                  <SingleAutocompleteSelectField
+                    custom={true}
+                    choices={maybe(() => users, []).map(user => ({
+                      label: user.email,
+                      value: user.id
+                    }))}
+                    fetchChoices={fetchUsers}
+                    loading={loading}
+                    placeholder={i18n.t("Search Customers")}
+                    onChange={handleChange}
+                    name="query"
+                    value={data.query}
+                  />
+                );
+              }}
+            </Form>
+          ) : user === null ? (
+            <Typography>{i18n.t("Anonymous user")}</Typography>
+          ) : (
             <>
-              <CardTitle
-                title={i18n.t("Customer")}
-                toolbar={
-                  !!canEditCustomer && (
-                    <Button
-                      color="primary"
-                      variant="text"
-                      disabled={!onCustomerEdit}
-                      onClick={toggleEditMode}
-                    >
-                      {i18n.t("Edit")}
-                    </Button>
-                  )
-                }
-              />
-              <CardContent>
-                {user === undefined ? (
-                  <Skeleton />
-                ) : editMode && canEditCustomer ? (
-                  <Form initial={{ query: { label: "", value: "" } }}>
-                    {({ change, data }) => {
-                      const handleChange = (event: React.ChangeEvent<any>) => {
-                        change(event);
-                        onCustomerEdit({
-                          [event.target.value.value.includes("@")
-                            ? "userEmail"
-                            : "user"]: event.target.value.value
-                        });
-                        toggleEditMode();
-                      };
-                      return (
-                        <SingleAutocompleteSelectField
-                          custom={true}
-                          choices={maybe(() => users, []).map(user => ({
-                            label: user.email,
-                            value: user.id
-                          }))}
-                          fetchChoices={fetchUsers}
-                          loading={loading}
-                          placeholder={i18n.t("Search Customers")}
-                          onChange={handleChange}
-                          name="query"
-                          value={data.query}
-                        />
-                      );
-                    }}
-                  </Form>
-                ) : user === null ? (
-                  <Typography>{i18n.t("Anonymous user")}</Typography>
-                ) : (
-                  <>
-                    <Typography className={classes.userEmail}>
-                      {user.email}
-                    </Typography>
-                    {/* TODO: uncomment after adding customer section */}
-                    {/* <div>
-                      <Link underline={false}>{i18n.t("View Profile")}</Link>
-                    </div>
-                    <div>
-                      <Link underline={false}>{i18n.t("View Orders")}</Link>
-                    </div> */}
-                  </>
-                )}
-              </CardContent>
+              <Typography className={classes.userEmail}>
+                {user.email}
+              </Typography>
+              <div>
+                <Link
+                  underline={false}
+                  href={customerUrl(user.id)}
+                  onClick={onProfileView}
+                >
+                  {i18n.t("View Profile")}
+                </Link>
+              </div>
+              {/* TODO: Uncomment it after adding ability to filter
+                    orders by customer */}
+              {/* <div>
+                    <Link underline={false} href={}>{i18n.t("View Orders")}</Link>
+                  </div> */}
             </>
           )}
-        </Toggle>
+        </CardContent>
         <Hr />
         <CardContent>
           <div className={classes.sectionHeader}>

@@ -40,6 +40,7 @@ const Link = withStyles(styles, { name: "Link" })(
     children,
     color = "primary",
     underline = false,
+    onClick,
     ...linkProps
   }: LinkProps) => (
     <Typography
@@ -49,6 +50,10 @@ const Link = withStyles(styles, { name: "Link" })(
         [classes[color]]: true,
         [classes.underline]: underline
       })}
+      onClick={event => {
+        event.preventDefault();
+        onClick(event as any);
+      }}
       {...linkProps}
     >
       {children}

@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { WindowTitle } from "../../../components/WindowTitle";
+import { customerUrl } from "../../../customers/urls";
 import useNavigator from "../../../hooks/useNavigator";
 import { getMutationState, maybe, transformAddressToForm } from "../../../misc";
 import { productUrl } from "../../../products/urls";
@@ -203,6 +204,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   openModal("edit-shipping-address")
                                 }
                                 onPaymentPaid={() => openModal("mark-paid")}
+                                onProfileView={() =>
+                                  navigate(customerUrl(order.user.id))
+                                }
                               />
                               <OrderCancelDialog
                                 confirmButtonState={getMutationState(
@@ -444,6 +448,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   })
                                 }
                                 saveButtonBarState="default"
+                                onProfileView={() =>
+                                  navigate(customerUrl(order.user.id))
+                                }
                               />
                               <OrderDraftCancelDialog
                                 confirmButtonState={getMutationState(
