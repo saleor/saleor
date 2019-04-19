@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField, JSONField
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, validate_slug
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import smart_text
@@ -26,6 +26,7 @@ from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, SortableModel
 from ..core.utils.taxes import apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
+from ..core.validators import validate_empty_slug
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
@@ -412,7 +413,7 @@ class AttributeTranslation(models.Model):
 class AttributeValue(SortableModel):
     name = models.CharField(max_length=100)
     value = models.CharField(max_length=100, blank=True, default='')
-    slug = models.SlugField(max_length=100)
+    slug = models.SlugField(max_length=100, validators=[validate_slug, validate_empty_slug])
     attribute = models.ForeignKey(
         Attribute, related_name='values', on_delete=models.CASCADE)
 
@@ -427,6 +428,10 @@ class AttributeValue(SortableModel):
 
     def get_ordering_queryset(self):
         return self.attribute.values.all()
+    
+    def save(self, *args, **kwargs):
+        self.clean_fields()
+        super(AttributeValue, self).save(*args, **kwargs)
 
 
 class AttributeValueTranslation(models.Model):
