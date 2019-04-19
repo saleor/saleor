@@ -19,7 +19,7 @@ import SingleAutocompleteSelectField from "../../../components/SingleAutocomplet
 import Skeleton from "../../../components/Skeleton";
 import { customerUrl } from "../../../customers/urls";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { createHref, maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import { UserSearch_customers_edges_node } from "../../types/UserSearch";
 
@@ -137,7 +137,7 @@ const OrderCustomer = withStyles(styles, { name: "OrderCustomer" })(
               <div>
                 <Link
                   underline={false}
-                  href={customerUrl(user.id)}
+                  href={createHref(customerUrl(user.id))}
                   onClick={onProfileView}
                 >
                   {i18n.t("View Profile")}

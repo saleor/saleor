@@ -8,12 +8,11 @@ import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
 import * as React from "react";
 import { matchPath } from "react-router";
-import * as urlJoin from "url-join";
 
-import { appMountPoint } from "../..";
 import { User } from "../../auth/types/User";
 import { configurationMenu, configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
+import { createHref } from "../../misc";
 import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
 import { IMenuItem } from "./menuStructure";
 
@@ -162,7 +161,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
               className={classNames(classes.menuListItem, {
                 [classes.menuListItemActive]: isActive(menuItem)
               })}
-              href={urlJoin(appMountPoint, menuItem.url)}
+              href={createHref(menuItem.url)}
               onClick={event => onMenuItemClick(menuItem.url, event)}
               key={menuItem.label}
             >
@@ -183,7 +182,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
           ).length > 0 && (
             <a
               className={classes.menuListItem}
-              href={urlJoin(appMountPoint, configurationMenuUrl)}
+              href={createHref(configurationMenuUrl)}
               onClick={event => onMenuItemClick(configurationMenuUrl, event)}
             >
               <Typography
