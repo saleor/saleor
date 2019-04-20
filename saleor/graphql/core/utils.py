@@ -1,3 +1,6 @@
+from django.core.exceptions import ValidationError
+
+
 def clean_seo_fields(data):
     """Extract and assign seo fields to given dictionary."""
     seo_fields = data.pop('seo', None)
@@ -17,3 +20,9 @@ def snake_to_camel_case(name):
 def str_to_enum(name):
     """Create an enum value from a string."""
     return name.replace(' ', '_').replace('-', '_').upper()
+
+
+def validate_image_file(file, field_name):
+    """Validate if the file is an image."""
+    if not file.content_type.startswith('image/'):
+        raise ValidationError({field_name: 'Invalid file type'})

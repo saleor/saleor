@@ -1,5 +1,6 @@
-"""Cart-related ORM models."""
+"""Checkout-related ORM models."""
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
@@ -8,17 +9,17 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
-from measurement.measures import Weight
 
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
+from ..core.weight import zero_weight
 from ..shipping.models import ShippingMethod
 
 CENTS = Decimal('0.01')
 
 
-class CartQueryset(models.QuerySet):
-    """A specialized queryset for dealing with carts."""
+class CheckoutQueryset(models.QuerySet):
+    """A specialized queryset for dealing with checkouts."""
 
     def for_display(self):
         """Annotate the queryset for display purposes.
@@ -33,13 +34,13 @@ class CartQueryset(models.QuerySet):
             'lines__variant__product__product_type__product_attributes__values')  # noqa
 
 
-class Cart(models.Model):
-    """A shopping cart."""
+class Checkout(models.Model):
+    """A shopping checkout."""
 
     created = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
+        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='checkouts',
         on_delete=models.CASCADE)
     email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -51,7 +52,7 @@ class Cart(models.Model):
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)
     shipping_method = models.ForeignKey(
-        ShippingMethod, blank=True, null=True, related_name='carts',
+        ShippingMethod, blank=True, null=True, related_name='checkouts',
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(
@@ -64,13 +65,13 @@ class Cart(models.Model):
         max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
 
-    objects = CartQueryset.as_manager()
+    objects = CheckoutQueryset.as_manager()
 
     class Meta:
         ordering = ('-last_change', )
 
     def __repr__(self):
-        return 'Cart(quantity=%s)' % (self.quantity,)
+        return 'Checkout(quantity=%s)' % (self.quantity,)
 
     def __iter__(self):
         return iter(self.lines.all())
@@ -89,19 +90,19 @@ class Cart(models.Model):
             else ZERO_TAXED_MONEY)
 
     def get_subtotal(self, discounts=None, taxes=None):
-        """Return the total cost of the cart prior to shipping."""
+        """Return the total cost of the checkout prior to shipping."""
         subtotals = (line.get_total(discounts, taxes) for line in self)
         return sum(subtotals, ZERO_TAXED_MONEY)
 
     def get_total(self, discounts=None, taxes=None):
-        """Return the total cost of the cart."""
+        """Return the total cost of the checkout."""
         return (
             self.get_subtotal(discounts, taxes)
             + self.get_shipping_price(taxes) - self.discount_amount)
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int
-        weights = Weight(kg=0)
+        weights = zero_weight()
         for line in self:
             weights += line.variant.get_weight() * line.quantity
         return weights
@@ -111,30 +112,39 @@ class Cart(models.Model):
         matching_lines = (line for line in self if line.variant == variant)
         return next(matching_lines, None)
 
+    def get_last_active_payment(self):
+        payments = [
+            payment for payment in self.payments.all() if payment.is_active]
+        return max(payments, default=None, key=attrgetter('pk'))
 
-class CartLine(models.Model):
-    """A single cart line.
 
-    Multiple lines in the same cart can refer to the same product variant if
+class CheckoutLine(models.Model):
+    """A single checkout line.
+
+    Multiple lines in the same checkout can refer to the same product variant if
     their `data` field is different.
     """
 
-    cart = models.ForeignKey(
-        Cart, related_name='lines', on_delete=models.CASCADE)
+    checkout = models.ForeignKey(
+        Checkout, related_name='lines', on_delete=models.CASCADE)
     variant = models.ForeignKey(
         'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     data = JSONField(blank=True, default=dict)
 
     class Meta:
-        unique_together = ('cart', 'variant', 'data')
+        unique_together = ('checkout', 'variant', 'data')
         ordering = ('id',)
 
     def __str__(self):
         return smart_str(self.variant)
 
+    def __hash__(self):
+        # FIXME: in Django 2.2 this is not present if __eq__ is defined
+        return super().__hash__()
+
     def __eq__(self, other):
-        if not isinstance(other, CartLine):
+        if not isinstance(other, CheckoutLine):
             return NotImplemented
 
         return (
@@ -144,7 +154,7 @@ class CartLine(models.Model):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        return 'CartLine(variant=%r, quantity=%r)' % (
+        return 'CheckoutLine(variant=%r, quantity=%r)' % (
             self.variant, self.quantity)
 
     def __getstate__(self):

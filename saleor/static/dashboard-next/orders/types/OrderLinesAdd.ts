@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { OrderLineCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
@@ -37,6 +38,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_billingAddress {
 
 export interface OrderLinesAdd_draftOrderLinesCreate_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 
@@ -257,7 +259,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order {
 export interface OrderLinesAdd_draftOrderLinesCreate {
   __typename: "DraftOrderLinesCreate";
   errors: OrderLinesAdd_draftOrderLinesCreate_errors[] | null;
-  order: OrderLinesAdd_draftOrderLinesCreate_order;
+  order: OrderLinesAdd_draftOrderLinesCreate_order | null;
 }
 
 export interface OrderLinesAdd {

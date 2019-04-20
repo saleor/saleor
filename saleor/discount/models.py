@@ -11,8 +11,8 @@ from django_prices.models import MoneyField
 from django_prices.templatetags.prices_i18n import amount
 from prices import Money, fixed_discount, percentage_discount
 
-from . import DiscountValueType, VoucherType
 from ..core.utils.translations import TranslationProxy
+from . import DiscountValueType, VoucherType
 
 
 class NotApplicable(ValueError):
@@ -142,7 +142,8 @@ class Voucher(models.Model):
 class SaleQueryset(models.QuerySet):
     def active(self, date):
         return self.filter(
-            end_date__gte=date, start_date__lte=date)
+            Q(end_date__isnull=True) | Q(end_date__gte=date),
+            start_date__lte=date)
 
 
 class VoucherTranslation(models.Model):
@@ -171,6 +172,7 @@ class Sale(models.Model):
     end_date = models.DateField(null=True, blank=True)
 
     objects = SaleQueryset.as_manager()
+    translated = TranslationProxy()
 
     class Meta:
         app_label = 'discount'
@@ -192,3 +194,13 @@ class Sale(models.Model):
         if self.type == DiscountValueType.PERCENTAGE:
             return partial(percentage_discount, percentage=self.value)
         raise NotImplementedError('Unknown discount type')
+
+
+class SaleTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    sale = models.ForeignKey(
+        Sale, related_name='translations', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('language_code', 'sale'),)

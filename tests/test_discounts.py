@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.checkout.utils import get_voucher_discount_for_cart
+from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
@@ -90,7 +90,7 @@ def test_voucher_queryset_active(voucher):
             [10, 10, 10], 5, DiscountValueType.FIXED, False, 15)])
 def test_products_voucher_checkout_discount_not(
         settings, monkeypatch, prices, discount_value, discount_type,
-        expected_value, apply_once_per_order, cart_with_item):
+        expected_value, apply_once_per_order, checkout_with_item):
     monkeypatch.setattr(
         'saleor.checkout.utils.get_prices_of_discounted_products',
         lambda lines, discounted_products: (
@@ -102,8 +102,8 @@ def test_products_voucher_checkout_discount_not(
         discount_value=discount_value,
         apply_once_per_order=apply_once_per_order)
     voucher.save()
-    checkout = cart_with_item
-    discount = get_voucher_discount_for_cart(voucher, checkout)
+    checkout = checkout_with_item
+    discount = get_voucher_discount_for_checkout(voucher, checkout)
     assert discount == Money(expected_value, 'USD')
 
 
@@ -213,15 +213,19 @@ def test_get_voucher_discount_all_products(
     assert discount == Money(expected_value, 'USD')
 
 
-@pytest.mark.parametrize('current_date, is_active', (
-    (date.today(), True),
-    (date.today() + timedelta(days=1), True),
-    (date.today() + timedelta(days=2), False),
-    (date.today() - timedelta(days=2), False)))
-def test_sale_active(current_date, is_active):
+@pytest.mark.parametrize('current_date, start_date, end_date, is_active', (
+    (date.today(), date.today(), date.today() + timedelta(days=1), True),
+    (date.today() + timedelta(days=1), date.today(), date.today() + timedelta(days=1), True),
+    (date.today() + timedelta(days=2), date.today(), date.today() + timedelta(days=1), False),
+    (date.today() - timedelta(days=2), date.today(), date.today() + timedelta(days=1), False),
+    (date.today(), date.today(), None, True),
+    (date.today() + timedelta(weeks=10), date.today(), None, True),
+    ))
+def test_sale_active(current_date, start_date, end_date, is_active):
     Sale.objects.create(
         type=DiscountValueType.FIXED,
-        value=5, start_date=date.today(),
-        end_date=date.today() + timedelta(days=1))
+        value=5,
+        start_date=start_date,
+        end_date=end_date)
     sale_is_active = Sale.objects.active(date=current_date).exists()
     assert is_active == sale_is_active

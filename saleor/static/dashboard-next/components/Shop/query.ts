@@ -6,6 +6,10 @@ import { ShopInfo } from "./types/ShopInfo";
 const shopInfo = gql`
   query ShopInfo {
     shop {
+      countries {
+        country
+        code
+      }
       defaultCountry {
         code
         country
@@ -16,6 +20,10 @@ const shopInfo = gql`
       domain {
         host
         url
+      }
+      languages {
+        code
+        language
       }
       includeTaxesInPrices
       name

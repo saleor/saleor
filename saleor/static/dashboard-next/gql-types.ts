@@ -1609,8 +1609,8 @@ export interface PageUpdateMutationVariables {
   title: string;
   content: string;
   slug: string;
-  isVisible: boolean;
-  availableOn?: string | null;
+  isPublished: boolean;
+  publicationDate?: string | null;
 }
 
 export interface PageUpdateMutation {
@@ -1621,8 +1621,8 @@ export interface PageUpdateMutation {
       slug: string;
       title: string;
       content: string;
-      isVisible: boolean;
-      availableOn: string | null;
+      isPublished: boolean;
+      publicationDate: string | null;
     } | null;
     // List of errors that occurred executing the mutation.
     errors: Array<{
@@ -1640,8 +1640,8 @@ export interface PageCreateMutationVariables {
   title: string;
   content: string;
   slug: string;
-  isVisible: boolean;
-  availableOn?: string | null;
+  isPublished: boolean;
+  publicationDate?: string | null;
 }
 
 export interface PageCreateMutation {
@@ -1652,8 +1652,8 @@ export interface PageCreateMutation {
       slug: string;
       title: string;
       content: string;
-      isVisible: boolean;
-      availableOn: string | null;
+      isPublished: boolean;
+      publicationDate: string | null;
       created: string;
     } | null;
     // List of errors that occurred executing the mutation.
@@ -1687,7 +1687,7 @@ export interface PageListQuery {
         id: string;
         slug: string;
         title: string;
-        isVisible: boolean;
+        isPublished: boolean;
       };
     }>;
     pageInfo: {
@@ -1716,8 +1716,8 @@ export interface PageDetailsQuery {
     title: string;
     content: string;
     created: string;
-    isVisible: boolean;
-    availableOn: string | null;
+    isPublished: boolean;
+    publicationDate: string | null;
   } | null;
 }
 
@@ -1790,7 +1790,7 @@ export interface ProductImageCreateMutation {
       } | null;
       isPublished: boolean;
       chargeTaxes: boolean;
-      availableOn: string | null;
+      publicationDate: string | null;
       // List of product attributes assigned to this product.
       attributes: Array<{
         // Name of an attribute
@@ -1955,7 +1955,7 @@ export interface ProductImageReorderMutation {
 export interface ProductUpdateMutationVariables {
   id: string;
   attributes?: Array<AttributeValueInput | null> | null;
-  availableOn?: string | null;
+  publicationDate?: string | null;
   category?: string | null;
   chargeTaxes: boolean;
   collections?: Array<string | null> | null;
@@ -2028,7 +2028,7 @@ export interface ProductUpdateMutation {
       } | null;
       isPublished: boolean;
       chargeTaxes: boolean;
-      availableOn: string | null;
+      publicationDate: string | null;
       // List of product attributes assigned to this product.
       attributes: Array<{
         // Name of an attribute
@@ -2134,7 +2134,7 @@ export interface ProductUpdateMutation {
 
 export interface ProductCreateMutationVariables {
   attributes?: Array<AttributeValueInput | null> | null;
-  availableOn?: string | null;
+  publicationDate?: string | null;
   category: string;
   chargeTaxes: boolean;
   collections?: Array<string | null> | null;
@@ -2208,7 +2208,7 @@ export interface ProductCreateMutation {
       } | null;
       isPublished: boolean;
       chargeTaxes: boolean;
-      availableOn: string | null;
+      publicationDate: string | null;
       // List of product attributes assigned to this product.
       attributes: Array<{
         // Name of an attribute
@@ -2684,7 +2684,7 @@ export interface ProductImageUpdateMutation {
       } | null;
       isPublished: boolean;
       chargeTaxes: boolean;
-      availableOn: string | null;
+      publicationDate: string | null;
       // List of product attributes assigned to this product.
       attributes: Array<{
         // Name of an attribute
@@ -3147,7 +3147,7 @@ export interface ProductDetailsQuery {
     } | null;
     isPublished: boolean;
     chargeTaxes: boolean;
-    availableOn: string | null;
+    publicationDate: string | null;
     // List of product attributes assigned to this product.
     attributes: Array<{
       // Name of an attribute
@@ -3817,7 +3817,7 @@ export interface ProductFragment {
   } | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: string | null;
+  publicationDate: string | null;
   // List of product attributes assigned to this product.
   attributes: Array<{
     // Name of an attribute

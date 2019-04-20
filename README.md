@@ -23,13 +23,15 @@
   <a href="https://twitter.com/getsaleor">Twitter</a>
   <span> | </span>
   <a href="https://gitter.im/mirumee/saleor">Gitter</a>
+  <span> | </span>
+  <a href="https://spectrum.chat/saleor">Spectrum</a>
 </div>
 
 <br>
 
 <div align="center">
-  <a href="https://travis-ci.org/mirumee/saleor">
-    <img src="https://travis-ci.org/mirumee/saleor.svg?branch=master" alt="Build status" />
+  <a href="https://circleci.com/gh/mirumee/saleor">
+    <img src="https://circleci.com/gh/mirumee/saleor.svg?style=svg" alt="Build status" />
   </a>
   <a href="http://codecov.io/github/mirumee/saleor?branch=master">
     <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="Codecov" />

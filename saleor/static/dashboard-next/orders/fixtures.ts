@@ -57,7 +57,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:30.376876+00:00",
     id: "T3JkZXI6MjA=",
     number: "20",
-    paymentStatus: PaymentChargeStatusEnum.CHARGED,
+    paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -93,7 +93,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:30.124154+00:00",
     id: "T3JkZXI6MTk=",
     number: "19",
-    paymentStatus: PaymentChargeStatusEnum.CHARGED,
+    paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -363,7 +363,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.598246+00:00",
     id: "T3JkZXI6MTE=",
     number: "11",
-    paymentStatus: PaymentChargeStatusEnum.CHARGED,
+    paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED,
     status: OrderStatus.UNFULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -507,7 +507,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.828033+00:00",
     id: "T3JkZXI6Nw==",
     number: "7",
-    paymentStatus: PaymentChargeStatusEnum.CHARGED,
+    paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -687,7 +687,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:26.751359+00:00",
     id: "T3JkZXI6Mg==",
     number: "2",
-    paymentStatus: PaymentChargeStatusEnum.CHARGED,
+    paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -723,7 +723,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:26.314968+00:00",
     id: "T3JkZXI6MQ==",
     number: "1",
-    paymentStatus: PaymentChargeStatusEnum.CHARGED,
+    paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -811,7 +811,8 @@ export const order = (placeholder: string): OrderDetails_order => ({
       type: OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
       user: {
         __typename: "User",
-        email: "admin@example.com"
+        email: "admin@example.com",
+        id: "QWRkcmVzczoxNQ=="
       }
     }
   ],

@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { AttributeValueInput } from "./../../types/globalTypes";
@@ -153,7 +154,7 @@ export interface ProductUpdate_productUpdate_product {
   __typename: "Product";
   id: string;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductUpdate_productUpdate_product_category;
@@ -163,7 +164,7 @@ export interface ProductUpdate_productUpdate_product {
   purchaseCost: ProductUpdate_productUpdate_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: any | null;
+  publicationDate: any | null;
   attributes: ProductUpdate_productUpdate_product_attributes[];
   availability: ProductUpdate_productUpdate_product_availability | null;
   images: (ProductUpdate_productUpdate_product_images | null)[] | null;
@@ -185,11 +186,11 @@ export interface ProductUpdate {
 export interface ProductUpdateVariables {
   id: string;
   attributes?: (AttributeValueInput | null)[] | null;
-  availableOn?: any | null;
+  publicationDate?: any | null;
   category?: string | null;
   chargeTaxes: boolean;
   collections?: (string | null)[] | null;
-  description?: string | null;
+  descriptionJson?: any | null;
   isPublished: boolean;
   name?: string | null;
   price?: any | null;

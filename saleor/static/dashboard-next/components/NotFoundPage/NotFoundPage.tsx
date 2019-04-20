@@ -70,12 +70,12 @@ const NotFoundPage = withStyles(styles, { name: "NotFoundPage" })(
             <Typography className={classes.header} variant="display1">
               {i18n.t("Something's missing")}
             </Typography>
-            <Typography>{i18n.t("Sorry the page not found")}</Typography>
+            <Typography>{i18n.t("Sorry, the page was not found")}</Typography>
           </div>
           <div>
             <Button
               className={classes.button}
-              color="secondary"
+              color="primary"
               variant="contained"
               onClick={onBack}
             >

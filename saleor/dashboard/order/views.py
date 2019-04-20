@@ -119,12 +119,12 @@ def order_details(request, order_pk):
         'payments__transactions', 'events__user', 'lines__variant__product',
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
-    all_payments = order.payments.all()
+    all_payments = order.payments.order_by('-pk').all()
     payment = order.get_last_payment()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
         'notes': order.events.filter(type=OrderEvents.NOTE_ADDED.value),
-        'events': order.events.all(),
+        'events': order.events.order_by('-date').all(),
         'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
@@ -533,7 +533,8 @@ def order_invoice(request, order_pk):
 def mark_order_as_paid(request, order_pk):
     order = get_object_or_404(Order.objects.confirmed(), pk=order_pk)
     status = 200
-    form = OrderMarkAsPaidForm(request.POST or None, order=order)
+    form = OrderMarkAsPaidForm(
+        request.POST or None, order=order, user=request.user)
     if form.is_valid():
         with transaction.atomic():
             form.save()
@@ -589,8 +590,8 @@ def fulfill_order_lines(request, order_pk):
     formset = FulfillmentLineFormSet(
         request.POST or None, queryset=FulfillmentLine.objects.none(),
         initial=initial)
-    all_forms_valid = all([line_form.is_valid() for line_form in formset])
-    if all_forms_valid and form.is_valid():
+    all_line_forms_valid = all([line_form.is_valid() for line_form in formset])
+    if all_line_forms_valid and formset.is_valid() and form.is_valid():
         forms_to_save = [
             line_form for line_form in formset
             if line_form.cleaned_data.get('quantity') > 0]

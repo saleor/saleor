@@ -1,13 +1,57 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-
+import { pageDetailsFragment } from "./queries";
+import {
+  PageBulkPublish,
+  PageBulkPublishVariables
+} from "./types/PageBulkPublish";
+import {
+  PageBulkRemove,
+  PageBulkRemoveVariables
+} from "./types/PageBulkRemove";
 import { PageCreate, PageCreateVariables } from "./types/PageCreate";
-import { PageDelete, PageDeleteVariables } from "./types/PageDelete";
+import { PageRemove, PageRemoveVariables } from "./types/PageRemove";
 import { PageUpdate, PageUpdateVariables } from "./types/PageUpdate";
 
-export const pageDeleteMutation = gql`
-  mutation PageDelete($id: ID!) {
+const pageCreate = gql`
+  ${pageDetailsFragment}
+  mutation PageCreate($input: PageInput!) {
+    pageCreate(input: $input) {
+      errors {
+        field
+        message
+      }
+      page {
+        ...PageDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedPageCreate = TypedMutation<PageCreate, PageCreateVariables>(
+  pageCreate
+);
+
+const pageUpdate = gql`
+  ${pageDetailsFragment}
+  mutation PageUpdate($id: ID!, $input: PageInput!) {
+    pageUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      page {
+        ...PageDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedPageUpdate = TypedMutation<PageUpdate, PageUpdateVariables>(
+  pageUpdate
+);
+
+const pageRemove = gql`
+  mutation PageRemove($id: ID!) {
     pageDelete(id: $id) {
       errors {
         field
@@ -16,38 +60,13 @@ export const pageDeleteMutation = gql`
     }
   }
 `;
-export const TypedPageDeleteMutation = TypedMutation<
-  PageDelete,
-  PageDeleteVariables
->(pageDeleteMutation);
+export const TypedPageRemove = TypedMutation<PageRemove, PageRemoveVariables>(
+  pageRemove
+);
 
-export const pageUpdateMutation = gql`
-  mutation PageUpdate(
-    $id: ID!
-    $title: String!
-    $content: String!
-    $slug: String!
-    $isVisible: Boolean!
-    $availableOn: String
-  ) {
-    pageUpdate(
-      id: $id
-      input: {
-        title: $title
-        content: $content
-        slug: $slug
-        isVisible: $isVisible
-        availableOn: $availableOn
-      }
-    ) {
-      page {
-        id
-        slug
-        title
-        content
-        isVisible
-        availableOn
-      }
+const pageBulkPublish = gql`
+  mutation PageBulkPublish($ids: [ID]!, $isPublished: Boolean!) {
+    pageBulkPublish(ids: $ids, isPublished: $isPublished) {
       errors {
         field
         message
@@ -55,37 +74,14 @@ export const pageUpdateMutation = gql`
     }
   }
 `;
-export const TypedPageUpdateMutation = TypedMutation<
-  PageUpdate,
-  PageUpdateVariables
->(pageUpdateMutation);
+export const TypedPageBulkPublish = TypedMutation<
+  PageBulkPublish,
+  PageBulkPublishVariables
+>(pageBulkPublish);
 
-export const pageCreateMutation = gql`
-  mutation PageCreate(
-    $title: String!
-    $content: String!
-    $slug: String!
-    $isVisible: Boolean!
-    $availableOn: String
-  ) {
-    pageCreate(
-      input: {
-        title: $title
-        content: $content
-        slug: $slug
-        isVisible: $isVisible
-        availableOn: $availableOn
-      }
-    ) {
-      page {
-        id
-        slug
-        title
-        content
-        isVisible
-        availableOn
-        created
-      }
+const pageBulkRemove = gql`
+  mutation PageBulkRemove($ids: [ID]!) {
+    pageBulkDelete(ids: $ids) {
       errors {
         field
         message
@@ -93,7 +89,7 @@ export const pageCreateMutation = gql`
     }
   }
 `;
-export const TypedPageCreateMutation = TypedMutation<
-  PageCreate,
-  PageCreateVariables
->(pageCreateMutation);
+export const TypedPageBulkRemove = TypedMutation<
+  PageBulkRemove,
+  PageBulkRemoveVariables
+>(pageBulkRemove);

@@ -1,6 +1,7 @@
 import datetime
 import io
 import json
+import os
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -8,15 +9,17 @@ import pytest
 from django.core import serializers
 from django.core.serializers.base import DeserializationError
 from django.urls import reverse
+from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout import utils
-from saleor.checkout.models import Cart
-from saleor.checkout.utils import add_variant_to_cart
+from saleor.checkout.models import Checkout
+from saleor.checkout.utils import add_variant_to_checkout
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount.models import Sale
 from saleor.menu.models import MenuItemTranslation
 from saleor.product import ProductAvailabilityStatus, models
+from saleor.product.models import DigitalContentUrl
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock, increase_stock)
@@ -58,7 +61,7 @@ def test_product_page_redirects_to_correct_slug(client, product):
 
 
 def test_product_preview(admin_client, client, product):
-    product.available_on = (
+    product.publication_date = (
         datetime.date.today() + datetime.timedelta(days=7))
     product.save()
     response = client.get(product.get_absolute_url())
@@ -174,142 +177,142 @@ def test_render_product_detail_with_taxes(client, product, vatlayer):
     assert response.status_code == 200
 
 
-def test_view_invalid_add_to_cart(client, product, request_cart):
+def test_view_invalid_add_to_checkout(client, product, request_checkout):
     variant = product.variants.get()
-    add_variant_to_cart(request_cart, variant, 2)
+    add_variant_to_checkout(request_checkout, variant, 2)
     response = client.post(
         reverse(
-            'product:add-to-cart',
+            'product:add-to-checkout',
             kwargs={
                 'slug': product.get_slug(),
                 'product_id': product.pk}),
         {})
     assert response.status_code == 200
-    assert request_cart.quantity == 2
+    assert request_checkout.quantity == 2
 
 
-def test_view_add_to_cart(client, product, request_cart_with_item):
-    variant = request_cart_with_item.lines.get().variant
+def test_view_add_to_checkout(client, product, request_checkout_with_item):
+    variant = request_checkout_with_item.lines.get().variant
     response = client.post(
         reverse(
-            'product:add-to-cart',
+            'product:add-to-checkout',
             kwargs={'slug': product.get_slug(),
                     'product_id': product.pk}),
         {'quantity': 1, 'variant': variant.pk})
     assert response.status_code == 302
-    assert request_cart_with_item.quantity == 1
+    assert request_checkout_with_item.quantity == 1
 
 
-def test_adding_to_cart_with_current_user_token(
-        customer_user, authorized_client, product, request_cart_with_item):
+def test_adding_to_checkout_with_current_user_token(
+        customer_user, authorized_client, product, request_checkout_with_item):
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
 
-    response = authorized_client.get(reverse('cart:index'))
+    response = authorized_client.get(reverse('checkout:index'))
 
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
-    variant = request_cart_with_item.lines.first().variant
+    variant = request_checkout_with_item.lines.first().variant
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     authorized_client.post(url, data)
 
-    assert Cart.objects.count() == 1
-    assert Cart.objects.get(user=customer_user).pk == request_cart_with_item.pk
+    assert Checkout.objects.count() == 1
+    assert Checkout.objects.get(user=customer_user).pk == request_checkout_with_item.pk
 
 
-def test_adding_to_cart_with_another_user_token(
+def test_adding_to_checkout_with_another_user_token(
         admin_user, admin_client, product, customer_user,
-        request_cart_with_item):
+        request_checkout_with_item):
     client = admin_client
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
 
-    response = client.get(reverse('cart:index'))
+    response = client.get(reverse('checkout:index'))
 
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     client.cookies[key] = response.cookies[key]
-    variant = request_cart_with_item.lines.first().variant
+    variant = request_checkout_with_item.lines.first().variant
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     client.post(url, data)
 
-    assert Cart.objects.count() == 2
-    assert Cart.objects.get(user=admin_user).pk != request_cart_with_item.pk
+    assert Checkout.objects.count() == 2
+    assert Checkout.objects.get(user=admin_user).pk != request_checkout_with_item.pk
 
 
-def test_anonymous_adding_to_cart_with_another_user_token(
-        client, product, customer_user, request_cart_with_item):
+def test_anonymous_adding_to_checkout_with_another_user_token(
+        client, product, customer_user, request_checkout_with_item):
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
 
-    response = client.get(reverse('cart:index'))
+    response = client.get(reverse('checkout:index'))
 
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     client.cookies[key] = response.cookies[key]
     variant = product.variants.get()
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     client.post(url, data)
 
-    assert Cart.objects.count() == 2
-    assert Cart.objects.get(user=None).pk != request_cart_with_item.pk
+    assert Checkout.objects.count() == 2
+    assert Checkout.objects.get(user=None).pk != request_checkout_with_item.pk
 
 
-def test_adding_to_cart_with_deleted_cart_token(
-        customer_user, authorized_client, product, request_cart_with_item):
+def test_adding_to_checkout_with_deleted_checkout_token(
+        customer_user, authorized_client, product, request_checkout_with_item):
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
-    old_token = request_cart_with_item.token
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
+    old_token = request_checkout_with_item.token
 
-    response = authorized_client.get(reverse('cart:index'))
+    response = authorized_client.get(reverse('checkout:index'))
 
-    utils.set_cart_cookie(request_cart_with_item, response)
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
-    request_cart_with_item.delete()
+    request_checkout_with_item.delete()
     variant = product.variants.get()
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     authorized_client.post(url, data)
 
-    assert Cart.objects.count() == 1
-    assert not Cart.objects.filter(token=old_token).exists()
+    assert Checkout.objects.count() == 1
+    assert not Checkout.objects.filter(token=old_token).exists()
 
 
-def test_adding_to_cart_with_closed_cart_token(
-        customer_user, authorized_client, product, request_cart_with_item):
+def test_adding_to_checkout_with_closed_checkout_token(
+        customer_user, authorized_client, product, request_checkout_with_item):
     key = utils.COOKIE_NAME
-    request_cart_with_item.user = customer_user
-    request_cart_with_item.save()
+    request_checkout_with_item.user = customer_user
+    request_checkout_with_item.save()
 
-    response = authorized_client.get(reverse('cart:index'))
-    utils.set_cart_cookie(request_cart_with_item, response)
+    response = authorized_client.get(reverse('checkout:index'))
+    utils.set_checkout_cookie(request_checkout_with_item, response)
     authorized_client.cookies[key] = response.cookies[key]
     variant = product.variants.get()
     url = reverse(
-        'product:add-to-cart',
+        'product:add-to-checkout',
         kwargs={'slug': product.get_slug(), 'product_id': product.pk})
     data = {'quantity': 1, 'variant': variant.pk}
 
     authorized_client.post(url, data)
 
-    assert customer_user.carts.count() == 1
+    assert customer_user.checkouts.count() == 1
 
 
 def test_product_filter_before_filtering(authorized_client, product, category):
@@ -615,7 +618,7 @@ def test_product_json_deserialization(category, product_type):
             "description": "Future almost cup national",
             "category": {category_pk},
             "price": {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
-            "available_on": null,
+            "publication_date": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
             "updated_at": "2018-07-19T13:30:24.195Z",
@@ -662,7 +665,7 @@ def test_json_no_currency_deserialization(category, product_type):
             "description": "Future almost cup national",
             "category": {category_pk},
             "price": {{"_type": "Money", "amount": "35.98"}},
-            "available_on": null,
+            "publication_date": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
             "updated_at": "2018-07-19T13:30:24.195Z",
@@ -707,3 +710,46 @@ def test_homepage_collection_render(
     products_available = {
         product for product in product_list if product.is_published}
     assert products_in_context == products_available
+
+
+def test_digital_product_view(client, digital_content):
+    digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+    url = digital_content_url.get_absolute_url()
+    response = client.get(url)
+    filename = os.path.basename(digital_content.content_file.name)
+
+    assert response.status_code == 200
+    assert response['content-type'] == 'image/jpeg'
+    assert response['content-disposition'] == 'attachment; filename="%s"' % filename
+
+
+def test_digital_product_view_url_downloaded_max_times(client, digital_content):
+    digital_content.use_default_settings = False
+    digital_content.max_downloads = 1
+    digital_content.save()
+    digital_content_url = DigitalContentUrl.objects.create(
+        content=digital_content)
+
+    url = digital_content_url.get_absolute_url()
+    response = client.get(url)
+
+    # first download
+    assert response.status_code == 200
+
+    # second download
+    response = client.get(url)
+    assert response.status_code == 404
+
+
+def test_digital_product_view_url_expired(client, digital_content):
+    digital_content.use_default_settings = False
+    digital_content.url_valid_days = 10
+    digital_content.save()
+
+    with freeze_time('2018-05-31 12:00:01'):
+        digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+
+    url = digital_content_url.get_absolute_url()
+    response = client.get(url)
+
+    assert response.status_code == 404

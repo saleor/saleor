@@ -4,8 +4,6 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import AttachMoney from "@material-ui/icons/AttachMoney";
-import LocalShipping from "@material-ui/icons/LocalShipping";
 import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
@@ -13,6 +11,8 @@ import Container from "../../../components/Container";
 import Grid from "../../../components/Grid";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
+import Orders from "../../../icons/Orders";
+import Sales from "../../../icons/Sales";
 import {
   Home_activities_edges_node,
   Home_productTopToday_edges_node,
@@ -70,7 +70,7 @@ const HomePage = withStyles(styles, { name: "HomePage" })(
     ordersToFulfill,
     productsOutOfStock
   }: HomePageProps) => (
-    <Container width="md">
+    <Container>
       <HomeHeader userName={userName} />
       <CardSpacer />
       <Grid>
@@ -78,7 +78,7 @@ const HomePage = withStyles(styles, { name: "HomePage" })(
           <div className={classes.cardContainer}>
             <HomeAnalyticsCard
               title={"Sales"}
-              icon={<AttachMoney fontSize={"inherit"} />}
+              icon={<Sales fontSize={"inherit"} viewBox="0 0 48 48" />}
             >
               {sales ? (
                 <Money money={sales} />
@@ -88,7 +88,7 @@ const HomePage = withStyles(styles, { name: "HomePage" })(
             </HomeAnalyticsCard>
             <HomeAnalyticsCard
               title={"Orders"}
-              icon={<LocalShipping fontSize={"inherit"} />}
+              icon={<Orders fontSize={"inherit"} viewBox="0 0 48 48" />}
             >
               {orders === undefined ? (
                 <Skeleton style={{ width: "5em" }} />

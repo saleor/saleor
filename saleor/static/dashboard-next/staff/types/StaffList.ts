@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { PermissionEnum } from "./../../types/globalTypes";
@@ -7,6 +8,11 @@ import { PermissionEnum } from "./../../types/globalTypes";
 // GraphQL query operation: StaffList
 // ====================================================
 
+export interface StaffList_staffUsers_edges_node_avatar {
+  __typename: "Image";
+  url: string;
+}
+
 export interface StaffList_staffUsers_edges_node {
   __typename: "User";
   id: string;
@@ -14,6 +20,7 @@ export interface StaffList_staffUsers_edges_node {
   firstName: string;
   isActive: boolean;
   lastName: string;
+  avatar: StaffList_staffUsers_edges_node_avatar | null;
 }
 
 export interface StaffList_staffUsers_edges {

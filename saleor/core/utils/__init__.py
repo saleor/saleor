@@ -1,5 +1,6 @@
 import decimal
 import logging
+import os
 from json import JSONEncoder
 from urllib.parse import urljoin
 
@@ -17,12 +18,12 @@ from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
 from django_prices_openexchangerates.tasks import update_conversion_rates
-
 from geolite2 import geolite2
 from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
+from ...account.utils import get_random_avatar
 from ...core.i18n import COUNTRY_CODE_CHOICES
 
 georeader = geolite2.reader()
@@ -101,6 +102,8 @@ def format_money(money):
 
 
 def to_local_currency(price, currency):
+    if price is None:
+        return None
     if not settings.OPENEXCHANGERATES_API_KEY:
         return None
     if isinstance(price, MoneyRange):
@@ -140,8 +143,13 @@ def create_superuser(credentials):
         email=credentials['email'], defaults={
             'is_active': True, 'is_staff': True, 'is_superuser': True})
     if created:
+        user.avatar = get_random_avatar()
         user.set_password(credentials['password'])
         user.save()
+        create_thumbnails(
+            pk=user.pk, model=User,
+            size_set='user_avatars', image_attr='avatar',
+        )
         msg = 'Superuser - %(email)s/%(password)s' % credentials
     else:
         msg = 'Superuser already exists - %(email)s' % credentials

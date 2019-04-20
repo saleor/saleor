@@ -1,0 +1,6647 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+# Translators:
+# Keijo Laas <keijo@magmatech.ee>, 2019
+# Carmel Vaher <carmelvaher@gmail.com>, 2019
+# Henri Tamvere <henri.tamvere@magmatech.ee>, 2019
+# Chris Laas <chrislaaas@gmail.com>, 2019
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: Chris Laas <chrislaaas@gmail.com>, 2019\n"
+"Language-Team: Estonian (https://www.transifex.com/mirumee/teams/34782/et/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: et\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: saleor/account/forms.py:69
+msgctxt "Form field"
+msgid "Email"
+msgstr "Meil"
+
+#: saleor/account/forms.py:82
+msgctxt "Password"
+msgid "Password"
+msgstr "Parool"
+
+#: saleor/account/forms.py:84
+msgctxt "Email"
+msgid "Email"
+msgstr "Meil"
+
+#: saleor/account/forms.py:88
+msgctxt "Registration error"
+msgid "This email has already been registered."
+msgstr "See meil on juba registreeritud."
+
+#: saleor/account/forms.py:135
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "Eesnimi"
+
+#: saleor/account/forms.py:137
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "Perekonnanimi"
+
+#: saleor/account/i18n.py:18
+msgctxt "Address field"
+msgid "Area"
+msgstr "Piirkond"
+
+#: saleor/account/i18n.py:19
+msgctxt "Address field"
+msgid "County"
+msgstr "Maakond"
+
+#: saleor/account/i18n.py:20
+msgctxt "Address field"
+msgid "Department"
+msgstr "Osakond"
+
+#: saleor/account/i18n.py:21
+msgctxt "Address field"
+msgid "District"
+msgstr "Rajoon"
+
+#: saleor/account/i18n.py:22
+msgctxt "Address field"
+msgid "Do/si"
+msgstr "Do/si"
+
+#: saleor/account/i18n.py:23
+msgctxt "Address field"
+msgid "Eircode"
+msgstr "Eircode"
+
+#: saleor/account/i18n.py:24
+msgctxt "Address field"
+msgid "Emirate"
+msgstr "Emiraat"
+
+#: saleor/account/i18n.py:25
+msgctxt "Address field"
+msgid "Island"
+msgstr "Saar"
+
+#: saleor/account/i18n.py:26
+msgctxt "Address field"
+msgid "Neighborhood"
+msgstr "Naabruskond"
+
+#: saleor/account/i18n.py:27
+msgctxt "Address field"
+msgid "Oblast"
+msgstr "Oblast"
+
+#: saleor/account/i18n.py:28
+msgctxt "Address field"
+msgid "Parish"
+msgstr "Vald"
+
+#: saleor/account/i18n.py:29
+msgctxt "Address field"
+msgid "PIN"
+msgstr "PIN"
+
+#: saleor/account/i18n.py:30
+msgctxt "Address field"
+msgid "Postal code"
+msgstr "Postiindeks"
+
+#: saleor/account/i18n.py:31
+msgctxt "Address field"
+msgid "Prefecture"
+msgstr "Prefektuur"
+
+#: saleor/account/i18n.py:32
+msgctxt "Address field"
+msgid "Province"
+msgstr "Provints"
+
+#: saleor/account/i18n.py:33
+msgctxt "Address field"
+msgid "State"
+msgstr "Osariik"
+
+#: saleor/account/i18n.py:34
+msgctxt "Address field"
+msgid "Suburb"
+msgstr "Äärelinn"
+
+#: saleor/account/i18n.py:35
+msgctxt "Address field"
+msgid "Townland"
+msgstr "Linnamaa"
+
+#: saleor/account/i18n.py:36
+msgctxt "Address field"
+msgid "Village/township"
+msgstr "Küla/alev"
+
+#: saleor/account/i18n.py:37
+msgctxt "Address field"
+msgid "ZIP code"
+msgstr "Postiindeks"
+
+#: saleor/account/i18n.py:63 saleor/account/i18n.py:109
+msgctxt "Country"
+msgid "Country"
+msgstr "Riik"
+
+#: saleor/account/i18n.py:94
+msgctxt "Personal name"
+msgid "Given name"
+msgstr "Eesnimi"
+
+#: saleor/account/i18n.py:96
+msgctxt "Personal name"
+msgid "Family name"
+msgstr "Perekonnanimi"
+
+#: saleor/account/i18n.py:98
+msgctxt "Company or organization"
+msgid "Company or organization"
+msgstr "Ettevõte või organisatsioon"
+
+#: saleor/account/i18n.py:100
+msgctxt "Address"
+msgid "Address"
+msgstr "Aadress"
+
+#: saleor/account/i18n.py:103
+msgctxt "City"
+msgid "City"
+msgstr "Linn"
+
+#: saleor/account/i18n.py:105
+msgctxt "City area"
+msgid "District"
+msgstr "Rajoon"
+
+#: saleor/account/i18n.py:107
+msgctxt "Postal code"
+msgid "Postal code"
+msgstr "Postiindeks"
+
+#: saleor/account/i18n.py:111
+msgctxt "Country area"
+msgid "State or province"
+msgstr "Osariik või provints"
+
+#: saleor/account/i18n.py:113
+msgctxt "Phone number"
+msgid "Phone number"
+msgstr "Telefoninumber"
+
+#: saleor/account/i18n.py:116
+msgctxt "Address"
+msgid "Street address, P.O. box, company name"
+msgstr "Tänav, postkasti number, ettevõtte nimi"
+
+#: saleor/account/i18n.py:118
+msgctxt "Address"
+msgid "Apartment, suite, unit, building, floor, etc"
+msgstr "Korter, sviit, üksus, hoone, korrus vms"
+
+#: saleor/account/i18n.py:170
+msgctxt "Address form"
+msgid "This value is invalid for selected country"
+msgstr "See väärtus ei kehti valitud riigis"
+
+#: saleor/account/models.py:154
+msgctxt "Permission description"
+msgid "Manage customers."
+msgstr "Halda kliente."
+
+#: saleor/account/models.py:157
+msgctxt "Permission description"
+msgid "Manage staff."
+msgstr "Halda meeskonda."
+
+#: saleor/account/models.py:160
+msgctxt "Permission description"
+msgid "Impersonate customers."
+msgstr "Kehasta kliente."
+
+#: saleor/account/templatetags/i18n_address_tags.py:12
+#, python-format
+msgctxt "Address data"
+msgid "%(first_name)s %(last_name)s"
+msgstr "%(first_name)s%(last_name)s"
+
+#: saleor/account/templatetags/i18n_address_tags.py:16
+#, python-format
+msgctxt "Address data"
+msgid ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
+msgstr ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
+
+#: saleor/account/validators.py:11
+msgid "The phone number entered is not valid."
+msgstr "Sisestatud telefoninumber ei ole valiidne."
+
+#: saleor/account/views.py:31
+msgid "You have been successfully logged out."
+msgstr "Olete edukalt välja loginud."
+
+#: saleor/account/views.py:45
+msgid "User has been created"
+msgstr "Kasutaja on loodud"
+
+#: saleor/account/views.py:97
+msgctxt "Storefront message"
+msgid "Password successfully changed."
+msgstr "Parool edukalt muudetud."
+
+#: saleor/account/views.py:106
+msgctxt "Storefront message"
+msgid "Account successfully updated."
+msgstr "Konto edukalt uuendatud."
+
+#: saleor/account/views.py:119
+msgctxt "Storefront message"
+msgid "Address successfully updated."
+msgstr "Aadress edukalt uuendatud."
+
+#: saleor/account/views.py:134
+msgctxt "Storefront message"
+msgid "Address successfully removed"
+msgstr "Aadress edukalt eemaldatud"
+
+#: saleor/account/views.py:148
+msgctxt "Storefront message, when user requested his account removed"
+msgid "Please check your inbox for a confirmation e-mail."
+msgstr "Palun vaadake oma postkasti meili kinnitamiseks."
+
+#: saleor/account/views.py:163
+msgctxt "Account deleted"
+msgid ""
+"Your account was deleted successfully. In case of any trouble or questions "
+"feel free to contact us."
+msgstr ""
+"Teie konto kustutati edukalt. Probleemide või küsimuste korral võtke meiega "
+"ühendust."
+
+#: saleor/checkout/__init__.py:15
+msgctxt "Type of address used to fulfill order"
+msgid "Billing"
+msgstr "Arveldamine"
+
+#: saleor/checkout/__init__.py:19
+msgctxt "Type of address used to fulfill order"
+msgid "Shipping"
+msgstr "Transport"
+
+#: saleor/checkout/forms.py:39
+msgctxt "Add to cart form field label"
+msgid "Quantity"
+msgstr "Kogus"
+
+#: saleor/checkout/forms.py:43
+msgctxt "Add to cart form error"
+msgid "Sorry. This product is currently not available."
+msgstr "Vabandust. See toode ei ole hetkel saadaval."
+
+#: saleor/checkout/forms.py:46
+msgctxt "Add to cart form error"
+msgid "Sorry. This product is currently out of stock."
+msgstr "Vabandust. See toode on hetkel välja müüdud."
+
+#: saleor/checkout/forms.py:48
+msgctxt "Add to cart form error"
+msgid "Oops. We could not find that product."
+msgstr "Oih. Toodet ei leitud."
+
+#: saleor/checkout/forms.py:51
+#, python-format
+msgctxt "Add to cart form error"
+msgid "Only %d remaining in stock."
+msgid_plural "Only %d remaining in stock."
+msgstr[0] "Ainult %d laos alles."
+msgstr[1] "Ainult %d laos alles."
+
+#: saleor/checkout/forms.py:162
+msgctxt "Country form field label"
+msgid "Country"
+msgstr "Riik"
+
+#: saleor/checkout/forms.py:188 saleor/checkout/forms.py:200
+msgctxt "Address form field label"
+msgid "Email"
+msgstr "Meil"
+
+#: saleor/checkout/forms.py:213
+msgctxt "Shipping addresses form choice"
+msgid "Enter a new address"
+msgstr "Sisesta uus aadress"
+
+#: saleor/checkout/forms.py:216
+msgctxt "Shipping addresses form field label"
+msgid "Address"
+msgstr "Aadress"
+
+#: saleor/checkout/forms.py:233
+msgctxt "Billing addresses form choice"
+msgid "Enter a new address"
+msgstr "Sisesta uus aadress"
+
+#: saleor/checkout/forms.py:235
+msgctxt "Billing addresses form choice"
+msgid "Same as shipping"
+msgstr "Sama, mis kohaletoimetamise aadress"
+
+#: saleor/checkout/forms.py:238
+msgctxt "Billing addresses form field label"
+msgid "Address"
+msgstr "Aadress"
+
+#: saleor/checkout/forms.py:268
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr "Kohaletoimetamise meetod"
+
+#: saleor/checkout/forms.py:309
+msgctxt "Voucher form error"
+msgid "Discount code incorrect or expired"
+msgstr "Allahindluskood väär või aegunud"
+
+#: saleor/checkout/forms.py:320
+msgctxt "Checkout discount form label for voucher field"
+msgid "Gift card or discount code"
+msgstr "Kinkekaart või allahindluskood"
+
+#: saleor/checkout/utils.py:134
+msgctxt "Cart warning message"
+msgid ""
+"Sorry. We don't have that many items in stock. Quantity was set to maximum "
+"available for now."
+msgstr ""
+"Vabandust. Meil ei ole laos nii palju tooteid. Kogus määrati võimalikult "
+"suureks."
+
+#: saleor/checkout/utils.py:630
+msgctxt "Voucher not applicable"
+msgid "Your order does not require shipping."
+msgstr "Sinu tellimus ei vaja kohaletoimetamist."
+
+#: saleor/checkout/utils.py:636
+msgctxt "Voucher not applicable"
+msgid "Please select a shipping method first."
+msgstr "Palun valige kohaletoimetamise viis esimesena."
+
+#: saleor/checkout/utils.py:644
+msgctxt "Voucher not applicable"
+msgid "This offer is not valid in your country."
+msgstr "See pakkumine ei kehti Teie riigis."
+
+#: saleor/checkout/utils.py:666
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for selected items."
+msgstr "See pakkumine kehtib ainult valitud toodetele."
+
+#: saleor/checkout/utils.py:793
+msgctxt "Voucher not applicable"
+msgid "Voucher expired in meantime. Order placement aborted."
+msgstr "Vautšer on vahepeal aegunud. Tellimus tühistatud."
+
+#: saleor/checkout/utils.py:898
+msgctxt "order placement_error"
+msgid "Shipping method is not set"
+msgstr "Kohaletoimetamise viis ei ole määratud"
+
+#: saleor/checkout/utils.py:901
+msgctxt "order placement error"
+msgid "Shipping address is not set"
+msgstr "Kohaletoimetamise aadress ei ole määratud"
+
+#: saleor/checkout/utils.py:905
+msgctxt "order placement error"
+msgid "Shipping method is not valid for your shipping address"
+msgstr "Kohaletoimetamise viis ei sobi Teie aadressiga"
+
+#: saleor/checkout/utils.py:908
+msgctxt "order placement_error"
+msgid "Billing address is not set"
+msgstr "Arve aadress määramata"
+
+#: saleor/checkout/views/discount.py:62
+msgctxt "Checkout warning"
+msgid "This voucher has expired. Please review your checkout."
+msgstr "Vautšer on aegunud. Palun vaata oma kassa üle."
+
+#: saleor/checkout/views/summary.py:37
+msgctxt "Checkout warning"
+msgid "Please review your checkout."
+msgstr "Palun vaata oma kassa üle."
+
+#: saleor/core/__init__.py:54
+msgctxt "VAT rate type"
+msgid "accommodation"
+msgstr "majutus"
+
+#: saleor/core/__init__.py:56
+msgctxt "VAT rate type"
+msgid "admission to cultural events"
+msgstr "sissepääs kultuurisündmustele"
+
+#: saleor/core/__init__.py:58
+msgctxt "VAT rate type"
+msgid "admission to entertainment events"
+msgstr "sissepääs meelelahutus sündmustele"
+
+#: saleor/core/__init__.py:60
+msgctxt "VAT rate type"
+msgid "admission to sporting events"
+msgstr "sissepääs spordiüritustele"
+
+#: saleor/core/__init__.py:61
+msgctxt "VAT rate type"
+msgid "advertising"
+msgstr "reklaamimine"
+
+#: saleor/core/__init__.py:63
+msgctxt "VAT rate type"
+msgid "agricultural supplies"
+msgstr "põllumajandussaadused"
+
+#: saleor/core/__init__.py:64
+msgctxt "VAT rate type"
+msgid "baby foodstuffs"
+msgstr "imikutoit"
+
+#: saleor/core/__init__.py:65
+msgctxt "VAT rate type"
+msgid "bikes"
+msgstr "rattad"
+
+#: saleor/core/__init__.py:66
+msgctxt "VAT rate type"
+msgid "books"
+msgstr "raamatud"
+
+#: saleor/core/__init__.py:68
+msgctxt "VAT rate type"
+msgid "childrens clothing"
+msgstr "lasteriided"
+
+#: saleor/core/__init__.py:69
+msgctxt "VAT rate type"
+msgid "domestic fuel"
+msgstr "kodumaine kütus"
+
+#: saleor/core/__init__.py:71
+msgctxt "VAT rate type"
+msgid "domestic services"
+msgstr "kodumaised teenused"
+
+#: saleor/core/__init__.py:72
+msgctxt "VAT rate type"
+msgid "e-books"
+msgstr "e-raamatud"
+
+#: saleor/core/__init__.py:73
+msgctxt "VAT rate type"
+msgid "foodstuffs"
+msgstr "toiduained"
+
+#: saleor/core/__init__.py:74
+msgctxt "VAT rate type"
+msgid "hotels"
+msgstr "hotellid"
+
+#: saleor/core/__init__.py:75
+msgctxt "VAT rate type"
+msgid "medical"
+msgstr "meditsiiniline"
+
+#: saleor/core/__init__.py:76
+msgctxt "VAT rate type"
+msgid "newspapers"
+msgstr "ajalehed"
+
+#: saleor/core/__init__.py:78
+msgctxt "VAT rate type"
+msgid "passenger transport"
+msgstr "reisijatevedu"
+
+#: saleor/core/__init__.py:80
+msgctxt "VAT rate type"
+msgid "pharmaceuticals"
+msgstr "ravimid"
+
+#: saleor/core/__init__.py:82
+msgctxt "VAT rate type"
+msgid "property renovations"
+msgstr "hoonete renoveerimine"
+
+#: saleor/core/__init__.py:83
+msgctxt "VAT rate type"
+msgid "restaurants"
+msgstr "restoranid"
+
+#: saleor/core/__init__.py:84
+msgctxt "VAT rate type"
+msgid "social housing"
+msgstr "sotsiaalmajutus"
+
+#: saleor/core/__init__.py:85
+msgctxt "VAT rate type"
+msgid "standard"
+msgstr "standard"
+
+#: saleor/core/__init__.py:86
+msgctxt "VAT rate type"
+msgid "water"
+msgstr "vesi"
+
+#: saleor/core/__init__.py:87
+msgctxt "VAT rate type"
+msgid "wine"
+msgstr "vein"
+
+#: saleor/core/filters.py:27
+#, python-format
+msgctxt "Number of matching records in the dashboard list"
+msgid "Found %(counter)d matching record"
+msgid_plural "Found %(counter)d matching records"
+msgstr[0] "Leitud %(counter)d sobiv kirje"
+msgstr[1] "Leitud %(counter)d sobivat kirjet"
+
+#: saleor/core/i18n.py:5
+msgctxt "Country choice"
+msgid "Any Country"
+msgstr "Ükskõik milline Riik"
+
+#: saleor/core/views.py:40
+msgctxt "Impersonation message"
+msgid "You are now logged as {}"
+msgstr "Sa oled nüüd sisselogitud {}"
+
+#: saleor/core/weight.py:33
+msgctxt "Kilogram weight unit symbol"
+msgid "kg"
+msgstr "kg"
+
+#: saleor/core/weight.py:34
+msgctxt "Pound weight unit symbol"
+msgid "lb"
+msgstr "lb"
+
+#: saleor/core/weight.py:35
+msgctxt "Ounce weight unit symbol"
+msgid "oz"
+msgstr "oz"
+
+#: saleor/core/weight.py:36
+msgctxt "Gram weight unit symbol"
+msgid "g"
+msgstr "g"
+
+#: saleor/discount/__init__.py:12
+msgctxt "Discount type"
+msgid "%"
+msgstr "%"
+
+#: saleor/discount/__init__.py:23
+msgctxt "Voucher: discount for"
+msgid "All products"
+msgstr "Kõik tooted"
+
+#: saleor/discount/__init__.py:24
+msgctxt "Voucher: discount for"
+msgid "Specific products"
+msgstr "Spetsiifilised tooted"
+
+#: saleor/discount/__init__.py:26
+msgctxt "Voucher: discount for"
+msgid "Specific collections of products"
+msgstr "Spetsiifilised toodete kollektsioonid"
+
+#: saleor/discount/__init__.py:28
+msgctxt "Voucher: discount for"
+msgid "Specific categories of products"
+msgstr "Spetsiifilised toodete kategooriad"
+
+#: saleor/discount/__init__.py:29
+msgctxt "Voucher: discount for"
+msgid "Shipping"
+msgstr "Saatmine"
+
+#: saleor/discount/models.py:77
+msgctxt "Voucher type"
+msgid "Free shipping"
+msgstr "Tasuta kohaletoimetamine"
+
+#: saleor/discount/models.py:80
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off shipping"
+msgstr "%(discount)s allahindlust saatmishinnast"
+
+#: saleor/discount/models.py:86
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(product_num)d products"
+msgstr "%(discount)s allahindlust %(product_num)d tootelt"
+
+#: saleor/discount/models.py:94
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(collections_num)d collections"
+msgstr "%(discount)s allahindlust %(collections_num)d kollektsioonilt"
+
+#: saleor/discount/models.py:102
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(categories_num)d categories"
+msgstr " %(discount)s allahindlust %(categories_num)d kategoorialt"
+
+#: saleor/discount/models.py:106
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off"
+msgstr "%(discount)s allahindlust"
+
+#: saleor/discount/models.py:136
+#, python-format
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for orders over %(amount)s."
+msgstr "See pakkumine ei kehti tellimustele üle %(amount)s."
+
+#: saleor/discount/models.py:180
+msgctxt "Permission description"
+msgid "Manage sales and vouchers."
+msgstr "Halda müüke ja vautšereid."
+
+#: saleor/discount/utils.py:49
+msgctxt "Voucher not applicable"
+msgid "Discount not applicable for this product"
+msgstr "Allahindlus ei kehti sellele tootele"
+
+#: saleor/graphql/order/mutations/fulfillments.py:78
+#, python-format
+msgctxt "Fulfill order line mutation error"
+msgid "Only %(quantity)d item remaining to fulfill."
+msgid_plural "Only %(quantity)d items remaining to fulfill."
+msgstr[0] "Ainult %(quantity)d asi ootab täitmist."
+msgstr[1] "Ainult %(quantity)d asja ootavad täitmist."
+
+#: saleor/graphql/order/mutations/fulfillments.py:216
+msgctxt "Cancel fulfillment mutation error"
+msgid "This fulfillment can't be canceled"
+msgstr "Seda saadetist ei ole võimalik tühistada"
+
+#: saleor/menu/models.py:21
+msgctxt "Permission description"
+msgid "Manage navigation."
+msgstr "Navigeerimise haldamine."
+
+#: saleor/menu/models.py:69
+msgctxt "Link object type description"
+msgid "URL: "
+msgstr "URL:"
+
+#: saleor/menu/models.py:74
+msgctxt "Link object type description"
+msgid "Category: "
+msgstr "Kategooria:"
+
+#: saleor/menu/models.py:77
+msgctxt "Link object type description"
+msgid "Collection: "
+msgstr "Kollektsioon:"
+
+#: saleor/menu/models.py:80
+msgctxt "Link object type description"
+msgid "Page: "
+msgstr "Lehekülg:"
+
+#: saleor/order/__init__.py:20
+msgctxt ""
+"Status for a fully editable, not confirmed order created by staff users"
+msgid "Draft"
+msgstr "Mustand"
+
+#: saleor/order/__init__.py:23
+msgctxt "Status for an order with no items marked as fulfilled"
+msgid "Unfulfilled"
+msgstr "Täitmata"
+
+#: saleor/order/__init__.py:26
+msgctxt "Status for an order with some items marked as fulfilled"
+msgid "Partially fulfilled"
+msgstr "Pooleldi täidetud"
+
+#: saleor/order/__init__.py:29
+msgctxt "Status for an order with all items marked as fulfilled"
+msgid "Fulfilled"
+msgstr "Täidetud"
+
+#: saleor/order/__init__.py:32
+msgctxt "Status for a permanently canceled order"
+msgid "Canceled"
+msgstr "Tühistatud"
+
+#: saleor/order/__init__.py:42
+msgctxt "Status for a group of products in an order marked as fulfilled"
+msgid "Fulfilled"
+msgstr "Täidetud"
+
+#: saleor/order/__init__.py:46
+msgctxt ""
+"Status for a fulfilled group of products in an order marked as canceled"
+msgid "Canceled"
+msgstr "Tühistatud"
+
+#: saleor/order/__init__.py:83
+msgctxt "Email type"
+msgid "Payment confirmation"
+msgstr "Makse kinnitus"
+
+#: saleor/order/__init__.py:85
+msgctxt "Email type"
+msgid "Shipping confirmation"
+msgstr "Saatmiskinnitus"
+
+#: saleor/order/__init__.py:87
+msgctxt "Email type"
+msgid "Fulfillment confirmation"
+msgstr "Saadetise kinnitus"
+
+#: saleor/order/__init__.py:89
+msgctxt "Email type"
+msgid "Order confirmation"
+msgstr "Tellimuse kinnitus"
+
+#: saleor/order/__init__.py:115
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order created from draft order by %(user_name)s"
+msgstr "Tellimus loodus tellimuse mustandist %(user_name)s poolt"
+
+#: saleor/order/__init__.py:120
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Payment was voided by %(user_name)s"
+msgstr "%(user_name)s tühistas makse"
+
+#: saleor/order/__init__.py:126
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Successfully refunded: %(amount)s"
+msgstr "Edukalt tagasi makstud: %(amount)s"
+
+#: saleor/order/__init__.py:132
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Successfully captured: %(amount)s"
+msgstr "Edukalt laekunud: %(amount)s"
+
+#: saleor/order/__init__.py:137
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order manually marked as paid by %(user_name)s"
+msgstr "%(user_name)s märkis käsitsi tellimuse \"makstud\""
+
+#: saleor/order/__init__.py:142
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order was canceled by %(user_name)s"
+msgstr "%(user_name)s tühistas tellimuse"
+
+#: saleor/order/__init__.py:147
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "We restocked %(quantity)d item"
+msgid_plural "We restocked %(quantity)d items"
+msgstr[0] "Ladu täidetud %(quantity)d tootega"
+msgstr[1] "Ladu täidetud %(quantity)d tootega"
+
+#: saleor/order/__init__.py:153
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(user_name)s added note: %(note)s"
+msgstr "%(user_name)s lisas märkme: %(note)s"
+
+#: saleor/order/__init__.py:159
+#, python-format
+msgctxt "Dashboard message"
+msgid "Fulfillment #%(fulfillment)s canceled by %(user_name)s"
+msgstr "Saadetis #%(fulfillment)s tühistatud %(user_name)s poolt"
+
+#: saleor/order/__init__.py:165
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Fulfilled %(quantity_fulfilled)d item"
+msgid_plural "Fulfilled %(quantity_fulfilled)d items"
+msgstr[0] "%(quantity_fulfilled)d toode saadetud"
+msgstr[1] "%(quantity_fulfilled)d toodet saadetud"
+
+#: saleor/order/__init__.py:172
+msgctxt "Dashboard message related to an order"
+msgid "Order was placed"
+msgstr "Tellimus edastati"
+
+#: saleor/order/__init__.py:176
+msgctxt "Dashboard message related to an order"
+msgid "Order was fully paid"
+msgstr "Tellimus oli täielikult tasutud"
+
+#: saleor/order/__init__.py:180
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(email_type)s email was sent to the customer (%(email)s)"
+msgstr "%(email_type)s meil saadeti klientidele (%(email)s)"
+
+#: saleor/order/__init__.py:187
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order details were updated by %(user_name)s"
+msgstr "%(user_name)s uuendas tellimuse andmeid"
+
+#: saleor/order/__init__.py:192
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid ""
+"Fulfillment #%(fulfillment)s tracking was updated to %(tracking_number)s by "
+"%(user_name)s"
+msgstr ""
+"Saadetis #%(fulfillment)s jälgimise numbrit uuendati %(tracking_number)s "
+"%(user_name)spoolt"
+
+#: saleor/order/__init__.py:200
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(quantity)d line item oversold on this order."
+msgid_plural "%(quantity)d line items oversold on this order."
+msgstr[0] ""
+"%(quantity)dtoode üle olemasolevate varude müüdud antud tellimuses "
+msgstr[1] ""
+"%(quantity)d toodet üle olemasolevate varude müüdud antud tellimuses."
+
+#: saleor/order/forms.py:16
+msgctxt "Payments form label"
+msgid "Payment Method"
+msgstr "Maksmismeetod"
+
+#: saleor/order/forms.py:36
+msgctxt "Payment delete form error"
+msgid "Payment does not exist"
+msgstr "Makset ei eksisteeri"
+
+#: saleor/order/forms.py:41
+msgctxt "Payment delete form error"
+msgid "Payment cannot be cancelled."
+msgstr "Makset ei ole võimalik tühistada."
+
+#: saleor/order/models.py:135
+msgctxt "Permission description"
+msgid "Manage orders."
+msgstr "Halda tellimusi."
+
+#: saleor/order/models.py:344
+#, python-format
+msgctxt "Fulfillment str"
+msgid "Fulfillment #%s"
+msgstr "Saadetis #%s"
+
+#: saleor/order/views.py:196
+msgctxt "Connect order with user warning message"
+msgid ""
+"We couldn't assign the order to your account as the email addresses don't "
+"match"
+msgstr "Me ei saanud tellimust kontole määrata, kuna meilid ei ühti"
+
+#: saleor/order/views.py:203
+msgctxt "storefront message"
+msgid "The order is now assigned to your account"
+msgstr "See tellimus on määratud nüüd sinu kasutajale"
+
+#: saleor/page/models.py:33
+msgctxt "Permission description"
+msgid "Manage pages."
+msgstr "Halda lehekülgi."
+
+#: saleor/payment/__init__.py:24
+msgctxt "Custom payment choice type"
+msgid "Manual"
+msgstr "Manuaal"
+
+#: saleor/payment/__init__.py:72
+msgctxt "transaction kind"
+msgid "Authorization"
+msgstr "Volitamine"
+
+#: saleor/payment/__init__.py:73
+msgctxt "transaction kind"
+msgid "Charge"
+msgstr "Debiteeri"
+
+#: saleor/payment/__init__.py:74
+msgctxt "transaction kind"
+msgid "Refund"
+msgstr "Tagastamine"
+
+#: saleor/payment/__init__.py:75
+msgctxt "transaction kind"
+msgid "Capture"
+msgstr "Laekuma"
+
+#: saleor/payment/__init__.py:76
+msgctxt "transaction kind"
+msgid "Void"
+msgstr "Tühistamine"
+
+#: saleor/payment/__init__.py:99
+msgctxt "payment status"
+msgid "Not charged"
+msgstr "Tasumata"
+
+#: saleor/payment/__init__.py:101
+msgctxt "payment status"
+msgid "Partially charged"
+msgstr "Osaliselt tasutud"
+
+#: saleor/payment/__init__.py:102
+msgctxt "payment status"
+msgid "Fully charged"
+msgstr "Täielikult tasutud"
+
+#: saleor/payment/__init__.py:104
+msgctxt "payment status"
+msgid "Partially refunded"
+msgstr "Osaliselt tagasi makstud"
+
+#: saleor/payment/__init__.py:105
+msgctxt "payment status"
+msgid "Fully refunded"
+msgstr "Täielikult tagasi makstud"
+
+#: saleor/payment/gateways/braintree/__init__.py:68
+#: saleor/payment/gateways/braintree/forms.py:35
+msgctxt "payment error"
+msgid "Unable to process transaction. Please try again in a moment"
+msgstr ""
+"Tehingut ei ole võimalik teha. Palun proovige mõne hetke pärast uuesti"
+
+#: saleor/payment/gateways/dummy/forms.py:9
+msgctxt "Payment status form field"
+msgid "Payment status"
+msgstr "Makse seisund"
+
+#: saleor/payment/gateways/dummy/forms.py:23
+msgid ""
+"Setting charge status to {} directly is not supported. Please use the "
+"dashboard to refund partially."
+msgstr ""
+"Tasumise staatust otse muuta {} ei ole võimalik. Palun kasutage töölauda, et"
+" osalist tagasimakset sooritada."
+
+#: saleor/payment/gateways/razorpay/errors.py:5
+msgctxt "Razorpay payment error"
+msgid "Order was not charged."
+msgstr "Tellimuse eest ei võetud tasu."
+
+#: saleor/payment/gateways/razorpay/errors.py:7
+msgctxt "Razorpay payment error"
+msgid "The payment data was invalid."
+msgstr "Makse detailid olid kehtetud."
+
+#: saleor/payment/gateways/razorpay/errors.py:9
+msgctxt "Razorpay payment error"
+msgid "The order couldn't be proceeded."
+msgstr "Tellimust ei olnud võimalik edastada."
+
+#: saleor/payment/gateways/razorpay/errors.py:11
+#, python-format
+msgctxt "Razorpay payment error"
+msgid "The %(currency)s currency is not supported."
+msgstr "%(currency)s valuutat ei toetata."
+
+#: saleor/payment/gateways/razorpay/forms.py:14
+msgctxt "Rozorpay payment gateway primary button"
+msgid "Pay now with Razorpay"
+msgstr "Maksa kohe kasutades Razorpay'd"
+
+#: saleor/payment/gateways/razorpay/forms.py:16
+msgctxt "Rozorpay payment gateway secondary title"
+msgid "Total payment"
+msgstr "Kogu makse"
+
+#: saleor/payment/gateways/stripe/errors.py:4
+msgctxt "Stripe payment error"
+msgid "Order was not authorized."
+msgstr "Tellimust ei volitatud."
+
+#: saleor/payment/gateways/stripe/errors.py:6
+msgctxt "Stripe payment error"
+msgid "Order was not charged."
+msgstr "Tellimuse eest ei võetud tasu."
+
+#: saleor/payment/gateways/stripe/forms.py:11
+msgctxt "Stripe payment gateway description"
+msgid "Total payment"
+msgstr "Kogu makse"
+
+#: saleor/payment/utils.py:236
+msgctxt "Mark order as paid validation error"
+msgid "Orders with payments can not be manually marked as paid."
+msgstr "Tellimused maksetega ei ole võimalik märkida käsitsi makstuna."
+
+#: saleor/product/__init__.py:15
+msgctxt "Product status"
+msgid "not published"
+msgstr "ei ole avaldatud"
+
+#: saleor/product/__init__.py:17
+msgctxt "Product status"
+msgid "variants missing"
+msgstr "variandid puuduvad"
+
+#: saleor/product/__init__.py:19
+msgctxt "Product status"
+msgid "out of stock"
+msgstr "väljamüüdud"
+
+#: saleor/product/__init__.py:21
+msgctxt "Product status"
+msgid "stock running low"
+msgstr "varud on vähenemas"
+
+#: saleor/product/__init__.py:23
+msgctxt "Product status"
+msgid "not yet available"
+msgstr "pole veel saadaval"
+
+#: saleor/product/__init__.py:25
+msgctxt "Product status"
+msgid "ready for purchase"
+msgstr "ostuks valmis"
+
+#: saleor/product/__init__.py:37
+msgctxt "Variant status"
+msgid "available"
+msgstr "saadaval"
+
+#: saleor/product/__init__.py:39
+msgctxt "Variant status"
+msgid "out of stock"
+msgstr "väljamüüdud"
+
+#: saleor/product/filters.py:12
+msgctxt "Product list sorting option"
+msgid "name"
+msgstr "nimi"
+
+#: saleor/product/filters.py:13
+msgctxt "Product list sorting option"
+msgid "price"
+msgstr "hind"
+
+#: saleor/product/filters.py:15
+msgctxt "Product list sorting option"
+msgid "last updated"
+msgstr "viimati uuendatud"
+
+#: saleor/product/filters.py:20
+msgctxt "Product list sorting form"
+msgid "Sort by"
+msgstr "Sorteeri"
+
+#: saleor/product/filters.py:24
+msgctxt "Currency amount"
+msgid "Price"
+msgstr "Hind"
+
+#: saleor/product/forms.py:23
+#, python-format
+msgctxt "Variant choice field label"
+msgid "%(variant_label)s - %(price)s"
+msgstr "%(variant_label)s -  %(price)s"
+
+#: saleor/product/models.py:129
+msgctxt "Permission description"
+msgid "Manage products."
+msgstr "Halda tooteid."
+
+#: saleor/search/forms.py:9
+msgctxt "Search form label"
+msgid "Query"
+msgstr "Päring"
+
+#: saleor/settings.py:61
+msgid "Arabic"
+msgstr "Araabia"
+
+#: saleor/settings.py:62
+msgid "Azerbaijani"
+msgstr "Aserbaidžaani"
+
+#: saleor/settings.py:63
+msgid "Bulgarian"
+msgstr "Bulgaaria"
+
+#: saleor/settings.py:64
+msgid "Bengali"
+msgstr "Bengali"
+
+#: saleor/settings.py:65
+msgid "Catalan"
+msgstr "Kataloonia"
+
+#: saleor/settings.py:66
+msgid "Czech"
+msgstr "Tšehhi"
+
+#: saleor/settings.py:67
+msgid "Danish"
+msgstr "Taani"
+
+#: saleor/settings.py:68
+msgid "German"
+msgstr "Saksa"
+
+#: saleor/settings.py:69
+msgid "English"
+msgstr "Inglise"
+
+#: saleor/settings.py:70
+msgid "Spanish"
+msgstr "Hispaania"
+
+#: saleor/settings.py:71
+msgid "Estonian"
+msgstr "Eesti"
+
+#: saleor/settings.py:72
+msgid "Persian"
+msgstr "Pärsia"
+
+#: saleor/settings.py:73
+msgid "French"
+msgstr "Prantsuse"
+
+#: saleor/settings.py:74
+msgid "Hindi"
+msgstr "Hindi"
+
+#: saleor/settings.py:75
+msgid "Hungarian"
+msgstr "Ungari"
+
+#: saleor/settings.py:76
+msgid "Indonesian"
+msgstr "Indoneesia"
+
+#: saleor/settings.py:77
+msgid "Italian"
+msgstr "Itaalia"
+
+#: saleor/settings.py:78
+msgid "Japanese"
+msgstr "Jaapani"
+
+#: saleor/settings.py:79
+msgid "Korean"
+msgstr "Korea"
+
+#: saleor/settings.py:80
+msgid "Mongolian"
+msgstr "Mongoolia"
+
+#: saleor/settings.py:81
+msgid "Norwegian"
+msgstr "Norra"
+
+#: saleor/settings.py:82
+msgid "Dutch"
+msgstr "Hollandi"
+
+#: saleor/settings.py:83
+msgid "Polish"
+msgstr "Poola"
+
+#: saleor/settings.py:84
+msgid "Brazilian Portuguese"
+msgstr "Brasiilia Portugali"
+
+#: saleor/settings.py:85
+msgid "Romanian"
+msgstr "Rumeenia"
+
+#: saleor/settings.py:86
+msgid "Russian"
+msgstr "Vene"
+
+#: saleor/settings.py:87
+msgid "Slovak"
+msgstr "Slovakkia"
+
+#: saleor/settings.py:88
+msgid "Serbian"
+msgstr "Serbia"
+
+#: saleor/settings.py:89
+msgid "Swedish"
+msgstr "Rootsi"
+
+#: saleor/settings.py:90
+msgid "Turkish"
+msgstr "Türgi"
+
+#: saleor/settings.py:91
+msgid "Ukrainian"
+msgstr "Ukraina"
+
+#: saleor/settings.py:92
+msgid "Vietnamese"
+msgstr "Vietnami"
+
+#: saleor/settings.py:93
+msgid "Simplified Chinese"
+msgstr "Lihtsustatud hiina keel"
+
+#: saleor/settings.py:94
+msgid "Traditional Chinese"
+msgstr "Traditsionaalne hiina keel"
+
+#: saleor/settings.py:330
+msgctxt "Name of political and economical union of european countries"
+msgid "European Union"
+msgstr "Euroopa Liit"
+
+#: saleor/settings.py:567
+msgctxt "Payment method name"
+msgid "Dummy gateway"
+msgstr "Ajutine lüüs"
+
+#: saleor/shipping/__init__.py:10
+msgctxt "Type of shipping"
+msgid "Price based shipping"
+msgstr "Hinnapõhine saatmine"
+
+#: saleor/shipping/__init__.py:12
+msgctxt "Type of shipping"
+msgid "Weight based shipping"
+msgstr "Kaalupõhine saatmine"
+
+#: saleor/shipping/models.py:38
+#, python-format
+msgctxt "Number of countries shipping zone apply to"
+msgid "%(num_of_countries)d countries"
+msgstr "%(num_of_countries)d riigid"
+
+#: saleor/shipping/models.py:53
+msgctxt "Permission description"
+msgid "Manage shipping."
+msgstr "Halda saatmist."
+
+#: saleor/shipping/utils.py:53
+#, python-format
+msgctxt "Applies to orders more expensive than the min value"
+msgid "%(min_price)s and up"
+msgstr "%(min_price)s ja üles"
+
+#: saleor/shipping/utils.py:56
+#, python-format
+msgctxt "Applies to order valued within this price range"
+msgid "%(min_price)s to %(max_price)s"
+msgstr "%(min_price)s kuni %(max_price)s"
+
+#: saleor/shipping/utils.py:72
+#, python-format
+msgctxt "Applies to orders heavier than the threshold"
+msgid "%(min_weight)s and up"
+msgstr "%(min_weight)s ja üles"
+
+#: saleor/shipping/utils.py:75
+#, python-format
+msgctxt "Applies to orders of total weight within this range"
+msgid "%(min_weight)s to %(max_weight)s"
+msgstr "%(min_weight)s kuni %(max_weight)s"
+
+#: saleor/site/models.py:40
+msgctxt "Permission description"
+msgid "Manage settings."
+msgstr "Halda seadeid."
+
+#: saleor/site/models.py:42
+msgctxt "Permission description"
+msgid "Manage translations."
+msgstr "Halda tõlkeid."
+
+#: templates/404.html:6
+msgctxt "Eror page not found"
+msgid "Page not found"
+msgstr "Lehekülge ei leitud"
+
+#: templates/_language_picker_modal.html:8
+msgctxt "Change language modal title"
+msgid "Select language"
+msgstr "Vali keel"
+
+#: templates/_language_picker_modal.html:24
+msgctxt "Close modal action button"
+msgid "Close"
+msgstr "Pane kinni"
+
+#: templates/_language_picker_modal.html:25
+msgctxt "Change language action button"
+msgid "Change"
+msgstr "Muuda"
+
+#: templates/account/account_delete_prompt.html:8
+msgctxt "Account deletetion confirmation page title"
+msgid "Are you sure?"
+msgstr "Kas oled kindel?"
+
+#: templates/account/account_delete_prompt.html:16
+msgctxt "Message displayed to the user requesting for his account deletetion"
+msgid "Sorry to see you go!"
+msgstr "Kahju sind lahkumas näha!"
+
+#: templates/account/account_delete_prompt.html:22
+msgctxt "Message displayed to the user requesting for his account deletetion"
+msgid "Are you sure you want to delete your account?"
+msgstr "Kas oled kindel, et soovid konto kustutada?"
+
+#: templates/account/account_delete_prompt.html:27
+msgctxt "Confirm account deletion button"
+msgid "Delete account"
+msgstr "Kustuta konto"
+
+#: templates/account/address_delete.html:6
+msgctxt "Remove address form action"
+msgid "Remove Address"
+msgstr "Eemalda aadress"
+
+#: templates/account/address_delete.html:9
+msgctxt "Remove address form action"
+msgid "Cancel"
+msgstr "Tühista"
+
+#: templates/account/address_edit.html:7
+msgctxt "Edit address page title"
+msgid "Edit address"
+msgstr "Muuda aadressi"
+
+#: templates/account/address_edit.html:9
+msgctxt "New address page title"
+msgid "New address"
+msgstr "Uus aadess"
+
+#: templates/account/address_edit.html:16 templates/account/details.html:16
+#: templates/account/password_change.html:7 templates/checkout/index.html:11
+#: templates/order/details.html:18 templates/order/payment.html:18
+#: templates/order/payment/details.html:12 templates/page/details.html:27
+#: templates/product/details.html:45
+msgctxt "Main navigation item"
+msgid "Home"
+msgstr "Kodu"
+
+#: templates/account/address_edit.html:21
+msgctxt "Edit/new address breadcrumb"
+msgid "Your profile"
+msgstr "Sinu profiil"
+
+#: templates/account/address_edit.html:27
+msgctxt "Edit address breadcrumb"
+msgid "Edit address"
+msgstr "Muuda aadressi"
+
+#: templates/account/address_edit.html:33
+msgctxt "New address breadcrumb"
+msgid "New address"
+msgstr "Uus aadess"
+
+#: templates/account/address_edit.html:47
+msgctxt "Edit address title"
+msgid "Edit address"
+msgstr "Muuda aadressi"
+
+#: templates/account/address_edit.html:49
+msgctxt "New address title"
+msgid "New address"
+msgstr "Uus aadess"
+
+#: templates/account/address_edit.html:57
+msgctxt "Edit/new address primary action"
+msgid "Save changes"
+msgstr "Salvesta muudatused"
+
+#: templates/account/details.html:10
+msgctxt "User profile page title"
+msgid "Your profile"
+msgstr "Sinu profiil"
+
+#: templates/account/details.html:19 templates/account/password_change.html:8
+#: templates/base.html:84 templates/base.html:226
+#: templates/order/details.html:23 templates/order/payment.html:23
+#: templates/order/payment/details.html:17
+msgctxt "Main navigation item"
+msgid "Your account"
+msgstr "Sinu konto"
+
+#: templates/account/details.html:26
+msgid "My account"
+msgstr "Minu konto"
+
+#: templates/account/details.html:30
+msgctxt "User profile tab"
+msgid "Recent Orders"
+msgstr "hiljutised tellimused"
+
+#: templates/account/details.html:36
+msgctxt "User profile tab"
+msgid "Change password"
+msgstr "Muuda parooli"
+
+#: templates/account/details.html:42
+msgctxt "User profile tab"
+msgid "Contact details"
+msgstr "Kontakti andmed"
+
+#: templates/account/details.html:47
+msgctxt "User profile tab"
+msgid "Settings"
+msgstr "Seaded"
+
+#: templates/account/details.html:59
+msgctxt "Recent orders column title"
+msgid "Order"
+msgstr "Tellimus"
+
+#: templates/account/details.html:62
+msgctxt "Recent orders column title"
+msgid "Date"
+msgstr "Kuupäev"
+
+#: templates/account/details.html:65
+msgctxt "Recent orders column title"
+msgid "Summary"
+msgstr "Kokkuvõte"
+
+#: templates/account/details.html:68
+msgctxt "Recent orders column title"
+msgid "Payment status"
+msgstr "Makse seisund"
+
+#: templates/account/details.html:71
+msgctxt "Recent orders column title"
+msgid "Order status"
+msgstr "Tellimuse seisund"
+
+#: templates/account/details.html:96
+msgctxt "Recent orders link text"
+msgid "Details"
+msgstr "Andmed"
+
+#: templates/account/details.html:111
+msgctxt "No recent orders text"
+msgid "There are not any completed orders yet."
+msgstr "Ühtegi lõpetatud tellimust ei ole veel tehtud."
+
+#: templates/account/details.html:122
+msgctxt "User profile action"
+msgid "Change password"
+msgstr "Muuda parooli"
+
+#: templates/account/details.html:129
+msgctxt "User profile settings"
+msgid "Personal Data"
+msgstr "Personaalsed andmed"
+
+#: templates/account/details.html:136
+msgctxt "User profile action"
+msgid "Update"
+msgstr "Uuenda"
+
+#: templates/account/details.html:141
+msgctxt "List of adresses in contact details"
+msgid "Addresses"
+msgstr "Aadressid"
+
+#: templates/account/details.html:152
+msgctxt "User address action"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/account/details.html:168
+msgctxt "No addresses text"
+msgid "You will see new addresses here after first successful checkout."
+msgstr "Te näete siin uusi aadresse pärast esimest edukat ostu."
+
+#: templates/account/details.html:179
+msgctxt "Message informing about the process of account removal"
+msgid ""
+"\n"
+"                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
+"                "
+msgstr ""
+"\n"
+"Kui soovite eemaldada oma konto, palun vajutage alloleva nupu peale ja Teile saadetakse email eemaldamise kinnitamiseks."
+
+#: templates/account/details.html:184
+msgctxt "Remove account form action"
+msgid "Remove Account"
+msgstr "Eemalda Konto"
+
+#: templates/account/login.html:5
+msgctxt "Login page title"
+msgid "Log in"
+msgstr "Logi sisse"
+
+#: templates/account/login.html:16
+msgctxt "Login form secondary title"
+msgid "Don't have an account yet?"
+msgstr "Kas sul ei ole veel kontot?"
+
+#: templates/account/login.html:21
+msgctxt "Login form secondary action"
+msgid "Register"
+msgstr "Registreeri"
+
+#: templates/account/login.html:26
+msgctxt "Login form title"
+msgid "Log in"
+msgstr "Logi sisse"
+
+#: templates/account/partials/already_logged_in.html:5
+#, python-format
+msgctxt "Already logged in warning message"
+msgid "You are already logged in as %(user)s."
+msgstr "Sa oled juba sisse logitud kui %(user)s."
+
+#: templates/account/partials/login_form.html:16
+msgctxt "Login form primary action"
+msgid "Log in"
+msgstr "Logi sisse"
+
+#: templates/account/partials/login_form.html:19
+msgctxt "Login form secondary link"
+msgid "Forgot password?"
+msgstr "Unustasid parooli?"
+
+#: templates/account/partials/login_form.html:29
+msgid "Facebook"
+msgstr "Facebook"
+
+#: templates/account/partials/login_form.html:37
+msgid "Google"
+msgstr "Google"
+
+#: templates/account/password_change.html:9
+msgctxt "Password change breadcrumb"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/account/password_change.html:22
+msgctxt "Password change form legend"
+msgid "Change Password"
+msgstr "Muuda parooli"
+
+#: templates/account/password_change.html:28
+msgctxt "Password change form primary action"
+msgid "Save new password"
+msgstr "Salvesta uus parool"
+
+#: templates/account/password_reset.html:6
+msgctxt "Password reset page title"
+msgid "Password reset"
+msgstr "Parooli algseadistamine"
+
+#: templates/account/password_reset.html:17
+msgctxt "Password reset form title"
+msgid "Forgot your password?"
+msgstr "Unustasid oma parooli?"
+
+#: templates/account/password_reset.html:19
+msgctxt "Password reset form help text"
+msgid ""
+"Please let us know the email you have used to register or purchase at our "
+"store."
+msgstr ""
+"Anna meile teada, millist e-posti kasutasid registreerimiseks ja ostmiseks "
+"meie poes."
+
+#: templates/account/password_reset.html:30
+msgctxt "Password reset primary action"
+msgid "Continue"
+msgstr "Jätka"
+
+#: templates/account/password_reset_done.html:6
+msgctxt "Password reset done page title"
+msgid "Password Reset"
+msgstr "Parooli algseadistamine"
+
+#: templates/account/password_reset_done.html:10
+msgctxt "Password reset done title"
+msgid "Password Reset"
+msgstr "Parooli algseadistamine"
+
+#: templates/account/password_reset_done.html:14
+msgctxt "Password reset done text"
+msgid ""
+"We have sent you an e-mail. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr ""
+"Me saatsime Teile e-kirja. Kontakteeruge meiega, kui kiri ei ole Teieni "
+"jõudnud paari minuti jooksul."
+
+#: templates/account/password_reset_from_key.html:6
+msgctxt "Password reset from key page title"
+msgid "Change Password"
+msgstr "Muuda parooli"
+
+#: templates/account/password_reset_from_key.html:11
+msgid "Bad Token"
+msgstr "Halb Tunnus"
+
+#: templates/account/password_reset_from_key.html:13
+#, python-format
+msgctxt "Password reset text if key is invalid"
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
+"reset</a>."
+msgstr ""
+"Parooli algseadistamise link on kehtetu, kuna tõenäoliselt on see juba "
+"kasutusel. <br> Palun taotlege <a href=\"%(passwd_reset_url)s\"> uut parooli"
+" algseadistamist</a>."
+
+#: templates/account/password_reset_from_key.html:24
+msgctxt "Password reset from key form title"
+msgid "Password Reset"
+msgstr "Parooli algseadistamine"
+
+#: templates/account/password_reset_from_key.html:25
+msgctxt "Password reset from key form title"
+msgid "Now you can set new password for you account."
+msgstr "Nüüd saate seada oma kontole uue parooli."
+
+#: templates/account/password_reset_from_key.html:32
+msgctxt "Password reset from key form primary action"
+msgid "Continue"
+msgstr "Jätka"
+
+#: templates/account/password_reset_from_key.html:39
+msgctxt "Password reset link expired from key form title"
+msgid "Password Reset Link Expired"
+msgstr "Parooli algseadistamise link aegunud"
+
+#: templates/account/password_reset_from_key.html:40
+msgctxt "Password reset from key form title"
+msgid ""
+"Sorry but this link is no longer valid. If you forget your password, please "
+"use link below."
+msgstr ""
+"Kahjuks ei ole see link enam kehtiv. Kui olete oma parooli unustanud, "
+"kasutage palun allolevat linki."
+
+#: templates/account/password_reset_from_key.html:42
+msgctxt "Reset my password link"
+msgid "Reset my password"
+msgstr "Algseadista mu parool"
+
+#: templates/account/password_reset_from_key_done.html:4
+msgctxt "Password reset from key done page title"
+msgid "Password Changed"
+msgstr "Parool muudetud"
+
+#: templates/account/password_reset_from_key_done.html:7
+msgctxt "Password reset from key done title"
+msgid "Password Changed"
+msgstr "Parool muudetud"
+
+#: templates/account/password_reset_from_key_done.html:9
+msgid "Your password is now changed."
+msgstr "Teie parool on nüüd muudetud."
+
+#: templates/account/password_reset_from_key_done.html:10
+#, python-format
+msgctxt "Password reset from key done text"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgstr ""
+"Te võite nüüd <a href=\"%(login_url)s\"> sisse logida </a> kasutades oma uut"
+" parooli"
+
+#: templates/account/signup.html:6
+msgctxt "Signup page title"
+msgid "Sign Up"
+msgstr "Registreeru"
+
+#: templates/account/signup.html:17
+msgctxt "Signup form secondary title"
+msgid "Already have an account?"
+msgstr "On juba konto?"
+
+#: templates/account/signup.html:21
+msgctxt "Signup form secondary action"
+msgid "Log in"
+msgstr "Logi sisse"
+
+#: templates/account/signup.html:28
+msgctxt "Signup form title"
+msgid "Create an account"
+msgstr "Loo konto"
+
+#: templates/account/signup.html:36
+msgctxt "Signup form primary action"
+msgid "Create an account"
+msgstr "Loo konto"
+
+#: templates/base.html:78 templates/base.html:215
+msgctxt "Main navigation item"
+msgid "Dashboard"
+msgstr "Töölaud"
+
+#: templates/base.html:89 templates/base.html:232
+msgctxt "Main navigation item"
+msgid "Stop impersonating"
+msgstr "Lõpeta kehastamine"
+
+#: templates/base.html:95 templates/base.html:238
+msgctxt "Main navigation item"
+msgid "Log out"
+msgstr "Logi välja"
+
+#: templates/base.html:101 templates/base.html:244
+msgctxt "Main navigation item"
+msgid "Register"
+msgstr "Registreeri"
+
+#: templates/base.html:105 templates/base.html:249
+msgctxt "Main navigation item"
+msgid "Log in"
+msgstr "Logi sisse"
+
+#: templates/base.html:136
+msgid "Search for product"
+msgstr "Otsi toodet"
+
+#: templates/base.html:139
+msgid "Search"
+msgstr "Otsi"
+
+#: templates/base.html:148 templates/base.html:208
+msgctxt "Main navigation item"
+msgid "Your Cart"
+msgstr "Sinu ostukorv"
+
+#: templates/base.html:202
+msgid "Account"
+msgstr "Konto"
+
+#: templates/base.html:220
+msgctxt "Main navigation item"
+msgid "Style guide"
+msgstr "Stiili juhend"
+
+#: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
+#: templates/dashboard/order/detail.html:342
+msgctxt "Order subtotal"
+msgid "Subtotal"
+msgstr "Vahesumma"
+
+#: templates/cart_dropdown.html:40
+msgctxt "Cart dropdown text"
+msgid "Shipment and taxes calculated at checkout"
+msgstr "Kohaletoimetamise tasu ja maksud arvutatakse juurde kassas"
+
+#: templates/cart_dropdown.html:54
+msgctxt "Cart dropdown secondary action"
+msgid "Go to cart"
+msgstr "Mine ostukorvi"
+
+#: templates/cart_dropdown.html:57
+msgctxt "Cart dropdown primary action"
+msgid "Checkout"
+msgstr "Kassa"
+
+#: templates/cart_dropdown.html:62 templates/checkout/index.html:91
+msgctxt "Empty cart message"
+msgid "There are no products in your shopping cart."
+msgstr "Teil ei ole ühtegi toodet ostukorvis."
+
+#: templates/cart_dropdown.html:67 templates/checkout/index.html:92
+msgctxt "Empty cart link"
+msgid "Check out our sales"
+msgstr "Vaata meie sooduspakkumisi"
+
+#: templates/category/index.html:7
+msgctxt "Category breadcrumbs home"
+msgid "Home"
+msgstr "Kodu"
+
+#: templates/checkout/_subtotal_table.html:32
+msgctxt "Cart shipping cost form"
+msgid "Shipping cost for:"
+msgstr "Postikulu:"
+
+#: templates/checkout/_subtotal_table.html:57
+msgctxt "Order subtotal"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/checkout/_subtotal_table.html:58
+msgctxt "Cart summary text"
+msgid "Shipment and taxes calculated at checkout"
+msgstr "Kohaletoimetamise tasu ja maksud arvutatakse juurde kassas"
+
+#: templates/checkout/details.html:7
+msgctxt "Checkout page title"
+msgid "Checkout"
+msgstr "Kassa"
+
+#: templates/checkout/details.html:12
+msgctxt "Checkout top message"
+msgid "Easy and secure!"
+msgstr "Lihtne ja turvaline!"
+
+#: templates/checkout/details.html:20
+msgctxt "Checkout title"
+msgid "Checkout"
+msgstr "Kassa"
+
+#: templates/checkout/details.html:35
+msgctxt "Order review title"
+msgid "Order review"
+msgstr "Tellimuse eelvaade"
+
+#: templates/checkout/details.html:51
+msgctxt "Order review section"
+msgid "Subtotal"
+msgstr "Vahesumma"
+
+#: templates/checkout/details.html:61
+msgctxt "Order review section"
+msgid "Shipment"
+msgstr "Saadetis"
+
+#: templates/checkout/details.html:77
+msgctxt "Order review section title"
+msgid "Taxes (included)"
+msgstr "Maksud (kaasa arvatud)"
+
+#: templates/checkout/details.html:79
+msgctxt "Order review section title"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/checkout/details.html:89
+msgctxt "Order review section title"
+msgid "Promo code"
+msgstr "Promo kood"
+
+#: templates/checkout/details.html:95
+msgctxt "Order review section title"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/checkout/index.html:7
+msgctxt "Cart page title"
+msgid "Your cart"
+msgstr "Teie ostukorv"
+
+#: templates/checkout/index.html:12
+msgctxt "Cart breadcrumb"
+msgid "Cart"
+msgstr "Ostukorv"
+
+#: templates/checkout/index.html:22
+msgctxt "Cart message"
+msgid "Product has been removed from cart"
+msgstr "Toode on ostukorvist eemaldatud"
+
+#: templates/checkout/index.html:30
+msgctxt "Cart table header"
+msgid "Product"
+msgstr "Toode"
+
+#: templates/checkout/index.html:33
+msgctxt "Cart table header"
+msgid "Quantity"
+msgstr "Kogus"
+
+#: templates/checkout/index.html:36
+msgctxt "Cart table header"
+msgid "Price"
+msgstr "Hind"
+
+#: templates/checkout/index.html:81
+msgctxt "Cart primary action"
+msgid "Checkout"
+msgstr "Kassa"
+
+#: templates/checkout/index.html:84
+msgctxt "cart page: secondary action, empty the cart"
+msgid "Clear cart"
+msgstr "Puhasta ostukorv"
+
+#: templates/checkout/login.html:6
+msgctxt "Checkout login page title"
+msgid "Login"
+msgstr "Sisene"
+
+#: templates/checkout/login.html:12
+msgctxt "Checkout login page title"
+msgid "New customer?"
+msgstr "Uus klient?"
+
+#: templates/checkout/login.html:18
+msgctxt "Checkout login page new users action"
+msgid "Continue"
+msgstr "Jätka"
+
+#: templates/checkout/login.html:21
+msgctxt "Checkout login page new users message"
+msgid "Registration is not required!"
+msgstr "Registreerimine ei ole vajalik!"
+
+#: templates/checkout/login.html:26
+msgctxt "Checkout login form title"
+msgid "Existing customer? Log in."
+msgstr "Olemasolev klient? Sisene."
+
+#: templates/checkout/payment.html:9
+msgctxt "Checkout payment title"
+msgid "Payment"
+msgstr "Makse"
+
+#: templates/checkout/payment.html:13
+msgctxt "Checkout payment primary action"
+msgid "Place order"
+msgstr "Esita tellimus"
+
+#: templates/checkout/shipping_address.html:8
+#: templates/checkout/shipping_method.html:7
+msgctxt "Checkout shipping address title"
+msgid "Shipping address"
+msgstr "Postiaadress"
+
+#: templates/checkout/shipping_address.html:21
+msgctxt "Checkout shipping address primary action"
+msgid "Continue"
+msgstr "Jätka"
+
+#: templates/checkout/shipping_method.html:15
+msgid "Select other address"
+msgstr "Vali teine aadress"
+
+#: templates/checkout/shipping_method.html:23
+msgctxt "Checkout shipping method form title"
+msgid "Shipping method"
+msgstr "Saatmisviis"
+
+#: templates/checkout/shipping_method.html:40
+msgctxt "Checkout shipping method primary action"
+msgid "Continue"
+msgstr "Jätka"
+
+#: templates/checkout/shipping_method.html:45
+msgctxt ""
+"Message displayed to the user if there's no shipping methods for his country"
+msgid ""
+"\n"
+"        Unfortunately we do not ship to your selected country.\n"
+"        <br>\n"
+"        Please enter an alternative shipping address or contact us, if you think that's a mistake.\n"
+"      "
+msgstr ""
+"\n"
+"Kahjuks me ei saada kaupa Teie valitud riiki.\n"
+"<br>\n"
+"Palun sisestage teine postiaadress või kontakteeruge meiega, kui arvate, on esinenud viga."
+
+#: templates/checkout/snippets/addresses_form.html:4
+msgctxt "Checkout addresses form label"
+msgid "Same as shipping"
+msgstr "Sama, mis saatmine"
+
+#: templates/checkout/snippets/addresses_form.html:11
+msgctxt "Checkout addresses form label"
+msgid "Enter a new address"
+msgstr "Sisesta uus aadress"
+
+#: templates/checkout/snippets/voucher_form.html:14
+msgctxt "Checkout voucher form action"
+msgid "Remove"
+msgstr "Eemalda"
+
+#: templates/checkout/snippets/voucher_form.html:15
+msgctxt "Checkout voucher form action"
+msgid "(Remove)"
+msgstr "(Eemalda)"
+
+#: templates/checkout/snippets/voucher_form.html:25
+msgctxt "Checkout voucher form action"
+msgid "Use"
+msgstr "Kasuta"
+
+#: templates/checkout/summary.html:9
+msgctxt "Checkout summary title"
+msgid "Billing address"
+msgstr "Arveldusaadress"
+
+#: templates/checkout/summary.html:11
+msgctxt "Checkout shipping method"
+msgid "Change shipping method"
+msgstr "Vaheta saatmisviisi"
+
+#: templates/checkout/summary.html:12
+msgctxt "Checkout summary note title"
+msgid "Add a note to your order"
+msgstr "Lisa märkus oma tellimusele"
+
+#: templates/checkout/summary.html:16
+msgctxt "Checkout summary primary action"
+msgid "Order & Pay"
+msgstr "Telli & Maksa"
+
+#: templates/checkout/summary_without_shipping.html:8
+msgctxt "Checkout summary without shipping title"
+msgid "Billing address"
+msgstr "Arveldusaadress"
+
+#: templates/checkout/summary_without_shipping.html:15
+msgctxt "Checkout summary without shipping note title"
+msgid "Add a note to your order"
+msgstr "Lisa märkus oma tellimusele"
+
+#: templates/checkout/summary_without_shipping.html:19
+msgctxt "Checkout summary without shipping action"
+msgid "Place order"
+msgstr "Esita tellimus"
+
+#: templates/collection/index.html:7
+msgctxt "Site breadcrumbs home"
+msgid "Home"
+msgstr "Kodu"
+
+#: templates/collection/index.html:16
+#, python-format
+msgctxt "Unpublished collection details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a collection that will become "
+"visible on <strong>%(date)s</strong>."
+msgstr ""
+"<strong>Hoiatus!</strong>Te vaatate kollektsiooni, mis muutub nähtavaks "
+"<strong>%(date)s</strong>."
+
+#: templates/collection/index.html:21
+msgctxt "Unavailable collection detail text"
+msgid ""
+"\n"
+"          <strong>Warning!</strong>\n"
+"          You are previewing a collection that is not published.\n"
+"        "
+msgstr ""
+"\n"
+"<strong>Hoiatus!</strong>\n"
+"Vaadate avaldamata kollektsiooni."
+
+#: templates/dashboard/base.html:11
+#, python-format
+msgctxt "Dashboard default page title"
+msgid "Dashboard - %(site_name)s"
+msgstr "Töölaud - %(site_name)s"
+
+#: templates/dashboard/base.html:42
+msgctxt "Dashboard top navigation action"
+msgid "Visit storefront"
+msgstr "Mine poodi"
+
+#: templates/dashboard/base.html:47
+msgctxt "Dashboard top navigation action"
+msgid "Style guide"
+msgstr "Stiili juhend"
+
+#: templates/dashboard/base.html:52
+msgctxt "Dashboard top navigation action"
+msgid "Log out"
+msgstr "Logi välja"
+
+#: templates/dashboard/base.html:81
+msgctxt "Dashboard search"
+msgid "Search"
+msgstr "Otsi"
+
+#: templates/dashboard/base.html:96 templates/dashboard/base.html:248
+msgctxt "Dashboard homepage"
+msgid "Home"
+msgstr "Kodu"
+
+#: templates/dashboard/base.html:102
+msgctxt "Dashboard catalogue"
+msgid "Catalogue"
+msgstr "Kataloog"
+
+#: templates/dashboard/base.html:107 templates/dashboard/product/form.html:28
+#: templates/dashboard/product/list.html:10
+#: templates/dashboard/product/list.html:36
+#: templates/dashboard/product/product_image/list.html:29
+#: templates/dashboard/product/product_type/form.html:12
+#: templates/dashboard/product/product_variant/form.html:26
+msgctxt "Dashboard products list"
+msgid "Products"
+msgstr "Tooted"
+
+#: templates/dashboard/base.html:112
+#: templates/dashboard/category/detail.html:33
+#: templates/dashboard/category/detail.html:39
+#: templates/dashboard/category/form.html:13
+#: templates/dashboard/category/form.html:32
+#: templates/dashboard/category/list.html:32
+msgctxt "Dashboard categories list"
+msgid "Categories"
+msgstr "Kategooriad"
+
+#: templates/dashboard/base.html:117
+msgctxt "Dashboard side navigation link"
+msgid "Collections"
+msgstr "Kollektsioonid"
+
+#: templates/dashboard/base.html:126
+msgctxt "Dashboard discounts list"
+msgid "Discounts"
+msgstr "Allahindlused"
+
+#: templates/dashboard/base.html:131
+msgctxt "Dashboard sales (discounts) list"
+msgid "Sales"
+msgstr "Müügid"
+
+#: templates/dashboard/base.html:136
+#: templates/dashboard/discount/voucher/form.html:12
+#: templates/dashboard/discount/voucher/form.html:43
+#: templates/dashboard/discount/voucher/list.html:9
+#: templates/dashboard/discount/voucher/list.html:19
+msgctxt "Dashboard vouchers list"
+msgid "Vouchers"
+msgstr "Vautšerid"
+
+#: templates/dashboard/base.html:145
+msgctxt "Dashboard sales. `Sales' is noun of to sell"
+msgid "Sales"
+msgstr "Müügid"
+
+#: templates/dashboard/base.html:151
+#: templates/dashboard/order/address_form.html:7
+#: templates/dashboard/order/address_form.html:23
+#: templates/dashboard/order/detail.html:12
+#: templates/dashboard/order/detail.html:56
+#: templates/dashboard/order/fulfillment.html:11
+#: templates/dashboard/order/fulfillment.html:27
+#: templates/dashboard/order/list.html:9
+#: templates/dashboard/order/list.html:29
+msgctxt "Dashboard orders list"
+msgid "Orders"
+msgstr "Tellimused"
+
+#: templates/dashboard/base.html:158
+#: templates/dashboard/customer/detail.html:9
+#: templates/dashboard/customer/detail.html:25
+#: templates/dashboard/customer/form.html:28
+#: templates/dashboard/customer/list.html:8
+#: templates/dashboard/customer/list.html:26
+msgctxt "Dashboard customers list"
+msgid "Customers"
+msgstr "Kliendid"
+
+#: templates/dashboard/base.html:168
+msgctxt "Management section"
+msgid "Staff management"
+msgstr "Töötajate haldamine"
+
+#: templates/dashboard/base.html:173
+msgctxt "Dashboard staff members list"
+msgid "Staff members"
+msgstr "Töötajad"
+
+#: templates/dashboard/base.html:182
+msgctxt "Dashboard configuration"
+msgid "Configuration"
+msgstr "Konfigureerimine"
+
+#: templates/dashboard/base.html:188
+#: templates/dashboard/product/product_type/form.html:28
+#: templates/dashboard/product/product_type/list.html:8
+#: templates/dashboard/product/product_type/list.html:28
+msgctxt "Dashboard product types list"
+msgid "Product types"
+msgstr "Toote tüübid"
+
+#: templates/dashboard/base.html:193
+#: templates/dashboard/product/attribute/form.html:29
+#: templates/dashboard/product/attribute/list.html:8
+#: templates/dashboard/product/attribute/list.html:26
+#: templates/dashboard/product/attribute/values/form.html:29
+msgctxt "Dashboard attributes list"
+msgid "Attributes"
+msgstr "Omadus"
+
+#: templates/dashboard/base.html:200
+msgctxt "Dashboard shipping zones list"
+msgid "Shipping"
+msgstr "Saatmine"
+
+#: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
+#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
+#: templates/dashboard/menu/item/detail.html:24
+#: templates/dashboard/menu/item/detail.html:30
+#: templates/dashboard/menu/item/form.html:31
+#: templates/dashboard/menu/list.html:32
+msgctxt "Dashboard menus list"
+msgid "Navigation"
+msgstr "Navigeerimine"
+
+#: templates/dashboard/base.html:214 templates/dashboard/sites/form.html:11
+#: templates/dashboard/taxes/form.html:12
+msgctxt "Dashboard site settings"
+msgid "Site settings"
+msgstr "Saidi seaded"
+
+#: templates/dashboard/base.html:220
+msgctxt "Dashboard taxes"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/dashboard/base.html:226
+msgctxt "Dashboard static pages"
+msgid "Pages"
+msgstr "Leheküljed"
+
+#: templates/dashboard/base.html:234
+msgctxt "Dashboard software version"
+msgid "Void:"
+msgstr "Tühi:"
+
+#: templates/dashboard/base_modal.html:33
+#: templates/dashboard/category/form.html:114
+#: templates/dashboard/category/form.html:118
+#: templates/dashboard/customer/form.html:59
+#: templates/dashboard/customer/form.html:66
+#: templates/dashboard/discount/sale/form.html:115
+#: templates/dashboard/discount/voucher/form.html:125
+#: templates/dashboard/menu/form.html:60
+#: templates/dashboard/menu/item/form.html:82
+#: templates/dashboard/order/address_form.html:61
+#: templates/dashboard/order/fulfillment.html:136
+#: templates/dashboard/product/attribute/form.html:77
+#: templates/dashboard/product/attribute/form.html:84
+#: templates/dashboard/product/attribute/values/form.html:78
+#: templates/dashboard/product/form.html:134
+#: templates/dashboard/product/form.html:141
+#: templates/dashboard/product/product_image/form.html:79
+#: templates/dashboard/product/product_type/form.html:113
+#: templates/dashboard/product/product_variant/form.html:111
+#: templates/dashboard/product/product_variant/form.html:118
+#: templates/dashboard/shipping/form.html:77
+#: templates/dashboard/shipping/form.html:84
+#: templates/dashboard/shipping/methods/form.html:80
+#: templates/dashboard/sites/authorization_keys/form.html:71
+#: templates/dashboard/sites/form.html:61
+#: templates/dashboard/staff/detail.html:73
+#: templates/dashboard/taxes/form.html:100
+msgctxt "Dashboard cancel action"
+msgid "Cancel"
+msgstr "Tühista"
+
+#: templates/dashboard/category/detail.html:8
+#: templates/dashboard/category/list.html:9
+msgctxt "Category list page title"
+msgid "Categories"
+msgstr "Kategooriad"
+
+#: templates/dashboard/category/detail.html:83
+msgctxt "Category field"
+msgid "Description"
+msgstr "Kirjeldus"
+
+#: templates/dashboard/category/detail.html:94
+msgctxt "Category detail view action"
+msgid "Edit category"
+msgstr "Muuta kategooriat"
+
+#: templates/dashboard/category/detail.html:97
+msgctxt "Category detail view action"
+msgid "Remove category"
+msgstr "Eemalda kategooria"
+
+#: templates/dashboard/category/detail.html:104
+msgctxt "Title of the subcategories list"
+msgid "Subcategories"
+msgstr "Alamkategooriad"
+
+#: templates/dashboard/category/detail.html:109
+#: templates/dashboard/includes/_menu_items.html:14
+#: templates/dashboard/product/attribute/detail.html:68
+#: templates/dashboard/product/detail.html:93
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
+#: templates/dashboard/sites/detail.html:79
+msgid "Add"
+msgstr "Lisa"
+
+#: templates/dashboard/category/detail.html:116
+#: templates/dashboard/category/list.html:49
+msgctxt "Category list table header name"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/category/detail.html:119
+#: templates/dashboard/category/list.html:52
+msgctxt "Category list table header description"
+msgid "Description"
+msgstr "Kirjeldus"
+
+#: templates/dashboard/category/detail.html:140
+msgctxt "Category edit action"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/category/detail.html:143
+msgctxt "Category list action link"
+msgid "Remove"
+msgstr "Eemalda"
+
+#: templates/dashboard/category/detail.html:149
+msgctxt "Empty list of categories"
+msgid "No subcategories"
+msgstr "Alamkategooriaid pole"
+
+#: templates/dashboard/category/form.html:9
+msgctxt "Category form page title"
+msgid "Edit category"
+msgstr "Muuta kategooriat"
+
+#: templates/dashboard/category/form.html:11
+msgctxt "Category detail page title"
+msgid "Add new category"
+msgstr "Lisa uus kategooria"
+
+#: templates/dashboard/category/form.html:24
+msgctxt "Category form page title"
+msgid "Add new category"
+msgstr "Lisa uus kategooria"
+
+#: templates/dashboard/category/form.html:55
+msgctxt "Category form page title"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/category/form.html:61
+#: templates/dashboard/category/form.html:77
+msgctxt "Category detail breadcrumbs"
+msgid "Add new category"
+msgstr "Lisa uus kategooria"
+
+#: templates/dashboard/category/form.html:123
+#: templates/dashboard/customer/form.html:62
+#: templates/dashboard/discount/sale/form.html:119
+#: templates/dashboard/discount/voucher/form.html:129
+#: templates/dashboard/menu/form.html:64
+#: templates/dashboard/menu/item/form.html:86
+#: templates/dashboard/order/address_form.html:64
+#: templates/dashboard/order/modal/change_quantity.html:19
+#: templates/dashboard/product/product_type/form.html:117
+#: templates/dashboard/sites/form.html:64
+#: templates/dashboard/staff/detail.html:77
+#: templates/dashboard/taxes/form.html:103
+msgctxt "Dashboard update action"
+msgid "Update"
+msgstr "Uuenda"
+
+#: templates/dashboard/category/form.html:127
+#: templates/dashboard/discount/sale/form.html:123
+#: templates/dashboard/discount/voucher/form.html:133
+#: templates/dashboard/menu/form.html:68
+#: templates/dashboard/menu/item/form.html:90
+#: templates/dashboard/product/attribute/form.html:87
+#: templates/dashboard/product/attribute/values/form.html:86
+#: templates/dashboard/product/form.html:144
+#: templates/dashboard/product/product_image/form.html:87
+#: templates/dashboard/product/product_type/form.html:121
+#: templates/dashboard/product/product_variant/form.html:121
+#: templates/dashboard/shipping/form.html:87
+#: templates/dashboard/shipping/methods/form.html:88
+#: templates/dashboard/sites/authorization_keys/form.html:79
+msgctxt "Dashboard create action"
+msgid "Create"
+msgstr "Loo"
+
+#: templates/dashboard/category/list.html:22
+msgctxt "Category list add button text"
+msgid "Add category"
+msgstr "Lisa kategooria"
+
+#: templates/dashboard/category/list.html:83
+msgctxt "Empty category list message"
+msgid "No categories found."
+msgstr "Kategooriaid ei leitud."
+
+#: templates/dashboard/category/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Remove category modal title"
+msgid "Remove category %(category)s"
+msgstr "Eemalda kategooria %(category)s"
+
+#: templates/dashboard/category/modal/confirm_delete.html:20
+#, python-format
+msgctxt "Remove category modal title"
+msgid ""
+"Are you sure you want to remove category <strong>%(category)s</strong>?"
+msgstr ""
+"Kas oled kindel, et tahate eemaldada kategooria "
+"<strong>%(category)s</strong>?"
+
+#: templates/dashboard/category/modal/confirm_delete.html:25
+msgctxt "Delete category form text about descendant categories"
+msgid "The following child categories will be removed:"
+msgstr "Järgnevad alamkategooriad eemaldatakse:"
+
+#: templates/dashboard/category/modal/confirm_delete.html:38
+#, python-format
+msgctxt "Remove category form text about products"
+msgid "There is one product in this category that will be removed."
+msgid_plural ""
+"There are %(counter)s products in this category that will be removed."
+msgstr[0] "Üks toode selles kategoorias eemaldatakse."
+msgstr[1] "%(counter)s toodet selles kategoorias eemaldatakse."
+
+#: templates/dashboard/category/modal/confirm_delete.html:49
+#: templates/dashboard/collection/confirm_delete.html:26
+#: templates/dashboard/customer/modal/confirm_delete.html:28
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:24
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:26
+#: templates/dashboard/menu/item/modal/confirm_delete.html:34
+#: templates/dashboard/menu/modal/confirm_delete.html:34
+#: templates/dashboard/order/modal/cancel_line.html:65
+#: templates/dashboard/page/modal_delete.html:26
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:26
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:26
+#: templates/dashboard/product/modal/confirm_delete.html:26
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:25
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:40
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:34
+#: templates/dashboard/shipping/modal/confirm_delete.html:27
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:26
+#: templates/dashboard/sites/modal/confirm_delete.html:26
+#: templates/dashboard/staff/modal/confirm_delete.html:24
+msgctxt "Dashboard delete action"
+msgid "Remove"
+msgstr "Eemalda"
+
+#: templates/dashboard/category/zero_page.html:5
+msgid "No categories found."
+msgstr "Kategooriaid ei leitud."
+
+#: templates/dashboard/category/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Categories are used to organize products into groups that are displayed in the navigation in the storefront.<br>\n"
+"    You can create categories by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Kategooriaid kasutatakse toodete gruppidesse organiseerimiseks, mida kuvatakse poe navigatsioonireal.<br>\n"
+"Saate kategooriaid luua kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/collection/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove collection text"
+msgid "Remove collection %(collection)s"
+msgstr "Eemalda kollektsioon %(collection)s"
+
+#: templates/dashboard/collection/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove collection text"
+msgid ""
+"Are you sure you want to remove collection <strong>%(collection)s</strong>?"
+msgstr ""
+"Kas olete kindel, et tahate eemaldada kollektsiooni "
+"<strong>%(collection)s</strong>?"
+
+#: templates/dashboard/collection/detail.html:8
+#: templates/dashboard/collection/detail.html:14
+#: templates/dashboard/collection/detail.html:20
+msgid "Add new collection"
+msgstr "Lisa uus kollektsioon"
+
+#: templates/dashboard/collection/detail.html:8
+#: templates/dashboard/collection/detail.html:18
+#: templates/dashboard/collection/list.html:19
+msgid "Collections"
+msgstr "Kollektsioonid"
+
+#: templates/dashboard/collection/detail.html:32
+msgctxt "Collection action"
+msgid "Remove collection"
+msgstr "Eemalda kollektsioon"
+
+#: templates/dashboard/collection/detail.html:37
+msgctxt "Collection action"
+msgid "View on site"
+msgstr "Vaata saidil"
+
+#: templates/dashboard/collection/detail.html:66
+msgctxt "Collection form card title: availability sub form"
+msgid "Availability"
+msgstr "Saavadus"
+
+#: templates/dashboard/collection/detail.html:77
+msgctxt "Collection secondary action"
+msgid "Cancel"
+msgstr "Tühista"
+
+#: templates/dashboard/collection/detail.html:80
+msgctxt "Collection detail action"
+msgid "Update"
+msgstr "Uuenda"
+
+#: templates/dashboard/collection/detail.html:84
+msgctxt "Collection detail action"
+msgid "Create"
+msgstr "Loo"
+
+#: templates/dashboard/collection/detail.html:106
+msgctxt "Collection field"
+msgid "Published"
+msgstr "Avaldatud"
+
+#: templates/dashboard/collection/detail.html:108
+msgctxt "Collection field"
+msgid "Draft"
+msgstr "Mustand"
+
+#: templates/dashboard/collection/detail.html:116
+msgctxt "Collection field"
+msgid "Can't unpublish homepage collection"
+msgstr "pealehe kollektsiooni ei ole võimalik mitte avaldada"
+
+#: templates/dashboard/collection/list.html:10
+msgctxt "Collections list page title "
+msgid "Collections"
+msgstr "Kogud"
+
+#: templates/dashboard/collection/list.html:25
+msgctxt "Collections list add button text"
+msgid "Add collection"
+msgstr "Lisa kollektsioon"
+
+#: templates/dashboard/collection/list.html:40
+msgctxt "Collections list table header name"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/collection/list.html:43
+msgctxt "Voucher table header"
+msgid "Number of products"
+msgstr "Toodete arv"
+
+#: templates/dashboard/collection/list.html:46
+msgctxt "Collections list table header"
+msgid "Visibility"
+msgstr "Nähtavus"
+
+#: templates/dashboard/collection/list.html:58
+msgid "Products in collection:"
+msgstr "Tooted kollektsioonis:"
+
+#: templates/dashboard/collection/list.html:79
+msgctxt "Empty collection list message"
+msgid "No collections found."
+msgstr "Kollektsioone ei leitud."
+
+#: templates/dashboard/collection/list.html:92
+msgid "Homepage collection"
+msgstr "Kodulehe kollektsioon"
+
+#: templates/dashboard/collection/list.html:102
+msgctxt "Homepage collection save"
+msgid "Save"
+msgstr "Salvesta"
+
+#: templates/dashboard/collection/zero_page.html:5
+msgid "No collections found."
+msgstr "Kollektsioone ei leitud."
+
+#: templates/dashboard/collection/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Collections are used to organize products into custom groups.<br>\n"
+"    You can create collections by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Kollektsiooni kasutatakse toodete organiseerimiseks kohaldatud gruppidesse. <br>\n"
+"Kollektsioone saate luua kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/customer/detail.html:56
+msgctxt "Customer field"
+msgid "Date joined"
+msgstr "Liitumiskuupäev"
+
+#: templates/dashboard/customer/detail.html:68
+msgctxt "Customer field"
+msgid "Note"
+msgstr "Märge"
+
+#: templates/dashboard/customer/detail.html:79
+msgctxt "Customer action"
+msgid "Edit customer"
+msgstr "Muuda klienti"
+
+#: templates/dashboard/customer/detail.html:82
+msgctxt "Customer action"
+msgid "Remove customer"
+msgstr "Eemalda klient"
+
+#: templates/dashboard/customer/detail.html:86
+msgctxt "Customer impersonate action"
+msgid "Impersonate customer"
+msgstr "Kehasta klienti"
+
+#: templates/dashboard/customer/detail.html:95
+msgctxt "Customer recent orders table title"
+msgid "Recent orders"
+msgstr "Hiljutised tellimused"
+
+#: templates/dashboard/customer/detail.html:104
+msgctxt "Customer orders table header"
+msgid "Number"
+msgstr "Arv"
+
+#: templates/dashboard/customer/detail.html:107
+msgctxt "Customer orders table header"
+msgid "Placed on"
+msgstr "Esitatud"
+
+#: templates/dashboard/customer/detail.html:110
+msgctxt "Customer orders table header"
+msgid "Order status"
+msgstr "Tellimuse seisund"
+
+#: templates/dashboard/customer/detail.html:113
+msgctxt "Customer orders table header"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/dashboard/customer/detail.html:140
+msgctxt "Empty customer orders table message"
+msgid "No orders found."
+msgstr "Tellimusi ei leitud."
+
+#: templates/dashboard/customer/detail.html:149
+msgctxt "Customer notes card title"
+msgid "Customer notes"
+msgstr "Kliendi märkmed"
+
+#: templates/dashboard/customer/detail.html:162
+msgctxt "Customer without notes message"
+msgid "There are no notes associated with this customer"
+msgstr "Selle kliendiga pole ühtegi seotud märkust"
+
+#: templates/dashboard/customer/detail.html:168
+msgctxt "Customer notes card action"
+msgid "Add note"
+msgstr "Lisa märkus"
+
+#: templates/dashboard/customer/detail.html:181
+msgctxt "Customer default shipping address card title"
+msgid "Default shipping address"
+msgstr "Vaikimisi postiaadress"
+
+#: templates/dashboard/customer/detail.html:188
+msgctxt "Customer without default shipping address message"
+msgid "No default shipping address."
+msgstr "Vaikimisi postiaadress puudub."
+
+#: templates/dashboard/customer/detail.html:201
+msgctxt "Customer default billing address card title"
+msgid "Default billing address"
+msgstr "Vaikimisi arveldusaadress"
+
+#: templates/dashboard/customer/detail.html:209
+msgctxt "Customer without default billing address message"
+msgid "No default billing address."
+msgstr "Vaikimisi arveldusaadress puudub."
+
+#: templates/dashboard/customer/form.html:10
+msgctxt "Dashboard add customer"
+msgid "Add new customer"
+msgstr "Lisa uus klient"
+
+#: templates/dashboard/customer/form.html:12
+#: templates/dashboard/search/results.html:89
+msgctxt "Dashboard customer"
+msgid "Customer"
+msgstr "Klient"
+
+#: templates/dashboard/customer/form.html:36
+msgctxt "Dashboard add customer action"
+msgid "Add customer"
+msgstr "Lisa klient"
+
+#: templates/dashboard/customer/form.html:47
+msgctxt "Customer details header"
+msgid "Customer details"
+msgstr "Kliendi andmed"
+
+#: templates/dashboard/customer/form.html:69
+#: templates/dashboard/staff/detail.html:79
+msgctxt "Dashboard add action"
+msgid "Add"
+msgstr "Lisa"
+
+#: templates/dashboard/customer/list.html:17
+msgctxt "Customer list add button text"
+msgid "Add customer"
+msgstr "Lisa klient"
+
+#: templates/dashboard/customer/list.html:40
+msgctxt "Customers table header"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/customer/list.html:43
+msgctxt "Customers table header"
+msgid "Email"
+msgstr "Email"
+
+#: templates/dashboard/customer/list.html:46
+msgctxt "Customers table header"
+msgid "Location"
+msgstr "Asukoht"
+
+#: templates/dashboard/customer/list.html:86
+msgctxt "Empty customers table message"
+msgid "No customers found."
+msgstr "Kliente ei leitud."
+
+#: templates/dashboard/customer/modal/add_note.html:11
+#: templates/dashboard/order/modal/add_note.html:11
+msgctxt "Modal add note title"
+msgid "Add note"
+msgstr "Lisa märkus"
+
+#: templates/dashboard/customer/modal/add_note.html:19
+#: templates/dashboard/order/modal/add_note.html:19
+msgctxt "Modal add note primary action"
+msgid "Save note"
+msgstr "Salvesta märkus"
+
+#: templates/dashboard/customer/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Header of modal used for removing customer's account "
+msgid "Remove customer %(customer)s"
+msgstr "Eemalda klient %(customer)s"
+
+#: templates/dashboard/customer/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove collection text"
+msgid ""
+"Are you sure you want to remove customer <strong>%(customer)s</strong>? "
+"Please note that this procedure will remove customer's account, but "
+"customer's orders and addresses associated with them will persist for the "
+"financial records."
+msgstr ""
+"Kas olete kindel, et tahate eemaldada kliendi <strong>%(customer)s</strong>?"
+" Pange tähele, et see protseduur eemaldab kasutaja konto, kuid kasutajaga "
+"seotud tellimused ja aadressid jäävad alles finantsdokumentidesse."
+
+#: templates/dashboard/customer/modal/confirm_promote.html:12
+msgctxt "Dashboard confirmation modal"
+msgid "Promote to staff member"
+msgstr "Eduta meeskonna liikmeks"
+
+#: templates/dashboard/customer/modal/confirm_promote.html:17
+#, python-format
+msgctxt "Modal promote to staff member text"
+msgid "Are you sure you want to promote %(customer)s to staff member?"
+msgstr "Kas olete kindel, et tahate edutada %(customer)s meeskonna liikmeks?"
+
+#: templates/dashboard/customer/modal/confirm_promote.html:24
+msgctxt "Dashboard promote action"
+msgid "Promote"
+msgstr "Eduta"
+
+#: templates/dashboard/customer/zero_page.html:5
+msgid "No customers found."
+msgstr "Kliente ei leitud."
+
+#: templates/dashboard/customer/zero_page.html:8
+msgid ""
+"\n"
+"    Customer accounts will appear here once users register in the shop.\n"
+"  "
+msgstr ""
+"\n"
+"Kasutajate kontod ilmuvad siia, kui nad on end poes registreerinud."
+
+#: templates/dashboard/discount/sale/form.html:10
+msgctxt "Sale (discount) page title"
+msgid "Add new sale"
+msgstr "Lisa uus müük"
+
+#: templates/dashboard/discount/sale/form.html:12
+#: templates/dashboard/discount/sale/form.html:43
+#: templates/dashboard/discount/sale/list.html:18
+msgctxt "Dashboard sales (discounts) list."
+msgid "Sales"
+msgstr "Müügid"
+
+#: templates/dashboard/discount/sale/form.html:32
+msgctxt "Sale (discount) action"
+msgid "Remove sale"
+msgstr "Eemalda müük"
+
+#: templates/dashboard/discount/sale/form.html:56
+msgctxt "Sale (discount) breadcrumbs"
+msgid "Add new sale"
+msgstr "Lisa uus müük"
+
+#: templates/dashboard/discount/sale/list.html:9
+msgid "Sales"
+msgstr "Müügid"
+
+#: templates/dashboard/discount/sale/list.html:27
+msgctxt "Sale (discount) list add button text"
+msgid "Add sale"
+msgstr "Lisa müük"
+
+#: templates/dashboard/discount/sale/list.html:42
+msgctxt "Sale (discount) table header"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/discount/sale/list.html:45
+msgctxt "Sale (discount) table header"
+msgid "Start date"
+msgstr "Alguskuupäev"
+
+#: templates/dashboard/discount/sale/list.html:48
+msgctxt "Sale (discount) table header"
+msgid "End date"
+msgstr "Lõppkuupäev"
+
+#: templates/dashboard/discount/sale/list.html:51
+msgctxt "Sale (discount) table header"
+msgid "Discount"
+msgstr "Allahindlus"
+
+#: templates/dashboard/discount/sale/list.html:84
+msgctxt "Empty sales table message"
+msgid "No sales found"
+msgstr "Ühtegi müüki ei leitud"
+
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:12
+msgctxt "Remove sale (discount) text"
+msgid "Remove sale"
+msgstr "Eemalda müük"
+
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:17
+#, python-format
+msgctxt "Remove sale (discount) text"
+msgid "Are you sure you want to remove <strong>%(sale)s</strong>?"
+msgstr "Kas olete kindel, et tahate eemaldada <strong>%(sale)s</strong>?"
+
+#: templates/dashboard/discount/sale/zero_page.html:5
+msgid "No sales found."
+msgstr "Ühtegi müüki ei leitud."
+
+#: templates/dashboard/discount/sale/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Sales are used to create discounts on particular products or whole categories.<br>\n"
+"    You can create sales by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Müüke kasutatakse konkreetsete toodete või tervete kategooriate allahindluste loomiseks.\n"
+"Müüke saate luua kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/discount/voucher/form.html:10
+msgctxt "Voucher page title"
+msgid "Add new voucher"
+msgstr "Lisa uus vautšer"
+
+#: templates/dashboard/discount/voucher/form.html:32
+msgctxt "Voucher action"
+msgid "Remove voucher"
+msgstr "Eemalda vautšer"
+
+#: templates/dashboard/discount/voucher/form.html:56
+msgctxt "Voucher breadcrumbs"
+msgid "Add new voucher"
+msgstr "Lisa uus vautšer"
+
+#: templates/dashboard/discount/voucher/list.html:28
+msgctxt "Voucher list add button text"
+msgid "Add voucher"
+msgstr "Lisa vautšer"
+
+#: templates/dashboard/discount/voucher/list.html:43
+msgctxt "Voucher table header"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/discount/voucher/list.html:46
+msgctxt "Voucher table header"
+msgid "Discount"
+msgstr "Allahindlus"
+
+#: templates/dashboard/discount/voucher/list.html:49
+msgctxt "Voucher table header"
+msgid "Start date"
+msgstr "Alguskuupäev"
+
+#: templates/dashboard/discount/voucher/list.html:52
+msgctxt "Voucher table header"
+msgid "End date"
+msgstr "Lõppkuupäev"
+
+#: templates/dashboard/discount/voucher/list.html:55
+msgctxt "Voucher table header"
+msgid "Used"
+msgstr "Kasutatud"
+
+#: templates/dashboard/discount/voucher/list.html:58
+msgctxt "Voucher table header"
+msgid "Min amount spent"
+msgstr "Minimaalne kulutatud summa"
+
+#: templates/dashboard/discount/voucher/list.html:105
+msgctxt "Empty vouchers table message"
+msgid "No vouchers found"
+msgstr "Vautšereid ei leitud"
+
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove voucher text"
+msgid "Remove voucher %(voucher)s"
+msgstr "Eemalda vautšer %(voucher)s"
+
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove voucher text"
+msgid "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
+msgstr ""
+"Kas olete kindel, et soovite eemaldada vautšeri "
+"<strong>%(voucher)s</strong>?"
+
+#: templates/dashboard/discount/voucher/zero_page.html:5
+msgid "No vouchers found."
+msgstr "Vautšereid ei leitud."
+
+#: templates/dashboard/discount/voucher/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Vouchers allows creating promotional codes for all purchases, specific products or shipping.<br>\n"
+"    You can create vouchers by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Vautšerid võimaldavad luua sooduskoode kõikidele ostudele, konkreetsetele toodetele või kohaletoimetamisele.<br>\n"
+"Vautšereid saate luua kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/includes/_collection_availability.html:5
+msgctxt "Collection availability status"
+msgid "Published"
+msgstr "Avaldatud"
+
+#: templates/dashboard/includes/_collection_availability.html:8
+#, python-format
+msgctxt "Collection availability status"
+msgid ""
+"\n"
+"        Hidden (will become visible on %(date)s)\n"
+"      "
+msgstr ""
+"\n"
+"Peidetud (tuleb nähtavale %(date)s)"
+
+#: templates/dashboard/includes/_collection_availability.html:13
+msgctxt "Collection availability status"
+msgid "Hidden"
+msgstr "Peidetud"
+
+#: templates/dashboard/includes/_filters.html:10
+msgctxt "Dashboard card title"
+msgid "Filters"
+msgstr "Filtrid"
+
+#: templates/dashboard/includes/_filters.html:43
+msgctxt "Category page filters"
+msgid "Clear"
+msgstr "Puhasta"
+
+#: templates/dashboard/includes/_filters.html:47
+msgctxt "Category price filter"
+msgid "Filter"
+msgstr "Filter"
+
+#: templates/dashboard/includes/_google_preview.html:5
+msgctxt "Title of the box showing preview from the search engine perspective"
+msgid "Search engine listing preview"
+msgstr "Otsingumootori loetelu eelvaade"
+
+#: templates/dashboard/includes/_menu_items.html:9
+msgctxt "Title of the menu items list"
+msgid "Menu items"
+msgstr "Menüüelemendid"
+
+#: templates/dashboard/includes/_menu_items.html:23
+msgctxt "Menu items list table header name"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/includes/_menu_items.html:26
+msgctxt "Menu items list table header points to"
+msgid "Points to"
+msgstr "Suunab"
+
+#: templates/dashboard/includes/_menu_items.html:28
+msgctxt "Menu items status"
+msgid "Status"
+msgstr "Seisund"
+
+#: templates/dashboard/includes/_menu_items.html:47
+msgctxt "Menu items status"
+msgid "Published"
+msgstr "Avaldatud"
+
+#: templates/dashboard/includes/_menu_items.html:51
+msgctxt "Menu items status"
+msgid "Not published"
+msgstr "Ei ole avaldatud"
+
+#: templates/dashboard/includes/_menu_items.html:56
+msgctxt "Menu item edit action"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/includes/_menu_items.html:59
+msgctxt "Menu item list action link"
+msgid "Remove"
+msgstr "Eemalda"
+
+#: templates/dashboard/includes/_menu_items.html:65
+msgctxt "Empty list of menu items"
+msgid "No menu items"
+msgstr "Menüüelemendid puuduvad"
+
+#: templates/dashboard/includes/_page_availability.html:5
+msgctxt "Page availability status"
+msgid "Published"
+msgstr "Avaldatud"
+
+#: templates/dashboard/includes/_page_availability.html:9
+#: templates/dashboard/includes/_page_availability.html:19
+msgctxt "Page availability status"
+msgid "Hidden"
+msgstr "Peidetud"
+
+#: templates/dashboard/includes/_page_availability.html:13
+#, python-format
+msgctxt "Page availability status"
+msgid ""
+"\n"
+"      Hidden (will become visible on %(date)s)\n"
+"    "
+msgstr ""
+"\n"
+"Peidetud (tuleb nähtavale %(date)s)"
+
+#: templates/dashboard/index.html:15 templates/dashboard/index.html:82
+#: templates/dashboard/index.html:138
+#, python-format
+msgctxt "Dashboard homepage summary header title"
+msgid "Showing last %(counter)s results"
+msgstr "Kuvatakse viimased %(counter)s tulemust"
+
+#: templates/dashboard/index.html:16
+msgctxt "Dashboard homepage table title"
+msgid "Orders ready for shipment"
+msgstr "Tellimused saatmiseks valmis"
+
+#: templates/dashboard/index.html:28 templates/dashboard/order/list.html:44
+msgctxt "Orders table header"
+msgid "Placed on"
+msgstr "Esitatud"
+
+#: templates/dashboard/index.html:31 templates/dashboard/order/list.html:47
+msgctxt "Orders table header"
+msgid "Customer"
+msgstr "Klient"
+
+#: templates/dashboard/index.html:34 templates/dashboard/order/list.html:50
+msgctxt "Orders table header"
+msgid "Payment status"
+msgstr "Makse seisund"
+
+#: templates/dashboard/index.html:37 templates/dashboard/order/list.html:53
+msgctxt "Orders table header"
+msgid "Order status"
+msgstr "Tellimuse seisund"
+
+#: templates/dashboard/index.html:40 templates/dashboard/order/list.html:56
+msgctxt "Orders table header"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/dashboard/index.html:53 templates/dashboard/order/detail.html:211
+#: templates/dashboard/order/list.html:69
+msgctxt "Anonymous user account value"
+msgid "Guest"
+msgstr "Külaline"
+
+#: templates/dashboard/index.html:74
+msgctxt "Empty order table message"
+msgid "No orders are ready for shipment."
+msgstr "Tellimused valmis saatmiseks puuduvad."
+
+#: templates/dashboard/index.html:83
+msgctxt "Dashboard homepage table title"
+msgid "Preauthorized payments"
+msgstr "Eelnevalt volitatud maksed"
+
+#: templates/dashboard/index.html:92
+msgctxt "Preauthorized payments table header"
+msgid "Order"
+msgstr "Tellimus"
+
+#: templates/dashboard/index.html:95
+msgctxt "Preauthorized payments table header"
+msgid "Date"
+msgstr "Kuupäev"
+
+#: templates/dashboard/index.html:98
+msgctxt "Preauthorized payments table header"
+msgid "Customer"
+msgstr "Klient"
+
+#: templates/dashboard/index.html:101
+msgctxt "Preauthorized payments table header"
+msgid "Amount"
+msgstr "Kogus"
+
+#: templates/dashboard/index.html:116
+msgid "Guest"
+msgstr "Külaline"
+
+#: templates/dashboard/index.html:130
+msgctxt "Empty Preauthorized payments table message"
+msgid "No preauthorized payments."
+msgstr "Eelnevalt volitatud maksed puuduvad."
+
+#: templates/dashboard/index.html:139
+msgctxt "Dashboard homepage table title"
+msgid "Products with low stock"
+msgstr "Vähese laovaruga tooted"
+
+#: templates/dashboard/index.html:148
+msgctxt "Low stock product list"
+msgid "Product name"
+msgstr "Tootenimi"
+
+#: templates/dashboard/index.html:151
+msgctxt "Low stock product list"
+msgid "Stock left"
+msgstr "Laovarusid jäänud"
+
+#: templates/dashboard/index.html:172
+msgctxt "Empty low stock table message"
+msgid "No products are low in stock."
+msgstr "Vähese laovaruga tooted puuduvad."
+
+#: templates/dashboard/menu/detail.html:7 templates/dashboard/menu/list.html:9
+msgctxt "Menu list page title"
+msgid "Navigation"
+msgstr "Navigeerimine"
+
+#: templates/dashboard/menu/detail.html:50
+msgctxt "Menu detail view action"
+msgid "Edit menu"
+msgstr "Muuda menüüd"
+
+#: templates/dashboard/menu/detail.html:53
+msgctxt "Menu detail view action"
+msgid "Remove menu"
+msgstr "Eemalda menüü"
+
+#: templates/dashboard/menu/form.html:8
+msgctxt "Menu form page title"
+msgid "Edit menu"
+msgstr "Muuda menüüd"
+
+#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:23
+msgctxt "Menu form page title"
+msgid "Add new menu"
+msgstr "Lisa uus menüü"
+
+#: templates/dashboard/menu/form.html:41
+msgctxt "Menu detail breadcrumbs"
+msgid "Add new menu"
+msgstr "Lisa uus menüü"
+
+#: templates/dashboard/menu/item/detail.html:7
+msgctxt "Menu item list page title"
+msgid "Menu items"
+msgstr "Menüüelemendid"
+
+#: templates/dashboard/menu/item/detail.html:75
+msgctxt "Menu item field"
+msgid "Points to"
+msgstr "Suunab"
+
+#: templates/dashboard/menu/item/detail.html:87
+msgctxt "Menu item detail view action"
+msgid "Edit menu item"
+msgstr "Muuda menüüelementi"
+
+#: templates/dashboard/menu/item/detail.html:90
+msgctxt "Menu item detail view action"
+msgid "Remove menu item"
+msgstr "Eemalda menüüelement"
+
+#: templates/dashboard/menu/item/form.html:8
+msgctxt "Menu item page title"
+msgid "Edit menu item"
+msgstr "Muuda menüüelementi"
+
+#: templates/dashboard/menu/item/form.html:10
+#: templates/dashboard/menu/item/form.html:23
+msgctxt "Menu item page title"
+msgid "Add new menu item"
+msgstr "Lisa uus menüüelement"
+
+#: templates/dashboard/menu/item/form.html:12
+msgctxt "Dashboard menu items list"
+msgid "Menu items"
+msgstr "Menüüelemendid"
+
+#: templates/dashboard/menu/item/form.html:56
+msgctxt "Menu form page title"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/menu/item/form.html:62
+msgctxt "Menu form page title"
+msgid "Add new menu item"
+msgstr "Lisa uus menüüelement"
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove menu item modal title"
+msgid "Remove menu item %(menu_item)s"
+msgstr "Eemalda menüüelement %(menu_item)s"
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove menu item modal title"
+msgid ""
+"Are you sure you want to remove menu item <strong>%(menu_item)s</strong> "
+"from %(menu)s menu?"
+msgstr ""
+"Kas olete kindel, et soovite eemaldada menüüelement "
+"<strong>%(menu_item)s</strong> %(menu)s menüüst?"
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:24
+#: templates/dashboard/menu/modal/confirm_delete.html:24
+msgctxt "Remove menu modal text about descendant menu items"
+msgid "The following menu items will be removed:"
+msgstr "Järgmised menüüelemendid eemaldatakse:"
+
+#: templates/dashboard/menu/list.html:22
+msgctxt "Menu list add button text"
+msgid "Add menu"
+msgstr "Lisa menüü"
+
+#: templates/dashboard/menu/list.html:47
+msgctxt "Menu list table header Menu name"
+msgid "Menu name"
+msgstr "Menüü nimi"
+
+#: templates/dashboard/menu/list.html:71
+msgctxt "Empty menu list message"
+msgid "No menus found."
+msgstr "Ühtegi menüüd ei leitud."
+
+#: templates/dashboard/menu/list.html:84
+msgid "Storefront Menus"
+msgstr "Poe Menüüd"
+
+#: templates/dashboard/menu/list.html:97
+#: templates/dashboard/product/attribute/form.html:80
+#: templates/dashboard/product/attribute/values/form.html:82
+#: templates/dashboard/product/form.html:137
+#: templates/dashboard/product/product_image/form.html:83
+#: templates/dashboard/product/product_variant/form.html:114
+#: templates/dashboard/shipping/form.html:80
+#: templates/dashboard/shipping/list.html:104
+#: templates/dashboard/shipping/methods/form.html:84
+#: templates/dashboard/sites/authorization_keys/form.html:75
+msgctxt "Dashboard update action"
+msgid "Save"
+msgstr "Salvesta"
+
+#: templates/dashboard/menu/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove menu modal title"
+msgid "Remove menu %(menu)s"
+msgstr "Eemalda menüü %(menu)s"
+
+#: templates/dashboard/menu/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove menu modal title"
+msgid "Are you sure you want to remove menu <strong>%(menu)s</strong>?"
+msgstr ""
+"Kas olete kindel, et soovite eemaldada menüü <strong>%(menu)s</strong>?"
+
+#: templates/dashboard/menu/zero_page.html:5
+msgid "No menus found."
+msgstr "Ühtegi menüüd ei leitud."
+
+#: templates/dashboard/menu/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Menus are used to organize the navigation bar displayed in the storefront.<br>\n"
+"    You can create menus by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Menüüsid kasutatakse poe navigatsiooniriba organiseerimiseks.<br>\n"
+"Saate menüüsid luua kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/next.html:11
+msgctxt "Dashboard default page title"
+msgid "Dashboard - Saleor"
+msgstr "Töölaud - Saleor"
+
+#: templates/dashboard/order/address_form.html:7
+msgctxt ""
+msgid "Edit address"
+msgstr "Muuda aadressi"
+
+#: templates/dashboard/order/address_form.html:39
+#: templates/dashboard/order/detail.html:217
+msgctxt ""
+msgid "Shipping address"
+msgstr "Postiaadress"
+
+#: templates/dashboard/order/address_form.html:41
+#: templates/dashboard/order/detail.html:233
+msgctxt ""
+msgid "Billing address"
+msgstr "Arveldusaadress"
+
+#: templates/dashboard/order/detail.html:32
+msgctxt "Order detail action"
+msgid "Cancel Order"
+msgstr "Tühista tellimus"
+
+#: templates/dashboard/order/detail.html:39
+msgctxt "Order detail action"
+msgid "Remove draft order"
+msgstr "Eemalda tellimuse mustand"
+
+#: templates/dashboard/order/detail.html:45
+msgctxt "Order detail action"
+msgid "Print"
+msgstr "Prindi"
+
+#: templates/dashboard/order/detail.html:79
+msgctxt "Order detail tab"
+msgid "Details"
+msgstr "Andmed"
+
+#: templates/dashboard/order/detail.html:87
+#: templates/dashboard/order/detail.html:575
+msgctxt "Order detail tab"
+msgid "Payments"
+msgstr "Maksed"
+
+#: templates/dashboard/order/detail.html:95
+#: templates/dashboard/order/detail.html:625
+msgctxt "Order detail tab"
+msgid "History"
+msgstr "Ajalugu"
+
+#: templates/dashboard/order/detail.html:108
+msgctxt "Order summary card header"
+msgid "Payments"
+msgstr "Maksed"
+
+#: templates/dashboard/order/detail.html:114
+msgctxt "Payment status not available"
+msgid "N/A"
+msgstr "N/A"
+
+#: templates/dashboard/order/detail.html:124
+msgctxt "Order summary card header"
+msgid "Outstanding balance"
+msgstr "Esilekerkiv tasakaal"
+
+#: templates/dashboard/order/detail.html:137
+msgctxt "Order summary card header"
+msgid "Preauthorized amount"
+msgstr "Eelnevalt kinnitatud summa"
+
+#: templates/dashboard/order/detail.html:143
+msgctxt "Preauthorized amount not available"
+msgid "N/A"
+msgstr "N/A"
+
+#: templates/dashboard/order/detail.html:149
+msgctxt "Order summary card header"
+msgid "Captured amount"
+msgstr "Laekunud summa"
+
+#: templates/dashboard/order/detail.html:163
+msgctxt "Order summary card action"
+msgid "Capture"
+msgstr "Laekuma"
+
+#: templates/dashboard/order/detail.html:168
+msgctxt "Order summary card action"
+msgid "Refund"
+msgstr "Tagastamine"
+
+#: templates/dashboard/order/detail.html:173
+msgctxt "Order summary card action"
+msgid "Void"
+msgstr "Tühistamine"
+
+#: templates/dashboard/order/detail.html:178
+msgctxt "Order detail action"
+msgid "Mark as paid"
+msgstr "Märgi makstuna"
+
+#: templates/dashboard/order/detail.html:190
+msgctxt "Order details summary header"
+msgid "Customer"
+msgstr "Klient"
+
+#: templates/dashboard/order/detail.html:194
+msgctxt "Order customer details action title"
+msgid "Edit customer details"
+msgstr "Muuda kliendi andmeid"
+
+#: templates/dashboard/order/detail.html:195
+#: templates/dashboard/order/detail.html:220
+#: templates/dashboard/order/detail.html:236
+#: templates/dashboard/product/product_image/list.html:82
+#: templates/dashboard/product/product_image/list.html:127
+msgctxt "Dashboard edit action"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/order/detail.html:227
+msgctxt "Missing shipping address message"
+msgid "No shipping address"
+msgstr "Postiaadress puudub"
+
+#: templates/dashboard/order/detail.html:242
+msgctxt "Order billing address same as shipping address"
+msgid "Same as shipping address"
+msgstr "Postiaadressiga sama"
+
+#: templates/dashboard/order/detail.html:247
+msgctxt "Missing billing address message"
+msgid "No billing address"
+msgstr "Arveldusaadress puudub"
+
+#: templates/dashboard/order/detail.html:260
+#, python-format
+msgctxt "Order table title"
+msgid "Order draft #%(order)s"
+msgstr "Tellimuse mustand #%(order)s"
+
+#: templates/dashboard/order/detail.html:264
+#, python-format
+msgctxt "Order table title"
+msgid "Order #%(order)s"
+msgstr "Tellimus #%(order)s"
+
+#: templates/dashboard/order/detail.html:270
+msgctxt "Order placed on date"
+msgid "Placed on"
+msgstr "Esitatud"
+
+#: templates/dashboard/order/detail.html:280
+#: templates/dashboard/order/detail.html:477
+#: templates/dashboard/order/pdf/packing_slip.html:58
+msgctxt "Order table header"
+msgid "Item"
+msgstr "Element"
+
+#: templates/dashboard/order/detail.html:283
+msgctxt "Order table header"
+msgid "Price"
+msgstr "Hind"
+
+#: templates/dashboard/order/detail.html:286
+#: templates/dashboard/order/detail.html:480
+#: templates/dashboard/order/pdf/packing_slip.html:64
+msgctxt "Order table header"
+msgid "Quantity"
+msgstr "Kogus"
+
+#: templates/dashboard/order/detail.html:289
+msgctxt "Order table header"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/dashboard/order/detail.html:304
+#: templates/dashboard/order/fulfillment.html:85
+#, python-format
+msgctxt "Order table text"
+msgid "SKU: %(sku)s"
+msgstr "Tootekood: %(sku)s"
+
+#: templates/dashboard/order/detail.html:320
+#: templates/dashboard/order/detail.html:321
+msgctxt "Order table row action"
+msgid "Change quantity"
+msgstr "Muuda kogust"
+
+#: templates/dashboard/order/detail.html:325
+#: templates/dashboard/order/detail.html:326
+msgctxt "Order table row action"
+msgid "Remove line"
+msgstr "Eemalda rida"
+
+#: templates/dashboard/order/detail.html:348
+msgctxt "Order totals action"
+msgid "Edit shipping"
+msgstr "Muuda saatmist"
+
+#: templates/dashboard/order/detail.html:350
+#: templates/dashboard/order/detail.html:359
+#, python-format
+msgctxt "Order totals header"
+msgid "Shipping (%(shipping_name)s)"
+msgstr "Kohale toimetamas (%(shipping_name)s)"
+
+#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:363
+msgctxt "Order totals header"
+msgid "Shipping"
+msgstr "Saatmine"
+
+#: templates/dashboard/order/detail.html:370
+msgctxt "Order total taxes"
+msgid "Taxes (included)"
+msgstr "Maksud (kaasa arvatud)"
+
+#: templates/dashboard/order/detail.html:372
+msgctxt "Order total taxes"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/dashboard/order/detail.html:380
+#: templates/dashboard/order/detail.html:404
+#, python-format
+msgctxt "Order totals header"
+msgid "Discount (%(voucher)s)"
+msgstr "Allahindlus(%(voucher)s)"
+
+#: templates/dashboard/order/detail.html:384
+#: templates/dashboard/order/detail.html:408
+msgctxt "Order totals header"
+msgid "Discount"
+msgstr "Allahindlus"
+
+#: templates/dashboard/order/detail.html:391
+msgctxt "Order totals action"
+msgid "Edit voucher"
+msgstr "Muuda vautšerit"
+
+#: templates/dashboard/order/detail.html:392
+msgctxt "Order detail action"
+msgid "Edit voucher"
+msgstr "Muuda vautšerit"
+
+#: templates/dashboard/order/detail.html:397
+msgctxt "Order totals action"
+msgid "Edit discount"
+msgstr "Muuda allahindlust"
+
+#: templates/dashboard/order/detail.html:398
+msgctxt "Order detail action"
+msgid "Edit discount"
+msgstr "Muuda allahindlust"
+
+#: templates/dashboard/order/detail.html:413
+msgctxt "Order totals header"
+msgid "Grand total"
+msgstr "Kogusumma"
+
+#: templates/dashboard/order/detail.html:436
+msgctxt "Order summary card action title"
+msgid "Fulfill order"
+msgstr "Täida tellimus"
+
+#: templates/dashboard/order/detail.html:437
+msgctxt "Order summary card action"
+msgid "Fulfill"
+msgstr "Täida"
+
+#: templates/dashboard/order/detail.html:441
+msgctxt "Order summary card action title"
+msgid "Add product to order"
+msgstr "Lisa toode tellimusse"
+
+#: templates/dashboard/order/detail.html:442
+msgctxt "Order summary card action"
+msgid "Add product"
+msgstr "Lisa toode"
+
+#: templates/dashboard/order/detail.html:447
+msgctxt "Order summary card action title"
+msgid "Create order"
+msgstr "Loo tellimus"
+
+#: templates/dashboard/order/detail.html:448
+msgctxt "Order summary card action"
+msgid "Create order"
+msgstr "Loo tellimus"
+
+#: templates/dashboard/order/detail.html:454
+msgctxt "Order detail action"
+msgid "Invoice"
+msgstr "Arve"
+
+#: templates/dashboard/order/detail.html:457
+msgctxt "Order detail action"
+msgid "View on site"
+msgstr "Vaata saidil"
+
+#: templates/dashboard/order/detail.html:466
+#, python-format
+msgctxt "Fulfillment table title"
+msgid "Fulfillment #%(fulfillment)s"
+msgstr "Saadetis #%(fulfillment)s"
+
+#: templates/dashboard/order/detail.html:498
+#, python-format
+msgctxt "Fulfillment table text"
+msgid "Tracking number: %(tracking)s"
+msgstr "Jälgimisnumber: %(tracking)s"
+
+#: templates/dashboard/order/detail.html:510
+msgctxt "Fulfillment summary card action title"
+msgid "Cancel fulfillment"
+msgstr "Tühista saadetis"
+
+#: templates/dashboard/order/detail.html:511
+msgctxt "Fulfillment summary card action"
+msgid "Cancel"
+msgstr "Tühista"
+
+#: templates/dashboard/order/detail.html:514
+msgctxt "Fulfillment summary card action title"
+msgid "Edit tracking number"
+msgstr "Muuda jälgimisnumbrit"
+
+#: templates/dashboard/order/detail.html:516
+msgctxt "Fulfillment summary card action"
+msgid "Edit tracking"
+msgstr "Muuda jälgimist"
+
+#: templates/dashboard/order/detail.html:518
+msgctxt "Fulfillment summary card action"
+msgid "Add tracking"
+msgstr "Lisa jälgimine"
+
+#: templates/dashboard/order/detail.html:523
+msgctxt "Order detail action"
+msgid "Packing Slips"
+msgstr "Pakkimissedelid"
+
+#: templates/dashboard/order/detail.html:533
+msgctxt "Customer order note card title"
+msgid "Customer note"
+msgstr "Kliendi märkus"
+
+#: templates/dashboard/order/detail.html:539
+msgctxt "No customer order note card message"
+msgid "There is no note from the customer associated with this order."
+msgstr "Sellele tellimusele ei ole kliendilt ühtegi märkust."
+
+#: templates/dashboard/order/detail.html:548
+msgctxt "Order notes card title"
+msgid "Order notes"
+msgstr "Tellimuse märkused"
+
+#: templates/dashboard/order/detail.html:561
+msgctxt "Empty order notes card message"
+msgid "There are no notes associated with this order."
+msgstr "Sellele tellimusele ei ole ühtegi märkust."
+
+#: templates/dashboard/order/detail.html:567
+msgctxt "Order notes card action"
+msgid "Add note"
+msgstr "Lisa märkus"
+
+#: templates/dashboard/order/detail.html:582
+msgctxt "Payment history table header"
+msgid "Transaction ID"
+msgstr "Maksekorralduse number"
+
+#: templates/dashboard/order/detail.html:585
+msgctxt "Payment history table header"
+msgid "Date"
+msgstr "Kuupäev"
+
+#: templates/dashboard/order/detail.html:588
+msgctxt "Payment history table header"
+msgid "Payment status"
+msgstr "Makse seisund"
+
+#: templates/dashboard/order/detail.html:591
+msgctxt "Payment history table header"
+msgid "Amount"
+msgstr "Kogus"
+
+#: templates/dashboard/order/detail.html:599
+#, python-format
+msgctxt "Payment item column data"
+msgid "#%(payment_id)s"
+msgstr "#%(payment_id)s"
+
+#: templates/dashboard/order/detail.html:620
+msgctxt "Empty payment history table message"
+msgid "No payments made for this order."
+msgstr "Maksed sellele tellimusele puuduvad."
+
+#: templates/dashboard/order/fulfillment.html:11
+#: templates/dashboard/order/fulfillment.html:42
+msgctxt "Dashboard order fulfillment"
+msgid "Fulfill"
+msgstr "Täida"
+
+#: templates/dashboard/order/fulfillment.html:58
+msgctxt "Fulfill order title"
+msgid "Fulfill order"
+msgstr "Täida tellimus"
+
+#: templates/dashboard/order/fulfillment.html:67
+#: templates/dashboard/order/modal/cancel_line.html:25
+msgctxt "Modal remove order line table header"
+msgid "Item"
+msgstr "Element"
+
+#: templates/dashboard/order/fulfillment.html:70
+#: templates/dashboard/order/modal/cancel_line.html:34
+msgctxt "Modal remove order line table header"
+msgid "Quantity"
+msgstr "Kogus"
+
+#: templates/dashboard/order/fulfillment.html:105
+#, python-format
+msgctxt "Fulfill order table quantity unfulfilled"
+msgid "of %(quantity_unfulfilled)s"
+msgstr "%(quantity_unfulfilled)s'st"
+
+#: templates/dashboard/order/fulfillment.html:139
+msgctxt "Dashboard update action"
+msgid "Fulfill"
+msgstr "Täida"
+
+#: templates/dashboard/order/list.html:19
+msgctxt "Order list add button text"
+msgid "Add order"
+msgstr "Lisa tellimus"
+
+#: templates/dashboard/order/list.html:98
+msgctxt "Empty order list message"
+msgid "No orders found."
+msgstr "Tellimusi ei leitud."
+
+#: templates/dashboard/order/modal/add_variant_to_order.html:11
+#, python-format
+msgctxt "Modal order add variant title"
+msgid "Add product to %(order)s"
+msgstr "Lisa toode %(order)s"
+
+#: templates/dashboard/order/modal/add_variant_to_order.html:22
+msgctxt "Modal order add variant primary action"
+msgid "Add"
+msgstr "Lisa"
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:11
+#, python-format
+msgctxt "Modal cancel fulfillment title"
+msgid "Cancel fulfillment #%(fulfillment)s"
+msgstr "Tühista saadetis #%(fulfillment)s"
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:18
+#, python-format
+msgctxt "Modal cancel fulfillment text"
+msgid "Are you sure you want cancel fulfillment #%(fulfillment)s?"
+msgstr "Kas olete kindel, et tahate tühistada saadetise #%(fulfillment)s?"
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:26
+msgctxt "Modal cancel fulfillment cancel action"
+msgid "Abort"
+msgstr "Katkesta"
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:30
+msgctxt "Modal cancel fulfillment primary action"
+msgid "Cancel Fulfillment"
+msgstr "Tühista Saadetis"
+
+#: templates/dashboard/order/modal/cancel_line.html:12
+msgctxt "Modal remove order line title"
+msgid "Remove order line"
+msgstr "Eemalda tellimuse rida"
+
+#: templates/dashboard/order/modal/cancel_line.html:17
+msgctxt "Modal remove order line text"
+msgid "Are you sure you want remove this order line?"
+msgstr "Kas olete kindel, et tahate eemalda selle tellimuse rea?"
+
+#: templates/dashboard/order/modal/cancel_line.html:28
+msgctxt "Modal remove order line table header"
+msgid "SKU"
+msgstr "Tootekood"
+
+#: templates/dashboard/order/modal/cancel_line.html:31
+msgctxt "Modal remove order line table header"
+msgid "Price"
+msgstr "Hind"
+
+#: templates/dashboard/order/modal/cancel_line.html:37
+msgctxt "Modal remove order line table header"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/dashboard/order/modal/cancel_order.html:11
+msgctxt "Modal cancel order title"
+msgid "Cancel order"
+msgstr "Tühista tellimus"
+
+#: templates/dashboard/order/modal/cancel_order.html:16
+#, python-format
+msgctxt "Modal cancel order text"
+msgid "Are you sure you want cancel order %(order)s?"
+msgstr "Kas olete kindel, et tahate tühistada tellimuse %(order)s?"
+
+#: templates/dashboard/order/modal/cancel_order.html:24
+msgctxt "Modal cancel order cancel action"
+msgid "Abort"
+msgstr "Katkesta"
+
+#: templates/dashboard/order/modal/cancel_order.html:28
+msgctxt "Modal cancel order primary action"
+msgid "Cancel Order"
+msgstr "Tühista tellimus"
+
+#: templates/dashboard/order/modal/capture.html:13
+msgctxt "Modal capture payment title"
+msgid "Capture payment"
+msgstr "Makse vastuvõtmine"
+
+#: templates/dashboard/order/modal/capture.html:19
+msgctxt "Modal capture payment title"
+msgid "Before this action:"
+msgstr "Enne seda toimingut:"
+
+#: templates/dashboard/order/modal/capture.html:21
+msgctxt "Modal capture payment list title"
+msgid "Order total:"
+msgstr "Tellimus kokku:"
+
+#: templates/dashboard/order/modal/capture.html:24
+msgctxt "Modal capture payment list title"
+msgid "Taxes (included):"
+msgstr "Maksud (kaasa arvatud):"
+
+#: templates/dashboard/order/modal/capture.html:27
+msgctxt "Modal capture payment list title"
+msgid "Captured amount:"
+msgstr "Laekunud summa:"
+
+#: templates/dashboard/order/modal/capture.html:35
+msgctxt "Modal capture payment primary action"
+msgid "Capture"
+msgstr "Laekuma"
+
+#: templates/dashboard/order/modal/change_quantity.html:11
+msgctxt "Modal change quantity title"
+msgid "Change quantity"
+msgstr "Muuda kogust"
+
+#: templates/dashboard/order/modal/create_order.html:11
+msgctxt "Modal create order title"
+msgid "Create order"
+msgstr "Loo tellimus"
+
+#: templates/dashboard/order/modal/create_order.html:16
+#, python-format
+msgctxt "Modal create order text"
+msgid ""
+"Are you sure you want create order %(order)s? Once the order has been "
+"created, you will not be able to make changes."
+msgstr ""
+"Kas olete kindel, et tahate luua tellimust %(order)s? Kui tellimus on "
+"loodud, ei saa Te enam muudatusi teha."
+
+#: templates/dashboard/order/modal/create_order.html:26
+msgctxt "Modal create order primary action"
+msgid "Create"
+msgstr "Loo"
+
+#: templates/dashboard/order/modal/edit_customer.html:11
+msgctxt "Modal edit customer title"
+msgid "Edit customer details"
+msgstr "Muuda kliendi andmeid"
+
+#: templates/dashboard/order/modal/edit_customer.html:17
+msgctxt "Modal edit customer text"
+msgid ""
+"Connect an order with an account of an existing customer or provide a "
+"contact email address."
+msgstr ""
+"Ühenda tellimus olemasoleva kliendi kontoga või andke kontakti e-posti "
+"aadress"
+
+#: templates/dashboard/order/modal/edit_customer.html:34
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove customer from order"
+msgstr "Eemalda klient tellimuselt"
+
+#: templates/dashboard/order/modal/edit_customer.html:40
+msgctxt "Modal edit customer primary action"
+msgid "Update"
+msgstr "Uuenda"
+
+#: templates/dashboard/order/modal/edit_discount.html:11
+msgctxt "Modal edit discount title"
+msgid "Edit discount"
+msgstr "Muuda allahindlust"
+
+#: templates/dashboard/order/modal/edit_discount.html:21
+msgctxt "Modal edit discount primary action"
+msgid "Update"
+msgstr "Uuenda"
+
+#: templates/dashboard/order/modal/edit_shipping.html:11
+msgctxt "Modal edit shipping title"
+msgid "Edit shipping"
+msgstr "Muuda saatmist"
+
+#: templates/dashboard/order/modal/edit_shipping.html:23
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove shipping from order"
+msgstr "Eemalda saatmine tellimuselt"
+
+#: templates/dashboard/order/modal/edit_shipping.html:29
+msgctxt "Modal edit shipping primary action"
+msgid "Update"
+msgstr "Uuenda"
+
+#: templates/dashboard/order/modal/edit_voucher.html:11
+msgctxt "Modal edit voucher title"
+msgid "Edit voucher"
+msgstr "Muuda vautšerit"
+
+#: templates/dashboard/order/modal/edit_voucher.html:23
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove voucher from order"
+msgstr "Eemalda vautšer tellimuselt"
+
+#: templates/dashboard/order/modal/edit_voucher.html:29
+msgctxt "Modal edit voucher primary action"
+msgid "Update"
+msgstr "Uuenda"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:12
+msgctxt "Modal change fulfillment tracking title"
+msgid "Edit tracking"
+msgstr "Muuda jälgimist"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:14
+msgctxt "Modal change fulfillment tracking title"
+msgid "Add tracking"
+msgstr "Lisa jälgimine"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:27
+msgctxt "Modal change fulfillment tracking primary action"
+msgid "Update"
+msgstr "Uuenda"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:29
+msgctxt "Modal change fulfillment tracking primary action"
+msgid "Save"
+msgstr "Salvesta"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:12
+msgctxt "Modal mark order as paid title"
+msgid "Mark order as paid"
+msgstr "Märgi tellimus makstuna"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:17
+msgctxt "Modal mark order as paid text"
+msgid "Are you sure you want mark order as paid?"
+msgstr "Kas olete kindel, et tahate tellimuse märkida makstuna?"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:18
+msgctxt "Modal mark order as paid text"
+msgid "Total received:"
+msgstr "Kokku saadud:"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:23
+msgctxt "Modal mark order as paid cancel action"
+msgid "Abort"
+msgstr "Katkesta"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:27
+msgctxt "Modal mark order as paid primary action"
+msgid "Mark as paid"
+msgstr "Märgi makstuna"
+
+#: templates/dashboard/order/modal/refund.html:14
+msgctxt "Modal refund payment title"
+msgid "Refund payment"
+msgstr "Tagasimakse"
+
+#: templates/dashboard/order/modal/refund.html:20
+msgctxt "Modal refund payment title"
+msgid "Before this action:"
+msgstr "Enne seda toimingut:"
+
+#: templates/dashboard/order/modal/refund.html:22
+msgctxt "Modal refund payment list title"
+msgid "Order total:"
+msgstr "Tellimus kokku:"
+
+#: templates/dashboard/order/modal/refund.html:25
+msgctxt "Modal refund payment list title"
+msgid "Taxes (included):"
+msgstr "Maksud (kaasa arvatud):"
+
+#: templates/dashboard/order/modal/refund.html:28
+msgctxt "Modal refund payment list title"
+msgid "Captured amount:"
+msgstr "Laekunud summa:"
+
+#: templates/dashboard/order/modal/refund.html:36
+msgctxt "Modal refund payment primary action"
+msgid "Refund"
+msgstr "Tagastamine"
+
+#: templates/dashboard/order/modal/remove_order.html:13
+msgctxt "Modal remove order title"
+msgid "Remove draft order"
+msgstr "Eemalda tellimuse mustand"
+
+#: templates/dashboard/order/modal/remove_order.html:18
+#, python-format
+msgctxt "Modal remove order text"
+msgid "Are you sure you want remove draft order %(order)s?"
+msgstr "Kas olete kindel, et tahate eemaldada tellimuse mustandi %(order)s?"
+
+#: templates/dashboard/order/modal/remove_order.html:25
+msgctxt "Modal remove order cancel action"
+msgid "Abort"
+msgstr "Katkesta"
+
+#: templates/dashboard/order/modal/remove_order.html:29
+msgctxt "Modal remove order primary action"
+msgid "Remove draft order"
+msgstr "Eemalda tellimuse mustand"
+
+#: templates/dashboard/order/modal/void.html:11
+msgctxt "Modal void payment text"
+msgid "Void payment"
+msgstr "Tühista makse"
+
+#: templates/dashboard/order/modal/void.html:17
+msgctxt "Modal void payment text"
+msgid "Do you want to void the payment?"
+msgstr "Kas soovite makset tühistada?"
+
+#: templates/dashboard/order/modal/void.html:22
+msgctxt "Modal void payment primary action"
+msgid "Void"
+msgstr "Tühistamine"
+
+#: templates/dashboard/order/pdf/base_pdf.html:18
+msgctxt "Order PDF footer page counter"
+msgid "\"Page \" counter(page) \"/\" counter(pages)"
+msgstr "\"Leht\" (leht) \"/\" (lehed)"
+
+#: templates/dashboard/order/pdf/base_pdf.html:34
+#, python-format
+msgctxt "Order PDF header"
+msgid "Order #%(order_id)s"
+msgstr "Tellimus #%(order_id)s"
+
+#: templates/dashboard/order/pdf/invoice.html:9
+#, python-format
+msgctxt "Invoice title"
+msgid "Invoice for Order #%(order_id)s"
+msgstr "Arve tellimusele %(order_id)s"
+
+#: templates/dashboard/order/pdf/invoice.html:15
+msgctxt "Order invoice"
+msgid "Invoice"
+msgstr "Arve"
+
+#: templates/dashboard/order/pdf/invoice.html:21
+msgctxt "Invoice shipping address"
+msgid "Shipping address"
+msgstr "Postiaadress"
+
+#: templates/dashboard/order/pdf/invoice.html:26
+msgctxt "Invoice billing address"
+msgid "Billing address"
+msgstr "Arveldusaadress"
+
+#: templates/dashboard/order/pdf/invoice.html:47
+msgctxt "Invoice ordered items header"
+msgid "Items Ordered"
+msgstr "Tellitud tooted"
+
+#: templates/dashboard/order/pdf/invoice.html:54
+msgctxt "Shipment order table header"
+msgid "Item"
+msgstr "Element"
+
+#: templates/dashboard/order/pdf/invoice.html:58
+msgctxt "Shipment order table header"
+msgid "SKU"
+msgstr "Tootekood"
+
+#: templates/dashboard/order/pdf/invoice.html:61
+msgctxt "Shipment order table header"
+msgid "Tax rate"
+msgstr "Maksumäär"
+
+#: templates/dashboard/order/pdf/invoice.html:64
+msgctxt "Shipment order table header"
+msgid "Gross price"
+msgstr "Brutohind"
+
+#: templates/dashboard/order/pdf/invoice.html:67
+msgctxt "Shipment order table header"
+msgid "Quantity"
+msgstr "Kogus"
+
+#: templates/dashboard/order/pdf/invoice.html:70
+msgctxt "Shipment order table header"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/dashboard/order/pdf/invoice.html:84
+#, python-format
+msgctxt "Order line tax rate value"
+msgid ""
+"\n"
+"                %(tax_rate)s %%\n"
+"              "
+msgstr ""
+"\n"
+"%(tax_rate)s%%"
+
+#: templates/dashboard/order/pdf/invoice.html:107
+msgctxt "Order subtotal net price"
+msgid "Subtotal"
+msgstr "Vahesumma"
+
+#: templates/dashboard/order/pdf/invoice.html:115
+msgctxt "Order total shipping price header"
+msgid "Shipping"
+msgstr "Saatmine"
+
+#: templates/dashboard/order/pdf/invoice.html:123
+msgctxt "Order total taxes header"
+msgid "Total taxes (included)"
+msgstr "Kõik maksud (kaasa arvatud)"
+
+#: templates/dashboard/order/pdf/invoice.html:132
+msgctxt "Order voucher header"
+msgid "Discount"
+msgstr "Allahindlus"
+
+#: templates/dashboard/order/pdf/invoice.html:143
+msgctxt "Order total price header"
+msgid "Grand total"
+msgstr "Kogusumma"
+
+#: templates/dashboard/order/pdf/packing_slip.html:8
+#, python-format
+msgctxt "Packing slips title"
+msgid "Packing Slips for Fulfillment #%(fulfillment)s"
+msgstr "Pakikaart Saadetisele #%(fulfillment)s"
+
+#: templates/dashboard/order/pdf/packing_slip.html:14
+msgctxt "Packing slips header"
+msgid "Packing Slips"
+msgstr "Pakkimissedelid"
+
+#: templates/dashboard/order/pdf/packing_slip.html:20
+msgctxt "Packing slip shipping details"
+msgid "Shipping Details"
+msgstr "Saatmise andmed"
+
+#: templates/dashboard/order/pdf/packing_slip.html:24
+msgctxt "Packing slip shipping details"
+msgid "Billing Details"
+msgstr "Arveldusaadressi andmed"
+
+#: templates/dashboard/order/pdf/packing_slip.html:34
+msgctxt "Packing slip shipping address"
+msgid "Shipping address"
+msgstr "Postiaadress"
+
+#: templates/dashboard/order/pdf/packing_slip.html:43
+msgctxt "Packing slip billing address"
+msgid "Billing address"
+msgstr "Arveldusaadress"
+
+#: templates/dashboard/order/pdf/packing_slip.html:52
+msgctxt "Order invoice"
+msgid "Items Ordered"
+msgstr "Tellitud tooted"
+
+#: templates/dashboard/order/pdf/packing_slip.html:61
+msgctxt "Order table header"
+msgid "SKU"
+msgstr "Tootekood"
+
+#: templates/dashboard/order/zero_page.html:5
+msgid "No orders found."
+msgstr "Tellimusi ei leitud."
+
+#: templates/dashboard/order/zero_page.html:8
+msgid ""
+"\n"
+"    Orders will appear here after customers complete the checkout.\n"
+"  "
+msgstr ""
+"\n"
+"Tellimused ilmuvad siia, kui kliendid on kassas edukalt toimingud lõpetanud."
+
+#: templates/dashboard/page/detail.html:8 templates/dashboard/page/list.html:8
+msgctxt "Pages list page title"
+msgid "Pages"
+msgstr "Leheküljed"
+
+#: templates/dashboard/page/detail.html:17
+msgctxt "Pages form breadcrumbs"
+msgid "Pages"
+msgstr "Leheküljed"
+
+#: templates/dashboard/page/detail.html:43
+msgctxt "Page URL"
+msgid "Page URL"
+msgstr "Lehekülje URL"
+
+#: templates/dashboard/page/detail.html:49
+msgctxt "Page action"
+msgid "Edit page"
+msgstr "Muuda lehekülge"
+
+#: templates/dashboard/page/detail.html:52
+msgctxt "Page action"
+msgid "Remove page"
+msgstr "Eemalda lehekülg"
+
+#: templates/dashboard/page/detail.html:55
+msgctxt "Page action"
+msgid "View on site"
+msgstr "Vaata saidil"
+
+#: templates/dashboard/page/form.html:8
+msgctxt "Page form page title"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/page/form.html:10
+msgctxt "Page form page title"
+msgid "Add new page"
+msgstr "Lisa uus lehekülg"
+
+#: templates/dashboard/page/form.html:26
+msgctxt "Dashboard pages list"
+msgid "Pages"
+msgstr "Leheküljed"
+
+#: templates/dashboard/page/form.html:41
+msgctxt "Page form breadcrumbs"
+msgid "Add new page"
+msgstr "Lisa uus lehekülg"
+
+#: templates/dashboard/page/form.html:48
+msgctxt "Page form breadcrumbs"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/page/form.html:82 templates/dashboard/page/form.html:85
+msgid "Cancel"
+msgstr "Tühista"
+
+#: templates/dashboard/page/form.html:83
+msgid "Save"
+msgstr "Salvesta"
+
+#: templates/dashboard/page/form.html:86
+msgid "Create"
+msgstr "Loo"
+
+#: templates/dashboard/page/list.html:17
+msgctxt "Page list add button text"
+msgid "Add page"
+msgstr "Lisa lehekülg"
+
+#: templates/dashboard/page/list.html:25
+msgid "Pages"
+msgstr "Leheküljed"
+
+#: templates/dashboard/page/list.html:40
+msgctxt "Static pages table header name"
+msgid "Title"
+msgstr "Pealkiri"
+
+#: templates/dashboard/page/list.html:43
+msgctxt "Static pages table header url"
+msgid "URL"
+msgstr "URL"
+
+#: templates/dashboard/page/list.html:46
+msgctxt "Pages table header"
+msgid "Visibility"
+msgstr "Nähtavus"
+
+#: templates/dashboard/page/list.html:76
+msgctxt "Empty pages list message"
+msgid "No pages found."
+msgstr "Lehekülgi ei leitud."
+
+#: templates/dashboard/page/modal_delete.html:12
+#, python-format
+msgctxt "Modal remove page text"
+msgid "Remove page %(page)s"
+msgstr "Eemalda lehekülg %(page)s"
+
+#: templates/dashboard/page/modal_delete.html:19
+#, python-format
+msgctxt "Modal remove page text"
+msgid "Are you sure you want to remove page <strong>%(page)s</strong>?"
+msgstr "Kas olete kindel, et tahate eemaldada <strong>%(page)s</strong>?"
+
+#: templates/dashboard/page/zero_page.html:5
+msgid "No pages found."
+msgstr "Lehekülgi ei leitud."
+
+#: templates/dashboard/page/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Pages allows to create custom static pages such as \"About us\" that will be displayed at particular url.<br>\n"
+"    You can create pages by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Leheküljed võimaldavad luua kohaldatud staatilisi lehekülgi nagu näiteks \"Meist\", mis kuvatakse teatud URL-l.<br>\n"
+"Lehekülgi saate luua kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/product/attribute/detail.html:18
+msgctxt "Attribute detail breadcrumbs"
+msgid "Attributes"
+msgstr "Omadus"
+
+#: templates/dashboard/product/attribute/detail.html:46
+msgid "Product type"
+msgstr "Toote tüüp"
+
+#: templates/dashboard/product/attribute/detail.html:53
+msgctxt "Attribute detail action"
+msgid "Edit attribute"
+msgstr "Muuda omadust"
+
+#: templates/dashboard/product/attribute/detail.html:56
+msgctxt "Attribute detail action"
+msgid "Remove attribute"
+msgstr "Eemalda omadus"
+
+#: templates/dashboard/product/attribute/detail.html:64
+msgid "Attribute values"
+msgstr "Omaduse väärtused"
+
+#: templates/dashboard/product/attribute/detail.html:77
+msgid "Display name"
+msgstr "Kuvatav nimi"
+
+#: templates/dashboard/product/attribute/detail.html:92
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
+msgctxt "Attribute value edit action"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/attribute/detail.html:95
+msgctxt "Attribute value edit action"
+msgid "Remove"
+msgstr "Eemalda"
+
+#: templates/dashboard/product/attribute/detail.html:101
+msgctxt "Empty list of attribute values"
+msgid "No attribute values"
+msgstr "Omaduse väärtused puuduvad"
+
+#: templates/dashboard/product/attribute/form.html:8
+#: templates/dashboard/product/attribute/values/form.html:8
+msgctxt "Dashboard attributes list"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/attribute/form.html:10
+#: templates/dashboard/product/attribute/values/form.html:10
+msgctxt "Attribute detail page title"
+msgid "Add new attribute"
+msgstr "Lisa uus omadus"
+
+#: templates/dashboard/product/attribute/form.html:45
+#: templates/dashboard/product/attribute/values/form.html:47
+msgctxt "Attribute detail breadcrumbs"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/attribute/form.html:51
+#: templates/dashboard/product/attribute/values/form.html:53
+msgctxt "Attribute detail breadcrumbs"
+msgid "Add new attribute"
+msgstr "Lisa uus omadus"
+
+#: templates/dashboard/product/attribute/list.html:17
+msgctxt "Attribute list add button text"
+msgid "Add attribute"
+msgstr "Lisa omadus"
+
+#: templates/dashboard/product/attribute/list.html:42
+msgctxt "Dashboard attributes list table header name"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/product/attribute/list.html:44
+msgctxt "Name of product type related to the attribute"
+msgid "Product type"
+msgstr "Toote tüüp"
+
+#: templates/dashboard/product/attribute/list.html:46
+msgctxt "Dashboard attributes list table header values"
+msgid "Values"
+msgstr "Väärtused"
+
+#: templates/dashboard/product/attribute/list.html:76
+msgctxt "Empty attribute list message"
+msgid "No attributes found."
+msgstr "Omadusi ei leitud."
+
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid "Remove attribute %(attribute)s"
+msgstr "Eemalda omadus %(attribute)s"
+
+#: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid ""
+"Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
+msgstr ""
+"Kas olete kindel, et tahate eemaldada omaduse "
+"<strong>%(attribute)s</strong>?"
+
+#: templates/dashboard/product/attribute/values/form.html:70
+msgctxt "Attribute values form title"
+msgid "Attribute values"
+msgstr "Omaduse väärtused"
+
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid "Delete attribute value %(value)s"
+msgstr "Kustuta omaduse väärtus %(value)s"
+
+#: templates/dashboard/product/attribute/values/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid ""
+"Are you sure you want to remove attribute value <strong>%(value)s</strong>?"
+msgstr ""
+"Kas olete kindel, et tahate eemaldada omaduse väärtuse "
+"<strong>%(value)s</strong>?"
+
+#: templates/dashboard/product/attribute/zero_page.html:5
+#: templates/dashboard/product/product_variant/form.html:82
+msgid "No attributes found."
+msgstr "Omadusi ei leitud."
+
+#: templates/dashboard/product/attribute/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Attributes are used to define custom properties of products and variants, that can be used for filtering purposes in the storefront.<br>\n"
+"    You can add attributes by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Tunnuseid kasutatakse toodete ja tootevariantide eritunnuste määramiseks, mida saab kasutada toodete filtreerimiseks poes.<br>\n"
+"Saate lisada tunnuseid kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/product/detail.html:19
+#: templates/dashboard/product/product_variant/detail.html:20
+msgctxt "Product form breadcrumbs"
+msgid "Products"
+msgstr "Tooted"
+
+#: templates/dashboard/product/detail.html:54
+msgctxt "Product field"
+msgid "Published"
+msgstr "Avaldatud"
+
+#: templates/dashboard/product/detail.html:56
+msgctxt "Product field"
+msgid "Draft"
+msgstr "Mustand"
+
+#: templates/dashboard/product/detail.html:77
+msgctxt "Product action"
+msgid "Edit product"
+msgstr "Muuda toodet"
+
+#: templates/dashboard/product/detail.html:80
+msgctxt "Product action"
+msgid "Remove product"
+msgstr "Eemalda toode"
+
+#: templates/dashboard/product/detail.html:83
+msgctxt "Product action"
+msgid "View on site"
+msgstr "Vaata saidil"
+
+#: templates/dashboard/product/detail.html:90
+msgid "Variant"
+msgstr "Variant"
+
+#: templates/dashboard/product/detail.html:99
+msgid "SKU"
+msgstr "Tootekood"
+
+#: templates/dashboard/product/detail.html:100
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/product/detail.html:101
+msgid "Status"
+msgstr "Seisund"
+
+#: templates/dashboard/product/detail.html:104
+msgid "Gross price"
+msgstr "Brutohind"
+
+#: templates/dashboard/product/detail.html:106
+msgid "Net price"
+msgstr "Netohind"
+
+#: templates/dashboard/product/detail.html:109
+msgid "Margin"
+msgstr "Piir"
+
+#: templates/dashboard/product/detail.html:132
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/detail.html:136
+msgctxt "Dashboard product details page"
+msgid "No variants found"
+msgstr "Variante ei leitud"
+
+#: templates/dashboard/product/detail.html:152
+#: templates/dashboard/product/product_variant/detail.html:77
+msgctxt "Product pricing card header"
+msgid "Pricing"
+msgstr "Hindamine"
+
+#: templates/dashboard/product/detail.html:156
+#, python-format
+msgctxt "Product pricing card header subtitle"
+msgid "Taxes are charged (%(tax_rate)s tax rate)"
+msgstr "Maksud on lisatud (%(tax_rate)s maksumäär)"
+
+#: templates/dashboard/product/detail.html:160
+msgctxt "Product pricing card header subtitle"
+msgid "Taxes are not charged"
+msgstr "Makse ei ole lisatud"
+
+#: templates/dashboard/product/detail.html:171
+#: templates/dashboard/product/product_variant/detail.html:87
+msgctxt "Product field"
+msgid "Gross sale price"
+msgstr "Müügi brutohind"
+
+#: templates/dashboard/product/detail.html:173
+#: templates/dashboard/product/product_variant/detail.html:89
+msgctxt "Product field"
+msgid "Net sale price"
+msgstr "Müügi netohind"
+
+#: templates/dashboard/product/detail.html:184
+#: templates/dashboard/product/product_variant/detail.html:100
+msgctxt "Product field"
+msgid "Gross discounted price"
+msgstr "Allahinnatud brutohind"
+
+#: templates/dashboard/product/detail.html:186
+#: templates/dashboard/product/product_variant/detail.html:102
+msgctxt "Product field"
+msgid "Net discounted price"
+msgstr "Allahinnatud netohind"
+
+#: templates/dashboard/product/detail.html:197
+#: templates/dashboard/product/product_variant/detail.html:113
+msgctxt "Product field"
+msgid "Gross purchase cost"
+msgstr "Sisseostu brutohind"
+
+#: templates/dashboard/product/detail.html:199
+#: templates/dashboard/product/product_variant/detail.html:115
+msgctxt "Product field"
+msgid "Net purchase cost"
+msgstr "Sisseostu netohind"
+
+#: templates/dashboard/product/detail.html:208
+#: templates/dashboard/product/product_variant/detail.html:128
+msgctxt "Product field"
+msgid "Margin"
+msgstr "Piir"
+
+#: templates/dashboard/product/detail.html:231
+#: templates/dashboard/product/product_variant/detail.html:146
+msgctxt "Product variant inventory card header"
+msgid "Inventory"
+msgstr "Inventuur"
+
+#: templates/dashboard/product/detail.html:240
+#: templates/dashboard/product/product_variant/detail.html:155
+msgctxt "Dashboard variant details view"
+msgid "Number in stock"
+msgstr "Arv laos"
+
+#: templates/dashboard/product/detail.html:248
+#: templates/dashboard/product/product_variant/detail.html:163
+msgctxt "Dashboard variant details view"
+msgid "Allocated"
+msgstr "Eraldatud"
+
+#: templates/dashboard/product/detail.html:261
+#: templates/dashboard/product/product_image/list.html:7
+#: templates/dashboard/product/product_image/list.html:41
+msgid "Images"
+msgstr "Pildid"
+
+#: templates/dashboard/product/detail.html:271
+msgid "Edit images"
+msgstr "Muuda pilte"
+
+#: templates/dashboard/product/form.html:8
+msgctxt "Dashboard products list"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/form.html:10
+msgctxt "Product form page title"
+msgid "Add new product"
+msgstr "Lisa uus toode"
+
+#: templates/dashboard/product/form.html:43
+msgctxt "Product form breadcrumbs"
+msgid "Add new product"
+msgstr "Lisa uus toode"
+
+#: templates/dashboard/product/form.html:50
+msgctxt "Product form breadcrumbs"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/form.html:111
+#: templates/dashboard/product/product_type/form.html:103
+#: templates/dashboard/product/product_variant/form.html:85
+msgid "Shipping"
+msgstr "Saatmine"
+
+#: templates/dashboard/product/form.html:115
+#: templates/dashboard/product/product_variant/form.html:76
+msgid "Attributes"
+msgstr "Omadus"
+
+#: templates/dashboard/product/form.html:118
+#, python-format
+msgid ""
+"\n"
+"                    Product Type: %(product_type_name)s\n"
+"                  "
+msgstr ""
+"\n"
+"Tootetüüp: %(product_type_name)s"
+
+#: templates/dashboard/product/list.html:21
+#: templates/dashboard/product/list.html:25
+msgctxt "Product list add button text"
+msgid "Add product"
+msgstr "Lisa toode"
+
+#: templates/dashboard/product/list.html:61
+msgctxt "Products list table header"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/product/list.html:64
+msgctxt "Products list table header"
+msgid "Price"
+msgstr "Hind"
+
+#: templates/dashboard/product/list.html:101
+msgctxt "Empty product list message"
+msgid "No products found."
+msgstr "Tooteid ei leitud."
+
+#: templates/dashboard/product/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove product text"
+msgid "Remove product %(product)s"
+msgstr "Eemalda toode %(product)s"
+
+#: templates/dashboard/product/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove product text"
+msgid "Are you sure you want to remove product <strong>%(product)s</strong>?"
+msgstr ""
+"Kas olete kindel, et tahate eemaldada toote <strong>%(product)s</strong>?"
+
+#: templates/dashboard/product/modal/select_type.html:11
+msgctxt "Modal select product types title"
+msgid "Product type"
+msgstr "Toote tüüp"
+
+#: templates/dashboard/product/modal/select_type.html:19
+msgctxt "Dashboard add action"
+msgid "Create"
+msgstr "Loo"
+
+#: templates/dashboard/product/product_image/form.html:8
+msgctxt "Image form text"
+msgid "Edit - Image"
+msgstr "Muuda - Pilt"
+
+#: templates/dashboard/product/product_image/form.html:10
+msgctxt "Image form text"
+msgid "Add image"
+msgstr "Lisa pilt"
+
+#: templates/dashboard/product/product_image/form.html:38
+msgctxt "Image form text"
+msgid "Image"
+msgstr "Pilt"
+
+#: templates/dashboard/product/product_image/form.html:43
+msgctxt "Image form text"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/product_image/form.html:49
+msgctxt "Image form breadcrumbs"
+msgid "Add image"
+msgstr "Lisa pilt"
+
+#: templates/dashboard/product/product_image/form.html:52
+#, python-format
+msgctxt "Image form breadcrumbs"
+msgid "Add image for %(product)s"
+msgstr "Lisa pilt tootele %(product)s"
+
+#: templates/dashboard/product/product_image/list.html:19
+msgctxt "Add image button text"
+msgid "Add image"
+msgstr "Lisa pilt"
+
+#: templates/dashboard/product/product_image/list.html:73
+msgctxt "Image card text"
+msgid "No description"
+msgstr "Kirjeldus puudub"
+
+#: templates/dashboard/product/product_image/list.html:87
+#: templates/dashboard/product/product_image/list.html:131
+msgctxt "Dashboard remove action"
+msgid "Remove"
+msgstr "Eemalda"
+
+#: templates/dashboard/product/product_image/list.html:101
+msgctxt "Image gallery upload box text"
+msgid "Drop images here to upload"
+msgstr "Üleslaadimiseks lisage pildid siia"
+
+#: templates/dashboard/product/product_image/list.html:120
+msgctxt "Empty image gallery message"
+msgid "No description"
+msgstr "Kirjeldus puudub"
+
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:12
+msgctxt "Modal remove image text"
+msgid "Remove product image"
+msgstr "Eemalda toote pilt"
+
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:20
+msgctxt "Modal remove image text"
+msgid "Are you sure you want to remove product image?"
+msgstr "Kas olete kindel, et tahate eemaldada toote pildi?"
+
+#: templates/dashboard/product/product_image/versatile_image.html:7
+msgid "Primary Point of Interest"
+msgstr "Peamine huvipunkt"
+
+#: templates/dashboard/product/product_image/versatile_image.html:10
+msgctxt "Image form text"
+msgid "Pick the most relevant part of the image using the red circle."
+msgstr "Vali pildi kõige tähtsam osa kasutades punast ringi."
+
+#: templates/dashboard/product/product_type/form.html:10
+msgctxt "Product type page title"
+msgid "Add new product type"
+msgstr "Lisa uus tootetüüp"
+
+#: templates/dashboard/product/product_type/form.html:41
+msgctxt "Product type breadcrumbs"
+msgid "Add new product type"
+msgstr "Lisa uus tootetüüp"
+
+#: templates/dashboard/product/product_type/form.html:57
+msgctxt "Product type action"
+msgid "Remove product type"
+msgstr "Eemalda tootetüüp"
+
+#: templates/dashboard/product/product_type/form.html:95
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/dashboard/product/product_type/form.html:132
+msgctxt "Product type help text"
+msgid ""
+"Product Type is a template used for creating new products. It also controls "
+"which attributes can be used during product creation process."
+msgstr ""
+"Tootetüüp on mall, mida kasutatakse uute toote loomisel. See samuti "
+"kontrollib, milliseid omadusi saab kasutada toote loomise protsessil."
+
+#: templates/dashboard/product/product_type/list.html:18
+msgctxt "Product type list add button text"
+msgid "Add product type"
+msgstr "Lisa tootetüüp"
+
+#: templates/dashboard/product/product_type/list.html:44
+msgctxt "Dashboard product types list table header name"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/product/product_type/list.html:48
+msgctxt "Product type item list text"
+msgid "Product attributes"
+msgstr "Toote tunnused"
+
+#: templates/dashboard/product/product_type/list.html:51
+msgctxt "Product type item list text"
+msgid "Variant attributes"
+msgstr "Variandi tunnused"
+
+#: templates/dashboard/product/product_type/list.html:89
+msgctxt "Empty product type list message"
+msgid "No product types found."
+msgstr "Tootetüüpe ei leitud."
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Modal remove product type text"
+msgid "Remove product type %(product_type)s"
+msgstr "Eemalda tootetüüp %(product_type)s"
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:21
+#, python-format
+msgctxt "Modal remove product type text"
+msgid ""
+"Are you sure you want to remove product type "
+"<strong>%(product_type)s</strong>?"
+msgstr ""
+"Kas olete kindel, et tahate eemaldada toote tüübi "
+"<strong>%(product_type)s</strong>?"
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:27
+#, python-format
+msgctxt "Modal remove product type text"
+msgid "There are %(product_count)s products in product type."
+msgstr "Tootetüübis on %(product_count)s toodet."
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:31
+msgctxt "Modal remove product type text"
+msgid "There are no products in this product type."
+msgstr "Tootetüübis ei ole ühtegi toodet."
+
+#: templates/dashboard/product/product_type/zero_page.html:5
+msgid "No product types found."
+msgstr "Tootetüüpe ei leitud."
+
+#: templates/dashboard/product/product_type/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Product types are templates used to create new products. They allow assigning custom attributes to the products of the same type.<br>\n"
+"    You can add product types by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Tootetüübid on mallid, mida kasutatakse uute toodete loomiseks. Need võimaldavad lisada kohaldatud omadusi sama tüüpi toodetele. <br>\n"
+"Tootetüüpe saate lisada kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/product/product_variant/detail.html:52
+msgctxt "Dashboard variant details view"
+msgid "SKU"
+msgstr "Tootekood"
+
+#: templates/dashboard/product/product_variant/detail.html:62
+msgctxt "Dashboard action"
+msgid "Edit variant"
+msgstr "Muuda varianti"
+
+#: templates/dashboard/product/product_variant/detail.html:65
+msgctxt "Dashboard action"
+msgid "Remove variant"
+msgstr "Eemalda variant"
+
+#: templates/dashboard/product/product_variant/detail.html:175
+msgctxt "Dashboard variant details view"
+msgid "Variant Images"
+msgstr "Variandi pildid"
+
+#: templates/dashboard/product/product_variant/detail.html:183
+msgid "No images"
+msgstr "Pildid puuduvad"
+
+#: templates/dashboard/product/product_variant/detail.html:190
+msgctxt "Dashboard action"
+msgid "Select images"
+msgstr "Vali pildid"
+
+#: templates/dashboard/product/product_variant/form.html:8
+msgctxt "Variant form page title"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/product_variant/form.html:10
+msgctxt "Variant form page title"
+msgid "Add variant"
+msgstr "Lisa variant"
+
+#: templates/dashboard/product/product_variant/form.html:47
+msgctxt "Variant form breadcrumbs"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/product/product_variant/form.html:53
+msgctxt "Variant form breadcrumbs"
+msgid "Add variant"
+msgstr "Lisa variant"
+
+#: templates/dashboard/product/product_variant/form.html:56
+#, python-format
+msgctxt "Variant form breadcrumbs"
+msgid "Add variant for %(product)s"
+msgstr "Lisa variant tootele %(product)s"
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"  Remove variant %(variant)s\n"
+msgstr ""
+"\n"
+"Eemalda variant %(variant)s\n"
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:21
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"        Are you sure you want to remove variant <strong>%(variant)s</strong> of product %(product)s?\n"
+"      "
+msgstr ""
+"\n"
+"Kas olete kindel, et tahate eemaldada varianti <strong>%(variant)s</strong> tootelt %(product)s?"
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:27
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"This is the only variant of this product. If you remove it, the product will"
+" become unavailable."
+msgstr ""
+"See on selle toote ainuke variant. Kui te selle eemaldate, pole toode enam "
+"saadaval."
+
+#: templates/dashboard/product/product_variant/modal/select_images.html:14
+msgctxt "Dashboard variant images modal"
+msgid "Select variant images"
+msgstr "Valige variandi pildid"
+
+#: templates/dashboard/product/product_variant/modal/select_images.html:24
+msgctxt "Dashboard modal action"
+msgid "Save"
+msgstr "Salvesta"
+
+#: templates/dashboard/product/zero_page.html:5
+msgid "No products found."
+msgstr "Tooteid ei leitud."
+
+#: templates/dashboard/product/zero_page.html:10
+#, python-format
+msgid ""
+"\n"
+"      You can create products by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    "
+msgstr ""
+"\n"
+"Tooteid saate luua kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/product/zero_page.html:14
+#, python-format
+msgid ""
+"\n"
+"      In order to create products, you have to first <a href=\"%(product_type_url)s\">add a product type </a>.\n"
+"    "
+msgstr ""
+"\n"
+"Toodete loomiseks, peate esmalt <a href=\"%(product_type_url)s\"> lisama tootetüübi </a>."
+
+#: templates/dashboard/search/results.html:9 templates/search/results.html:6
+msgctxt "Search page title"
+msgid "Search results"
+msgstr "Otsingutulemused"
+
+#: templates/dashboard/search/results.html:14
+msgctxt "Dashboard search"
+msgid "Search results"
+msgstr "Otsingutulemused"
+
+#: templates/dashboard/search/results.html:25
+msgctxt "Search results list products"
+msgid "Products"
+msgstr "Tooted"
+
+#: templates/dashboard/search/results.html:47
+msgctxt "Search results list orders"
+msgid "Orders"
+msgstr "Tellimused"
+
+#: templates/dashboard/search/results.html:54
+#, python-format
+msgctxt "Dashboard order"
+msgid "Order #%(order_number)s"
+msgstr "Tellimus #%(order_number)s"
+
+#: templates/dashboard/search/results.html:60
+#, python-format
+msgctxt "Dashboard customer"
+msgid "Customer: %(email)s"
+msgstr "Klient: %(email)s"
+
+#: templates/dashboard/search/results.html:65
+#, python-format
+msgctxt "Dashboard order info"
+msgid "Placed on: %(placed)s"
+msgstr "Edastati: %(placed)s"
+
+#: templates/dashboard/search/results.html:76
+msgctxt "Search results list users"
+msgid "Users"
+msgstr "Kasutajad"
+
+#: templates/dashboard/search/results.html:83
+#, python-format
+msgctxt "Dashboard user"
+msgid "User %(full_name)s"
+msgstr "Kasutaja %(full_name)s"
+
+#: templates/dashboard/search/results.html:100
+#, python-format
+msgctxt "No Search result message"
+msgid "No results for query \"%(query)s\"."
+msgstr "Tulemusi ei leitud päringu \"%(query)s\" kohta."
+
+#: templates/dashboard/shipping/detail.html:19
+msgctxt "Shipping zone form breadcrumbs"
+msgid "Shipping zones"
+msgstr "Saatmispiirkonnad"
+
+#: templates/dashboard/shipping/detail.html:39
+#, python-format
+msgid ""
+"\n"
+"              %(shipping_name)s  <small>(ships to %(list_of_countries)s)</small>\n"
+"            "
+msgstr ""
+"\n"
+"%(shipping_name)s <small>(toimetab kohale %(list_of_countries)s) </small>"
+
+#: templates/dashboard/shipping/detail.html:46
+msgctxt "Shipping zone action"
+msgid "Edit shipping zone"
+msgstr "Muuda saatmispiirkonda"
+
+#: templates/dashboard/shipping/detail.html:49
+msgctxt "Shipping zone action"
+msgid "Remove shipping zone"
+msgstr "Eemalda saatmispiirkond"
+
+#: templates/dashboard/shipping/detail.html:54
+msgctxt "Title of the shipping methods list"
+msgid "Price based shipping"
+msgstr "Hinnapõhine saatmine"
+
+#: templates/dashboard/shipping/detail.html:55
+msgctxt "Title of the shipping methods list"
+msgid "Weight based shipping"
+msgstr "Kaalupõhine saatmine"
+
+#: templates/dashboard/shipping/form.html:9
+msgctxt "Dashboard shipping zones"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/shipping/form.html:11
+#: templates/dashboard/shipping/form.html:24
+msgctxt "Shipping zone form page title"
+msgid "Add new shipping zone"
+msgstr "Lisa uus saatmispiirkond"
+
+#: templates/dashboard/shipping/form.html:32
+msgctxt "Dashboard shipping zone"
+msgid "Shipping zones"
+msgstr "Saatmispiirkonnad"
+
+#: templates/dashboard/shipping/form.html:48
+msgctxt "Shipping zone form page title"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/shipping/form.html:54
+msgctxt "Shipping zone form breadcrumbs"
+msgid "Add new shipping zone"
+msgstr "Lisa uus saatmispiirkond"
+
+#: templates/dashboard/shipping/list.html:10
+#: templates/dashboard/shipping/list.html:20
+msgctxt "Dashboard shipping zones list"
+msgid "Shipping zones"
+msgstr "Saatmispiirkonnad"
+
+#: templates/dashboard/shipping/list.html:27
+msgctxt "Shipping zone list add button text"
+msgid "Add shipping zone"
+msgstr "Lisa saatmispiirkond"
+
+#: templates/dashboard/shipping/list.html:42
+msgctxt "Shipping zones table header, name of the shipping zone"
+msgid "Shipping zone"
+msgstr "Saatmispiirkond"
+
+#: templates/dashboard/shipping/list.html:46
+msgctxt ""
+"Shipping zones table header, price range of shipping methods within shipping"
+" zone"
+msgid "Price range"
+msgstr "Hinna vahemik"
+
+#: templates/dashboard/shipping/list.html:49
+msgctxt ""
+"Shipping zones table header, list of countries within of shipping zone"
+msgid "Countries"
+msgstr "Riigid"
+
+#: templates/dashboard/shipping/list.html:83
+msgctxt "Empty shipping list message"
+msgid "No shipping zones found."
+msgstr "Saatmispiirkondi ei leitud."
+
+#: templates/dashboard/shipping/list.html:95
+msgid "Default Weight Unit"
+msgstr "Vaikimis kaaluühik"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:21
+msgctxt "Header of the shipping methods list"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:24
+msgctxt "Header of the shipping methods list"
+msgid "Range"
+msgstr "Vahemik"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:27
+msgctxt "Header of the shipping methods list"
+msgid "Price"
+msgstr "Hind"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:42
+msgctxt "Attribute value remove action"
+msgid "Remove"
+msgstr "Eemalda"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:48
+msgctxt "Empty list of shipping methods prices"
+msgid "No shipping methods"
+msgstr "Saatmisviisid puuduvad"
+
+#: templates/dashboard/shipping/methods/form.html:8
+msgctxt "Dashboard shipping method edit page"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/shipping/methods/form.html:10
+msgctxt "Shipping method edit page title"
+msgid "Add new shipping method"
+msgstr "Lisa uus saatmisviis"
+
+#: templates/dashboard/shipping/methods/form.html:31
+msgctxt "Dashboard attributes list"
+msgid "Shipping zones"
+msgstr "Saatmispiirkonnad"
+
+#: templates/dashboard/shipping/methods/form.html:49
+msgctxt "Shipping method breadcrumbs"
+msgid "Edit shipping method"
+msgstr "Muuda saatmisviisi"
+
+#: templates/dashboard/shipping/methods/form.html:55
+msgctxt "Shipping method breadcrumbs"
+msgid "Add shipping method"
+msgstr "Lisa saatmisviis"
+
+#: templates/dashboard/shipping/methods/form.html:72
+msgctxt "Shipping method form title"
+msgid "Shipping method"
+msgstr "Saatmisviis"
+
+#: templates/dashboard/shipping/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"Remove shipping zone %(shipping_zone)s\n"
+msgstr ""
+"\n"
+"Eemalda saatmispiirkond %(shipping_zone)s\n"
+
+#: templates/dashboard/shipping/modal/confirm_delete.html:20
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"      Are you sure you want to remove shipping zone <strong>%(shipping_zone)s</strong>?\n"
+"    "
+msgstr ""
+"\n"
+"Kas olete kindel, et tahate eemalda saatmispiirkonna <strong>%(shipping_zone)s</strong>?"
+
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove shipping method title"
+msgid "Remove shipping method %(shipping_method)s"
+msgstr "Eemalda saatmisviis %(shipping_method)s"
+
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove shipping method shipping method text"
+msgid ""
+"Are you sure you want to remove shipping method "
+"<strong>%(shipping_method)s</strong>?"
+msgstr ""
+"Kas olete kindel, et tahate eemaldada saatmisviisi "
+"<strong>%(shipping_method)s</strong>?"
+
+#: templates/dashboard/shipping/zero_page.html:5
+msgid "No shipping zones found."
+msgstr "Saatmispiirkondi ei leitud."
+
+#: templates/dashboard/shipping/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Shipping zones allows defining shipping zones that are available in the shop.<br>\n"
+"    You can add shipping zones by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+"\n"
+"Saatmispiirkonnad võimaldavad määrata, millised piirkonnad on poes saadaval. <br>\n"
+" Saatmispiirkondi saate luua kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu."
+
+#: templates/dashboard/sites/authorization_keys/form.html:8
+msgctxt "Dashboard authorization key list"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/sites/authorization_keys/form.html:10
+msgctxt "Add new authorization key page title"
+msgid "Add new authorization key"
+msgstr "Lisa uus volitusvõti"
+
+#: templates/dashboard/sites/authorization_keys/form.html:29
+msgctxt "Dashboard site setting detail"
+msgid "Site settings"
+msgstr "Lehekülje seaded"
+
+#: templates/dashboard/sites/authorization_keys/form.html:40
+msgctxt "Authorization key breadcrumbs"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/sites/authorization_keys/form.html:46
+msgctxt "Authorization key breadcrumbs"
+msgid "Add new authorization key"
+msgstr "Lisa uus volitusvõti"
+
+#: templates/dashboard/sites/authorization_keys/form.html:63
+msgctxt "Authorization key form title"
+msgid "Authorization key"
+msgstr "Volitusvõti"
+
+#: templates/dashboard/sites/detail.html:35
+msgctxt "Site settings field"
+msgid "Domain"
+msgstr "Domeen"
+
+#: templates/dashboard/sites/detail.html:45
+msgctxt "Site settings field"
+msgid "Header text"
+msgstr "Pealkirja tekst"
+
+#: templates/dashboard/sites/detail.html:55
+msgctxt "Site settings field"
+msgid "Description"
+msgstr "Kirjeldus"
+
+#: templates/dashboard/sites/detail.html:65
+msgctxt "Site settings action"
+msgid "Edit site settings"
+msgstr "Muuda saidi seadeid"
+
+#: templates/dashboard/sites/detail.html:74
+msgctxt "Title of the authorization keys list"
+msgid "Authorization keys"
+msgstr "Volitusvõtmed"
+
+#: templates/dashboard/sites/detail.html:87
+msgctxt "Header of authorization keys list"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/sites/detail.html:90
+msgctxt "Header of authorization keys list"
+msgid "Key"
+msgstr "Võti"
+
+#: templates/dashboard/sites/detail.html:101
+msgctxt "Authorization key edit action"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/sites/detail.html:104
+msgctxt "Authorization key remove action"
+msgid "Remove"
+msgstr "Eemalda"
+
+#: templates/dashboard/sites/detail.html:110
+msgctxt "Empty list of authorization keys"
+msgid "No authorization keys"
+msgstr "Volitusvõtmed puuduvad"
+
+#: templates/dashboard/sites/form.html:9
+#: templates/dashboard/taxes/form.html:10
+msgctxt "Site settings page title"
+msgid "Add new site settings"
+msgstr "Lisa uued saidi seaded"
+
+#: templates/dashboard/sites/form.html:22
+msgctxt "Dashboard attributes list"
+msgid "Site settings"
+msgstr "Lehekülje seaded"
+
+#: templates/dashboard/sites/form.html:27
+msgctxt "Dashboard site settings"
+msgid "Edit"
+msgstr "Muuda"
+
+#: templates/dashboard/sites/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal delete authorization key text"
+msgid "Delete authorization key %(key)s"
+msgstr "Kustuta volitusvõti %(key)s"
+
+#: templates/dashboard/sites/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal delete authorization key text"
+msgid ""
+"Are you sure you want to remove authorization key <strong>%(key)s</strong>?"
+msgstr ""
+"Kas olete kindel, et tahate eemaldada volitusvõtme <strong>%(key)s</strong>?"
+
+#: templates/dashboard/staff/detail.html:10
+msgctxt "Dashboard add staff member"
+msgid "Add new staff member"
+msgstr "Lisa uus töötaja"
+
+#: templates/dashboard/staff/detail.html:12
+msgctxt "Dashboard staff"
+msgid "Staff"
+msgstr "Personal"
+
+#: templates/dashboard/staff/detail.html:28
+msgctxt "Dashboard staff list"
+msgid "Staff"
+msgstr "Personal"
+
+#: templates/dashboard/staff/detail.html:36
+msgctxt "Dashboard add staff member action"
+msgid "Add staff member"
+msgstr "Lisa töötaja"
+
+#: templates/dashboard/staff/detail.html:48
+msgctxt "Staff member form action"
+msgid "Remove staff member"
+msgstr "Eemalda töötaja"
+
+#: templates/dashboard/staff/detail.html:62
+msgctxt "Staff member details header"
+msgid "Staff member details"
+msgstr "Töötaja andmed"
+
+#: templates/dashboard/staff/list.html:8
+#: templates/dashboard/staff/list.html:28
+msgctxt "Dashboard staff members list"
+msgid "Staff"
+msgstr "Personal"
+
+#: templates/dashboard/staff/list.html:18
+msgctxt "Staff members list add button text"
+msgid "Add staff member"
+msgstr "Lisa töötaja"
+
+#: templates/dashboard/staff/list.html:42
+msgctxt "Staff members table header"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/staff/list.html:45
+msgctxt "Staff members table header"
+msgid "Email"
+msgstr "Email"
+
+#: templates/dashboard/staff/list.html:48
+msgctxt "Staff members table header"
+msgid "Location"
+msgstr "Asukoht"
+
+#: templates/dashboard/staff/list.html:88
+msgctxt "Empty staff table message"
+msgid "No staff members found."
+msgstr "Töötajaid ei leitud."
+
+#: templates/dashboard/staff/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove group text"
+msgid "Remove staff member <strong>%(staff)s</strong>"
+msgstr "Eemalda töötaja <strong>%(staff)s</strong>"
+
+#: templates/dashboard/staff/modal/confirm_delete.html:19
+msgctxt "Modal remove group text"
+msgid "Are you sure you want to remove staff member?"
+msgstr "Kas olete kindel, et tahate eemaldada töötaja?"
+
+#: templates/dashboard/staff/zero_page.html:5
+msgid "No staff members found."
+msgstr "Töötajaid ei leitud."
+
+#: templates/dashboard/staff/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Staff members are users who have access to the dashboard.<br>\n"
+"    You can create staff members by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button or by using option \"Promote to staff\" in the customer details view.\n"
+"  "
+msgstr ""
+"\n"
+"Meeskonna liikmed on kasutajad, kellel on ligipääs töölauale.<br>\n"
+"Saate luua meeskonna liikmeid kasutades <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> nuppu või kasutades \"Eduta meeskonna liikmeks\" kliendi detailid vaates."
+
+#: templates/dashboard/taxes/details.html:18
+msgctxt "Tax details breadcrumbs"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/dashboard/taxes/details.html:40
+#, python-format
+msgctxt "Country tax rates list title"
+msgid "Tax rates in %(country_name)s"
+msgstr "Maksumäärad %(country_name)s"
+
+#: templates/dashboard/taxes/details.html:50
+msgctxt "Country tax rates list header"
+msgid "Name"
+msgstr "Nimi"
+
+#: templates/dashboard/taxes/details.html:53
+msgctxt "Country tax rates list header"
+msgid "Value"
+msgstr "Väärtus"
+
+#: templates/dashboard/taxes/details.html:62
+#, python-format
+msgctxt "Order line tax rate value"
+msgid ""
+"\n"
+"                      %(tax_rate)s %%\n"
+"                    "
+msgstr ""
+"\n"
+"%(tax_rate)s%%"
+
+#: templates/dashboard/taxes/details.html:69
+msgctxt "Empty country tax rates list"
+msgid "No tax rates"
+msgstr "Maksumäärad puuduvad"
+
+#: templates/dashboard/taxes/form.html:23
+#: templates/dashboard/taxes/list.html:7
+#: templates/dashboard/taxes/list.html:15
+msgctxt "Dashboard taxes list"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/dashboard/taxes/form.html:28
+msgctxt "Dashboard configure taxes settings"
+msgid "Configure taxes"
+msgstr "Seadista maksud"
+
+#: templates/dashboard/taxes/form.html:42
+msgctxt "Dashboard site taxes settings form title"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/dashboard/taxes/form.html:46
+msgid "Dashboard"
+msgstr "Töölaud"
+
+#: templates/dashboard/taxes/form.html:54
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, taxes will be calculated using below formula:\n"
+"                  "
+msgstr ""
+"\n"
+"Selle valikuga arvutatakse maksud kasutades allolevat valemit:"
+
+#: templates/dashboard/taxes/form.html:59
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    tax_amount = (tax_rate * price) / (1 + tax_rate)\n"
+"                  "
+msgstr ""
+"\n"
+"maksu_arv = (maksu_määr * hind) ( 1 + maksu_määr)"
+
+#: templates/dashboard/taxes/form.html:64
+#, python-format
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    For example: product with price 4.00 € and 19%% VAT will have net price calculated to 3.36 € and tax to 0.64 € (rounded)\n"
+"                  "
+msgstr ""
+"\n"
+"Näiteks: toote hind on 4.00 € ja 19%% maksumääraga on netohind 3.36 € ja maksudeks 0.64 € (ümardatult)"
+
+#: templates/dashboard/taxes/form.html:71
+msgid "Storefront"
+msgstr "Pood"
+
+#: templates/dashboard/taxes/form.html:79
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, prices displayed for customers in the storefront will be gross and taxes will be calculated at checkout.\n"
+"                  "
+msgstr ""
+"\n"
+"Selle valikuga kuvatakse poes olevatele klientidele brutohindu ja maksud kalkuleeritakse kassas."
+
+#: templates/dashboard/taxes/form.html:91
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, standard tax rate will be charged on a shipping price.\n"
+"                  "
+msgstr ""
+"\n"
+"Selle valikuga lisatakse saatmisele standardne maksumäär."
+
+#: templates/dashboard/taxes/form.html:112
+msgctxt "Taxes help text"
+msgid ""
+"Taxes are charged according to the rates applicable in the country to which "
+"the order is delivered. For now, only rates in European Union are handled."
+msgstr ""
+"Maksud lisatakse arvestades riiki, kuhu tellimus saadetakse. Hetkel on "
+"saadaval ainult Euroopa Liidu määrad."
+
+#: templates/dashboard/taxes/list.html:29
+msgctxt "Taxes table header"
+msgid "Country code"
+msgstr "Riigi kood"
+
+#: templates/dashboard/taxes/list.html:33
+msgctxt "Taxes table header"
+msgid "Country name"
+msgstr "Riigi nimi"
+
+#: templates/dashboard/taxes/list.html:61
+msgctxt "Empty taxes message"
+msgid "No taxes found."
+msgstr "Makse ei leitud."
+
+#: templates/dashboard/taxes/list.html:75
+msgctxt "Taxes site settings title"
+msgid "Configuration"
+msgstr "Konfigureerimine"
+
+#: templates/dashboard/taxes/list.html:80
+msgctxt "Site settings field"
+msgid "All products prices are entered with tax included"
+msgstr "Kõik toote hinnad sisestatakse koos maksudega"
+
+#: templates/dashboard/taxes/list.html:84
+msgctxt "Include taxes in prices setting description"
+msgid "Yes"
+msgstr "Jah"
+
+#: templates/dashboard/taxes/list.html:86
+msgctxt "Include taxes in prices setting description"
+msgid "No"
+msgstr "Ei"
+
+#: templates/dashboard/taxes/list.html:94
+msgctxt "Site settings field"
+msgid "Show gross prices to customers in the storefront"
+msgstr "Näita brutohindu poes olevatele klientidele"
+
+#: templates/dashboard/taxes/list.html:98
+msgctxt "Show customers gross prices setting description"
+msgid "Yes"
+msgstr "Jah"
+
+#: templates/dashboard/taxes/list.html:100
+msgctxt "Show customers gross prices setting description"
+msgid "No"
+msgstr "Ei"
+
+#: templates/dashboard/taxes/list.html:108
+msgctxt "Site settings field"
+msgid "Charge taxes on shipping rates"
+msgstr "Maksusta tarnehinnad"
+
+#: templates/dashboard/taxes/list.html:112
+msgctxt "Charge taxes on shipping rates setting description"
+msgid "Yes"
+msgstr "Jah"
+
+#: templates/dashboard/taxes/list.html:114
+msgctxt "Charge taxes on shipping rates setting description"
+msgid "No"
+msgstr "Ei"
+
+#: templates/dashboard/taxes/list.html:122
+msgctxt "Site settings configure taxes action"
+msgid "Configure taxes"
+msgstr "Seadista maksud"
+
+#: templates/dashboard/taxes/list.html:127
+msgctxt "Site settings fetch tax rates action"
+msgid "Fetch tax rates"
+msgstr "Hangi maksumäärad"
+
+#: templates/dashboard/taxes/zero_page.html:4
+msgid "No taxes found."
+msgstr "Makse ei leitud."
+
+#: templates/dashboard/taxes/zero_page.html:6
+msgid ""
+"\n"
+"    Taxes define tax rates used in European Union countries and needs to be fetched manually.<br>\n"
+"    To enable fetching taxes, please provide your access key to <a href=\"https://vatlayer.com/\">vatlayer</a> API in settings file.\n"
+"  "
+msgstr ""
+"\n"
+"Maksud määravad kasutusel olevad maksumäärad Euroopa Liidu liikmesriikides ja vajavad manuaalset allalaadimist.<br>\n"
+"Allalaadimise võimaldamiseks, sisestage palun oma ligipääsu võti <a href=\"https://vatlayer.com/\">vatlayer</a> API-sse sätete failis."
+
+#: templates/home.html:12
+msgctxt "Homepage title"
+msgid "Promo & Sale"
+msgstr "Promo & Müük"
+
+#: templates/home.html:13
+msgctxt "Homepage title"
+msgid "from the Northpole"
+msgstr "Põhjapooluselt"
+
+#: templates/home.html:15 templates/home.html:30 templates/home.html:42
+msgctxt "Homepage action"
+msgid "Shop now"
+msgstr "Osta"
+
+#: templates/home.html:29
+msgctxt "Homepage title"
+msgid "Size & Colours"
+msgstr "Suurus & Värvid"
+
+#: templates/home.html:41
+msgctxt "Homepage title"
+msgid "Digital Downloads"
+msgstr "Digitaalse allalaadimised"
+
+#: templates/home.html:51
+msgctxt "Homepage title"
+msgid "Featured products"
+msgstr "Soovitatud tooted"
+
+#: templates/materializecssform/field.html:32
+#: templates/materializecssform/field.html:59
+#: templates/materializecssform/field.html:86
+#: templates/materializecssform/field.html:109
+#: templates/materializecssform/field.html:135
+#: templates/materializecssform/field.html:160
+#: templates/materializecssform/field.html:180
+#: templates/materializecssform/field.html:194
+#: templates/materializecssform/field.html:228
+#: templates/materializecssform/field.html:257
+#: templates/materializecssform/field.html:285
+#: templates/materializecssform/field.html:320
+#: templates/materializecssform/field.html:350
+#: templates/materializecssform/field.html:376
+msgctxt "Dashboard form labels"
+msgid "(optional)"
+msgstr "(valikuline)"
+
+#: templates/materializecssform/field.html:200
+#: templates/materializecssform/field.html:234
+msgid "File"
+msgstr "Fail"
+
+#: templates/materializecssform/field.html:355
+#, python-format
+msgctxt ""
+"Message showing how many chars were used out of maximum field's length"
+msgid ""
+"\n"
+"          %(current_chars_count)s</span> of %(max_chars_count)s characters used\n"
+"        "
+msgstr ""
+"\n"
+"%(current_chars_count)s</span>%(max_chars_count)s-st tähemärgist kasutusel"
+
+#: templates/order/_ordered_items_table.html:15
+msgctxt "Order details address title"
+msgid "Shipping address"
+msgstr "Postiaadress"
+
+#: templates/order/_ordered_items_table.html:25
+msgctxt "Order details address title"
+msgid "Billing address"
+msgstr "Arveldusaadress"
+
+#: templates/order/_ordered_items_table.html:38
+#: templates/order/_ordered_items_table.html:183
+msgctxt "Order details column title"
+msgid "Product"
+msgstr "Toode"
+
+#: templates/order/_ordered_items_table.html:43
+#: templates/order/_ordered_items_table.html:188
+msgctxt "Order details column title"
+msgid "Quantity"
+msgstr "Kogus"
+
+#: templates/order/_ordered_items_table.html:48
+msgctxt "Order details column title"
+msgid "Price"
+msgstr "Hind"
+
+#: templates/order/_ordered_items_table.html:95
+msgctxt "Order details subtotal row text"
+msgid "Subtotal"
+msgstr "Vahesumma"
+
+#: templates/order/_ordered_items_table.html:112
+msgctxt "Order details shipment row text"
+msgid "Shipping"
+msgstr "Saatmine"
+
+#: templates/order/_ordered_items_table.html:144
+msgctxt "Order details taxes text"
+msgid "Taxes (included)"
+msgstr "Maksud (kaasa arvatud)"
+
+#: templates/order/_ordered_items_table.html:146
+msgctxt "Order details taxes text"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/order/_ordered_items_table.html:160
+msgctxt "Order details total text"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/order/_ordered_items_table.html:174
+#, python-format
+msgctxt "Order details fulfillment title"
+msgid "Fulfillment #%(fulfillment)s"
+msgstr "Saadetis #%(fulfillment)s"
+
+#: templates/order/_ordered_items_table.html:217
+msgctxt "Fulfillment tracking number details"
+msgid "Tracking number"
+msgstr "Jälgimisnumber"
+
+#: templates/order/checkout_success.html:8
+#: templates/order/checkout_success_anonymous.html:8
+msgctxt "Checkout success page title"
+msgid "Thank you"
+msgstr "Täname Teid"
+
+#: templates/order/checkout_success.html:16
+#: templates/order/checkout_success_anonymous.html:16
+#, python-format
+msgctxt "Checkout title"
+msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
+msgstr "Täname Teid <a href=\"%(order_url)s\">tellimuse</a> eest!"
+
+#: templates/order/checkout_success.html:20
+#: templates/order/checkout_success_anonymous.html:20
+#, python-format
+msgctxt "Checkout text"
+msgid ""
+"We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
+"In case of any problems or questions please contact us."
+msgstr ""
+"Saatsime Teile kinnitusmeili <span>%(email)s</span> andmetega. "
+"<br>Probleemide või küsimuste korral kontakteeruge palun meiega."
+
+#: templates/order/checkout_success.html:29
+#: templates/order/checkout_success_anonymous.html:58
+msgctxt "Checkout secondary action"
+msgid "Continue shopping"
+msgstr "Jätka ostlemist"
+
+#: templates/order/checkout_success_anonymous.html:27
+msgctxt "Checkout text"
+msgid ""
+"It looks like you already are our customer! <br> Please log in to connect "
+"order with your account."
+msgstr ""
+"Tundub, et Te olete juba meie klient! <br> Tellimuse ja konto ühendamiseks "
+"logige palun sisse."
+
+#: templates/order/checkout_success_anonymous.html:37
+msgctxt "Checkout title"
+msgid "Why not to create an account"
+msgstr "Miks mitte luua konto"
+
+#: templates/order/checkout_success_anonymous.html:38
+msgid ""
+"Make your shopping experience even better! Save your shipping and payment "
+"details for faster checkout."
+msgstr ""
+"Muutke oma ostukogemus veelgi paremaks! Salvestage oma saatmis- ja "
+"arveldusandmed kiirema ostu sooritamiseks."
+
+#: templates/order/checkout_success_anonymous.html:47
+msgctxt "Checkout primary action"
+msgid "Create an account"
+msgstr "Loo konto"
+
+#: templates/order/details.html:8
+#, python-format
+msgctxt "Order details page title"
+msgid "Order %(order)s"
+msgstr "Tellimus %(order)s"
+
+#: templates/order/details.html:28 templates/order/payment/details.html:22
+#, python-format
+msgctxt "Order details breadcrumb"
+msgid "Order %(order)s"
+msgstr "Tellimus %(order)s"
+
+#: templates/order/details.html:49
+#, python-format
+msgctxt "Order detail text"
+msgid "Order %(order)s: %(payment_status)s & %(order_status)s"
+msgstr "Tellimus %(order)s: %(payment_status)s & %(order_status)s"
+
+#: templates/order/details.html:56
+msgctxt "Order details link text"
+msgid "Payment details"
+msgstr "Makse andmed"
+
+#: templates/order/details.html:60
+msgctxt "Order details primary action"
+msgid "Pay for order"
+msgstr "Maksa tellimuse eest"
+
+#: templates/order/details.html:67
+msgctxt "Customer order note"
+msgid "Your note"
+msgstr "Sinu märkus"
+
+#: templates/order/details.html:73
+msgctxt "Order note title"
+msgid "Add a note to your order"
+msgstr "Lisa märkus oma tellimusele"
+
+#: templates/order/details.html:75
+msgctxt "Customer panel - order details: add note submit button"
+msgid "Submit note"
+msgstr "Saada märkus"
+
+#: templates/order/payment.html:8
+#, python-format
+msgctxt "Payment details page title"
+msgid "Pay for order %(order)s"
+msgstr "Maksa tellimuse %(order)s eest"
+
+#: templates/order/payment.html:28
+#, python-format
+msgctxt "Payment details breadcrumb"
+msgid "Order %(order)s"
+msgstr "Tellimus %(order)s"
+
+#: templates/order/payment.html:44
+msgctxt "Payment details title"
+msgid "Payment pending"
+msgstr "Makse ootab kinnitamist"
+
+#: templates/order/payment.html:48
+msgctxt "Payment pending text"
+msgid ""
+"We are currently waiting for an external service to authorize your payment "
+"for this order."
+msgstr "Ootame, et välisteenus kinnitaks Teie tellimuse makse."
+
+#: templates/order/payment.html:52
+msgctxt "Payment status text"
+msgid "Current status:"
+msgstr "Hetkeseisund:"
+
+#: templates/order/payment.html:58
+msgctxt "Payment pending text"
+msgid ""
+"Unless you are absolutely sure that the process will not complete (for "
+"example you have closed the browser window before paying), you should wait "
+"before attempting a new payment. Please be warned that if you try again and "
+"the previous transaction succeeds you might end up being charged twice."
+msgstr ""
+"Kui Te ei ole täiesti kindel, et protsessi ei viidud lõpule (näiteks "
+"sulgesite brauseri akna enne maksmist), siis oodake enne uue makse "
+"sooritamist. Palun pange tähele, et kui proovite uuesti ja ka eelmine tehing"
+" peaks õnnestuma, maksate Te kaks korda."
+
+#: templates/order/payment.html:67
+msgctxt "Payment pending action"
+msgid "I understand, allow me to pay again"
+msgstr "Ma saan aru, lubage mul uuesti maksta"
+
+#: templates/order/payment.html:72
+#, python-format
+msgctxt "Payment details title"
+msgid "Pay for order %(order)s"
+msgstr "Maksa tellimuse %(order)s eest"
+
+#: templates/order/payment.html:77
+msgid "Choose payment method"
+msgstr "Vali maksmismeetod"
+
+#: templates/order/payment.html:97
+msgctxt "Payment details primary action"
+msgid "Proceed to payment"
+msgstr "Jätka maksmisega"
+
+#: templates/order/payment.html:103
+msgctxt "Payment details text"
+msgid "You've authorized transaction. Order is in processing"
+msgstr "Olete tehingu autoriseerinud. Tellimus on töötlemisel"
+
+#: templates/order/payment/braintree.html:29
+#: templates/order/payment/dummy.html:37
+msgctxt "Payment form primary action"
+msgid "Make payment"
+msgstr "Tee makse"
+
+#: templates/order/payment/details.html:4
+msgctxt "Payment form page title"
+msgid "Payment"
+msgstr "Makse"
+
+#: templates/order/payment/details.html:28
+msgctxt "Payment form breadcrumb"
+msgid "Payment"
+msgstr "Makse"
+
+#: templates/order/payment/details.html:39
+msgctxt "Payment form title"
+msgid "Payment"
+msgstr "Makse"
+
+#: templates/order/payment/details.html:44
+msgctxt "Header of the order summary table"
+msgid "Order details"
+msgstr "Tellimuse andmed"
+
+#: templates/order/payment/dummy.html:32
+#: templates/order/payment/stripe.html:11
+msgctxt "Payment form (Stripe) secondary action"
+msgid "Change payment"
+msgstr "Muuda makset"
+
+#: templates/order/payment/razorpay.html:11
+msgctxt "Payment form (Razorpay) secondary action"
+msgid "Change payment"
+msgstr "Muuda makset"
+
+#: templates/page/details.html:41
+msgctxt "Unavailable page detail text"
+msgid ""
+"\n"
+"        <strong>Warning!</strong>\n"
+"        You are previewing a page that is not visible.\n"
+"      "
+msgstr ""
+"\n"
+"<strong>Hoiatus!</strong>\n"
+"Te vaatate lehekülge, mis ei ole veel nähtaval."
+
+#: templates/page/details.html:48
+#, python-format
+msgctxt "Unpublished page details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a page that will become visible"
+" on <strong>%(date)s</strong>."
+msgstr ""
+"<strong>Hoiatus!</strong> Asute lehe eelvaates, mis avaldatakse "
+"<strong>%(date)s</strong>."
+
+#: templates/product/_filters.html:46
+msgctxt "Product price filter"
+msgid "from"
+msgstr "kellelt"
+
+#: templates/product/_filters.html:48
+msgctxt "Product price filter"
+msgid "to"
+msgstr "kellele"
+
+#: templates/product/_filters.html:56
+msgctxt "Product list page filters"
+msgid "Clear filters"
+msgstr "Puhasta filtrid"
+
+#: templates/product/_filters.html:59
+msgctxt "Apply filters button"
+msgid "Update results"
+msgstr "Uuenda tulemusi"
+
+#. Translators: Layout may break if character length is different than four.
+#: templates/product/_items.html:30
+msgctxt "Sale (discount) label for item in product list"
+msgid "Sale"
+msgstr "Müük"
+
+#: templates/product/_price_range.html:6
+msgctxt "product price range"
+msgid "from"
+msgstr "kellelt"
+
+#: templates/product/details.html:62
+#, python-format
+msgctxt "Product details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a product that will become "
+"visible on <strong>%(date)s</strong>."
+msgstr ""
+"<strong>Hoiatus!</strong> Te vaatate toodet, mis tuleb nähtavale "
+"<strong>%(date)s</strong>."
+
+#: templates/product/details.html:124
+msgctxt "Product details link text"
+msgid "Edit in dashboard"
+msgstr "Muuda töölauas"
+
+#: templates/product/details.html:150
+#, python-format
+msgctxt "Product details page vat rate value"
+msgid "including %(tax_rate)s%% VAT"
+msgstr "Kaasa arvatud %(tax_rate)s%% maksudena"
+
+#: templates/product/details.html:154
+#, python-format
+msgctxt "Product details page vat rate value"
+msgid "excluding %(tax_rate)s%% VAT"
+msgstr "Välja arvatud %(tax_rate)s%% maksudena"
+
+#: templates/product/details.html:178
+msgctxt "Product details primary action"
+msgid "Add to cart"
+msgstr "Lisa ostukorvi"
+
+#: templates/product/details.html:190
+msgctxt "Product details text"
+msgid "This product is currently <strong>unavailable</strong>."
+msgstr "See toode pole hetkel <strong>saadaval</strong>."
+
+#: templates/product/details.html:194
+msgctxt "Product details title"
+msgid "Description"
+msgstr "Kirjeldus"
+
+#: templates/product/product_list_base.html:83
+msgctxt "Filter heading title"
+msgid "Filters"
+msgstr "Filtrid"
+
+#: templates/product/product_list_base.html:91
+msgid "Sort by: <b>name</b>"
+msgstr "Sorteeri: <b>nimi</b>"
+
+#: templates/product/product_list_base.html:95
+msgid "Sort by: <b>price</b>"
+msgstr "Sorteeri: <b>hind</b>"
+
+#: templates/product/product_list_base.html:114
+msgctxt "Product list filters"
+msgid "Sort by"
+msgstr "Sorteeri"
+
+#: templates/product/product_list_base.html:120
+msgctxt "sort by option"
+msgid "ascending"
+msgstr "kasvav"
+
+#: templates/product/product_list_base.html:126
+msgctxt "sort by option"
+msgid "descending"
+msgstr "kahanev"
+
+#: templates/product/product_list_base.html:158
+#: templates/search/results.html:34
+msgctxt "Search without results text"
+msgid "Sorry, no matches found for your request."
+msgstr "Kahjuks ei leitud Teie soovile vastavat ühtegi tulemust."
+
+#: templates/product/product_list_base.html:159
+#: templates/search/results.html:35
+msgctxt "Search without results text"
+msgid "Try again or shop new arrivals."
+msgstr "Proovi uuesti või vaadake uusi saabumisi."
+
+#: templates/search/results.html:32
+msgid "Search:"
+msgstr "Otsi:"
+
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
+msgstr "Kustuta oma konto"
+
+#: templates/templated_email/account/account_delete.email:9
+#, python-format
+msgctxt "Account delete reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
+msgstr ""
+"\n"
+"Te saite selle e-kirja, kuna Teie või keegi teine on avaldanud soovi kustutada teie kasutajakonto %(domain)s.\n"
+"Vajutage alloleval lingil oma konto kustutamiseks.\n"
+"\n"
+"Palun pange tähele, et see tegevus on püsiv ja seda ei saa tagasi võtta.\n"
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr "Parooli algseadistamise e-kiri"
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+"\n"
+"Te saite selle e-kirja, kuna Teie või keegi teine on soovinud Teie kasutajakonto parooli %(domain)s.\n"
+"Võite seda ignoreerida, kui see ei olnud Teie. Vajutage alloleval lingil parooli algseadistamiseks.\n"
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr "Tervitus %(site_name)s-lt!"
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+"\n"
+"Te saite selle e-kirja, kuna peate seadma parooli oma kasutajakontole %(domain)s.\n"
+"Vajutage alloleval lingil parooli algseadistamiseks.\n"
+
+#: templates/templated_email/dashboard/staff/promote_customer.email:2
+#, python-format
+msgid "Hello from %(site_name)s!"
+msgstr "Tervitus %(site_name)s-lt!"
+
+#: templates/templated_email/dashboard/staff/promote_customer.email:6
+#, python-format
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
+msgstr ""
+"\n"
+"Te saite selle e-kirja, kuna Teid on edutatud %(domain)s meeskonna liikmeks."
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr "Tervitus %(site_name)s-lt!"
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+"\n"
+"Te saite selle e-kirja, kuna peate seadma parooli oma töötajakontole %(domain)s.\n"
+"Vajutage alloleval lingil parooli algseadistamiseks.\n"
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "A shipment from order %(order)s is on the way"
+msgstr "Tellimuse %(order)s saadetis on teel"
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of shipped products.\n"
+msgstr ""
+"\n"
+"Täname Teid tellimuse eest. Allpool on loetelu saadetise toodetest.\n"
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr "Te saate jälgida oma saadetist %(tracking_number)s koodiga."
+
+#: templates/templated_email/order/confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr "Tellimuse andmed"
+
+#: templates/templated_email/order/confirm_order.email:11
+#, python-format
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
+"%(order_details_url)s"
+msgstr ""
+"\n"
+"Täname Teid tellimuse eest. Allpool on loetelu tellitud toodetest. Makse andmete nägemiseks külastage:\n"
+"%(order_details_url)s"
+
+#: templates/templated_email/order/confirm_order.email:17
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr "Tellimuse kokkuvõte"
+
+#: templates/templated_email/order/confirm_order.email:18
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr "Vahesumma"
+
+#: templates/templated_email/order/confirm_order.email:19
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr "Saatmine"
+
+#: templates/templated_email/order/confirm_order.email:20
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr "Maksud (kaasa arvatud)"
+
+#: templates/templated_email/order/confirm_order.email:20
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/templated_email/order/confirm_order.email:21
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr "Allahindlus:"
+
+#: templates/templated_email/order/confirm_order.email:22
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/source/confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "Arveldusaadress"
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/source/confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "Postiaadress"
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/source/confirm_order.mjml:42
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr "Saatmist pole vaja"
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr "Makse andmed"
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+#, python-format
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment. To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+"\n"
+"Täname Teid tellimuse eest. Makse andmete nägemiseks külastage:\n"
+"%(order_details_url)s\n"
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr "Tellimuse %(order)s saatmise uuendus"
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+"\n"
+"Teie saatmise seisundit on uuendatud. Allpool on loetelu tellitud toodetega, millel on uuendatud jälgimisnumber.\n"
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr "Oma saadetist saate jälgida järgneva koodiga: %(tracking_number)s."
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
+msgctxt "Base email text"
+msgid "This is an automatically generated e-mail, please do not reply."
+msgstr "See on automaatselt saadetud e-kiri, palun ärge vastake sellele."
+
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
+#, python-format
+msgctxt "Base email footer"
+msgid "Sincerely, %(site_name)s"
+msgstr "Siiralt, %(site_name)s"
+
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/promote_customer.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr "Tere!"
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+"Te saite selle e-kirja, kuna Teie või keegi teine on avaldanud soovi "
+"kustutada teie kasutajakonto %(domain)s.<br/> Vajutage alloleval lingil oma "
+"konto kustutamiseks. Palun pange tähele, et see tegevus on püsiv ja seda ei "
+"saa tagasi võtta."
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
+msgctxt "Fulfillment confirmation email text"
+msgid "Thank you for your order. Below is the list of shipped products."
+msgstr "Täname Teid tellimuse eest. Allpool on loetelu saadise toodetest."
+
+#: templates/templated_email/source/confirm_order.mjml:17
+#, python-format
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+msgstr ""
+"Täname Teid tellimuse eest. Allpool on loetelu tellitud toodetest. Makse "
+"andmete nägemiseks külastage: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+
+#: templates/templated_email/source/confirm_payment.mjml:16
+#, python-format
+msgctxt "Payment confirmation e-mail text"
+msgid ""
+"Thank you for your payment. To see your payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+msgstr ""
+"Täname Teid tellimuse eest. Makse andmete nägemiseks külastage: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:11
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr "Vahesumma"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:19
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Saatmine"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:28
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr "Maksud (kaasa arvatud)"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:30
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr "Maksud"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:40
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "Allahindlus"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:49
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Kokku"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:58
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr "Element"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Kogus"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr "Ühiku kohta"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr "Vahesumma"
+
+#: templates/templated_email/source/password_reset.mjml:16
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
+"if you did not request a password reset. Click the link below to reset your "
+"password."
+msgstr ""
+"Te saite selle e-kirja, kuna Teie või keegi teine on soovinud Teie "
+"kasutajakonto parooli %(domain)s.<br/> Võite seda ignoreerida, kui see ei "
+"olnud Teie. Vajutage alloleval lingil parooli algseadistamiseks."
+
+#: templates/templated_email/source/promote_customer.mjml:16
+#, python-format
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"You're receiving this e-mail because you have been promoted to staff member "
+"at %(domain)s.<br/> To access dashboard please visit: <a "
+"href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
+msgstr ""
+"Te saite selle e-kirja, kuna Teid on edutatud %(domain)s meeskonna "
+"liikmeks.<br/> Töölauada sisenemiseks palun külastage: <a "
+"href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
+
+#: templates/templated_email/source/set_customer_password.mjml:16
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"You're receiving this e-mail because you have to set password for your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
+"password."
+msgstr ""
+"Te saite selle e-kirja, kuna peate seadma parooli oma kliendikontole "
+"%(domain)s.<br/> Vajutage alloleval lingil parooli algseadistamiseks."
+
+#: templates/templated_email/source/set_password.mjml:16
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
+"password."
+msgstr ""
+"Te saite selle e-kirja, kuna peate seadma parooli oma töötajakontole "
+"%(domain)s.<br/> Vajutage alloleval lingil parooli algseadistamiseks."
+
+#: templates/templated_email/source/update_fulfillment.mjml:16
+msgctxt "Fulfillment update email text"
+msgid ""
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
+msgstr ""
+"Teie saatmise seisundit on uuendatud. Allpool on loetelu tellitud toodetega,"
+" millel on uuendatud jälgimisnumber."
+
+#: templates/templated_email/source/update_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr "Te saate jälgida oma saadetist %(tracking_number)s koodiga."

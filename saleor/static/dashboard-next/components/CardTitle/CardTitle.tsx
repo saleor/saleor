@@ -11,22 +11,24 @@ import * as React from "react";
 const styles = (theme: Theme) =>
   createStyles({
     children: theme.mixins.gutters({}),
+    constantHeight: {
+      height: 56
+    },
     hr: {
-      backgroundColor: "#eaeaea",
       border: "none",
-      height: 1,
+      borderTop: `1px solid ${theme.overrides.MuiCard.root.borderColor}`,
+      height: 0,
       marginBottom: 0,
-      marginTop: 0
+      marginTop: 0,
+      width: "100%"
     },
     root: theme.mixins.gutters({
       alignItems: "center",
       display: "flex",
-      height: theme.spacing.unit * 6
+      minHeight: 56
     }),
     title: {
       flex: 1,
-      fontSize: "1rem",
-      fontWeight: 600 as 600,
       lineHeight: 1
     },
     toolbar: {
@@ -37,6 +39,7 @@ const styles = (theme: Theme) =>
 interface CardTitleProps extends WithStyles<typeof styles> {
   children?: React.ReactNode;
   className?: string;
+  height?: "default" | "const";
   title: string | React.ReactNode;
   toolbar?: React.ReactNode;
   onClick?: (event: React.MouseEvent<any>) => void;
@@ -47,16 +50,23 @@ const CardTitle = withStyles(styles, { name: "CardTitle" })(
     classes,
     className,
     children,
+    height,
     title,
     toolbar,
     onClick,
     ...props
   }: CardTitleProps) => (
     <>
-      <div className={classNames(classes.root, className)} {...props}>
+      <div
+        className={classNames(classes.root, {
+          [className]: !!className,
+          [classes.constantHeight]: height === "const"
+        })}
+        {...props}
+      >
         <Typography
           className={classes.title}
-          variant="body1"
+          variant="headline"
           onClick={onClick}
           component="span"
         >

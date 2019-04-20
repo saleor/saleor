@@ -2,19 +2,19 @@ import * as React from "react";
 import { UserError } from "../../types";
 
 export interface FormProps<T extends {}> {
-  children: ((
-    props: {
-      data: T;
-      hasChanged: boolean;
-      errors: { [key: string]: string };
-      change(event: React.ChangeEvent<any>, cb?: () => void);
-      submit(event?: React.FormEvent<any>);
-    }
-  ) => React.ReactElement<any>);
+  children: (props: {
+    data: T;
+    hasChanged: boolean;
+    errors: { [key: string]: string };
+    change(event: React.ChangeEvent<any>, cb?: () => void);
+    reset();
+    submit(event?: React.FormEvent<any>);
+  }) => React.ReactElement<any>;
   errors?: UserError[];
   initial?: T;
   confirmLeave?: boolean;
   useForm?: boolean;
+  resetOnSubmit?: boolean;
   onSubmit?(data: T);
 }
 
@@ -26,6 +26,7 @@ interface FormComponentProps<T extends {}> extends FormProps<T> {
 interface FormState<T extends {}> {
   initial: T;
   fields: T;
+  hasChanged: boolean;
 }
 
 class FormComponent<T extends {} = {}> extends React.Component<
@@ -52,6 +53,7 @@ class FormComponent<T extends {} = {}> extends React.Component<
           ...(prevState.fields as any),
           ...swapFields
         },
+        hasChanged: false,
         initial: {
           ...(prevState.initial as any),
           ...swapFields
@@ -63,19 +65,20 @@ class FormComponent<T extends {} = {}> extends React.Component<
 
   state: FormState<T> = {
     fields: this.props.initial,
+    hasChanged: false,
     initial: this.props.initial
   };
 
   componentDidUpdate() {
     const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
-    if (this.hasChanged() !== hasChanged && confirmLeave) {
+    if (this.state.hasChanged !== hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
 
   componentDidMount() {
     const { hasChanged, confirmLeave, toggleFormChangeState } = this.props;
-    if (this.hasChanged() !== hasChanged && confirmLeave) {
+    if (this.state.hasChanged !== hasChanged && confirmLeave) {
       toggleFormChangeState();
     }
   }
@@ -99,7 +102,8 @@ class FormComponent<T extends {} = {}> extends React.Component<
         fields: {
           ...(this.state.fields as any),
           [target.name]: target.value
-        }
+        },
+        hasChanged: true
       },
       typeof cb === "function" ? cb : undefined
     );
@@ -114,8 +118,8 @@ class FormComponent<T extends {} = {}> extends React.Component<
     }
   };
 
-  handleSubmit = (event?: React.FormEvent<any>) => {
-    const { onSubmit } = this.props;
+  handleSubmit = (event?: React.FormEvent<any>, cb?: () => void) => {
+    const { resetOnSubmit, onSubmit } = this.props;
     if (event) {
       event.stopPropagation();
       event.preventDefault();
@@ -123,10 +127,15 @@ class FormComponent<T extends {} = {}> extends React.Component<
     if (onSubmit !== undefined) {
       onSubmit(this.state.fields);
     }
+    if (cb) {
+      cb();
+    }
+    if (resetOnSubmit) {
+      this.setState({
+        fields: this.state.initial
+      });
+    }
   };
-
-  hasChanged = () =>
-    JSON.stringify(this.state.initial) !== JSON.stringify(this.state.fields);
 
   render() {
     const { children, errors, useForm = true } = this.props;
@@ -143,7 +152,11 @@ class FormComponent<T extends {} = {}> extends React.Component<
             {}
           )
         : {},
-      hasChanged: this.hasChanged(),
+      hasChanged: this.state.hasChanged,
+      reset: () =>
+        this.setState({
+          fields: this.state.initial
+        }),
       submit: this.handleSubmit
     });
 

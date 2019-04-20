@@ -2,9 +2,11 @@ import graphene
 
 from ..core.fields import PrefetchingConnectionField
 from ..descriptions import DESCRIPTIONS
+from ..translations.mutations import MenuItemTranslate
+from .bulk_mutations import MenuBulkDelete, MenuItemBulkDelete
 from .mutations import (
     AssignNavigation, MenuCreate, MenuDelete, MenuItemCreate, MenuItemDelete,
-    MenuItemUpdate, MenuUpdate)
+    MenuItemMove, MenuItemUpdate, MenuUpdate)
 from .resolvers import resolve_menu, resolve_menu_items, resolve_menus
 from .types import Menu, MenuItem
 
@@ -24,16 +26,17 @@ class MenuQueries(graphene.ObjectType):
         MenuItem, query=graphene.String(description=DESCRIPTIONS['menu_item']),
         description='List of the shop\'s menu items.')
 
-    def resolve_menu(self, info, id=None, name=None):
-        return resolve_menu(info, id, name)
+    def resolve_menu(self, info, **data):
+        return resolve_menu(info, data.get('id'), data.get('name'))
 
-    def resolve_menus(self, info, query=None, **kwargs):
+    def resolve_menus(self, info, query=None, **_kwargs):
         return resolve_menus(info, query)
 
-    def resolve_menu_item(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, MenuItem)
+    def resolve_menu_item(self, info, **data):
+        return graphene.Node.get_node_from_global_id(
+            info, data.get('id'), MenuItem)
 
-    def resolve_menu_items(self, info, query=None, **kwargs):
+    def resolve_menu_items(self, info, query=None, **_kwargs):
         return resolve_menu_items(info, query)
 
 
@@ -42,8 +45,12 @@ class MenuMutations(graphene.ObjectType):
 
     menu_create = MenuCreate.Field()
     menu_delete = MenuDelete.Field()
+    menu_bulk_delete = MenuBulkDelete.Field()
     menu_update = MenuUpdate.Field()
 
     menu_item_create = MenuItemCreate.Field()
     menu_item_delete = MenuItemDelete.Field()
+    menu_item_bulk_delete = MenuItemBulkDelete.Field()
     menu_item_update = MenuItemUpdate.Field()
+    menu_item_translate = MenuItemTranslate.Field()
+    menu_item_move = MenuItemMove.Field()

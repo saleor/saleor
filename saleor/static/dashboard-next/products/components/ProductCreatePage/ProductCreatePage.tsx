@@ -1,5 +1,7 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -9,12 +11,14 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
+import ProductStock from "../ProductStock";
 
 interface ChoiceType {
   label: string;
@@ -26,11 +30,11 @@ export interface FormData {
     value: string;
   }>;
   available: boolean;
-  availableOn: string;
+  publicationDate: string;
   category: ChoiceType;
   chargeTaxes: boolean;
   collections: ChoiceType[];
-  description: string;
+  description: RawDraftContentState;
   name: string;
   price: number;
   productType: {
@@ -94,14 +98,13 @@ export const ProductCreatePage: React.StatelessComponent<
   const initialData: FormData = {
     attributes: [],
     available: false,
-    availableOn: "",
     category: {
       label: "",
       value: ""
     },
     chargeTaxes: false,
     collections: [],
-    description: "",
+    description: {} as any,
     name: "",
     price: 0,
     productType: {
@@ -113,11 +116,13 @@ export const ProductCreatePage: React.StatelessComponent<
         productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
       }
     },
+    publicationDate: "",
     seoDescription: "",
     seoTitle: "",
     sku: null,
     stockQuantity: null
   };
+
   return (
     <Form
       onSubmit={onSubmit}
@@ -125,80 +130,97 @@ export const ProductCreatePage: React.StatelessComponent<
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, submit }) => (
-        <Container width="md">
-          <PageHeader title={header} onBack={onBack} />
-          <Grid>
-            <div>
-              <ProductDetailsForm
-                data={data}
-                disabled={disabled}
-                errors={errors}
-                onChange={change}
-              />
-              <CardSpacer />
-              <ProductPricing
-                currency={currency}
-                data={data}
-                disabled={disabled}
-                onChange={change}
-              />
-              <CardSpacer />
-              <SeoForm
-                helperText={i18n.t(
-                  "Add search engine title and description to make this product easier to find"
+      {({ change, data, errors, hasChanged, submit }) => {
+        const hasVariants =
+          data.productType && data.productType.value.hasVariants;
+        return (
+          <Container>
+            <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
+            <PageHeader title={header} />
+            <Grid>
+              <div>
+                <ProductDetailsForm
+                  data={data}
+                  disabled={disabled}
+                  errors={errors}
+                  onChange={change}
+                />
+                <CardSpacer />
+                <ProductPricing
+                  currency={currency}
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+                <CardSpacer />
+                {!hasVariants && (
+                  <>
+                    <ProductStock
+                      data={data}
+                      disabled={disabled}
+                      product={undefined}
+                      onChange={change}
+                    />
+                    <CardSpacer />
+                  </>
                 )}
-                title={data.seoTitle}
-                titlePlaceholder={data.name}
-                description={data.seoDescription}
-                descriptionPlaceholder={data.description}
-                loading={disabled}
-                onChange={change}
-              />
-            </div>
-            <div>
-              <ProductOrganization
-                categories={
-                  categories !== undefined && categories !== null
-                    ? categories.map(category => ({
+                <SeoForm
+                  helperText={i18n.t(
+                    "Add search engine title and description to make this product easier to find"
+                  )}
+                  title={data.seoTitle}
+                  titlePlaceholder={data.name}
+                  description={data.seoDescription}
+                  descriptionPlaceholder={data.seoTitle}
+                  loading={disabled}
+                  onChange={change}
+                />
+              </div>
+              <div>
+                <ProductOrganization
+                  canChangeType={true}
+                  categories={maybe(
+                    () =>
+                      categories.map(category => ({
                         label: category.name,
                         value: category.id
-                      }))
-                    : []
-                }
-                errors={errors}
-                fetchCategories={fetchCategories}
-                fetchCollections={fetchCollections}
-                collections={
-                  collections !== undefined && collections !== null
-                    ? collections.map(collection => ({
+                      })),
+                    []
+                  )}
+                  errors={errors}
+                  fetchCategories={fetchCategories}
+                  fetchCollections={fetchCollections}
+                  collections={maybe(
+                    () =>
+                      collections.map(collection => ({
                         label: collection.name,
                         value: collection.id
-                      }))
-                    : []
-                }
-                productTypes={productTypes}
-                data={data}
-                disabled={disabled}
-                onChange={change}
-              />
-              <CardSpacer />
-              <ProductAvailabilityForm
-                data={data}
-                errors={errors}
-                loading={disabled}
-                onChange={change}
-              />
-            </div>
-          </Grid>
-          <SaveButtonBar
-            onCancel={onBack}
-            onSave={submit}
-            state={saveButtonBarState}
-            disabled={disabled || !onSubmit || !hasChanged}
-          />
-        </Container>
-      )}
+                      })),
+                    []
+                  )}
+                  productTypes={productTypes}
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+                <CardSpacer />
+                <ProductAvailabilityForm
+                  data={data}
+                  errors={errors}
+                  loading={disabled}
+                  onChange={change}
+                />
+              </div>
+            </Grid>
+            <SaveButtonBar
+              onCancel={onBack}
+              onSave={submit}
+              state={saveButtonBarState}
+              disabled={disabled || !onSubmit || !hasChanged}
+            />
+          </Container>
+        );
+      }}
     </Form>
   );
 };

@@ -14,6 +14,7 @@ const styles = (theme: Theme) =>
   createStyles({
     title: {
       flex: 1,
+      fontSize: 24,
       paddingBottom: theme.spacing.unit * 2
     }
   });
@@ -22,16 +23,14 @@ interface PageHeaderProps extends WithStyles<typeof styles> {
   children?: React.ReactNode;
   className?: string;
   title?: string;
-  onBack?();
 }
 
 const PageHeader = withStyles(styles)(
-  ({ children, classes, className, onBack, title }: PageHeaderProps) => (
+  ({ children, classes, className, title }: PageHeaderProps) => (
     <ExtendedPageHeader
       className={className}
-      onBack={onBack}
       title={
-        <Typography className={classes.title} variant="title">
+        <Typography className={classes.title} variant="headline">
           {title !== undefined ? title : <Skeleton style={{ width: "10em" }} />}
         </Typography>
       }

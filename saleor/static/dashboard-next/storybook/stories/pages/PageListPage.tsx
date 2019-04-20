@@ -1,15 +1,24 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { pageListProps } from "../../../fixtures";
-import PageList from "../../../pages/components/PageListPage";
-import { pages } from "../../../pages/fixtures";
-import { Decorator } from "../../Decorator";
+import { listActionsProps, pageListProps } from "../../../fixtures";
+import PageListPage, {
+  PageListPageProps
+} from "../../../pages/components/PageListPage";
+import { pageList } from "../../../pages/fixtures";
+import Decorator from "../../Decorator";
+
+const props: PageListPageProps = {
+  ...listActionsProps,
+  ...pageListProps.default,
+  onBack: () => undefined,
+  pages: pageList
+};
 
 storiesOf("Views / Pages / Page list", module)
   .addDecorator(Decorator)
-  .add("default", () => <PageList pages={pages} {...pageListProps.default} />)
+  .add("default", () => <PageListPage {...props} />)
   .add("loading", () => (
-    <PageList pages={undefined} {...pageListProps.loading} />
+    <PageListPage {...props} disabled={true} pages={undefined} />
   ))
-  .add("no data", () => <PageList pages={[]} {...pageListProps.default} />);
+  .add("no data", () => <PageListPage {...props} pages={[]} />);

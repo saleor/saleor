@@ -8,15 +8,14 @@ from django.db import connection
 
 from ...utils import create_superuser
 from ...utils.random_data import (
-    add_address_to_admin, create_collections_by_schema, create_menus,
-    create_orders, create_page, create_product_sales,
-    create_products_by_schema, create_shipping_zones, create_users,
-    create_vouchers, set_homepage_collection)
+    add_address_to_admin, create_menus, create_orders, create_page,
+    create_product_sales, create_products_by_schema, create_shipping_zones,
+    create_users, create_vouchers, set_homepage_collection)
 
 
 class Command(BaseCommand):
     help = 'Populate database with test objects'
-    placeholders_dir = r'saleor/static/placeholders/'
+    placeholders_dir = 'saleor/static/placeholders/'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -89,8 +88,6 @@ class Command(BaseCommand):
         for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):
-            self.stdout.write(msg)
-        for msg in create_collections_by_schema(self.placeholders_dir):
             self.stdout.write(msg)
         for msg in set_homepage_collection():
             self.stdout.write(msg)

@@ -1,11 +1,10 @@
-import datetime
 from decimal import Decimal
+from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.fields import HStoreField
+from django.contrib.postgres.fields import HStoreField, JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -20,10 +19,12 @@ from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from saleor.core.utils import build_absolute_uri
+
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
-from ..core.models import SortableModel
-from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
+from ..core.models import PublishableModel, SortableModel
+from ..core.utils.taxes import apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
@@ -34,6 +35,7 @@ class Category(MPTTModel, SeoModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
@@ -60,6 +62,7 @@ class CategoryTranslation(SeoModelTranslation):
         Category, related_name='translations', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = (('language_code', 'category'),)
@@ -77,9 +80,8 @@ class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
-    tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME,
-        choices=TaxRateType.CHOICES)
+    is_digital = models.BooleanField(default=False)
+    tax_rate = models.CharField(max_length=128, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
         default=zero_weight)
@@ -96,46 +98,28 @@ class ProductType(models.Model):
             class_.__module__, class_.__name__, self.pk, self.name)
 
 
-class ProductQuerySet(models.QuerySet):
-
-    def available_products(self):
-        today = datetime.date.today()
-        return self.filter(
-            Q(available_on__lte=today) | Q(available_on__isnull=True),
-            Q(is_published=True))
-
-    def visible_to_user(self, user):
-        has_access_to_all = (
-            user.is_active and user.has_perm('product.manage_products'))
-        if has_access_to_all:
-            return self.all()
-        return self.available_products()
-
-
-class Product(SeoModel):
+class Product(SeoModel, PublishableModel):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
-    description = models.TextField()
+    description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
-    available_on = models.DateField(blank=True, null=True)
-    is_published = models.BooleanField(default=True)
     attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
+        max_length=128, blank=True,
         choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
         blank=True, null=True)
 
-    objects = ProductQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
@@ -159,6 +143,10 @@ class Product(SeoModel):
     def __str__(self):
         return self.name
 
+    @property
+    def is_available(self):
+        return self.is_visible and self.is_in_stock()
+
     def get_absolute_url(self):
         return reverse(
             'product:details',
@@ -169,10 +157,6 @@ class Product(SeoModel):
 
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
-
-    def is_available(self):
-        today = datetime.date.today()
-        return self.available_on is None or self.available_on <= today
 
     def get_first_image(self):
         images = list(self.images.all())
@@ -197,7 +181,8 @@ class ProductTranslation(SeoModelTranslation):
     product = models.ForeignKey(
         Product, related_name='translations', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
-    description = models.TextField()
+    description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = (('language_code', 'product'),)
@@ -246,6 +231,14 @@ class ProductVariant(models.Model):
     def quantity_available(self):
         return max(self.quantity - self.quantity_allocated, 0)
 
+    @property
+    def is_visible(self):
+        return self.product.is_visible
+
+    @property
+    def is_available(self):
+        return self.product.is_available
+
     def check_quantity(self, quantity):
         """Check if there is at least the given quantity in stock
         if stock handling is enabled.
@@ -279,6 +272,10 @@ class ProductVariant(models.Model):
 
     def is_shipping_required(self):
         return self.product.product_type.is_shipping_required
+
+    def is_digital(self):
+        is_digital = self.product.product_type.is_digital
+        return not self.is_shipping_required() and is_digital
 
     def is_in_stock(self):
         return self.quantity_available > 0
@@ -323,6 +320,48 @@ class ProductVariantTranslation(models.Model):
 
     def __str__(self):
         return self.name or str(self.product_variant)
+
+
+class DigitalContent(models.Model):
+    FILE = 'file'
+    TYPE_CHOICES = (
+        (FILE, pgettext_lazy('File as a digital product', 'digital_product')),
+    )
+    use_default_settings = models.BooleanField(default=True)
+    automatic_fulfillment = models.BooleanField(default=False)
+    content_type = models.CharField(
+        max_length=128, default=FILE, choices=TYPE_CHOICES)
+    product_variant = models.OneToOneField(
+        ProductVariant, related_name='digital_content',
+        on_delete=models.CASCADE)
+    content_file = models.FileField(upload_to='digital_contents', blank=True)
+    max_downloads = models.IntegerField(blank=True, null=True)
+    url_valid_days = models.IntegerField(blank=True, null=True)
+
+    def create_new_url(self) -> 'DigitalContentUrl':
+        return self.urls.create()
+
+
+class DigitalContentUrl(models.Model):
+    token = models.UUIDField(editable=False, unique=True)
+    content = models.ForeignKey(
+        DigitalContent, related_name='urls', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    download_num = models.IntegerField(default=0)
+    line = models.OneToOneField(
+        'order.OrderLine', related_name='digital_content_url', blank=True,
+        null=True, on_delete=models.CASCADE)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.token:
+            self.token = str(uuid4()).replace('-', '')
+        super().save(force_insert, force_update, using, update_fields)
+
+    def get_absolute_url(self) -> str:
+        url = reverse(
+            'product:digital-product', kwargs={'token': str(self.token)})
+        return build_absolute_uri(url)
 
 
 class Attribute(models.Model):
@@ -434,23 +473,7 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images', on_delete=models.CASCADE)
 
 
-class CollectionQuerySet(models.QuerySet):
-
-    def public(self):
-        return self.filter(
-            Q(is_published=True),
-            Q(published_date__isnull=True)
-            | Q(published_date__lte=datetime.date.today()))
-
-    def visible_to_user(self, user):
-        has_access_to_all = (
-            user.is_active and user.has_perm('product.manage_products'))
-        if has_access_to_all:
-            return self.all()
-        return self.public()
-
-
-class Collection(SeoModel):
+class Collection(SeoModel, PublishableModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
     products = models.ManyToManyField(
@@ -458,10 +481,9 @@ class Collection(SeoModel):
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
     background_image_alt = models.CharField(max_length=128, blank=True)
-    is_published = models.BooleanField(default=False)
     description = models.TextField(blank=True)
-    published_date = models.DateField(blank=True, null=True)
-    objects = CollectionQuerySet.as_manager()
+    description_json = JSONField(blank=True, default=dict)
+
     translated = TranslationProxy()
 
     class Meta:
@@ -475,12 +497,6 @@ class Collection(SeoModel):
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
 
-    @property
-    def is_visible(self):
-        return self.is_published and (
-            self.published_date is None or
-            self.published_date <= datetime.date.today())
-
 
 class CollectionTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
@@ -489,6 +505,7 @@ class CollectionTranslation(SeoModelTranslation):
         on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    description_json = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = (('language_code', 'collection'),)

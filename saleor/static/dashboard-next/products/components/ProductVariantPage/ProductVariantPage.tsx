@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -25,6 +26,7 @@ interface ProductVariantPageProps {
   loading?: boolean;
   placeholderImage?: string;
   header: string;
+  onAdd();
   onBack();
   onDelete();
   onSubmit(data: any);
@@ -39,6 +41,7 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
   placeholderImage,
   saveButtonBarState,
   variant,
+  onAdd,
   onBack,
   onDelete,
   onImageSelect,
@@ -60,8 +63,11 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
     <Toggle>
       {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
         <>
-          <Container width="md">
-            <PageHeader title={header} onBack={onBack} />
+          <Container>
+            <AppHeader onBack={onBack}>
+              {maybe(() => variant.product.name)}
+            </AppHeader>
+            <PageHeader title={header} />
             <Form
               initial={{
                 attributes:
@@ -92,7 +98,11 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
                     <div>
                       <ProductVariantNavigation
                         current={variant ? variant.id : undefined}
+                        fallbackThumbnail={maybe(
+                          () => variant.product.thumbnail.url
+                        )}
                         variants={maybe(() => variant.product.variants)}
+                        onAdd={onAdd}
                         onRowClick={(variantId: string) => {
                           if (variant) {
                             return onVariantClick(variantId);

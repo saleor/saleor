@@ -38,14 +38,22 @@ export const CustomerCreate: React.StatelessComponent<{}> = () => (
                       <CustomerCreatePage
                         countries={maybe(() => data.shop.countries, [])}
                         disabled={loading || createCustomerOpts.loading}
-                        errors={maybe(
-                          () => createCustomerOpts.data.customerCreate.errors,
-                          []
-                        )}
+                        errors={maybe(() => {
+                          const errs =
+                            createCustomerOpts.data.customerCreate.errors;
+                          return errs.map(err =>
+                            err.field.split(":").length > 1
+                              ? {
+                                  ...err,
+                                  field: err.field.split(":")[1]
+                                }
+                              : err
+                          );
+                        }, [])}
                         saveButtonBar={
                           createCustomerOpts.loading ? "loading" : "default"
                         }
-                        onBack={() => navigate(customerListUrl)}
+                        onBack={() => navigate(customerListUrl())}
                         onSubmit={formData => {
                           const address = {
                             city: formData.city,
@@ -72,6 +80,8 @@ export const CustomerCreate: React.StatelessComponent<{}> = () => (
                                   country: address.country.value
                                 },
                                 email: formData.email,
+                                firstName: formData.customerFirstName,
+                                lastName: formData.customerLastName,
                                 note: formData.note,
                                 sendPasswordEmail: true
                               }

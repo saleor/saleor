@@ -36,10 +36,22 @@ import {
 } from "./types/VariantImageUnassign";
 import { VariantUpdate, VariantUpdateVariables } from "./types/VariantUpdate";
 
-import { fragmentProduct, fragmentVariant } from "./queries";
+import { fragmentVariant, productFragmentDetails } from "./queries";
+import {
+  productBulkDelete,
+  productBulkDeleteVariables
+} from "./types/productBulkDelete";
+import {
+  productBulkPublish,
+  productBulkPublishVariables
+} from "./types/productBulkPublish";
+import {
+  ProductVariantBulkDelete,
+  ProductVariantBulkDeleteVariables
+} from "./types/ProductVariantBulkDelete";
 
 export const productImageCreateMutation = gql`
-  ${fragmentProduct}
+  ${productFragmentDetails}
   mutation ProductImageCreate($product: ID!, $image: Upload!, $alt: String) {
     productImageCreate(input: { alt: $alt, image: $image, product: $product }) {
       errors {
@@ -100,15 +112,15 @@ export const TypedProductImagesReorder = TypedMutation<
 >(productImagesReorder);
 
 export const productUpdateMutation = gql`
-  ${fragmentProduct}
+  ${productFragmentDetails}
   mutation ProductUpdate(
     $id: ID!
     $attributes: [AttributeValueInput]
-    $availableOn: Date
+    $publicationDate: Date
     $category: ID
     $chargeTaxes: Boolean!
     $collections: [ID]
-    $description: String
+    $descriptionJson: JSONString
     $isPublished: Boolean!
     $name: String
     $price: Decimal
@@ -117,11 +129,11 @@ export const productUpdateMutation = gql`
       id: $id
       input: {
         attributes: $attributes
-        availableOn: $availableOn
+        publicationDate: $publicationDate
         category: $category
         chargeTaxes: $chargeTaxes
         collections: $collections
-        description: $description
+        descriptionJson: $descriptionJson
         isPublished: $isPublished
         name: $name
         price: $price
@@ -143,16 +155,16 @@ export const TypedProductUpdateMutation = TypedMutation<
 >(productUpdateMutation);
 
 export const simpleProductUpdateMutation = gql`
-  ${fragmentProduct}
+  ${productFragmentDetails}
   ${fragmentVariant}
   mutation SimpleProductUpdate(
     $id: ID!
     $attributes: [AttributeValueInput]
-    $availableOn: Date
+    $publicationDate: Date
     $category: ID
     $chargeTaxes: Boolean!
     $collections: [ID]
-    $description: String
+    $descriptionJson: JSONString
     $isPublished: Boolean!
     $name: String
     $price: Decimal
@@ -163,11 +175,11 @@ export const simpleProductUpdateMutation = gql`
       id: $id
       input: {
         attributes: $attributes
-        availableOn: $availableOn
+        publicationDate: $publicationDate
         category: $category
         chargeTaxes: $chargeTaxes
         collections: $collections
-        description: $description
+        descriptionJson: $descriptionJson
         isPublished: $isPublished
         name: $name
         price: $price
@@ -198,31 +210,35 @@ export const TypedSimpleProductUpdateMutation = TypedMutation<
 >(simpleProductUpdateMutation);
 
 export const productCreateMutation = gql`
-  ${fragmentProduct}
+  ${productFragmentDetails}
   mutation ProductCreate(
     $attributes: [AttributeValueInput]
-    $availableOn: Date
+    $publicationDate: Date
     $category: ID!
     $chargeTaxes: Boolean!
     $collections: [ID]
-    $description: String
+    $descriptionJson: JSONString
     $isPublished: Boolean!
     $name: String!
     $price: Decimal
     $productType: ID!
+    $sku: String
+    $stockQuantity: Int
   ) {
     productCreate(
       input: {
         attributes: $attributes
-        availableOn: $availableOn
+        publicationDate: $publicationDate
         category: $category
         chargeTaxes: $chargeTaxes
         collections: $collections
-        description: $description
+        descriptionJson: $descriptionJson
         isPublished: $isPublished
         name: $name
         price: $price
         productType: $productType
+        sku: $sku
+        quantity: $stockQuantity
       }
     ) {
       errors {
@@ -350,7 +366,7 @@ export const TypedProductImageDeleteMutation = TypedMutation<
 >(productImageDeleteMutation);
 
 export const productImageUpdateMutation = gql`
-  ${fragmentProduct}
+  ${productFragmentDetails}
   mutation ProductImageUpdate($id: ID!, $alt: String!) {
     productImageUpdate(id: $id, input: { alt: $alt }) {
       errors {
@@ -405,3 +421,48 @@ export const TypedVariantImageUnassignMutation = TypedMutation<
   VariantImageUnassign,
   VariantImageUnassignVariables
 >(variantImageUnassignMutation);
+
+export const productBulkDeleteMutation = gql`
+  mutation productBulkDelete($ids: [ID!]!) {
+    productBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedProductBulkDeleteMutation = TypedMutation<
+  productBulkDelete,
+  productBulkDeleteVariables
+>(productBulkDeleteMutation);
+
+export const productBulkPublishMutation = gql`
+  mutation productBulkPublish($ids: [ID!]!, $isPublished: Boolean!) {
+    productBulkPublish(ids: $ids, isPublished: $isPublished) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedProductBulkPublishMutation = TypedMutation<
+  productBulkPublish,
+  productBulkPublishVariables
+>(productBulkPublishMutation);
+
+export const ProductVariantBulkDeleteMutation = gql`
+  mutation ProductVariantBulkDelete($ids: [ID!]!) {
+    productVariantBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedProductVariantBulkDeleteMutation = TypedMutation<
+  ProductVariantBulkDelete,
+  ProductVariantBulkDeleteVariables
+>(ProductVariantBulkDeleteMutation);

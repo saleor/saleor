@@ -7,14 +7,13 @@
 {% endblock %}
 
 {% block plain %}
+{% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Fulfillment update email text" %}
-Hi!
-
 Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.
 {% endblocktrans %}
 {% if fulfillment.tracking_number %}
 {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment update email text" %}
-You can track your shipment with {{ tracking_number }} code.
+You can track your shipment with the following code: {{ tracking_number }}.
 {% endblocktrans %}
 {% endif %}
 
@@ -22,12 +21,7 @@ You can track your shipment with {{ tracking_number }} code.
 {{ line.quantity }} x {{ line.order_line.product_name }}
 {% endfor %}
 
-{% blocktrans context "Fulfillment update email text" %}
-This is an automatically generated email, please do not reply.
-
-Sincerely,
-{{ site_name }}
-{% endblocktrans %}
+{% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}

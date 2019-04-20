@@ -1,3 +1,4 @@
+import { content } from "../storybook/stories/components/RichTextEditor";
 import { ProductDetails_product } from "./types/ProductDetails";
 import { ProductVariant } from "./types/ProductVariant";
 import { ProductVariantCreateData_product } from "./types/ProductVariantCreateData";
@@ -122,7 +123,6 @@ export const product: (
       }
     }
   },
-  availableOn: "2018-08-25T18:45:54.125Z",
   category: { __typename: "Category", id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
   chargeTaxes: true,
   collections: [
@@ -132,8 +132,7 @@ export const product: (
       name: "Winter sale"
     }
   ],
-  description:
-    "Omnis rerum ea. Fugit dignissimos modi est rerum. Qui corrupti expedita et. Dolorem dolorum illo doloremque. Officia perspiciatis facilis ab maxime voluptatem eligendi ipsam. Quisquam impedit repudiandae eos. Id sit dolores adipisci qui omnis dolores qui. Illo deleniti mollitia perspiciatis.",
+  descriptionJson: JSON.stringify(content),
   id: "p10171",
   images: [
     {
@@ -215,6 +214,7 @@ export const product: (
       }
     ]
   },
+  publicationDate: "2018-08-25T18:45:54.125Z",
   purchaseCost: {
     __typename: "MoneyRange",
     start: {
@@ -407,7 +407,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: true },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -437,6 +436,7 @@ export const products = (placeholderImage: string) => [
       id: "pt41284",
       name: "Awesome Wooden Pizza"
     },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 274.99389477595827, currency: "XAG" },
       stop: { amount: 274.99389477595827, currency: "XAG" }
@@ -568,7 +568,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: true },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -594,6 +593,7 @@ export const products = (placeholderImage: string) => [
     name: "Handcrafted Wooden Towels",
     price: { amount: 432.2991706153576, currency: "ZWL" },
     productType: { hasVariants: false, id: "pt29020", name: "Future" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 432.2991706153576, currency: "ZWL" },
       stop: { amount: 8213.684241691793, currency: "ZWL" }
@@ -765,7 +765,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -791,6 +790,7 @@ export const products = (placeholderImage: string) => [
     name: "Handcrafted Metal Cheese",
     price: { amount: 688.3543328975433, currency: "XDR" },
     productType: { hasVariants: true, id: "pt23508", name: "SMS" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 688.3543328975433, currency: "XDR" },
       stop: { amount: 3441.7716644877164, currency: "XDR" }
@@ -973,7 +973,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -999,6 +998,7 @@ export const products = (placeholderImage: string) => [
     name: "Refined Rubber Keyboard",
     price: { amount: 540.3817687240911, currency: "SLL" },
     productType: { hasVariants: false, id: "pt20625", name: "Virtual" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 540.3817687240911, currency: "SLL" },
       stop: { amount: 4863.43591851682, currency: "SLL" }
@@ -1190,7 +1190,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: true },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1216,6 +1215,7 @@ export const products = (placeholderImage: string) => [
     name: "Gorgeous Metal Gloves",
     price: { amount: 4.359138839276078, currency: "AMD" },
     productType: { hasVariants: true, id: "pt91547", name: "Vermont" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 4.359138839276078, currency: "AMD" },
       stop: { amount: 74.10536026769333, currency: "AMD" }
@@ -1446,7 +1446,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1472,6 +1471,7 @@ export const products = (placeholderImage: string) => [
     name: "Small Cotton Shirt",
     price: { amount: 538.0974149450597, currency: "GMD" },
     productType: { hasVariants: false, id: "pt69941", name: "Gorgeous" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 538.0974149450597, currency: "GMD" },
       stop: { amount: 6457.168979340716, currency: "GMD" }
@@ -1641,7 +1641,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1667,6 +1666,7 @@ export const products = (placeholderImage: string) => [
     name: "Fantastic Cotton Tuna",
     price: { amount: 56.90596710694962, currency: "CVE" },
     productType: { hasVariants: true, id: "pt41677", name: "TCP" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 56.90596710694962, currency: "CVE" },
       stop: { amount: 227.62386842779847, currency: "CVE" }
@@ -1750,7 +1750,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1776,6 +1775,7 @@ export const products = (placeholderImage: string) => [
     name: "Tasty Steel Pants",
     price: { amount: 981.0598640464501, currency: "XAG" },
     productType: { hasVariants: true, id: "pt93233", name: "Buckinghamshire" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 981.0598640464501, currency: "XAG" },
       stop: { amount: 16678.017688789652, currency: "XAG" }
@@ -1957,7 +1957,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: true },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1983,6 +1982,7 @@ export const products = (placeholderImage: string) => [
     name: "Ergonomic Cotton Shoes",
     price: { amount: 449.93166054829857, currency: "WST" },
     productType: { hasVariants: true, id: "pt53386", name: "Jewelery" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 449.93166054829857, currency: "WST" },
       stop: { amount: 4949.248266031284, currency: "WST" }
@@ -2089,7 +2089,6 @@ export const products = (placeholderImage: string) => [
       }
     ],
     availability: { available: false },
-    availableOn: null,
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -2115,6 +2114,7 @@ export const products = (placeholderImage: string) => [
     name: "Unbranded Steel Tuna",
     price: { amount: 590.5928694420302, currency: "MGA" },
     productType: { hasVariants: true, id: "pt48315", name: "Agent" },
+    publicationDate: null,
     purchaseCost: {
       start: { amount: 590.5928694420302, currency: "MGA" },
       stop: { amount: 590.5928694420302, currency: "MGA" }

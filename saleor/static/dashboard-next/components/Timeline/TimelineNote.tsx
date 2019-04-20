@@ -13,7 +13,7 @@ import PersonIcon from "@material-ui/icons/Person";
 import * as CRC from "crc-32";
 import * as React from "react";
 
-import DateFormatter from "../DateFormatter";
+import { DateTime } from "../Date";
 import Hr from "../Hr";
 
 const palette = [
@@ -88,7 +88,7 @@ export const TimelineNote = withStyles(styles, { name: "TimelineNote" })(
           <div className={classes.title}>
             <Typography>{user.email}</Typography>
             <Typography>
-              <DateFormatter date={date} />
+              <DateTime date={date} />
             </Typography>
           </div>
           <Hr />

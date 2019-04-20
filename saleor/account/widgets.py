@@ -21,6 +21,15 @@ class PhonePrefixWidget(PhoneNumberPrefixWidget):
         # pylint: disable=bad-super-call
         super(PhoneNumberPrefixWidget, self).__init__(widgets, attrs)
 
+    def value_from_datadict(self, data, files, name):
+        value = super().value_from_datadict(
+            data, files, name)
+        # FIXME: this is a hack, we should not be using a multiwidget
+        # in forms used by the API but here we are
+        if not value and name in data:
+            value = data[name]
+        return value
+
 
 class DatalistTextWidget(Select):
     template_name = "account/snippets/datalist.html"

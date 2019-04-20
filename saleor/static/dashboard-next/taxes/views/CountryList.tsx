@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import Navigator from "../../components/Navigator";
+import { configurationMenuUrl } from "../../configuration";
 import { maybe } from "../../misc";
 import CountryListPage from "../components/CountryListPage";
 import { TypedFetchTaxes, TypedUpdateTaxSettings } from "../mutations";
@@ -22,6 +23,7 @@ export const CountryList: React.StatelessComponent = () => (
                       fetchTaxesOpts.loading ||
                       updateTaxSettingsOpts.loading
                     }
+                    onBack={() => navigate(configurationMenuUrl)}
                     onRowClick={code => navigate(countryTaxRatesUrl(code))}
                     onSubmit={formData =>
                       updateTaxSettings({

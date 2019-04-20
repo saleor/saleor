@@ -1,9 +1,5 @@
 import uuid
-from decimal import Decimal
 from typing import Dict
-
-from django.conf import settings
-from prices import Money
 
 from ... import ChargeStatus
 from .forms import DummyPaymentForm
@@ -109,6 +105,7 @@ def process_payment(payment_information: Dict, connection_params) -> Dict:
     responses = [authorize(payment_information, connection_params)]
     if charge_status == ChargeStatus.NOT_CHARGED:
         return responses
+
     responses.append(capture(payment_information, connection_params))
     if charge_status == ChargeStatus.FULLY_REFUNDED:
         responses.append(refund(payment_information, connection_params))

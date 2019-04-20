@@ -1,9 +1,13 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import graphene
+import pytest
+from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
+from graphql_jwt.shortcuts import get_token
 
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.core.mutations import BaseMutation
 from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id, reporting_period_to_date
@@ -195,3 +199,55 @@ def test_mutation_decimal_input_without_arguments(
     content = get_graphql_content(response)
     data = content['data']['productVariantUpdate']
     assert data['errors'] == []
+
+
+@patch('graphene.types.mutation.Mutation.__init_subclass_with_meta__')
+@pytest.mark.parametrize('should_fail,permissions_value', (
+    (False, 'valid'),
+    (False, ('valid', )),
+    (True, 123)))
+def test_mutation_invalid_permission_in_meta(
+        _mocked, should_fail, permissions_value):
+    def _run_test():
+        BaseMutation.__init_subclass_with_meta__(
+            description='dummy', permissions=permissions_value)
+
+    if not should_fail:
+        _run_test()
+        return
+
+    with pytest.raises(
+            ImproperlyConfigured,
+            message='Permissions should be a tuple or a string in Meta'):
+        _run_test()
+
+
+MUTATION_TOKEN_VERIFY = """
+    mutation tokenVerify($token: String!){
+        tokenVerify(token: $token){
+            user{
+                email
+            }
+        }
+    }
+"""
+
+
+def test_verify_token(api_client, customer_user):
+    variables = {
+        "token": get_token(customer_user)
+    }
+    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
+    content = get_graphql_content(response)
+    user_email = content['data']['tokenVerify']['user']['email']
+    assert customer_user.email == user_email
+
+
+def test_verify_token_incorrect_token(api_client):
+    variables = {
+        "token": "incorrect_token"
+    }
+    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
+    content = get_graphql_content(response)
+    assert not content['data']['tokenVerify']
+

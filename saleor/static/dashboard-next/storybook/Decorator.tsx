@@ -1,23 +1,26 @@
-import CssBaseline from "@material-ui/core/CssBaseline";
-import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import * as React from "react";
 
-import { Provider as DateProvider } from "../components/DateFormatter/DateContext";
+import { Provider as DateProvider } from "../components/Date/DateContext";
 import { FormProvider } from "../components/Form";
 import { MessageManager } from "../components/messages";
+import ThemeProvider from "../components/Theme";
 import { TimezoneProvider } from "../components/Timezone";
-import theme from "../theme";
 
 export const Decorator = storyFn => (
   <FormProvider>
     <DateProvider value={+new Date("2018-08-07T14:30:44+00:00")}>
       <TimezoneProvider value="America/New_York">
-        <MuiThemeProvider theme={theme}>
-          <CssBaseline />
+        <ThemeProvider isDefaultDark={false}>
           <MessageManager>
-            <div>{storyFn()}</div>
+            <div
+              style={{
+                padding: 24
+              }}
+            >
+              {storyFn()}
+            </div>
           </MessageManager>
-        </MuiThemeProvider>
+        </ThemeProvider>
       </TimezoneProvider>
     </DateProvider>
   </FormProvider>

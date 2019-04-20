@@ -6,7 +6,7 @@
 {% load static %}
 {% load translate_url from urls %}
 
-<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:summary' %}">
+<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'checkout:shipping-options' %}" data-cart-summary-url="{% url 'checkout:dropdown' %}">
 <head>
   <title>{% block title %}{{ site.name }}{% endblock %}</title>
   {% block meta %}
@@ -119,7 +119,7 @@
               <svg data-src="{% static "images/mobile-menu.svg" %}" width="28px" height="20px"/>
             </div>
             <a href="{% url 'home' %}">
-              <svg data-src="{% static "images/logo-document.svg" %}"/>
+              <svg data-src="{% static "images/logo-light.svg" %}"/>
             </a>
           </div>
           <div class="col-2 col-md-5 navbar__search static">
@@ -143,16 +143,16 @@
           </div>
           <div class="col-2 col-md-3">
             <div class="navbar__brand__cart float-right">
-              <a rel="nofollow" class="cart__icon" href="{% url "cart:index" %}">
+              <a rel="nofollow" class="cart__icon" href="{% url "checkout:index" %}">
                 <span class="cart-label d-none d-md-inline-block">
                   {% trans "Your Cart" context "Main navigation item" %}
                 </span>
                 <div class="navbar__brand__cart__icon">
                   <svg data-src="{% static "images/cart.svg" %}" width="24" height="24"/>
                 </div>
-                <span class="badge {% if not cart_counter %}empty{% endif %}">
-                  {% if cart_counter %}
-                    {{ cart_counter }}
+                <span class="badge {% if not checkout_counter %}empty{% endif %}">
+                  {% if checkout_counter %}
+                    {{ checkout_counter }}
                   {% else %}
                     0
                   {% endif %}
@@ -204,7 +204,7 @@
             </a>
             <hr />
             <li>
-              <a rel="nofollow" href="{% url "cart:index" %}">
+              <a rel="nofollow" href="{% url "checkout:index" %}">
                 {% trans "Your Cart" context "Main navigation item" %}
               </a>
             </li>
@@ -290,7 +290,7 @@
       <div class="row">
         <div class="col-4">
           <a href="{% url 'home' %}" class="footer__logo float-md-left">
-            <svg data-src="{% static "images/logo-document.svg" %}"/>
+            <svg data-src="{% static "images/logo-light.svg" %}"/>
           </a>
         </div>
         <div class="col-8 footer__copy-text">COPYRIGHT © 2009–2019 MIRUMEE SOFTWARE</div>

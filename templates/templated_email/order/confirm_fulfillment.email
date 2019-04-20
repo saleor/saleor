@@ -2,15 +2,14 @@
 
 {% block subject %}
   {% blocktrans trimmed with order=fulfillment.order context "Fulfillment confirmation email subject" %}
-    A shipment from order {{ order }} is on the way
+    Your order {{ order }} has been fulfilled
   {% endblocktrans %}
 {% endblock %}
 
 {% block plain %}
+{% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Fulfillment confirmation email text" %}
-Hi!
-
-Thank you for your order. Below is the list of shipped products.
+Thank you for your order. Below is the list of fulfilled products.
 {% endblocktrans %}
 {% if fulfillment.tracking_number %}
 {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
@@ -18,16 +17,15 @@ You can track your shipment with {{ tracking_number }} code.
 {% endblocktrans %}
 {% endif %}
 
-{% for line in fulfillment %}
+{% for line in physical_lines %}
 {{ line.quantity }} x {{ line.order_line.product_name }}
 {% endfor %}
 
-{% blocktrans context "Fulfillment confirmation email text" %}
-This is an automatically generated email, please do not reply.
+{% for line in digital_lines %}
+{{ line.quantity }} x {{ line.order_line.digital_content_url.get_absolute_url }}
+{% endfor %}
 
-Sincerely,
-{{ site_name }}
-{% endblocktrans %}
+{% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}

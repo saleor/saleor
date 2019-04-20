@@ -2,6 +2,8 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
+from ..translations.mutations import SaleTranslate, VoucherTranslate
+from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .mutations import (
     SaleAddCatalogues, SaleCreate, SaleDelete, SaleRemoveCatalogues,
     SaleUpdate, VoucherAddCatalogues, VoucherCreate, VoucherDelete,
@@ -31,7 +33,7 @@ class DiscountQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, Sale)
 
     @permission_required('discount.manage_discounts')
-    def resolve_sales(self, info, query=None, **kwargs):
+    def resolve_sales(self, info, query=None, **_kwargs):
         return resolve_sales(info, query)
 
     @permission_required('discount.manage_discounts')
@@ -39,19 +41,23 @@ class DiscountQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, Voucher)
 
     @permission_required('discount.manage_discounts')
-    def resolve_vouchers(self, info, query=None, **kwargs):
+    def resolve_vouchers(self, info, query=None, **_kwargs):
         return resolve_vouchers(info, query)
 
 
 class DiscountMutations(graphene.ObjectType):
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
+    sale_bulk_delete = SaleBulkDelete.Field()
     sale_update = SaleUpdate.Field()
     sale_catalogues_add = SaleAddCatalogues.Field()
     sale_catalogues_remove = SaleRemoveCatalogues.Field()
+    sale_translate = SaleTranslate.Field()
 
     voucher_create = VoucherCreate.Field()
     voucher_delete = VoucherDelete.Field()
+    voucher_bulk_delete = VoucherBulkDelete.Field()
     voucher_update = VoucherUpdate.Field()
     voucher_catalogues_add = VoucherAddCatalogues.Field()
     voucher_catalogues_remove = VoucherRemoveCatalogues.Field()
+    voucher_translate = VoucherTranslate.Field()

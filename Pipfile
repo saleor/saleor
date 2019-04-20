@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [requires]
-python_version = "3.6"
+python_version = "3.7"
 
 [packages]
 Babel = ">=2.5"
@@ -34,7 +34,7 @@ django-versatileimagefield = ">=1.10"
 django-webpack-loader = ">=0.3.0"
 django-celery-results = "*"
 django-elasticsearch-dsl = ">=0.5.0.<0.6.0"
-django-recaptcha = "*"
+django-recaptcha = "<2.0.0"
 django-silk = "==2.0.0"
 django-debug-toolbar = "*"
 django-debug-toolbar-request-history = "*"
@@ -57,8 +57,9 @@ requests = ">=1.2.0"
 social-auth-app-django = ">=2.0.0"
 text-unidecode = "*"
 uwsgi = {version = ">=2.0.0", platform_system = "!= 'Windows'"}
-celery = {version = "*", extras = ["redis"]}
-redis = "<3.0.0"  # this can be safely removed after Celery v4.2.2 is released
+celery = {version = ">=4.3", extras = ["redis"]}
+redis = "<4.0"
+kombu = "<5.0.0"
 weasyprint = ">=0.42.2"
 graphene-django-optimizer = "*"
 braintree = "==3.49.0"
@@ -67,7 +68,7 @@ stripe = "*"
 "urllib3" = "*"
 
 [dev-packages]
-pytest = "==4.0.2"
+pytest = "*"
 pytest-django = "*"
 pytest-vcr = "*"
 pytest-mock = "*"
