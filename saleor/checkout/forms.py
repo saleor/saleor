@@ -113,9 +113,7 @@ class ReplaceCheckoutLineForm(AddToCheckoutForm):
 
     def __init__(self, *args, **kwargs):
         self.variant = kwargs.pop('variant')
-        kwargs['product'] = self.variant.product
-        super().__init__(*args, **kwargs)
-        self.checkout_line = self.checkout.get_line(self.variant)
+        super().__init__(*args, product=self.variant.product, **kwargs)
         self.fields['quantity'].widget.attrs = {
             'min': 1, 'max': settings.MAX_CHECKOUT_LINE_QUANTITY}
 
