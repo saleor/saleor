@@ -46,10 +46,7 @@ class ShopSettingsUpdate(BaseMutation):
 
     class Meta:
         description = 'Updates shop settings'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('site.manage_settings')
+        permissions = ('site.manage_settings', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -72,10 +69,7 @@ class ShopDomainUpdate(BaseMutation):
 
     class Meta:
         description = 'Updates site domain of the shop'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('site.manage_settings')
+        permissions = ('site.manage_settings', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -97,10 +91,7 @@ class ShopFetchTaxRates(BaseMutation):
 
     class Meta:
         description = 'Fetch tax rates'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('site.manage_settings')
+        permissions = ('site.manage_settings', )
 
     @classmethod
     def perform_mutation(cls, _root, _info):
@@ -121,10 +112,7 @@ class HomepageCollectionUpdate(BaseMutation):
 
     class Meta:
         description = 'Updates homepage collection of the shop'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('site.manage_settings')
+        permissions = ('site.manage_settings', )
 
     @classmethod
     def perform_mutation(cls, _root, info, collection=None):
@@ -151,6 +139,7 @@ class AuthorizationKeyAdd(BaseMutation):
 
     class Meta:
         description = 'Adds an authorization key.'
+        permissions = ('site.manage_settings', )
 
     class Arguments:
         key_type = AuthorizationKeyType(
@@ -158,10 +147,6 @@ class AuthorizationKeyAdd(BaseMutation):
         input = AuthorizationKeyInput(
             required=True,
             description='Fields required to create an authorization key.')
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('site.manage_settings')
 
     @classmethod
     def perform_mutation(cls, _root, info, key_type, **data):
@@ -188,10 +173,7 @@ class AuthorizationKeyDelete(BaseMutation):
 
     class Meta:
         description = 'Deletes an authorization key.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('site.manage_settings')
+        permissions = ('site.manage_settings', )
 
     @classmethod
     def perform_mutation(cls, _root, info, key_type):

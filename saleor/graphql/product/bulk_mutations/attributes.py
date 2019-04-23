@@ -14,10 +14,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes attributes.'
         model = models.Attribute
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class AttributeValueBulkDelete(ModelBulkDeleteMutation):
@@ -30,7 +27,4 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes values of attributes.'
         model = models.AttributeValue
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )

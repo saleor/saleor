@@ -48,7 +48,8 @@ def test_fetch_single_digital_content(
 
 
 def test_digital_content_create_mutation_custom_settings(
-        monkeypatch, staff_api_client, variant, permission_manage_products):
+        monkeypatch, staff_api_client, variant, permission_manage_products,
+        media_root):
     query = """
     mutation createDigitalContent($variant: ID!, 
         $input: DigitalContentUploadInput!) {
@@ -88,7 +89,8 @@ def test_digital_content_create_mutation_custom_settings(
 
 
 def test_digital_content_create_mutation_default_settings(
-        monkeypatch, staff_api_client, variant, permission_manage_products):
+        monkeypatch, staff_api_client, variant, permission_manage_products,
+        media_root):
     query = """
     mutation digitalCreate($variant: ID!, 
         $input: DigitalContentUploadInput!) {
@@ -119,7 +121,8 @@ def test_digital_content_create_mutation_default_settings(
     assert variant.digital_content.use_default_settings
 
 def test_digital_content_create_mutation_removes_old_content(
-        monkeypatch, staff_api_client, variant, permission_manage_products):
+        monkeypatch, staff_api_client, variant, permission_manage_products,
+        media_root):
     query = """
     mutation digitalCreate($variant: ID!, 
         $input: DigitalContentUploadInput!) {

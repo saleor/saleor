@@ -60,27 +60,11 @@ def category_list():
 
 
 @pytest.fixture
-def collection_list():
-    collection_1 = Collection.objects.create(name='Collection 1')
-    collection_2 = Collection.objects.create(name='Collection 2')
-    collection_3 = Collection.objects.create(name='Collection 3')
-    return collection_1, collection_2, collection_3
-
-
-@pytest.fixture
 def menu_list():
     menu_1 = Menu.objects.create(name='test-navbar-1', json_content={})
     menu_2 = Menu.objects.create(name='test-navbar-2', json_content={})
     menu_3 = Menu.objects.create(name='test-navbar-3', json_content={})
     return menu_1, menu_2, menu_3
-
-
-@pytest.fixture
-def menu_item_list(menu):
-    menu_item_1 = MenuItem.objects.create(menu=menu, name='Link 1')
-    menu_item_2 = MenuItem.objects.create(menu=menu, name='Link 2')
-    menu_item_3 = MenuItem.objects.create(menu=menu, name='Link 3')
-    return menu_item_1, menu_item_2, menu_item_3
 
 
 @pytest.fixture
@@ -132,18 +116,6 @@ def voucher_list():
     voucher_2 = Voucher.objects.create(code='voucher-2', discount_value=2)
     voucher_3 = Voucher.objects.create(code='voucher-3', discount_value=3)
     return voucher_1, voucher_2, voucher_3
-
-
-@pytest.fixture
-def user_list():
-    user_1 = User.objects.create_user('user-1@example.com', 'pass')
-    user_2 = User.objects.create_user('user-2@example.com', 'pass')
-    staff_1 = User.objects.create_user(
-        'staff-1@example.com', 'pass', is_staff=True)
-    staff_2 = User.objects.create_user(
-        'staff-2@example.com', 'pass', is_staff=True)
-    superuser = User.objects.create_superuser('superuser@example.com', 'pass')
-    return user_1, user_2, staff_1, staff_2, superuser
 
 
 def test_delete_attributes(
@@ -555,8 +527,8 @@ def test_delete_shipping_zones(
 
 
 def test_delete_staff_members(
-        staff_api_client, user_list, permission_manage_staff):
-    *users, staff_1, staff_2, superuser = user_list
+        staff_api_client, user_list, permission_manage_staff, superuser):
+    *users, staff_1, staff_2 = user_list
     users.append(superuser)
 
     query = """

@@ -3,12 +3,12 @@
 {% load discount_as_negative from voucher %}
 
 {% if form %}
-  {% if cart.discount_amount %}
+  {% if checkout.discount_amount %}
     <form action="{% url "checkout:remove-voucher" %}?next={{ request.path }}"
           method="post"
           class="float-left input-btn">
       {% csrf_token %}
-      <span>{{ cart.translated_discount_name|default:cart.discount_name }}</span>
+      <span>{{ checkout.translated_discount_name|default:checkout.discount_name }}</span>
       <button type="submit"
               class="btn btn-link btn-voucher-remove"
               aria-label="{% trans "Remove" context "Checkout voucher form action" %}">
@@ -16,7 +16,7 @@
       </button>
     </form>
     <div class="float-right">
-      {% discount_as_negative cart.discount_amount %}
+      {% discount_as_negative checkout.discount_amount %}
     </div>
   {% else %}
     <form action="{{ request.path }}?next={{ request.path }}" method="post">

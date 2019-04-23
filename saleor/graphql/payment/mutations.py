@@ -102,10 +102,7 @@ class PaymentCapture(BaseMutation):
 
     class Meta:
         description = 'Captures the authorized payment amount'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, payment_id, amount=None):
@@ -122,10 +119,7 @@ class PaymentRefund(PaymentCapture):
 
     class Meta:
         description = 'Refunds the captured payment amount'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, payment_id, amount=None):
@@ -146,10 +140,7 @@ class PaymentVoid(BaseMutation):
 
     class Meta:
         description = 'Voids the authorized payment'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, payment_id):

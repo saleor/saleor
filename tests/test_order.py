@@ -440,16 +440,16 @@ def test_update_order_prices(order_with_lines):
 
 
 def test_order_payment_flow(
-        request_cart_with_item, client, address, shipping_zone, settings):
-    request_cart_with_item.shipping_address = address
-    request_cart_with_item.billing_address = address.get_copy()
-    request_cart_with_item.email = 'test@example.com'
-    request_cart_with_item.shipping_method = (
+        request_checkout_with_item, client, address, shipping_zone, settings):
+    request_checkout_with_item.shipping_address = address
+    request_checkout_with_item.billing_address = address.get_copy()
+    request_checkout_with_item.email = 'test@example.com'
+    request_checkout_with_item.shipping_method = (
         shipping_zone.shipping_methods.first())
-    request_cart_with_item.save()
+    request_checkout_with_item.save()
 
     order = create_order(
-        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
+        request_checkout_with_item, 'tracking_code', discounts=None, taxes=None)
 
     # Select payment
     url = reverse('order:payment', kwargs={'token': order.token})
@@ -585,7 +585,8 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
 @patch('saleor.order.utils.emails.send_fulfillment_confirmation')
 @patch('saleor.order.utils.get_default_digital_content_settings')
 def test_fulfill_digital_lines(
-        mock_digital_settings, mock_email_fulfillment, order_with_lines):
+        mock_digital_settings, mock_email_fulfillment, order_with_lines,
+        media_root):
     mock_digital_settings.return_value = {'automatic_fulfillment': True}
     line = order_with_lines.lines.all()[0]
 

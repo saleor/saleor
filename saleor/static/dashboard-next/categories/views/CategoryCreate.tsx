@@ -48,7 +48,7 @@ export const CategoryCreateView: React.StatelessComponent<
                       disabled={createCategoryResult.loading}
                       onBack={() =>
                         navigate(
-                          parentId ? categoryUrl(parentId) : categoryListUrl
+                          parentId ? categoryUrl(parentId) : categoryListUrl()
                         )
                       }
                       onSubmit={formData =>

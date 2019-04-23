@@ -50,7 +50,7 @@ export const PageCreate: React.StatelessComponent<PageCreateProps> = () => (
                       )}
                       saveButtonBarState={formTransitionState}
                       page={null}
-                      onBack={() => navigate(pageListUrl)}
+                      onBack={() => navigate(pageListUrl())}
                       onRemove={() => undefined}
                       onSubmit={formData =>
                         pageCreate({

@@ -60,7 +60,7 @@ export const VoucherDetails: React.StatelessComponent = () => (
                           errors={maybe(
                             () => voucherCreateOpts.data.voucherCreate.errors
                           )}
-                          onBack={() => navigate(voucherListUrl)}
+                          onBack={() => navigate(voucherListUrl())}
                           onSubmit={formData =>
                             voucherCreate({
                               variables: {

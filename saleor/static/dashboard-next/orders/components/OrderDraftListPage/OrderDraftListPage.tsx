@@ -6,22 +6,18 @@ import * as React from "react";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { OrderDraftList_draftOrders_edges_node } from "../../types/OrderDraftList";
 import OrderDraftList from "../OrderDraftList";
 
-export interface OrderDraftListPageProps extends PageListProps {
+export interface OrderDraftListPageProps extends PageListProps, ListActions {
   orders: OrderDraftList_draftOrders_edges_node[];
 }
 
 const OrderDraftListPage: React.StatelessComponent<OrderDraftListPageProps> = ({
   disabled,
-  orders,
-  pageInfo,
   onAdd,
-  onNextPage,
-  onPreviousPage,
-  onRowClick
+  ...listProps
 }) => (
   <Container>
     <PageHeader title={i18n.t("Draft Orders")}>
@@ -35,14 +31,7 @@ const OrderDraftListPage: React.StatelessComponent<OrderDraftListPageProps> = ({
       </Button>
     </PageHeader>
     <Card>
-      <OrderDraftList
-        disabled={disabled}
-        onRowClick={onRowClick}
-        orders={orders}
-        pageInfo={pageInfo}
-        onNextPage={onNextPage}
-        onPreviousPage={onPreviousPage}
-      />
+      <OrderDraftList disabled={disabled} {...listProps} />
     </Card>
   </Container>
 );

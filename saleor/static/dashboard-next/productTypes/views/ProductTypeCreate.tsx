@@ -69,7 +69,7 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                           saveButtonBarState={
                             loadingCreate ? "loading" : "default"
                           }
-                          onBack={() => navigate(productTypeListUrl)}
+                          onBack={() => navigate(productTypeListUrl())}
                           onSubmit={handleCreate}
                         />
                       </>

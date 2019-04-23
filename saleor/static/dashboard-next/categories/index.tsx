@@ -6,14 +6,13 @@ import i18n from "../i18n";
 import {
   categoryAddPath,
   categoryListPath,
+  CategoryListUrlQueryParams,
   categoryPath,
   CategoryUrlQueryParams
 } from "./urls";
 import { CategoryCreateView } from "./views/CategoryCreate";
 import CategoryDetailsView, { getActiveTab } from "./views/CategoryDetails";
-import CategoryListComponent, {
-  CategoryListQueryParams
-} from "./views/CategoryList";
+import CategoryListComponent from "./views/CategoryList";
 
 interface CategoryDetailsRouteParams {
   id: string;
@@ -53,10 +52,7 @@ const CategoryList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: CategoryListQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: CategoryListUrlQueryParams = qs;
   return <CategoryListComponent params={params} />;
 };
 
