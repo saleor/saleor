@@ -2012,3 +2012,45 @@ def test_collections_query_with_filter(
     collections = content['data']['collections']['edges']
 
     assert len(collections) == count
+
+
+@pytest.mark.parametrize('collection_filter, count', [
+    ({'configurable': 'CONFIGURABLE'}, 2),  # has_variants
+    ({'configurable': 'SIMPLE'}, 1),  # !has_variants
+    ({'productType': 'DIGITAL'}, 1),
+    ({'productType': 'SHIPPABLE'}, 2)  # is_shipping_required
+])
+def test_product_type_query_with_filter(
+        collection_filter, count, staff_api_client,
+        permission_manage_products):
+    query = """
+        query ($filter: ProductTypeFilterInput!, ) {
+          productTypes(first:5, filter: $filter) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }    
+        """
+    ProductType.objects.bulk_create([
+        ProductType(
+            name='Digital Type', has_variants=True, is_shipping_required=False,
+            is_digital=True),
+        ProductType(
+            name='Tools', has_variants=True, is_shipping_required=True,
+            is_digital=False),
+        ProductType(
+            name='Books', has_variants=False, is_shipping_required=True,
+            is_digital=False)
+    ])
+
+    variables = {'filter': collection_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    product_types = content['data']['productTypes']['edges']
+
+    assert len(product_types) == count

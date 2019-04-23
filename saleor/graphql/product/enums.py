@@ -50,3 +50,13 @@ class OrderDirection(graphene.Enum):
 class CollectionPublished(graphene.Enum):
     PUBLISHED = 'published'
     HIDDEN = 'hidden'
+
+
+class ProductTypeConfigurable(graphene.Enum):
+    CONFIGURABLE = 'configurable'
+    SIMPLE = 'simple'
+
+
+class ProductTypeEnum(graphene.Enum):
+    DIGITAL = 'digital'
+    SHIPPABLE = 'shippable'

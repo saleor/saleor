@@ -1921,6 +1921,11 @@ type ProductTypeBulkDelete {
   count: Int!
 }
 
+enum ProductTypeConfigurable {
+  CONFIGURABLE
+  SIMPLE
+}
+
 type ProductTypeCountableConnection {
   pageInfo: PageInfo!
   edges: [ProductTypeCountableEdge!]!
@@ -1940,6 +1945,16 @@ type ProductTypeCreate {
 type ProductTypeDelete {
   errors: [Error!]
   productType: ProductType
+}
+
+enum ProductTypeEnum {
+  DIGITAL
+  SHIPPABLE
+}
+
+input ProductTypeFilterInput {
+  configurable: ProductTypeConfigurable
+  productType: ProductTypeEnum
 }
 
 input ProductTypeInput {
@@ -2063,7 +2078,7 @@ type Query {
   product(id: ID!): Product
   products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(filter: ProductTypeFilterInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
