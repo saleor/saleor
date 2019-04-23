@@ -135,12 +135,7 @@ class FilterInputConnectionField(DjangoConnectionField):
 
     def get_resolver(self, parent_resolver):
         return partial(
-            self.connection_resolver,
-            parent_resolver,
-            self.type,
-            self.get_manager(),
-            self.max_limit,
-            self.enforce_first_or_last,
+            super().get_resolver(parent_resolver),
             self.filterset_class,
             self.filter_field_name
         )

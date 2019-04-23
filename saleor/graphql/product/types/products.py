@@ -31,10 +31,10 @@ from .digital_contents import DigitalContent
 
 def prefetch_products(info, *_args, **_kwargs):
     """Prefetch products visible to the current user.
-
-    Can be used with models that have the `products` relationship. Queryset of
-    products being prefetched is filtered based on permissions of the viewing
-    user, to restrict access to unpublished products to non-staff users.
+    Can be used with models that have the `products` relationship. The queryset
+    of products being prefetched is filtered based on permissions of the
+    requesting user, to restrict access to unpublished products from non-staff
+    users.
     """
     user = info.context.user
     qs = models.Product.objects.visible_to_user(user)
