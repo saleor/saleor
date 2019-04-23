@@ -46,6 +46,25 @@ def query_customer_with_filter():
     return query
 
 
+@pytest.fixture
+def query_staff_users_with_filter():
+    query = """
+    query ($filter: StaffUserInput!, ) {
+        staffUsers(first: 5, filter: $filter) {
+            totalCount
+            edges {
+                node {
+                    id
+                    lastName
+                    firstName
+                }
+            }
+        }
+    }
+    """
+    return query
+
+
 def test_create_token_mutation(admin_client, staff_user):
     query = """
     mutation TokenCreate($email: String!, $password: String!) {
@@ -1740,5 +1759,90 @@ def test_query_customers_with_filter_placed_orders(
             permissions=[permission_manage_users])
     content = get_graphql_content(response)
     users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'search': 'example.com'}, 2), ({'search': 'Alice'}, 1),
+    ({'search': 'Kowalski'}, 1),
+    ({'search': 'John'}, 1),  # default_shipping_address__first_name
+    ({'search': 'Doe'}, 1),  # default_shipping_address__last_name
+    ({'search': 'wroc'}, 1),  # default_shipping_address__city
+    ({'search': 'pl'}, 2),  # default_shipping_address__country, email
+])
+def test_query_customer_memebers_with_filter_search(
+        customer_filter, count, query_customer_with_filter,
+        staff_api_client, permission_manage_users, address, staff_user):
+
+    User.objects.bulk_create([
+        User(email='second@example.com', first_name='Alice',
+             last_name='Kowalski', is_active=False),
+        User(
+            email='third@example.com', is_active=True,
+            default_shipping_address=address)
+    ])
+
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+            query_customer_with_filter, variables,
+            permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('staff_member_filter, count', [
+    ({'status': 'DEACTIVATED'}, 1),
+    ({'status': 'ACTIVE'}, 2),
+])
+def test_query_staff_memebers_with_filter_status(
+        staff_member_filter, count, query_staff_users_with_filter,
+        staff_api_client, permission_manage_staff, staff_user):
+
+    User.objects.bulk_create([
+        User(email='second@example.com', is_staff=True, is_active=False),
+        User(email='third@example.com', is_staff=True, is_active=True)
+    ])
+
+    variables = {'filter': staff_member_filter}
+    response = staff_api_client.post_graphql(
+            query_staff_users_with_filter, variables,
+            permissions=[permission_manage_staff])
+    content = get_graphql_content(response)
+    users = content['data']['staffUsers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('staff_member_filter, count', [
+    ({'search': 'example.com'}, 3), ({'search': 'Alice'}, 1),
+    ({'search': 'Kowalski'}, 1),
+    ({'search': 'John'}, 1),  # default_shipping_address__first_name
+    ({'search': 'Doe'}, 1),  # default_shipping_address__last_name
+    ({'search': 'wroc'}, 1),  # default_shipping_address__city
+    ({'search': 'pl'}, 3),  # default_shipping_address__country, email
+])
+def test_query_staff_memebers_with_filter_search(
+        staff_member_filter, count, query_staff_users_with_filter,
+        staff_api_client, permission_manage_staff, address, staff_user):
+
+    User.objects.bulk_create([
+        User(email='second@example.com', first_name='Alice',
+             last_name='Kowalski', is_staff=True, is_active=False),
+        User(
+            email='third@example.com', is_staff=True, is_active=True,
+            default_shipping_address=address),
+        User(email='customer@example.com', first_name='Alice',
+             last_name='Kowalski', is_staff=False, is_active=True),
+    ])
+
+    variables = {'filter': staff_member_filter}
+    response = staff_api_client.post_graphql(
+            query_staff_users_with_filter, variables,
+            permissions=[permission_manage_staff])
+    content = get_graphql_content(response)
+    users = content['data']['staffUsers']['edges']
 
     assert len(users) == count

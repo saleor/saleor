@@ -1,9 +1,12 @@
 import django_filters
 from django.db.models import Count, Sum
 
+from saleor.graphql.utils import filter_by_query_param
+
 from ...account.models import User
-from ..core.filters import ObjectTypeFilter
+from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
+from .enums import StaffMemberStatus
 
 
 def filter_date_joined(qs, _, value):
@@ -48,6 +51,26 @@ def filter_placed_orders(qs, _, value):
     return qs
 
 
+def filter_status(qs, _, value):
+    if value == StaffMemberStatus.ACTIVE:
+        qs = qs.filter(is_staff=True, is_active=True)
+    elif value == StaffMemberStatus.DEACTIVATED:
+        qs = qs.filter(is_staff=True, is_active=False)
+    return qs
+
+
+def filter_search(qs, _, value):
+    search_fields = (
+        'email', 'first_name', 'last_name',
+        'default_shipping_address__first_name',
+        'default_shipping_address__last_name',
+        'default_shipping_address__city', 'default_shipping_address__country'
+    )
+    if value:
+        qs = filter_by_query_param(qs, value, search_fields)
+    return qs
+
+
 class CustomerFilter(django_filters.FilterSet):
     date_joined = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_date_joined
@@ -61,6 +84,7 @@ class CustomerFilter(django_filters.FilterSet):
     placed_orders = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_placed_orders
     )
+    search = django_filters.CharFilter(method=filter_search)
 
     class Meta:
         model = User
@@ -69,4 +93,17 @@ class CustomerFilter(django_filters.FilterSet):
             'money_spent',
             'number_of_orders',
             'placed_orders',
+            'search'
         ]
+
+
+class StaffUserFilter(django_filters.FilterSet):
+    status = EnumFilter(input_class=StaffMemberStatus, method=filter_status)
+    search = django_filters.CharFilter(method=filter_search)
+
+    # TODO - Figure out after permision types
+    # department = ObjectTypeFilter
+
+    class Meta:
+        model = User
+        fields = ['status', 'search']

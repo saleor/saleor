@@ -619,6 +619,7 @@ input CustomerFilterInput {
   moneySpent: PriceRangeInput
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
+  search: String
 }
 
 input CustomerInput {
@@ -2082,7 +2083,7 @@ type Query {
   addressValidator(input: AddressValidationInput!): AddressValidationData
   customers(filter: CustomerFilterInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   me: User
-  staffUsers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  staffUsers(filter: StaffUserInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   user(id: ID!): User
   node(id: ID!): Node
 }
@@ -2429,9 +2430,19 @@ input StaffInput {
   permissions: [PermissionEnum]
 }
 
+enum StaffMemberStatus {
+  ACTIVE
+  DEACTIVATED
+}
+
 type StaffUpdate {
   errors: [Error!]
   user: User
+}
+
+input StaffUserInput {
+  status: StaffMemberStatus
+  search: String
 }
 
 enum StockAvailability {
