@@ -14,8 +14,8 @@ from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.graphql.product.types.products import resolve_attribute_list
 from saleor.product.models import (
-    Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
-    ProductVariant)
+    Attribute, AttributeValue, Category, Collection, Product, ProductImage,
+    ProductType, ProductVariant)
 from saleor.product.tasks import update_variants_names
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
@@ -39,6 +39,22 @@ def query_products_with_filter():
         """
     return query
 
+
+@pytest.fixture
+def query_collections_with_filter():
+    query = """
+    query ($filter: CollectionFilterInput!, ) {
+          collections(first:5, filter: $filter) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }    
+        """
+    return query
 
 def test_resolve_attribute_list(color_attribute):
     value = color_attribute.values.first()
@@ -1965,3 +1981,34 @@ def test_variant_digital_content(
     content = get_graphql_content(response)
     assert 'digitalContent' in content['data']['productVariant']
     assert 'id' in content['data']['productVariant']['digitalContent']
+
+
+@pytest.mark.parametrize('collection_filter, count', [
+    ({'published': 'PUBLISHED'}, 2),
+    ({'published': 'HIDDEN'}, 1),
+    ({'search': '-published1'}, 1),
+    ({'search': 'Collection3'}, 1)
+])
+def test_collections_query_with_filter(
+        collection_filter, count, query_collections_with_filter,
+        staff_api_client, permission_manage_products):
+    Collection.objects.bulk_create([
+        Collection(
+            name='Collection1', slug='collection-published1',
+            is_published=True, description='Test description'),
+        Collection(
+            name='Collection2', slug='collection-published2',
+            is_published=True, description='Test description'),
+        Collection(
+            name='Collection3', slug='collection-unpublished',
+            is_published=False, description='Test description')
+    ])
+
+    variables = {'filter': collection_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_collections_with_filter, variables)
+    content = get_graphql_content(response)
+    collections = content['data']['collections']['edges']
+
+    assert len(collections) == count

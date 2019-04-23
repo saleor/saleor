@@ -8,12 +8,12 @@ from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 from saleor.search.backends import picker
 
-from ...product.models import Attribute, Product
+from ...product.models import Attribute, Collection, Product
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import PriceRangeInput
-from ..utils import get_nodes
+from ..utils import filter_by_query_param, get_nodes
 from . import types
-from .enums import StockAvailability
+from .enums import CollectionPublished, StockAvailability
 from .types.attributes import AttributeInput
 
 
@@ -120,6 +120,21 @@ def filter_search(qs, _, value):
     return qs
 
 
+def filter_collection_publish(qs, _, value):
+    if value == CollectionPublished.PUBLISHED:
+        qs = qs.filter(is_published=True)
+    elif value == CollectionPublished.HIDDEN:
+        qs = qs.filter(is_published=False)
+    return qs
+
+
+def filter_collection_search(qs, _, value):
+    search_fields = ('name', 'slug')
+    if value:
+        qs = filter_by_query_param(qs, value, search_fields)
+    return qs
+
+
 class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
@@ -137,4 +152,16 @@ class ProductFilter(django_filters.FilterSet):
         fields = [
             'is_published', 'collections', 'categories', 'price', 'attributes',
             'stock_availability', 'product_type', 'search'
+        ]
+
+
+class CollectionFilter(django_filters.FilterSet):
+    published = EnumFilter(
+        input_class=CollectionPublished, method=filter_collection_publish)
+    search = django_filters.CharFilter(method=filter_collection_search)
+
+    class Meta:
+        model = Collection
+        fields = [
+            'published', 'search'
         ]
