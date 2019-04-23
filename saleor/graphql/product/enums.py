@@ -45,3 +45,8 @@ class OrderDirection(graphene.Enum):
         if self == OrderDirection.DESC:
             return 'Specifies a descending sort order.'
         raise ValueError('Unsupported enum value: %s' % self.value)
+
+
+class CollectionPublished(graphene.Enum):
+    PUBLISHED = 'published'
+    HIDDEN = 'hidden'
