@@ -162,6 +162,4 @@ class CollectionFilter(django_filters.FilterSet):
 
     class Meta:
         model = Collection
-        fields = [
-            'published', 'search'
-        ]
+        fields = ['published', 'search']
