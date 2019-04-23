@@ -14,10 +14,7 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes menus.'
         model = models.Menu
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('menu.manage_menus')
+        permissions = ('menu.manage_menus', )
 
 
 class MenuItemBulkDelete(ModelBulkDeleteMutation):
@@ -30,7 +27,4 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = 'Deletes menu items.'
         model = models.MenuItem
-
-    @classmethod
-    def user_is_allowed(cls, user, _ids):
-        return user.has_perm('menu.manage_menus')
+        permissions = ('menu.manage_menus', )

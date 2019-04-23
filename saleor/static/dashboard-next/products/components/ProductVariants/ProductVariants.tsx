@@ -1,6 +1,7 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import Checkbox from "@material-ui/core/Checkbox";
 import Hidden from "@material-ui/core/Hidden";
 import {
   createStyles,
@@ -11,23 +12,41 @@ import {
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import * as classNames from "classnames";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
+import TableHead from "../../../components/TableHead";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
+import { ListActions } from "../../../types";
 import { ProductDetails_product_variants } from "../../types/ProductDetails";
 import { ProductVariant_costPrice } from "../../types/ProductVariant";
 
 const styles = (theme: Theme) =>
   createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colName: {},
+      colPrice: {
+        width: 200
+      },
+      colSku: {
+        width: 250
+      },
+      colStatus: {
+        width: 200
+      }
+    },
+    colName: {},
+    colPrice: {
+      textAlign: "right"
+    },
+    colSku: {},
+    colStatus: {},
     denseTable: {
       "& td, & th": {
         paddingRight: theme.spacing.unit * 3
@@ -44,8 +63,8 @@ const styles = (theme: Theme) =>
     }
   });
 
-interface ProductVariantsProps extends WithStyles<typeof styles> {
-  disabled?: boolean;
+interface ProductVariantsProps extends ListActions, WithStyles<typeof styles> {
+  disabled: boolean;
   variants: ProductDetails_product_variants[];
   fallbackPrice?: ProductVariant_costPrice;
   onAttributesEdit: () => void;
@@ -56,11 +75,16 @@ interface ProductVariantsProps extends WithStyles<typeof styles> {
 export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
   ({
     classes,
+    disabled,
     variants,
     fallbackPrice,
     onAttributesEdit,
     onRowClick,
-    onVariantAdd
+    onVariantAdd,
+    isChecked,
+    selected,
+    toggle,
+    toolbar
   }: ProductVariantsProps) => (
     <Card>
       <CardTitle
@@ -84,13 +108,16 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
         </Typography>
       </CardContent>
       <Table className={classes.denseTable}>
-        <TableHead>
+        <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
-            <TableCell className={classes.textLeft}>{i18n.t("Name")}</TableCell>
-            <TableCell>{i18n.t("Status")}</TableCell>
-            <TableCell>{i18n.t("SKU")}</TableCell>
+            <TableCell />
+            <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
+            <TableCell className={classes.colStatus}>
+              {i18n.t("Status")}
+            </TableCell>
+            <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
             <Hidden smDown>
-              <TableCell className={classes.textRight}>
+              <TableCell className={classes.colPrice}>
                 {i18n.t("Price")}
               </TableCell>
             </Hidden>
@@ -99,49 +126,66 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
         <TableBody>
           {renderCollection(
             variants,
-            variant => (
-              <TableRow
-                hover={!!variant}
-                key={variant ? variant.id : "skeleton"}
-              >
-                <TableCell
-                  className={classNames(classes.textLeft, classes.link)}
+            variant => {
+              const isSelected = variant ? isChecked(variant.id) : false;
+
+              return (
+                <TableRow
+                  selected={isSelected}
+                  hover={!!variant}
                   onClick={onRowClick(variant.id)}
+                  key={variant ? variant.id : "skeleton"}
+                  className={classes.link}
                 >
-                  {variant ? variant.name || variant.sku : <Skeleton />}
-                </TableCell>
-                <TableCell>
-                  {variant ? (
-                    <StatusLabel
-                      status={variant.stockQuantity > 0 ? "success" : "error"}
-                      label={
-                        variant.stockQuantity > 0
-                          ? i18n.t("Available")
-                          : i18n.t("Unavailable")
-                      }
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      color="primary"
+                      checked={isSelected}
+                      disabled={disabled}
+                      onClick={event => {
+                        toggle(variant.id);
+                        event.stopPropagation();
+                      }}
                     />
-                  ) : (
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell>{variant ? variant.sku : <Skeleton />}</TableCell>
-                <Hidden smDown>
-                  <TableCell className={classes.textRight}>
+                  </TableCell>
+                  <TableCell className={classes.colName}>
+                    {variant ? variant.name || variant.sku : <Skeleton />}
+                  </TableCell>
+                  <TableCell className={classes.colStatus}>
                     {variant ? (
-                      variant.priceOverride ? (
-                        <Money money={variant.priceOverride} />
-                      ) : fallbackPrice ? (
-                        <Money money={fallbackPrice} />
-                      ) : (
-                        <Skeleton />
-                      )
+                      <StatusLabel
+                        status={variant.stockQuantity > 0 ? "success" : "error"}
+                        label={
+                          variant.stockQuantity > 0
+                            ? i18n.t("Available")
+                            : i18n.t("Unavailable")
+                        }
+                      />
                     ) : (
                       <Skeleton />
                     )}
                   </TableCell>
-                </Hidden>
-              </TableRow>
-            ),
+                  <TableCell className={classes.colSku}>
+                    {variant ? variant.sku : <Skeleton />}
+                  </TableCell>
+                  <Hidden smDown>
+                    <TableCell className={classes.colPrice}>
+                      {variant ? (
+                        variant.priceOverride ? (
+                          <Money money={variant.priceOverride} />
+                        ) : fallbackPrice ? (
+                          <Money money={fallbackPrice} />
+                        ) : (
+                          <Skeleton />
+                        )
+                      ) : (
+                        <Skeleton />
+                      )}
+                    </TableCell>
+                  </Hidden>
+                </TableRow>
+              );
+            },
             () => (
               <TableRow>
                 <TableCell colSpan={2}>

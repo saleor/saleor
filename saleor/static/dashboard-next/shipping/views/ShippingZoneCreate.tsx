@@ -51,7 +51,7 @@ const ShippingZoneCreate: React.StatelessComponent<{}> = () => (
                             createShippingZoneOpts.data.shippingZoneCreate
                               .errors
                         )}
-                        onBack={() => navigate(shippingZonesListUrl)}
+                        onBack={() => navigate(shippingZonesListUrl())}
                         onSubmit={formData =>
                           createShippingZone({
                             variables: {

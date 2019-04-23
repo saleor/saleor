@@ -1,8 +1,8 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { Dialog } from "../types";
-import { ProductListQueryParams } from "./views/ProductList";
+import { BulkAction, Dialog, Pagination } from "../types";
+import { StockAvailability } from "../types/globalTypes";
 
 const productSection = "/products/";
 
@@ -10,17 +10,21 @@ export const productAddPath = urlJoin(productSection, "add");
 export const productAddUrl = productAddPath;
 
 export const productListPath = productSection;
-export const productListUrl = (params?: ProductListQueryParams): string => {
-  if (params === undefined) {
-    return productListPath;
-  } else {
-    return urlJoin(productListPath, "?" + stringifyQs(params));
-  }
-};
+export type ProductListUrlDialog = "publish" | "unpublish" | "delete";
+export type ProductListUrlFilters = Partial<{
+  status: StockAvailability;
+}>;
+export type ProductListUrlQueryParams = BulkAction &
+  Dialog<ProductListUrlDialog> &
+  Pagination &
+  ProductListUrlFilters;
+export const productListUrl = (params?: ProductListUrlQueryParams): string =>
+  productListPath + "?" + stringifyQs(params);
 
-export const productPath = (id: string) => urlJoin(productSection, id);
+export const productPath = (id: string) => urlJoin(productSection + id);
 export type ProductUrlDialog = "remove";
-export type ProductUrlQueryParams = Dialog<"remove">;
+export type ProductUrlQueryParams = BulkAction &
+  Dialog<"remove" | "remove-variants">;
 export const productUrl = (id: string, params?: ProductUrlQueryParams) =>
   productPath(encodeURIComponent(id)) + "?" + stringifyQs(params);
 

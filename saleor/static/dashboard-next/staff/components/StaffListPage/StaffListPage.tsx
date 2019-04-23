@@ -18,13 +18,9 @@ export interface StaffListPageProps extends ListProps {
 
 const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
   disabled,
-  pageInfo,
-  staffMembers,
   onAdd,
   onBack,
-  onNextPage,
-  onPreviousPage,
-  onRowClick
+  ...listProps
 }) => (
   <Container>
     <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
@@ -39,14 +35,7 @@ const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
         <AddIcon />
       </Button>
     </PageHeader>
-    <StaffList
-      disabled={disabled}
-      pageInfo={pageInfo}
-      staffMembers={staffMembers}
-      onNextPage={onNextPage}
-      onPreviousPage={onPreviousPage}
-      onRowClick={onRowClick}
-    />
+    <StaffList disabled={disabled} {...listProps} />
   </Container>
 );
 StaffListPage.displayName = "StaffListPage";

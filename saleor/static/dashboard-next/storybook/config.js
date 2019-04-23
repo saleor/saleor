@@ -90,6 +90,7 @@ function loadStories() {
 
   // Orders
   require("./stories/orders/OrderAddressEditDialog");
+  require("./stories/orders/OrderBulkCancelDialog");
   require("./stories/orders/OrderCancelDialog");
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderCustomerEditDialog");

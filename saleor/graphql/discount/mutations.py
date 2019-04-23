@@ -103,10 +103,7 @@ class VoucherCreate(ModelMutation):
     class Meta:
         description = 'Creates a new voucher.'
         model = models.Voucher
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -127,6 +124,7 @@ class VoucherUpdate(VoucherCreate):
     class Meta:
         description = 'Updates a voucher.'
         model = models.Voucher
+        permissions = ('discount.manage_discounts', )
 
 
 class VoucherDelete(ModelDeleteMutation):
@@ -137,10 +135,7 @@ class VoucherDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a voucher.'
         model = models.Voucher
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
 
 class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
@@ -162,10 +157,7 @@ class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
 class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
     class Meta:
         description = 'Adds products, categories, collections to a voucher.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -179,10 +171,7 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
     class Meta:
         description = (
             'Removes products, categories, collections from a voucher.')
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -222,10 +211,7 @@ class SaleCreate(ModelMutation):
     class Meta:
         description = 'Creates a new sale.'
         model = models.Sale
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
 
 class SaleUpdate(ModelMutation):
@@ -237,10 +223,7 @@ class SaleUpdate(ModelMutation):
     class Meta:
         description = 'Updates a sale.'
         model = models.Sale
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
 
 class SaleDelete(ModelDeleteMutation):
@@ -250,10 +233,7 @@ class SaleDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a sale.'
         model = models.Sale
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
 
 class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
@@ -273,10 +253,7 @@ class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
 class SaleAddCatalogues(SaleBaseCatalogueMutation):
     class Meta:
         description = 'Adds products, categories, collections to a voucher.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -289,10 +266,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
 class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
     class Meta:
         description = 'Removes products, categories, collections from a sale.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('discount.manage_discounts')
+        permissions = ('discount.manage_discounts', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

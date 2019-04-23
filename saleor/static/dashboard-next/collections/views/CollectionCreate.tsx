@@ -48,7 +48,7 @@ export const CollectionCreate: React.StatelessComponent<{}> = () => {
             <WindowTitle title={i18n.t("Create collection")} />
             <CollectionCreatePage
               errors={maybe(() => data.collectionCreate.errors, [])}
-              onBack={() => navigate(collectionListUrl)}
+              onBack={() => navigate(collectionListUrl())}
               disabled={loading}
               onSubmit={formData =>
                 createCollection({

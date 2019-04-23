@@ -62,6 +62,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     class Meta:
         description = 'Creates a new draft order.'
         model = models.Order
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -102,10 +103,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
-
-    @classmethod
     def save(cls, info, instance, cleaned_input):
         shipping_address = cleaned_input.get('shipping_address')
         if shipping_address:
@@ -138,6 +135,7 @@ class DraftOrderUpdate(DraftOrderCreate):
     class Meta:
         description = 'Updates a draft order.'
         model = models.Order
+        permissions = ('order.manage_orders', )
 
 
 class DraftOrderDelete(ModelDeleteMutation):
@@ -148,10 +146,7 @@ class DraftOrderDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a draft order.'
         model = models.Order
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
 
 class DraftOrderComplete(BaseMutation):
@@ -164,6 +159,7 @@ class DraftOrderComplete(BaseMutation):
 
     class Meta:
         description = 'Completes creating an order.'
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def update_user_fields(cls, order):
@@ -174,10 +170,6 @@ class DraftOrderComplete(BaseMutation):
                 order.user = User.objects.get(email=order.user_email)
             except User.DoesNotExist:
                 order.user = None
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
 
     @classmethod
     def perform_mutation(cls, _root, info, id):
@@ -230,10 +222,7 @@ class DraftOrderLinesCreate(BaseMutation):
 
     class Meta:
         description = 'Create order lines for a draft order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -272,10 +261,7 @@ class DraftOrderLineDelete(BaseMutation):
 
     class Meta:
         description = 'Deletes an order line from a draft order.'
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def perform_mutation(cls, _root, info, id):
@@ -304,10 +290,7 @@ class DraftOrderLineUpdate(ModelMutation):
     class Meta:
         description = 'Updates an order line of a draft order.'
         model = models.OrderLine
-
-    @classmethod
-    def user_is_allowed(cls, user):
-        return user.has_perm('order.manage_orders')
+        permissions = ('order.manage_orders', )
 
     @classmethod
     def clean_input(cls, info, instance, data):

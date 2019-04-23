@@ -1,5 +1,12 @@
 from collections import namedtuple
+from decimal import Decimal
 
+from typing import Union
+
+from prices import TaxedMoneyRange
+
+from saleor.graphql.core.types import MoneyRange
+from saleor.product.models import ProductVariant, Product
 from ...core.utils import to_local_currency
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
@@ -8,10 +15,15 @@ ProductAvailability = namedtuple(
         'available', 'on_sale', 'price_range', 'price_range_undiscounted',
         'discount', 'price_range_local_currency', 'discount_local_currency'))
 
+VariantAvailability = namedtuple(
+    'ProductAvailability', (
+        'available', 'on_sale', 'price', 'price_undiscounted',
+        'discount', 'price_local_currency', 'discount_local_currency'))
+
 
 def products_with_availability(products, discounts, taxes, local_currency):
     for product in products:
-        yield (product, get_availability(
+        yield (product, get_product_availability(
             product, discounts, taxes, local_currency))
 
 
@@ -45,41 +57,86 @@ def get_variant_availability_status(variant):
     return VariantAvailabilityStatus.AVAILABLE
 
 
-def get_availability(product, discounts=None, taxes=None, local_currency=None):
-    # In default currency
-    price_range = product.get_price_range(discounts=discounts, taxes=taxes)
-    undiscounted = product.get_price_range(taxes=taxes)
-    if undiscounted.start > price_range.start:
-        discount = undiscounted.start - price_range.start
-    else:
-        discount = None
+def _get_total_discount(
+        undiscounted: Union[MoneyRange, TaxedMoneyRange, Decimal],
+        discounted: Union[MoneyRange, TaxedMoneyRange, Decimal]):
+    """Subtracts two prices that are whether a price range or decimal prices
+    and return their total discount, if any. Otherwise, it returns None."""
+    if not isinstance(undiscounted, (MoneyRange, TaxedMoneyRange)):
+        if undiscounted > discounted:
+            return undiscounted - discounted
+    elif undiscounted.start > discounted.start:
+        return undiscounted.start - discounted.stop
+    return None
 
-    # Local currency
+
+def _get_product_price_range(
+        discounted: Union[MoneyRange, TaxedMoneyRange],
+        undiscounted: Union[MoneyRange, TaxedMoneyRange], local_currency=None):
+    price_range_local = None
+    discount_local_currency = None
+
     if local_currency:
         price_range_local = to_local_currency(
-            price_range, local_currency)
+            discounted, local_currency)
         undiscounted_local = to_local_currency(
             undiscounted, local_currency)
-        if (undiscounted_local and
-                undiscounted_local.start > price_range_local.start):
+        if (undiscounted_local
+                and undiscounted_local.start > price_range_local.start):
             discount_local_currency = (
                 undiscounted_local.start - price_range_local.start)
-        else:
-            discount_local_currency = None
-    else:
-        price_range_local = None
-        discount_local_currency = None
 
-    is_available = product.is_in_stock() and product.is_visible
-    is_on_sale = (
-        product.is_visible and discount is not None and
-        undiscounted.start != price_range.start)
+    return price_range_local, discount_local_currency
+
+
+def get_product_availability(
+        product: Product,
+        discounts=None, taxes=None, local_currency=None
+) -> ProductAvailability:
+
+    discounted = product.get_price_range(discounts=discounts, taxes=taxes)
+    undiscounted = product.get_price_range(taxes=taxes)
+
+    discount = _get_total_discount(undiscounted, discounted)
+    price_range_local, discount_local_currency = _get_product_price_range(
+        discounted, undiscounted, local_currency)
+
+    is_on_sale = product.is_visible and discount is not None
 
     return ProductAvailability(
-        available=is_available,
+        available=product.is_available,
         on_sale=is_on_sale,
-        price_range=price_range,
+        price_range=discounted,
         price_range_undiscounted=undiscounted,
         discount=discount,
         price_range_local_currency=price_range_local,
+        discount_local_currency=discount_local_currency)
+
+
+def get_variant_availability(
+        variant: ProductVariant,
+        discounts=None, taxes=None, local_currency=None
+) -> VariantAvailability:
+
+    discounted = variant.get_price(discounts=discounts, taxes=taxes)
+    undiscounted = variant.get_price(taxes=taxes)
+
+    discount = _get_total_discount(undiscounted, discounted)
+
+    if local_currency:
+        price_local_currency = to_local_currency(discounted, local_currency)
+        discount_local_currency = to_local_currency(discount, local_currency)
+    else:
+        price_local_currency = None
+        discount_local_currency = None
+
+    is_on_sale = variant.is_visible and discount is not None
+
+    return VariantAvailability(
+        available=variant.is_available,
+        on_sale=is_on_sale,
+        price=discounted,
+        price_undiscounted=undiscounted,
+        discount=discount,
+        price_local_currency=price_local_currency,
         discount_local_currency=discount_local_currency)

@@ -1,125 +1,197 @@
-import { stringify as stringifyQs } from "qs";
+import Button from "@material-ui/core/Button";
 import * as React from "react";
 
-import Messages from "../../components/messages";
-import Navigator from "../../components/Navigator";
-import { createPaginationState, Paginator } from "../../components/Paginator";
+import { createPaginationState } from "../../components/Paginator";
+import useBulkActions from "../../hooks/useBulkActions";
+import useNavigator from "../../hooks/useNavigator";
+import useNotifier from "../../hooks/useNotifier";
+import usePaginator from "../../hooks/usePaginator";
 import i18n from "../../i18n";
-import { maybe } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import { OrderStatusFilter } from "../../types/globalTypes";
+import OrderBulkCancelDialog from "../components/OrderBulkCancelDialog";
 import OrderListPage from "../components/OrderListPage/OrderListPage";
 import { getTabName } from "../misc";
-import { TypedOrderDraftCreateMutation } from "../mutations";
+import {
+  TypedOrderBulkCancelMutation,
+  TypedOrderDraftCreateMutation
+} from "../mutations";
 import { TypedOrderListQuery } from "../queries";
+import { OrderBulkCancel } from "../types/OrderBulkCancel";
 import { OrderDraftCreate } from "../types/OrderDraftCreate";
-import { orderUrl } from "../urls";
-
-export interface OrderListFilters {
-  status: OrderStatusFilter;
-}
-export type OrderListQueryParams = Partial<
-  {
-    after: string;
-    before: string;
-  } & OrderListFilters
->;
+import {
+  orderListUrl,
+  OrderListUrlFilters,
+  OrderListUrlQueryParams,
+  orderUrl
+} from "../urls";
 
 interface OrderListProps {
-  params: OrderListQueryParams;
+  params: OrderListUrlQueryParams;
 }
 
 const PAGINATE_BY = 20;
 
 export const OrderList: React.StatelessComponent<OrderListProps> = ({
   params
-}) => (
-  <Navigator>
-    {navigate => (
-      <Messages>
-        {pushMessage => {
-          const handleCreateOrderCreateSuccess = (data: OrderDraftCreate) => {
-            pushMessage({
-              text: i18n.t("Order draft succesfully created")
-            });
-            navigate(orderUrl(data.draftOrderCreate.order.id));
-          };
+}) => {
+  const navigate = useNavigator();
+  const notify = useNotifier();
+  const paginate = usePaginator();
+  const { isSelected, listElements, reset, toggle } = useBulkActions(
+    params.ids
+  );
 
-          const changeFilters = (newParams: OrderListQueryParams) =>
-            navigate(
-              "?" +
-                stringifyQs({
-                  ...params,
-                  ...newParams
-                })
+  const closeModal = () =>
+    navigate(
+      orderListUrl({
+        ...params,
+        action: undefined,
+        ids: undefined
+      }),
+      true
+    );
+
+  const handleCreateOrderCreateSuccess = (data: OrderDraftCreate) => {
+    notify({
+      text: i18n.t("Order draft succesfully created")
+    });
+    navigate(orderUrl(data.draftOrderCreate.order.id));
+  };
+
+  const changeFilters = (filters: OrderListUrlFilters) => {
+    reset();
+    navigate(
+      orderListUrl({
+        ...params,
+        ...filters,
+        after: undefined,
+        before: undefined
+      })
+    );
+  };
+
+  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const currentTab = getTabName(params);
+
+  return (
+    <TypedOrderDraftCreateMutation onCompleted={handleCreateOrderCreateSuccess}>
+      {createOrder => (
+        <TypedOrderListQuery
+          displayLoader
+          variables={{
+            ...paginationState,
+            status: params.status
+          }}
+        >
+          {({ data, loading, refetch }) => {
+            const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
+              maybe(() => data.orders.pageInfo),
+              paginationState,
+              params
             );
 
-          return (
-            <TypedOrderDraftCreateMutation
-              onCompleted={handleCreateOrderCreateSuccess}
-            >
-              {createOrder => {
-                const paginationState = createPaginationState(
-                  PAGINATE_BY,
-                  params
-                );
-                const currentTab = getTabName(params);
+            const handleOrderBulkCancel = (data: OrderBulkCancel) => {
+              if (data.orderBulkCancel.errors.length === 0) {
+                notify({
+                  text: i18n.t("Orders cancelled", {
+                    context: "notification"
+                  })
+                });
+                reset();
+                refetch();
+                closeModal();
+              }
+            };
 
-                return (
-                  <TypedOrderListQuery
-                    displayLoader
-                    variables={{
-                      ...paginationState,
-                      status: params.status
-                    }}
-                  >
-                    {({ data, loading }) => (
-                      <Paginator
-                        pageInfo={maybe(() => data.orders.pageInfo)}
-                        paginationState={paginationState}
-                        queryString={params}
-                      >
-                        {({ loadNextPage, loadPreviousPage, pageInfo }) => (
-                          <OrderListPage
-                            filtersList={[]}
-                            currentTab={currentTab}
-                            disabled={loading}
-                            orders={maybe(() =>
-                              data.orders.edges.map(edge => edge.node)
-                            )}
-                            pageInfo={pageInfo}
-                            onAdd={createOrder}
-                            onNextPage={loadNextPage}
-                            onPreviousPage={loadPreviousPage}
-                            onRowClick={id => () => navigate(orderUrl(id))}
-                            onAllProducts={() =>
-                              changeFilters({
-                                status: undefined
-                              })
-                            }
-                            onToFulfill={() =>
-                              changeFilters({
-                                status: OrderStatusFilter.READY_TO_FULFILL
-                              })
-                            }
-                            onToCapture={() =>
-                              changeFilters({
-                                status: OrderStatusFilter.READY_TO_CAPTURE
-                              })
-                            }
-                            onCustomFilter={() => undefined}
-                          />
+            return (
+              <TypedOrderBulkCancelMutation onCompleted={handleOrderBulkCancel}>
+                {(orderBulkCancel, orderBulkCancelOpts) => {
+                  const orderBulkCancelTransitionState = getMutationState(
+                    orderBulkCancelOpts.called,
+                    orderBulkCancelOpts.loading,
+                    maybe(() => orderBulkCancelOpts.data.orderBulkCancel.errors)
+                  );
+                  const onOrderBulkCancel = (restock: boolean) =>
+                    orderBulkCancel({
+                      variables: {
+                        ids: params.ids,
+                        restock
+                      }
+                    });
+
+                  return (
+                    <>
+                      <OrderListPage
+                        filtersList={[]}
+                        currentTab={currentTab}
+                        disabled={loading}
+                        orders={maybe(() =>
+                          data.orders.edges.map(edge => edge.node)
                         )}
-                      </Paginator>
-                    )}
-                  </TypedOrderListQuery>
-                );
-              }}
-            </TypedOrderDraftCreateMutation>
-          );
-        }}
-      </Messages>
-    )}
-  </Navigator>
-);
+                        pageInfo={pageInfo}
+                        onAdd={createOrder}
+                        onNextPage={loadNextPage}
+                        onPreviousPage={loadPreviousPage}
+                        onRowClick={id => () => navigate(orderUrl(id))}
+                        onAllProducts={() =>
+                          changeFilters({
+                            status: undefined
+                          })
+                        }
+                        onToFulfill={() =>
+                          changeFilters({
+                            status: OrderStatusFilter.READY_TO_FULFILL
+                          })
+                        }
+                        onToCapture={() =>
+                          changeFilters({
+                            status: OrderStatusFilter.READY_TO_CAPTURE
+                          })
+                        }
+                        onCustomFilter={() => undefined}
+                        isChecked={isSelected}
+                        selected={listElements.length}
+                        toggle={toggle}
+                        toolbar={
+                          <Button
+                            color="primary"
+                            onClick={() =>
+                              navigate(
+                                orderListUrl({
+                                  ...params,
+                                  action: "cancel",
+                                  ids: listElements
+                                })
+                              )
+                            }
+                          >
+                            {i18n.t("Cancel", {
+                              context: "cancel orders"
+                            })}
+                          </Button>
+                        }
+                      />
+                      <OrderBulkCancelDialog
+                        confirmButtonState={orderBulkCancelTransitionState}
+                        numberOfOrders={maybe(
+                          () => params.ids.length.toString(),
+                          "..."
+                        )}
+                        onClose={closeModal}
+                        onConfirm={onOrderBulkCancel}
+                        open={params.action === "cancel"}
+                      />
+                    </>
+                  );
+                }}
+              </TypedOrderBulkCancelMutation>
+            );
+          }}
+        </TypedOrderListQuery>
+      )}
+    </TypedOrderDraftCreateMutation>
+  );
+};
 
 export default OrderList;

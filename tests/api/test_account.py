@@ -137,7 +137,8 @@ def test_token_create_user_data(
 
 
 def test_query_user(
-        staff_api_client, customer_user, address, permission_manage_users):
+        staff_api_client, customer_user, address, permission_manage_users,
+        media_root):
     user = customer_user
     user.default_shipping_address.country = 'US'
     user.default_shipping_address.save()
@@ -422,15 +423,15 @@ def test_me_query_customer_can_not_see_note(
     assert data['note'] == staff_api_client.user.note
 
 
-def test_me_query_checkout(user_api_client, cart):
+def test_me_query_checkout(user_api_client, checkout):
     user = user_api_client.user
-    cart.user = user
-    cart.save()
+    checkout.user = user
+    checkout.save()
 
     response = user_api_client.post_graphql(ME_QUERY)
     content = get_graphql_content(response)
     data = content['data']['me']
-    assert data['checkout']['token'] == str(cart.token)
+    assert data['checkout']['token'] == str(checkout.token)
 
 
 def test_me_with_cancelled_fulfillments(
@@ -795,7 +796,8 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
 
 @patch('saleor.dashboard.emails.send_set_password_staff_email.delay')
 def test_staff_create(
-        send_set_password_staff_email_mock, staff_api_client, permission_manage_staff):
+        send_set_password_staff_email_mock, staff_api_client, media_root,
+        permission_manage_staff):
     query = """
     mutation CreateStaff(
             $email: String, $permissions: [PermissionEnum],
@@ -854,7 +856,7 @@ def test_staff_create(
     assert call_pk == staff_user.pk
 
 
-def test_staff_update(staff_api_client, permission_manage_staff):
+def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     query = """
     mutation UpdateStaff(
             $id: ID!, $permissions: [PermissionEnum], $is_active: Boolean) {
@@ -1537,8 +1539,9 @@ def test_customer_change_default_address_invalid_address(
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert (
-        content['data']['customerSetDefaultAddress']['errors'][0]['field'] ==
-        'id')
+            content['data']['customerSetDefaultAddress']['errors'][0][
+                'field'] ==
+            'id')
 
 
 USER_AVATAR_UPDATE_MUTATION = """
@@ -1566,7 +1569,9 @@ def test_user_avatar_update_mutation_permission(api_client):
 
     assert_no_permission(response)
 
-def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
+
+def test_user_avatar_update_mutation(
+        monkeypatch, staff_api_client, media_root):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -1595,7 +1600,8 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client):
     mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
 
 
-def test_user_avatar_update_mutation_image_exists(staff_api_client):
+def test_user_avatar_update_mutation_image_exists(
+        staff_api_client, media_root):
     query = USER_AVATAR_UPDATE_MUTATION
 
     user = staff_api_client.user
@@ -1846,3 +1852,94 @@ def test_query_staff_memebers_with_filter_search(
     users = content['data']['staffUsers']['edges']
 
     assert len(users) == count
+
+
+USER_CHANGE_ACTIVE_STATUS_MUTATION = """
+    mutation userChangeActiveStatus($ids: [ID]!, $is_active: Boolean!) {
+        userBulkSetActive(ids: $ids, isActive: $is_active) {
+            count
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+
+def test_staff_bulk_set_active(
+        staff_api_client, user_list_not_active, permission_manage_users):
+    users = user_list_not_active
+    active_status = True
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['count'] == users.count()
+    users = User.objects.filter(pk__in=[user.pk for user in users])
+    assert all(user.is_active for user in users)
+
+
+def test_staff_bulk_set_not_active(
+        staff_api_client, user_list, permission_manage_users):
+    users = user_list
+    active_status = False
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['count'] == len(users)
+    users = User.objects.filter(pk__in=[user.pk for user in users])
+    assert not any(user.is_active for user in users)
+
+
+def test_change_active_status_for_superuser(
+        staff_api_client, superuser, permission_manage_users):
+    users = [superuser]
+    superuser_id = graphene.Node.to_global_id('User', superuser.id)
+    active_status = False
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['errors'][0]['field'] == superuser_id
+    assert data['errors'][0]['message'] == 'Cannot activate or deactivate ' \
+                                           'superuser\'s account.'
+
+
+def test_change_active_status_for_himself(
+        staff_api_client, permission_manage_users):
+    users = [staff_api_client.user]
+    user_id = graphene.Node.to_global_id('User', staff_api_client.user.id)
+    active_status = False
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['errors'][0]['field'] == user_id
+    assert data['errors'][0]['message'] == 'Cannot activate or deactivate ' \
+                                           'your own account.'

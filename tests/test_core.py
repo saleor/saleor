@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 import pytest
 from django.shortcuts import reverse
 from django.templatetags.static import static
+from django.test import override_settings
 from django.urls import translate_url
 from measurement.measures import Weight
 from prices import Money
@@ -64,7 +65,7 @@ def test_get_currency_for_country(country, expected_currency, monkeypatch):
     assert currency == expected_currency
 
 
-def test_create_superuser(db, client):
+def test_create_superuser(db, client, media_root):
     credentials = {'email': 'admin@example.com', 'password': 'admin'}
     # Test admin creation
     assert User.objects.all().count() == 0
@@ -112,7 +113,7 @@ def test_create_address(db):
     assert Address.objects.all().count() == 1
 
 
-def test_create_fake_order(db, monkeypatch, image):
+def test_create_fake_order(db, monkeypatch, image, media_root):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_image',
@@ -163,8 +164,9 @@ def test_utils_strip_html():
     assert text == 'Hello World'
 
 
+@override_settings(
+    VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
 def test_create_thumbnails(product_with_image, settings):
-    settings.VERSATILEIMAGEFIELD_SETTINGS['create_images_on_demand'] = False
     sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['products']
     product_image = product_with_image.images.first()
 
@@ -213,7 +215,7 @@ def test_set_language_redirects_to_current_endpoint(client):
     user_language_point = 'en'
     new_user_language = 'fr'
     new_user_language_point = '/fr/'
-    test_endpoint = 'cart:index'
+    test_endpoint = 'checkout:index'
 
     # get a English translated url (.../en/...)
     # and the expected url after we change it
@@ -244,7 +246,7 @@ def test_set_language_redirects_to_current_endpoint(client):
     assert new_url != current_url
 
     # now check if we got redirect the endpoint we wanted to go back
-    # in the new language (cart:index)
+    # in the new language (checkout:index)
     assert expected_url == new_url
 
 

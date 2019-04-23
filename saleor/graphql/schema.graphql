@@ -172,8 +172,8 @@ input AttributeUpdateInput {
 }
 
 type AttributeValue implements Node {
-  id: ID!
   sortOrder: Int!
+  id: ID!
   name: String
   slug: String
   type: AttributeValueType
@@ -499,6 +499,11 @@ type CollectionAddProducts {
 }
 
 type CollectionBulkDelete {
+  errors: [Error!]
+  count: Int!
+}
+
+type CollectionBulkPublish {
   errors: [Error!]
   count: Int!
 }
@@ -989,7 +994,6 @@ type Margin {
 type Menu implements Node {
   id: ID!
   name: String!
-  children: [MenuItem]!
   items: [MenuItem]
 }
 
@@ -1030,6 +1034,7 @@ input MenuInput {
 
 type MenuItem implements Node {
   id: ID!
+  sortOrder: Int!
   menu: Menu!
   name: String!
   parent: MenuItem
@@ -1084,6 +1089,17 @@ input MenuItemInput {
   category: ID
   collection: ID
   page: ID
+}
+
+type MenuItemMove {
+  errors: [Error!]
+  menu: Menu
+}
+
+input MenuItemMoveInput {
+  itemId: ID!
+  parentId: ID
+  sortOrder: Int
 }
 
 type MenuItemTranslate {
@@ -1154,12 +1170,14 @@ type Mutations {
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
   collectionBulkDelete(ids: [ID]!): CollectionBulkDelete
+  collectionBulkPublish(ids: [ID]!, isPublished: Boolean!): CollectionBulkPublish
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
   collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CollectionTranslate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productBulkDelete(ids: [ID]!): ProductBulkDelete
+  productBulkPublish(ids: [ID]!, isPublished: Boolean!): ProductBulkPublish
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
   productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
@@ -1188,8 +1206,7 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
-  pageBulkPublish(ids: [ID]!): PageBulkPublish
-  pageBulkUnpublish(ids: [ID]!): PageBulkUnpublish
+  pageBulkPublish(ids: [ID]!, isPublished: Boolean!): PageBulkPublish
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
   draftOrderComplete(id: ID!): DraftOrderComplete
@@ -1223,6 +1240,7 @@ type Mutations {
   menuItemBulkDelete(ids: [ID]!): MenuItemBulkDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
+  menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -1274,6 +1292,7 @@ type Mutations {
   addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
   userAvatarUpdate(image: Upload!): UserAvatarUpdate
   userAvatarDelete: UserAvatarDelete
+  userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
 }
 
 input NameTranslationInput {
@@ -1551,11 +1570,6 @@ type PageBulkPublish {
   count: Int!
 }
 
-type PageBulkUnpublish {
-  errors: [Error!]
-  count: Int!
-}
-
 type PageCountableConnection {
   pageInfo: PageInfo!
   edges: [PageCountableEdge!]!
@@ -1731,8 +1745,11 @@ type Product implements Node {
   url: String!
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
   thumbnail(size: Int): Image
-  availability: ProductAvailability
-  price: Money
+  availability: ProductPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  pricing: ProductPricingInfo
+  isAvailable: Boolean
+  basePrice: Money
+  price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
   taxRate: TaxRateType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
@@ -1745,17 +1762,12 @@ type Product implements Node {
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
 }
 
-type ProductAvailability {
-  available: Boolean
-  onSale: Boolean
-  discount: TaxedMoney
-  discountLocalCurrency: TaxedMoney
-  priceRange: TaxedMoneyRange
-  priceRangeUndiscounted: TaxedMoneyRange
-  priceRangeLocalCurrency: TaxedMoneyRange
+type ProductBulkDelete {
+  errors: [Error!]
+  count: Int!
 }
 
-type ProductBulkDelete {
+type ProductBulkPublish {
   errors: [Error!]
   count: Int!
 }
@@ -1888,6 +1900,16 @@ enum ProductOrderField {
   DATE
 }
 
+type ProductPricingInfo {
+  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
+  onSale: Boolean
+  discount: TaxedMoney
+  discountLocalCurrency: TaxedMoney
+  priceRange: TaxedMoneyRange
+  priceRangeUndiscounted: TaxedMoneyRange
+  priceRangeLocalCurrency: TaxedMoneyRange
+}
+
 type ProductTranslate {
   errors: [Error!]
   product: Product
@@ -1989,7 +2011,10 @@ type ProductVariant implements Node {
   weight: Weight
   stockQuantity: Int!
   priceOverride: Money
-  price: Money
+  price: Money @deprecated(reason: "Has been replaced by 'pricing.price_undiscounted'")
+  availability: VariantPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  pricing: VariantPricingInfo
+  isAvailable: Boolean
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
@@ -2622,6 +2647,11 @@ type UserAvatarUpdate {
   user: User
 }
 
+type UserBulkSetActive {
+  errors: [Error!]
+  count: Int!
+}
+
 type UserCountableConnection {
   pageInfo: PageInfo!
   edges: [UserCountableEdge!]!
@@ -2660,6 +2690,16 @@ type VariantImageUnassign {
   errors: [Error!]
   productVariant: ProductVariant
   image: ProductImage
+}
+
+type VariantPricingInfo {
+  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
+  onSale: Boolean
+  discount: TaxedMoney
+  discountLocalCurrency: TaxedMoney
+  price: TaxedMoney
+  priceUndiscounted: TaxedMoney
+  priceLocalCurrency: TaxedMoney
 }
 
 type VerifyToken {

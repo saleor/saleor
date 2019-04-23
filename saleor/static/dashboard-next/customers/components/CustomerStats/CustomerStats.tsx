@@ -20,8 +20,7 @@ import { CustomerDetails_user } from "../../types/CustomerDetails";
 const styles = (theme: Theme) =>
   createStyles({
     label: {
-      marginBottom: theme.spacing.unit,
-      textTransform: "uppercase"
+      marginBottom: theme.spacing.unit
     },
     value: {
       fontSize: 24
@@ -37,7 +36,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
     <Card>
       <CardTitle title={i18n.t("Customer History")} />
       <CardContent>
-        <Typography className={classes.label} variant="body2">
+        <Typography className={classes.label} variant="caption">
           {i18n.t("Last login")}
         </Typography>
         {maybe(
@@ -55,7 +54,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
       </CardContent>
       <Hr />
       <CardContent>
-        <Typography className={classes.label} variant="body2">
+        <Typography className={classes.label} variant="caption">
           {i18n.t("Last order")}
         </Typography>
         {maybe(

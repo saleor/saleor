@@ -26,7 +26,7 @@ export const configurationMenu: MenuItem[] = [
     icon: <ProductTypes fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PRODUCTS,
     title: i18n.t("Product Types"),
-    url: productTypeListUrl
+    url: productTypeListUrl()
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
@@ -40,7 +40,7 @@ export const configurationMenu: MenuItem[] = [
     icon: <ShippingMethods fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_SHIPPING,
     title: i18n.t("Shipping Methods"),
-    url: shippingZonesListUrl
+    url: shippingZonesListUrl()
   },
   {
     description: i18n.t("Manage how your store charges tax"),
@@ -67,7 +67,7 @@ export const configurationMenu: MenuItem[] = [
     icon: <Pages fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PAGES,
     title: i18n.t("Pages"),
-    url: pageListUrl
+    url: pageListUrl()
   }
 ];
 

@@ -5,10 +5,10 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import ProductList from "../../../components/ProductList";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { CategoryDetails_category_products_edges_node } from "../../types/CategoryDetails";
 
-interface CategoryProductsCardProps extends PageListProps {
+interface CategoryProductsCardProps extends PageListProps, ListActions {
   products: CategoryDetails_category_products_edges_node[];
   categoryName: string;
 }
@@ -23,7 +23,11 @@ export const CategoryProductsCard: React.StatelessComponent<
   onNextPage,
   onPreviousPage,
   onRowClick,
-  categoryName
+  categoryName,
+  isChecked,
+  selected,
+  toggle,
+  toolbar
 }) => (
   <Card>
     <CardTitle
@@ -41,6 +45,10 @@ export const CategoryProductsCard: React.StatelessComponent<
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       onRowClick={onRowClick}
+      selected={selected}
+      isChecked={isChecked}
+      toggle={toggle}
+      toolbar={toolbar}
     />
   </Card>
 );
