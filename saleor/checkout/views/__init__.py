@@ -166,11 +166,15 @@ def checkout_shipping_options(request, checkout):
     return TemplateResponse(request, 'checkout/_subtotal_table.html', ctx)
 
 
-@get_or_empty_db_checkout()
+@get_or_empty_db_checkout(
+    Checkout.objects.prefetch_related('lines__variant'))
 def update_checkout_line(request, checkout, variant_id):
     """Update the line quantities."""
     if not request.is_ajax():
         return redirect('checkout:index')
+
+    checkout = Checkout.objects.prefetch_related(
+        'lines__variant__product__category').get(pk=checkout.pk)
     variant = get_object_or_404(ProductVariant, pk=variant_id)
     discounts = request.discounts
     taxes = request.taxes
