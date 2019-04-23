@@ -17,7 +17,7 @@ from .bulk_mutations.products import (
     CategoryBulkDelete, CollectionBulkDelete, ProductBulkDelete,
     ProductImageBulkDelete, ProductTypeBulkDelete, ProductVariantBulkDelete)
 from .enums import StockAvailability
-from .filters import CollectionFilter, ProductFilter
+from .filters import CollectionFilter, ProductFilter, ProductTypeFilter
 from .mutations.attributes import (
     AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
     AttributeValueDelete, AttributeValueUpdate)
@@ -50,6 +50,11 @@ class ProductFilterInput(FilterInputObjectType):
 class CollectionFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = CollectionFilter
+
+
+class ProductTypeFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductTypeFilter
 
 
 class ProductQueries(graphene.ObjectType):
@@ -115,8 +120,9 @@ class ProductQueries(graphene.ObjectType):
     product_type = graphene.Field(
         ProductType, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a product type by ID.')
-    product_types = PrefetchingConnectionField(
-        ProductType, description='List of the shop\'s product types.')
+    product_types = FilterInputConnectionField(
+        ProductType, filter=ProductTypeFilterInput(),
+        description='List of the shop\'s product types.')
     product_variant = graphene.Field(
         ProductVariant, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a variant by ID.')

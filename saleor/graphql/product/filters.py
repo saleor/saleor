@@ -8,12 +8,14 @@ from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 from saleor.search.backends import picker
 
-from ...product.models import Attribute, Collection, Product
+from ...product.models import Attribute, Collection, Product, ProductType
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import PriceRangeInput
 from ..utils import filter_by_query_param, get_nodes
 from . import types
-from .enums import CollectionPublished, StockAvailability
+from .enums import (
+    CollectionPublished, ProductTypeConfigurable, ProductTypeEnum,
+    StockAvailability)
 from .types.attributes import AttributeInput
 
 
@@ -135,6 +137,22 @@ def filter_collection_search(qs, _, value):
     return qs
 
 
+def filter_product_type_configurable(qs, _, value):
+    if value == ProductTypeConfigurable.CONFIGURABLE:
+        qs = qs.filter(has_variants=True)
+    elif value == ProductTypeConfigurable.SIMPLE:
+        qs = qs.filter(has_variants=False)
+    return qs
+
+
+def filter_product_type(qs, _, value):
+    if value == ProductTypeEnum.DIGITAL:
+        qs = qs.filter(is_digital=True)
+    elif value == ProductTypeEnum.SHIPPABLE:
+        qs = qs.filter(is_shipping_required=True)
+    return qs
+
+
 class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
@@ -163,3 +181,16 @@ class CollectionFilter(django_filters.FilterSet):
     class Meta:
         model = Collection
         fields = ['published', 'search']
+
+
+class ProductTypeFilter(django_filters.FilterSet):
+    configurable = EnumFilter(
+        input_class=ProductTypeConfigurable,
+        method=filter_product_type_configurable)
+
+    product_type = EnumFilter(
+        input_class=ProductTypeEnum, method=filter_product_type)
+
+    class Meta:
+        model = ProductType
+        fields = ['configurable', 'product_type']
