@@ -6,12 +6,12 @@
 
 <div class="container">
   {% if quantity > 0 %}
-    <div id="cart-dropdown-list" class="cart-dropdown__list{% if lines|length <= 2 %} overflow{% endif %}">
+    <div id="checkout-preview-dropdown-list" class="checkout-preview-dropdown__list{% if lines|length <= 2 %} overflow{% endif %}">
     {% for line in lines %}
       <div class="row item">
         <div class="col-md-10">
           <a class="link--clean" href="{{ line.variant_url }}">
-            <img class="cart-dropdown__image lazyload lazypreload"
+            <img class="checkout-preview-dropdown__image lazyload lazypreload"
                  data-src="{% get_thumbnail line.image size=60 method="thumbnail" %}"
                  data-srcset="{% get_thumbnail line.image size=60 method="thumbnail" %} 1x, {% get_thumbnail line.image size=120 method="thumbnail" %} 2x"
                  alt=""
@@ -33,7 +33,7 @@
       </div>
     {% endfor %}
     </div>
-    <div class="row cart-dropdown__total" data-quantity="{{ quantity }}">
+    <div class="row checkout-preview-dropdown__total" data-quantity="{{ quantity }}">
       <div class="col-md-8">
         <h3>
           {% trans "Subtotal" context "Order subtotal" %}<br>
@@ -48,23 +48,23 @@
         </h3>
       </div>
     </div>
-    <div class="row cart-dropdown__actions">
+    <div class="row checkout-preview-dropdown__actions">
       <div class="col-md-1"></div>
       <div class="col-md-5">
-        <a href="{% url "checkout:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to cart" context "Checkout dropdown secondary action" %}</a>
+        <a href="{% url "checkout:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to checkout" context "Checkout dropdown secondary action" %}</a>
       </div>
       <div class="col-md-5">
-        <a href="{% url "checkout:login" %}" class="btn btn-primary narrow float-md-right">{% trans "Checkout" context "Cart dropdown primary action" %}</a>
+        <a href="{% url "checkout:login" %}" class="btn btn-primary narrow float-md-right">{% trans "Checkout" context "Checkout dropdown primary action" %}</a>
       </div>
     </div>
   {% else %}
-    <div class="text-md-center cart-dropdown__empty">
-      <h3>{% trans "There are no products in your shopping cart." context "Empty cart message" %}</h3>
-      <img data-src="{% static 'images/empty-cart-bg.png' %}"
-           data-srcset="{% static 'images/empty-cart-bg.png' %} 1x, {% static 'images/empty-cart-bg2x.png' %} 2x"
+    <div class="text-md-center checkout-preview-dropdown__empty">
+      <h3>{% trans "There are no products in your shopping checkout." context "Empty checkout message" %}</h3>
+      <img data-src="{% static 'images/empty-checkout-bg.png' %}"
+           data-srcset="{% static 'images/empty-checkout-bg.png' %} 1x, {% static 'images/empty-checkout-bg2x.png' %} 2x"
            src="{% placeholder size=255 %}"
            class="lazyload lazypreload">
-      <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Check out our sales" context "Empty cart link" %}</a>
+      <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Check out our sales" context "Empty checkout link" %}</a>
     </div>
   {% endif %}
 </div>
