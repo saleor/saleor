@@ -109,7 +109,8 @@ class Checkout(models.Model):
 
     def get_line(self, variant):
         """Return a line matching the given variant and data if any."""
-        matching_lines = (line for line in self if line.variant == variant)
+        matching_lines = (
+            line for line in self if line.variant.pk == variant.pk)
         return next(matching_lines, None)
 
     def get_last_active_payment(self):
