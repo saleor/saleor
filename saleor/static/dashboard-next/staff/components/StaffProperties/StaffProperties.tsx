@@ -6,23 +6,49 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
 import * as React from "react";
+import SVG from "react-inlinesvg";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
 
+import * as photoIcon from "../../../../images/photo-icon.svg";
+
 const styles = (theme: Theme) =>
   createStyles({
     avatar: {
+      "&:hover $avatarHover": {
+        opacity: 1,
+      },
       alignItems: "center",
       borderRadius: "100%",
       display: "grid",
       height: 120,
       justifyContent: "center",
-      width: 120
+      position: "relative",
+      width: 120,
+    },
+    avatarHover: {
+      "& p": {
+        color: theme.palette.primary.main,
+        fontSize: 12,
+        fontWeight: 500,
+      },
+      background: "#00000080",
+      borderRadius: "100%",
+      cursor: "pointer",
+      height: 120,
+      opacity: 0,
+      position: "absolute",
+      padding: `${theme.spacing.unit * 3}px 0`,
+      textAlign: "center",
+      textTransform: "uppercase",
+      transition: 'opacity 0.5s',
+      width: 120,
     },
     avatarImage: {
       pointerEvents: "none",
@@ -77,6 +103,10 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
                 className={classes.avatarImage}
                 src={maybe(() => staffMember.avatar.url)}
               />
+              <div className={classes.avatarHover}>
+                <SVG src={photoIcon} />
+                <Typography>{i18n.t("Change photo")}</Typography>
+              </div>
             </div>
           </div>
           <div>
