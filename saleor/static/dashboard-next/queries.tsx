@@ -135,8 +135,8 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
                   return (
                     <QueryProgress
                       loading={queryData.loading}
-                      onCompleted={() => setProgressState(true)}
-                      onLoading={() => setProgressState(false)}
+                      onCompleted={() => setProgressState(false)}
+                      onLoading={() => setProgressState(true)}
                     >
                       {childrenOrNotFound}
                     </QueryProgress>
