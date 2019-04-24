@@ -1,6 +1,5 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
   Theme,
@@ -17,6 +16,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import IconButtonTableCell from "../../../components/IconButtonTableCell";
 import Money from "../../../components/Money";
 import MoneyRange from "../../../components/MoneyRange";
 import Skeleton from "../../../components/Skeleton";
@@ -25,7 +25,6 @@ import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ICONBUTTON_SIZE } from "../../../theme";
 import { ShippingZoneDetailsFragment_shippingMethods } from "../../types/ShippingZoneDetailsFragment";
-import IconButtonTableCell from "../../../components/IconButtonTableCell";
 
 export interface ShippingZoneRatesProps {
   disabled: boolean;
