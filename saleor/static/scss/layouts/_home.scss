@@ -20,7 +20,7 @@
       display: table-cell;
       text-align: center;
       vertical-align: middle;
-      color: white;
+      color: black;
       padding-left: $global-padding;
       padding-right: $global-padding;
   }
@@ -52,7 +52,7 @@
   }
   &__block2 {
     .home--square {
-      background-image: url('../images/block2.jpg');
+      background-image: url('../images/fonblock.jpg');
       @include media-breakpoint-up(md) {
         &:before {
           padding-top: 20%;
@@ -75,7 +75,7 @@
   &__block5 {
     margin-top: $global-margin * 2;
     .home--square {
-      background-image: url('../images/block5.jpg');
+      background-image: url('../images/fonblock.jpg');
     }
   }
   &__block6 {

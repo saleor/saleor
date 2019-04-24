@@ -14,12 +14,12 @@ a.btn {
   &.home__button {
     text-transform: uppercase;
     font-size: $h3-font-size;
-    color: $white;
+    color: $black;
     background-color: transparent;
-    border: 1px solid $white;
+    border: 1px solid $black;
     padding: $global-padding $global-padding * 2;
     &:hover {
-      background-color: $white;
+      background-color: $black;
       color: $body-color;
     }
   }
@@ -36,7 +36,7 @@ a.btn {
   &.secondary {
     border: 1px solid $light-turquoise;
     padding: $global-padding $global-padding * 2;
-    background-color: $white;
+    background-color: $black;
     color: $light-turquoise;
     &:hover {
       border-color: #42beab;

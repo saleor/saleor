@@ -233,6 +233,12 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         label=pgettext_lazy('Add to collection select', 'Collections'))
     description = RichTextField(
         label=pgettext_lazy('Description', 'Description'))
+    api = RichTextField(
+        label=pgettext_lazy('Api', 'Api'))
+    tarification = RichTextField(
+        label=pgettext_lazy('Tarification', 'Tarification'))
+    demo = RichTextField(
+        label=pgettext_lazy('Demo', 'Demo'))
     weight = WeightField(
         required=False, label=pgettext_lazy('ProductType weight', 'Weight'),
         help_text=pgettext_lazy(
