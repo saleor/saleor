@@ -31,6 +31,7 @@ interface LinkProps
   color?: "primary" | "secondary";
   underline?: boolean;
   typographyProps?: TypographyProps;
+  onClick: () => void;
 }
 
 const Link = withStyles(styles, { name: "Link" })(
@@ -52,7 +53,7 @@ const Link = withStyles(styles, { name: "Link" })(
       })}
       onClick={event => {
         event.preventDefault();
-        onClick(event as any);
+        onClick();
       }}
       {...linkProps}
     >
