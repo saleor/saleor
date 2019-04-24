@@ -1,8 +1,8 @@
 import * as urlJoin from "url-join";
 
 import { MutationFn, MutationResult } from "react-apollo";
-import { appMountPoint } from ".";
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
+import { APP_MOUNT_URI } from "./config";
 import { AddressType } from "./customers/types";
 import i18n from "./i18n";
 import { PartialMutationProviderOutput, UserError } from "./types";
@@ -224,5 +224,5 @@ export function getUserInitials(user?: User) {
 }
 
 export function createHref(url: string) {
-  return urlJoin(appMountPoint, url);
+  return urlJoin(APP_MOUNT_URI, url);
 }
