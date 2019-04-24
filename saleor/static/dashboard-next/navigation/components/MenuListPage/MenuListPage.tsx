@@ -1,11 +1,11 @@
 import * as React from "react";
 
 import Container from "../../../components/Container";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { MenuList_menus_edges_node } from "../../types/MenuList";
 import MenuList from "../MenuList/MenuList";
 
-export interface MenuListPageProps extends PageListProps {
+export interface MenuListPageProps extends PageListProps, ListActions {
   menus: MenuList_menus_edges_node[];
   onDelete: (id: string) => void;
 }
