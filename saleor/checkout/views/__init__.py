@@ -6,7 +6,6 @@ from django.template.response import TemplateResponse
 from ...account.forms import LoginForm
 from ...core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
-from ...product.models import ProductVariant
 from ...shipping.utils import get_shipping_price_estimate
 from ..forms import (
     CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm)
@@ -166,37 +165,41 @@ def checkout_shipping_options(request, checkout):
     return TemplateResponse(request, 'checkout/_subtotal_table.html', ctx)
 
 
-@get_or_empty_db_checkout()
+@get_or_empty_db_checkout(
+    Checkout.objects.prefetch_related('lines__variant__product'))
 def update_checkout_line(request, checkout, variant_id):
     """Update the line quantities."""
     if not request.is_ajax():
         return redirect('checkout:index')
-    variant = get_object_or_404(ProductVariant, pk=variant_id)
+
+    checkout_line = get_object_or_404(checkout.lines, variant_id=variant_id)
     discounts = request.discounts
     taxes = request.taxes
     status = None
     form = ReplaceCheckoutLineForm(
-        request.POST, checkout=checkout, variant=variant, discounts=discounts,
+        request.POST,
+        checkout=checkout,
+        variant=checkout_line.variant,
+        discounts=discounts,
         taxes=taxes)
     if form.is_valid():
         form.save()
         response = {
             'variantId': variant_id,
-            'subtotal': 0,
+            'subtotal': format_money(
+                checkout_line.get_total(discounts, taxes).gross),
             'total': 0,
             'checkout': {
                 'numItems': checkout.quantity,
                 'numLines': len(checkout)}}
-        updated_line = checkout.get_line(form.checkout_line.variant)
-        if updated_line:
-            response['subtotal'] = format_money(
-                updated_line.get_total(discounts, taxes).gross)
-        if checkout:
-            checkout_total = checkout.get_subtotal(discounts, taxes)
-            response['total'] = format_money(checkout_total.gross)
-            local_checkout_total = to_local_currency(checkout_total, request.currency)
-            if local_checkout_total is not None:
-                response['localTotal'] = format_money(local_checkout_total.gross)
+
+        checkout_total = checkout.get_subtotal(discounts, taxes)
+        response['total'] = format_money(checkout_total.gross)
+        local_checkout_total = to_local_currency(
+            checkout_total, request.currency)
+        if local_checkout_total is not None:
+            response['localTotal'] = format_money(local_checkout_total.gross)
+
         status = 200
     elif request.POST is not None:
         response = {'error': form.errors}
@@ -241,4 +244,4 @@ def checkout_dropdown(request, checkout):
             'total': checkout.get_subtotal(discounts, taxes),
             'lines': [prepare_line_data(line) for line in checkout]}
 
-    return render(request, 'cart_dropdown.html', data)
+    return render(request, 'checkout_dropdown.html', data)
