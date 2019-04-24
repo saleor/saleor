@@ -61,7 +61,7 @@ class AddToCheckoutForm(forms.Form):
         self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
 
-    def add_error_i18n(self, field, error_name, fmt: Any=tuple()):
+    def add_error_i18n(self, field, error_name, fmt: Any = tuple()):
         self.add_error(field, self.error_messages[error_name] % fmt)
 
     def clean(self):
