@@ -26,6 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add settings to enable Django Debug Toolbar - #3983 by @koradon
 - Implement variant availability, introducing discounts in variants - #3948 by @NyanKiyoshi
 - Add bulk actions - #3955 by @dominik-zeglen
+- Add filtering interface for graphQL API - #3952 by @korycins
 
 
 ## 2.5.0
