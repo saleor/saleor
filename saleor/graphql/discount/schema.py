@@ -1,9 +1,11 @@
 import graphene
 from graphql_jwt.decorators import permission_required
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
+from ..core.types import FilterInputObjectType
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
+from .filters import SaleFilter, VoucherFilter
 from .mutations import (
     SaleAddCatalogues, SaleCreate, SaleDelete, SaleRemoveCatalogues,
     SaleUpdate, VoucherAddCatalogues, VoucherCreate, VoucherDelete,
@@ -12,19 +14,31 @@ from .resolvers import resolve_sales, resolve_vouchers
 from .types import Sale, Voucher
 
 
+class VoucherFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = VoucherFilter
+
+
+class SaleFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = SaleFilter
+
+
 class DiscountQueries(graphene.ObjectType):
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a sale by ID.')
-    sales = PrefetchingConnectionField(
-        Sale, query=graphene.String(
+    sales = FilterInputConnectionField(
+        Sale, filter=SaleFilterInput(),
+        query=graphene.String(
             description='Search sales by name, value or type.'),
         description='List of the shop\'s sales.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID, required=True),
         description='Lookup a voucher by ID.')
-    vouchers = PrefetchingConnectionField(
-        Voucher, query=graphene.String(
+    vouchers = FilterInputConnectionField(
+        Voucher, filter=VoucherFilterInput(),
+        query=graphene.String(
             description='Search vouchers by name or code.'),
         description='List of the shop\'s vouchers.')
 

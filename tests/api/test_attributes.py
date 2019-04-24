@@ -4,7 +4,8 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
-from saleor.graphql.product.types import resolve_attribute_value_type
+from saleor.graphql.product.types.attributes import (
+    resolve_attribute_value_type)
 from saleor.graphql.product.utils import attributes_to_hstore
 from saleor.product.models import Attribute, AttributeValue, Category
 from tests.api.utils import get_graphql_content
