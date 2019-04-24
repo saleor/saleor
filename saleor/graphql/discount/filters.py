@@ -15,9 +15,9 @@ def filter_status(qs, _, value):
     today = date.today()
     if value == DiscountStatusEnum.ACTIVE:
         return qs.active(today)
-    elif value == DiscountStatusEnum.EXPIRED:
+    if value == DiscountStatusEnum.EXPIRED:
         return qs.expired(today)
-    elif value == DiscountStatusEnum.SCHEDULED:
+    if value == DiscountStatusEnum.SCHEDULED:
         return qs.filter(start_date__gt=today)
     return qs
 
@@ -41,12 +41,12 @@ def filter_discount_type(qs, _, value):
 
 
 def filter_started(qs, _, value):
-    from_date = value.get('from_date')
-    to_date = value.get('to_date')
-    if from_date:
-        qs = qs.filter(start_date__gte=from_date)
-    if to_date:
-        qs = qs.filter(start_date__gte=to_date)
+    gte = value.get('gte')
+    lte = value.get('lte')
+    if gte:
+        qs = qs.filter(start_date__gte=gte)
+    if lte:
+        qs = qs.filter(start_date__gte=lte)
     return qs
 
 
@@ -83,7 +83,7 @@ class VoucherFilter(django_filters.FilterSet):
         input_class=DateRangeInput, method=filter_started
     )
     search = django_filters.CharFilter(method=filter_voucher_search)
-    
+
     class Meta:
         model = Voucher
         fields = ['status', 'times_used', 'discount_type', 'started', 'search']
@@ -97,7 +97,7 @@ class SaleFilter(django_filters.FilterSet):
     started = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_started)
     search = django_filters.CharFilter(method=filter_sale_search)
-    
+
     class Meta:
         model = Sale
         fields = ['status', 'sale_type', 'started', 'search']

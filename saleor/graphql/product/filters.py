@@ -6,9 +6,8 @@ import django_filters
 from django.db.models import Q, Sum
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
-from saleor.search.backends import picker
-
 from ...product.models import Attribute, Collection, Product, ProductType
+from ...search.backends import picker
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import PriceRangeInput
 from ..utils import filter_by_query_param, get_nodes
@@ -78,13 +77,13 @@ def filter_products_by_stock_availability(qs, stock_availability):
     if stock_availability == StockAvailability.IN_STOCK:
         qs = qs.filter(total_quantity__gt=0)
     elif stock_availability == StockAvailability.OUT_OF_STOCK:
-        qs = qs.filter(total_quantity__lte=0)
+        qs = qs.filter(total_quantity=0)
     return qs
 
 
 def filter_attributes(qs, _, value):
     if value:
-        value = [(v['slug'], v['attribute_value']) for v in value]
+        value = [(v['slug'], v['value']) for v in value]
         qs = filter_products_by_attributes(qs, value)
     return qs
 

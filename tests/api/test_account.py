@@ -1663,10 +1663,10 @@ def test_user_avatar_delete_mutation(staff_api_client):
 
 
 @pytest.mark.parametrize('customer_filter, count', [
-    ({'placedOrders': {'fromDate': '2019-04-18'}}, 1),
-    ({'placedOrders': {'toDate': '2012-01-14'}}, 1),
-    ({'placedOrders': {'toDate': '2012-01-14', 'fromDate': '2012-01-13'}}, 1),
-    ({'placedOrders': {'fromDate': '2012-01-14'}}, 2),
+    ({'placedOrders': {'gte': '2019-04-18'}}, 1),
+    ({'placedOrders': {'lte': '2012-01-14'}}, 1),
+    ({'placedOrders': {'lte': '2012-01-14', 'gte': '2012-01-13'}}, 1),
+    ({'placedOrders': {'gte': '2012-01-14'}}, 2),
 
 ])
 def test_query_customers_with_filter_placed_orders(
@@ -1687,11 +1687,11 @@ def test_query_customers_with_filter_placed_orders(
 
 
 @pytest.mark.parametrize('customer_filter, count', [
-    ({'dateJoined': {'fromDate': '2019-04-18'}}, 1),
-    ({'dateJoined': {'toDate': '2012-01-14'}}, 1),
-    ({'dateJoined': {'toDate': '2012-01-14', 'fromDate': '2012-01-13'}},
+    ({'dateJoined': {'gte': '2019-04-18'}}, 1),
+    ({'dateJoined': {'lte': '2012-01-14'}}, 1),
+    ({'dateJoined': {'lte': '2012-01-14', 'gte': '2012-01-13'}},
      1),
-    ({'dateJoined': {'fromDate': '2012-01-14'}}, 2),
+    ({'dateJoined': {'gte': '2012-01-14'}}, 2),
 
 ])
 def test_query_customers_with_filter_date_joined(

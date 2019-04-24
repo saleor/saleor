@@ -6,7 +6,8 @@ from django_filters.fields import MultipleChoiceField
 
 class DefaultMultipleChoiceField(MultipleChoiceField):
     default_error_messages = {
-        "invalid_choice": _("One of the specified IDs was invalid (%(value)s)."),
+        "invalid_choice": _(
+            "One of the specified IDs was invalid (%(value)s)."),
         "invalid_list": _("Enter a list of values."),
     }
 
@@ -18,7 +19,8 @@ class DefaultMultipleChoiceField(MultipleChoiceField):
     def validate(self, value):
         """Validate that the input is a list or tuple."""
         if self.required and not value:
-            raise ValidationError(self.error_messages['required'], code='required')
+            raise ValidationError(
+                self.error_messages['required'], code='required')
         if not isinstance(value, (list, tuple)):
             raise ValidationError(
                 self.error_messages['invalid_list'], code='invalid_list')

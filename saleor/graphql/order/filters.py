@@ -34,12 +34,11 @@ def filter_customer(qs, _, value):
 
 
 def filter_created_range(qs, _, value):
-    from_date = value.get("from_date")
-    to_date = value.get("to_date")
-    if from_date:
-        qs = qs.filter(created__date__gte=from_date)
-    if to_date:
-        qs = qs.filter(created__date__lte=to_date)
+    gte, lte = value.get("gte"), value.get("lte")
+    if gte:
+        qs = qs.filter(created__date__gte=gte)
+    if lte:
+        qs = qs.filter(created__date__lte=lte)
     return qs
 
 

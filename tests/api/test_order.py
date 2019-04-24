@@ -1508,13 +1508,13 @@ def test_order_bulk_cancel_with_restock(
 @pytest.mark.parametrize('orders_filter, count', [
     (
       {
-        'created': {'fromDate': str(date.today() - timedelta(days=3)),
-                    'toDate': str(date.today())}}, 1
+        'created': {'gte': str(date.today() - timedelta(days=3)),
+                    'lte': str(date.today())}}, 1
     ),
-    ({'created': {'fromDate': str(date.today() - timedelta(days=3))}}, 1),
-    ({'created': {'toDate': str(date.today())}}, 2),
-    ({'created': {'toDate': str(date.today() - timedelta(days=3))}}, 1),
-    ({'created': {'fromDate': str(date.today() + timedelta(days=1))}}, 0),
+    ({'created': {'gte': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'lte': str(date.today())}}, 2),
+    ({'created': {'lte': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'gte': str(date.today() + timedelta(days=1))}}, 0),
 ])
 def test_order_query_with_filter_created(
         orders_filter, count, orders_query_with_filter, staff_api_client,
@@ -1691,13 +1691,13 @@ def test_draft_order_query_with_filter_customer_fields(
 @pytest.mark.parametrize('orders_filter, count', [
     (
       {
-        'created': {'fromDate': str(date.today() - timedelta(days=3)),
-                    'toDate': str(date.today())}}, 1
+        'created': {'gte': str(date.today() - timedelta(days=3)),
+                    'lte': str(date.today())}}, 1
     ),
-    ({'created': {'fromDate': str(date.today() - timedelta(days=3))}}, 1),
-    ({'created': {'toDate': str(date.today())}}, 2),
-    ({'created': {'toDate': str(date.today() - timedelta(days=3))}}, 1),
-    ({'created': {'fromDate': str(date.today() + timedelta(days=1))}}, 0),
+    ({'created': {'gte': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'lte': str(date.today())}}, 2),
+    ({'created': {'lte': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'gte': str(date.today() + timedelta(days=1))}}, 0),
 ])
 def test_order_query_with_filter_created(
         orders_filter, count, draft_orders_query_with_filter, staff_api_client,
