@@ -70,6 +70,29 @@ def test_checkout_create(api_client, variant, graphql_address_data):
     assert new_checkout.shipping_address.city == shipping_address['city'].upper()
 
 
+def test_checkout_create_cannot_add_too_many_quantities(
+        api_client, variant, graphql_address_data):
+
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    test_email = 'test@example.com'
+    shipping_address = graphql_address_data
+    variables = {
+        'checkoutInput': {
+            'lines': [{
+                'quantity': 51,
+                'variantId': variant_id}],
+            'email': test_email,
+            'shippingAddress': shipping_address}}
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)['data']['checkoutCreate']
+    assert content['errors']
+    assert content['errors'] == [{
+        'field': 'quantity',
+        'message': 'Cannot add more than 50 times this item.'}]
+
+
+
 def test_checkout_create_reuse_checkout(checkout, user_api_client, variant):
     # assign user to the checkout
     checkout.user = user_api_client.user
@@ -359,6 +382,25 @@ def test_checkout_lines_add(user_api_client, checkout_with_item, variant):
     assert line.variant == variant
     assert line.quantity == 1
 
+
+def test_checkout_lines_add_too_many(
+        user_api_client, checkout_with_item, variant):
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout_with_item.pk)
+
+    variables = {
+        'checkoutId': checkout_id,
+        'lines': [{
+            'variantId': variant_id,
+            'quantity': 51}]}
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)['data']['checkoutLinesAdd']
+
+    assert content['errors']
+    assert content['errors'] == [{
+        'field': 'quantity',
+        'message': 'Cannot add more than 50 times this item.'}]
 
 def test_checkout_lines_add_empty_checkout(user_api_client, checkout, variant):
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)

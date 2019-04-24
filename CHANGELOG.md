@@ -28,7 +28,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add bulk actions - #3955 by @dominik-zeglen
 - Update file field styles with materializecss template filter - #3998 by @zodiacfireworks
 - Add filtering interface for graphQL API - #3952 by @korycins
-- Ensure adding to checkout is respecting the limits set, so the user doesn't add too many - #4005 by @NyanKiyoshi
+- Ensure adding to quantities in checkout is respecting the limits set, 
+  both in storefront 1.0 and in the API - #4005 by @NyanKiyoshi
 
 
 ## 2.5.0
