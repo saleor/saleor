@@ -10,20 +10,20 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import IconButtonTableCell from "../../../components/IconButtonTableCell";
 import Skeleton from "../../../components/Skeleton";
+import TableHead from "../../../components/TableHead";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
-import { ListProps } from "../../../types";
+import { maybe, renderCollection, stopPropagation } from "../../../misc";
+import { ListActions, ListProps } from "../../../types";
 import { MenuList_menus_edges_node } from "../../types/MenuList";
 
-export interface MenuListProps extends ListProps {
+export interface MenuListProps extends ListProps, ListActions {
   menus: MenuList_menus_edges_node[];
   onDelete: (id: string) => void;
 }
@@ -48,16 +48,20 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
   ({
     classes,
     disabled,
+    isChecked,
     menus,
     onDelete,
     onNextPage,
     onPreviousPage,
     onRowClick,
-    pageInfo
+    pageInfo,
+    selected,
+    toggle,
+    toolbar
   }: MenuListProps & WithStyles<typeof styles>) => (
     <Card>
       <Table>
-        <TableHead>
+        <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
             <TableCell padding="checkbox" />
             <TableCell className={classes.colTitle}>
@@ -85,33 +89,42 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
         <TableBody>
           {renderCollection(
             menus,
-            menu => (
-              <TableRow
-                hover={!!menu}
-                key={menu ? menu.id : "skeleton"}
-                onClick={menu && onRowClick(menu.id)}
-                className={classes.row}
-              >
-                <TableCell>
-                  <Checkbox />
-                </TableCell>
-                <TableCell className={classes.colTitle}>
-                  {maybe<React.ReactNode>(() => menu.name, <Skeleton />)}
-                </TableCell>
-                <TableCell className={classes.colItems}>
-                  {maybe<React.ReactNode>(
-                    () => menu.items.length,
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <IconButtonTableCell
-                  disabled={disabled}
-                  onClick={() => onDelete(menu.id)}
+            menu => {
+              const isSelected = menu ? isChecked(menu.id) : false;
+
+              return (
+                <TableRow
+                  hover={!!menu}
+                  key={menu ? menu.id : "skeleton"}
+                  onClick={menu && onRowClick(menu.id)}
+                  className={classes.row}
+                  selected={isSelected}
                 >
-                  <DeleteIcon />
-                </IconButtonTableCell>
-              </TableRow>
-            ),
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      color="primary"
+                      disabled={disabled}
+                      onClick={stopPropagation(() => toggle(menu.id))}
+                    />
+                  </TableCell>
+                  <TableCell className={classes.colTitle}>
+                    {maybe<React.ReactNode>(() => menu.name, <Skeleton />)}
+                  </TableCell>
+                  <TableCell className={classes.colItems}>
+                    {maybe<React.ReactNode>(
+                      () => menu.items.length,
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <IconButtonTableCell
+                    disabled={disabled}
+                    onClick={() => onDelete(menu.id)}
+                  >
+                    <DeleteIcon />
+                  </IconButtonTableCell>
+                </TableRow>
+              );
+            },
             () => (
               <TableRow>
                 <TableCell colSpan={4}>{i18n.t("No menus found")}</TableCell>
