@@ -487,6 +487,14 @@ def test_view_invalid_update_checkout(client, request_checkout_with_item):
     assert request_checkout_with_item.quantity == 1
 
 
+def test_view_invalid_variant_update_checkout(
+        client, request_checkout_with_item):
+    response = client.post(
+        reverse('checkout:update-line', kwargs={'variant_id': '123'}),
+        data={}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 404
+
+
 def test_checkout_page_without_openexchagerates(
         client, request_checkout_with_item, settings):
     settings.OPENEXCHANGERATES_API_KEY = None
