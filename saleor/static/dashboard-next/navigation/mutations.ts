@@ -4,7 +4,26 @@ import {
   MenuBulkDelete,
   MenuBulkDeleteVariables
 } from "./types/MenuBulkDelete";
+import { MenuCreate, MenuCreateVariables } from "./types/MenuCreate";
 import { MenuDelete, MenuDeleteVariables } from "./types/MenuDelete";
+
+const menuCreate = gql`
+  mutation MenuCreate($input: MenuCreateInput!) {
+    menuCreate(input: $input) {
+      errors {
+        field
+        message
+      }
+      menu {
+        id
+      }
+    }
+  }
+`;
+export const MenuCreateMutation = TypedMutation<
+  MenuCreate,
+  MenuCreateVariables
+>(menuCreate);
 
 const menuBulkDelete = gql`
   mutation MenuBulkDelete($ids: [ID]!) {

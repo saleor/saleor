@@ -343,6 +343,19 @@ export interface FulfillmentUpdateTrackingInput {
   notifyCustomer?: boolean | null;
 }
 
+export interface MenuCreateInput {
+  name?: string | null;
+  items?: (MenuItemInput | null)[] | null;
+}
+
+export interface MenuItemInput {
+  name?: string | null;
+  url?: string | null;
+  category?: string | null;
+  collection?: string | null;
+  page?: string | null;
+}
+
 export interface NameTranslationInput {
   name?: string | null;
 }
