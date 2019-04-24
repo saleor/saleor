@@ -127,7 +127,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             );
 
             return (
-              <>
+              <React.Fragment key={menuItem.label}>
                 <div
                   onClick={() => setOpenStatus(!isOpened)}
                   className={classNames(classes.menuListItem, {
@@ -152,7 +152,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                     </div>
                   )}
                 </div>
-              </>
+              </React.Fragment>
             );
           }
 
