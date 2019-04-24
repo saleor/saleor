@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update file field styles with materializecss template filter - #3998 by @zodiacfireworks
 - Add filtering interface for graphQL API - #3952 by @korycins
 
+- Restrict single payment resolving - #4009 @NyanKiyoshi
 
 ## 2.5.0
 
