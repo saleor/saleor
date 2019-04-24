@@ -1,28 +1,25 @@
 import django_filters
 from django.db.models import Count, Sum
 
-from saleor.graphql.utils import filter_by_query_param
-
 from ...account.models import User
 from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
+from ..utils import filter_by_query_param
 from .enums import StaffMemberStatus
 
 
 def filter_date_joined(qs, _, value):
-    from_date = value.get('from_date')
-    to_date = value.get('to_date')
-    if from_date:
-        qs = qs.filter(date_joined__date__gte=from_date)
-    if to_date:
-        qs = qs.filter(date_joined__date__lte=to_date)
+    gte, lte = value.get('gte'), value.get('lte')
+    if gte:
+        qs = qs.filter(date_joined__date__gte=gte)
+    if lte:
+        qs = qs.filter(date_joined__date__lte=lte)
     return qs
 
 
 def filter_money_spent(qs, _, value):
     qs = qs.annotate(money_spent=Sum('orders__total_gross'))
-    money_spent_lte = value.get('lte')
-    money_spent_gte = value.get('gte')
+    money_spent_lte, money_spent_gte = value.get('lte'), value.get('gte')
     if money_spent_lte:
         qs = qs.filter(money_spent__lte=money_spent_lte)
     if money_spent_gte:
@@ -32,8 +29,7 @@ def filter_money_spent(qs, _, value):
 
 def filter_number_of_orders(qs, _, value):
     qs = qs.annotate(total_orders=Count('orders'))
-    gte = value.get('gte')
-    lte = value.get('lte')
+    gte, lte = value.get('gte'), value.get('lte')
     if gte:
         qs = qs.filter(total_orders__gte=gte)
     if lte:
@@ -42,12 +38,11 @@ def filter_number_of_orders(qs, _, value):
 
 
 def filter_placed_orders(qs, _, value):
-    from_date = value.get('from_date')
-    to_date = value.get('to_date')
-    if from_date:
-        qs = qs.filter(orders__created__date__gte=from_date)
-    if to_date:
-        qs = qs.filter(orders__created__date__lte=to_date)
+    gte, lte = value.get('gte'), value.get('lte')
+    if gte:
+        qs = qs.filter(orders__created__date__gte=gte)
+    if lte:
+        qs = qs.filter(orders__created__date__lte=lte)
     return qs
 
 

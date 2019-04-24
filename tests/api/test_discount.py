@@ -702,10 +702,10 @@ def test_query_vouchers_with_filter_times_used(
 
 
 @pytest.mark.parametrize('voucher_filter, count', [
-    ({'started': {'fromDate': '2019-04-18'}}, 1),
-    ({'started': {'toDate': '2012-01-14'}}, 1),
-    ({'started': {'toDate': '2012-01-15', 'fromDate': '2012-01-01'}}, 1),
-    ({'started': {'fromDate': '2012-01-03'}}, 2),
+    ({'started': {'gte': '2019-04-18'}}, 1),
+    ({'started': {'lte': '2012-01-14'}}, 1),
+    ({'started': {'lte': '2012-01-15', 'gte': '2012-01-01'}}, 1),
+    ({'started': {'gte': '2012-01-03'}}, 2),
 ])
 def test_query_vouchers_with_filter_started(
         voucher_filter, count, staff_api_client, query_vouchers_with_filter,
@@ -831,10 +831,10 @@ def test_query_sales_with_filter_discount_type(
 
 
 @pytest.mark.parametrize('sale_filter, count', [
-    ({'started': {'fromDate': '2019-04-18'}}, 1),
-    ({'started': {'toDate': '2012-01-14'}}, 1),
-    ({'started': {'toDate': '2012-01-15', 'fromDate': '2012-01-01'}}, 1),
-    ({'started': {'fromDate': '2012-01-03'}}, 2),
+    ({'started': {'gte': '2019-04-18'}}, 1),
+    ({'started': {'lte': '2012-01-14'}}, 1),
+    ({'started': {'lte': '2012-01-15', 'gte': '2012-01-01'}}, 1),
+    ({'started': {'gte': '2012-01-03'}}, 2),
 ])
 def test_query_sales_with_filter_started(
         sale_filter, count, staff_api_client, query_sales_with_filter,

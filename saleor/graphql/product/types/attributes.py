@@ -99,5 +99,5 @@ class SelectedAttribute(graphene.ObjectType):
 class AttributeInput(graphene.InputObjectType):
     slug = graphene.String(
         required=True, description=AttributeDescriptions.SLUG)
-    attribute_value = graphene.String(
+    value = graphene.String(
         required=True, description=AttributeValueDescriptions.SLUG)

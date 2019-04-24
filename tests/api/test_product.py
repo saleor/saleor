@@ -240,7 +240,7 @@ def test_products_query_with_filter_attributes(
     variables = {
         'filter': {
             'attributes': [
-                {'slug': attribute.slug, 'attributeValue': attr_value.slug},
+                {'slug': attribute.slug, 'value': attr_value.slug},
             ]
         }
     }

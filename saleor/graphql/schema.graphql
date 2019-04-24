@@ -138,7 +138,7 @@ type AttributeDelete {
 
 input AttributeInput {
   slug: String!
-  attributeValue: String!
+  value: String!
 }
 
 scalar AttributeScalar
@@ -678,8 +678,8 @@ type CustomerUpdate {
 scalar Date
 
 input DateRangeInput {
-  fromDate: Date
-  toDate: Date
+  gte: Date
+  lte: Date
 }
 
 scalar DateTime
