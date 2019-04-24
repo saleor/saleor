@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Implement variant availability, introducing discounts in variants - #3948 by @NyanKiyoshi
 - Add bulk actions - #3955 by @dominik-zeglen
 - Update file field styles with materializecss template filter - #3998 by @zodiacfireworks
+- Add filtering interface for graphQL API - #3952 by @korycins
 
 
 ## 2.5.0

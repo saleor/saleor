@@ -4,13 +4,15 @@ import graphene
 from graphql_jwt.decorators import login_required, permission_required
 
 from ..core.enums import ReportingPeriod
-from ..core.fields import PrefetchingConnectionField
-from ..core.types import TaxedMoney
+from ..core.fields import (
+    FilterInputConnectionField, PrefetchingConnectionField)
+from ..core.types import FilterInputObjectType, TaxedMoney
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations.draft_orders import (
     DraftOrderBulkDelete, DraftOrderLinesBulkDelete)
 from .bulk_mutations.orders import OrderBulkCancel
 from .enums import OrderStatusFilter
+from .filters import DraftOrderFilter, OrderFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
     DraftOrderLineDelete, DraftOrderLinesCreate, DraftOrderLineUpdate,
@@ -26,6 +28,16 @@ from .resolvers import (
 from .types import Order, OrderEvent
 
 
+class OrderFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = OrderFilter
+
+
+class OrderDraftFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = DraftOrderFilter
+
+
 class OrderQueries(graphene.ObjectType):
     homepage_events = PrefetchingConnectionField(
         OrderEvent, description=dedent('''List of activity events to display on
@@ -33,8 +45,9 @@ class OrderQueries(graphene.ObjectType):
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID, required=True))
-    orders = PrefetchingConnectionField(
+    orders = FilterInputConnectionField(
         Order,
+        filter=OrderFilterInput(),
         query=graphene.String(description=DESCRIPTIONS['order']),
         created=graphene.Argument(
             ReportingPeriod,
@@ -42,8 +55,9 @@ class OrderQueries(graphene.ObjectType):
         status=graphene.Argument(
             OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
-    draft_orders = PrefetchingConnectionField(
+    draft_orders = FilterInputConnectionField(
         Order,
+        filter=OrderDraftFilterInput(),
         query=graphene.String(description=DESCRIPTIONS['order']),
         created=graphene.Argument(
             ReportingPeriod,

@@ -1,8 +1,8 @@
 from textwrap import dedent
 
-from django.core.exceptions import ValidationError
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from django.core.exceptions import ValidationError
 from graphene import relay
 
 from ...order import models
@@ -10,9 +10,10 @@ from ...order.models import FulfillmentStatus
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
+from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
-from ..product.types import Image, ProductVariant
+from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import applicable_shipping_methods, validate_draft_order

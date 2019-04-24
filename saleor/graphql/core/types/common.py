@@ -77,3 +77,22 @@ class Image(graphene.ObjectType):
             url = image.url
         url = info.context.build_absolute_uri(url)
         return Image(url, alt)
+
+
+class PriceRangeInput(graphene.InputObjectType):
+    gte = graphene.Float(
+        description='Price greater than or equal', required=False)
+    lte = graphene.Float(
+        description='Price less than or equal', required=False)
+
+
+class DateRangeInput(graphene.InputObjectType):
+    gte = graphene.Date(description='Start date', required=False)
+    lte = graphene.Date(description='End date', required=False)
+
+
+class IntRangeInput(graphene.InputObjectType):
+    gte = graphene.Int(
+        description='Value greater than or equal', required=False)
+    lte = graphene.Int(
+        description='Value less than or equal', required=False)
