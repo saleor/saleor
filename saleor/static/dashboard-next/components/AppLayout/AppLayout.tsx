@@ -85,17 +85,17 @@ const styles = (theme: Theme) =>
       },
       "& span": {
         "&:nth-child(1)": {
-          top: "15px"
+          top: 15
         },
         "&:nth-child(2), &:nth-child(3)": {
-          top: "20px"
+          top: 20
         },
         "&:nth-child(4)": {
-          top: "25px"
+          top: 25
         },
         background: theme.palette.secondary.light,
         display: "block",
-        height: "1px",
+        height: 1,
         left: "20%",
         opacity: 1,
         position: "absolute",
@@ -106,13 +106,13 @@ const styles = (theme: Theme) =>
       background: theme.palette.background.paper,
       borderRadius: "50%",
       cursor: "pointer",
-      height: "42px",
+      height: 42,
       left: theme.spacing.unit,
       marginRight: theme.spacing.unit * 2,
       position: "relative",
       transform: "rotate(0deg)",
       transition: ".2s ease-in-out",
-      width: "42px"
+      width: 42
     },
     menuIconDark: {
       "& span": {
@@ -123,7 +123,7 @@ const styles = (theme: Theme) =>
       "& span": {
         "&:nth-child(1), &:nth-child(4)": {
           left: "50%",
-          top: "20px",
+          top: 20,
           width: 0
         },
         "&:nth-child(2)": {
@@ -133,7 +133,7 @@ const styles = (theme: Theme) =>
           transform: "rotate(-45deg)"
         }
       },
-      left: "280px",
+      left: 280,
       position: "absolute",
       zIndex: 1999
     },
