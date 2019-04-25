@@ -411,7 +411,8 @@ def test_payments_query(
         'lastDigits': pay.cc_last_digits}
 
 
-def test_query_payment(payment_dummy, user_api_client):
+def test_query_payment(
+        payment_dummy, user_api_client, permission_manage_orders):
     query = """
     query payment($id: ID) {
         payment(id: $id) {
@@ -422,7 +423,8 @@ def test_query_payment(payment_dummy, user_api_client):
     payment = payment_dummy
     payment_id = graphene.Node.to_global_id('Payment', payment.pk)
     variables = {'id': payment_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     received_id = content['data']['payment']['id']
     assert received_id == payment_id
