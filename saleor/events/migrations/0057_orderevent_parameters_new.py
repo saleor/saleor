@@ -9,7 +9,7 @@ import json
 class Migration(migrations.Migration):
 
     def populate_data(apps, schema_editor):
-        OrderEvent = apps.get_model('order', 'OrderEvent')
+        OrderEvent = apps.get_model('events', 'OrderEvent')
         for order_event in OrderEvent.objects.all():
             if isinstance(order_event.parameters, str):
                 json_str = order_event.parameters
@@ -19,7 +19,11 @@ class Migration(migrations.Migration):
                 order_event.save()
 
     dependencies = [
-        ('order', '0056_auto_20180911_1541'),
+        ('events', '0056_auto_20180911_1541'),
+    ]
+
+    replaces = [
+        ('order', '0057_orderevent_parameters_new'),
     ]
 
     operations = [

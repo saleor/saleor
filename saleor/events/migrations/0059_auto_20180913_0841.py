@@ -6,7 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0058_remove_orderevent_parameters'),
+        ('events', '0058_remove_orderevent_parameters'),
+    ]
+
+    replaces = [
+        ('order', '0059_auto_20180913_0841'),
     ]
 
     operations = [

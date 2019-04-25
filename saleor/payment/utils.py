@@ -12,7 +12,8 @@ from django.utils.translation import pgettext_lazy
 from ..account.models import Address, User
 from ..checkout.models import Checkout
 from ..core import analytics
-from ..order import OrderEvents, OrderEventsEmails, utils as order_utils
+from ..events.types import OrderEvents, OrderEventsEmails
+from ..order import utils as order_utils
 from ..order.emails import send_payment_confirmation
 from ..order.models import Order
 from . import (

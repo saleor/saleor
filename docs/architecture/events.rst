@@ -44,3 +44,21 @@ Order events
 +--------------------------+--------------------------+---------------------------------------------------------------------+
 | ``other``                | ``OTHER``                | Status used during reimporting of the legacy events.                |
 +--------------------------+--------------------------+---------------------------------------------------------------------+
+
+Events Design
+-------------
+
+The ``OrderEvent`` class contains a bunch of static methods suffixed by
+``_event``. They take care of all the logic and required fields. It whether
+returns an instance of ``OrderEvent``. This design has for objective to allow
+delayed (or not) event creation in the database.
+
+The main power of this design comes when one wants to create multiple
+order events in one go. Instead of generating multiple create query, one
+can simply pass the objects to django's |QuerySet.bulk_create|_ method.
+
+If one simply does not want to bulk create, or delay the creation, one can
+directly run ``save()`` for the creation.
+
+.. |QuerySet.bulk_create| replace:: ``QuerySet.bulk_create``
+.. _QuerySet.bulk_create: https://docs.djangoproject.com/en/1.10/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create

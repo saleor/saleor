@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0054_move_data_to_order_events'),
+        ('events', '0054_move_data_to_order_events'),
     ]
 
     operations = [

@@ -15,7 +15,8 @@ from django_prices.templatetags import prices_i18n
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
 from ...core.utils.taxes import get_taxes_for_address
-from ...order import OrderEvents, OrderEventsEmails, OrderStatus
+from ...events.types import OrderEvents, OrderEventsEmails
+from ...order import OrderStatus
 from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
     send_order_confirmation)

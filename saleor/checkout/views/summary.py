@@ -7,7 +7,7 @@ from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...discount.models import NotApplicable
-from ...order import OrderEvents, OrderEventsEmails
+from ...events.types import OrderEvents, OrderEventsEmails
 from ...order.emails import send_order_confirmation
 from ..forms import CheckoutNoteForm
 from ..utils import (
