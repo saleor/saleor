@@ -1,3 +1,4 @@
+import dataclasses
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
@@ -11,6 +12,7 @@ from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
     ChargeStatus, GatewayError, OperationType, PaymentError, TransactionKind,
     get_payment_gateway)
+from saleor.payment.gateway_dataclasses import GatewayResponse
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS, REQUIRED_GATEWAY_KEYS, call_gateway,
@@ -27,18 +29,19 @@ EXAMPLE_ERROR = 'Example dummy error'
 
 @pytest.fixture
 def gateway_response(settings):
-    return {
-        'is_success': True,
-        'transaction_id': 'transaction-token',
-        'amount': Decimal(14.50),
-        'currency': settings.DEFAULT_CURRENCY,
-        'kind': TransactionKind.CAPTURE,
-        'error': None,
-        'raw_response': {
+    return GatewayResponse(
+        is_success=True,
+        transaction_id='transaction-token',
+        amount=Decimal(14.50),
+        currency=settings.DEFAULT_CURRENCY,
+        kind=TransactionKind.CAPTURE,
+        error=None,
+        raw_response={
             'credit_card_four': '1234',
             'transaction-id': 'transaction-token',
         }
-    }
+    )
+
 
 
 @pytest.fixture
@@ -63,13 +66,15 @@ def transaction_token():
 
 @pytest.fixture
 def dummy_response(payment_dummy, transaction_data, transaction_token):
-    return {
-        'is_success': True,
-        'transaction_id': transaction_token,
-        'error': EXAMPLE_ERROR,
-        'amount': payment_dummy.total,
-        'currency': payment_dummy.currency,
-        'kind': TransactionKind.AUTH}
+    return GatewayResponse(
+        is_success=True,
+        transaction_id=transaction_token,
+        error=EXAMPLE_ERROR,
+        amount=payment_dummy.total,
+        currency=payment_dummy.currency,
+        kind=TransactionKind.AUTH,
+        raw_response=None
+    )
 
 
 def test_get_payment_gateway_not_allowed_checkout_choice(settings):
@@ -168,12 +173,13 @@ def test_create_transaction(transaction_data):
     txn = create_transaction(**transaction_data)
 
     assert txn.payment == transaction_data['payment']
-    assert txn.kind == transaction_data['gateway_response']['kind']
-    assert txn.amount == transaction_data['gateway_response']['amount']
-    assert txn.currency == transaction_data['gateway_response']['currency']
-    assert txn.token == transaction_data['gateway_response']['transaction_id']
-    assert txn.is_success == transaction_data['gateway_response']['is_success']
-    assert txn.gateway_response == transaction_data['gateway_response']
+    gateway_response = transaction_data['gateway_response']
+    assert txn.kind == gateway_response.kind
+    assert txn.amount == gateway_response.amount
+    assert txn.currency == gateway_response.currency
+    assert txn.token == gateway_response.transaction_id
+    assert txn.is_success == gateway_response.is_success
+    assert txn.gateway_response == dataclasses.asdict(gateway_response)
 
 
 def test_create_transaction_no_gateway_response(transaction_data):
@@ -224,7 +230,7 @@ def test_gateway_process_payment(
         transaction_token, dummy_response):
     payment_token = transaction_token
     payment = payment_txn_preauth
-    mock_process_payment = Mock(return_value=[dummy_response, dummy_response])
+    mock_process_payment = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(process_payment=mock_process_payment), gateway_params)
 
@@ -259,13 +265,12 @@ def test_gateway_authorize(
 def test_gateway_authorize_failed(
         mock_get_payment_gateway, payment_txn_preauth, gateway_params,
         transaction_token, dummy_response):
-    payment = payment_txn_preauth
     payment_token = transaction_token
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
     payment = payment_txn_preauth
 
-    dummy_response['is_success'] = False
+    dummy_response.is_success = False
     mock_authorize = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(authorize=mock_authorize), gateway_params)
@@ -291,7 +296,7 @@ def test_gateway_capture(
     assert not payment.captured_amount
     amount = payment.total
 
-    dummy_response['kind'] = TransactionKind.CAPTURE
+    dummy_response.kind = TransactionKind.CAPTURE
     mock_capture = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
@@ -320,8 +325,8 @@ def test_gateway_capture_partial_capture(
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    dummy_response['kind'] = TransactionKind.CAPTURE
-    dummy_response['amount'] = amount
+    dummy_response.kind = TransactionKind.CAPTURE
+    dummy_response.amount = amount
     mock_capture = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
@@ -346,8 +351,8 @@ def test_gateway_capture_failed(
     payment = payment_txn_preauth
     amount = payment.total
 
-    dummy_response['is_success'] = False
-    dummy_response['kind'] = TransactionKind.CAPTURE
+    dummy_response.is_success = False
+    dummy_response.kind = TransactionKind.CAPTURE
     mock_capture = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(capture=mock_capture), gateway_params)
@@ -383,12 +388,11 @@ def test_gateway_charge(
         mock_get_payment_gateway, mock_handle_fully_paid_order, payment_txn_preauth,
         gateway_params, transaction_token, dummy_response):
     payment_token = transaction_token
-    txn = payment_txn_preauth.transactions.first()
     payment = payment_txn_preauth
     assert not payment.captured_amount
     amount = payment.total
 
-    dummy_response['kind'] = TransactionKind.CHARGE
+    dummy_response.kind = TransactionKind.CHARGE
     mock_charge = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
@@ -418,8 +422,8 @@ def test_gateway_capture_partial_charge(
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    dummy_response['kind'] = TransactionKind.CAPTURE
-    dummy_response['amount'] = amount
+    dummy_response.kind = TransactionKind.CAPTURE
+    dummy_response.amount = amount
     mock_charge = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
@@ -445,8 +449,8 @@ def test_gateway_charge_failed(
     payment = payment_txn_preauth
     amount = payment.total
 
-    dummy_response['is_success'] = False
-    dummy_response['kind'] = TransactionKind.CAPTURE
+    dummy_response.is_success = False
+    dummy_response.kind = TransactionKind.CAPTURE
     mock_charge = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(charge=mock_charge), gateway_params)
@@ -487,7 +491,7 @@ def test_gateway_void(
     payment = payment_txn_preauth
     assert payment.is_active
 
-    dummy_response['kind'] = TransactionKind.VOID
+    dummy_response.kind = TransactionKind.VOID
     mock_void = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_params)
 
@@ -510,8 +514,8 @@ def test_gateway_void_failed(
     txn.is_success = False
     payment = payment_txn_preauth
 
-    dummy_response['kind'] = TransactionKind.VOID
-    dummy_response['is_success'] = False
+    dummy_response.kind = TransactionKind.VOID
+    dummy_response.is_success = False
     mock_void = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_params)
     with pytest.raises(PaymentError) as exc:
@@ -537,7 +541,7 @@ def test_gateway_refund(
     payment = payment_txn_captured
     amount = payment.total
 
-    dummy_response['kind'] = TransactionKind.REFUND
+    dummy_response.kind = TransactionKind.REFUND
     mock_refund = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
@@ -564,8 +568,8 @@ def test_gateway_refund_partial_refund(
     txn.amount = amount
     txn.currency = settings.DEFAULT_CURRENCY
 
-    dummy_response['kind'] = TransactionKind.REFUND
-    dummy_response['amount'] = amount
+    dummy_response.kind = TransactionKind.REFUND
+    dummy_response.amount = amount
     mock_refund = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
@@ -586,8 +590,8 @@ def test_gateway_refund_failed(
     captured_before = payment.captured_amount
     txn.is_success = False
 
-    dummy_response['kind'] = TransactionKind.REFUND
-    dummy_response['is_success'] = False
+    dummy_response.kind = TransactionKind.REFUND
+    dummy_response.is_success = False
     mock_refund = Mock(return_value=dummy_response)
     mock_get_payment_gateway.return_value = (
         Mock(refund=mock_refund), gateway_params)
@@ -818,19 +822,8 @@ def test_validate_gateway_response(gateway_response):
     validate_gateway_response(gateway_response)
 
 
-def test_validate_gateway_response_missing_required_key(gateway_response):
-    del gateway_response['is_success']
-
-    with pytest.raises(GatewayError) as e:
-        validate_gateway_response(gateway_response)
-
-    assert str(e.value) == (
-        'Gateway response needs to contain following keys: {}'.format(
-            sorted(REQUIRED_GATEWAY_KEYS)))
-
-
 def test_validate_gateway_response_incorrect_transaction_kind(gateway_response):
-    gateway_response['kind'] = 'incorrect-kind'
+    gateway_response.kind = 'incorrect-kind'
 
     with pytest.raises(GatewayError) as e:
         validate_gateway_response(gateway_response)
@@ -843,22 +836,12 @@ def test_validate_gateway_response_incorrect_transaction_kind(gateway_response):
 def test_validate_gateway_response_not_json_serializable(gateway_response):
     class CustomClass(object):
         pass
-    gateway_response['extra'] = CustomClass()
+    gateway_response.raw_response = CustomClass()
 
     with pytest.raises(GatewayError) as e:
         validate_gateway_response(gateway_response)
 
     assert str(e.value) == 'Gateway response needs to be json serializable'
-
-
-def test_validate_gateway_response_incorrect_field_type(gateway_response):
-    gateway_response['amount'] = 'should-be-decimal'
-
-    with pytest.raises(GatewayError) as e:
-        validate_gateway_response(gateway_response)
-
-    assert str(e.value) == 'amount must be of type {}, was {}'.format(
-        Decimal, str)
 
 
 @patch('saleor.payment.utils.get_payment_gateway')

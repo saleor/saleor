@@ -2,6 +2,7 @@ from typing import Dict
 
 import stripe
 
+from ...gateway_dataclasses import GatewayResponse
 from .forms import StripePaymentModalForm
 from .utils import (
     get_amount_for_stripe, get_amount_from_stripe, get_currency_for_stripe,
@@ -26,7 +27,7 @@ def get_client_token(**_):
     return
 
 
-def authorize(payment_information, connection_params):
+def authorize(payment_information, connection_params) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
     try:
@@ -44,7 +45,7 @@ def authorize(payment_information, connection_params):
         kind=TransactionKind.AUTH, response=response, error=error)
 
 
-def capture(payment_information, connection_params):
+def capture(payment_information, connection_params) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
     # Get amount from argument or payment, and convert to stripe's amount
@@ -66,7 +67,7 @@ def capture(payment_information, connection_params):
         kind=TransactionKind.CAPTURE, response=response, error=error)
 
 
-def charge(payment_information, connection_params):
+def charge(payment_information, connection_params) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
     try:
@@ -84,7 +85,7 @@ def charge(payment_information, connection_params):
         kind=TransactionKind.CHARGE, response=response, error=error)
 
 
-def refund(payment_information, connection_params):
+def refund(payment_information, connection_params) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
     # Get amount from payment, and convert to stripe's amount
@@ -107,7 +108,7 @@ def refund(payment_information, connection_params):
         kind=TransactionKind.REFUND, response=response, error=error)
 
 
-def void(payment_information, connection_params):
+def void(payment_information, connection_params) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
     try:
@@ -124,7 +125,7 @@ def void(payment_information, connection_params):
         kind=TransactionKind.VOID, response=response, error=error)
 
 
-def process_payment(payment_information, connection_params):
+def process_payment(payment_information, connection_params) -> GatewayResponse:
     return charge(payment_information, connection_params)
 
 
@@ -177,7 +178,8 @@ def _create_stripe_charge(client, payment_information, should_capture: bool):
     return client.Charge.create(**charge_payload)
 
 
-def _create_response(payment_information, kind, response, error):
+def _create_response(
+        payment_information, kind, response, error) -> GatewayResponse:
     # Get currency from response or payment
     currency = get_currency_from_stripe(
         response.get('currency', payment_information['currency']))
@@ -198,15 +200,15 @@ def _create_response(payment_information, kind, response, error):
     # Check if the response's status is flagged as succeeded
     is_success = (response.get('status') == 'succeeded')
 
-    return {
-        'is_success': is_success,
-        'transaction_id': token,
-        'kind': kind,
-        'amount': amount,
-        'currency': currency,
-        'error': error,
-        'raw_response': response,
-    }
+    return GatewayResponse(
+        is_success=is_success,
+        transaction_id=token,
+        kind=kind,
+        amount=amount,
+        currency=currency,
+        error=error,
+        raw_response=response
+    )
 
 
 def _get_error_response_from_exc(exc):
