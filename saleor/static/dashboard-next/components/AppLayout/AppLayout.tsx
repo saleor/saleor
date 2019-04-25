@@ -114,6 +114,11 @@ const styles = (theme: Theme) =>
       transition: '.2s ease-in-out',
       width: '42px',
     },
+    menuIconDark: {
+      '& span': {
+        background: theme.palette.common.white,
+      },
+    },
     menuIconOpen: {
       '& span': {
         '&:nth-child(1), &:nth-child(4)': {
@@ -255,7 +260,7 @@ const AppLayout = withStyles(styles, {
                     <div>
                       <Container>
                         <div className={classes.header}>
-                          <div className={classNames(classes.menuIcon, { [classes.menuIconOpen]: isDrawerOpened })} onClick={() => setDrawerState(!isDrawerOpened)}>
+                          <div className={classNames(classes.menuIcon, { [classes.menuIconOpen]: isDrawerOpened, [classes.menuIconDark]: isDark })} onClick={() => setDrawerState(!isDrawerOpened)}>
                             <span></span>
                             <span></span>
                             <span></span>
