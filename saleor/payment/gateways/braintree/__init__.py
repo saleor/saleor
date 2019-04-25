@@ -240,7 +240,6 @@ def process_payment(
         payment_information: Dict, connection_params: Dict) -> GatewayResponse:
     auth_resp = authorize(payment_information, connection_params)
     if auth_resp.is_success:
-        print("SUKCESSS")
         payment_information['token'] = auth_resp.transaction_id
         return capture(payment_information, connection_params)
     return auth_resp
