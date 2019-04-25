@@ -14,21 +14,21 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutation for bulk cancel orders - #3967 by @akjanik
 - Hide errors in TokenVerify mutation - #3981 by @fowczarek
 - Use newest GraphQL Playground - #3971 by @salwator
-
-* Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
-* Removed the dead `children` field from the `Menu` type - #3973 by @NyanKiyoshi
-* Add mutations for bulk publishing and unpublishing products - #3969 by akjanik
-* Add mutation for bulk publishing and unpublishing collections - #3970 by @akjanik
-* Unittests use none as media root - #3975 by @korycins
-* Rename Cart to Checkout - #3963 by @michaljelonek
-* Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
-* Simplify permission management in API through the meta classes - #3980 by @NyanKiyoshi
-* Add settings to enable Django Debug Toolbar - #3983 by @koradon
-* Implement variant availability, introducing discounts in variants - #3948 by @NyanKiyoshi
-* Add bulk actions - #3955 by @dominik-zeglen
-* Update file field styles with materializecss template filter - #3998 by @zodiacfireworks
-* Add filtering interface for graphQL API - #3952 by @korycins
-* Add mandatory fields errors in new product form - #4024 by @benekex2
+- Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
+- Removed the dead `children` field from the `Menu` type - #3973 by @NyanKiyoshi
+- Add mutations for bulk publishing and unpublishing products - #3969 by akjanik
+- Add mutation for bulk publishing and unpublishing collections - #3970 by @akjanik
+- Unittests use none as media root - #3975 by @korycins
+- Rename Cart to Checkout - #3963 by @michaljelonek
+- Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
+- Simplify permission management in API through the meta classes - #3980 by @NyanKiyoshi
+- Add settings to enable Django Debug Toolbar - #3983 by @koradon
+- Implement variant availability, introducing discounts in variants - #3948 by @NyanKiyoshi
+- Add bulk actions - #3955 by @dominik-zeglen
+- Update file field styles with materializecss template filter - #3998 by @zodiacfireworks
+- Add filtering interface for graphQL API - #3952 by @korycins
+- Restrict single payment resolving - #4009 @NyanKiyoshi
+- Add mandatory fields errors in new product form - #4024 by @benekex2
 
 ## 2.5.0
 
