@@ -29,6 +29,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add filtering interface for graphQL API - #3952 by @korycins
 - Restrict single payment resolving - #4009 @NyanKiyoshi
 - Add mandatory fields errors in new product form - #4024 by @benekex2
+- Add navigation drawer support - #3839 by @benekex2
+
 
 ## 2.5.0
 
