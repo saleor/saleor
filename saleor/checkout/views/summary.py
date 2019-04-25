@@ -4,17 +4,15 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
 
 from ...account.models import Address
-from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...discount.models import NotApplicable
-from ...events.types import OrderEvents, OrderEventsEmails
-from ...order.emails import send_order_confirmation
 from ..forms import CheckoutNoteForm
 from ..utils import (
-    create_order, get_checkout_context, get_taxes_for_checkout,
+    get_checkout_context, get_taxes_for_checkout,
     update_billing_address_in_anonymous_checkout,
     update_billing_address_in_checkout,
-    update_billing_address_in_checkout_with_shipping)
+    update_billing_address_in_checkout_with_shipping,
+    place_checkout_to_order)
 
 
 def handle_order_placement(request, checkout):
@@ -25,11 +23,7 @@ def handle_order_placement(request, checkout):
     and creating order history events.
     """
     try:
-        order = create_order(
-            checkout=checkout,
-            tracking_code=analytics.get_client_id(request),
-            discounts=request.discounts,
-            taxes=get_taxes_for_checkout(checkout, request.taxes))
+        order = place_checkout_to_order(request, checkout)
     except InsufficientStock:
         return redirect('checkout:index')
     except NotApplicable:
@@ -38,15 +32,7 @@ def handle_order_placement(request, checkout):
                 'Checkout warning', 'Please review your checkout.'))
         return redirect('checkout:summary')
 
-    # remove checkout after order is created
-    checkout.delete()
-    order.events.create(type=OrderEvents.PLACED.value)
-    send_order_confirmation.delay(order.pk)
-    order.events.create(
-        type=OrderEvents.EMAIL_SENT.value,
-        parameters={
-            'email': order.get_user_current_email(),
-            'email_type': OrderEventsEmails.ORDER.value})
+    # Redirect the user to the payment page
     return redirect('order:payment', token=order.token)
 
 

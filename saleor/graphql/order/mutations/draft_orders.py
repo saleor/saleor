@@ -5,7 +5,7 @@ from graphene.types import InputObjectType
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
-from ....events.types import OrderEvents
+from ....events.models import OrderEvent
 from ....order import OrderStatus, models
 from ....order.utils import (
     add_variant_to_order, allocate_stock, change_order_line_quantity,
@@ -193,15 +193,18 @@ class DraftOrderComplete(BaseMutation):
             except InsufficientStock:
                 allocate_stock(line.variant, line.variant.quantity_available)
                 oversold_items.append(str(line))
-        if oversold_items:
-            order.events.create(
-                type=OrderEvents.OVERSOLD_ITEMS.value,
-                user=info.context.user,
-                parameters={'oversold_items': oversold_items})
 
-        order.events.create(
-            type=OrderEvents.PLACED_FROM_DRAFT.value,
-            user=info.context.user)
+        events = [
+            OrderEvent.placed_event(
+                order=order, source=info.context.user, from_draft=True)]
+
+        if oversold_items:
+            events.append(OrderEvent.draft_oversold_items_event(
+                order=order,
+                source=info.context.user,
+                oversold_items=oversold_items))
+
+        OrderEvent.objects.bulk_create(events)
         return DraftOrderComplete(order=order)
 
 

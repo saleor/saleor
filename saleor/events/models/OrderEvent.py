@@ -2,17 +2,16 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.db import models
 from django.contrib.postgres.fields import JSONField
+from django.db import models
 from django.utils.timezone import now
 
-from ..lang.order_events import display_order_event
-from ..types import OrderEvents
 from ...core.utils.json_serializer import CustomJsonEncoder
+from ...order.models import Fulfillment, Order
 from ...payment.models import Payment
-from ...checkout.models import CheckoutLine
 from ...product.models import ProductVariant
-from ...order.models import Order, Fulfillment
+from ..lang.order_events import display_order_event
+from ..types import OrderEvents, OrderEventsEmails
 
 User = AbstractBaseUser
 
@@ -47,8 +46,19 @@ class OrderEvent(models.Model):
         return display_order_event(self)
 
     @classmethod
-    def draft_created_event(cls, *, order: Order, source: User) -> models.Model:
-        pass
+    def email_sent_event(
+            cls, *, order: Order, email_type: OrderEventsEmails) -> models.Model:
+        return cls(
+            order=order, type=OrderEvents.EMAIL_SENT.value,
+            parameters={
+                'email': order.get_user_current_email(),
+                'email_type': email_type.value})
+
+    @classmethod
+    def draft_created_event(
+            cls, *, order: Order, source: User) -> models.Model:
+        return cls(
+            order=order, type=OrderEvents.DRAFT_CREATED.value, user=source)
 
     @classmethod
     def draft_selected_shipping_method_event(
@@ -70,15 +80,18 @@ class OrderEvent(models.Model):
         pass
 
     @classmethod
-    def placed_event(cls, order: Order) -> models.Model:
-        # TODO: check if order is draft or not
-        pass
+    def placed_event(
+            cls, order: Order, source: User, from_draft=False) -> models.Model:
+        event_type = (
+            OrderEvents.DRAFT_CREATED if from_draft else OrderEvents.PLACED)
+        return cls(
+            order=order, type=event_type.value, user=source)
 
     @classmethod
     def draft_oversold_items_event(
             cls, *,
             order: Order, source: User,
-            oversold_items: List[CheckoutLine]) -> models.Model:
+            oversold_items: List[str]) -> models.Model:
         pass
 
     @classmethod

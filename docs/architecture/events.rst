@@ -57,7 +57,7 @@ The main power of this design comes when one wants to create multiple
 order events in one go. Instead of generating multiple create query, one
 can simply pass the objects to django's |QuerySet.bulk_create|_ method.
 
-If one simply does not want to bulk create, or delay the creation, one can
+If one simply does not want to bulk create, delay the creation, one can
 directly run ``save()`` for the creation.
 
 .. |QuerySet.bulk_create| replace:: ``QuerySet.bulk_create``
