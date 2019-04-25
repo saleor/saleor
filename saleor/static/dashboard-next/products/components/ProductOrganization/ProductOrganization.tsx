@@ -93,6 +93,7 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
     collections,
     data,
     disabled,
+    errors,
     fetchCategories,
     fetchCollections,
     product,
@@ -191,12 +192,15 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
         }
       });
     };
+    console.log(errors);
     return (
       <Card className={classes.card}>
         <CardTitle title={i18n.t("Organize Product")} />
         <CardContent>
           {canChangeType ? (
             <SingleAutocompleteSelectField
+              error={!!errors.productType}
+              helperText={errors.productType}
               name="productType"
               disabled={!!product || disabled}
               label={i18n.t("Product Type")}
@@ -211,6 +215,7 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
               }
               value={data.productType}
               onChange={handleProductTypeSelect}
+
             />
           ) : (
             <>
@@ -271,6 +276,8 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
           )}
           <hr className={classes.hr} />
           <SingleAutocompleteSelectField
+            error={!!errors.category}
+            helperText={errors.category}
             disabled={disabled}
             label={i18n.t("Category")}
             choices={disabled ? [] : categories}
