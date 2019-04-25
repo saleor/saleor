@@ -3,7 +3,8 @@ from django.core.exceptions import ValidationError
 
 from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
-from ....order import OrderEvents, models
+from ....events.types import OrderEvents
+from ....order import models
 from ....order.utils import cancel_order
 from ....payment import CustomPaymentChoices, PaymentError
 from ....payment.utils import (

@@ -1,7 +1,9 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
-from ...order import OrderEvents, OrderStatus, models
+from ...events.models import OrderEvent
+from ...events.types import OrderEvents
+from ...order import OrderStatus, models
 from ...order.utils import sum_order_totals
 from ..utils import filter_by_period, filter_by_query_param
 from .enums import OrderStatusFilter
@@ -58,7 +60,7 @@ def resolve_homepage_events():
     types = [
         OrderEvents.PLACED.value, OrderEvents.PLACED_FROM_DRAFT.value,
         OrderEvents.ORDER_FULLY_PAID.value]
-    return models.OrderEvent.objects.filter(type__in=types)
+    return OrderEvent.objects.filter(type__in=types)
 
 
 def resolve_order_by_token(token):

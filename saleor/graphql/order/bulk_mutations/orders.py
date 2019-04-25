@@ -1,6 +1,7 @@
 import graphene
 
-from ....order import OrderEvents, models
+from ....events.types import OrderEvents
+from ....order import models
 from ....order.utils import cancel_order
 from ...core.mutations import BaseBulkMutation
 from ..mutations.orders import clean_order_cancel

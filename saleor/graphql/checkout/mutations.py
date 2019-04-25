@@ -16,7 +16,7 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...discount import models as voucher_model
-from ...order import OrderEvents, OrderEventsEmails
+from ...events.types import OrderEvents, OrderEventsEmails
 from ...order.emails import send_order_confirmation
 from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment

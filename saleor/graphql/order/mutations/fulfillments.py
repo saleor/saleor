@@ -2,7 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
-from ....order import OrderEvents, OrderEventsEmails, models
+from ....events.types import OrderEvents, OrderEventsEmails
+from ....order import models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import (
     cancel_fulfillment, fulfill_order_line, update_order_status)

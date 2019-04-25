@@ -3,7 +3,6 @@ from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Max, Sum
@@ -16,13 +15,12 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..account.models import Address
-from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
 from ..payment import ChargeStatus, TransactionKind
 from ..shipping.models import ShippingMethod
-from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
+from . import FulfillmentStatus, OrderStatus
 
 
 class OrderQueryset(models.QuerySet):
@@ -397,32 +395,3 @@ class FulfillmentLine(models.Model):
     fulfillment = models.ForeignKey(
         Fulfillment, related_name='lines', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-
-
-class OrderEvent(models.Model):
-    """Model used to store events that happened during the order lifecycle.
-
-        Args:
-            parameters: Values needed to display the event on the storefront
-            type: Type of an order
-    """
-    date = models.DateTimeField(default=now, editable=False)
-    type = models.CharField(
-        max_length=255,
-        choices=((event.name, event.value) for event in OrderEvents))
-    order = models.ForeignKey(
-        Order, related_name='events', on_delete=models.CASCADE)
-    parameters = JSONField(
-        blank=True, default=dict, encoder=CustomJsonEncoder)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True,
-        on_delete=models.SET_NULL, related_name='+')
-
-    class Meta:
-        ordering = ('date', )
-
-    def __repr__(self):
-        return 'OrderEvent(type=%r, user=%r)' % (self.type, self.user)
-
-    def get_event_display(self):
-        return display_order_event(self)
