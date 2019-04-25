@@ -192,7 +192,6 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
         }
       });
     };
-    console.log(errors);
     return (
       <Card className={classes.card}>
         <CardTitle title={i18n.t("Organize Product")} />
