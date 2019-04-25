@@ -1,11 +1,12 @@
 import logging
 import uuid
 from decimal import Decimal
-from typing import Dict
+from typing import Dict, List
 
 import razorpay
 import razorpay.errors
 
+from ...gateway_dataclasses import GatewayResponse
 from . import errors
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
@@ -36,17 +37,18 @@ class TransactionKind:
 
 
 def _generate_response(
-        payment_information: Dict, kind: str, data: Dict) -> Dict:
+        payment_information: Dict, kind: str, data: Dict) -> GatewayResponse:
     """Generate Saleor transaction information from
     Razorpay's success payload or from passed data."""
-    return {
-        'transaction_id': data.get('id', payment_information['token']),
-        'kind': kind,
-        'amount': data.get('amount', payment_information['amount']),
-        'currency': data.get('currency', payment_information['currency']),
-        'error': data.get('error', None),
-        'is_success': data.get('is_success', True),
-        'raw_response': data}
+    return GatewayResponse(
+        transaction_id=data.get('id', payment_information['token']),
+        kind=kind,
+        amount=data.get('amount', payment_information['amount']),
+        currency=data.get('currency', payment_information['currency']),
+        error=data.get('error'),
+        is_success=data.get('is_success', True),
+        raw_response=data
+    )
 
 
 def check_payment_supported(payment_information: Dict):
@@ -91,7 +93,8 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def charge(payment_information: Dict, connection_params: Dict) -> Dict:
+def charge(
+        payment_information: Dict, connection_params: Dict) -> GatewayResponse:
     """Charge a authorized payment using the razorpay client.
 
     But it first check if the given payment instance is supported
@@ -125,7 +128,8 @@ def charge(payment_information: Dict, connection_params: Dict) -> Dict:
         kind=TransactionKind.CHARGE, data=response)
 
 
-def refund(payment_information: Dict, connection_params) -> Dict:
+def refund(
+        payment_information: Dict, connection_params) -> GatewayResponse:
     """Refund a payment using the razorpay client.
 
     But it first check if the given payment instance is supported
@@ -158,7 +162,8 @@ def refund(payment_information: Dict, connection_params) -> Dict:
         kind=TransactionKind.REFUND, data=response)
 
 
-def process_payment(payment_information: Dict, connection_params) -> Dict:
+def process_payment(
+        payment_information: Dict, connection_params) -> GatewayResponse:
     return charge(
         payment_information=payment_information,
         connection_params=connection_params)

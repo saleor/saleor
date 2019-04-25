@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import logging
 from decimal import Decimal
@@ -18,6 +19,7 @@ from ..order.models import Order
 from . import (
     ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
     PaymentError, TransactionKind, get_payment_gateway)
+from .gateway_dataclasses import GatewayResponse
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
@@ -173,24 +175,34 @@ def mark_order_as_paid(order: Order, request_user: User):
 
 def create_transaction(
         payment: Payment, kind: str, payment_information: Dict,
-        gateway_response: Dict = None, error_msg=None) -> Transaction:
+        gateway_response: GatewayResponse = None, error_msg=None
+) -> Transaction:
     """Create a transaction based on transaction kind and gateway response."""
-    if gateway_response is None:
-        gateway_response = {}
 
     # Default values for token, amount, currency are only used in cases where
     # response from gateway was invalid or an exception occured
+    if not gateway_response:
+        gateway_response = GatewayResponse(
+            kind=kind,
+            transaction_id=payment_information['token'],
+            is_success=False,
+            amount=payment_information['amount'],
+            currency=payment_information['currency'],
+            error=error_msg,
+        )
+        gateway_response_dict = {}
+    else:
+        gateway_response_dict = dataclasses.asdict(gateway_response)
+
     txn = Transaction.objects.create(
         payment=payment,
-        kind=gateway_response.get('kind', kind),
-        token=gateway_response.get(
-            'transaction_id', payment_information['token']),
-        is_success=gateway_response.get('is_success', False),
-        amount=gateway_response.get('amount', payment_information['amount']),
-        currency=gateway_response.get(
-            'currency', payment_information['currency']),
-        error=gateway_response.get('error', error_msg),
-        gateway_response=gateway_response)
+        kind=gateway_response.kind,
+        token=gateway_response.transaction_id,
+        is_success=gateway_response.is_success,
+        amount=gateway_response.amount,
+        currency=gateway_response.currency,
+        error=gateway_response.error,
+        gateway_response=gateway_response_dict)
     return txn
 
 
@@ -288,67 +300,40 @@ def call_gateway(operation_type, payment, payment_token, **extra_params):
         error_msg = 'Gateway encountered an error'
         logger.exception(error_msg)
     finally:
-        if not isinstance(gateway_response, list):
-            gateway_response = [gateway_response]
-        transactions = []
-        for response in gateway_response:
-            transactions.append(create_transaction(
-                payment=payment,
-                kind=default_transaction_kind,
-                payment_information=payment_information,
-                error_msg=error_msg,
-                gateway_response=response))
+        payment_transaction = create_transaction(
+            payment=payment,
+            kind=default_transaction_kind,
+            payment_information=payment_information,
+            error_msg=error_msg,
+            gateway_response=gateway_response)
 
-    for transaction in transactions:
-        if not transaction.is_success:
-            # Attempt to get errors from response, if none raise a generic one
-            raise PaymentError(transaction.error or GENERIC_TRANSACTION_ERROR)
+    if not payment_transaction.is_success:
+        # Attempt to get errors from response, if none raise a generic one
+        raise PaymentError(
+            payment_transaction.error or GENERIC_TRANSACTION_ERROR)
 
-    return transactions[-1]
+    return payment_transaction
 
 
-def validate_gateway_response(responses):
+def validate_gateway_response(response: GatewayResponse):
     """Validates response to be a correct format for Saleor to process."""
-    if not isinstance(responses, (dict, list)):
-        raise GatewayError('Gateway needs to return a dictionary or a list')
 
-    if not isinstance(responses, list):
-        responses = [responses]
+    if not isinstance(response, GatewayResponse):
+        raise GatewayError('Gateway needs to return a GatewayResponse obj')
 
-    field_types = {
-        'amount': Decimal,
-        'currency': str,
-        'is_success': bool,
-        'kind': str,
-        'transaction_id': str,
-        'error': (type(None), str),
-    }
+    if response.kind not in ALLOWED_GATEWAY_KINDS:
+        raise GatewayError(
+            'Gateway response kind must be one of {}'.format(
+                sorted(ALLOWED_GATEWAY_KINDS)))
 
-    for response in responses:
-        if not REQUIRED_GATEWAY_KEYS.issubset(response):
-            raise GatewayError(
-                'Gateway response needs to contain following keys: {}'.format(
-                    sorted(REQUIRED_GATEWAY_KEYS)))
+    if response.currency != settings.DEFAULT_CURRENCY:
+        logger.warning('Transaction currency is different than Saleor\'s.')
 
-        for name, value in response.items():
-            if name in field_types:
-                if not isinstance(value, field_types[name]):
-                    raise GatewayError('{} must be of type {}, was {}'.format(
-                        name, field_types[name], type(value)))
-
-        if response['kind'] not in ALLOWED_GATEWAY_KINDS:
-            raise GatewayError(
-                'Gateway response kind must be one of {}'.format(
-                    sorted(ALLOWED_GATEWAY_KINDS)))
-
-        if response['currency'] != settings.DEFAULT_CURRENCY:
-            logger.warning('Transaction currency is different than Saleor\'s.')
-
-        try:
-            json.dumps(response, cls=DjangoJSONEncoder)
-        except (TypeError, ValueError):
-            raise GatewayError(
-                'Gateway response needs to be json serializable')
+    try:
+        json.dumps(dataclasses.asdict(response), cls=DjangoJSONEncoder)
+    except (TypeError, ValueError):
+        raise GatewayError(
+            'Gateway response needs to be json serializable')
 
 
 def _gateway_postprocess(transaction, payment):

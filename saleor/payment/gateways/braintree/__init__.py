@@ -5,6 +5,7 @@ import braintree as braintree_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
+from ...gateway_dataclasses import GatewayResponse
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
@@ -119,7 +120,8 @@ def get_client_token(connection_params: Dict) -> str:
     return client_token
 
 
-def authorize(payment_information: Dict, connection_params: Dict) -> Dict:
+def authorize(
+        payment_information: Dict, connection_params: Dict) -> GatewayResponse:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -136,21 +138,22 @@ def authorize(payment_information: Dict, connection_params: Dict) -> Dict:
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
-
-    return {
-        'is_success': result.is_success,
-        'kind': TransactionKind.AUTH,
-        'amount': gateway_response.get(
+    return GatewayResponse(
+        is_success=result.is_success,
+        kind=TransactionKind.AUTH,
+        amount=gateway_response.get(
             'amount', payment_information['amount']),
-        'currency': gateway_response.get(
+        currency=gateway_response.get(
             'currency', payment_information['currency']),
-        'transaction_id': gateway_response.get(
+        transaction_id=gateway_response.get(
             'transaction_id', payment_information['token']),
-        'error': error,
-        'raw_response': gateway_response}
+        error=error,
+        raw_response=gateway_response
+    )
 
 
-def capture(payment_information: Dict, connection_params: Dict) -> Dict:
+def capture(
+        payment_information: Dict, connection_params: Dict) -> GatewayResponse:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -163,20 +166,22 @@ def capture(payment_information: Dict, connection_params: Dict) -> Dict:
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
-    return {
-        'is_success': result.is_success,
-        'kind': TransactionKind.CAPTURE,
-        'amount': gateway_response.get(
+    return GatewayResponse(
+        is_success=result.is_success,
+        kind=TransactionKind.CAPTURE,
+        amount=gateway_response.get(
             'amount', payment_information['amount']),
-        'currency': gateway_response.get(
+        currency=gateway_response.get(
             'currency', payment_information['currency']),
-        'transaction_id': gateway_response.get(
+        transaction_id=gateway_response.get(
             'transaction_id', payment_information['token']),
-        'error': error,
-        'raw_response': gateway_response}
+        error=error,
+        raw_response=gateway_response
+    )
 
 
-def void(payment_information: Dict, connection_params: Dict) -> Dict:
+def void(
+        payment_information: Dict, connection_params: Dict) -> GatewayResponse:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -188,20 +193,22 @@ def void(payment_information: Dict, connection_params: Dict) -> Dict:
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
-    return {
-        'is_success': result.is_success,
-        'kind': TransactionKind.VOID,
-        'amount': gateway_response.get(
+    return GatewayResponse(
+        is_success=result.is_success,
+        kind=TransactionKind.VOID,
+        amount=gateway_response.get(
             'amount', payment_information['amount']),
-        'currency': gateway_response.get(
+        currency=gateway_response.get(
             'currency', payment_information['currency']),
-        'transaction_id': gateway_response.get(
+        transaction_id=gateway_response.get(
             'transaction_id', payment_information['token']),
-        'error': error,
-        'raw_response': gateway_response}
+        error=error,
+        raw_response=gateway_response
+    )
 
 
-def refund(payment_information: Dict, connection_params: Dict) -> Dict:
+def refund(
+        payment_information: Dict, connection_params: Dict) -> GatewayResponse:
     gateway = get_braintree_gateway(**connection_params)
 
     try:
@@ -214,23 +221,26 @@ def refund(payment_information: Dict, connection_params: Dict) -> Dict:
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
-    return {
-        'is_success': result.is_success,
-        'kind': TransactionKind.REFUND,
-        'amount': gateway_response.get(
+    return GatewayResponse(
+        is_success=result.is_success,
+        kind=TransactionKind.REFUND,
+        amount=gateway_response.get(
             'amount', payment_information['amount']),
-        'currency': gateway_response.get(
+        currency=gateway_response.get(
             'currency', payment_information['currency']),
-        'transaction_id': gateway_response.get(
+        transaction_id=gateway_response.get(
             'transaction_id', payment_information['token']),
-        'error': error,
-        'raw_response': gateway_response}
+        error=error,
+        raw_response=gateway_response
+
+    )
 
 
 def process_payment(
-        payment_information: Dict, connection_params: Dict) -> Dict:
+        payment_information: Dict, connection_params: Dict) -> GatewayResponse:
     auth_resp = authorize(payment_information, connection_params)
-    if auth_resp['is_success']:
-        payment_information['token'] = auth_resp['transaction_id']
-        return [auth_resp, capture(payment_information, connection_params)]
-    return [auth_resp, void(payment_information, connection_params)]
+    if auth_resp.is_success:
+        print("SUKCESSS")
+        payment_information['token'] = auth_resp.transaction_id
+        return capture(payment_information, connection_params)
+    return auth_resp
