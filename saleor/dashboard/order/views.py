@@ -15,6 +15,7 @@ from django_prices.templatetags import prices_i18n
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
 from ...core.utils.taxes import get_taxes_for_address
+from ...events.models import OrderEvent
 from ...events.types import OrderEvents, OrderEventsEmails
 from ...order import OrderStatus
 from ...order.emails import (
@@ -78,17 +79,18 @@ def create_order_from_draft(request, order_pk):
         msg = pgettext_lazy(
             'Dashboard message related to an order',
             'Order created from draft order')
-        order.events.create(
-            user=request.user,
-            type=OrderEvents.PLACED_FROM_DRAFT.value)
+
+        events = [
+            OrderEvent.placed_event(
+                order=order, source=request.user, from_draft=True)]
+
         messages.success(request, msg)
         if form.cleaned_data.get('notify_customer'):
             send_order_confirmation.delay(order.pk)
-            order.events.create(
-                parameters={
-                    'email': order.get_user_current_email(),
-                    'email_type': OrderEventsEmails.ORDER.value},
-                type=OrderEvents.EMAIL_SENT.value)
+            events.append(OrderEvent.email_sent_event(
+                order=order, email_type=OrderEventsEmails.ORDER.value))
+
+        OrderEvent.objects.bulk_create(events)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400

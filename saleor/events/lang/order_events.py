@@ -1,10 +1,9 @@
 from django.conf import settings
-from django.utils.translation import pgettext_lazy, npgettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.templatetags import prices_i18n
 from prices import Money
 
 from ..types import OrderEvents, OrderEventsEmails
-
 
 EMAIL_CHOICES = {
     OrderEventsEmails.PAYMENT.value: pgettext_lazy(

@@ -25,8 +25,10 @@ from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
-from saleor.order import OrderEvents, OrderStatus
-from saleor.order.models import FulfillmentStatus, Order, OrderEvent
+from saleor.events.models import OrderEvent
+from saleor.events.types import OrderEvents
+from saleor.order import OrderStatus
+from saleor.order.models import FulfillmentStatus, Order
 from saleor.order.utils import fulfill_order_line, recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind

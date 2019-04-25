@@ -9,15 +9,12 @@ from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_checkout, add_voucher_to_checkout,
     change_billing_address_in_checkout, change_shipping_address_in_checkout,
-    clean_checkout, create_order, get_or_create_user_checkout,
-    get_taxes_for_checkout, get_voucher_for_checkout,
+    clean_checkout, get_or_create_user_checkout, get_taxes_for_checkout,
+    get_voucher_for_checkout, place_checkout_to_order,
     recalculate_checkout_discount, remove_voucher_from_checkout)
-from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...discount import models as voucher_model
-from ...events.types import OrderEvents, OrderEventsEmails
-from ...order.emails import send_order_confirmation
 from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment
 from ...shipping.models import ShippingMethod as ShippingMethodModel
@@ -466,26 +463,14 @@ class CheckoutComplete(BaseMutation):
         clean_checkout(checkout, taxes, info.context.discounts)
 
         try:
-            order = create_order(
-                checkout=checkout,
-                tracking_code=analytics.get_client_id(info.context),
-                discounts=info.context.discounts, taxes=taxes)
+            # FIXME: we shouldn't create the order, but only do checks
+            order = place_checkout_to_order(info.context, checkout)
         except InsufficientStock:
             raise ValidationError('Insufficient product stock.')
         except voucher_model.NotApplicable:
             raise ValidationError('Voucher not applicable')
 
         payment = checkout.get_last_active_payment()
-
-        # remove checkout after checkout is created
-        checkout.delete()
-        order.events.create(type=OrderEvents.PLACED.value)
-        send_order_confirmation.delay(order.pk)
-        order.events.create(
-            type=OrderEvents.EMAIL_SENT.value,
-            parameters={
-                'email': order.get_user_current_email(),
-                'email_type': OrderEventsEmails.ORDER.value})
 
         try:
             gateway_process_payment(

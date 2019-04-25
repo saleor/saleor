@@ -15,6 +15,7 @@ from prices import TaxedMoneyRange
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
+from ..core import analytics
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
@@ -23,6 +24,9 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     get_products_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
+from ..events.models import OrderEvent
+from ..events.types import OrderEventsEmails
+from ..order.emails import send_order_confirmation
 from ..order.models import Order
 from ..shipping.models import ShippingMethod
 from . import AddressType, logger
@@ -902,3 +906,34 @@ def clean_checkout(checkout: Checkout, taxes, discounts):
         raise ValidationError(
             'Provided payment methods can not cover the checkout\'s total '
             'amount')
+
+
+def place_checkout_to_order(request, checkout) -> Order:
+    """Attempts to create an order from checkout.
+
+    This function creates an order from checkout and performs post-create
+    actions such as removing the checkout instance, sending order notification
+    email and creating order history events.
+
+    It returns the created order.
+    """
+    order = create_order(
+        checkout=checkout,
+        tracking_code=analytics.get_client_id(request),
+        discounts=request.discounts,
+        taxes=get_taxes_for_checkout(checkout, request.taxes))
+
+    # remove checkout after order is created
+    checkout.delete()
+
+    # Create the order placed and email confirmation sent events
+    OrderEvent.objects.bulk_create([
+        OrderEvent.placed_event(order, request.user),
+        OrderEvent.email_sent_event(
+            order=order, email_type=OrderEventsEmails.ORDER)])
+
+    # Send the order confirmation email
+    send_order_confirmation.delay(order.pk)
+
+    # Redirect the user to the payment page
+    return order
