@@ -79,6 +79,59 @@ const styles = (theme: Theme) =>
     menu: {
       marginTop: theme.spacing.unit * 4
     },
+    menuIcon: {
+      [theme.breakpoints.up('md')]: {
+        display: 'none',
+      },
+      '& span': {
+        '&:nth-child(1)': {
+          top: '15px',
+        },
+        '&:nth-child(2), &:nth-child(3)': {
+          top: '20px',
+        },
+        '&:nth-child(4)': {
+          top: '25px',
+        },
+        background: theme.palette.secondary.light,
+        display: 'block',
+        height: '1px',
+        left: '20%',
+        opacity: 1,
+        position: 'absolute',
+        transform: 'rotate(0deg)',
+        transition: '.25s ease-in-out',
+        width: '60%',
+      },
+      background: theme.palette.background.paper,
+      borderRadius: '50%',
+      cursor: 'pointer',
+      height: '42px',
+      left: theme.spacing.unit,
+      marginRight: theme.spacing.unit * 2,
+      position: 'relative',
+      transform: 'rotate(0deg)',
+      transition: '.2s ease-in-out',
+      width: '42px',
+    },
+    menuIconOpen: {
+      '& span': {
+        '&:nth-child(1), &:nth-child(4)': {
+          left: '50%',
+          top: '20px',
+          width: 0,
+        },
+        '&:nth-child(2)': {
+          transform: 'rotate(45deg)',
+        },
+        '&:nth-child(3)': {
+          transform: 'rotate(-45deg)',
+        },
+      },
+      left: '280px',
+      position: 'absolute',
+      zIndex: 1999,
+    },
     popover: {
       zIndex: 1
     },
@@ -202,6 +255,12 @@ const AppLayout = withStyles(styles, {
                     <div>
                       <Container>
                         <div className={classes.header}>
+                          <div className={classNames(classes.menuIcon, { [classes.menuIconOpen]: isDrawerOpened })} onClick={() => setDrawerState(!isDrawerOpened)}>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                          </div>
                           <div ref={appHeaderAnchor} />
                           <div className={classes.spacer} />
                           <div className={classes.userBar}>
