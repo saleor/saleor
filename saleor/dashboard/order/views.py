@@ -690,7 +690,7 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
             order.events.create(
                 parameters={
                     'email': order.get_user_current_email(),
-                    'email_type': OrderEventsEmails.SHIPPING.value},
+                    'email_type': OrderEventsEmails.TRACKING_UPDATED.value},
                 user=request.user,
                 type=OrderEvents.EMAIL_SENT.value)
         msg = pgettext_lazy(
