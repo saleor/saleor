@@ -47,12 +47,20 @@ class FulfillmentStatus:
 
 
 class OrderEvents(Enum):
+    DRAFT_CREATED = 'draft_created'
+    DRAFT_SELECTED_SHIPPING_METHOD = 'draft_selected_shipping_method'
+    DRAFT_ADDED_PRODUCTS = 'draft_added_products'
+    DRAFT_REMOVED_PRODUCTS = 'draft_removed_products'
+
     PLACED = 'placed'
     PLACED_FROM_DRAFT = 'draft_placed'
+
     OVERSOLD_ITEMS = 'oversold_items'
-    ORDER_MARKED_AS_PAID = 'marked_as_paid'
     CANCELED = 'canceled'
+
+    ORDER_MARKED_AS_PAID = 'marked_as_paid'
     ORDER_FULLY_PAID = 'order_paid'
+
     UPDATED = 'updated'
 
     EMAIL_SENT = 'email_sent'
@@ -60,6 +68,7 @@ class OrderEvents(Enum):
     PAYMENT_CAPTURED = 'captured'
     PAYMENT_REFUNDED = 'refunded'
     PAYMENT_VOIDED = 'voided'
+    PAYMENT_FAILED = 'payment_failed'
 
     FULFILLMENT_CANCELED = 'fulfillment_canceled'
     FULFILLMENT_RESTOCKED_ITEMS = 'restocked_items'
@@ -74,8 +83,10 @@ class OrderEvents(Enum):
 class OrderEventsEmails(Enum):
     PAYMENT = 'payment_confirmation'
     SHIPPING = 'shipping_confirmation'
+    TRACKING_UPDATED = 'tracking_updated'
     ORDER = 'order_confirmation'
     FULFILLMENT = 'fulfillment_confirmation'
+    DIGITAL_LINKS = 'digital_links'
 
 
 EMAIL_CHOICES = {
@@ -103,7 +114,7 @@ def get_money_from_params(amount):
 
 
 def display_order_event(order_event):
-    """This function is used to keep the  backwards compatibility
+    """This function is used to keep the backwards compatibility
     with the old dashboard and new type of order events
     (storing enums instead of messages)
     """
