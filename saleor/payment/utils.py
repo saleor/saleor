@@ -19,7 +19,7 @@ from ..order.models import Order
 from . import (
     ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
     PaymentError, TransactionKind, get_payment_gateway)
-from .gateway_dataclasses import GatewayResponse
+from .gateway_dataclasses import GatewayResponse, PaymentInformation
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
@@ -48,25 +48,30 @@ def get_gateway_operation_func(gateway, operation_type):
 
 def create_payment_information(
         payment: Payment, payment_token: str = None,
-        amount: Decimal = None) -> Dict:
+        amount: Decimal = None) -> PaymentInformation:
     """Extracts order information along with payment details.
 
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    return {
-        'token': payment_token,
-        'amount': amount or payment.total,
-        'currency': payment.currency,
-        'billing': (
-            payment.order.billing_address.as_data()
-            if payment.order.billing_address else None),
-        'shipping': (
-            payment.order.shipping_address.as_data()
-            if payment.order.shipping_address else None),
-        'order_id': payment.order.id,
-        'customer_ip_address': payment.customer_ip_address,
-        'customer_email': payment.billing_email}
+    billing, shipping = None, None
+
+    if payment.order.billing_address:
+        billing = payment.order.billing_address.as_data()
+
+    if payment.order.shipping_address:
+        shipping = payment.order.shipping_address.as_data()
+
+    return PaymentInformation(
+        token=payment_token,
+        amount=amount or payment.total,
+        currency=payment.currency,
+        billing=billing,
+        shipping=shipping,
+        order_id=payment.order.id,
+        customer_ip_address=payment.customer_ip_address,
+        customer_email=payment.billing_email
+    )
 
 
 def handle_fully_paid_order(order):
@@ -184,10 +189,10 @@ def create_transaction(
     if not gateway_response:
         gateway_response = GatewayResponse(
             kind=kind,
-            transaction_id=payment_information['token'],
+            transaction_id=payment_information.token,
             is_success=False,
-            amount=payment_information['amount'],
-            currency=payment_information['currency'],
+            amount=payment_information.amount,
+            currency=payment_information.currency,
             error=error_msg,
         )
         gateway_response_dict = {}
