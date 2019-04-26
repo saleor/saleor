@@ -1,9 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....events import models as event_models
 from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
-from ....events.types import OrderEvents
 from ....order import models
 from ....order.utils import cancel_order
 from ....payment import CustomPaymentChoices, PaymentError
@@ -177,11 +177,10 @@ class OrderAddNote(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
-        event = order.events.create(
-            type=OrderEvents.NOTE_ADDED.value,
-            user=info.context.user,
-            parameters={
-                'message': data.get('input')['message']})
+        event = event_models.OrderEvent.note_added_event(
+            order=order, source=info.context.user,
+            message=data.get('input')['message'])
+        event.save()
         return OrderAddNote(order=order, event=event)
 
 
@@ -204,15 +203,7 @@ class OrderCancel(BaseMutation):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
         clean_order_cancel(order)
-        cancel_order(order=order, restock=restock)
-        if restock:
-            order.events.create(
-                type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
-                user=info.context.user,
-                parameters={'quantity': order.get_total_quantity()})
-        else:
-            order.events.create(
-                type=OrderEvents.CANCELED.value, user=info.context.user)
+        cancel_order(user=info.context.user, order=order, restock=restock)
         return OrderCancel(order=order)
 
 
@@ -268,10 +259,10 @@ class OrderCapture(BaseMutation):
         except PaymentError as e:
             raise ValidationError({'payment': str(e)})
 
-        order.events.create(
-            parameters={'amount': amount},
-            type=OrderEvents.PAYMENT_CAPTURED.value,
-            user=info.context.user)
+        event_models.OrderEvent.objects.bulk_create(
+            event_models.OrderEvent.payment_captured_event(
+                order=order, source=info.context.user,
+                amount=amount, payment=payment))
         return OrderCapture(order=order)
 
 
@@ -296,9 +287,8 @@ class OrderVoid(BaseMutation):
             gateway_void(payment)
         except (PaymentError, ValueError) as e:
             raise ValidationError({'payment': str(e)})
-        order.events.create(
-            type=OrderEvents.PAYMENT_VOIDED.value,
-            user=info.context.user)
+        event_models.OrderEvent.payment_voided_event(
+            order=order, source=info.context.user, payment=payment).save()
         return OrderVoid(order=order)
 
 
@@ -331,8 +321,7 @@ class OrderRefund(BaseMutation):
         except PaymentError as e:
             raise ValidationError({'payment': str(e)})
 
-        order.events.create(
-            type=OrderEvents.PAYMENT_REFUNDED.value,
-            user=info.context.user,
-            parameters={'amount': amount})
+        event_models.OrderEvent.payment_refunded_event(
+            order=order, source=info.context.user,
+            amount=amount, payment=payment).save()
         return OrderRefund(order=order)

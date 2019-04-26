@@ -2,7 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
-from ....events.types import OrderEvents, OrderEventsEmails
+from ....events.models import OrderEvent
+from ....events.types import OrderEventsEmails
 from ....order import models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import (
@@ -14,11 +15,9 @@ from ..types import OrderLine
 
 def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
     send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
-    order.events.create(
-        parameters={
-            'email': order.get_user_current_email(),
-            'email_type': OrderEventsEmails.FULFILLMENT.value},
-        type=OrderEvents.EMAIL_SENT.value, user=user)
+    OrderEvent.email_sent_event(
+        order=order, email_type=OrderEventsEmails.FULFILLMENT,
+        source=user).save()
 
 
 class FulfillmentLineInput(graphene.InputObjectType):
@@ -114,10 +113,9 @@ class FulfillmentCreate(BaseMutation):
 
         fulfillment.lines.bulk_create(fulfillment_lines)
         update_order_status(order)
-        order.events.create(
-            parameters={'quantity': sum(quantities)},
-            type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
-            user=user)
+        OrderEvent.fulfillment_fulfilled_items_event(
+            order=order, source=user,
+            quantities=quantities, order_lines=order_lines).save()
         if cleaned_input.get('notify_customer', True):
             send_fulfillment_confirmation_to_customer(
                 order, fulfillment, user)
@@ -163,12 +161,9 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
-        order.events.create(
-            parameters={
-                'tracking_number': tracking_number,
-                'fulfillment': fulfillment.composed_id},
-            type=OrderEvents.TRACKING_UPDATED.value,
-            user=info.context.user)
+        OrderEvent.fulfillment_tracking_updated_event(
+            order=order, source=info.context.user,
+            tracking_number=tracking_number, fulfillment=fulfillment)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
@@ -203,17 +198,5 @@ class FulfillmentCancel(BaseMutation):
             raise ValidationError({'fulfillment': err_msg})
 
         order = fulfillment.order
-        cancel_fulfillment(fulfillment, restock)
-
-        # FIXME: move event creation to `cancel_fulfillment`
-        if restock:
-            order.events.create(
-                parameters={'quantity': fulfillment.get_total_quantity()},
-                type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
-                user=info.context.user)
-        elif order:
-            order.events.create(
-                parameters={'composed_id': fulfillment.composed_id},
-                type=OrderEvents.FULFILLMENT_CANCELED.value,
-                user=info.context.user)
+        cancel_fulfillment(info.context.user, fulfillment, restock)
         return FulfillmentCancel(fulfillment=fulfillment, order=order)

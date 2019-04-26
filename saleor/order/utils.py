@@ -5,6 +5,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
+from ..events.models import OrderEvent
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import (
@@ -165,13 +166,20 @@ def update_order_prices(order, discounts):
     recalculate_order(order)
 
 
-def cancel_order(order, restock):
+def cancel_order(user, order, restock):
     """Cancel order and associated fulfillments.
 
     Return products to corresponding stocks if restock is set to True.
     """
+
+    events = [
+        OrderEvent.cancelled_event(order=order, source=user)]
     if restock:
+        events.append(OrderEvent.fulfillment_restocked_items_event(
+            order=order, source=user,
+            fulfillment=order))
         restock_order_lines(order)
+
     for fulfillment in order.fulfillments.all():
         fulfillment.status = FulfillmentStatus.CANCELED
         fulfillment.save(update_fields=['status'])
@@ -186,6 +194,8 @@ def cancel_order(order, restock):
             gateway_refund(payment)
         elif payment.can_void():
             gateway_void(payment)
+
+    OrderEvent.objects.bulk_create(events)
 
 
 def update_order_status(order):
@@ -205,12 +215,16 @@ def update_order_status(order):
         order.save(update_fields=['status'])
 
 
-def cancel_fulfillment(fulfillment, restock):
+def cancel_fulfillment(user, fulfillment, restock):
     """Cancel fulfillment.
 
     Return products to corresponding stocks if restock is set to True.
     """
+    events = [OrderEvent.fulfillment_canceled_event(
+        order=fulfillment.order, source=user, fulfillment=fulfillment)]
     if restock:
+        events.append(OrderEvent.fulfillment_restocked_items_event(
+            order=fulfillment.order, source=user, fulfillment=fulfillment))
         restock_fulfillment_lines(fulfillment)
     for line in fulfillment:
         order_line = line.order_line
@@ -219,6 +233,7 @@ def cancel_fulfillment(fulfillment, restock):
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=['status'])
     update_order_status(fulfillment.order)
+    OrderEvent.objects.bulk_create(events)
 
 
 def attach_order_to_user(order, user):

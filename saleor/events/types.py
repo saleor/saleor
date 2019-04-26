@@ -3,9 +3,9 @@ from enum import Enum
 
 class OrderEvents(Enum):
     DRAFT_CREATED = 'draft_created'
-    DRAFT_SELECTED_SHIPPING_METHOD = 'draft_selected_shipping_method'
-    DRAFT_ADDED_PRODUCTS = 'draft_added_products'
-    DRAFT_REMOVED_PRODUCTS = 'draft_removed_products'
+    DRAFT_SELECTED_SHIPPING_METHOD = 'draft_selected_shipping_method'  # FIXME
+    DRAFT_ADDED_PRODUCTS = 'draft_added_products'      # FIXME: IMPLEMENT ME
+    DRAFT_REMOVED_PRODUCTS = 'draft_removed_products'  # FIXME: IMPLEMENT ME
 
     PLACED = 'placed'
     PLACED_FROM_DRAFT = 'draft_placed'
@@ -17,13 +17,14 @@ class OrderEvents(Enum):
     ORDER_FULLY_PAID = 'order_paid'
 
     UPDATED = 'updated'
+    UPDATED_ADDRESS = 'updated_address'
 
     EMAIL_SENT = 'email_sent'
 
     PAYMENT_CAPTURED = 'captured'
     PAYMENT_REFUNDED = 'refunded'
     PAYMENT_VOIDED = 'voided'
-    PAYMENT_FAILED = 'payment_failed'
+    PAYMENT_FAILED = 'payment_failed'  # FIXME: IMPLEMENT ME
 
     FULFILLMENT_CANCELED = 'fulfillment_canceled'
     FULFILLMENT_RESTOCKED_ITEMS = 'restocked_items'
