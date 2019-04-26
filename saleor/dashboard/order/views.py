@@ -19,7 +19,7 @@ from ...events.models import OrderEvent
 from ...events.types import OrderEvents, OrderEventsEmails
 from ...order import OrderStatus
 from ...order.emails import (
-    send_fulfillment_confirmation, send_fulfillment_update,
+    send_fulfillment_confirmation_to_customer, send_fulfillment_update,
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order
 from ...order.utils import update_order_prices, update_order_status
@@ -620,10 +620,8 @@ def fulfill_order_lines(request, order_pk):
                 quantities=quantities, order_lines=order_lines)]
 
             if form.cleaned_data.get('send_mail'):
-                send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
-                events.append(OrderEvent.email_sent_event(
-                    order=order, source=request.user,
-                    email_type=OrderEventsEmails.SHIPPING))
+                events += send_fulfillment_confirmation_to_customer(
+                    order, fulfillment, request.user)
 
             OrderEvent.objects.bulk_create(events)
         else:

@@ -978,6 +978,8 @@ def digital_content(category, media_root):
         product=product, sku='SKU_554', cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=3)
 
+    assert product_variant.is_digital()
+
     image_file, image_name = create_image()
     d_content = DigitalContent.objects.create(
         content_file=image_file, product_variant=product_variant,

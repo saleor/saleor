@@ -5,6 +5,8 @@ from templated_email import send_templated_mail
 
 from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
+from ..events.models import OrderEvent
+from ..events.types import OrderEventsEmails
 from ..seo.schema.email import get_order_confirmation_markup
 from .models import Fulfillment, Order
 
@@ -63,6 +65,23 @@ def send_fulfillment_confirmation(order_pk, fulfillment_pk):
     email_data = collect_data_for_fullfillment_email(
         order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk)
     send_templated_mail(**email_data)
+
+
+def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
+    send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
+
+    events = [OrderEvent.email_sent_event(
+        order=order, source=user,
+        email_type=OrderEventsEmails.FULFILLMENT)]
+
+    # If digital lines were sent in the fulfillment email,
+    # trigger the event
+    if any((line for line in order if line.variant.is_digital())):
+        events.append(OrderEvent.email_sent_event(
+            order=order, source=user,
+            email_type=OrderEventsEmails.DIGITAL_LINKS))
+
+    return events
 
 
 @shared_task
