@@ -441,8 +441,8 @@ class CancelOrderForm(forms.Form):
                     "This order can't be canceled"))
         return data
 
-    def cancel_order(self):
-        cancel_order(self.order, self.cleaned_data.get('restock'))
+    def cancel_order(self, user):
+        cancel_order(user, self.order, self.cleaned_data.get('restock'))
 
 
 class CancelFulfillmentForm(forms.Form):
@@ -471,8 +471,9 @@ class CancelFulfillmentForm(forms.Form):
                     'This fulfillment can\'t be canceled'))
         return data
 
-    def cancel_fulfillment(self):
-        cancel_fulfillment(self.fulfillment, self.cleaned_data.get('restock'))
+    def cancel_fulfillment(self, user):
+        cancel_fulfillment(
+            user, self.fulfillment, self.cleaned_data.get('restock'))
 
 
 class FulfillmentTrackingNumberForm(forms.ModelForm):

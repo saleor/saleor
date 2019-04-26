@@ -9,6 +9,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.utils.translation import pgettext_lazy
 
+from ..events.models import OrderEvent
 from ..account.models import Address, User
 from ..checkout.models import Checkout
 from ..core import analytics
@@ -75,22 +76,24 @@ def create_payment_information(
 
 
 def handle_fully_paid_order(order):
-    order.events.create(type=OrderEvents.ORDER_FULLY_PAID.value)
+    events = [OrderEvent.fully_paid_event_event(order=order)]
+
     if order.get_user_current_email():
+        events.append(OrderEvent.email_sent_event(
+            order=order, email_type=OrderEventsEmails.PAYMENT,
+            source=None))
         send_payment_confirmation.delay(order.pk)
-        order.events.create(
-            type=OrderEvents.EMAIL_SENT.value,
-            parameters={
-                'email': order.get_user_current_email(),
-                'email_type': OrderEventsEmails.PAYMENT.value})
 
         if order_utils.order_needs_automatic_fullfilment(order):
             order_utils.automatically_fulfill_digital_lines(order)
+
     try:
         analytics.report_order(order.tracking_client_id, order)
     except Exception:
         # Analytics failing should not abort the checkout flow
         logger.exception('Recording order in analytics failed')
+
+    OrderEvent.objects.bulk_create(events)
 
 
 def require_active_payment(view):
@@ -174,8 +177,8 @@ def mark_order_as_paid(order: Order, request_user: User):
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=['captured_amount', 'charge_status'])
-    order.events.create(
-        type=OrderEvents.ORDER_MARKED_AS_PAID.value, user=request_user)
+    OrderEvent.manually_marked_as_paid_event(
+        order=order, source=request_user).save()
 
 
 def create_transaction(
@@ -340,6 +343,7 @@ def validate_gateway_response(response: GatewayResponse):
             'Gateway response needs to be json serializable')
 
 
+@transaction.atomic
 def _gateway_postprocess(transaction, payment):
     transaction_kind = transaction.kind
 
