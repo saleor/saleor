@@ -5,7 +5,6 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
-from ..events.models import OrderEvent
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import (
@@ -13,6 +12,7 @@ from ..core.utils.taxes import (
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
+from ..events.models import OrderEvent
 from ..order import FulfillmentStatus, OrderStatus, emails
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment import ChargeStatus

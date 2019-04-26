@@ -1,4 +1,4 @@
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -7,7 +7,7 @@ from django.db import models
 from django.utils.timezone import now
 from prices import Money
 
-from saleor.account.models import Address
+from ...account.models import Address
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...order.models import Fulfillment, Order, OrderLine
 from ...payment.models import Payment

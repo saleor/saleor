@@ -8,11 +8,10 @@ from ...core.exceptions import InsufficientStock
 from ...discount.models import NotApplicable
 from ..forms import CheckoutNoteForm
 from ..utils import (
-    get_checkout_context, get_taxes_for_checkout,
+    get_checkout_context, get_taxes_for_checkout, place_checkout_to_order,
     update_billing_address_in_anonymous_checkout,
     update_billing_address_in_checkout,
-    update_billing_address_in_checkout_with_shipping,
-    place_checkout_to_order)
+    update_billing_address_in_checkout_with_shipping)
 
 
 def handle_order_placement(request, checkout):
