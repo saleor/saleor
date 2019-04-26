@@ -12,7 +12,7 @@ from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
     ChargeStatus, GatewayError, OperationType, PaymentError, TransactionKind,
     get_payment_gateway)
-from saleor.payment.gateway_dataclasses import GatewayResponse
+from saleor.payment.interface import GatewayResponse
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS, REQUIRED_GATEWAY_KEYS, call_gateway,

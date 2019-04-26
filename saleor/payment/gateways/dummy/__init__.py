@@ -2,7 +2,7 @@ import uuid
 from typing import Dict, List
 
 from ... import ChargeStatus
-from ...gateway_dataclasses import GatewayResponse
+from ...interface import GatewayResponse
 from .forms import DummyPaymentForm
 
 TEMPLATE_PATH = 'order/payment/dummy.html'

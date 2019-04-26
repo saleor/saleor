@@ -5,7 +5,7 @@ import braintree as braintree_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
-from ...gateway_dataclasses import GatewayResponse, PaymentInformation
+from ...interface import GatewayResponse, PaymentInformation
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
