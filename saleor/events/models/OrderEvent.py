@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -51,7 +51,7 @@ class OrderEvent(models.Model):
     def email_sent_event(
             cls, *,
             order: Order, email_type: OrderEventsEmails,
-            source: Union[User, None]) -> models.Model:
+            source: Optional[User]) -> models.Model:
 
         if source is not None and source.is_anonymous:
             source = None
@@ -141,7 +141,7 @@ class OrderEvent(models.Model):
 
     @staticmethod
     def _get_payment_data(
-            amount: Union[Money, None], payment: Payment) -> Dict:
+            amount: Optional[Money], payment: Payment) -> Dict:
         return {
             'parameters': {
                 'amount': amount,

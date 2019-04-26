@@ -3,21 +3,13 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
 from ....events.models import OrderEvent
-from ....events.types import OrderEventsEmails
 from ....order import models
-from ....order.emails import send_fulfillment_confirmation
+from ....order.emails import send_fulfillment_confirmation_to_customer
 from ....order.utils import (
     cancel_fulfillment, fulfill_order_line, update_order_status)
 from ...core.mutations import BaseMutation
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
-
-
-def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
-    send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
-    OrderEvent.email_sent_event(
-        order=order, email_type=OrderEventsEmails.FULFILLMENT,
-        source=user).save()
 
 
 class FulfillmentLineInput(graphene.InputObjectType):
@@ -113,12 +105,15 @@ class FulfillmentCreate(BaseMutation):
 
         fulfillment.lines.bulk_create(fulfillment_lines)
         update_order_status(order)
-        OrderEvent.fulfillment_fulfilled_items_event(
+        events = [OrderEvent.fulfillment_fulfilled_items_event(
             order=order, source=user,
-            quantities=quantities, order_lines=order_lines).save()
+            quantities=quantities, order_lines=order_lines)]
+
         if cleaned_input.get('notify_customer', True):
-            send_fulfillment_confirmation_to_customer(
+            events += send_fulfillment_confirmation_to_customer(
                 order, fulfillment, user)
+
+        OrderEvent.objects.bulk_create(events)
         return fulfillment
 
     @classmethod

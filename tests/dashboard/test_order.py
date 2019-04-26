@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -16,6 +17,7 @@ from saleor.discount.utils import increase_voucher_usage
 from saleor.events.models import OrderEvent
 from saleor.events.types import OrderEvents, OrderEventsEmails
 from saleor.order import FulfillmentStatus, OrderStatus
+from saleor.order.emails import send_fulfillment_confirmation_to_customer
 from saleor.order.models import Order, OrderLine
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.payment import ChargeStatus, TransactionKind
@@ -978,7 +980,58 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
         type=OrderEvents.ORDER_MARKED_AS_PAID.value).exists()
 
 
-def test_view_fulfill_order_lines(admin_client, order_with_lines):
+@patch('saleor.order.utils.emails.send_fulfillment_confirmation')
+@pytest.mark.parametrize('has_standard,has_digital', (
+        (True, True),
+        (True, False),
+        (False, True)))
+def test_send_fulfillment_order_lines_mails(
+        mocked_send_fulfillment_confirmation,
+        staff_user,
+        fulfilled_order, fulfillment, digital_content,
+        has_standard, has_digital):
+
+    order = fulfilled_order
+    assert order.lines.count() == 2
+
+    if not has_standard:
+        line = order.lines.all()[0]
+        line.variant = digital_content.product_variant
+        assert line.is_digital
+        line.save()
+
+    if has_digital:
+        line = order.lines.all()[1]
+        line.variant = digital_content.product_variant
+        assert line.is_digital
+        line.save()
+
+    events = send_fulfillment_confirmation_to_customer(
+        order=order, fulfillment=fulfillment, user=staff_user)
+
+    mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
+        order.pk, fulfillment.pk)
+
+    # Ensure the standard fulfillment event was triggered
+    assert events[0].user == staff_user
+    assert events[0].parameters == {
+        'email': order.user_email,
+        'email_type': OrderEventsEmails.FULFILLMENT.value}
+
+    if has_digital:
+        assert len(events) == 2
+        assert events[1].user == staff_user
+        assert events[1].parameters == {
+            'email': order.user_email,
+            'email_type': OrderEventsEmails.DIGITAL_LINKS.value}
+    else:
+        assert len(events) == 1
+
+
+@patch('saleor.dashboard.order.views.'
+       'send_fulfillment_confirmation_to_customer')
+def test_view_fulfill_order_lines(
+        mock_email_fulfillment, admin_client, order_with_lines):
     url = reverse(
         'dashboard:fulfill-order-lines',
         kwargs={'order_pk': order_with_lines.pk})
@@ -1001,6 +1054,7 @@ def test_view_fulfill_order_lines(admin_client, order_with_lines):
     order_with_lines.refresh_from_db()
     for line in order_with_lines.lines.all():
         assert line.quantity_unfulfilled == 0
+    assert mock_email_fulfillment.call_count == 1
 
 
 def test_view_fulfill_order_lines_with_empty_quantity(admin_client, order_with_lines):
