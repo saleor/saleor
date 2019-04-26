@@ -52,6 +52,10 @@ class OrderEvent(models.Model):
             cls, *,
             order: Order, email_type: OrderEventsEmails,
             source: Union[User, None]) -> models.Model:
+
+        if source is not None and source.is_anonymous:
+            source = None
+
         return cls(
             order=order, type=OrderEvents.EMAIL_SENT.value,
             user=source,
@@ -97,6 +101,10 @@ class OrderEvent(models.Model):
         event_type = (
             OrderEvents.PLACED_FROM_DRAFT if from_draft else OrderEvents.PLACED
         )
+
+        if source.is_anonymous:
+            source = None
+
         return cls(
             order=order, type=event_type.value, user=source)
 
@@ -129,7 +137,7 @@ class OrderEvent(models.Model):
 
     @classmethod
     def fully_paid_event_event(cls, *, order: Order) -> models.Model:
-        return cls(order=order)
+        return cls(order=order, type=OrderEvents.ORDER_FULLY_PAID.value)
 
     @staticmethod
     def _get_payment_data(
@@ -155,7 +163,7 @@ class OrderEvent(models.Model):
             order: Order, source: User,
             amount: Money, payment: Payment) -> models.Model:
         return cls(
-            order=order, type=OrderEvents.PAYMENT_CAPTURED.value,
+            order=order, type=OrderEvents.PAYMENT_REFUNDED.value,
             user=source, **cls._get_payment_data(amount, payment))
 
     @classmethod
@@ -163,7 +171,7 @@ class OrderEvent(models.Model):
             cls, *,
             order: Order, source: User, payment: Payment) -> models.Model:
         return cls(
-            order=order, type=OrderEvents.PAYMENT_CAPTURED.value,
+            order=order, type=OrderEvents.PAYMENT_VOIDED.value,
             user=source, **cls._get_payment_data(None, payment))
 
     @classmethod

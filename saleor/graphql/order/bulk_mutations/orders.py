@@ -35,7 +35,7 @@ class OrderBulkCancel(BaseBulkMutation):
     def bulk_action(cls, queryset, user, restock):
         events = []
         for order in queryset:
-            cancel_order(order=order, restock=restock)
+            cancel_order(user=user, order=order, restock=restock)
             if restock:
                 events.append(OrderEvent.fulfillment_restocked_items_event(
                     order=order, source=user, fulfillment=order))

@@ -15,8 +15,10 @@ from saleor.graphql.order.mutations.orders import (
     clean_void_payment)
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
-from saleor.order.models import Order, OrderEvent
+from saleor.events.types import OrderEvents, OrderEventsEmails
+from saleor.events.models import OrderEvent
+from saleor.order import OrderStatus
+from saleor.order.models import Order
 from saleor.payment import ChargeStatus, CustomPaymentChoices
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
@@ -558,7 +560,7 @@ def test_draft_order_complete(
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
-    missing_stock_event, draft_placed_event = OrderEvent.objects.all()
+    draft_placed_event, missing_stock_event = OrderEvent.objects.all()
 
     assert missing_stock_event.user == staff_user
     assert missing_stock_event.type == OrderEvents.OVERSOLD_ITEMS.value
@@ -1102,7 +1104,8 @@ def test_order_capture(
         'email_type': OrderEventsEmails.PAYMENT.value}
     assert event_captured.type == OrderEvents.PAYMENT_CAPTURED.value
     assert event_captured.user == staff_user
-    assert event_captured.parameters == {'amount': str(amount)}
+    assert event_captured.parameters == {
+        'amount': str(amount), 'payment_gateway': 'dummy', 'payment_id': ''}
 
 
 def test_paid_order_mark_as_paid(
@@ -1499,10 +1502,9 @@ def test_order_bulk_cancel_with_restock(
     content = get_graphql_content(response)
     data = content['data']['orderBulkCancel']
     assert data['count'] == expected_count
-    event = order_with_lines.events.first()
+    event = order_with_lines.events.all()[1]
     assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
     assert event.user == staff_api_client.user
-
 
 
 @pytest.mark.parametrize('orders_filter, count', [
