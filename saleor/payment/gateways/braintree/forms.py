@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 
-from ...gateway_dataclasses import PaymentInformation
+from ...interface import PaymentInformation
 
 
 class BraintreePaymentForm(forms.Form):

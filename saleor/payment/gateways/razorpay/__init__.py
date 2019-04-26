@@ -6,7 +6,7 @@ from typing import Dict
 import razorpay
 import razorpay.errors
 
-from ...gateway_dataclasses import GatewayResponse, PaymentInformation
+from ...interface import GatewayResponse, PaymentInformation
 from . import errors
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response

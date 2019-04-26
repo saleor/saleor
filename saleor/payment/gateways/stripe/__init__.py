@@ -2,7 +2,7 @@ from typing import Dict
 
 import stripe
 
-from ...gateway_dataclasses import GatewayResponse, PaymentInformation
+from ...interface import GatewayResponse, PaymentInformation
 from .forms import StripePaymentModalForm
 from .utils import (
     get_amount_for_stripe, get_amount_from_stripe, get_currency_for_stripe,

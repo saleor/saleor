@@ -1,4 +1,3 @@
-import dataclasses
 import json
 import logging
 from decimal import Decimal
@@ -19,7 +18,7 @@ from ..order.models import Order
 from . import (
     ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
     PaymentError, TransactionKind, get_payment_gateway)
-from .gateway_dataclasses import GatewayResponse, PaymentInformation
+from .interface import GatewayResponse, PaymentInformation
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)

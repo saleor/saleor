@@ -6,7 +6,7 @@ from django.forms.widgets import HiddenInput
 from django.utils.html import format_html
 from django.utils.translation import pgettext_lazy
 
-from ...gateway_dataclasses import PaymentInformation
+from ...interface import PaymentInformation
 from .utils import get_amount_for_stripe
 
 CHECKOUT_SCRIPT_URL = 'https://checkout.stripe.com/checkout.js'
