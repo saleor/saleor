@@ -12,7 +12,7 @@ export interface ProductFragment_thumbnail {
 }
 
 export interface ProductFragment_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
 }
 
