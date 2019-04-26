@@ -6,6 +6,7 @@ from django.forms.widgets import HiddenInput
 from django.utils.html import format_html
 from django.utils.translation import pgettext_lazy
 
+from ...gateway_dataclasses import PaymentInformation
 from .utils import get_amount_for_razorpay
 
 CHECKOUT_SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js'
@@ -20,7 +21,7 @@ class RazorPayCheckoutWidget(HiddenInput):
 
     def __init__(
             self, *,
-            payment_information: Dict,
+            payment_information: PaymentInformation,
             public_key: str,
             prefill: bool,
             store_name: str,
@@ -35,16 +36,16 @@ class RazorPayCheckoutWidget(HiddenInput):
             'data-name': store_name,
             'data-description': SECONDARY_TITLE,
             'data-amount': get_amount_for_razorpay(
-                payment_information['amount']),
-            'data-currency': payment_information['currency']}
+                payment_information.amount),
+            'data-currency': payment_information.currency}
 
         if prefill:
             customer_name = '%s %s' % (
-                payment_information['billing']['last_name'],
-                payment_information['billing']['first_name'])
+                payment_information.billing['last_name'],
+                payment_information.billing['first_name'])
             base_attrs.update({
                 'data-prefill.name': customer_name,
-                'data-prefill.email': payment_information['customer_email']})
+                'data-prefill.email': payment_information.customer_email})
 
         if override_attrs:
             base_attrs.update(override_attrs)

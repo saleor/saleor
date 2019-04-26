@@ -2,8 +2,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from braintree import (
-    CreditCard, Environment, ErrorResult, SuccessfulResult, Transaction)
+from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
 from braintree.errors import Errors
 from braintree.exceptions import NotFoundError
 from braintree.validation_error import ValidationError
@@ -302,7 +301,7 @@ def test_refund(
     assert response.transaction_id == braintree_success_response.transaction.id
     assert response.is_success == braintree_success_response.is_success
     mock_response.assert_called_once_with(
-        amount_or_options=str(amount), transaction_id=payment_info['token'])
+        amount_or_options=str(amount), transaction_id=payment_info.token)
 
 
 @pytest.mark.integration
@@ -363,7 +362,7 @@ def test_capture(
     assert response.is_success == braintree_success_response.is_success
 
     mock_response.assert_called_once_with(
-        amount=str(amount), transaction_id=payment_info['token'])
+        amount=str(amount), transaction_id=payment_info.token)
 
 
 @pytest.mark.integration
@@ -419,7 +418,7 @@ def test_void(
     assert response.currency == braintree_success_response.transaction.currency_iso_code
     assert response.transaction_id == braintree_success_response.transaction.id
     assert response.is_success == braintree_success_response.is_success
-    mock_response.assert_called_once_with(transaction_id=payment_info['token'])
+    mock_response.assert_called_once_with(transaction_id=payment_info.token)
 
 
 @pytest.mark.integration

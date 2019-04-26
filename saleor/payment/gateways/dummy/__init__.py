@@ -37,9 +37,9 @@ def authorize(
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.AUTH,
-        amount=payment_information['amount'],
-        currency=payment_information['currency'],
-        transaction_id=payment_information['token'],
+        amount=payment_information.amount,
+        currency=payment_information.currency,
+        transaction_id=payment_information.token,
         error=error
     )
 
@@ -53,9 +53,9 @@ def void(
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.VOID,
-        amount=payment_information['amount'],
-        currency=payment_information['currency'],
-        transaction_id=payment_information['token'],
+        amount=payment_information.amount,
+        currency=payment_information.currency,
+        transaction_id=payment_information.token,
         error=error
     )
 
@@ -71,9 +71,9 @@ def capture(
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.CAPTURE,
-        amount=payment_information['amount'],
-        currency=payment_information['currency'],
-        transaction_id=payment_information['token'],
+        amount=payment_information.amount,
+        currency=payment_information.currency,
+        transaction_id=payment_information.token,
         error=error
     )
 
@@ -87,9 +87,9 @@ def refund(
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.REFUND,
-        amount=payment_information['amount'],
-        currency=payment_information['currency'],
-        transaction_id=payment_information['token'],
+        amount=payment_information.amount,
+        currency=payment_information.currency,
+        transaction_id=payment_information.token,
         error=error
     )
 
@@ -106,7 +106,7 @@ def charge(
 def process_payment(
         payment_information: Dict, connection_params) -> GatewayResponse:
     """Process the payment."""
-    token = payment_information.get('token')
+    token = payment_information.token
 
     # Process payment normally if payment token is valid
     if token not in dict(ChargeStatus.CHOICES):

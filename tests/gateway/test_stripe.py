@@ -289,7 +289,7 @@ def test_get_stripe_charge_payload_with_shipping(stripe_payment):
         'description': billing_name,
         'shipping': {
             'name': billing_name,
-            'address': shipping_to_stripe_dict(payment_info['shipping'])}}
+            'address': shipping_to_stripe_dict(payment_info.shipping)}}
 
     charge_payload = _get_stripe_charge_payload(payment_info, True)
 
