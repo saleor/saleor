@@ -140,9 +140,7 @@ class CheckoutLine(models.Model):
     def __str__(self):
         return smart_str(self.variant)
 
-    def __hash__(self):
-        # FIXME: in Django 2.2 this is not present if __eq__ is defined
-        return super().__hash__()
+    __hash__ = models.Model.__hash__
 
     def __eq__(self, other):
         if not isinstance(other, CheckoutLine):
