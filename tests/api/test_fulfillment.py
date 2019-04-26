@@ -3,7 +3,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 
-from saleor.order import OrderEvents, OrderEventsEmails
+from saleor.events.types import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
 
@@ -64,7 +64,8 @@ def test_create_fulfillment(
     event_fulfillment, event_email_sent = order.events.all()
     assert event_fulfillment.type == (
         OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value)
-    assert event_fulfillment.parameters == {'quantity': 1}
+    assert event_fulfillment.parameters == {'fulfilled_items': [
+        {'item': str(order_line), 'quantity': 1}]}
     assert event_fulfillment.user == staff_user
 
     assert event_email_sent.type == OrderEvents.EMAIL_SENT.value
@@ -188,7 +189,13 @@ def test_cancel_fulfillment_restock_items(
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
-    event_restocked_items = fulfillment.order.events.get()
+    event_cancelled, event_restocked_items = fulfillment.order.events.all()
+    assert event_cancelled.type == (
+        OrderEvents.FULFILLMENT_CANCELED.value)
+    assert event_cancelled.parameters == {
+        'composed_id': fulfillment.composed_id}
+    assert event_cancelled.user == staff_user
+
     assert event_restocked_items.type == (
         OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value)
     assert event_restocked_items.parameters == {
@@ -254,7 +261,9 @@ def test_create_digital_fulfillment(
     event_fulfillment, event_email_sent = order.events.all()
     assert event_fulfillment.type == (
         OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value)
-    assert event_fulfillment.parameters == {'quantity': 2}
+    assert event_fulfillment.parameters == {'fulfilled_items': [
+        {'item': str(order_line), 'quantity': 1},
+        {'item': str(second_line), 'quantity': 1}]}
     assert event_fulfillment.user == staff_user
 
     assert event_email_sent.type == OrderEvents.EMAIL_SENT.value

@@ -294,7 +294,7 @@ def test_restock_fulfillment_lines(fulfilled_order):
 
 
 def test_cancel_order(fulfilled_order):
-    cancel_order(fulfilled_order, restock=False)
+    cancel_order(None, fulfilled_order, restock=False)
     assert all([
         f.status == FulfillmentStatus.CANCELED
         for f in fulfilled_order.fulfillments.all()])
@@ -306,7 +306,7 @@ def test_cancel_fulfillment(fulfilled_order):
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.first()
 
-    cancel_fulfillment(fulfillment, restock=False)
+    cancel_fulfillment(None, fulfillment, restock=False)
 
     assert fulfillment.status == FulfillmentStatus.CANCELED
     assert fulfilled_order.status == OrderStatus.UNFULFILLED

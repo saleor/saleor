@@ -259,10 +259,9 @@ class OrderCapture(BaseMutation):
         except PaymentError as e:
             raise ValidationError({'payment': str(e)})
 
-        event_models.OrderEvent.objects.bulk_create(
-            event_models.OrderEvent.payment_captured_event(
-                order=order, source=info.context.user,
-                amount=amount, payment=payment))
+        event_models.OrderEvent.payment_captured_event(
+            order=order, source=info.context.user,
+            amount=amount, payment=payment).save()
         return OrderCapture(order=order)
 
 

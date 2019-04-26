@@ -462,6 +462,8 @@ class CheckoutComplete(BaseMutation):
         taxes = get_taxes_for_checkout(checkout, info.context.taxes)
         clean_checkout(checkout, taxes, info.context.discounts)
 
+        payment = checkout.get_last_active_payment()
+
         try:
             # FIXME: we shouldn't create the order, but only do checks
             order = place_checkout_to_order(info.context, checkout)
@@ -470,7 +472,7 @@ class CheckoutComplete(BaseMutation):
         except voucher_model.NotApplicable:
             raise ValidationError('Voucher not applicable')
 
-        payment = checkout.get_last_active_payment()
+        payment.order = order
 
         try:
             gateway_process_payment(

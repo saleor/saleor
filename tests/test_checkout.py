@@ -236,7 +236,7 @@ def test_view_checkout_shipping_method_without_address(
     assert get_redirect_location(response) == redirect_url
 
 
-@patch('saleor.checkout.views.summary.send_order_confirmation')
+@patch('saleor.checkout.utils.send_order_confirmation')
 def test_view_checkout_summary(
         mock_send_confirmation, client, shipping_zone, address,
         request_checkout_with_item):
@@ -264,7 +264,7 @@ def test_view_checkout_summary(
     assert request_checkout_with_item.pk is None
 
 
-@patch('saleor.checkout.views.summary.send_order_confirmation')
+@patch('saleor.checkout.utils.send_order_confirmation')
 def test_view_checkout_summary_authorized_user(
         mock_send_confirmation, authorized_client, customer_user,
         shipping_zone, address, request_checkout_with_item):
@@ -290,7 +290,7 @@ def test_view_checkout_summary_authorized_user(
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
-@patch('saleor.checkout.views.summary.send_order_confirmation')
+@patch('saleor.checkout.utils.send_order_confirmation')
 def test_view_checkout_summary_save_language(
         mock_send_confirmation, authorized_client, customer_user,
         shipping_zone, address, request_checkout_with_item, settings):

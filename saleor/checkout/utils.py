@@ -935,6 +935,4 @@ def place_checkout_to_order(request, checkout) -> Order:
 
     # Send the order confirmation email
     send_order_confirmation.delay(order.pk)
-
-    # Redirect the user to the payment page
     return order
