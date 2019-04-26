@@ -37,6 +37,7 @@ export interface StaffDetailsPageProps {
   staffMember: StaffMemberDetails_user;
   onBack: () => void;
   onDelete: () => void;
+  onImageDelete: () => void;
   onImageUpload(file: File);
   onSubmit: (data: FormData) => void;
 }
@@ -50,6 +51,7 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
   staffMember,
   onBack,
   onDelete,
+  onImageDelete,
   onImageUpload,
   onSubmit
 }: StaffDetailsPageProps) => {
@@ -84,6 +86,7 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
                 staffMember={staffMember}
                 onChange={change}
                 onImageUpload={onImageUpload}
+                onImageDelete={onImageDelete}
               />
             </div>
             {canEditStatus && (
