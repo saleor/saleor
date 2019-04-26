@@ -121,13 +121,41 @@ def display_order_event(order_event):
                 'fulfillment': params['composed_id'],
                 'tracking_number': params['tracking_number'],
                 'user_name': order_event.user}
-    if event_type == OrderEvents.OVERSOLD_ITEMS.value:
-        return npgettext_lazy(
+    if event_type == OrderEvents.DRAFT_CREATED.value:
+        return pgettext_lazy(
             'Dashboard message related to an order',
-            '%(quantity)d line item oversold on this order.',
-            '%(quantity)d line items oversold on this order.',
-            number='quantity') % {
-                'quantity': len(params['oversold_items'])}
+            'The draft was created by %(user_name)s') % {
+                'user_name': order_event.user}
+    if event_type == OrderEvents.DRAFT_SELECTED_SHIPPING_METHOD.value:
+        return pgettext_lazy(
+            'Dashboard message related to an order',
+            '%(user_name)s selected a shipping method') % {
+                'user_name': order_event.user}
+    if event_type == OrderEvents.DRAFT_ADDED_PRODUCTS.value:
+        return pgettext_lazy(
+            'Dashboard message related to an order',
+            '%(user_name)s added some products') % {
+                'user_name': order_event.user}
+    if event_type == OrderEvents.DRAFT_REMOVED_PRODUCTS.value:
+        return pgettext_lazy(
+            'Dashboard message related to an order',
+            '%(user_name)s removed some products') % {
+                'user_name': order_event.user}
+    if event_type == OrderEvents.OVERSOLD_ITEMS.value:
+        return pgettext_lazy(
+            'Dashboard message related to an order',
+            '%(user_name)s placed the order by bypassing oversold items') % {
+                'user_name': order_event.user}
+    if event_type == OrderEvents.UPDATED_ADDRESS.value:
+        return pgettext_lazy(
+            'Dashboard message related to an order',
+            'The order address was updated by %(user_name)s') % {
+                'user_name': order_event.user}
+    if event_type == OrderEvents.PAYMENT_FAILED.value:
+        return pgettext_lazy(
+            'Dashboard message related to an order',
+            'The payment was failed by %(user_name)s') % {
+                'user_name': order_event.user}
 
     if event_type == OrderEvents.OTHER.value:
         return order_event.parameters['message']
