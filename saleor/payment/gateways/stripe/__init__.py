@@ -214,7 +214,6 @@ def _create_response(
 
     # Check if the response's status is flagged as succeeded
     is_success = (response.get('status') == 'succeeded')
-
     return GatewayResponse(
         is_success=is_success,
         transaction_id=token,

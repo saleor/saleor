@@ -194,10 +194,8 @@ def create_transaction(
             amount=payment_information.amount,
             currency=payment_information.currency,
             error=error_msg,
+            raw_response={}
         )
-        gateway_response_dict = {}
-    else:
-        gateway_response_dict = dataclasses.asdict(gateway_response)
 
     txn = Transaction.objects.create(
         payment=payment,
@@ -207,7 +205,8 @@ def create_transaction(
         amount=gateway_response.amount,
         currency=gateway_response.currency,
         error=gateway_response.error,
-        gateway_response=gateway_response_dict)
+        gateway_response=gateway_response.raw_response or {}
+    )
     return txn
 
 
@@ -335,7 +334,7 @@ def validate_gateway_response(response: GatewayResponse):
         logger.warning('Transaction currency is different than Saleor\'s.')
 
     try:
-        json.dumps(dataclasses.asdict(response), cls=DjangoJSONEncoder)
+        json.dumps(response.raw_response, cls=DjangoJSONEncoder)
     except (TypeError, ValueError):
         raise GatewayError(
             'Gateway response needs to be json serializable')
