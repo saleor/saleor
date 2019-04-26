@@ -14,8 +14,9 @@ const props: Omit<StaffDetailsPageProps, "classes"> = {
   disabled: false,
   onBack: () => undefined,
   onDelete: () => undefined,
-  onSubmit: () => undefined,
+  onImageDelete: () => undefined,
   onImageUpload: () => undefined,
+  onSubmit: () => undefined,
   permissions,
   saveButtonBarState: "default",
   staffMember

@@ -38,16 +38,19 @@ const styles = (theme: Theme) =>
     },
     avatarHover: {
       "& p": {
+        "&:hover": {
+          textDecoration: "underline"
+        },
         color: theme.palette.primary.main,
+        cursor: "pointer",
         fontSize: 12,
         fontWeight: 500
       },
       background: "#00000080",
       borderRadius: "100%",
-      cursor: "pointer",
       height: 120,
       opacity: 0,
-      padding: `${theme.spacing.unit * 3}px 0`,
+      padding: `${theme.spacing.unit * 2.5}px 0`,
       position: "absolute",
       textAlign: "center",
       textTransform: "uppercase",
@@ -90,6 +93,7 @@ interface StaffPropertiesProps extends WithStyles<typeof styles> {
   disabled: boolean;
   staffMember: StaffMemberDetails_user;
   onChange: (event: React.ChangeEvent<any>) => void;
+  onImageDelete: () => void;
   onImageUpload: (file: File) => void;
 }
 
@@ -100,6 +104,7 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
     data,
     staffMember,
     onChange,
+    onImageDelete,
     onImageUpload
   }: StaffPropertiesProps) => {
     const imgInputAnchor = React.createRef<HTMLInputElement>();
@@ -115,9 +120,14 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
                   className={classes.avatarImage}
                   src={maybe(() => staffMember.avatar.url)}
                 />
-                <div className={classes.avatarHover} onClick={clickImgInput}>
+                <div className={classes.avatarHover}>
                   <SVG src={photoIcon} />
-                  <Typography>{i18n.t("Change photo")}</Typography>
+                  <Typography onClick={clickImgInput}>
+                    {i18n.t("Change photo")}
+                  </Typography>
+                  <Typography onClick={onImageDelete}>
+                    {i18n.t("Delete photo")}
+                  </Typography>
                   <input
                     className={classes.fileField}
                     id="fileUpload"
