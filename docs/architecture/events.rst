@@ -6,7 +6,7 @@ Events
     when certain actions are completed, such us creating the order,
     cancelling fulfillment or completing a payment.
 
-Order events
+Order Events
 ------------
 
 +--------------------------+--------------------------+---------------------------------------------------------------------+
@@ -45,6 +45,11 @@ Order events
 | ``other``                | ``OTHER``                | Status used during reimporting of the legacy events.                |
 +--------------------------+--------------------------+---------------------------------------------------------------------+
 
+Email Event Types
+-----------------
+
+Fill me...
+
 Events Design
 -------------
 
@@ -62,3 +67,23 @@ directly run ``save()`` for the creation.
 
 .. |QuerySet.bulk_create| replace:: ``QuerySet.bulk_create``
 .. _QuerySet.bulk_create: https://docs.djangoproject.com/en/1.10/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+
+Sending Events
+--------------
+
+To send an event, simply do the following:
+
+.. code-block:: python
+  event = OrderEvent.note_added_event(
+      order=order, source=user, message='hello world!')
+  event.save()
+
+If now you want to send a 'sent email' event you would do the following:
+
+.. code-block:: python
+  event = OrderEvent.email_sent_event(
+      order=order, email_type=OrderEventsEmails.TRACKING_UPDATED,
+      source=user)
+  event.save()
+
+Notice how we are providing the email type.
