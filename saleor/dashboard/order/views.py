@@ -170,8 +170,9 @@ def capture_payment(request, order_pk, payment_pk):
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
             'Captured %(amount)s') % {'amount': prices_i18n.amount(amount)}
-        OrderEvent.objects.bulk_create([OrderEvent.payment_captured_event(
-            order=order, source=request.user, amount=amount, payment=payment)])
+        OrderEvent.payment_captured_event(
+            order=order, source=request.user,
+            amount=amount, payment=payment).save()
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
@@ -534,9 +535,8 @@ def mark_order_as_paid(request, order_pk):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-            OrderEvent.objects.bulk_create([
-                OrderEvent.manually_marked_as_paid_event(
-                    order=order, source=request.user)])
+            OrderEvent.manually_marked_as_paid_event(
+                order=order, source=request.user).save()
         msg = pgettext_lazy(
             'Dashboard message',
             'Order manually marked as paid')

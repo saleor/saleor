@@ -1,9 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....events import models as event_models
 from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
+from ....events import models as event_models
 from ....order import models
 from ....order.utils import cancel_order
 from ....payment import CustomPaymentChoices, PaymentError
