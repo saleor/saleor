@@ -10,10 +10,12 @@ import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import StaffDetailsPage from "../components/StaffDetailsPage/StaffDetailsPage";
 import {
+  TypedStaffAvatarUpdateMutation,
   TypedStaffMemberDeleteMutation,
   TypedStaffMemberUpdateMutation
 } from "../mutations";
 import { TypedStaffMemberDetailsQuery } from "../queries";
+import { StaffAvatarUpdate } from "../types/StaffAvatarUpdate";
 import { StaffMemberDelete } from "../types/StaffMemberDelete";
 import { StaffMemberUpdate } from "../types/StaffMemberUpdate";
 import {
@@ -64,77 +66,88 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                 variables={{ id }}
                 onCompleted={handleStaffMemberDelete}
               >
-                {(deleteStaffMember, deleteResult) => {
-                  const formTransitionState = getMutationState(
-                    updateResult.called,
-                    updateResult.loading,
-                    maybe(() => updateResult.data.staffUpdate.errors)
-                  );
-                  const deleteTransitionState = getMutationState(
-                    deleteResult.called,
-                    deleteResult.loading,
-                    maybe(() => deleteResult.data.staffDelete.errors)
-                  );
-                  const isUserSameAsViewer = maybe(
-                    () => user.user.id === data.user.id,
-                    true
-                  );
+                {(deleteStaffMember, deleteResult) => (
+                  <TypedStaffAvatarUpdateMutation>
+                    {updateStaffAvatar => {
+                      const formTransitionState = getMutationState(
+                        updateResult.called,
+                        updateResult.loading,
+                        maybe(() => updateResult.data.staffUpdate.errors)
+                      );
+                      const deleteTransitionState = getMutationState(
+                        deleteResult.called,
+                        deleteResult.loading,
+                        maybe(() => deleteResult.data.staffDelete.errors)
+                      );
+                      const isUserSameAsViewer = maybe(
+                        () => user.user.id === data.user.id,
+                        true
+                      );
 
-                  return (
-                    <>
-                      <WindowTitle title={maybe(() => data.user.email)} />
-                      <StaffDetailsPage
-                        canEditStatus={!isUserSameAsViewer}
-                        canRemove={!isUserSameAsViewer}
-                        disabled={loading}
-                        onBack={() => navigate(staffListUrl())}
-                        onDelete={() =>
-                          navigate(
-                            staffMemberDetailsUrl(id, {
-                              action: "remove"
-                            })
-                          )
-                        }
-                        onSubmit={variables =>
-                          updateStaffMember({
-                            variables: {
-                              id,
-                              input: {
-                                email: variables.email,
-                                firstName: variables.firstName,
-                                isActive: variables.isActive,
-                                lastName: variables.lastName,
-                                permissions: variables.permissions
-                              }
+                      return (
+                        <>
+                          <WindowTitle title={maybe(() => data.user.email)} />
+                          <StaffDetailsPage
+                            canEditStatus={!isUserSameAsViewer}
+                            canRemove={!isUserSameAsViewer}
+                            disabled={loading}
+                            onBack={() => navigate(staffListUrl())}
+                            onDelete={() =>
+                              navigate(
+                                staffMemberDetailsUrl(id, {
+                                  action: "remove"
+                                })
+                              )
                             }
-                          })
-                        }
-                        permissions={maybe(() => data.shop.permissions)}
-                        staffMember={maybe(() => data.user)}
-                        saveButtonBarState={formTransitionState}
-                      />
-                      <ActionDialog
-                        open={params.action === "remove"}
-                        title={i18n.t("Remove staff user")}
-                        confirmButtonState={deleteTransitionState}
-                        variant="delete"
-                        onClose={() => navigate(staffMemberDetailsUrl(id))}
-                        onConfirm={deleteStaffMember}
-                      >
-                        <DialogContentText
-                          dangerouslySetInnerHTML={{
-                            __html: i18n.t(
-                              "Are you sure you want to remove <strong>{{ email }}</strong> from staff members?",
-                              {
-                                email: maybe(() => data.user.email)
-                              }
-                            )
-                          }}
-                        />
-                      </ActionDialog>
-                    </>
-                  );
-                }}
+                            onSubmit={variables =>
+                              updateStaffMember({
+                                variables: {
+                                  id,
+                                  input: {
+                                    email: variables.email,
+                                    firstName: variables.firstName,
+                                    isActive: variables.isActive,
+                                    lastName: variables.lastName,
+                                    permissions: variables.permissions
+                                  }
+                                }
+                              })
+                            }
+                            onImageUpload={file =>
+                              updateStaffAvatar({
+                                variables: {
+                                  image: file
+                                }
+                              })
+                            }
+                            permissions={maybe(() => data.shop.permissions)}
+                            staffMember={maybe(() => data.user)}
+                            saveButtonBarState={formTransitionState}
+                          />
+                          <ActionDialog
+                            open={params.action === "remove"}
+                            title={i18n.t("Remove staff user")}
+                            confirmButtonState={deleteTransitionState}
+                            variant="delete"
+                            onClose={() => navigate(staffMemberDetailsUrl(id))}
+                            onConfirm={deleteStaffMember}
+                          >
+                            <DialogContentText
+                              dangerouslySetInnerHTML={{
+                                __html: i18n.t(
+                                  "Are you sure you want to remove <strong>{{ email }}</strong> from staff members?",
+                                  {
+                                    email: maybe(() => data.user.email)
+                                  }
+                                )
+                              }}
+                            />
+                          </ActionDialog>
+                        </>
+                      );
+                    }}
+                  </TypedStaffAvatarUpdateMutation>
+                )}
               </TypedStaffMemberDeleteMutation>
             )}
           </TypedStaffMemberUpdateMutation>
