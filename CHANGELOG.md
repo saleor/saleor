@@ -35,6 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add navigation drawer support - #3839 by @benekex2
 - Set up explicit __hash__ function - #3979 by @akjanik
 
+- Update node-sass to latest version to fix node-js 12 compatibility - #4033 @NyanKiyoshi
 
 ## 2.5.0
 
