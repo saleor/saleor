@@ -141,6 +141,11 @@ def customer_user(address):  # pylint: disable=W0613
     return user
 
 
+@pytest.fixture()
+def user_checkout(customer_user):
+    return Checkout.objects.get_or_create(user=customer_user)[0]
+
+
 @pytest.fixture
 def request_checkout(checkout, monkeypatch):
     # FIXME: Fixtures should not have any side effects

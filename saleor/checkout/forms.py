@@ -1,5 +1,6 @@
 """Checkout-related forms and fields."""
 from datetime import date
+from typing import Any
 
 from django import forms
 from django.conf import settings
@@ -44,6 +45,9 @@ class AddToCheckoutForm(forms.Form):
         'empty-stock': pgettext_lazy(
             'Add to checkout form error',
             'Sorry. This product is currently out of stock.'),
+        'variant-too-many-in-checkout': pgettext_lazy(
+            'Add to checkout form error',
+            'Sorry. You can\'t add more than %d times this item.'),
         'variant-does-not-exists': pgettext_lazy(
             'Add to checkout form error', 'Oops. We could not find that product.'),
         'insufficient-stock': npgettext_lazy(
@@ -56,6 +60,9 @@ class AddToCheckoutForm(forms.Form):
         self.discounts = kwargs.pop('discounts', ())
         self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
+
+    def add_error_i18n(self, field, error_name, fmt: Any = tuple()):
+        self.add_error(field, self.error_messages[error_name] % fmt)
 
     def clean(self):
         """Clean the form.
@@ -70,22 +77,28 @@ class AddToCheckoutForm(forms.Form):
         try:
             variant = self.get_variant(cleaned_data)
         except ObjectDoesNotExist:
-            msg = self.error_messages['variant-does-not-exists']
-            self.add_error(NON_FIELD_ERRORS, msg)
+            self.add_error_i18n(NON_FIELD_ERRORS, 'variant-does-not-exists')
         else:
             line = self.checkout.get_line(variant)
             used_quantity = line.quantity if line else 0
             new_quantity = quantity + used_quantity
+
+            if new_quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
+                self.add_error_i18n(
+                    'quantity',
+                    'variant-too-many-in-checkout',
+                    settings.MAX_CHECKOUT_LINE_QUANTITY)
+                return cleaned_data
+
             try:
                 variant.check_quantity(new_quantity)
             except InsufficientStock as e:
                 remaining = e.item.quantity_available - used_quantity
                 if remaining:
-                    msg = self.error_messages['insufficient-stock']
-                    self.add_error('quantity', msg % remaining)
+                    self.add_error_i18n(
+                        'quantity', 'insufficient-stock', remaining)
                 else:
-                    msg = self.error_messages['empty-stock']
-                    self.add_error('quantity', msg)
+                    self.add_error_i18n('quantity', 'empty-stock')
         return cleaned_data
 
     def save(self):
