@@ -68,9 +68,7 @@ class Address(models.Model):
     def __eq__(self, other):
         return self.as_data() == other.as_data()
 
-    def __hash__(self):
-        # FIXME: in Django 2.2 this is not present if __eq__ is defined
-        return super().__hash__()
+    __hash__ = models.Model.__hash__
 
     def as_data(self):
         """Return the address as a dict suitable for passing as kwargs.
