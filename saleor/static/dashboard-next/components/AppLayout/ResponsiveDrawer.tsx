@@ -20,7 +20,8 @@ const styles = (theme: Theme) =>
       width: drawerWidth
     },
     drawerMobile: {
-      width: drawerWidth
+      padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
+      width: drawerWidth,
     }
   });
 

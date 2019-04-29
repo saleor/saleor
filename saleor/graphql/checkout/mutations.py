@@ -1,6 +1,7 @@
 from datetime import date
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
@@ -63,6 +64,10 @@ def clean_shipping_method(
 def check_lines_quantity(variants, quantities):
     """Check if stock is sufficient for each line in the list of dicts."""
     for variant, quantity in zip(variants, quantities):
+        if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
+            raise ValidationError({
+                'quantity': 'Cannot add more than %d times this item.'
+                            '' % settings.MAX_CHECKOUT_LINE_QUANTITY})
         try:
             variant.check_quantity(quantity)
         except InsufficientStock as e:
