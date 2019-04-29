@@ -505,9 +505,11 @@ def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):
     assert fulfillment.tracking_number == tracking_number
 
 
-def test_view_order_create(admin_client):
-    url = reverse('dashboard:order-create')
+def test_view_order_create(admin_client, admin_user):
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
 
+    url = reverse('dashboard:order-create')
     response = admin_client.post(url, {})
 
     assert response.status_code == 302
@@ -517,6 +519,11 @@ def test_view_order_create(admin_client):
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert get_redirect_location(response) == redirect_url
     assert order.status == OrderStatus.DRAFT
+
+    created_draft_event = OrderEvent.objects.get()
+    assert created_draft_event.type == OrderEvents.DRAFT_CREATED.value
+    assert created_draft_event.user == admin_user
+    assert created_draft_event.parameters == {}
 
 
 def test_view_create_from_draft_order_valid(admin_client, draft_order):
