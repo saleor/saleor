@@ -12,12 +12,12 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
+from ...events.models import OrderEvent
 from ...order import OrderStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
-    change_order_line_quantity, delete_order_line, fulfill_order_line,
-    recalculate_order)
+    change_order_line_quantity, fulfill_order_line, recalculate_order)
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ...payment.utils import (
     clean_mark_order_as_paid, gateway_capture, gateway_refund, gateway_void,
@@ -366,11 +366,11 @@ class CancelOrderLineForm(forms.Form):
         self.line = kwargs.pop('line')
         super().__init__(*args, **kwargs)
 
-    def cancel_line(self):
+    def cancel_line(self, user):
         if self.line.variant and self.line.variant.track_inventory:
             deallocate_stock(self.line.variant, self.line.quantity)
         order = self.line.order
-        delete_order_line(self.line)
+        change_order_line_quantity(user, self.line, self.line.quantity, 0)
         recalculate_order(order)
 
 
@@ -403,14 +403,15 @@ class ChangeQuantityForm(forms.ModelForm):
                             self.initial_quantity + variant.quantity_available)})  # noqa
         return quantity
 
-    def save(self):
+    def save(self, user):
         quantity = self.cleaned_data['quantity']
         variant = self.instance.variant
         if variant and variant.track_inventory:
             # update stock allocation
             delta = quantity - self.initial_quantity
             allocate_stock(variant, delta)
-        change_order_line_quantity(self.instance, quantity)
+        change_order_line_quantity(
+            user, self.instance, self.initial_quantity, quantity)
         recalculate_order(self.instance.order)
         return self.instance
 
@@ -570,15 +571,18 @@ class AddVariantToOrderForm(forms.Form):
                 self.add_error('quantity', error)
         return cleaned_data
 
-    def save(self):
+    def save(self, user):
         """Add variant to order.
 
         Updates stocks and order.
         """
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
-        add_variant_to_order(
+        line = add_variant_to_order(
             self.order, variant, quantity, self.discounts, self.taxes)
+        OrderEvent.draft_added_products(
+            order=self.order, source=user,
+            order_lines=[(line.quantity, line)]).save()
         recalculate_order(self.order)
 
 

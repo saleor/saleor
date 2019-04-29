@@ -256,7 +256,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
                 'variant': line.variant, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
         with transaction.atomic():
-            form.save()
+            form.save(request.user)
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
@@ -278,7 +278,7 @@ def orderline_cancel(request, order_pk, line_pk):
             'Dashboard message related to an order line',
             'Canceled item %s') % line
         with transaction.atomic():
-            form.cancel_line()
+            form.cancel_line(request.user)
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
@@ -305,7 +305,7 @@ def add_variant_to_order(request, order_pk):
             'variant': form.cleaned_data.get('variant')}
         try:
             with transaction.atomic():
-                form.save()
+                form.save(request.user)
             msg = pgettext_lazy(
                 'Dashboard message related to an order',
                 'Added %(quantity)d x %(variant)s') % msg_dict

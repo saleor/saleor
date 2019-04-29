@@ -101,8 +101,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             cleaned_input['billing_address'] = billing_address
         return cleaned_input
 
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
+    @staticmethod
+    def _save_addresses(info, instance, cleaned_input):
         # Create the draft creation event
         shipping_address = cleaned_input.get('shipping_address')
         if shipping_address:
@@ -113,22 +113,48 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             billing_address.save()
             instance.billing_address = billing_address.get_copy()
 
+    @staticmethod
+    def _save_lines(info, instance, events, quantities, variants):
+        if variants and quantities:
+            lines = []
+            for variant, quantity in zip(variants, quantities):
+                lines.append((quantity, variant))
+                add_variant_to_order(
+                    instance, variant, quantity, allow_overselling=True,
+                    track_inventory=False)
+
+            # Add event
+            events.append(OrderEvent.draft_added_products(
+                order=instance, source=info.context.user, order_lines=lines))
+
+    @staticmethod
+    def _commit_changes(info, instance, cleaned_input, events):
         # Create draft created event if the instance is from scratch
         if not instance.pk:
-            OrderEvent.draft_created_event(
-                order=instance, source=info.context.user).save()
+            events.append(OrderEvent.draft_created_event(
+                order=instance, source=info.context.user))
 
         super().save(info, instance, cleaned_input)
         instance.save(update_fields=['billing_address', 'shipping_address'])
 
-        variants = cleaned_input.get('variants')
-        quantities = cleaned_input.get('quantities')
-        if variants and quantities:
-            for variant, quantity in zip(variants, quantities):
-                add_variant_to_order(
-                    instance, variant, quantity, allow_overselling=True,
-                    track_inventory=False)
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        events = []
+
+        # Process addresses
+        cls._save_addresses(info, instance, cleaned_input)
+
+        # Save any changes create/update the draft
+        cls._commit_changes(info, instance, cleaned_input, events)
+
+        # Process any lines to add
+        cls._save_lines(
+            info, instance, events,
+            cleaned_input.get('quantities'), cleaned_input.get('variants'))
+
+        # Post-process the results
         recalculate_order(instance)
+        OrderEvent.objects.bulk_create(events)
 
 
 class DraftOrderUpdate(DraftOrderCreate):
@@ -240,7 +266,7 @@ class DraftOrderLinesCreate(BaseMutation):
         if order.status != OrderStatus.DRAFT:
             raise ValidationError({'id': 'Only draft orders can be edited.'})
 
-        lines = []
+        lines_to_add = []
         for input_line in data.get('input'):
             variant_id = input_line['variant_id']
             variant = cls.get_node_or_error(
@@ -248,13 +274,21 @@ class DraftOrderLinesCreate(BaseMutation):
             quantity = input_line['quantity']
             if quantity > 0:
                 if variant:
-                    line = add_variant_to_order(
-                        order, variant, quantity, allow_overselling=True)
-                    lines.append(line)
+                    lines_to_add.append((quantity, variant))
             else:
                 raise ValidationError({
                     'quantity':
                     'Ensure this value is greater than or equal to 1.'})
+
+        # Add the lines
+        lines = [
+            add_variant_to_order(
+                order, variant, quantity, allow_overselling=True)
+            for quantity, variant in lines_to_add]
+
+        # Create the event
+        OrderEvent.draft_added_products(
+            order=order, source=info.context.user, order_lines=lines_to_add)
 
         recalculate_order(order)
         return DraftOrderLinesCreate(order=order, order_lines=lines)
@@ -283,6 +317,12 @@ class DraftOrderLineDelete(BaseMutation):
         db_id = line.id
         delete_order_line(line)
         line.id = db_id
+
+        # Create the removal event
+        OrderEvent.draft_removed_products(
+            order=order, source=info.context.user,
+            order_lines=[(line.quantity, line)]).save()
+
         recalculate_order(order)
         return DraftOrderLineDelete(order=order, order_line=line)
 
@@ -304,6 +344,7 @@ class DraftOrderLineUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
+        instance.old_quantity = instance.quantity
         cleaned_input = super().clean_input(info, instance, data)
         if instance.order.status != OrderStatus.DRAFT:
             raise ValidationError({'id': 'Only draft orders can be edited.'})
@@ -317,7 +358,9 @@ class DraftOrderLineUpdate(ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        change_order_line_quantity(instance, instance.quantity)
+        change_order_line_quantity(
+            info.context.user, instance,
+            instance.old_quantity, instance.quantity)
         recalculate_order(instance.order)
 
     @classmethod
