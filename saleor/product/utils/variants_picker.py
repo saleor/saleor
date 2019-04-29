@@ -88,5 +88,5 @@ def price_range_as_dict(price_range):
     if not price_range:
         return None
     return {
-        'maxPrice': price_as_dict(price_range.start),
-        'minPrice': price_as_dict(price_range.stop)}
+        'minPrice': price_as_dict(price_range.start),
+        'maxPrice': price_as_dict(price_range.stop)}

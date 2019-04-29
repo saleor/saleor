@@ -251,7 +251,8 @@ def test_adding_to_checkout_with_current_user_token(
     authorized_client.post(url, data)
 
     assert Checkout.objects.count() == 1
-    assert Checkout.objects.get(user=customer_user).pk == request_checkout_with_item.pk
+    assert Checkout.objects.get(
+        user=customer_user).pk == request_checkout_with_item.pk
 
 
 def test_adding_to_checkout_with_another_user_token(
@@ -275,7 +276,8 @@ def test_adding_to_checkout_with_another_user_token(
     client.post(url, data)
 
     assert Checkout.objects.count() == 2
-    assert Checkout.objects.get(user=admin_user).pk != request_checkout_with_item.pk
+    assert Checkout.objects.get(
+        user=admin_user).pk != request_checkout_with_item.pk
 
 
 def test_anonymous_adding_to_checkout_with_another_user_token(
@@ -742,7 +744,8 @@ def test_homepage_collection_render(
 
 
 def test_digital_product_view(client, digital_content):
-    digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+    digital_content_url = DigitalContentUrl.objects.create(
+        content=digital_content)
     url = digital_content_url.get_absolute_url()
     response = client.get(url)
     filename = os.path.basename(digital_content.content_file.name)
@@ -776,9 +779,44 @@ def test_digital_product_view_url_expired(client, digital_content):
     digital_content.save()
 
     with freeze_time('2018-05-31 12:00:01'):
-        digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+        digital_content_url = DigitalContentUrl.objects.create(
+            content=digital_content)
 
     url = digital_content_url.get_absolute_url()
     response = client.get(url)
 
     assert response.status_code == 404
+
+
+def test_variant_picker_data_price_range(
+        product_type, category, taxes, site_settings):
+
+    site_settings.include_taxes_in_prices = False
+    site_settings.save()
+
+    product = models.Product.objects.create(
+        product_type=product_type,
+        category=category,
+        price=Money('15.00', 'USD'))
+    product.variants.create(sku='1')
+    product.variants.create(sku='2', price_override=Money('20.00', 'USD'))
+    product.variants.create(sku='3', price_override=Money('11.00', 'USD'))
+
+    start = TaxedMoney(net=Money('11.00', 'USD'), gross=Money('13.53', 'USD'))
+    stop = TaxedMoney(net=Money('20.00', 'USD'), gross=Money('24.60', 'USD'))
+
+    picker_data = get_variant_picker_data(
+        product, discounts=None, taxes=taxes, local_currency=None)
+
+    min_price = picker_data['availability']['priceRange']['minPrice']
+    min_price = TaxedMoney(
+        net=Money(min_price['net'], min_price['currency']),
+        gross=Money(min_price['gross'], min_price['currency']))
+
+    max_price = picker_data['availability']['priceRange']['maxPrice']
+    max_price = TaxedMoney(
+        net=Money(max_price['net'], max_price['currency']),
+        gross=Money(max_price['gross'], max_price['currency']))
+
+    assert min_price == start
+    assert max_price == stop
