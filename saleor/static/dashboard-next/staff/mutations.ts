@@ -101,6 +101,12 @@ const staffAvatarDeleteMutation = gql`
         field
         message
       }
+      user {
+        id
+        avatar {
+          url
+        }
+      }
     }
   }
 `;
