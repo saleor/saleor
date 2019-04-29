@@ -38,8 +38,8 @@ export interface StaffDetailsPageProps {
   onBack: () => void;
   onDelete: () => void;
   onImageDelete: () => void;
-  onImageUpload(file: File);
   onSubmit: (data: FormData) => void;
+  onImageUpload(file: File);
 }
 
 const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({

@@ -106,5 +106,5 @@ const staffAvatarDeleteMutation = gql`
 `;
 export const TypedStaffAvatarDeleteMutation = TypedMutation<
   StaffAvatarDelete,
-  {}
+  StaffMemberDeleteVariables
 >(staffAvatarDeleteMutation);
