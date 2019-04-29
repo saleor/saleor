@@ -92,7 +92,7 @@ def create_order_from_draft(request, order_pk):
         if form.cleaned_data.get('notify_customer'):
             send_order_confirmation.delay(order.pk)
             events.append(OrderEvent.email_sent_event(
-                order=order, email_type=OrderEventsEmails.ORDER.value,
+                order=order, email_type=OrderEventsEmails.ORDER,
                 source=request.user))
 
         OrderEvent.objects.bulk_create(events)
@@ -479,7 +479,7 @@ def order_voucher_edit(request, order_pk):
 @staff_member_required
 @permission_required('order.manage_orders')
 def cancel_order(request, order_pk):
-    orders = Order.objects.confirmed().prefetch_related('lines__quantity')
+    orders = Order.objects.confirmed().prefetch_related('lines')
     order = get_object_or_404(orders, pk=order_pk)
 
     status = 200
@@ -539,8 +539,6 @@ def mark_order_as_paid(request, order_pk):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-            OrderEvent.manually_marked_as_paid_event(
-                order=order, source=request.user).save()
         msg = pgettext_lazy(
             'Dashboard message',
             'Order manually marked as paid')

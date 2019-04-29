@@ -271,14 +271,15 @@ class BasePaymentForm(forms.Form):
             None, pgettext_lazy(
                 'Payment form error', 'Payment gateway error: %s') % message)
 
-    def _try_payment_action(self, user, action, *args):
+    def _try_payment_action(self, user, action, payment, *args):
         try:
-            action(*args)
+            action(payment, *args)
         except (PaymentError, ValueError) as e:
             message = str(e)
             self.payment_error(message)
             OrderEvent.payment_failed_event(
-                order=self.payment.order, source=user, message=message).save()
+                order=self.payment.order, source=user,
+                message=message, payment=payment).save()
             return False
         return True
 
@@ -342,7 +343,7 @@ class VoidPaymentForm(BasePaymentForm):
             raise forms.ValidationError(self.clean_error)
 
     def void(self, user):
-        self.try_payment_action_without_amount(user, gateway_void)
+        return self.try_payment_action_without_amount(user, gateway_void)
 
 
 class OrderMarkAsPaidForm(forms.Form):
