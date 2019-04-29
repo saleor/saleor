@@ -62400,6 +62400,857 @@ Ctrl + K"
 </div>
 `;
 
+exports[`Storyshots Views / Products / Create product form errors 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <h1
+          class="MuiTypography-root-id MuiTypography-headline-id Component-title-id"
+        >
+          Add product
+        </h1>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                General information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductDetailsForm-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Name
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="true"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="name"
+                      rows="5"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="RichTextEditor-root-id RichTextEditor-scroll-id"
+              >
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id MuiTypography-colorPrimary-id RichTextEditor-label-id"
+                >
+                  Description
+                </span>
+                <div
+                  class="Draftail-Editor"
+                >
+                  <div
+                    class="Draftail-Toolbar"
+                    role="toolbar"
+                  >
+                    <div
+                      class="Draftail-ToolbarGroup"
+                    >
+                      <button
+                        aria-label="Bold
+Ctrl + B"
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="BOLD"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label="Italic
+Ctrl + I"
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="ITALIC"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                          <path
+                            d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <div
+                      class="Draftail-ToolbarGroup"
+                    >
+                      <button
+                        aria-label="Heading 2
+##"
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="header-two"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12.0612 17H10.0204V12.7724H6.04082V17H4V7.1355H6.04082V11.1328H10.0204V7.1355H12.0612V17Z"
+                          />
+                          <path
+                            d="M20.4286 17H13.6395V15.6585L16.8435 12.2575C17.2834 11.7787 17.6077 11.3609 17.8163 11.0041C18.0295 10.6472 18.1361 10.3085 18.1361 9.9878C18.1361 9.54968 18.0249 9.20641 17.8027 8.95799C17.5805 8.70506 17.263 8.57859 16.8503 8.57859C16.4059 8.57859 16.0544 8.73216 15.7959 9.0393C15.542 9.34192 15.415 9.74164 15.415 10.2385H13.4422C13.4422 9.63776 13.585 9.08898 13.8707 8.59214C14.161 8.0953 14.5692 7.70687 15.0952 7.42683C15.6213 7.14228 16.2177 7 16.8844 7C17.9048 7 18.6961 7.2439 19.2585 7.73171C19.8254 8.21951 20.1088 8.90831 20.1088 9.7981C20.1088 10.2859 19.9819 10.7827 19.7279 11.2886C19.4739 11.7945 19.0385 12.3839 18.4218 13.0569L16.1701 15.4214H20.4286V17Z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label="Heading 3
+###"
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="header-three"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M11.7816 16.8663H9.81159V12.6952H5.97003V16.8663H4V7.13369H5.97003V11.0775H9.81159V7.13369H11.7816V16.8663Z"
+                          />
+                          <path
+                            d="M15.2357 11.1444H16.247C16.7286 11.1444 17.0854 11.0218 17.3174 10.7767C17.5494 10.5316 17.6655 10.2063 17.6655 9.8008C17.6655 9.40865 17.5494 9.10339 17.3174 8.88503C17.0898 8.66667 16.7746 8.55749 16.3718 8.55749C16.0084 8.55749 15.7042 8.65998 15.459 8.86497C15.2139 9.06551 15.0913 9.32843 15.0913 9.65374H13.1935C13.1935 9.14572 13.327 8.69118 13.5941 8.29011C13.8655 7.88458 14.242 7.56818 14.7235 7.34091C15.2095 7.11364 15.7436 7 16.3258 7C17.3371 7 18.1295 7.24733 18.703 7.74198C19.2765 8.23217 19.5633 8.90954 19.5633 9.77406C19.5633 10.2197 19.4297 10.6297 19.1627 11.004C18.8956 11.3783 18.5454 11.6658 18.112 11.8663C18.6505 12.0624 19.051 12.3565 19.3137 12.7487C19.5808 13.1408 19.7143 13.6043 19.7143 14.139C19.7143 15.0036 19.4035 15.6965 18.7818 16.2179C18.1645 16.7393 17.3459 17 16.3258 17C15.3715 17 14.59 16.7438 13.9815 16.2313C13.3774 15.7188 13.0753 15.0414 13.0753 14.1992H14.9731C14.9731 14.5646 15.1066 14.8632 15.3736 15.0949C15.6451 15.3266 15.9778 15.4425 16.3718 15.4425C16.8227 15.4425 17.1751 15.3222 17.429 15.0816C17.6873 14.8365 17.8165 14.5134 17.8165 14.1123C17.8165 13.1408 17.2911 12.6551 16.2405 12.6551H15.2357V11.1444Z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label="Blockquote
+>"
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="blockquote"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label="Bulleted list
+-"
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="unordered-list-item"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"
+                          />
+                          <path
+                            d="M0 0h24v24H0V0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label="Numbered list
+1."
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="ordered-list-item"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <div
+                      class="Draftail-ToolbarGroup"
+                    >
+                      <button
+                        aria-label="Line break
+⇧ + ↵"
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="BR"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <span
+                          class="Draftail-ToolbarButton__label"
+                        >
+                          ↵
+                        </span>
+                      </button>
+                    </div>
+                    <div
+                      class="Draftail-ToolbarGroup"
+                    >
+                      <button
+                        aria-label="Link
+Ctrl + K"
+                        class="Draftail-ToolbarButton"
+                        data-draftail-balloon="true"
+                        name="LINK"
+                        tabindex="-1"
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                          <path
+                            d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    class="DraftEditor-root"
+                  >
+                    <div
+                      class="DraftEditor-editorContainer"
+                    >
+                      <div
+                        aria-describedby="placeholder-testKey"
+                        class="notranslate public-DraftEditor-content"
+                        contenteditable="true"
+                        role="textbox"
+                        spellcheck="false"
+                        style="outline:none;user-select:text;-webkit-user-select:text;white-space:pre-wrap;word-wrap:break-word"
+                      >
+                        <div
+                          data-contents="true"
+                        >
+                          <div
+                            class="Draftail-block--unstyled "
+                            data-block="true"
+                            data-editor="testKey"
+                            data-offset-key="testKey-0-0"
+                          >
+                            <div
+                              class="public-DraftStyleDefault-block public-DraftStyleDefault-ltr"
+                              data-offset-key="testKey-0-0"
+                            >
+                              <span
+                                data-offset-key="testKey-0-0"
+                              >
+                                <br
+                                  data-text="true"
+                                />
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span
+                  class="MuiTypography-root-id MuiTypography-caption-id RichTextEditor-helperText-id"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Pricing
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                    <input
+                      class="MuiPrivateSwitchBase-input-id"
+                      data-indeterminate="false"
+                      name="chargeTaxes"
+                      type="checkbox"
+                    />
+                  </span>
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  Charge taxes for this item
+                </span>
+              </label>
+            </div>
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductPricing-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                    for="price"
+                  >
+                    Price
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id MuiInputBase-inputAdornedEnd-id"
+                      name="price"
+                      type="number"
+                      value=""
+                    />
+                    <div
+                      class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id PriceField-currencySymbol-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
+                      >
+                        USD
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Inventory
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductStock-root-id"
+              >
+                <div
+                  class="MuiFormControl-root-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    SKU (Stock Keeping Unit)
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="true"
+                      class="MuiInputBase-input-id MuiInput-input-id"
+                      name="sku"
+                      type="text"
+                    />
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+                <div
+                  class="MuiFormControl-root-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Inventory
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-formControl-id MuiInput-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputType-id MuiInput-inputType-id"
+                      name="stockQuantity"
+                      type="number"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Search Engine Preview
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Edit website SEO
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Add search engine title and description to make this product easier to find
+              </p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductOrganization-card-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Organize Product
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="SingleAutocompleteSelectField-container-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Product Type
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="true"
+                      autocomplete="off"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
+                      type="text"
+                      value=""
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <g
+                        style="fill-rule:evenodd"
+                      >
+                        <path
+                          d="M7 10l5 5 5-5z"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <hr
+                class="ProductOrganization-hr-id"
+              />
+              <div
+                class="SingleAutocompleteSelectField-container-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                    data-shrink="false"
+                  >
+                    Category
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-error-id MuiInput-error-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedEnd-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="true"
+                      autocomplete="off"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedEnd-id"
+                      type="text"
+                      value=""
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <g
+                        style="fill-rule:evenodd"
+                      >
+                        <path
+                          d="M7 10l5 5 5-5z"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <hr
+                class="ProductOrganization-hr-id"
+              />
+              <div
+                class="MultiAutocompleteSelectField-container-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    Collections
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id MuiInputBase-fullWidth-id MuiInput-fullWidth-id MuiInputBase-formControl-id MuiInput-formControl-id MuiInputBase-adornedStart-id MuiInputBase-adornedEnd-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="false"
+                      autocomplete="off"
+                      class="MuiInputBase-input-id MuiInput-input-id MuiInputBase-inputAdornedStart-id MuiInputBase-inputAdornedEnd-id"
+                      type="text"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <g
+                        style="fill-rule:evenodd"
+                      >
+                        <path
+                          d="M7 10l5 5 5-5z"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-headline-id CardTitle-title-id"
+              >
+                Availability
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductAvailabilityForm-switchContainer-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id"
+                        />
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="available"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    <div
+                      class="ControlledSwitch-label-id"
+                    >
+                      Published in storefront
+                    </div>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
 exports[`Storyshots Views / Products / Create product variant default 1`] = `
 <div
   style="padding:24px"

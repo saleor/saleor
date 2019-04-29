@@ -8,6 +8,7 @@ from unittest.mock import patch
 import pytest
 from django.core import serializers
 from django.core.serializers.base import DeserializationError
+from django.http import JsonResponse
 from django.urls import reverse
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -191,16 +192,44 @@ def test_view_invalid_add_to_checkout(client, product, request_checkout):
     assert request_checkout.quantity == 2
 
 
-def test_view_add_to_checkout(client, product, request_checkout_with_item):
-    variant = request_checkout_with_item.lines.get().variant
-    response = client.post(
-        reverse(
-            'product:add-to-checkout',
-            kwargs={'slug': product.get_slug(),
-                    'product_id': product.pk}),
-        {'quantity': 1, 'variant': variant.pk})
-    assert response.status_code == 302
-    assert request_checkout_with_item.quantity == 1
+def test_view_add_to_checkout(authorized_client, product, user_checkout):
+    variant = product.variants.first()
+
+    # Ignore stock
+    variant.track_inventory = False
+    variant.save()
+
+    # Add the variant to the user checkout and retrieve the variant line
+    add_variant_to_checkout(user_checkout, variant)
+    checkout_line = user_checkout.lines.last()
+
+    # Retrieve the test url
+    checkout_url = reverse(
+        'product:add-to-checkout',
+        kwargs={'slug': product.get_slug(),
+                'product_id': product.pk})
+
+    # Attempt to set the quantity to 50
+    response = authorized_client.post(
+        checkout_url,
+        {'quantity': 49, 'variant': variant.pk},
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest')  # type: JsonResponse
+    assert response.status_code == 200
+
+    # Ensure the line quantity was updated to 50
+    checkout_line.refresh_from_db(fields=['quantity'])
+    assert checkout_line.quantity == 50
+
+    # Attempt to increase the quantity to a too high count
+    response = authorized_client.post(
+        checkout_url,
+        {'quantity': 1, 'variant': variant.pk},
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 400
+
+    # Ensure the line quantity was not updated to 51
+    checkout_line.refresh_from_db(fields=['quantity'])
+    assert checkout_line.quantity == 50
 
 
 def test_adding_to_checkout_with_current_user_token(
@@ -222,7 +251,8 @@ def test_adding_to_checkout_with_current_user_token(
     authorized_client.post(url, data)
 
     assert Checkout.objects.count() == 1
-    assert Checkout.objects.get(user=customer_user).pk == request_checkout_with_item.pk
+    assert Checkout.objects.get(
+        user=customer_user).pk == request_checkout_with_item.pk
 
 
 def test_adding_to_checkout_with_another_user_token(
@@ -246,7 +276,8 @@ def test_adding_to_checkout_with_another_user_token(
     client.post(url, data)
 
     assert Checkout.objects.count() == 2
-    assert Checkout.objects.get(user=admin_user).pk != request_checkout_with_item.pk
+    assert Checkout.objects.get(
+        user=admin_user).pk != request_checkout_with_item.pk
 
 
 def test_anonymous_adding_to_checkout_with_another_user_token(
@@ -713,7 +744,8 @@ def test_homepage_collection_render(
 
 
 def test_digital_product_view(client, digital_content):
-    digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+    digital_content_url = DigitalContentUrl.objects.create(
+        content=digital_content)
     url = digital_content_url.get_absolute_url()
     response = client.get(url)
     filename = os.path.basename(digital_content.content_file.name)
@@ -747,9 +779,44 @@ def test_digital_product_view_url_expired(client, digital_content):
     digital_content.save()
 
     with freeze_time('2018-05-31 12:00:01'):
-        digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+        digital_content_url = DigitalContentUrl.objects.create(
+            content=digital_content)
 
     url = digital_content_url.get_absolute_url()
     response = client.get(url)
 
     assert response.status_code == 404
+
+
+def test_variant_picker_data_price_range(
+        product_type, category, taxes, site_settings):
+
+    site_settings.include_taxes_in_prices = False
+    site_settings.save()
+
+    product = models.Product.objects.create(
+        product_type=product_type,
+        category=category,
+        price=Money('15.00', 'USD'))
+    product.variants.create(sku='1')
+    product.variants.create(sku='2', price_override=Money('20.00', 'USD'))
+    product.variants.create(sku='3', price_override=Money('11.00', 'USD'))
+
+    start = TaxedMoney(net=Money('11.00', 'USD'), gross=Money('13.53', 'USD'))
+    stop = TaxedMoney(net=Money('20.00', 'USD'), gross=Money('24.60', 'USD'))
+
+    picker_data = get_variant_picker_data(
+        product, discounts=None, taxes=taxes, local_currency=None)
+
+    min_price = picker_data['availability']['priceRange']['minPrice']
+    min_price = TaxedMoney(
+        net=Money(min_price['net'], min_price['currency']),
+        gross=Money(min_price['gross'], min_price['currency']))
+
+    max_price = picker_data['availability']['priceRange']['maxPrice']
+    max_price = TaxedMoney(
+        net=Money(max_price['net'], max_price['currency']),
+        gross=Money(max_price['gross'], max_price['currency']))
+
+    assert min_price == start
+    assert max_price == stop
