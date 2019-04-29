@@ -44,11 +44,6 @@ def anonymous_checkout(db):
 
 
 @pytest.fixture()
-def user_checkout(customer_user):
-    return Checkout.objects.get_or_create(user=customer_user)[0]
-
-
-@pytest.fixture()
 def local_currency(monkeypatch):
     def side_effect(price, currency):
         return price
