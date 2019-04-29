@@ -785,13 +785,20 @@ DRAFT_ORDER_LINE_UPDATE_MUTATION = """
 
 
 def test_draft_order_line_update(
-        draft_order, permission_manage_orders, staff_api_client):
+        draft_order, permission_manage_orders, staff_api_client, staff_user):
     query = DRAFT_ORDER_LINE_UPDATE_MUTATION
     order = draft_order
     line = order.lines.first()
     new_quantity = 1
+    removed_quantity = 2
     line_id = graphene.Node.to_global_id('OrderLine', line.id)
     variables = {'lineId': line_id, 'quantity': new_quantity}
+
+    # Ensure the line has the expected quantity
+    assert line.quantity == 3
+
+    # No event should exist yet
+    assert not OrderEvent.objects.exists()
 
     # mutation should fail without proper permissions
     response = staff_api_client.post_graphql(query, variables)
@@ -803,6 +810,12 @@ def test_draft_order_line_update(
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineUpdate']
     assert data['orderLine']['quantity'] == new_quantity
+
+    removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
+    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS.value
+    assert removed_items_event.user == staff_user
+    assert removed_items_event.parameters == {
+        'lines': [{'quantity': removed_quantity, 'item': str(line)}]}
 
     # mutation should fail when quantity is lower than 1
     variables = {'lineId': line_id, 'quantity': 0}

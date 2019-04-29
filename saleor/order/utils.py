@@ -288,13 +288,25 @@ def add_variant_to_order(
     return line
 
 
-def change_order_line_quantity(line, new_quantity):
+def change_order_line_quantity(user, line, old_quantity, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
         line.quantity = new_quantity
         line.save(update_fields=['quantity'])
     else:
         delete_order_line(line)
+
+    quantity_diff = old_quantity - new_quantity
+
+    # Create the removal event
+    if quantity_diff > 0:
+        OrderEvent.draft_removed_products(
+            order=line.order, source=user,
+            order_lines=[(quantity_diff, line)]).save()
+    elif quantity_diff < 0:
+        OrderEvent.draft_added_products(
+            order=line.order, source=user,
+            order_lines=[(quantity_diff * -1, line)]).save()
 
 
 def delete_order_line(line):

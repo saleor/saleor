@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -44,6 +44,13 @@ class OrderEvent(models.Model):
     def __repr__(self):
         return 'OrderEvent(type=%r, user=%r)' % (self.type, self.user)
 
+    @staticmethod
+    def _lines_per_quantity_to_str_line_list(quantities_per_order_line):
+        return [{
+            'quantity': quantity,
+            'item': str(line)
+        } for quantity, line in quantities_per_order_line]
+
     def get_event_display(self):
         return display_order_event(self)
 
@@ -85,15 +92,28 @@ class OrderEvent(models.Model):
     def draft_added_products(
             cls, *,
             order: Order, source: User,
-            products: List[ProductVariant]) -> models.Model:
-        raise NotImplementedError
+            order_lines: List[Tuple[int, ProductVariant]]) -> models.Model:
+
+        return cls(
+            order=order, type=OrderEvents.DRAFT_ADDED_PRODUCTS.value,
+            user=source,
+            parameters={
+                'lines': cls._lines_per_quantity_to_str_line_list(order_lines)
+            })
 
     @classmethod
     def draft_removed_products(
             cls, *,
             order: Order, source: User,
-            products: List[ProductVariant]) -> models.Model:
-        raise NotImplementedError
+            order_lines: List[Tuple[int, ProductVariant]]
+    ) -> models.Model:
+
+        return cls(
+            order=order, type=OrderEvents.DRAFT_REMOVED_PRODUCTS.value,
+            user=source,
+            parameters={
+                'lines': cls._lines_per_quantity_to_str_line_list(
+                    order_lines)})
 
     @classmethod
     def placed_event(
@@ -211,10 +231,8 @@ class OrderEvent(models.Model):
             order=order, type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
             user=source,
             parameters={
-                'fulfilled_items': [{
-                    'quantity': quantity,
-                    'item': str(line)
-                } for quantity, line in zip(quantities, order_lines)]})
+                'fulfilled_items': cls._lines_per_quantity_to_str_line_list(
+                    zip(quantities, order_lines))})
 
     @classmethod
     def fulfillment_tracking_updated_event(
