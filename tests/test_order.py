@@ -553,7 +553,7 @@ def test_order_weight_add_new_variant(order_with_lines, product):
 def test_order_weight_change_line_quantity(order_with_lines):
     line = order_with_lines.lines.first()
     new_quantity = line.quantity + 2
-    change_order_line_quantity(line, new_quantity)
+    change_order_line_quantity(None, line, new_quantity, line.quantity)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines)

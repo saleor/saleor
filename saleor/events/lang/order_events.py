@@ -126,11 +126,6 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'The draft was created by %(user_name)s') % {
                 'user_name': order_event.user}
-    if event_type == OrderEvents.DRAFT_SELECTED_SHIPPING_METHOD.value:
-        return pgettext_lazy(
-            'Dashboard message related to an order',
-            '%(user_name)s selected a shipping method') % {
-                'user_name': order_event.user}
     if event_type == OrderEvents.DRAFT_ADDED_PRODUCTS.value:
         return pgettext_lazy(
             'Dashboard message related to an order',

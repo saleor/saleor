@@ -42,10 +42,14 @@ def clean_order_cancel(order):
         raise ValidationError({'order': 'This order can\'t be canceled.'})
 
 
-def clean_order_capture(payment):
+def clean_payment(payment):
     if not payment:
         raise ValidationError({
             'payment': 'There\'s no payment associated with the order.'})
+
+
+def clean_order_capture(payment):
+    clean_payment(payment)
     if not payment.is_active:
         raise ValidationError({
             'payment': 'Only pre-authorized payments can be captured'})
@@ -53,15 +57,28 @@ def clean_order_capture(payment):
 
 def clean_void_payment(payment):
     """Check for payment errors."""
+    clean_payment(payment)
     if not payment.is_active:
         raise ValidationError({
             'payment': 'Only pre-authorized payments can be voided'})
 
 
-def clean_refund_payment(payment, amount):
+def clean_refund_payment(payment):
+    clean_payment(payment)
     if payment.gateway == CustomPaymentChoices.MANUAL:
         raise ValidationError({
             'payment': 'Manual payments can not be refunded.'})
+
+
+def try_payment_action(order, user, payment, func, *args, **kwargs):
+    try:
+        func(*args, **kwargs)
+    except (PaymentError, ValueError) as e:
+        message = str(e)
+        event_models.OrderEvent.payment_failed_event(
+            order=order, source=user, message=message, payment=payment).save()
+        raise ValidationError({'payment': message})
+    return True
 
 
 class OrderUpdateInput(graphene.InputObjectType):
@@ -222,10 +239,11 @@ class OrderMarkAsPaid(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
-        try:
-            clean_mark_order_as_paid(order)
-        except PaymentError as e:
-            raise ValidationError({'payment': str(e)})
+
+        try_payment_action(
+            order, info.context.user, clean_mark_order_as_paid, order,
+            payment=None)
+
         mark_order_as_paid(order, info.context.user)
         return OrderMarkAsPaid(order=order)
 
@@ -254,10 +272,9 @@ class OrderCapture(BaseMutation):
         payment = order.get_last_payment()
         clean_order_capture(payment)
 
-        try:
-            gateway_capture(payment, amount)
-        except PaymentError as e:
-            raise ValidationError({'payment': str(e)})
+        try_payment_action(
+            order, info.context.user, gateway_capture, payment, amount,
+            payment=payment)
 
         event_models.OrderEvent.payment_captured_event(
             order=order, source=info.context.user,
@@ -282,10 +299,11 @@ class OrderVoid(BaseMutation):
             info, data.get('id'), only_type=Order)
         payment = order.get_last_payment()
         clean_void_payment(payment)
-        try:
-            gateway_void(payment)
-        except (PaymentError, ValueError) as e:
-            raise ValidationError({'payment': str(e)})
+
+        try_payment_action(
+            order, info.context.user, gateway_void, payment,
+            payment=payment)
+
         event_models.OrderEvent.payment_voided_event(
             order=order, source=info.context.user, payment=payment).save()
         return OrderVoid(order=order)
@@ -313,12 +331,11 @@ class OrderRefund(BaseMutation):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
         payment = order.get_last_payment()
-        clean_refund_payment(payment, amount)
+        clean_refund_payment(payment)
 
-        try:
-            gateway_refund(payment, amount)
-        except PaymentError as e:
-            raise ValidationError({'payment': str(e)})
+        try_payment_action(
+            order, info.context.user, gateway_refund, payment, amount,
+            payment=payment)
 
         event_models.OrderEvent.payment_refunded_event(
             order=order, source=info.context.user,

@@ -134,7 +134,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             events.append(OrderEvent.draft_created_event(
                 order=instance, source=info.context.user))
 
-        super().save(info, instance, cleaned_input)
         instance.save(update_fields=['billing_address', 'shipping_address'])
 
     @classmethod
@@ -143,6 +142,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Process addresses
         cls._save_addresses(info, instance, cleaned_input)
+        super().save(info, instance, cleaned_input)
 
         # Save any changes create/update the draft
         cls._commit_changes(info, instance, cleaned_input, events)

@@ -84,11 +84,6 @@ class OrderEvent(models.Model):
             order=order, type=OrderEvents.DRAFT_CREATED.value, user=source)
 
     @classmethod
-    def draft_selected_shipping_method_event(
-            cls, order: Order) -> models.Model:
-        raise NotImplementedError
-
-    @classmethod
     def draft_added_products(
             cls, *,
             order: Order, source: User,
@@ -197,8 +192,19 @@ class OrderEvent(models.Model):
     @classmethod
     def payment_failed_event(
             cls, *,
-            order: Order, source: User) -> models.Model:
-        raise NotImplementedError
+            order: Order, source: User, message: str,
+            payment: Payment) -> models.Model:
+
+        parameters = {'message': message}
+
+        if payment:
+            parameters.update({
+                'gateway': payment.gateway,
+                'payment_id': payment.token})
+
+        return cls(
+            order=order, type=OrderEvents.PAYMENT_FAILED.value,
+            user=source, parameters=parameters)
 
     @classmethod
     def fulfillment_canceled_event(
