@@ -59,11 +59,15 @@ def order_list(request):
 @permission_required('order.manage_orders')
 def order_create(request):
     display_gross_prices = request.site.settings.display_gross_prices
+    msg = pgettext_lazy(
+        'Dashboard message related to an order', 'Draft order created')
     order = Order.objects.create(
         status=OrderStatus.DRAFT, display_gross_prices=display_gross_prices)
-    msg = pgettext_lazy(
-        'Dashboard message related to an order',
-        'Draft order created')
+
+    # Create the draft creation event
+    OrderEvent.draft_created_event(order=order, source=request.user).save()
+
+    # Send success message and redirect to the draft details
     messages.success(request, msg)
     return redirect('dashboard:order-details', order_pk=order.pk)
 

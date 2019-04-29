@@ -103,6 +103,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        # Create the draft creation event
         shipping_address = cleaned_input.get('shipping_address')
         if shipping_address:
             shipping_address.save()
@@ -111,8 +112,15 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         if billing_address:
             billing_address.save()
             instance.billing_address = billing_address.get_copy()
+
+        # Create draft created event if the instance is from scratch
+        if not instance.pk:
+            OrderEvent.draft_created_event(
+                order=instance, source=info.context.user).save()
+
         super().save(info, instance, cleaned_input)
         instance.save(update_fields=['billing_address', 'shipping_address'])
+
         variants = cleaned_input.get('variants')
         quantities = cleaned_input.get('quantities')
         if variants and quantities:

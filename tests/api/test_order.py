@@ -345,9 +345,9 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
 
 
 def test_draft_order_create(
-        staff_api_client, permission_manage_orders, customer_user,
-        product_without_shipping, shipping_method, variant, voucher,
-        graphql_address_data):
+        staff_api_client, permission_manage_orders, staff_user,
+        customer_user, product_without_shipping, shipping_method,
+        variant, voucher, graphql_address_data):
     variant_0 = variant
     query = """
     mutation draftCreate(
@@ -380,6 +380,10 @@ def test_draft_order_create(
                 }
         }
     """
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
     user_id = graphene.Node.to_global_id('User', customer_user.id)
     variant_0_id = graphene.Node.to_global_id('ProductVariant', variant_0.id)
     variant_1 = product_without_shipping.variants.first()
@@ -418,6 +422,12 @@ def test_draft_order_create(
     assert order.shipping_address.first_name == graphql_address_data[
         'firstName']
 
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get()
+    assert created_draft_event.type == OrderEvents.DRAFT_CREATED.value
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
 
 def test_draft_order_update(
         staff_api_client, permission_manage_orders, order_with_lines):
@@ -443,6 +453,29 @@ def test_draft_order_update(
     content = get_graphql_content(response)
     data = content['data']['draftOrderUpdate']['order']
     assert data['userEmail'] == email
+
+
+def test_draft_order_update_doing_nothing_generates_no_events(
+        staff_api_client, permission_manage_orders, order_with_lines):
+    assert not OrderEvent.objects.exists()
+
+    query = """
+        mutation draftUpdate($id: ID!) {
+            draftOrderUpdate(id: $id, input: {}) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id('Order', order_with_lines.id)
+    response = staff_api_client.post_graphql(
+        query, {'id': order_id}, permissions=[permission_manage_orders])
+    get_graphql_content(response)
+
+    # Ensure not event was created
+    assert not OrderEvent.objects.exists()
 
 
 def test_draft_order_delete(
@@ -546,6 +579,10 @@ def test_draft_order_complete(
             }
         }
         """
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
     line_1, line_2 = order.lines.order_by('-quantity').all()
     line_1.quantity = 1
     line_1.save(update_fields=['quantity'])
