@@ -15,8 +15,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Hide errors in TokenVerify mutation - #3981 by @fowczarek
 - Use newest GraphQL Playground - #3971 by @salwator
 - Fix country area choices - #4008 by @fowczarek
-
-
 - Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
 - Removed the dead `children` field from the `Menu` type - #3973 by @NyanKiyoshi
 - Add mutations for bulk publishing and unpublishing products - #3969 by akjanik
@@ -36,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Set up explicit __hash__ function - #3979 by @akjanik
 - Update node-sass to latest version to fix node-js 12 compatibility - #4033 @NyanKiyoshi
 - Ensure adding to quantities in checkout is respecting the limits set both in storefront 1.0 and in the API - #4005 by @NyanKiyoshi
+- Remove unused decorator - #4036 by @maarcingebala
 
 
 ## 2.5.0
