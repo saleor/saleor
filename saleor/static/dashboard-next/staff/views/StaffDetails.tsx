@@ -22,7 +22,6 @@ import { StaffMemberDelete } from "../types/StaffMemberDelete";
 import { StaffMemberUpdate } from "../types/StaffMemberUpdate";
 import {
   staffListUrl,
-  staffMemberAvatarUrl,
   staffMemberDetailsUrl,
   StaffMemberDetailsUrlQueryParams
 } from "../urls";
@@ -157,8 +156,8 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                                 }
                                 onImageDelete={() =>
                                   navigate(
-                                    staffMemberAvatarUrl(id, {
-                                      action: "removeAvatar"
+                                    staffMemberDetailsUrl(id, {
+                                      action: "remove-avatar"
                                     })
                                   )
                                 }
@@ -188,7 +187,7 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                                 />
                               </ActionDialog>
                               <ActionDialog
-                                open={params.action === "removeAvatar"}
+                                open={params.action === "remove-avatar"}
                                 title={i18n.t("Remove staff user avatar")}
                                 confirmButtonState={deleteAvatarTransitionState}
                                 variant="delete"
