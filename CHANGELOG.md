@@ -35,6 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update node-sass to latest version to fix node-js 12 compatibility - #4033 @NyanKiyoshi
 - Ensure adding to quantities in checkout is respecting the limits set both in storefront 1.0 and in the API - #4005 by @NyanKiyoshi
 - Fix price_range_as_dict function - #3999 by @zodiacfireworks
+- Remove unused decorator - #4036 by @maarcingebala
 
 
 ## 2.5.0
