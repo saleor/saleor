@@ -300,11 +300,11 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
 
     # Create the removal event
     if quantity_diff > 0:
-        OrderEvent.draft_removed_products(
+        OrderEvent.draft_removed_products_event(
             order=line.order, source=user,
             order_lines=[(quantity_diff, line)]).save()
     elif quantity_diff < 0:
-        OrderEvent.draft_added_products(
+        OrderEvent.draft_added_products_event(
             order=line.order, source=user,
             order_lines=[(quantity_diff * -1, line)]).save()
 

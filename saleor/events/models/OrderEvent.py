@@ -84,7 +84,7 @@ class OrderEvent(models.Model):
             order=order, type=OrderEvents.DRAFT_CREATED.value, user=source)
 
     @classmethod
-    def draft_added_products(
+    def draft_added_products_event(
             cls, *,
             order: Order, source: User,
             order_lines: List[Tuple[int, ProductVariant]]) -> models.Model:
@@ -97,7 +97,7 @@ class OrderEvent(models.Model):
             })
 
     @classmethod
-    def draft_removed_products(
+    def draft_removed_products_event(
             cls, *,
             order: Order, source: User,
             order_lines: List[Tuple[int, ProductVariant]]
