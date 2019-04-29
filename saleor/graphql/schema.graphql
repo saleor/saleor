@@ -1416,10 +1416,14 @@ type OrderEvent implements Node {
   email: String
   emailType: OrderEventsEmails
   amount: Float
+  paymentId: String
+  paymentGateway: String
   quantity: Int
   composedId: String
   orderNumber: String
   oversoldItems: [String]
+  lines: [OrderEventLineObject]
+  fulfilledItems: [OrderEventLineObject]
 }
 
 type OrderEventCountableConnection {
@@ -1431,6 +1435,11 @@ type OrderEventCountableConnection {
 type OrderEventCountableEdge {
   node: OrderEvent!
   cursor: String!
+}
+
+type OrderEventLineObject {
+  quantity: Int
+  item: Int
 }
 
 enum OrderEvents {
