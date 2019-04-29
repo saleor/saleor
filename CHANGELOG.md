@@ -28,7 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add bulk actions - #3955 by @dominik-zeglen
 - Update file field styles with materializecss template filter - #3998 by @zodiacfireworks
 - Add filtering interface for graphQL API - #3952 by @korycins
-
+- Add user avatar management - #4030 by @benekex2
 
 ## 2.5.0
 
