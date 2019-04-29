@@ -124,17 +124,19 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     track_inventory=False)
 
             # Add event
-            events.append(OrderEvent.draft_added_products(
+            events.append(OrderEvent.draft_added_products_event(
                 order=instance, source=info.context.user, order_lines=lines))
 
     @classmethod
     def _commit_changes(cls, info, instance, cleaned_input, events):
+        created = instance.pk
+        super().save(info, instance, cleaned_input)
+
         # Create draft created event if the instance is from scratch
-        if not instance.pk:
+        if not created:
             events.append(OrderEvent.draft_created_event(
                 order=instance, source=info.context.user))
 
-        super().save(info, instance, cleaned_input)
         instance.save(update_fields=['billing_address', 'shipping_address'])
 
     @classmethod
@@ -287,7 +289,7 @@ class DraftOrderLinesCreate(BaseMutation):
             for quantity, variant in lines_to_add]
 
         # Create the event
-        OrderEvent.draft_added_products(
+        OrderEvent.draft_added_products_event(
             order=order, source=info.context.user, order_lines=lines_to_add)
 
         recalculate_order(order)
@@ -319,7 +321,7 @@ class DraftOrderLineDelete(BaseMutation):
         line.id = db_id
 
         # Create the removal event
-        OrderEvent.draft_removed_products(
+        OrderEvent.draft_removed_products_event(
             order=order, source=info.context.user,
             order_lines=[(line.quantity, line)]).save()
 
