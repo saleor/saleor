@@ -18,7 +18,18 @@ export type StaffMemberDetailsUrlDialog = "remove";
 export type StaffMemberDetailsUrlQueryParams = Dialog<
   StaffMemberDetailsUrlDialog
 >;
+
 export const staffMemberDetailsUrl = (
   id: string,
   params?: StaffMemberDetailsUrlQueryParams
+) => staffMemberDetailsPath(encodeURIComponent(id)) + "?" + stringifyQs(params);
+
+export type StaffMemberAvatarUrlDialog = "removeAvatar";
+export type StaffMemberAvatarUrlQueryParams = Dialog<
+  StaffMemberAvatarUrlDialog
+>;
+
+export const staffMemberAvatarUrl = (
+  id: string,
+  params?: StaffMemberAvatarUrlQueryParams
 ) => staffMemberDetailsPath(encodeURIComponent(id)) + "?" + stringifyQs(params);

@@ -22,6 +22,7 @@ import { StaffMemberDelete } from "../types/StaffMemberDelete";
 import { StaffMemberUpdate } from "../types/StaffMemberUpdate";
 import {
   staffListUrl,
+  staffMemberAvatarUrl,
   staffMemberDetailsUrl,
   StaffMemberDetailsUrlQueryParams
 } from "../urls";
@@ -61,6 +62,21 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
             navigate(staffListUrl());
           }
         };
+        const handleStaffMemberAvatarUpdate = (data: StaffAvatarUpdate) => {
+          if (!maybe(() => data.userAvatarUpdate.errors.length !== 0)) {
+            notify({
+              text: i18n.t("Succesfully updated staff member avatar")
+            });
+          }
+        };
+        const handleStaffMemberAvatarDelete = (data: StaffAvatarDelete) => {
+          if (!maybe(() => data.userAvatarDelete.errors.length !== 0)) {
+            notify({
+              text: i18n.t("Succesfully removed staff member avatar")
+            });
+            navigate(staffMemberDetailsUrl(id));
+          }
+        };
         return (
           <TypedStaffMemberUpdateMutation onCompleted={handleStaffMemberUpdate}>
             {(updateStaffMember, updateResult) => (
@@ -69,10 +85,14 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                 onCompleted={handleStaffMemberDelete}
               >
                 {(deleteStaffMember, deleteResult) => (
-                  <TypedStaffAvatarUpdateMutation>
+                  <TypedStaffAvatarUpdateMutation
+                    onCompleted={handleStaffMemberAvatarUpdate}
+                  >
                     {updateStaffAvatar => (
-                      <TypedStaffAvatarDeleteMutation>
-                        {deleteStaffAvatar => {
+                      <TypedStaffAvatarDeleteMutation
+                        onCompleted={handleStaffMemberAvatarDelete}
+                      >
+                        {(deleteStaffAvatar, deleteAvatarResult) => {
                           const formTransitionState = getMutationState(
                             updateResult.called,
                             updateResult.loading,
@@ -82,6 +102,14 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                             deleteResult.called,
                             deleteResult.loading,
                             maybe(() => deleteResult.data.staffDelete.errors)
+                          );
+                          const deleteAvatarTransitionState = getMutationState(
+                            deleteAvatarResult.called,
+                            deleteAvatarResult.loading,
+                            maybe(
+                              () =>
+                                deleteAvatarResult.data.userAvatarDelete.errors
+                            )
                           );
                           const isUserSameAsViewer = maybe(
                             () => user.user.id === data.user.id,
@@ -126,7 +154,13 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                                     }
                                   })
                                 }
-                                onImageDelete={() => deleteStaffAvatar()}
+                                onImageDelete={() =>
+                                  navigate(
+                                    staffMemberAvatarUrl(id, {
+                                      action: "removeAvatar"
+                                    })
+                                  )
+                                }
                                 permissions={maybe(() => data.shop.permissions)}
                                 staffMember={maybe(() => data.user)}
                                 saveButtonBarState={formTransitionState}
@@ -145,6 +179,27 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                                   dangerouslySetInnerHTML={{
                                     __html: i18n.t(
                                       "Are you sure you want to remove <strong>{{ email }}</strong> from staff members?",
+                                      {
+                                        email: maybe(() => data.user.email)
+                                      }
+                                    )
+                                  }}
+                                />
+                              </ActionDialog>
+                              <ActionDialog
+                                open={params.action === "removeAvatar"}
+                                title={i18n.t("Remove staff user avatar")}
+                                confirmButtonState={deleteAvatarTransitionState}
+                                variant="delete"
+                                onClose={() =>
+                                  navigate(staffMemberDetailsUrl(id))
+                                }
+                                onConfirm={deleteStaffAvatar}
+                              >
+                                <DialogContentText
+                                  dangerouslySetInnerHTML={{
+                                    __html: i18n.t(
+                                      "Are you sure you want to remove <strong>{{ email }}</strong> avatar?",
                                       {
                                         email: maybe(() => data.user.email)
                                       }

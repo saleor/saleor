@@ -12,15 +12,9 @@ export interface StaffAvatarDelete_userAvatarDelete_errors {
   message: string | null;
 }
 
-export interface StaffAvatarDelete_userAvatarDelete_user {
-  __typename: "User";
-  id: string;
-}
-
 export interface StaffAvatarDelete_userAvatarDelete {
   __typename: "UserAvatarDelete";
   errors: StaffAvatarDelete_userAvatarDelete_errors[] | null;
-  user: StaffAvatarDelete_userAvatarDelete_user | null;
 }
 
 export interface StaffAvatarDelete {
