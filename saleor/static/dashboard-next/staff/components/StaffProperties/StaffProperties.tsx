@@ -13,7 +13,7 @@ import SVG from "react-inlinesvg";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { maybe, getUserInitials } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
 
 import * as photoIcon from "../../../../images/photo-icon.svg";
@@ -34,6 +34,18 @@ const styles = (theme: Theme) =>
       justifyContent: "center",
       overflow: "hidden",
       position: "relative",
+      width: 120
+    },
+    avatarDefault: {
+      "& p": {
+        color: "#fff",
+        fontSize: 35,
+        fontWeight: "bold",
+        lineHeight: "120px"
+      },
+      background: theme.palette.primary.main,
+      height: 120,
+      textAlign: "center",
       width: 120
     },
     avatarHover: {
@@ -116,10 +128,16 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
           <div className={classes.root}>
             <div>
               <div className={classes.avatar}>
-                <img
-                  className={classes.avatarImage}
-                  src={maybe(() => staffMember.avatar.url)}
-                />
+                {maybe(() => staffMember.avatar.url) ? (
+                  <img
+                    className={classes.avatarImage}
+                    src={maybe(() => staffMember.avatar.url)}
+                  />
+                ) : (
+                  <div className={classes.avatarDefault}>
+                    <Typography>{getUserInitials(data)}</Typography>
+                  </div>
+                )}
                 <div className={classes.avatarHover}>
                   <SVG src={photoIcon} />
                   <Typography onClick={clickImgInput}>
