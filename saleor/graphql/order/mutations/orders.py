@@ -241,8 +241,7 @@ class OrderMarkAsPaid(BaseMutation):
             info, data.get('id'), only_type=Order)
 
         try_payment_action(
-            order, info.context.user, clean_mark_order_as_paid, order,
-            payment=None)
+            order, info.context.user, None, clean_mark_order_as_paid, order)
 
         mark_order_as_paid(order, info.context.user)
         return OrderMarkAsPaid(order=order)
@@ -273,8 +272,8 @@ class OrderCapture(BaseMutation):
         clean_order_capture(payment)
 
         try_payment_action(
-            order, info.context.user, gateway_capture, payment, amount,
-            payment=payment)
+            order, info.context.user, payment,
+            gateway_capture, payment, amount)
 
         event_models.OrderEvent.payment_captured_event(
             order=order, source=info.context.user,
@@ -301,8 +300,7 @@ class OrderVoid(BaseMutation):
         clean_void_payment(payment)
 
         try_payment_action(
-            order, info.context.user, gateway_void, payment,
-            payment=payment)
+            order, info.context.user, payment, gateway_void, payment)
 
         event_models.OrderEvent.payment_voided_event(
             order=order, source=info.context.user, payment=payment).save()
@@ -334,8 +332,7 @@ class OrderRefund(BaseMutation):
         clean_refund_payment(payment)
 
         try_payment_action(
-            order, info.context.user, gateway_refund, payment, amount,
-            payment=payment)
+            order, info.context.user, payment, gateway_refund, payment, amount)
 
         event_models.OrderEvent.payment_refunded_event(
             order=order, source=info.context.user,

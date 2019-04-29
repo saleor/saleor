@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
