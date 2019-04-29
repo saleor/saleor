@@ -12,14 +12,14 @@ from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.enums import OrderEventsEmailsEnum
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_refund_payment,
-    clean_void_payment)
+    try_payment_action)
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.events.types import OrderEvents, OrderEventsEmails
 from saleor.events.models import OrderEvent
 from saleor.order import OrderStatus
 from saleor.order.models import Order
-from saleor.payment import ChargeStatus, CustomPaymentChoices
+from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 
@@ -1272,7 +1272,7 @@ def test_order_void_payment_error(staff_api_client, permission_manage_orders,
 def test_order_refund(
         staff_api_client, permission_manage_orders,
         payment_txn_captured):
-    order = order = payment_txn_captured.order
+    order = payment_txn_captured.order
     query = """
         mutation refundOrder($id: ID!, $amount: Decimal!) {
             orderRefund(id: $id, amount: $amount) {
@@ -1305,13 +1305,61 @@ def test_order_refund(
     assert order_event.type == OrderEvents.PAYMENT_REFUNDED.value
 
 
-def test_clean_order_void_payment():
-    payment = MagicMock(spec=Payment)
-    payment.is_active = False
-    with pytest.raises(ValidationError) as e:
-        clean_void_payment(payment)
-    msg = 'Only pre-authorized payments can be voided'
-    assert e.value.error_dict['payment'][0].message == msg
+@pytest.mark.parametrize('requires_amount, mutation_name', (
+    (True, 'orderRefund'),
+    (False, 'orderVoid'),
+    (True, 'orderCapture')))
+def test_clean_payment_without_payment_associated_to_order(
+        staff_api_client, permission_manage_orders,
+        order, requires_amount, mutation_name):
+
+    assert not OrderEvent.objects.exists()
+
+    additional_arguments = ', amount: 2' if requires_amount else ''
+    query = """
+        mutation %(mutationName)s($id: ID!) {
+          %(mutationName)s(id: $id %(args)s) {
+            errors {
+              field
+              message
+            }
+          }
+        }
+    """ % {'mutationName': mutation_name, 'args': additional_arguments}
+
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = {'id': order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    errors = get_graphql_content(response)['data'][mutation_name].get('errors')
+
+    message = 'There\'s no payment associated with the order.'
+
+    assert errors, 'expected an error'
+    assert errors == [{'field': 'payment', 'message': message}]
+    assert not OrderEvent.objects.exists()
+
+
+def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
+    message = 'The payment did a oopsie!'
+    assert not OrderEvent.objects.exists()
+
+    def _test_operation():
+        raise PaymentError(message)
+
+    with pytest.raises(
+            ValidationError, message={'payment': message}):
+        try_payment_action(
+            order=order, user=staff_user, payment=payment_dummy,
+            func=_test_operation)
+
+    error_event = OrderEvent.objects.get()  # type: OrderEvent
+    assert error_event.type == OrderEvents.PAYMENT_FAILED.value
+    assert error_event.user == staff_user
+    assert error_event.parameters == {
+        'message': message,
+        'gateway': payment_dummy.gateway,
+        'payment_id': payment_dummy.token}
 
 
 def test_clean_order_refund_payment():
@@ -1319,7 +1367,7 @@ def test_clean_order_refund_payment():
     payment.gateway = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
     with pytest.raises(ValidationError) as e:
-        clean_refund_payment(payment, amount)
+        clean_refund_payment(payment)
     msg = 'Manual payments can not be refunded.'
     assert e.value.error_dict['payment'][0].message == msg
 

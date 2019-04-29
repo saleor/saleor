@@ -170,7 +170,7 @@ def capture_payment(request, order_pk, payment_pk):
     form = CapturePaymentForm(
         request.POST or None, payment=payment,
         initial={'amount': amount.amount})
-    if form.is_valid() and form.capture():
+    if form.is_valid() and form.capture(request.user):
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
             'Captured %(amount)s') % {'amount': prices_i18n.amount(amount)}
@@ -198,7 +198,7 @@ def refund_payment(request, order_pk, payment_pk):
     amount = payment.captured_amount
     form = RefundPaymentForm(
         request.POST or None, payment=payment, initial={'amount': amount})
-    if form.is_valid() and form.refund():
+    if form.is_valid() and form.refund(request.user):
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
@@ -226,7 +226,7 @@ def void_payment(request, order_pk, payment_pk):
     order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
     form = VoidPaymentForm(request.POST or None, payment=payment)
-    if form.is_valid() and form.void():
+    if form.is_valid() and form.void(request.user):
         msg = pgettext_lazy('Dashboard message', 'Voided payment')
         OrderEvent.payment_voided_event(
             order=order, source=request.user, payment=payment).save()

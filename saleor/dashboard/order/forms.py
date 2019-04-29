@@ -271,14 +271,23 @@ class BasePaymentForm(forms.Form):
             None, pgettext_lazy(
                 'Payment form error', 'Payment gateway error: %s') % message)
 
-    def try_payment_action(self, action):
-        amount = self.cleaned_data['amount']
+    def _try_payment_action(self, user, action, *args):
         try:
-            action(self.payment, amount)
+            action(*args)
         except (PaymentError, ValueError) as e:
-            self.payment_error(str(e))
+            message = str(e)
+            self.payment_error(message)
+            OrderEvent.payment_failed_event(
+                order=self.payment.order, source=user, message=message).save()
             return False
         return True
+
+    def try_payment_action_with_amount(self, user, action):
+        amount = self.cleaned_data['amount']
+        return self._try_payment_action(user, action, self.payment, amount)
+
+    def try_payment_action_without_amount(self, user, action):
+        return self._try_payment_action(user, action, self.payment)
 
 
 class CapturePaymentForm(BasePaymentForm):
@@ -291,8 +300,8 @@ class CapturePaymentForm(BasePaymentForm):
         if not self.payment.can_capture():
             raise forms.ValidationError(self.clean_error)
 
-    def capture(self):
-        return self.try_payment_action(gateway_capture)
+    def capture(self, user):
+        return self.try_payment_action_with_amount(user, gateway_capture)
 
 
 class RefundPaymentForm(BasePaymentForm):
@@ -311,8 +320,8 @@ class RefundPaymentForm(BasePaymentForm):
                     'Payment form error',
                     'Manual payments can not be refunded'))
 
-    def refund(self):
-        return self.try_payment_action(gateway_refund)
+    def refund(self, user):
+        return self.try_payment_action_with_amount(user, gateway_refund)
 
 
 class VoidPaymentForm(BasePaymentForm):
@@ -332,13 +341,8 @@ class VoidPaymentForm(BasePaymentForm):
         if not self.payment.can_void():
             raise forms.ValidationError(self.clean_error)
 
-    def void(self):
-        try:
-            gateway_void(self.payment)
-        except (PaymentError, ValueError) as e:
-            self.payment_error(str(e))
-            return False
-        return True
+    def void(self, user):
+        self.try_payment_action_without_amount(user, gateway_void)
 
 
 class OrderMarkAsPaidForm(forms.Form):
