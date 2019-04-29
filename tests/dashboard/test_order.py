@@ -427,8 +427,8 @@ def test_dashboard_change_quantity_form(request_checkout_with_item, order):
 def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert not order_with_lines.events.count()
     lines = order_with_lines.lines.all()
-    change_order_line_quantity(None, lines[1], 0, lines[1].quantity)
-    change_order_line_quantity(None, lines[0], 0, lines[0].quantity)
+    change_order_line_quantity(None, lines[1], lines[1].quantity, 0)
+    change_order_line_quantity(None, lines[0], lines[0].quantity, 0)
     assert order_with_lines.get_total_quantity() == 0
 
 

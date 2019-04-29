@@ -39,8 +39,7 @@ def display_order_event(order_event):
     if event_type == OrderEvents.PLACED_FROM_DRAFT.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
-            'Order created from draft order by %(user_name)s' % {
-                'user_name': order_event.user})
+            'Order placed from draft order')
     if event_type == OrderEvents.PAYMENT_VOIDED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
@@ -61,13 +60,11 @@ def display_order_event(order_event):
     if event_type == OrderEvents.ORDER_MARKED_AS_PAID.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
-            'Order manually marked as paid by %(user_name)s' % {
-                'user_name': order_event.user})
+            'Order manually marked as paid')
     if event_type == OrderEvents.CANCELED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
-            'Order was canceled by %(user_name)s' % {
-                'user_name': order_event.user})
+            'Order was canceled')
     if event_type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value:
         return npgettext_lazy(
             'Dashboard message related to an order',
@@ -87,12 +84,9 @@ def display_order_event(order_event):
                 'fulfillment': params['composed_id'],
                 'user_name': order_event.user}
     if event_type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value:
-        return npgettext_lazy(
+        return pgettext_lazy(
             'Dashboard message related to an order',
-            'Fulfilled %(quantity_fulfilled)d item',
-            'Fulfilled %(quantity_fulfilled)d items',
-            number='quantity_fulfilled') % {
-                'quantity_fulfilled': params['quantity']}
+            'Fulfilled some items')
     if event_type == OrderEvents.PLACED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',

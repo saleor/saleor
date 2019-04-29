@@ -423,8 +423,8 @@ def test_draft_order_create(
         'firstName']
 
     # Ensure the correct event was created
-    created_draft_event = OrderEvent.objects.get()
-    assert created_draft_event.type == OrderEvents.DRAFT_CREATED.value
+    created_draft_event = OrderEvent.objects.get(
+        type=OrderEvents.DRAFT_CREATED.value)
     assert created_draft_event.user == staff_user
     assert created_draft_event.parameters == {}
 
