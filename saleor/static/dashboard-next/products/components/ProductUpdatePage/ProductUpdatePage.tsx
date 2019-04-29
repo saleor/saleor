@@ -255,6 +255,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     disabled={disabled}
                     product={product}
                     onChange={change}
+                    errors={errors}
                   />
                 )}
                 <CardSpacer />

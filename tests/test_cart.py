@@ -44,11 +44,6 @@ def anonymous_checkout(db):
 
 
 @pytest.fixture()
-def user_checkout(customer_user):
-    return Checkout.objects.get_or_create(user=customer_user)[0]
-
-
-@pytest.fixture()
 def local_currency(monkeypatch):
     def side_effect(price, currency):
         return price
@@ -485,6 +480,14 @@ def test_view_invalid_update_checkout(client, request_checkout_with_item):
     assert response.status_code == 400
     assert 'error' in resp_decoded.keys()
     assert request_checkout_with_item.quantity == 1
+
+
+def test_view_invalid_variant_update_checkout(
+        client, request_checkout_with_item):
+    response = client.post(
+        reverse('checkout:update-line', kwargs={'variant_id': '123'}),
+        data={}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 404
 
 
 def test_checkout_page_without_openexchagerates(

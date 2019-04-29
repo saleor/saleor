@@ -7,10 +7,10 @@ from ...product import models
 from ...search.backends import picker
 from ..utils import (
     filter_by_period, filter_by_query_param, get_database_id, get_nodes)
-from .enums import StockAvailability
 from .filters import (
     filter_products_by_attributes, filter_products_by_categories,
-    filter_products_by_collections, filter_products_by_price, sort_qs)
+    filter_products_by_collections, filter_products_by_price,
+    filter_products_by_stock_availability, sort_qs)
 from .types import Category, Collection, ProductVariant
 
 PRODUCT_SEARCH_FIELDS = ('name', 'description')
@@ -101,17 +101,13 @@ def resolve_products(
     if collections:
         collections = get_nodes(collections, Collection)
         qs = filter_products_by_collections(qs, collections)
-
     if stock_availability:
-        qs = qs.annotate(total_quantity=Sum('variants__quantity'))
-        if stock_availability == StockAvailability.IN_STOCK:
-            qs = qs.filter(total_quantity__gt=0)
-        elif stock_availability == StockAvailability.OUT_OF_STOCK:
-            qs = qs.filter(total_quantity__lte=0)
+        qs = filter_products_by_stock_availability(qs, stock_availability)
 
     qs = filter_products_by_price(qs, price_lte, price_gte)
     qs = sort_qs(qs, sort_by)
     qs = qs.distinct()
+
     return gql_optimizer.query(qs, info)
 
 

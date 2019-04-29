@@ -160,6 +160,7 @@ export const ProductCreatePage: React.StatelessComponent<
                       disabled={disabled}
                       product={undefined}
                       onChange={change}
+                      errors={errors}
                     />
                     <CardSpacer />
                   </>
