@@ -13,7 +13,7 @@ import SVG from "react-inlinesvg";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
-import { maybe, getUserInitials } from "../../../misc";
+import { getUserInitials, maybe } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
 
 import * as photoIcon from "../../../../images/photo-icon.svg";
@@ -96,6 +96,7 @@ const styles = (theme: Theme) =>
   });
 
 interface StaffPropertiesProps extends WithStyles<typeof styles> {
+  canEditAvatar: boolean;
   className?: string;
   data: {
     email: string;
@@ -111,6 +112,7 @@ interface StaffPropertiesProps extends WithStyles<typeof styles> {
 
 const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
   ({
+    canEditAvatar,
     classes,
     className,
     data,
@@ -138,22 +140,24 @@ const StaffProperties = withStyles(styles, { name: "StaffProperties" })(
                     <Typography>{getUserInitials(data)}</Typography>
                   </div>
                 )}
-                <div className={classes.avatarHover}>
-                  <SVG src={photoIcon} />
-                  <Typography onClick={clickImgInput}>
-                    {i18n.t("Change photo")}
-                  </Typography>
-                  <Typography onClick={onImageDelete}>
-                    {i18n.t("Delete photo")}
-                  </Typography>
-                  <input
-                    className={classes.fileField}
-                    id="fileUpload"
-                    onChange={event => onImageUpload(event.target.files[0])}
-                    type="file"
-                    ref={imgInputAnchor}
-                  />
-                </div>
+                {canEditAvatar && (
+                  <div className={classes.avatarHover}>
+                    <SVG src={photoIcon} />
+                    <Typography onClick={clickImgInput}>
+                      {i18n.t("Change photo")}
+                    </Typography>
+                    <Typography onClick={onImageDelete}>
+                      {i18n.t("Delete photo")}
+                    </Typography>
+                    <input
+                      className={classes.fileField}
+                      id="fileUpload"
+                      onChange={event => onImageUpload(event.target.files[0])}
+                      type="file"
+                      ref={imgInputAnchor}
+                    />
+                  </div>
+                )}
               </div>
             </div>
             <div>

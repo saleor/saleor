@@ -29,6 +29,7 @@ interface FormData {
 }
 
 export interface StaffDetailsPageProps {
+  canEditAvatar: boolean;
   canEditStatus: boolean;
   canRemove: boolean;
   disabled: boolean;
@@ -43,6 +44,7 @@ export interface StaffDetailsPageProps {
 }
 
 const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
+  canEditAvatar,
   canEditStatus,
   canRemove,
   disabled,
@@ -83,6 +85,7 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
               <StaffProperties
                 data={data}
                 disabled={disabled}
+                canEditAvatar={canEditAvatar}
                 staffMember={staffMember}
                 onChange={change}
                 onImageUpload={onImageUpload}
