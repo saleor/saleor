@@ -122,6 +122,7 @@ export const StaffDetails: React.StatelessComponent<OrderListProps> = ({
                                 title={maybe(() => data.user.email)}
                               />
                               <StaffDetailsPage
+                                canEditAvatar={isUserSameAsViewer}
                                 canEditStatus={!isUserSameAsViewer}
                                 canRemove={!isUserSameAsViewer}
                                 disabled={loading}

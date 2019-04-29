@@ -9,6 +9,7 @@ import { permissions, staffMember } from "../../../staff/fixtures";
 import Decorator from "../../Decorator";
 
 const props: Omit<StaffDetailsPageProps, "classes"> = {
+  canEditAvatar: true,
   canEditStatus: true,
   canRemove: true,
   disabled: false,
