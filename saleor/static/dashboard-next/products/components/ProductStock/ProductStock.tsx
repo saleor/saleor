@@ -29,12 +29,13 @@ interface ProductStockProps extends WithStyles<typeof styles> {
     stockQuantity: number;
   };
   disabled: boolean;
+  errors: { [key: string]: string };
   product: ProductDetails_product;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const ProductStock = withStyles(styles, { name: "ProductStock" })(
-  ({ classes, data, disabled, product, onChange }: ProductStockProps) => (
+  ({ classes, data, disabled, product, onChange, errors }: ProductStockProps) => (
     <Card>
       <CardTitle title={i18n.t("Inventory")} />
       <CardContent>
@@ -45,6 +46,8 @@ const ProductStock = withStyles(styles, { name: "ProductStock" })(
             label={i18n.t("SKU (Stock Keeping Unit)")}
             value={data.sku}
             onChange={onChange}
+            error={!!errors.sku}
+            helperText={errors.sku}
           />
           <TextField
             disabled={disabled}

@@ -8,6 +8,7 @@ from unittest.mock import patch
 import pytest
 from django.core import serializers
 from django.core.serializers.base import DeserializationError
+from django.http import JsonResponse
 from django.urls import reverse
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -191,16 +192,44 @@ def test_view_invalid_add_to_checkout(client, product, request_checkout):
     assert request_checkout.quantity == 2
 
 
-def test_view_add_to_checkout(client, product, request_checkout_with_item):
-    variant = request_checkout_with_item.lines.get().variant
-    response = client.post(
-        reverse(
-            'product:add-to-checkout',
-            kwargs={'slug': product.get_slug(),
-                    'product_id': product.pk}),
-        {'quantity': 1, 'variant': variant.pk})
-    assert response.status_code == 302
-    assert request_checkout_with_item.quantity == 1
+def test_view_add_to_checkout(authorized_client, product, user_checkout):
+    variant = product.variants.first()
+
+    # Ignore stock
+    variant.track_inventory = False
+    variant.save()
+
+    # Add the variant to the user checkout and retrieve the variant line
+    add_variant_to_checkout(user_checkout, variant)
+    checkout_line = user_checkout.lines.last()
+
+    # Retrieve the test url
+    checkout_url = reverse(
+        'product:add-to-checkout',
+        kwargs={'slug': product.get_slug(),
+                'product_id': product.pk})
+
+    # Attempt to set the quantity to 50
+    response = authorized_client.post(
+        checkout_url,
+        {'quantity': 49, 'variant': variant.pk},
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest')  # type: JsonResponse
+    assert response.status_code == 200
+
+    # Ensure the line quantity was updated to 50
+    checkout_line.refresh_from_db(fields=['quantity'])
+    assert checkout_line.quantity == 50
+
+    # Attempt to increase the quantity to a too high count
+    response = authorized_client.post(
+        checkout_url,
+        {'quantity': 1, 'variant': variant.pk},
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 400
+
+    # Ensure the line quantity was not updated to 51
+    checkout_line.refresh_from_db(fields=['quantity'])
+    assert checkout_line.quantity == 50
 
 
 def test_adding_to_checkout_with_current_user_token(

@@ -4,11 +4,11 @@
 {% if shipping_required %}
   <div class="table__row">
     <div class="row">
-      <div class="col-8 cart__total__subtotal">
+      <div class="col-8 checkout-preview__total__subtotal">
         <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
       </div>
       <div class="col-4">
-        <h3 class="text-right cart-subtotal" data-value="{% price checkout_total.gross html=False %}" {% if local_checkout_total is not None %}data-value-local="{% price local_checkout_total.gross html=False %}"{% endif %}>
+        <h3 class="text-right checkout-preview-subtotal" data-value="{% price checkout_total.gross html=False %}" {% if local_checkout_total is not None %}data-value-local="{% price local_checkout_total.gross html=False %}"{% endif %}>
           {% spaceless %}
             {% price checkout_total %}
             {% if local_checkout_total is not None and local_checkout_total.gross %}
@@ -24,12 +24,12 @@
     </div>
   </div>
   {% if country_form.country.field.choices %}
-    <div class="last table__row cart__delivery-info">
+    <div class="last table__row checkout-preview__delivery-info">
       <div class="row">
-        <div class="col-7 cart__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
+        <div class="col-7 checkout-preview__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
           <div class="row">
             <div class="col-12 col-md-4">
-              <p>{% trans "Shipping cost for:" context "Cart shipping cost form" %}</p>
+              <p>{% trans "Shipping cost for:" context "Checkout shipping cost form" %}</p>
             </div>
             <div class="col-12 col-md-8">
               {{ country_form.country }}
@@ -39,7 +39,7 @@
         <div class="col-5">
           <div class="row">
             <div class="col-md-12 col-12 text-right">
-              <p class="cart__delivery-info__price">
+              <p class="checkout-preview__delivery-info__price">
                 {% if shipping_price_range %}
                   {% price_range shipping_price_range %}
                 {% endif %}
@@ -51,16 +51,16 @@
     </div>
   {% endif %}
 {% endif %}
-<div class="cart__total">
+<div class="checkout-preview__total">
   <div class="row">
-    <div class="col-8 cart__total__subtotal">
+    <div class="col-8 checkout-preview__total__subtotal">
       <h3>{% trans "Total" context "Order subtotal" %}</h3>
-      <small>{% trans "Shipment and taxes calculated at checkout" context "Cart summary text" %}</small>
+      <small>{% trans "Shipment and taxes calculated at checkout" context "Checkout summary text" %}</small>
     </div>
     <div class="col-4">
       {% spaceless %}
         {% if total_with_shipping %}
-          <h3 class="text-right cart-total"><span>{% price_range total_with_shipping %}</span>
+          <h3 class="text-right checkout-total"><span>{% price_range total_with_shipping %}</span>
             {% if local_total_with_shipping %}
               <br>
               <small>

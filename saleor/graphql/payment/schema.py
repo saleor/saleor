@@ -15,6 +15,7 @@ class PaymentQueries(graphene.ObjectType):
     payment_client_token = graphene.Field(
         graphene.String, args={'gateway': PaymentGatewayEnum()})
 
+    @permission_required('order.manage_orders')
     def resolve_payment(self, info, **data):
         return graphene.Node.get_node_from_global_id(
             info, data.get('id'), Payment)

@@ -5,22 +5,56 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.utils.dateparse import parse_datetime
+from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
 
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
-from saleor.graphql.product.types import resolve_attribute_list
+from saleor.graphql.product.types.products import resolve_attribute_list
 from saleor.product.models import (
-    Attribute, AttributeValue, Category, Product, ProductImage, ProductType,
-    ProductVariant)
+    Attribute, AttributeValue, Category, Collection, Product, ProductImage,
+    ProductType, ProductVariant)
 from saleor.product.tasks import update_variants_names
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import assert_no_permission, get_multipart_request_body
 
+
+@pytest.fixture
+def query_products_with_filter():
+    query = """
+        query ($filter: ProductFilterInput!, ) {
+          products(first:5, filter: $filter) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+    return query
+
+
+@pytest.fixture
+def query_collections_with_filter():
+    query = """
+    query ($filter: CollectionFilterInput!, ) {
+          collections(first:5, filter: $filter) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }    
+        """
+    return query
 
 def test_resolve_attribute_list(color_attribute):
     value = color_attribute.values.first()
@@ -165,6 +199,167 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     assert product_data['price']['amount'] == product.price.amount
     assert margin[0] == product_data['margin']['start']
     assert margin[1] == product_data['margin']['stop']
+
+
+@pytest.mark.parametrize(
+    'stock, quantity, count', [
+        ('IN_STOCK', 5, 1), ('OUT_OF_STOCK', 0, 1), ('OUT_OF_STOCK', 1, 0),
+        ('IN_STOCK', 0, 0)])
+def test_products_query_with_filter_stock_availability(
+        stock, quantity, count, query_products_with_filter, staff_api_client,
+        product, permission_manage_products):
+
+    product.variants.update(quantity=quantity)
+
+    variables = {'filter': {'stockAvailability': stock}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content['data']['products']['edges']
+
+    assert len(products) == count
+
+
+def test_products_query_with_filter_attributes(
+        query_products_with_filter, staff_api_client, product,
+        permission_manage_products):
+
+    product_type = ProductType.objects.create(
+        name='Custom Type', has_variants=True, is_shipping_required=True)
+    attribute = Attribute.objects.create(
+        slug='new_attr', name='Attr', product_type=product_type)
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute, name='First', slug='first')
+    second_product = product
+    second_product.id = None
+    second_product.product_type = product_type
+    second_product.attributes = {smart_text(attribute.pk): smart_text(attr_value.pk)}
+    second_product.save()
+
+    variables = {
+        'filter': {
+            'attributes': [
+                {'slug': attribute.slug, 'value': attr_value.slug},
+            ]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
+
+
+def test_products_query_with_filter_product_type(
+        query_products_with_filter, staff_api_client, product,
+        permission_manage_products):
+    product_type = ProductType.objects.create(
+        name='Custom Type', has_variants=True, is_shipping_required=True)
+    second_product = product
+    second_product.id = None
+    second_product.product_type = product_type
+    second_product.save()
+
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.id)
+    variables = {'filter': {'productType': product_type_id}}
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
+
+
+def test_products_query_with_filter_category(
+        query_products_with_filter, staff_api_client, product,
+        permission_manage_products):
+    category = Category.objects.create(name='Custom', slug='custom')
+    second_product = product
+    second_product.id = None
+    second_product.category = category
+    second_product.save()
+
+    category_id = graphene.Node.to_global_id('Category', category.id)
+    variables = {'filter': {'categories': [category_id, ]}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
+
+
+def test_products_query_with_filter_collection(
+        query_products_with_filter, staff_api_client, product, collection,
+        permission_manage_products):
+    second_product = product
+    second_product.id = None
+    second_product.save()
+    second_product.collections.add(collection)
+
+    collection_id = graphene.Node.to_global_id('Collection', collection.id)
+    variables = {'filter': {'collections': [collection_id, ]}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
+
+
+@pytest.mark.parametrize(
+    'filter', (
+            {'price': {'gte': 5.0, 'lte': 9.0}}, {'isPublished': False},
+            {'search': 'Juice1'})
+)
+def test_products_query_with_filter(
+        filter, query_products_with_filter, staff_api_client, product,
+        permission_manage_products):
+
+    second_product = product
+    second_product.id = None
+    second_product.name = 'Apple Juice1'
+    second_product.price = Money('6.00', 'USD')
+    second_product.is_published = filter.get('isPublished', True)
+    second_product.save()
+
+    variables = {'filter': filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id(
+        'Product', second_product.id)
+    products = content['data']['products']['edges']
+
+    assert len(products) == 1
+    assert products[0]['node']['id'] == second_product_id
+    assert products[0]['node']['name'] == second_product.name
 
 
 def test_product_query_search(user_api_client, product_type, category):
@@ -1808,6 +2003,80 @@ def test_variant_digital_content(
     content = get_graphql_content(response)
     assert 'digitalContent' in content['data']['productVariant']
     assert 'id' in content['data']['productVariant']['digitalContent']
+
+
+@pytest.mark.parametrize('collection_filter, count', [
+    ({'published': 'PUBLISHED'}, 2),
+    ({'published': 'HIDDEN'}, 1),
+    ({'search': '-published1'}, 1),
+    ({'search': 'Collection3'}, 1)
+])
+def test_collections_query_with_filter(
+        collection_filter, count, query_collections_with_filter,
+        staff_api_client, permission_manage_products):
+    Collection.objects.bulk_create([
+        Collection(
+            name='Collection1', slug='collection-published1',
+            is_published=True, description='Test description'),
+        Collection(
+            name='Collection2', slug='collection-published2',
+            is_published=True, description='Test description'),
+        Collection(
+            name='Collection3', slug='collection-unpublished',
+            is_published=False, description='Test description')
+    ])
+
+    variables = {'filter': collection_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        query_collections_with_filter, variables)
+    content = get_graphql_content(response)
+    collections = content['data']['collections']['edges']
+
+    assert len(collections) == count
+
+
+@pytest.mark.parametrize('collection_filter, count', [
+    ({'configurable': 'CONFIGURABLE'}, 2),  # has_variants
+    ({'configurable': 'SIMPLE'}, 1),  # !has_variants
+    ({'productType': 'DIGITAL'}, 1),
+    ({'productType': 'SHIPPABLE'}, 2)  # is_shipping_required
+])
+def test_product_type_query_with_filter(
+        collection_filter, count, staff_api_client,
+        permission_manage_products):
+    query = """
+        query ($filter: ProductTypeFilterInput!, ) {
+          productTypes(first:5, filter: $filter) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }    
+        """
+    ProductType.objects.bulk_create([
+        ProductType(
+            name='Digital Type', has_variants=True, is_shipping_required=False,
+            is_digital=True),
+        ProductType(
+            name='Tools', has_variants=True, is_shipping_required=True,
+            is_digital=False),
+        ProductType(
+            name='Books', has_variants=False, is_shipping_required=True,
+            is_digital=False)
+    ])
+
+    variables = {'filter': collection_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    product_types = content['data']['productTypes']['edges']
+
+    assert len(product_types) == count
+
 
 
 MUTATION_BULK_PUBLISH_PRODUCTS = """

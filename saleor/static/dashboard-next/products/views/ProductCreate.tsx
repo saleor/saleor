@@ -91,7 +91,7 @@ export const ProductUpdate: React.StatelessComponent<
                                               ? formData.publicationDate
                                               : null,
                                           sku: formData.sku,
-                                          stockQuantity: formData.stockQuantity
+                                          stockQuantity: formData.stockQuantity !== null ? formData.stockQuantity : 0,
                                         }
                                       });
                                     };

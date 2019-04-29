@@ -136,6 +136,11 @@ type AttributeDelete {
   attribute: Attribute
 }
 
+input AttributeInput {
+  slug: String!
+  value: String!
+}
+
 scalar AttributeScalar
 
 type AttributeTranslate {
@@ -537,6 +542,11 @@ type CollectionDelete {
   collection: Collection
 }
 
+input CollectionFilterInput {
+  published: CollectionPublished
+  search: String
+}
+
 input CollectionInput {
   isPublished: Boolean
   name: String
@@ -547,6 +557,11 @@ input CollectionInput {
   backgroundImageAlt: String
   seo: SeoInput
   publicationDate: Date
+}
+
+enum CollectionPublished {
+  PUBLISHED
+  HIDDEN
 }
 
 type CollectionRemoveProducts {
@@ -614,6 +629,14 @@ type CustomerDelete {
   user: User
 }
 
+input CustomerFilterInput {
+  dateJoined: DateRangeInput
+  moneySpent: PriceRangeInput
+  numberOfOrders: IntRangeInput
+  placedOrders: DateRangeInput
+  search: String
+}
+
 input CustomerInput {
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
@@ -653,6 +676,11 @@ type CustomerUpdate {
 }
 
 scalar Date
+
+input DateRangeInput {
+  gte: Date
+  lte: Date
+}
 
 scalar DateTime
 
@@ -728,6 +756,12 @@ type DigitalContentUrlCreate {
 
 input DigitalContentUrlCreateInput {
   content: ID!
+}
+
+enum DiscountStatusEnum {
+  ACTIVE
+  EXPIRED
+  SCHEDULED
 }
 
 enum DiscountValueTypeEnum {
@@ -892,6 +926,11 @@ type HomepageCollectionUpdate {
 type Image {
   url: String!
   alt: String
+}
+
+input IntRangeInput {
+  gte: Int
+  lte: Int
 }
 
 scalar JSONString
@@ -1363,6 +1402,11 @@ enum OrderDirection {
   DESC
 }
 
+input OrderDraftFilterInput {
+  customer: String
+  created: DateRangeInput
+}
+
 type OrderEvent implements Node {
   id: ID!
   date: DateTime
@@ -1416,6 +1460,13 @@ enum OrderEventsEmails {
   FULFILLMENT
 }
 
+input OrderFilterInput {
+  paymentStatus: PaymentChargeStatusEnum
+  status: OrderStatusFilter
+  customer: String
+  created: DateRangeInput
+}
+
 type OrderLine implements Node {
   id: ID!
   productName: String!
@@ -1462,6 +1513,10 @@ enum OrderStatus {
 enum OrderStatusFilter {
   READY_TO_FULFILL
   READY_TO_CAPTURE
+  UNFULFILLED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  CANCELED
 }
 
 type OrderUpdate {
@@ -1668,6 +1723,11 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
 }
 
+input PriceRangeInput {
+  gte: Float
+  lte: Float
+}
+
 type Product implements Node {
   id: ID!
   publicationDate: Date
@@ -1751,6 +1811,17 @@ input ProductCreateInput {
 type ProductDelete {
   errors: [Error!]
   product: Product
+}
+
+input ProductFilterInput {
+  isPublished: Boolean
+  collections: [ID]
+  categories: [ID]
+  price: PriceRangeInput
+  attributes: [AttributeInput]
+  stockAvailability: StockAvailability
+  productType: ID
+  search: String
 }
 
 type ProductImage implements Node {
@@ -1872,6 +1943,11 @@ type ProductTypeBulkDelete {
   count: Int!
 }
 
+enum ProductTypeConfigurable {
+  CONFIGURABLE
+  SIMPLE
+}
+
 type ProductTypeCountableConnection {
   pageInfo: PageInfo!
   edges: [ProductTypeCountableEdge!]!
@@ -1891,6 +1967,16 @@ type ProductTypeCreate {
 type ProductTypeDelete {
   errors: [Error!]
   productType: ProductType
+}
+
+enum ProductTypeEnum {
+  DIGITAL
+  SHIPPABLE
+}
+
+input ProductTypeFilterInput {
+  configurable: ProductTypeConfigurable
+  productType: ProductTypeEnum
 }
 
 input ProductTypeInput {
@@ -2013,11 +2099,11 @@ type Query {
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
-  collections(query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  collections(filter: CollectionFilterInput, query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
-  products(attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(filter: ProductTypeFilterInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
@@ -2028,8 +2114,8 @@ type Query {
   pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
-  orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  draftOrders(query: String, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  orders(filter: OrderFilterInput, query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  draftOrders(filter: OrderDraftFilterInput, query: String, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: String!): Order
   menu(id: ID, name: String): Menu
@@ -2037,17 +2123,17 @@ type Query {
   menuItem(id: ID!): MenuItem
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   sale(id: ID!): Sale
-  sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
+  sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
-  vouchers(query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   addressValidator(input: AddressValidationInput!): AddressValidationData
-  customers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  customers(filter: CustomerFilterInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   me: User
-  staffUsers(query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  staffUsers(filter: StaffUserInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   user(id: ID!): User
   node(id: ID!): Node
 }
@@ -2109,6 +2195,13 @@ type SaleCreate {
 type SaleDelete {
   errors: [Error!]
   sale: Sale
+}
+
+input SaleFilterInput {
+  status: DiscountStatusEnum
+  saleType: DiscountValueTypeEnum
+  started: DateRangeInput
+  search: String
 }
 
 input SaleInput {
@@ -2387,9 +2480,19 @@ input StaffInput {
   permissions: [PermissionEnum]
 }
 
+enum StaffMemberStatus {
+  ACTIVE
+  DEACTIVATED
+}
+
 type StaffUpdate {
   errors: [Error!]
   user: User
+}
+
+input StaffUserInput {
+  status: StaffMemberStatus
+  search: String
 }
 
 enum StockAvailability {
@@ -2655,9 +2758,23 @@ type VoucherDelete {
   voucher: Voucher
 }
 
+enum VoucherDiscountType {
+  FIXED
+  PERCENTAGE
+  SHIPPING
+}
+
 enum VoucherDiscountValueType {
   FIXED
   PERCENTAGE
+}
+
+input VoucherFilterInput {
+  status: DiscountStatusEnum
+  timesUsed: IntRangeInput
+  discountType: VoucherDiscountType
+  started: DateRangeInput
+  search: String
 }
 
 input VoucherInput {
