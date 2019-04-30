@@ -123,9 +123,9 @@ class OrderLine(CountableDjangoObjectType):
     variant = graphene.Field(
         ProductVariant,
         required=False,
-        description=('''
+        description='''
             A purchased product variant. Note: this field may be null if the
-            variant has been removed from stock at all.'''))
+            variant has been removed from stock at all.''')
 
     class Meta:
         description = 'Represents order line of particular order.'

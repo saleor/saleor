@@ -68,13 +68,11 @@ class ProductQueries(graphene.ObjectType):
         description='List of the shop\'s attributes.',
         query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(
-            graphene.ID, description=(
-                '''Return attributes for products belonging to the given
-                category.''')),
+            graphene.ID, description='''Return attributes for products 
+            belonging to the given category.'''),
         in_collection=graphene.Argument(
-            graphene.ID, description=(
-                '''Return attributes for products belonging to the given
-                collection.''')), )
+            graphene.ID, description='''Return attributes for products
+            belonging to the given collection.'''), )
     categories = PrefetchingConnectionField(
         Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
@@ -103,12 +101,9 @@ class ProductQueries(graphene.ObjectType):
         collections=graphene.List(
             graphene.ID, description='Filter products by collections.'),
         price_lte=graphene.Float(
-            description=(
-                '''Filter by price less than or equal to the given value.''')),
+            description='Filter by price less than or equal to the given value.'),
         price_gte=graphene.Float(
-            description=(
-                '''
-                Filter by price greater than or equal to the given value.''')),
+            description='Filter by price greater than or equal to the given value.'),
         sort_by=graphene.Argument(
             ProductOrder, description='Sort products.'),
         stock_availability=graphene.Argument(
