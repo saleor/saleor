@@ -529,7 +529,8 @@ def test_create_order_insufficient_stock(
 
     with pytest.raises(InsufficientStock):
         create_order(
-            request_checkout, 'tracking_code', discounts=None, taxes=None)
+            request_checkout, 'tracking_code', discounts=None, taxes=None,
+            user=customer_user)
 
 
 def test_create_order_doesnt_duplicate_order(
@@ -541,18 +542,26 @@ def test_create_order_doesnt_duplicate_order(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    order_1 = create_order(checkout, tracking_code='', discounts=None, taxes=None)
-    assert order_1.checkout_token == checkout_with_item.token
-    order_2 = create_order(checkout, tracking_code='', discounts=None, taxes=None)
+    checkout_token = checkout_with_item.token
+
+    order_1 = create_order(
+        checkout, tracking_code='', discounts=None, taxes=None,
+        user=customer_user)
+    assert order_1.checkout_token == checkout_token
+    order_2 = create_order(
+        checkout, tracking_code='', discounts=None, taxes=None,
+        user=customer_user)
     assert order_1.pk == order_2.pk
 
 
-def test_note_in_created_order(request_checkout_with_item, address):
+def test_note_in_created_order(
+        request_checkout_with_item, address, customer_user):
     request_checkout_with_item.shipping_address = address
     request_checkout_with_item.note = 'test_note'
     request_checkout_with_item.save()
     order = create_order(
-        request_checkout_with_item, 'tracking_code', discounts=None, taxes=None)
+        request_checkout_with_item, 'tracking_code', discounts=None,
+        taxes=None, user=customer_user)
     assert order.customer_note == request_checkout_with_item.note
 
 

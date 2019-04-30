@@ -3,18 +3,19 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
 
+from ...core import analytics
 from ...account.models import Address
 from ...core.exceptions import InsufficientStock
 from ...discount.models import NotApplicable
 from ..forms import CheckoutNoteForm
 from ..utils import (
-    get_checkout_context, get_taxes_for_checkout, place_checkout_to_order,
+    get_checkout_context, get_taxes_for_checkout,
     update_billing_address_in_anonymous_checkout,
     update_billing_address_in_checkout,
-    update_billing_address_in_checkout_with_shipping)
+    update_billing_address_in_checkout_with_shipping, create_order)
 
 
-def handle_order_placement(request, checkout):
+def _handle_order_placement(request, checkout):
     """Try to create an order and redirect the user as necessary.
 
     This function creates an order from checkout and performs post-create actions
@@ -22,7 +23,12 @@ def handle_order_placement(request, checkout):
     and creating order history events.
     """
     try:
-        order = place_checkout_to_order(request, checkout)
+        order = create_order(
+            checkout=checkout,
+            tracking_code=analytics.get_client_id(request),
+            discounts=request.discounts,
+            taxes=get_taxes_for_checkout(checkout, request.taxes),
+            user=request.user)
     except InsufficientStock:
         return redirect('checkout:index')
     except NotApplicable:
@@ -52,7 +58,7 @@ def summary_with_shipping_view(request, checkout):
             checkout, user_addresses, request.POST or None, request.country))
 
     if updated:
-        return handle_order_placement(request, checkout)
+        return _handle_order_placement(request, checkout)
 
     taxes = get_taxes_for_checkout(checkout, request.taxes)
     ctx = get_checkout_context(checkout, request.discounts, taxes)
@@ -78,7 +84,7 @@ def anonymous_summary_without_shipping(request, checkout):
             checkout, request.POST or None, request.country))
 
     if updated:
-        return handle_order_placement(request, checkout)
+        return _handle_order_placement(request, checkout)
 
     taxes = get_taxes_for_checkout(checkout, request.taxes)
     ctx = get_checkout_context(checkout, request.discounts, taxes)
@@ -105,7 +111,7 @@ def summary_without_shipping(request, checkout):
         checkout, user_addresses, request.POST or None, request.country)
 
     if updated:
-        return handle_order_placement(request, checkout)
+        return _handle_order_placement(request, checkout)
 
     taxes = get_taxes_for_checkout(checkout, request.taxes)
     ctx = get_checkout_context(checkout, request.discounts, taxes)
