@@ -65,7 +65,7 @@ def order_create(request):
         status=OrderStatus.DRAFT, display_gross_prices=display_gross_prices)
 
     # Create the draft creation event
-    OrderEvent.draft_created_event(order=order, source=request.user).save()
+    OrderEvent.draft_order_created_event(order=order, source=request.user).save()
 
     # Send success message and redirect to the draft details
     messages.success(request, msg)
@@ -85,7 +85,7 @@ def create_order_from_draft(request, order_pk):
             'Order created from draft order')
 
         events = [
-            OrderEvent.placed_event(
+            OrderEvent.order_created_event(
                 order=order, source=request.user, from_draft=True)]
 
         messages.success(request, msg)
@@ -144,7 +144,7 @@ def order_add_note(request, order_pk):
     form = OrderNoteForm(request.POST or None)
     status = 200
     if form.is_valid():
-        OrderEvent.note_added_event(
+        OrderEvent.order_note_added_event(
             order=order, source=request.user,
             message=form.cleaned_data['message']).save()
         msg = pgettext_lazy(
@@ -348,7 +348,7 @@ def order_address(request, order_pk, address_type):
         if update_prices:
             update_order_prices(order, request.discounts)
         if not order.is_draft():
-            OrderEvent.updated_address_event(
+            OrderEvent.order_updated_address_event(
                 order=order, source=request.user, address=address).save()
         messages.success(request, success_msg)
         return redirect('dashboard:order-details', order_pk=order_pk)

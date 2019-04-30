@@ -76,7 +76,7 @@ def create_payment_information(
 
 
 def handle_fully_paid_order(order):
-    events = [OrderEvent.fully_paid_event_event(order=order)]
+    events = [OrderEvent.order_fully_paid_event(order=order)]
 
     if order.get_user_current_email():
         events.append(OrderEvent.email_sent_event(
@@ -177,7 +177,7 @@ def mark_order_as_paid(order: Order, request_user: User):
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=['captured_amount', 'charge_status'])
-    OrderEvent.manually_marked_as_paid_event(
+    OrderEvent.order_manually_marked_as_paid_event(
         order=order, source=request_user).save()
 
 

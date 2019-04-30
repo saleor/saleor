@@ -194,7 +194,7 @@ class OrderAddNote(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
-        event = event_models.OrderEvent.note_added_event(
+        event = event_models.OrderEvent.order_note_added_event(
             order=order, source=info.context.user,
             message=data.get('input')['message'])
         event.save()

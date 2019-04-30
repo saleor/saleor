@@ -40,5 +40,5 @@ class OrderBulkCancel(BaseBulkMutation):
                 events.append(OrderEvent.fulfillment_restocked_items_event(
                     order=order, source=user, fulfillment=order))
 
-            events.append(OrderEvent.cancelled_event(order=order, source=user))
+            events.append(OrderEvent.order_canceled_event(order=order, source=user))
         OrderEvent.objects.bulk_create(events)

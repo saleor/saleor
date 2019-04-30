@@ -271,24 +271,17 @@ class BasePaymentForm(forms.Form):
             None, pgettext_lazy(
                 'Payment form error', 'Payment gateway error: %s') % message)
 
-    def _try_payment_action(self, user, action, payment, *args):
+    def try_payment_action(self, user, action, *args):
         try:
-            action(payment, *args)
+            action(self.payment, *args)
         except (PaymentError, ValueError) as e:
             message = str(e)
             self.payment_error(message)
             OrderEvent.payment_failed_event(
                 order=self.payment.order, source=user,
-                message=message, payment=payment).save()
+                message=message, payment=self.payment).save()
             return False
         return True
-
-    def try_payment_action_with_amount(self, user, action):
-        amount = self.cleaned_data['amount']
-        return self._try_payment_action(user, action, self.payment, amount)
-
-    def try_payment_action_without_amount(self, user, action):
-        return self._try_payment_action(user, action, self.payment)
 
 
 class CapturePaymentForm(BasePaymentForm):
@@ -302,7 +295,8 @@ class CapturePaymentForm(BasePaymentForm):
             raise forms.ValidationError(self.clean_error)
 
     def capture(self, user):
-        return self.try_payment_action_with_amount(user, gateway_capture)
+        return self.try_payment_action(
+            user, gateway_capture, self.cleaned_data['amount'])
 
 
 class RefundPaymentForm(BasePaymentForm):
@@ -322,7 +316,8 @@ class RefundPaymentForm(BasePaymentForm):
                     'Manual payments can not be refunded'))
 
     def refund(self, user):
-        return self.try_payment_action_with_amount(user, gateway_refund)
+        return self.try_payment_action(
+            user, gateway_refund, self.cleaned_data['amount'])
 
 
 class VoidPaymentForm(BasePaymentForm):
@@ -343,7 +338,7 @@ class VoidPaymentForm(BasePaymentForm):
             raise forms.ValidationError(self.clean_error)
 
     def void(self, user):
-        return self.try_payment_action_without_amount(user, gateway_void)
+        return self.try_payment_action(user, gateway_void)
 
 
 class OrderMarkAsPaidForm(forms.Form):
@@ -585,7 +580,7 @@ class AddVariantToOrderForm(forms.Form):
         quantity = self.cleaned_data.get('quantity')
         line = add_variant_to_order(
             self.order, variant, quantity, self.discounts, self.taxes)
-        OrderEvent.draft_added_products_event(
+        OrderEvent.draft_order_added_products_event(
             order=self.order, source=user,
             order_lines=[(line.quantity, line)]).save()
         recalculate_order(self.order)
