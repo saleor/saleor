@@ -277,35 +277,45 @@ def test_nested_order_events_query(
         query OrdersQuery {
             orders(first: 1) {
                 edges {
-                node {
-                    events {
-                        date
-                        type
-                        user {
+                    node {
+                        events {
+                            date
+                            type
+                            user {
+                                email
+                            }
+                            message
                             email
-                        }
-                        message
-                        email
-                        emailType
-                        amount
-                        quantity
-                        composedId
-                        orderNumber
+                            emailType
+                            amount
+                            quantity
+                            composedId
+                            orderNumber
+                            lines {
+                                quantity
+                                item
+                            }
+                            paymentId
+                            paymentGateway
                         }
                     }
                 }
             }
         }
     """
-    event = fulfilled_order.events.create(
-        type=OrderEvents.OTHER.value,
-        user=staff_user,
-        parameters={
-            'message': 'Example note',
-            'email_type': OrderEventsEmails.PAYMENT.value,
-            'amount': '80.00',
-            'quantity': '10',
-            'composed_id': '10-10'})
+    line = fulfilled_order.lines.first()
+
+    event = OrderEvent.fulfillment_fulfilled_items_event(
+        order=fulfilled_order, source=staff_user,
+        quantities=[line.quantity], order_lines=[line])
+    event.parameters.update({
+        'message': 'Example note',
+        'email_type': OrderEventsEmails.PAYMENT.value,
+        'amount': '80.00',
+        'quantity': '10',
+        'composed_id': '10-10'})
+    event.save()
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
@@ -316,9 +326,70 @@ def test_nested_order_events_query(
     assert data['quantity'] == int(event.parameters['quantity'])
     assert data['composedId'] == event.parameters['composed_id']
     assert data['user']['email'] == staff_user.email
-    assert data['type'] == OrderEvents.OTHER.value.upper()
+    assert data['type'] == 'FULFILLMENT_FULFILLED_ITEMS'
     assert data['date'] == event.date.isoformat()
     assert data['orderNumber'] == str(fulfilled_order.pk)
+    assert data['lines'] == [{
+        'quantity': line.quantity,
+        'item': str(line)}]
+    assert data['paymentId'] is None
+    assert data['paymentGateway'] is None
+
+
+def test_payment_information_order_events_query(
+        staff_api_client, permission_manage_orders, order, payment_dummy,
+        staff_user):
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        events {
+                            type
+                            user {
+                                email
+                            }
+                            message
+                            email
+                            emailType
+                            amount
+                            quantity
+                            composedId
+                            orderNumber
+                            lines {
+                                item
+                            }
+                            paymentId
+                            paymentGateway
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    amount = order.total.gross.amount
+
+    OrderEvent.payment_captured_event(
+        order=order, source=staff_user,
+        amount=amount, payment=payment_dummy).save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['orders']['edges'][0]['node']['events'][0]
+
+    assert data['message'] is None
+    assert data['amount'] == amount
+    assert data['emailType'] is None
+    assert data['quantity'] is None
+    assert data['composedId'] is None
+    assert data['lines'] is None
+    assert data['user']['email'] == staff_user.email
+    assert data['type'] == 'PAYMENT_CAPTURED'
+    assert data['orderNumber'] == str(order.pk)
+    assert data['paymentId'] == payment_dummy.token
+    assert data['paymentGateway'] == payment_dummy.gateway
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
 
 from django.conf import settings
@@ -5,7 +6,6 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
-from prices import Money
 
 from ...account.models import Address
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -156,7 +156,7 @@ class OrderEvent(models.Model):
 
     @staticmethod
     def _get_payment_data(
-            amount: Optional[Money], payment: Payment) -> Dict:
+            amount: Optional[Decimal], payment: Payment) -> Dict:
         return {
             'parameters': {
                 'amount': amount,
@@ -167,7 +167,7 @@ class OrderEvent(models.Model):
     def payment_captured_event(
             cls, *,
             order: Order, source: User,
-            amount: Money, payment: Payment) -> models.Model:
+            amount: Decimal, payment: Payment) -> models.Model:
         return cls(
             order=order, type=OrderEvents.PAYMENT_CAPTURED.value,
             user=source, **cls._get_payment_data(amount, payment))
@@ -176,7 +176,7 @@ class OrderEvent(models.Model):
     def payment_refunded_event(
             cls, *,
             order: Order, source: User,
-            amount: Money, payment: Payment) -> models.Model:
+            amount: Decimal, payment: Payment) -> models.Model:
         return cls(
             order=order, type=OrderEvents.PAYMENT_REFUNDED.value,
             user=source, **cls._get_payment_data(amount, payment))
@@ -237,7 +237,7 @@ class OrderEvent(models.Model):
             order=order, type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
             user=source,
             parameters={
-                'fulfilled_items': cls._lines_per_quantity_to_str_line_list(
+                'lines': cls._lines_per_quantity_to_str_line_list(
                     zip(quantities, order_lines))})
 
     @classmethod

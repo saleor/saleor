@@ -176,7 +176,7 @@ def capture_payment(request, order_pk, payment_pk):
             'Captured %(amount)s') % {'amount': prices_i18n.amount(amount)}
         OrderEvent.payment_captured_event(
             order=order, source=request.user,
-            amount=amount, payment=payment).save()
+            amount=amount.amount, payment=payment).save()
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
