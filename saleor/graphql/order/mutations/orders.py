@@ -76,7 +76,7 @@ def try_payment_action(order, user, payment, func, *args, **kwargs):
     except (PaymentError, ValueError) as e:
         message = str(e)
         event_models.OrderEvent.payment_failed_event(
-            order=order, source=user, message=message, payment=payment).save()
+            order=order, user=user, message=message, payment=payment).save()
         raise ValidationError({'payment': message})
     return True
 
@@ -195,7 +195,7 @@ class OrderAddNote(BaseMutation):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
         event = event_models.OrderEvent.order_note_added_event(
-            order=order, source=info.context.user,
+            order=order, user=info.context.user,
             message=data.get('input')['message'])
         event.save()
         return OrderAddNote(order=order, event=event)
@@ -276,7 +276,7 @@ class OrderCapture(BaseMutation):
             gateway_capture, payment, amount)
 
         event_models.OrderEvent.payment_captured_event(
-            order=order, source=info.context.user,
+            order=order, user=info.context.user,
             amount=amount, payment=payment).save()
         return OrderCapture(order=order)
 
@@ -303,7 +303,7 @@ class OrderVoid(BaseMutation):
             order, info.context.user, payment, gateway_void, payment)
 
         event_models.OrderEvent.payment_voided_event(
-            order=order, source=info.context.user, payment=payment).save()
+            order=order, user=info.context.user, payment=payment).save()
         return OrderVoid(order=order)
 
 
@@ -335,6 +335,6 @@ class OrderRefund(BaseMutation):
             order, info.context.user, payment, gateway_refund, payment, amount)
 
         event_models.OrderEvent.payment_refunded_event(
-            order=order, source=info.context.user,
+            order=order, user=info.context.user,
             amount=amount, payment=payment).save()
         return OrderRefund(order=order)
