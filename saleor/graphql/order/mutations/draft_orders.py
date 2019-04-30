@@ -124,7 +124,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     track_inventory=False)
 
             # Add event
-            events.append(OrderEvent.draft_added_products_event(
+            events.append(OrderEvent.draft_order_added_products_event(
                 order=instance, source=info.context.user, order_lines=lines))
 
     @classmethod
@@ -134,7 +134,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Create draft created event if the instance is from scratch
         if not created:
-            events.append(OrderEvent.draft_created_event(
+            events.append(OrderEvent.draft_order_created_event(
                 order=instance, source=info.context.user))
 
         instance.save(update_fields=['billing_address', 'shipping_address'])
@@ -231,11 +231,11 @@ class DraftOrderComplete(BaseMutation):
                 oversold_items.append(str(line))
 
         events = [
-            OrderEvent.placed_event(
+            OrderEvent.order_created_event(
                 order=order, source=info.context.user, from_draft=True)]
 
         if oversold_items:
-            events.append(OrderEvent.draft_oversold_items_event(
+            events.append(OrderEvent.draft_order_oversold_items_event(
                 order=order,
                 source=info.context.user,
                 oversold_items=oversold_items))
@@ -289,7 +289,7 @@ class DraftOrderLinesCreate(BaseMutation):
             for quantity, variant in lines_to_add]
 
         # Create the event
-        OrderEvent.draft_added_products_event(
+        OrderEvent.draft_order_added_products_event(
             order=order, source=info.context.user, order_lines=lines_to_add)
 
         recalculate_order(order)
@@ -321,7 +321,7 @@ class DraftOrderLineDelete(BaseMutation):
         line.id = db_id
 
         # Create the removal event
-        OrderEvent.draft_removed_products_event(
+        OrderEvent.draft_order_removed_products_event(
             order=order, source=info.context.user,
             order_lines=[(line.quantity, line)]).save()
 

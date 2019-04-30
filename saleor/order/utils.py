@@ -173,7 +173,7 @@ def cancel_order(user, order, restock):
     """
 
     events = [
-        OrderEvent.cancelled_event(order=order, source=user)]
+        OrderEvent.order_canceled_event(order=order, source=user)]
     if restock:
         events.append(OrderEvent.fulfillment_restocked_items_event(
             order=order, source=user,
@@ -300,11 +300,11 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
 
     # Create the removal event
     if quantity_diff > 0:
-        OrderEvent.draft_removed_products_event(
+        OrderEvent.draft_order_removed_products_event(
             order=line.order, source=user,
             order_lines=[(quantity_diff, line)]).save()
     elif quantity_diff < 0:
-        OrderEvent.draft_added_products_event(
+        OrderEvent.draft_order_added_products_event(
             order=line.order, source=user,
             order_lines=[(quantity_diff * -1, line)]).save()
 

@@ -108,3 +108,7 @@ If now you want to send a 'sent email' event you would do the following:
   event.save()
 
 Notice how we are providing the email type.
+
+.. note::
+
+  The methods are using a ``model_action_event`` naming pattern.

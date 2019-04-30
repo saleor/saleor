@@ -17,13 +17,30 @@ from ..types import OrderEvents, OrderEventsEmails
 UserType = AbstractBaseUser
 
 
+def _lines_per_quantity_to_str_line_list(quantities_per_order_line):
+    return [{
+        'quantity': quantity,
+        'item': str(line)
+    } for quantity, line in quantities_per_order_line]
+
+
+def _get_payment_data(
+        amount: Optional[Decimal], payment: Payment) -> Dict:
+    return {
+        'parameters': {
+            'amount': amount,
+            'payment_id': payment.token,
+            'payment_gateway': payment.gateway}}
+
+
 class OrderEvent(models.Model):
     """Model used to store events that happened during the order lifecycle.
 
-        Args:
-            parameters: Values needed to display the event on the storefront
-            type: Type of an order
+    Args:
+        parameters: Values needed to display the event on the storefront
+        type: Type of an order
     """
+
     date = models.DateTimeField(default=now, editable=False)
     type = models.CharField(
         max_length=255,
@@ -42,13 +59,6 @@ class OrderEvent(models.Model):
 
     def __repr__(self):
         return 'OrderEvent(type=%r, user=%r)' % (self.type, self.user)
-
-    @staticmethod
-    def _lines_per_quantity_to_str_line_list(quantities_per_order_line):
-        return [{
-            'quantity': quantity,
-            'item': str(line)
-        } for quantity, line in quantities_per_order_line]
 
     @classmethod
     def email_sent_event(
@@ -74,13 +84,13 @@ class OrderEvent(models.Model):
         raise NotImplementedError
 
     @classmethod
-    def draft_created_event(
+    def draft_order_created_event(
             cls, *, order: Order, source: UserType) -> models.Model:
         return cls(
             order=order, type=OrderEvents.DRAFT_CREATED.value, user=source)
 
     @classmethod
-    def draft_added_products_event(
+    def draft_order_added_products_event(
             cls, *,
             order: Order, source: UserType,
             order_lines: List[Tuple[int, ProductVariant]]) -> models.Model:
@@ -89,11 +99,10 @@ class OrderEvent(models.Model):
             order=order, type=OrderEvents.DRAFT_ADDED_PRODUCTS.value,
             user=source,
             parameters={
-                'lines': cls._lines_per_quantity_to_str_line_list(order_lines)
-            })
+                'lines': _lines_per_quantity_to_str_line_list(order_lines)})
 
     @classmethod
-    def draft_removed_products_event(
+    def draft_order_removed_products_event(
             cls, *,
             order: Order, source: UserType,
             order_lines: List[Tuple[int, ProductVariant]]
@@ -103,11 +112,10 @@ class OrderEvent(models.Model):
             order=order, type=OrderEvents.DRAFT_REMOVED_PRODUCTS.value,
             user=source,
             parameters={
-                'lines': cls._lines_per_quantity_to_str_line_list(
-                    order_lines)})
+                'lines': _lines_per_quantity_to_str_line_list(order_lines)})
 
     @classmethod
-    def placed_event(
+    def order_created_event(
             cls, order: Order, source: UserType,
             from_draft=False) -> models.Model:
         event_type = (
@@ -121,7 +129,7 @@ class OrderEvent(models.Model):
             order=order, type=event_type.value, user=source)
 
     @classmethod
-    def draft_oversold_items_event(
+    def draft_order_oversold_items_event(
             cls, *,
             order: Order, source: UserType,
             oversold_items: List[str]) -> models.Model:
@@ -132,7 +140,7 @@ class OrderEvent(models.Model):
                 'oversold_items': oversold_items})
 
     @classmethod
-    def cancelled_event(
+    def order_canceled_event(
             cls, *,
             order: Order, source: UserType) -> models.Model:
         return cls(
@@ -140,7 +148,7 @@ class OrderEvent(models.Model):
             user=source)
 
     @classmethod
-    def manually_marked_as_paid_event(
+    def order_manually_marked_as_paid_event(
             cls, *,
             order: Order, source: UserType) -> models.Model:
         return cls(
@@ -148,17 +156,8 @@ class OrderEvent(models.Model):
             user=source)
 
     @classmethod
-    def fully_paid_event_event(cls, *, order: Order) -> models.Model:
+    def order_fully_paid_event(cls, *, order: Order) -> models.Model:
         return cls(order=order, type=OrderEvents.ORDER_FULLY_PAID.value)
-
-    @staticmethod
-    def _get_payment_data(
-            amount: Optional[Decimal], payment: Payment) -> Dict:
-        return {
-            'parameters': {
-                'amount': amount,
-                'payment_id': payment.token,
-                'payment_gateway': payment.gateway}}
 
     @classmethod
     def payment_captured_event(
@@ -167,7 +166,7 @@ class OrderEvent(models.Model):
             amount: Decimal, payment: Payment) -> models.Model:
         return cls(
             order=order, type=OrderEvents.PAYMENT_CAPTURED.value,
-            user=source, **cls._get_payment_data(amount, payment))
+            user=source, **_get_payment_data(amount, payment))
 
     @classmethod
     def payment_refunded_event(
@@ -176,7 +175,7 @@ class OrderEvent(models.Model):
             amount: Decimal, payment: Payment) -> models.Model:
         return cls(
             order=order, type=OrderEvents.PAYMENT_REFUNDED.value,
-            user=source, **cls._get_payment_data(amount, payment))
+            user=source, **_get_payment_data(amount, payment))
 
     @classmethod
     def payment_voided_event(
@@ -184,7 +183,7 @@ class OrderEvent(models.Model):
             order: Order, source: UserType, payment: Payment) -> models.Model:
         return cls(
             order=order, type=OrderEvents.PAYMENT_VOIDED.value,
-            user=source, **cls._get_payment_data(None, payment))
+            user=source, **_get_payment_data(None, payment))
 
     @classmethod
     def payment_failed_event(
@@ -234,7 +233,7 @@ class OrderEvent(models.Model):
             order=order, type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
             user=source,
             parameters={
-                'lines': cls._lines_per_quantity_to_str_line_list(
+                'lines': _lines_per_quantity_to_str_line_list(
                     zip(quantities, order_lines))})
 
     @classmethod
@@ -251,7 +250,7 @@ class OrderEvent(models.Model):
                 'fulfillment': fulfillment.composed_id})
 
     @classmethod
-    def note_added_event(
+    def order_note_added_event(
             cls, *,
             order: Order, source: UserType, message: str) -> models.Model:
         return cls(
@@ -261,7 +260,7 @@ class OrderEvent(models.Model):
                 'message': message})
 
     @classmethod
-    def updated_address_event(
+    def order_updated_address_event(
             cls, *,
             order: Order, source: UserType, address: Address) -> models.Model:
         return cls(

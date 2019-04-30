@@ -928,7 +928,7 @@ def place_checkout_to_order(request, checkout) -> Order:
 
     # Create the order placed and email confirmation sent events
     OrderEvent.objects.bulk_create([
-        OrderEvent.placed_event(order, request.user),
+        OrderEvent.order_created_event(order, request.user),
         OrderEvent.email_sent_event(
             order=order, email_type=OrderEventsEmails.ORDER,
             source=request.user)])
