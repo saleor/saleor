@@ -123,17 +123,6 @@ class BaseMutation(graphene.Mutation):
         return instances
 
     @classmethod
-    def from_global_id_strict_type(
-            cls, info, global_id, only_type, field='id'):
-        """Resolve a node global id with a strict given type required."""
-        _type, _id = graphene.Node.from_global_id(global_id)
-        graphene_type = info.schema.get_type(_type).graphene_type
-        if graphene_type != only_type:
-            raise ValidationError({
-                field: "Couldn't resolve to a node: %s" % global_id})
-        return _id
-
-    @classmethod
     def clean_instance(cls, instance):
         """Clean the instance that was created using the input data.
 

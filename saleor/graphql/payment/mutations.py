@@ -14,6 +14,7 @@ from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import Decimal
+from ..core.utils import from_global_id_strict_type
 from .enums import PaymentGatewayEnum
 from .types import Payment
 
@@ -54,7 +55,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
-        checkout_id = cls.from_global_id_strict_type(
+        checkout_id = from_global_id_strict_type(
             info, checkout_id, only_type=Checkout, field='checkout_id')
         checkout = models.Checkout.objects.prefetch_related(
             'lines__variant__product__collections').get(pk=checkout_id)
