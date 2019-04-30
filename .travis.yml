@@ -1,7 +1,9 @@
+dist: xenial
 language: python
 sudo: false
 python:
   - "3.6"
+  - "3.7"
 
 cache:
   pip: true
@@ -25,15 +27,6 @@ env:
   - DJANGO="2.2"
   - DJANGO="master"
 matrix:
-  include:
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="2.2"
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="master"
   fast_finish: true
   allow_failures:
     - python: "3.6"
