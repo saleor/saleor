@@ -3,11 +3,10 @@ from textwrap import dedent
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from graphql_jwt.decorators import permission_required
 
 from ...core.utils import get_client_ip
 from ...core.utils.taxes import get_taxes_for_address
-from ...payment import PaymentError
+from ...payment import PaymentError, models
 from ...payment.utils import (
     create_payment, gateway_capture, gateway_refund, gateway_void)
 from ..account.i18n import I18nMixin
@@ -15,6 +14,7 @@ from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import Decimal
+from ..core.utils import from_global_id_strict_type
 from .enums import PaymentGatewayEnum
 from .types import Payment
 
@@ -55,8 +55,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, field='checkout_id', only_type=Checkout)
+        checkout_id = from_global_id_strict_type(
+            info, checkout_id, only_type=Checkout, field='checkout_id')
+        checkout = models.Checkout.objects.prefetch_related(
+            'lines__variant__product__collections').get(pk=checkout_id)
 
         data = data.get('input')
         billing_address = checkout.billing_address
