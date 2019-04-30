@@ -7,10 +7,12 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
+import classNames from "classnames";
 import * as React from "react";
 import SortableTree, { NodeRendererProps } from "react-sortable-tree";
 
 import CardTitle from "../../../components/CardTitle";
+import useTheme from "../../../hooks/useTheme";
 import i18n from "../../../i18n";
 import Draggable from "../../../icons/Draggable";
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
@@ -32,6 +34,9 @@ export interface MenuItemsProps {
 
 const styles = (theme: Theme) =>
   createStyles({
+    darkRoot: {
+      background: `${theme.palette.grey[800]} !important`
+    },
     dragIcon: {
       cursor: "grab"
     },
@@ -54,73 +59,82 @@ const styles = (theme: Theme) =>
       height: NODE_HEIGHT,
       justifyContent: "flex-start",
       paddingLeft: theme.spacing.unit * 3,
-      transition: theme.transitions.duration.standard + "ms"
+      transition: `margin ${theme.transitions.duration.standard}ms`
     }
   });
 
-const Node: React.FC<NodeRendererProps & WithStyles<typeof styles>> = ({
-  classes,
-  node,
-  path,
-  connectDragPreview,
-  connectDragSource
-}) => {
-  return (
-    <>
-      {connectDragPreview(
-        <div>
-          <Paper
-            className={classes.row}
-            elevation={0}
-            style={{
-              marginLeft: NODE_MARGIN * (path.length - 1)
-            }}
-          >
-            {connectDragSource(
-              <div>
-                <Draggable className={classes.dragIcon} />
-              </div>
-            )}
-            <Typography className={classes.nodeTitle}>{node.title}</Typography>
-          </Paper>
-        </div>
-      )}
-    </>
-  );
-};
+class Node extends React.Component<NodeRendererProps> {
+  render() {
+    return <NodeComponent {...this.props} />;
+  }
+}
+
+const NodeComponent = withStyles(styles, {
+  name: "NodeComponent"
+})(
+  ({
+    classes,
+    node,
+    path,
+    connectDragPreview,
+    connectDragSource
+  }: NodeRendererProps & WithStyles<typeof styles>) =>
+    connectDragPreview(
+      <div>
+        <Paper
+          className={classes.row}
+          elevation={0}
+          style={{
+            marginLeft: NODE_MARGIN * (path.length - 1)
+          }}
+        >
+          {connectDragSource(
+            <div>
+              <Draggable className={classes.dragIcon} />
+            </div>
+          )}
+          <Typography className={classes.nodeTitle}>{node.title}</Typography>
+        </Paper>
+      </div>
+    )
+);
 
 const MenuItems = withStyles(styles, { name: "MenuItems" })(
   ({
     classes,
     items,
     onChange
-  }: MenuItemsProps & WithStyles<typeof styles>) => (
-    <Card>
-      <CardTitle title={i18n.t("Menu Items")} />
-      <div style={{ height: getNodeQuantity(items) * NODE_HEIGHT }}>
-        <SortableTree
-          className={classes.root}
-          generateNodeProps={({ path }) => ({
-            className: classes.row,
-            style: {
-              marginLeft: NODE_MARGIN * (path.length - 1)
+  }: MenuItemsProps & WithStyles<typeof styles>) => {
+    const { isDark } = useTheme();
+
+    return (
+      <Card>
+        <CardTitle title={i18n.t("Menu Items")} />
+        <div style={{ height: getNodeQuantity(items) * NODE_HEIGHT }}>
+          <SortableTree
+            className={classNames(classes.root, {
+              [classes.darkRoot]: isDark
+            })}
+            generateNodeProps={({ path }) => ({
+              className: classes.row,
+              style: {
+                marginLeft: NODE_MARGIN * (path.length - 1)
+              }
+            })}
+            isVirtualized={false}
+            rowHeight={NODE_HEIGHT}
+            treeData={items.map(getNodeData)}
+            theme={{
+              nodeContentRenderer: Node
+            }}
+            onChange={newTree =>
+              onChange(getDiff(items.map(getNodeData), newTree as TreeNode[]))
             }
-          })}
-          isVirtualized={false}
-          rowHeight={NODE_HEIGHT}
-          treeData={items.map(getNodeData)}
-          theme={{
-            nodeContentRenderer: (props => (
-              <Node {...props} classes={classes} />
-            )) as any
-          }}
-          onChange={newTree =>
-            onChange(getDiff(items.map(getNodeData), newTree as TreeNode[]))
-          }
-        />
-      </div>
-    </Card>
-  )
+          />
+        </div>
+      </Card>
+    );
+  }
 );
 MenuItems.displayName = "MenuItems";
 export default MenuItems;
