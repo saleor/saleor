@@ -48,6 +48,7 @@
     "draftail": "^1.1.0",
     "draftjs-to-html": "^0.8.4",
     "dropzone": "^5.2.0",
+    "fast-array-diff": "^0.2.0",
     "fuzzaldrin": "^2.1.0",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.0",
