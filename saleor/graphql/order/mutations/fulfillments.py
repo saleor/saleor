@@ -106,7 +106,7 @@ class FulfillmentCreate(BaseMutation):
         fulfillment.lines.bulk_create(fulfillment_lines)
         update_order_status(order)
         events = [OrderEvent.fulfillment_fulfilled_items_event(
-            order=order, source=user,
+            order=order, user=user,
             quantities=quantities, order_lines=order_lines)]
 
         if cleaned_input.get('notify_customer', True):
@@ -157,7 +157,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.save()
         order = fulfillment.order
         OrderEvent.fulfillment_tracking_updated_event(
-            order=order, source=info.context.user,
+            order=order, user=info.context.user,
             tracking_number=tracking_number, fulfillment=fulfillment)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 

@@ -306,7 +306,7 @@ def test_nested_order_events_query(
     line = fulfilled_order.lines.first()
 
     event = OrderEvent.fulfillment_fulfilled_items_event(
-        order=fulfilled_order, source=staff_user,
+        order=fulfilled_order, user=staff_user,
         quantities=[line.quantity], order_lines=[line])
     event.parameters.update({
         'message': 'Example note',
@@ -371,7 +371,7 @@ def test_payment_information_order_events_query(
     amount = order.total.gross.amount
 
     OrderEvent.payment_captured_event(
-        order=order, source=staff_user,
+        order=order, user=staff_user,
         amount=amount, payment=payment_dummy).save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)

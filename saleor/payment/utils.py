@@ -81,7 +81,7 @@ def handle_fully_paid_order(order):
     if order.get_user_current_email():
         events.append(OrderEvent.email_sent_event(
             order=order, email_type=OrderEventsEmails.PAYMENT,
-            source=None))
+            user=None))
         send_payment_confirmation.delay(order.pk)
 
         if order_utils.order_needs_automatic_fullfilment(order):
@@ -178,7 +178,7 @@ def mark_order_as_paid(order: Order, request_user: User):
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=['captured_amount', 'charge_status'])
     OrderEvent.order_manually_marked_as_paid_event(
-        order=order, source=request_user).save()
+        order=order, user=request_user).save()
 
 
 def create_transaction(

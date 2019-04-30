@@ -278,7 +278,7 @@ class BasePaymentForm(forms.Form):
             message = str(e)
             self.payment_error(message)
             OrderEvent.payment_failed_event(
-                order=self.payment.order, source=user,
+                order=self.payment.order, user=user,
                 message=message, payment=self.payment).save()
             return False
         return True
@@ -581,7 +581,7 @@ class AddVariantToOrderForm(forms.Form):
         line = add_variant_to_order(
             self.order, variant, quantity, self.discounts, self.taxes)
         OrderEvent.draft_order_added_products_event(
-            order=self.order, source=user,
+            order=self.order, user=user,
             order_lines=[(line.quantity, line)]).save()
         recalculate_order(self.order)
 

@@ -71,14 +71,14 @@ def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
     send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
 
     events = [OrderEvent.email_sent_event(
-        order=order, source=user,
+        order=order, user=user,
         email_type=OrderEventsEmails.FULFILLMENT)]
 
     # If digital lines were sent in the fulfillment email,
     # trigger the event
     if any((line for line in order if line.variant.is_digital())):
         events.append(OrderEvent.email_sent_event(
-            order=order, source=user,
+            order=order, user=user,
             email_type=OrderEventsEmails.DIGITAL_LINKS))
 
     return events
