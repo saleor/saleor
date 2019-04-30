@@ -84,7 +84,6 @@ export function computeTree(
   tree: MenuDetails_menu_items[],
   permutations: TreePermutation[]
 ) {
-  //   console.log(JSON.stringify(permutations));
   const newTree = permutations.reduce(
     (acc, permutation) => permuteNode(acc, permutation),
     JSON.parse(JSON.stringify(tree))
