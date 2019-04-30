@@ -1,7 +1,7 @@
 import pytest
 
 from saleor.events.models import OrderEvent
-from saleor.events.types import OrderEvents
+from saleor.events import OrderEvents
 from saleor.order.utils import change_order_line_quantity
 
 

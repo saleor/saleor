@@ -4,8 +4,8 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.templatetags import prices_i18n
 from prices import Money
 
+from ...events import OrderEvents, OrderEventsEmails
 from ...events.models import OrderEvent
-from ...events.types import OrderEvents, OrderEventsEmails
 
 register = Library()
 
@@ -124,17 +124,17 @@ def display_order_event(order_event: OrderEvent):
         return pgettext_lazy(
             'Dashboard message related to an order',
             'The draft was created by %(user_name)s') % {
-               'user_name': order_event.user}
+                'user_name': order_event.user}
     if event_type == OrderEvents.DRAFT_ADDED_PRODUCTS.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
             '%(user_name)s added some products') % {
-               'user_name': order_event.user}
+                'user_name': order_event.user}
     if event_type == OrderEvents.DRAFT_REMOVED_PRODUCTS.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
             '%(user_name)s removed some products') % {
-               'user_name': order_event.user}
+                'user_name': order_event.user}
     if event_type == OrderEvents.OVERSOLD_ITEMS.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
@@ -144,12 +144,12 @@ def display_order_event(order_event: OrderEvent):
         return pgettext_lazy(
             'Dashboard message related to an order',
             'The order address was updated by %(user_name)s') % {
-               'user_name': order_event.user}
+                'user_name': order_event.user}
     if event_type == OrderEvents.PAYMENT_FAILED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
             'The payment was failed by %(user_name)s') % {
-               'user_name': order_event.user}
+                'user_name': order_event.user}
 
     if event_type == OrderEvents.OTHER.value:
         return order_event.parameters['message']
