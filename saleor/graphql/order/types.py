@@ -20,7 +20,7 @@ from .utils import applicable_shipping_methods, validate_draft_order
 
 class OrderEventLineObject(graphene.ObjectType):
     quantity = graphene.Int(description='The variant quantity.')
-    item = graphene.Int(description='The variant name.')
+    item = graphene.String(description='The variant name.')
 
 
 class OrderEvent(CountableDjangoObjectType):
@@ -48,7 +48,7 @@ class OrderEvent(CountableDjangoObjectType):
     oversold_items = graphene.List(
         graphene.String, description='List of oversold lines names.')
     lines = graphene.List(
-        OrderEventLineObject, description='The lines added or removed.')
+        OrderEventLineObject, description='The concerned lines.')
     fulfilled_items = graphene.List(
         OrderEventLineObject, description='The lines fulfilled.')
 
@@ -91,10 +91,10 @@ class OrderEvent(CountableDjangoObjectType):
         return self.order_id
 
     def resolve_lines(self, _info):
-        return self.parameters.get('lines', None)
-
-    def resolve_fulfilled_items(self, _info):
-        return self.parameters.get('fulfilled_items', None)
+        lines = self.parameters.get('lines', None)
+        return [
+            OrderEventLineObject(**line) for line in lines
+        ] if lines else None
 
 
 class FulfillmentLine(CountableDjangoObjectType):
