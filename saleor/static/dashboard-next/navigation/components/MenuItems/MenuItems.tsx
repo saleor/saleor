@@ -1,4 +1,6 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
 import Paper from "@material-ui/core/Paper";
 import {
   createStyles,
@@ -34,7 +36,13 @@ export interface MenuItemsProps {
 
 const styles = (theme: Theme) =>
   createStyles({
-    darkRoot: {
+    actions: {
+      flexDirection: "row"
+    },
+    container: {
+      background: theme.palette.grey[200]
+    },
+    darkContainer: {
       background: `${theme.palette.grey[800]} !important`
     },
     dragIcon: {
@@ -47,7 +55,9 @@ const styles = (theme: Theme) =>
       "& .rst__collapseButton": {
         display: "none"
       },
-      background: theme.palette.grey[200]
+      "& .rst__node": {
+        height: "auto !important"
+      }
     },
     row: {
       alignItems: "center",
@@ -58,14 +68,45 @@ const styles = (theme: Theme) =>
       flexDirection: "row",
       height: NODE_HEIGHT,
       justifyContent: "flex-start",
-      paddingLeft: theme.spacing.unit * 3,
+      paddingLeft: theme.spacing.unit * 3
+    },
+    rowContainer: {
+      "& > *": {
+        opacity: 1,
+        transition: `opacity ${theme.transitions.duration.standard}ms`
+      },
       transition: `margin ${theme.transitions.duration.standard}ms`
+    },
+    rowContainerDragged: {
+      "&$rowContainer": {
+        "& > *": {
+          opacity: 0
+        },
+        "&:before": {
+          background: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.primary.main}`,
+          borderRadius: "100%",
+          content: "''",
+          height: 7,
+          left: 0,
+          position: "absolute",
+          top: -3,
+          width: 7
+        },
+        background: theme.palette.primary.main,
+        height: 1,
+        position: "relative",
+        top: -1
+      }
+    },
+    rowContainerPlaceholder: {
+      width: 300
     }
   });
 
 class Node extends React.Component<NodeRendererProps> {
   render() {
-    return <NodeComponent {...this.props} />;
+    return <NodeComponent {...this.props} key={this.props.node.id} />;
   }
 }
 
@@ -77,26 +118,47 @@ const NodeComponent = withStyles(styles, {
     node,
     path,
     connectDragPreview,
-    connectDragSource
-  }: NodeRendererProps & WithStyles<typeof styles>) =>
-    connectDragPreview(
-      <div>
-        <Paper
-          className={classes.row}
-          elevation={0}
-          style={{
-            marginLeft: NODE_MARGIN * (path.length - 1)
-          }}
-        >
+    connectDragSource,
+    isDragging
+  }: NodeRendererProps & WithStyles<typeof styles>) => {
+    const draggedClassName = classNames(
+      classes.rowContainer,
+      classes.rowContainerDragged
+    );
+    const defaultClassName = isDragging
+      ? draggedClassName
+      : classes.rowContainer;
+    const placeholderClassName = classNames(
+      classes.rowContainer,
+      classes.rowContainerPlaceholder
+    );
+
+    const [className, setClassName] = React.useState(defaultClassName);
+    React.useEffect(() => setClassName(defaultClassName), [isDragging]);
+
+    const handleDragStart = () => {
+      setClassName(placeholderClassName);
+      setTimeout(() => setClassName(defaultClassName), 0);
+    };
+
+    return connectDragPreview(
+      <div
+        className={className}
+        style={{
+          marginLeft: NODE_MARGIN * (path.length - 1)
+        }}
+      >
+        <Paper className={classes.row} elevation={0}>
           {connectDragSource(
-            <div>
+            <div onDragStart={handleDragStart}>
               <Draggable className={classes.dragIcon} />
             </div>
           )}
           <Typography className={classes.nodeTitle}>{node.title}</Typography>
         </Paper>
       </div>
-    )
+    );
+  }
 );
 
 const MenuItems = withStyles(styles, { name: "MenuItems" })(
@@ -110,11 +172,14 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
     return (
       <Card>
         <CardTitle title={i18n.t("Menu Items")} />
-        <div style={{ height: getNodeQuantity(items) * NODE_HEIGHT }}>
+        <div
+          className={classNames(classes.container, {
+            [classes.darkContainer]: isDark
+          })}
+          style={{ minHeight: (getNodeQuantity(items) - 0.5) * NODE_HEIGHT }}
+        >
           <SortableTree
-            className={classNames(classes.root, {
-              [classes.darkRoot]: isDark
-            })}
+            className={classes.root}
             generateNodeProps={({ path }) => ({
               className: classes.row,
               style: {
@@ -132,6 +197,13 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
             }
           />
         </div>
+        <CardActions className={classes.actions}>
+          <Button color="primary">
+            {i18n.t("Add new item", {
+              context: "add menu item"
+            })}
+          </Button>
+        </CardActions>
       </Card>
     );
   }
