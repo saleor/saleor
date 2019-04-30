@@ -24,6 +24,7 @@ from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
+from ..core.utils import from_global_id_strict_type
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -421,8 +422,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
-        checkout = cls.get_node_or_error(
+        checkout_id = from_global_id_strict_type(
             info, checkout_id, only_type=Checkout, field='checkout_id')
+        checkout = models.Checkout.objects.prefetch_related(
+            'lines__variant__product__collections').get(pk=checkout_id)
         shipping_method = cls.get_node_or_error(
             info, shipping_method_id, only_type=ShippingMethod,
             field='shipping_method_id')
