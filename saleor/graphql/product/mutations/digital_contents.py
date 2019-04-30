@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from django.core.exceptions import ValidationError
 from graphql_jwt.decorators import permission_required
@@ -49,7 +47,7 @@ class DigitalContentCreate(BaseMutation):
             description='Fields required to create a digital content.')
 
     class Meta:
-        description = dedent('''Create new digital content. This mutation must
+        description = ('''Create new digital content. This mutation must
         be sent as a `multipart` request. More detailed specs of the upload
         format can be found here:
         https://github.com/jaydenseric/graphql-multipart-request-spec''')
@@ -113,8 +111,7 @@ class DigitalContentDelete(BaseMutation):
             required=True)
 
     class Meta:
-        description = dedent(
-            'Remove digital content assigned to given variant')
+        description = 'Remove digital content assigned to given variant'
 
     @classmethod
     @permission_required('product.manage_products')
@@ -142,7 +139,7 @@ class DigitalContentUpdate(BaseMutation):
             description='Fields required to update a digital content.')
 
     class Meta:
-        description = dedent('Update digital content')
+        description = 'Update digital content'
 
     @classmethod
     @permission_required('product.manage_products')

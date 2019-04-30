@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from graphql_jwt.decorators import permission_required
 
@@ -70,11 +68,11 @@ class ProductQueries(graphene.ObjectType):
         description='List of the shop\'s attributes.',
         query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(
-            graphene.ID, description=dedent(
+            graphene.ID, description=(
                 '''Return attributes for products belonging to the given
                 category.''')),
         in_collection=graphene.Argument(
-            graphene.ID, description=dedent(
+            graphene.ID, description=(
                 '''Return attributes for products belonging to the given
                 collection.''')), )
     categories = PrefetchingConnectionField(
@@ -105,10 +103,10 @@ class ProductQueries(graphene.ObjectType):
         collections=graphene.List(
             graphene.ID, description='Filter products by collections.'),
         price_lte=graphene.Float(
-            description=dedent(
+            description=(
                 '''Filter by price less than or equal to the given value.''')),
         price_gte=graphene.Float(
-            description=dedent(
+            description=(
                 '''
                 Filter by price greater than or equal to the given value.''')),
         sort_by=graphene.Argument(

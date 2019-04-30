@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -36,7 +34,7 @@ class ShippingZoneInput(graphene.InputObjectType):
         graphene.String,
         description='List of countries in this shipping zone.')
     default = graphene.Boolean(
-        description=dedent(
+        description=(
             """
             Is default shipping zone, that will be used
             for countries not covered by other zones."""))

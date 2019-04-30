@@ -1,4 +1,3 @@
-from textwrap import dedent
 
 import graphene
 from django.conf import settings
@@ -617,7 +616,7 @@ class UserAvatarUpdate(BaseMutation):
         )
 
     class Meta:
-        description = dedent(
+        description = (
             '''
             Create a user avatar. Only for staff members. This mutation must
             be sent as a `multipart` request. More detailed specs of the

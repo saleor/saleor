@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
@@ -41,7 +39,7 @@ class Sale(CountableDjangoObjectType):
         resolver=resolve_translation)
 
     class Meta:
-        description = dedent("""
+        description = ("""
         Sales allow creating discounts for categories, collections or
         products and are visible to all the customers.""")
         interfaces = [relay.Node]
@@ -88,7 +86,7 @@ class Voucher(CountableDjangoObjectType):
         resolver=resolve_translation)
 
     class Meta:
-        description = dedent("""
+        description = ("""
         Vouchers allow giving discounts to particular customers on categories,
         collections or specific products. They can be used during checkout by
         providing valid voucher codes.""")

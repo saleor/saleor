@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
@@ -27,7 +25,7 @@ class ShippingMethod(CountableDjangoObjectType):
         resolver=resolve_translation)
 
     class Meta:
-        description = dedent("""
+        description = ("""
             Shipping method are the methods you'll use to get
             customer's orders to them.
             They are directly exposed to the customers.""")
@@ -53,7 +51,7 @@ class ShippingZone(CountableDjangoObjectType):
         model_field='shipping_methods')
 
     class Meta:
-        description = dedent("""
+        description = ("""
             Represents a shipping zone in the shop. Zones are the concept
             used only for grouping shipping methods in the dashboard,
             and are never exposed to the customers directly.""")

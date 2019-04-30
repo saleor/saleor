@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -35,7 +33,7 @@ class PaymentInput(graphene.InputObjectType):
             'all taxes and discounts. If no amount is provided, '
             'the checkout total will be used.'))
     billing_address = AddressInput(
-        description=dedent(
+        description=(
             '''Billing address. If empty, the billing address associated with
             the checkout instance will be used.'''))
 

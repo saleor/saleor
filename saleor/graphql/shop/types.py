@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
@@ -68,7 +66,7 @@ class Shop(graphene.ObjectType):
         description='Customer\'s geolocalization data.')
     authorization_keys = graphene.List(
         AuthorizationKey,
-        description=dedent(
+        description=(
             '''List of configured authorization keys. Authorization
                keys are used to enable third party OAuth authorization
                (currently Facebook or Google).'''),
@@ -128,7 +126,7 @@ class Shop(graphene.ObjectType):
             'Default number of days which digital content url will be valid'))
 
     class Meta:
-        description = dedent('''
+        description = ('''
         Represents a shop resource containing general shop\'s data
         and configuration.''')
 
