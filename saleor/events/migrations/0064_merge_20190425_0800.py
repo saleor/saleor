@@ -13,6 +13,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterModelTable(
+            name='orderevent',
+            table=None,
+        ),
         migrations.AlterField(
             model_name='orderevent',
             name='type',
