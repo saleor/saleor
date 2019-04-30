@@ -77560,28 +77560,6 @@ exports[`Storyshots Views / Staff / Staff member details default 1`] = `
                       class="StaffProperties-avatarImage-id"
                       src="avatar1.png"
                     />
-                    <div
-                      class="StaffProperties-avatarHover-id"
-                    >
-                      <span
-                        class="isvg pending"
-                      />
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Change photo
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Delete photo
-                      </p>
-                      <input
-                        class="StaffProperties-fileField-id"
-                        id="fileUpload"
-                        type="file"
-                      />
-                    </div>
                   </div>
                 </div>
                 <div>
@@ -78055,28 +78033,6 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                     >
                       <p
                         class="MuiTypography-root-id MuiTypography-body1-id"
-                      />
-                    </div>
-                    <div
-                      class="StaffProperties-avatarHover-id"
-                    >
-                      <span
-                        class="isvg pending"
-                      />
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Change photo
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Delete photo
-                      </p>
-                      <input
-                        class="StaffProperties-fileField-id"
-                        id="fileUpload"
-                        type="file"
                       />
                     </div>
                   </div>
@@ -78758,28 +78714,6 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       class="StaffProperties-avatarImage-id"
                       src="avatar1.png"
                     />
-                    <div
-                      class="StaffProperties-avatarHover-id"
-                    >
-                      <span
-                        class="isvg pending"
-                      />
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Change photo
-                      </p>
-                      <p
-                        class="MuiTypography-root-id MuiTypography-body1-id"
-                      >
-                        Delete photo
-                      </p>
-                      <input
-                        class="StaffProperties-fileField-id"
-                        id="fileUpload"
-                        type="file"
-                      />
-                    </div>
                   </div>
                 </div>
                 <div>
