@@ -1,4 +1,4 @@
-from .OrderEvent import OrderEvent
+from .order import OrderEvent
 
 __all__ = [
     "OrderEvent"]

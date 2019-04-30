@@ -55,7 +55,6 @@ class OrderEvent(models.Model):
 
     class Meta:
         ordering = ('date', )
-        db_table = 'order_orderevent'
 
     def __repr__(self):
         return 'OrderEvent(type=%r, user=%r)' % (self.type, self.user)
