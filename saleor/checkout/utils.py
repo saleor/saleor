@@ -25,7 +25,7 @@ from ..discount.utils import (
     get_products_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
 from ..events.models import OrderEvent
-from ..events.types import OrderEventsEmails
+from ..events import OrderEventsEmails
 from ..order.emails import send_order_confirmation
 from ..order.models import Order
 from ..shipping.models import ShippingMethod

@@ -16,7 +16,7 @@ from saleor.dashboard.order.utils import (
 from saleor.dashboard.templatetags.orders import display_order_event
 from saleor.discount.utils import increase_voucher_usage
 from saleor.events.models import OrderEvent
-from saleor.events.types import OrderEvents, OrderEventsEmails
+from saleor.events import OrderEvents, OrderEventsEmails
 from saleor.order import FulfillmentStatus, OrderStatus
 from saleor.order.emails import send_fulfillment_confirmation_to_customer
 from saleor.order.models import Order, OrderLine

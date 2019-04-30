@@ -5,8 +5,8 @@ from templated_email import send_templated_mail
 
 from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
+from ..events import OrderEventsEmails
 from ..events.models import OrderEvent
-from ..events.types import OrderEventsEmails
 from ..seo.schema.email import get_order_confirmation_markup
 from .models import Fulfillment, Order
 

@@ -12,7 +12,7 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...order.models import Fulfillment, Order, OrderLine
 from ...payment.models import Payment
 from ...product.models import ProductVariant
-from ..types import OrderEvents, OrderEventsEmails
+from .. import OrderEvents, OrderEventsEmails
 
 UserType = AbstractBaseUser
 

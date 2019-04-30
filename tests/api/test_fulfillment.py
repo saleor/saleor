@@ -3,7 +3,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 
-from saleor.events.types import OrderEvents
+from saleor.events import OrderEvents
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import get_graphql_content
 
