@@ -5,13 +5,14 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ...core import analytics
 from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_checkout, add_voucher_to_checkout,
     change_billing_address_in_checkout, change_shipping_address_in_checkout,
     clean_checkout, get_or_create_user_checkout, get_taxes_for_checkout,
-    get_voucher_for_checkout, place_checkout_to_order,
-    recalculate_checkout_discount, remove_voucher_from_checkout)
+    get_voucher_for_checkout,
+    recalculate_checkout_discount, remove_voucher_from_checkout, create_order)
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...discount import models as voucher_model
@@ -466,7 +467,12 @@ class CheckoutComplete(BaseMutation):
 
         try:
             # FIXME: we shouldn't create the order, but only do checks
-            order = place_checkout_to_order(info.context, checkout)
+            order = create_order(
+                checkout=checkout,
+                tracking_code=analytics.get_client_id(info.context),
+                discounts=info.context.discounts,
+                taxes=get_taxes_for_checkout(checkout, info.context.taxes),
+                user=info.context.user)
         except InsufficientStock:
             raise ValidationError('Insufficient product stock.')
         except voucher_model.NotApplicable:
