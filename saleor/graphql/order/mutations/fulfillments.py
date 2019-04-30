@@ -185,8 +185,8 @@ class FulfillmentCancel(BaseMutation):
             description='Fields required to cancel an fulfillment.')
 
     class Meta:
-        description = ("""Cancels existing fulfillment
-        and optionally restocks items.""")
+        description = """Cancels existing fulfillment
+        and optionally restocks items."""
         permissions = ('order.manage_orders', )
 
     @classmethod

@@ -72,9 +72,9 @@ class Attribute(CountableDjangoObjectType):
         resolver=resolve_translation)
 
     class Meta:
-        description = ("""
+        description = """
             Custom attribute of a product. Attributes can be
-            assigned to products and variants at the product type level.""")
+            assigned to products and variants at the product type level."""
         only_fields = ['id', 'product_type', 'product_variant_type']
         interfaces = [relay.Node]
         model = models.Attribute

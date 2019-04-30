@@ -1,4 +1,3 @@
-
 import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
@@ -616,14 +615,12 @@ class UserAvatarUpdate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            '''
+        description = '''
             Create a user avatar. Only for staff members. This mutation must
             be sent as a `multipart` request. More detailed specs of the
             upload format can be found here:
             https://github.com/jaydenseric/graphql-multipart-request-spec
             '''
-        )
 
     @classmethod
     @staff_member_required

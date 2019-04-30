@@ -47,10 +47,10 @@ class DigitalContentCreate(BaseMutation):
             description='Fields required to create a digital content.')
 
     class Meta:
-        description = ('''Create new digital content. This mutation must
+        description = '''Create new digital content. This mutation must
         be sent as a `multipart` request. More detailed specs of the upload
         format can be found here:
-        https://github.com/jaydenseric/graphql-multipart-request-spec''')
+        https://github.com/jaydenseric/graphql-multipart-request-spec'''
 
     @classmethod
     @permission_required('product.manage_products')
