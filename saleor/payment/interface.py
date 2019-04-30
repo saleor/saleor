@@ -15,6 +15,7 @@ class GatewayResponse:
     error: Optional[str]
     raw_response: Optional[Dict[str, str]] = None
 
+
 @dataclass
 class PaymentInformation:
     """Dataclass for storing all payment information"""

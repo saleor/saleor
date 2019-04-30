@@ -28,7 +28,7 @@ def get_client_token(**_):
 
 
 def authorize(
-        payment_information: PaymentInformation, connection_params:Dict
+        payment_information: PaymentInformation, connection_params: Dict
 ) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
