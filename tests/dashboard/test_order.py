@@ -13,6 +13,7 @@ from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.dashboard.order.utils import (
     remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
+from saleor.dashboard.templatetags.orders import display_order_event
 from saleor.discount.utils import increase_voucher_usage
 from saleor.events.models import OrderEvent
 from saleor.events.types import OrderEvents, OrderEventsEmails
@@ -1200,7 +1201,7 @@ def test_order_event_display(admin_user, type, order):
         'oversold_items': ['Blue Shirt', 'Red Shirt']}
     event = OrderEvent(
         user=admin_user, order=order, parameters=parameters, type=type)
-    event.get_event_display()
+    display_order_event(event)
 
 
 def test_filter_order_by_status(admin_client):

@@ -7,6 +7,7 @@
 {% load static %}
 {% load status %}
 {% load voucher %}
+{% load orders %}
 
 {% block title %}
   {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
@@ -628,7 +629,7 @@
         {% for event in events %}
           <li class="event" data-date="{{ event.date }}">
             <div class="content">
-              {{ event.get_event_display|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
+              {% display_order_event event %}{% if event.user %} by {{ event.user }}{% endif %}
             </div>
           </li>
         {% endfor %}
