@@ -136,6 +136,7 @@ export interface MenuDetails_menu_items_children_children_children_children_chil
   __typename: "MenuItem";
   category: MenuDetails_menu_items_children_children_children_children_children_children_category | null;
   collection: MenuDetails_menu_items_children_children_children_children_children_children_collection | null;
+  id: string;
   level: number;
   name: string;
   page: MenuDetails_menu_items_children_children_children_children_children_children_page | null;
@@ -147,6 +148,7 @@ export interface MenuDetails_menu_items_children_children_children_children_chil
   __typename: "MenuItem";
   category: MenuDetails_menu_items_children_children_children_children_children_category | null;
   collection: MenuDetails_menu_items_children_children_children_children_children_collection | null;
+  id: string;
   level: number;
   name: string;
   page: MenuDetails_menu_items_children_children_children_children_children_page | null;
@@ -159,6 +161,7 @@ export interface MenuDetails_menu_items_children_children_children_children {
   __typename: "MenuItem";
   category: MenuDetails_menu_items_children_children_children_children_category | null;
   collection: MenuDetails_menu_items_children_children_children_children_collection | null;
+  id: string;
   level: number;
   name: string;
   page: MenuDetails_menu_items_children_children_children_children_page | null;
@@ -171,6 +174,7 @@ export interface MenuDetails_menu_items_children_children_children {
   __typename: "MenuItem";
   category: MenuDetails_menu_items_children_children_children_category | null;
   collection: MenuDetails_menu_items_children_children_children_collection | null;
+  id: string;
   level: number;
   name: string;
   page: MenuDetails_menu_items_children_children_children_page | null;
@@ -183,6 +187,7 @@ export interface MenuDetails_menu_items_children_children {
   __typename: "MenuItem";
   category: MenuDetails_menu_items_children_children_category | null;
   collection: MenuDetails_menu_items_children_children_collection | null;
+  id: string;
   level: number;
   name: string;
   page: MenuDetails_menu_items_children_children_page | null;
@@ -195,6 +200,7 @@ export interface MenuDetails_menu_items_children {
   __typename: "MenuItem";
   category: MenuDetails_menu_items_children_category | null;
   collection: MenuDetails_menu_items_children_collection | null;
+  id: string;
   level: number;
   name: string;
   page: MenuDetails_menu_items_children_page | null;
@@ -207,6 +213,7 @@ export interface MenuDetails_menu_items {
   __typename: "MenuItem";
   category: MenuDetails_menu_items_category | null;
   collection: MenuDetails_menu_items_collection | null;
+  id: string;
   level: number;
   name: string;
   page: MenuDetails_menu_items_page | null;

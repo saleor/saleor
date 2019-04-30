@@ -23,6 +23,7 @@ const menuItemFragment = gql`
       id
       name
     }
+    id
     level
     name
     page {

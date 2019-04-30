@@ -5,13 +5,15 @@ import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Container from "../../../components/Container";
+import Form from "../../../components/Form";
 import Grid from "../../../components/Grid";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
-import { MenuDetails_menu } from "../../types/MenuDetails";
-import MenuProperties from "../MenuProperties";
-import Form from "../../../components/Form";
 import { maybe } from "../../../misc";
+import { MenuDetails_menu } from "../../types/MenuDetails";
+import MenuItems, { TreePermutation } from "../MenuItems";
+import MenuProperties from "../MenuProperties";
+import { computeTree } from "./tree";
 
 export interface MenuDetailsFormData {
   name: string;
@@ -38,9 +40,17 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
     name: maybe(() => menu.name)
   };
 
+  const [treePermutations, setTreePermutations] = React.useState<
+    TreePermutation[]
+  >([]);
+
+  const handleSubmit = () => {
+    onSubmit();
+  };
+
   return (
     <Form initial={initialForm}>
-      {({ change, data, hasChanged, errors: FormErrors }) => (
+      {({ change, data, hasChanged }) => (
         <Container>
           <AppHeader onBack={onBack}>{i18n.t("Navigation")}</AppHeader>
           <Grid variant="inverted">
@@ -59,13 +69,22 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
                 disabled={disabled}
                 onChange={change}
               />
+              <CardSpacer />
+              <MenuItems
+                items={computeTree(maybe(() => menu.items), treePermutations)}
+                onChange={permutation =>
+                  !!permutation
+                    ? setTreePermutations([...treePermutations, permutation])
+                    : undefined
+                }
+              />
             </div>
           </Grid>
           <SaveButtonBar
             disabled={disabled || !hasChanged}
             onCancel={onBack}
             onDelete={onDelete}
-            onSave={onSubmit}
+            onSave={handleSubmit}
             state={saveButtonState}
           />
         </Container>

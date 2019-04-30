@@ -34,8 +34,42 @@ export const menu: MenuDetails_menu = {
         id: "Q2F0ZWdvcnk6Nw==",
         name: "Accessories"
       },
-      children: [],
+      children: [
+        {
+          __typename: "MenuItem",
+          category: {
+            __typename: "Category",
+            id: "Q2F0ZWdvcnk6OAX==",
+            name: "Jewelry"
+          },
+          children: [],
+          collection: null,
+          id: "0jewelry",
+          level: 0,
+          name: "Jewelry",
+          page: null,
+          sortOrder: 0,
+          url: null
+        },
+        {
+          __typename: "MenuItem",
+          category: {
+            __typename: "Category",
+            id: "Q2F0ZWdvcnk6OQX==",
+            name: "Glasses"
+          },
+          children: [],
+          collection: null,
+          id: "1glasses",
+          level: 0,
+          name: "Glasses",
+          page: null,
+          sortOrder: 1,
+          url: null
+        }
+      ],
       collection: null,
+      id: "2accessories",
       level: 0,
       name: "Accessories",
       page: null,
@@ -51,6 +85,7 @@ export const menu: MenuDetails_menu = {
       },
       children: [],
       collection: null,
+      id: "3groceries",
       level: 0,
       name: "Groceries",
       page: null,
@@ -66,6 +101,7 @@ export const menu: MenuDetails_menu = {
       },
       children: [],
       collection: null,
+      id: "4apparel",
       level: 0,
       name: "Apparel",
       page: null,

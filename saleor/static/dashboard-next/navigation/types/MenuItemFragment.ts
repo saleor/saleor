@@ -28,6 +28,7 @@ export interface MenuItemFragment {
   __typename: "MenuItem";
   category: MenuItemFragment_category | null;
   collection: MenuItemFragment_collection | null;
+  id: string;
   level: number;
   name: string;
   page: MenuItemFragment_page | null;

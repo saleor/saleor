@@ -10,7 +10,10 @@ import Decorator from "../../Decorator";
 const props: MenuDetailsPageProps = {
   disabled: false,
   menu,
-  onBack: () => undefined
+  onBack: () => undefined,
+  onDelete: () => undefined,
+  onSubmit: () => undefined,
+  saveButtonState: "default"
 };
 
 storiesOf("Views / Navigation / Menu details", module)
