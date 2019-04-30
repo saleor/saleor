@@ -71,7 +71,10 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
               />
               <CardSpacer />
               <MenuItems
-                items={computeTree(maybe(() => menu.items), treePermutations)}
+                items={computeTree(
+                  maybe(() => menu.items, []),
+                  treePermutations
+                )}
                 onChange={permutation =>
                   !!permutation
                     ? setTreePermutations([...treePermutations, permutation])
