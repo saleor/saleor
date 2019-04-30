@@ -1,5 +1,4 @@
 import re
-from textwrap import dedent
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
@@ -73,7 +72,7 @@ class Attribute(CountableDjangoObjectType):
         resolver=resolve_translation)
 
     class Meta:
-        description = dedent("""
+        description = ("""
             Custom attribute of a product. Attributes can be
             assigned to products and variants at the product type level.""")
         only_fields = ['id', 'product_type', 'product_variant_type']

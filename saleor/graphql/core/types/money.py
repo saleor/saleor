@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from django_prices.templatetags import prices_i18n
 
@@ -39,7 +37,7 @@ class TaxedMoney(graphene.ObjectType):
     tax = graphene.Field(Money, description='Amount of taxes.', required=True)
 
     class Meta:
-        description = dedent("""Represents a monetary value with taxes. In
+        description = ("""Represents a monetary value with taxes. In
         case when taxes were not applied, net and gross values will be equal.
         """)
 
@@ -60,8 +58,7 @@ class VAT(graphene.ObjectType):
         description='Standard VAT rate in percent.')
     reduced_rates = graphene.List(
         lambda: ReducedRate,
-        description=dedent('''
-        Country\'s VAT rate exceptions for specific types of goods.'''),
+        description='Country\'s VAT rate exceptions for specific types of goods.',
         required=True)
 
     class Meta:
@@ -83,5 +80,4 @@ class ReducedRate(graphene.ObjectType):
     rate_type = TaxRateType(description='A type of goods.', required=True)
 
     class Meta:
-        description = dedent('''
-        Represents a reduced VAT rate for a particular type of goods.''')
+        description = 'Represents a reduced VAT rate for a particular type of goods.'

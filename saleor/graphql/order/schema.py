@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from graphql_jwt.decorators import login_required, permission_required
 
@@ -40,7 +38,7 @@ class OrderDraftFilterInput(FilterInputObjectType):
 
 class OrderQueries(graphene.ObjectType):
     homepage_events = PrefetchingConnectionField(
-        OrderEvent, description=dedent('''List of activity events to display on
+        OrderEvent, description=('''List of activity events to display on
         homepage (at the moment it only contains order-events).'''))
     order = graphene.Field(
         Order, description='Lookup an order by ID.',

@@ -1,5 +1,4 @@
 from collections import namedtuple
-from textwrap import dedent
 from typing import List
 
 import graphene
@@ -30,7 +29,7 @@ class MenuItemCreateInput(MenuItemInput):
         description='Menu to which item belongs to.', name='menu',
         required=True)
     parent = graphene.ID(
-        description=dedent('''
+        description=('''
         ID of the parent menu. If empty, menu will be top level
         menu.'''),
         name='parent')
@@ -66,7 +65,8 @@ class MenuCreate(ModelMutation):
             page = item.get('page')
             url = item.get('url')
             if len([i for i in [category, collection, page, url] if i]) > 1:
-                raise ValidationError({'items': 'More than one item provided.'})
+                raise ValidationError(
+                    {'items': 'More than one item provided.'})
 
             if category:
                 category = cls.get_node_or_error(
@@ -124,7 +124,7 @@ class MenuItemCreate(ModelMutation):
     class Arguments:
         input = MenuItemCreateInput(
             required=True,
-            description=dedent("""Fields required to update a menu item.
+            description=("""Fields required to update a menu item.
             Only one of 'url', 'category', 'page', 'collection' is allowed
             per item"""))
 
@@ -151,7 +151,7 @@ class MenuItemUpdate(MenuItemCreate):
             required=True, description='ID of a menu item to update.')
         input = MenuItemInput(
             required=True,
-            description=dedent("""Fields required to update a menu item.
+            description=("""Fields required to update a menu item.
             Only one of 'url', 'category', 'page', 'collection' is allowed
             per item"""))
 

@@ -1,5 +1,4 @@
 from itertools import chain
-from textwrap import dedent
 from typing import Tuple
 
 import graphene
@@ -80,7 +79,6 @@ class BaseMutation(graphene.Mutation):
 
         if not description:
             raise ImproperlyConfigured('No description provided in Meta')
-        description = dedent(description)
 
         if isinstance(permissions, str):
             permissions = (permissions, )
@@ -255,14 +253,14 @@ class ModelMutation(BaseMutation):
 
         def is_list_of_ids(field):
             return (
-                    isinstance(field.type, graphene.List)
-                    and field.type.of_type == graphene.ID)
+                isinstance(field.type, graphene.List)
+                and field.type.of_type == graphene.ID)
 
         def is_id_field(field):
             return (
-                    field.type == graphene.ID
-                    or isinstance(field.type, graphene.NonNull)
-                    and field.type.of_type == graphene.ID)
+                field.type == graphene.ID
+                or isinstance(field.type, graphene.NonNull)
+                and field.type.of_type == graphene.ID)
 
         def is_upload_field(field):
             if hasattr(field.type, 'of_type'):
