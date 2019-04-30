@@ -33,8 +33,6 @@ matrix:
       env: DJANGO="master"
     - python: "3.7"
       env: DJANGO="master"
-      sudo: required
-      dist: xenial
 services:
   - postgresql
 addons:
