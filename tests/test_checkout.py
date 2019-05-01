@@ -542,16 +542,18 @@ def test_create_order_doesnt_duplicate_order(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    checkout_token = checkout_with_item.token
+    with patch.object(checkout, 'delete') as mocked_delete:
+        order_1 = create_order(
+            checkout, tracking_code='', discounts=None, taxes=None,
+            user=customer_user)
+        assert order_1.checkout_token == checkout.token
 
-    order_1 = create_order(
-        checkout, tracking_code='', discounts=None, taxes=None,
-        user=customer_user)
-    assert order_1.checkout_token == checkout_token
-    order_2 = create_order(
-        checkout, tracking_code='', discounts=None, taxes=None,
-        user=customer_user)
-    assert order_1.pk == order_2.pk
+        order_2 = create_order(
+            checkout, tracking_code='', discounts=None, taxes=None,
+            user=customer_user)
+        assert order_1.pk == order_2.pk
+
+        assert mocked_delete.call_count == 1
 
 
 def test_note_in_created_order(
