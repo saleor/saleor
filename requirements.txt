@@ -5,8 +5,8 @@ autopep8==1.4.4
 babel==2.6.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.138
-botocore==1.12.138
+boto3==1.9.139
+botocore==1.12.139
 braintree==3.49.0
 cairocffi==1.0.2
 cairosvg==2.3.1
@@ -27,6 +27,7 @@ django-countries==5.3.3
 django-debug-toolbar-request-history==0.0.10
 django-debug-toolbar==1.11
 django-elasticsearch-dsl==0.5.1
+django-environ==0.4.5
 django-filter==2.1.0
 django-graphql-jwt==0.2.1
 django-impersonate==1.4
@@ -45,7 +46,7 @@ django-storages==1.7.1
 django-templated-email==2.3.0
 django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
-django==2.2
+django==2.2.1
 docutils==0.14
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
