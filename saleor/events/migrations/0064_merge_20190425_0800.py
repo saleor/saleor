@@ -2,6 +2,19 @@
 
 from django.db import migrations, models
 
+from saleor.events import OrderEvents
+
+
+def _move_updated_events_to_other(apps, *_args, **_kwargs):
+    cls = apps.get_model('events', 'OrderEvent')
+
+    for event in cls.objects.filter(type='updated').all():
+        event.type = OrderEvents.OTHER
+        event.parameters['message'] = (
+            'Order details were updated by %(user_name)s' % {
+                'user_name': event.user})
+        event.save(update_fields=['type', 'parameters'])
+
 
 class Migration(migrations.Migration):
 
@@ -17,6 +30,7 @@ class Migration(migrations.Migration):
             name='orderevent',
             table=None,
         ),
+        migrations.RunPython(_move_updated_events_to_other),
         migrations.AlterField(
             model_name='orderevent',
             name='type',

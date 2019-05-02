@@ -563,8 +563,8 @@ def order_with_lines(
 
 @pytest.fixture()
 def order_events(order):
-    for event_type in OrderEvents:
-        OrderEvent.objects.create(type=event_type.value, order=order)
+    for event_type, _ in OrderEvents.CHOICES:
+        OrderEvent.objects.create(type=event_type, order=order)
 
 
 @pytest.fixture()

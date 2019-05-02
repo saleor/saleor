@@ -300,7 +300,7 @@ def test_view_cancel_order_line(
         assert line.variant.quantity_allocated == quantity_allocated_before
 
     removed_items_event = OrderEvent.objects.last()
-    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS.value
+    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
     assert removed_items_event.user == admin_user
     assert removed_items_event.parameters == {
         'lines': [{'quantity': line.quantity, 'item': str(line)}]}
@@ -354,7 +354,7 @@ def test_view_change_order_line_quantity(
         assert line.variant.quantity_allocated == 3
 
     removed_items_event = OrderEvent.objects.last()
-    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS.value
+    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
     assert removed_items_event.user == admin_user
     assert removed_items_event.parameters == {
         'lines': [{'quantity': 1, 'item': str(line)}]}
@@ -507,7 +507,7 @@ def test_view_add_variant_to_order(admin_client, order_with_lines, admin_user):
     assert line.quantity == line_quantity_before + added_quantity
 
     removed_items_event = OrderEvent.objects.last()
-    assert removed_items_event.type == OrderEvents.DRAFT_ADDED_PRODUCTS.value
+    assert removed_items_event.type == OrderEvents.DRAFT_ADDED_PRODUCTS
     assert removed_items_event.user == admin_user
     assert removed_items_event.parameters == {
         'lines': [{'quantity': line.quantity, 'item': str(line)}]}
@@ -547,7 +547,7 @@ def test_view_order_create(admin_client, admin_user):
     assert order.status == OrderStatus.DRAFT
 
     created_draft_event = OrderEvent.objects.get()
-    assert created_draft_event.type == OrderEvents.DRAFT_CREATED.value
+    assert created_draft_event.type == OrderEvents.DRAFT_CREATED
     assert created_draft_event.user == admin_user
     assert created_draft_event.parameters == {}
 
@@ -1010,7 +1010,7 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
     order_with_lines.refresh_from_db()
     assert order_with_lines.is_fully_paid()
     assert order_with_lines.events.filter(
-        type=OrderEvents.ORDER_MARKED_AS_PAID.value).exists()
+        type=OrderEvents.ORDER_MARKED_AS_PAID).exists()
 
 
 @patch('saleor.order.utils.emails.send_fulfillment_confirmation')
@@ -1049,14 +1049,14 @@ def test_send_fulfillment_order_lines_mails(
     assert events[0].user == staff_user
     assert events[0].parameters == {
         'email': order.user_email,
-        'email_type': OrderEventsEmails.FULFILLMENT.value}
+        'email_type': OrderEventsEmails.FULFILLMENT}
 
     if has_digital:
         assert len(events) == 2
         assert events[1].user == staff_user
         assert events[1].parameters == {
             'email': order.user_email,
-            'email_type': OrderEventsEmails.DIGITAL_LINKS.value}
+            'email_type': OrderEventsEmails.DIGITAL_LINKS}
     else:
         assert len(events) == 1
 
@@ -1188,12 +1188,12 @@ def test_view_add_order_note(admin_client, order_with_lines):
     assert order_with_lines.events.first().parameters['message'] == note_content  # noqa
 
 
-@pytest.mark.parametrize('type', [e.value for e in OrderEvents])
+@pytest.mark.parametrize('type', [value for value, _ in OrderEvents.CHOICES])
 def test_order_event_display(admin_user, type, order):
     parameters = {
         'message': 'Example Note',
         'quantity': 12,
-        'email_type': OrderEventsEmails.PAYMENT.value,
+        'email_type': OrderEventsEmails.PAYMENT,
         'email': 'example@example.com',
         'amount': {'_type': 'Money', 'amount': '10.00', 'currency': 'USD'},
         'composed_id': 12,

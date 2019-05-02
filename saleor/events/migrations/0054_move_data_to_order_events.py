@@ -13,7 +13,7 @@ def move_order_note_to_events(apps, schema_editor):
 
     for note in OrderNote.objects.all():
         OrderEvent.objects.create(
-            type=OrderEvents.NOTE_ADDED.value,
+            type=OrderEvents.NOTE_ADDED,
             user=note.user,
             parameters={'message': note.content},
             order=note.order,
@@ -29,7 +29,7 @@ def move_order_history_entry_to_events(apps, schema_editor):
 
     for entry in OrderHistoryEntry.objects.all():
         OrderEvent.objects.create(
-            type=OrderEvents.OTHER.value,
+            type=OrderEvents.OTHER,
             parameters={'message': entry.content},
             date=entry.date,
             order=entry.order,

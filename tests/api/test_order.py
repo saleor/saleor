@@ -310,7 +310,7 @@ def test_nested_order_events_query(
         quantities=[line.quantity], order_lines=[line])
     event.parameters.update({
         'message': 'Example note',
-        'email_type': OrderEventsEmails.PAYMENT.value,
+        'email_type': OrderEventsEmails.PAYMENT,
         'amount': '80.00',
         'quantity': '10',
         'composed_id': '10-10'})
@@ -322,7 +322,7 @@ def test_nested_order_events_query(
     data = content['data']['orders']['edges'][0]['node']['events'][0]
     assert data['message'] == event.parameters['message']
     assert data['amount'] == float(event.parameters['amount'])
-    assert data['emailType'] == OrderEventsEmailsEnum.PAYMENT.name
+    assert data['emailType'] == 'PAYMENT_CONFIRMATION'
     assert data['quantity'] == int(event.parameters['quantity'])
     assert data['composedId'] == event.parameters['composed_id']
     assert data['user']['email'] == staff_user.email
@@ -495,7 +495,7 @@ def test_draft_order_create(
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
-        type=OrderEvents.DRAFT_CREATED.value)
+        type=OrderEvents.DRAFT_CREATED)
     assert created_draft_event.user == staff_user
     assert created_draft_event.parameters == {}
 
@@ -671,11 +671,11 @@ def test_draft_order_complete(
     draft_placed_event, missing_stock_event = OrderEvent.objects.all()
 
     assert missing_stock_event.user == staff_user
-    assert missing_stock_event.type == OrderEvents.OVERSOLD_ITEMS.value
+    assert missing_stock_event.type == OrderEvents.OVERSOLD_ITEMS
     assert missing_stock_event.parameters == {'oversold_items': [str(line_2)]}
 
     assert draft_placed_event.user == staff_user
-    assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT.value
+    assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT
     assert draft_placed_event.parameters == {}
 
 
@@ -883,7 +883,7 @@ def test_draft_order_line_update(
     assert data['orderLine']['quantity'] == new_quantity
 
     removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
-    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS.value
+    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
     assert removed_items_event.user == staff_user
     assert removed_items_event.parameters == {
         'lines': [{'quantity': removed_quantity, 'item': str(line)}]}
@@ -1129,7 +1129,7 @@ def test_order_add_note(
     assert data['event']['message'] == message
 
     event = order.events.get()
-    assert event.type == OrderEvents.NOTE_ADDED.value
+    assert event.type == OrderEvents.NOTE_ADDED
     assert event.user == staff_user
     assert event.parameters == {'message': message}
 
@@ -1160,7 +1160,7 @@ def test_order_cancel_and_restock(
     order.refresh_from_db()
     order_event = order.events.last()
     assert order_event.parameters['quantity'] == quantity
-    assert order_event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
+    assert order_event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
     assert data['status'] == order.status.upper()
 
 
@@ -1177,7 +1177,7 @@ def test_order_cancel(
     data = content['data']['orderCancel']['order']
     order.refresh_from_db()
     order_event = order.events.last()
-    assert order_event.type == OrderEvents.CANCELED.value
+    assert order_event.type == OrderEvents.CANCELED
     assert data['status'] == order.status.upper()
 
 
@@ -1215,15 +1215,15 @@ def test_order_capture(
     assert data['totalCaptured']['amount'] == float(amount)
 
     event_order_paid = order.events.first()
-    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID.value
+    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
     assert event_order_paid.user is None
 
     event_email_sent, event_captured = list(order.events.all())[-2:]
     assert event_email_sent.user is None
     assert event_email_sent.parameters == {
         'email': order.user_email,
-        'email_type': OrderEventsEmails.PAYMENT.value}
-    assert event_captured.type == OrderEvents.PAYMENT_CAPTURED.value
+        'email_type': OrderEventsEmails.PAYMENT}
+    assert event_captured.type == OrderEvents.PAYMENT_CAPTURED
     assert event_captured.user == staff_user
     assert event_captured.parameters == {
         'amount': str(amount), 'payment_gateway': 'dummy', 'payment_id': ''}
@@ -1285,7 +1285,7 @@ def test_order_mark_as_paid(
     assert data['isPaid'] == True == order.is_fully_paid()
 
     event_order_paid = order.events.first()
-    assert event_order_paid.type == OrderEvents.ORDER_MARKED_AS_PAID.value
+    assert event_order_paid.type == OrderEvents.ORDER_MARKED_AS_PAID
     assert event_order_paid.user == staff_user
 
 
@@ -1320,7 +1320,7 @@ def test_order_void(
         ChargeStatus.NOT_CHARGED)
     assert data['paymentStatusDisplay'] == payment_status_display
     event_payment_voided = order.events.last()
-    assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED.value
+    assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED
     assert event_payment_voided.user == staff_user
 
 
@@ -1373,7 +1373,7 @@ def test_order_refund(
 
     order_event = order.events.last()
     assert order_event.parameters['amount'] == str(amount)
-    assert order_event.type == OrderEvents.PAYMENT_REFUNDED.value
+    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
 
 
 @pytest.mark.parametrize('requires_amount, mutation_name', (
@@ -1425,7 +1425,7 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
             func=_test_operation)
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == OrderEvents.PAYMENT_FAILED.value
+    assert error_event.type == OrderEvents.PAYMENT_FAILED
     assert error_event.user == staff_user
     assert error_event.parameters == {
         'message': message,
@@ -1672,7 +1672,7 @@ def test_order_bulk_cancel_with_restock(
     data = content['data']['orderBulkCancel']
     assert data['count'] == expected_count
     event = order_with_lines.events.all()[1]
-    assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
+    assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
     assert event.user == staff_api_client.user
 
 

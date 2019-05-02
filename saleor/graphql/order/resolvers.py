@@ -58,8 +58,8 @@ def resolve_order(info, order_id):
 def resolve_homepage_events():
     # Filter only selected events to be displayed on homepage.
     types = [
-        OrderEvents.PLACED.value, OrderEvents.PLACED_FROM_DRAFT.value,
-        OrderEvents.ORDER_FULLY_PAID.value]
+        OrderEvents.PLACED, OrderEvents.PLACED_FROM_DRAFT,
+        OrderEvents.ORDER_FULLY_PAID]
     return OrderEvent.objects.filter(type__in=types)
 
 
