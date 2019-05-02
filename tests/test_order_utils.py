@@ -24,10 +24,10 @@ def test_change_quantity_generates_proper_event(
         staff_user, line, previous_quantity, new_quantity)
 
     if removed_count:
-        expected_type = OrderEvents.DRAFT_REMOVED_PRODUCTS.value
+        expected_type = OrderEvents.DRAFT_REMOVED_PRODUCTS
         expected_quantity = removed_count
     elif added_count:
-        expected_type = OrderEvents.DRAFT_ADDED_PRODUCTS.value
+        expected_type = OrderEvents.DRAFT_ADDED_PRODUCTS
         expected_quantity = added_count
     else:
         # No event should have occurred

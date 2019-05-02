@@ -131,7 +131,7 @@ def order_details(request, order_pk):
     payment = order.get_last_payment()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
-        'notes': order.events.filter(type=OrderEvents.NOTE_ADDED.value),
+        'notes': order.events.filter(type=OrderEvents.NOTE_ADDED),
         'events': order.events.order_by('-date').all(),
         'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)

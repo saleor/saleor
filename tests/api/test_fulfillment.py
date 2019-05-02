@@ -176,13 +176,13 @@ def test_cancel_fulfillment_restock_items(
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
     event_cancelled, event_restocked_items = fulfillment.order.events.all()
     assert event_cancelled.type == (
-        OrderEvents.FULFILLMENT_CANCELED.value)
+        OrderEvents.FULFILLMENT_CANCELED)
     assert event_cancelled.parameters == {
         'composed_id': fulfillment.composed_id}
     assert event_cancelled.user == staff_user
 
     assert event_restocked_items.type == (
-        OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value)
+        OrderEvents.FULFILLMENT_RESTOCKED_ITEMS)
     assert event_restocked_items.parameters == {
         'quantity': fulfillment.get_total_quantity()}
     assert event_restocked_items.user == staff_user
@@ -208,7 +208,7 @@ def test_cancel_fulfillment(
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
     event_cancel_fulfillment = fulfillment.order.events.get()
     assert event_cancel_fulfillment.type == (
-        OrderEvents.FULFILLMENT_CANCELED.value)
+        OrderEvents.FULFILLMENT_CANCELED)
     assert event_cancel_fulfillment.parameters == {
         'composed_id': fulfillment.composed_id}
     assert event_cancel_fulfillment.user == staff_user

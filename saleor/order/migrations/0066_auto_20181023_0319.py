@@ -7,7 +7,7 @@ def change_released_to_voided_in_order_events(apps, schema):
     PAYMENT_RELEASED = 'released'
     OrderEvent = apps.get_model('events', 'OrderEvent')
     OrderEvent.objects.filter(
-        type=PAYMENT_RELEASED).update(type=OrderEvents.PAYMENT_VOIDED.value)
+        type=PAYMENT_RELEASED).update(type=OrderEvents.PAYMENT_VOIDED)
 
 
 class Migration(migrations.Migration):
