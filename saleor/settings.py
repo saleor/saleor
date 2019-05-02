@@ -1,8 +1,8 @@
 import os.path
 
-import environ
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
+import environ
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
 from . import __version__
@@ -45,7 +45,7 @@ INTERNAL_IPS = environment.list('INTERNAL_IPS', default=['127.0.0.1'])
 
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = environment.str('REDIS_URL', default='')
-CACHES = {'default': environment.cache_url('CACHE_URL', REDIS_URL)}
+CACHES = {'default': environment.cache_url('CACHE_URL', default=REDIS_URL)}
 
 
 DATABASES = {
@@ -171,7 +171,6 @@ if not DEBUG:
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    # 'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
     'DIRS': [project('templates')],
     'OPTIONS': {
         'debug': DEBUG,
@@ -438,7 +437,8 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
-    'create_images_on_demand': environment.bool('CREATE_IMAGES_ON_DEMAND', DEBUG),
+    'create_images_on_demand': environment.bool(
+        'CREATE_IMAGES_ON_DEMAND', DEBUG),
 }
 
 PLACEHOLDER_IMAGES = {
