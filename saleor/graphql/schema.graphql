@@ -1410,11 +1410,11 @@ input OrderDraftFilterInput {
 type OrderEvent implements Node {
   id: ID!
   date: DateTime
-  type: OrderEvents
+  type: OrderEventsEnum
   user(id: ID): User
   message: String
   email: String
-  emailType: OrderEventsEmails
+  emailType: OrderEventsEmailsEnum
   amount: Float
   paymentId: String
   paymentGateway: String
@@ -1439,10 +1439,19 @@ type OrderEventCountableEdge {
 
 type OrderEventLineObject {
   quantity: Int
-  item: Int
+  item: String
 }
 
-enum OrderEvents {
+enum OrderEventsEmailsEnum {
+  PAYMENT_CONFIRMATION
+  SHIPPING_CONFIRMATION
+  TRACKING_UPDATED
+  ORDER_CONFIRMATION
+  FULFILLMENT_CONFIRMATION
+  DIGITAL_LINKS
+}
+
+enum OrderEventsEnum {
   DRAFT_CREATED
   DRAFT_ADDED_PRODUCTS
   DRAFT_REMOVED_PRODUCTS
@@ -1452,7 +1461,6 @@ enum OrderEvents {
   CANCELED
   ORDER_MARKED_AS_PAID
   ORDER_FULLY_PAID
-  UPDATED
   UPDATED_ADDRESS
   EMAIL_SENT
   PAYMENT_CAPTURED
@@ -1465,15 +1473,6 @@ enum OrderEvents {
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
-}
-
-enum OrderEventsEmails {
-  PAYMENT
-  SHIPPING
-  TRACKING_UPDATED
-  ORDER
-  FULFILLMENT
-  DIGITAL_LINKS
 }
 
 input OrderFilterInput {
