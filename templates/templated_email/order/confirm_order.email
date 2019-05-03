@@ -22,7 +22,7 @@ Thank you for your order. Below is the list of ordered products. To see your pay
 {% trans "Total" context "Order confirmation e-mail table header" %}:              {% price order.total.gross html=False %}
 
 {% trans "Billing address" context "Order confirmation e-mail billing address" %}
-{{ order.billing_address }}
+{% if order.billing_address %}{{ order.billing_address }}{% else %}{% trans "No billing address" context "Order confirmation e-mail text" %}{% endif %}
 
 {% trans "Shipping address" context "Order confirmation e-mail shipping address" %}
 {% if order.shipping_address %}{{ order.shipping_address }}{% else %}{% trans "No shipping required" context "Order confirmation e-mail text" %}{% endif %}
