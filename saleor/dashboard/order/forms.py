@@ -5,8 +5,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
 from ...account.i18n import (
-    AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField,
-    clean_phone_for_country)
+    AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ...account.models import User
 from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
@@ -591,13 +590,6 @@ class AddressForm(StorefrontAddressForm):
 
     def clean(self):
         data = super().clean()
-        phone = data.get('phone')
-        country = data.get('country')
-        if phone:
-            try:
-                data['phone'] = clean_phone_for_country(phone, country)
-            except forms.ValidationError as error:
-                self.add_error('phone', error)
         return data
 
 
