@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unused decorator - #4036 by @maarcingebala
 - Overall improvement of the GraphQL performances, especially on single nodes - #3968 @NyanKiyoshi
 - Remove unnecessary dedents from GraphQL schema so new Playground can work - #4045 by @salwator
+- Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
 
 
 ## 2.5.0
