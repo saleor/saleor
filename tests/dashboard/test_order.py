@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 from django.urls import reverse
+from phonenumber_field.phonenumber import PhoneNumber
 from prices import Money
 
 from saleor.checkout import AddressType
@@ -748,6 +749,33 @@ def test_view_order_shipping_edit_not_draft_order(
     response = admin_client.post(url, data)
 
     assert response.status_code == 404
+
+
+def test_view_order_address_edit(
+        admin_client, order_with_lines, address_other_country):
+
+    order = order_with_lines
+    new_address = address_other_country
+
+    new_address.phone = PhoneNumber.from_string(
+        region=new_address.country.code, phone_number='+33.600000000')
+
+    address_data = new_address.as_data()
+    address_data.pop('phone')
+
+    address_data.update({
+        'phone_0': '+33',
+        'phone_1': '600000000'})
+
+    url = reverse(
+        'dashboard:address-edit',
+        kwargs={'order_pk': order.pk, 'address_type': 'shipping'})
+
+    response = admin_client.post(url, address_data)
+    assert response.status_code == 302
+
+    order.refresh_from_db(fields=['shipping_address'])
+    assert new_address.as_data() == order.shipping_address.as_data()
 
 
 def test_view_order_shipping_remove(admin_client, draft_order):
