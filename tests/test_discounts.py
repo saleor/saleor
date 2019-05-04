@@ -284,3 +284,21 @@ def test_sale_active(current_date, start_date, end_date, is_active):
     )
     sale_is_active = Sale.objects.active(date=current_date).exists()
     assert is_active == sale_is_active
+
+@pytest.mark.parametrize('discount_value_type, discount_value, voucher_type,'
+                         'min_amount_spent, expected_min_amount_spent',[
+                        (DiscountValueType.FIXED, 2, VoucherType.PRODUCT, 100, 100),
+                        (DiscountValueType.FIXED, 2, VoucherType.COLLECTION, 100, 100),
+                        (DiscountValueType.FIXED, 2, VoucherType.SHIPPING, 100, 100),
+                        (DiscountValueType.FIXED, 2, VoucherType.CATEGORY, 100, 100),
+                        (DiscountValueType.FIXED, 2, VoucherType.VALUE, 100, 100)])
+def test_voucher_min_amount_spent(discount_value_type, discount_value, voucher_type,
+                                  min_amount_spent, expected_min_amount_spent):
+    voucher = Voucher(
+        code='unique', type=voucher_type,
+        discount_value_type=discount_value_type,
+        discount_value=discount_value,
+        min_amount_spent=get_min_amount_spent(min_amount_spent))
+    voucher.save()
+    assert voucher.min_amount_spent == get_min_amount_spent(expected_min_amount_spent)
+
