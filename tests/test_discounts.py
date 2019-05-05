@@ -16,6 +16,11 @@ from saleor.discount.utils import (
 )
 from saleor.product.models import Product, ProductVariant
 
+from saleor.discount import VoucherType
+from saleor.dashboard.discount import forms
+from saleor.dashboard.discount.views import get_voucher_type_forms
+from saleor.product.models import Collection, Category, ProductType
+
 
 def get_min_amount_spent(min_amount_spent):
     if min_amount_spent is not None:
@@ -285,20 +290,49 @@ def test_sale_active(current_date, start_date, end_date, is_active):
     sale_is_active = Sale.objects.active(date=current_date).exists()
     assert is_active == sale_is_active
 
-@pytest.mark.parametrize('discount_value_type, discount_value, voucher_type,'
-                         'min_amount_spent, expected_min_amount_spent',[
-                        (DiscountValueType.FIXED, 2, VoucherType.PRODUCT, 100, 100),
-                        (DiscountValueType.FIXED, 2, VoucherType.COLLECTION, 100, 100),
-                        (DiscountValueType.FIXED, 2, VoucherType.SHIPPING, 100, 100),
-                        (DiscountValueType.FIXED, 2, VoucherType.CATEGORY, 100, 100),
-                        (DiscountValueType.FIXED, 2, VoucherType.VALUE, 100, 100)])
-def test_voucher_min_amount_spent(discount_value_type, discount_value, voucher_type,
-                                  min_amount_spent, expected_min_amount_spent):
-    voucher = Voucher(
-        code='unique', type=voucher_type,
-        discount_value_type=discount_value_type,
-        discount_value=discount_value,
-        min_amount_spent=get_min_amount_spent(min_amount_spent))
-    voucher.save()
-    assert voucher.min_amount_spent == get_min_amount_spent(expected_min_amount_spent)
 
+@pytest.mark.parametrize('voucher_type',[
+    'collection', 'category', 'product', 'value', 'shipping'
+])
+def test_voucher_form_min_amount_spent(voucher_type):
+    data = {
+            'code' : 'C700C268D0DE',
+            'collection-min_amount_spent': 800,
+            'category-min_amount_spent': 800,
+            'product-min_amount_spent': 800,
+            'value-min_amount_spent': 800,
+            'shipping-min_amount_spent': 800,
+            'type': voucher_type,  # <-------------
+            'discount_value': 5,
+            'discount_value_type': 'fixed',
+            'collection-collections': ['1'],
+            'category-categories': ['1'],
+            'product-products': ['1'],
+            'start_date': '2019-05-05'
+    }
+
+    collection = Collection(name='test')
+    collection.save()
+
+    category = Category(name='test')
+    category.save()
+
+    productType = ProductType(name='test')
+    productType.save()
+
+    product = Product(name='test', description='blablabla', price=100, category=category)
+    product.product_type = productType
+    product.save()
+
+    voucher = Voucher()
+    type_base_forms = get_voucher_type_forms(voucher, data)
+    voucher_form = forms.VoucherForm(data or None, instance=voucher)
+
+    if voucher_form.is_valid():
+        voucher_type = voucher_form.cleaned_data.get('type')
+        form_type = type_base_forms.get(voucher_type)
+
+    if form_type.is_valid():
+        voucher = form_type.save(commit=False)
+
+    assert voucher.min_amount_spent == get_min_amount_spent(800)
