@@ -104,7 +104,7 @@ export interface Product_availability_priceRange {
 }
 
 export interface Product_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
   priceRange: Product_availability_priceRange | null;
 }

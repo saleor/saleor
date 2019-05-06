@@ -2,6 +2,11 @@ import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
 import { staffMemberDetailsFragment } from "./queries";
+import { StaffAvatarDelete } from "./types/StaffAvatarDelete";
+import {
+  StaffAvatarUpdate,
+  StaffAvatarUpdateVariables
+} from "./types/StaffAvatarUpdate";
 import {
   StaffMemberAdd,
   StaffMemberAddVariables
@@ -67,3 +72,45 @@ export const TypedStaffMemberDeleteMutation = TypedMutation<
   StaffMemberDelete,
   StaffMemberDeleteVariables
 >(staffMemberDeleteMutation);
+
+const staffAvatarUpdateMutation = gql`
+  mutation StaffAvatarUpdate($image: Upload!) {
+    userAvatarUpdate(image: $image) {
+      errors {
+        field
+        message
+      }
+      user {
+        id
+        avatar {
+          url
+        }
+      }
+    }
+  }
+`;
+export const TypedStaffAvatarUpdateMutation = TypedMutation<
+  StaffAvatarUpdate,
+  StaffAvatarUpdateVariables
+>(staffAvatarUpdateMutation);
+
+const staffAvatarDeleteMutation = gql`
+  mutation StaffAvatarDelete {
+    userAvatarDelete {
+      errors {
+        field
+        message
+      }
+      user {
+        id
+        avatar {
+          url
+        }
+      }
+    }
+  }
+`;
+export const TypedStaffAvatarDeleteMutation = TypedMutation<
+  StaffAvatarDelete,
+  StaffMemberDeleteVariables
+>(staffAvatarDeleteMutation);
