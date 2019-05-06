@@ -2,6 +2,7 @@ from typing import Dict
 
 import stripe
 
+from ... import TransactionKind
 from ...interface import GatewayResponse, PaymentData
 from .forms import StripePaymentModalForm
 from .utils import (
@@ -10,14 +11,6 @@ from .utils import (
     shipping_to_stripe_dict)
 
 TEMPLATE_PATH = 'order/payment/stripe.html'
-
-
-class TransactionKind:
-    AUTH = 'auth'
-    CAPTURE = 'capture'
-    CHARGE = 'charge'
-    REFUND = 'refund'
-    VOID = 'void'
 
 
 def get_client_token(**_):
@@ -69,26 +62,6 @@ def capture(
     return _create_response(
         payment_information=payment_information,
         kind=TransactionKind.CAPTURE, response=response, error=error)
-
-
-def charge(
-        payment_information: PaymentData, connection_params: Dict
-) -> GatewayResponse:
-    client, error = _get_client(**connection_params), None
-
-    try:
-        # Charge without pre-authorize
-        response = _create_stripe_charge(
-            client=client, payment_information=payment_information,
-            should_capture=True)
-    except stripe.error.StripeError as exc:
-        response = _get_error_response_from_exc(exc)
-        error = exc.user_message
-
-    # Create response
-    return _create_response(
-        payment_information=payment_information,
-        kind=TransactionKind.CHARGE, response=response, error=error)
 
 
 def refund(

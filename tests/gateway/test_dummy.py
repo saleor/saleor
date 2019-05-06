@@ -6,11 +6,11 @@ from saleor.payment import (
     ChargeStatus, PaymentError, TransactionKind, get_payment_gateway)
 from saleor.payment.utils import (
     create_payment_information, gateway_authorize, gateway_capture,
-    gateway_charge, gateway_process_payment, gateway_refund, gateway_void)
+    gateway_process_payment, gateway_refund, gateway_void)
 
 
 def test_charge_success(payment_dummy):
-    gateway_charge(payment=payment_dummy, payment_token='fake-token')
+    gateway_capture(payment=payment_dummy)
     capture_txn = payment_dummy.transactions.last()
 
     assert capture_txn.is_success
@@ -28,10 +28,10 @@ def test_charge_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr(
         'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
-        txn = gateway_charge(
+        txn = gateway_capture(
             payment=payment_dummy, payment_token='Fake',
             amount=payment_dummy.total)
-        assert txn.kind == TransactionKind.CHARGE
+        assert txn.kind == TransactionKind.CAPTURE
         assert not txn.is_success
         assert txn.payment == payment_dummy
 
@@ -52,7 +52,7 @@ def test_charge_failed(is_active, charge_status, payment_dummy):
     payment.charge_status = charge_status
     payment.save()
     with pytest.raises(PaymentError):
-        txn = gateway_charge(payment=payment, payment_token='Fake')
+        txn = gateway_capture(payment=payment)
         assert txn is None
 
 
@@ -177,7 +177,7 @@ def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
         'saleor.payment.gateways.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
         txn = gateway_capture(payment=payment_txn_preauth, amount=80)
-        assert txn.kind == TransactionKind.CHARGE
+        assert txn.kind == TransactionKind.CAPTURE
         assert not txn.is_success
         assert txn.payment == payment_txn_preauth
 

@@ -1,19 +1,14 @@
 import uuid
-from typing import Dict, List
+from typing import Dict
 
-from ... import ChargeStatus
+from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayResponse, PaymentData
 from .forms import DummyPaymentForm
 
 TEMPLATE_PATH = 'order/payment/dummy.html'
 
-
-class TransactionKind:
-    AUTH = 'auth'
-    CAPTURE = 'capture'
-    CHARGE = 'charge'
-    REFUND = 'refund'
-    VOID = 'void'
+# The gateway does not support payment authorization
+SUPPORTS_AUTHORIZATION = False
 
 
 def dummy_success():
@@ -61,8 +56,14 @@ def void(
 
 
 def capture(
-        payment_information: PaymentData, connection_params: Dict
+        payment_information: PaymentData, connection_params
 ) -> GatewayResponse:
+    """Performs Authorize and Capture transactions in a single run."""
+    if not SUPPORTS_AUTHORIZATION:
+        auth_resp = authorize(payment_information, connection_params)
+        if not auth_resp.is_success:
+            return auth_resp
+
     error = None
     success = dummy_success()
     if not success:
@@ -95,16 +96,6 @@ def refund(
     )
 
 
-def charge(
-        payment_information: PaymentData, connection_params
-) -> GatewayResponse:
-    """Performs Authorize and Capture transactions in a single run."""
-    auth_resp = authorize(payment_information, connection_params)
-    if not auth_resp.is_success:
-        return auth_resp
-    return capture(payment_information, connection_params)
-
-
 def process_payment(
         payment_information: PaymentData, connection_params
 ) -> GatewayResponse:
@@ -113,7 +104,7 @@ def process_payment(
 
     # Process payment normally if payment token is valid
     if token not in dict(ChargeStatus.CHOICES):
-        return charge(payment_information, connection_params)
+        return capture(payment_information, connection_params)
 
     # Process payment by charge status which is selected in the payment form
     # Note that is for testing by dummy gateway only
