@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Dropped Python 3.5 support - #4028 by @korycins
 - Refactor error handling in mutations #3891 by @maarcingebala @akjanik
 - Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
 - Add mutation for bulk delete order lines - #3935 by @akjanik
@@ -38,7 +39,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unused decorator - #4036 by @maarcingebala
 - Overall improvement of the GraphQL performances, especially on single nodes - #3968 @NyanKiyoshi
 - Remove unnecessary dedents from GraphQL schema so new Playground can work - #4045 by @salwator
-- Fix crash on dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
+- Add user avatar management - #4030 by @benekex2
+- Use dataclasses as a structure for payment's gateways - #4028 by @korycins
+- Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
+- Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
 
 
 ## 2.5.0

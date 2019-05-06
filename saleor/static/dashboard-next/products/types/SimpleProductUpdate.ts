@@ -112,7 +112,7 @@ export interface SimpleProductUpdate_productUpdate_product_availability_priceRan
 }
 
 export interface SimpleProductUpdate_productUpdate_product_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
   priceRange: SimpleProductUpdate_productUpdate_product_availability_priceRange | null;
 }

@@ -481,8 +481,7 @@ def test_order_payment_flow(
     payment = order.payments.all()[0]
     assert payment.total == order.total.gross.amount
     assert payment.currency == order.total.gross.currency
-    assert payment.transactions.count() == 2
-    assert payment.transactions.first().kind == 'auth'
+    assert payment.transactions.count() == 1
     assert payment.transactions.last().kind == 'capture'
 
 
