@@ -15,7 +15,6 @@ from prices import TaxedMoneyRange
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
-from ..core import analytics
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
@@ -24,8 +23,8 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     get_products_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
-from ..events.models import OrderEvent
 from ..events import OrderEventsEmails
+from ..events.order import OrderEventManager
 from ..order.emails import send_order_confirmation
 from ..order.models import Order
 from ..shipping.models import ShippingMethod
@@ -882,10 +881,11 @@ def create_order(
     checkout.delete()
 
     # Create the order placed and email confirmation sent events
-    OrderEvent.objects.bulk_create([
-        OrderEvent.order_created_event(order, user),
-        OrderEvent.email_sent_event(
-            order=order, email_type=OrderEventsEmails.ORDER, user=user)])
+    OrderEventManager()\
+        .order_created_event(order, user)\
+        .email_sent_event(
+            order=order, email_type=OrderEventsEmails.ORDER, user=user)\
+        .save()
 
     # Send the order confirmation email
     send_order_confirmation.delay(order.pk)

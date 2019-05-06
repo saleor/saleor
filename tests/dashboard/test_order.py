@@ -1039,8 +1039,9 @@ def test_send_fulfillment_order_lines_mails(
         assert line.is_digital
         line.save()
 
-    events = send_fulfillment_confirmation_to_customer(
+    send_fulfillment_confirmation_to_customer(
         order=order, fulfillment=fulfillment, user=staff_user)
+    events = OrderEvent.objects.all()
 
     mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
         order.pk, fulfillment.pk)

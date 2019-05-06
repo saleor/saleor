@@ -72,9 +72,10 @@ Email Event Types
 Events Design
 -------------
 
-The ``OrderEvent`` class contains a bunch of static methods suffixed by
-``_event``. They take care of all the logic and required fields. It whether
-returns an instance of ``OrderEvent``. This design has for objective to allow
+The ``OrderEventManager`` class contains a bunch of static methods suffixed by
+``_event``. They take care of all the logic and required fields, then
+returns an instance of ``OrderEventManager`` to allow the user to commit or
+to add more events. This design has for objective to allow
 delayed (or not) event creation in the database.
 
 The main power of this design comes when one wants to create multiple
@@ -102,12 +103,23 @@ If now you want to send a 'sent email' event you would do the following:
 
 .. code-block:: python
 
-  event = OrderEvent.email_sent_event(
+  event = OrderEventManager().email_sent_event(
       order=order, email_type=OrderEventsEmails.TRACKING_UPDATED,
       source=user)
   event.save()
 
 Notice how we are providing the email type.
+
+If you want to sent multiple events, you would do the following:
+
+.. code-block:: python
+
+  event = OrderEventManager().email_sent_event(
+      order=order, email_type=OrderEventsEmails.TRACKING_UPDATED,
+      source=user)
+  event.note_added_event(
+      order=order, source=user, message='hello world!')
+  event.save()
 
 .. note::
 
