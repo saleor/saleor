@@ -110,7 +110,7 @@ export interface ProductImageCreate_productImageCreate_product_availability_pric
 }
 
 export interface ProductImageCreate_productImageCreate_product_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
   priceRange: ProductImageCreate_productImageCreate_product_availability_priceRange | null;
 }

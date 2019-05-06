@@ -91,7 +91,7 @@ export const product: (
     }
   ],
   availability: {
-    __typename: "ProductAvailability",
+    __typename: "ProductPricingInfo",
     available: false,
     priceRange: {
       __typename: "TaxedMoneyRange",

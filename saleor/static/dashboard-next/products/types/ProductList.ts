@@ -14,7 +14,7 @@ export interface ProductList_products_edges_node_thumbnail {
 }
 
 export interface ProductList_products_edges_node_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
 }
 
