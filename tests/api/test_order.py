@@ -8,15 +8,15 @@ from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
+from saleor.events import OrderEvents, OrderEventsEmails
+from saleor.events.models import OrderEvent
+from saleor.events.order import OrderEventManager
 from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.order.enums import OrderEventsEmailsEnum
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_refund_payment,
     try_payment_action)
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.events import OrderEvents, OrderEventsEmails
-from saleor.events.models import OrderEvent
 from saleor.order import OrderStatus
 from saleor.order.models import Order
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
@@ -305,16 +305,17 @@ def test_nested_order_events_query(
     """
     line = fulfilled_order.lines.first()
 
-    event = OrderEvent.fulfillment_fulfilled_items_event(
+    event = OrderEventManager().fulfillment_fulfilled_items_event(
         order=fulfilled_order, user=staff_user,
         quantities=[line.quantity], order_lines=[line])
-    event.parameters.update({
+    event.last.parameters.update({
         'message': 'Example note',
         'email_type': OrderEventsEmails.PAYMENT,
         'amount': '80.00',
         'quantity': '10',
         'composed_id': '10-10'})
     event.save()
+    event = event.last
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
@@ -370,7 +371,7 @@ def test_payment_information_order_events_query(
 
     amount = order.total.gross.amount
 
-    OrderEvent.payment_captured_event(
+    OrderEventManager().payment_captured_event(
         order=order, user=staff_user,
         amount=amount, payment=payment_dummy).save()
 
