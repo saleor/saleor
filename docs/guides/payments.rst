@@ -39,9 +39,9 @@ Example
 
 .. note::
 
-    All the below methods receive payment_information as a dataclass - PaymentData. 
-    Methods should return a response as a dataclass - GatewayResponse. 
-    Description of the given structures can be found below.
+    All the below methods receive ``payment_information`` as a dataclass: ``PaymentData``. 
+    Methods should return a response as a dataclass: ``GatewayResponse``. 
+    The description of the given structures can be found below.
 
 
 authorize(payment_information, connection_params)
@@ -67,7 +67,7 @@ Example
         return GatewayResponse(
             is_success=response.is_success,
             transaction_id=response.transaction.id,
-            kind='auth',
+            kind=TransactionKind.AUTH,
             amount=response.amount,
             currency=response.currency,
             error=get_error(response),
@@ -96,7 +96,7 @@ Example
         return GatewayResponse(
             is_success=response.is_success,
             transaction_id=response.transaction.id,
-            kind='refund',
+            kind=TransactionKind.REFUND,
             amount=response.amount,
             currency=response.currency,
             error=get_error(response),
@@ -125,7 +125,7 @@ Example
         return GatewayResponse(
             is_success=response.is_success,
             transaction_id=response.transaction.id,
-            kind='capture',
+            kind=TransactionKind.CAPTURE,
             amount=response.amount,
             currency=response.currency,
             error=get_error(response),
@@ -154,7 +154,7 @@ Example
         return GatewayResponse(
             is_success=response.is_success,
             transaction_id=response.transaction.id,
-            kind='void',
+            kind=TransactionKind.VOID,
             amount=response.amount,
             currency=response.currency,
             error=get_error(response),
@@ -185,7 +185,7 @@ Example
         return GatewayResponse(
             is_success=response.is_success,
             transaction_id=response.transaction.id,
-            kind='charge',
+            kind=TransactionKind.CHARGE,
             amount=response.amount,
             currency=response.currency,
             error=get_error(response),
@@ -230,12 +230,12 @@ Parameters
 +-------------------------+-----------------+-----------------------------------------------------------------------------+
 
 PaymentData
-"""""""""""""""""""""""
+"""""""""""
 
 +---------------------+-----------------+-----------------------------------------------------------------+
 | name                | type            | description                                                     |
 +---------------------+-----------------+-----------------------------------------------------------------+
-| token               | ``str``         | Token used for transaction, provided by gateway.                |
+| token               | ``str``         | Token used for transaction, provided by the gateway.            |
 +---------------------+-----------------+-----------------------------------------------------------------+
 | amount              | ``Decimal``     | Amount to be authorized/captured/charged/refunded.              |
 +---------------------+-----------------+-----------------------------------------------------------------+
@@ -245,14 +245,14 @@ PaymentData
 +---------------------+-----------------+-----------------------------------------------------------------+
 | order_id            | ``int``         | Order id.                                                       |
 +---------------------+-----------------+-----------------------------------------------------------------+
-| customer_ip_address | ``str``         | Ip address of the cusomter                                      |
+| customer_ip_address | ``str``         | IP address of the customer                                      |
 +---------------------+-----------------+-----------------------------------------------------------------+
-| customer_email      | ``str``         | Email address of the cusomter.                                  |
+| customer_email      | ``str``         | Email address of the customer.                                  |
 +---------------------+-----------------+-----------------------------------------------------------------+
 
 
 AddressData
-"""""""""""""""""""""""
+"""""""""""
 
 +------------------+---------+
 | name             | type    |
@@ -294,7 +294,7 @@ Returns
 
 
 GatewayResponse
-"""""""""""""""""""""""
+"""""""""""""""
 
 +----------------+-------------+--------------------------------------------------------------------------+
 | name           | type        | description                                                              |
