@@ -93,13 +93,14 @@ const styles = (theme: Theme) =>
           top: -3,
           width: 7
         },
-        background: theme.palette.primary.main,
-        height: 1,
+        borderTop: `1px solid ${theme.palette.primary.main}`,
+        height: 0,
         position: "relative",
         top: -1
       }
     },
     rowContainerPlaceholder: {
+      borderRadius: 8,
       width: 300
     }
   });
