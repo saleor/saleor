@@ -42,6 +42,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add user avatar management - #4030 by @benekex2
 - Use dataclasses as a structure for payment's gateways - #4028 by @korycins
 - Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
+- Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
 
 
 ## 2.5.0
