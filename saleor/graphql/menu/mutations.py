@@ -53,7 +53,7 @@ class MenuCreate(ModelMutation):
     class Meta:
         description = 'Creates a new Menu'
         model = models.Menu
-        permissions = ('menu.manage_menus', )
+        permissions = ('menu.manage_menus',)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -106,7 +106,7 @@ class MenuUpdate(ModelMutation):
     class Meta:
         description = 'Updates a menu.'
         model = models.Menu
-        permissions = ('menu.manage_menus', )
+        permissions = ('menu.manage_menus',)
 
 
 class MenuDelete(ModelDeleteMutation):
@@ -117,24 +117,26 @@ class MenuDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a menu.'
         model = models.Menu
-        permissions = ('menu.manage_menus', )
+        permissions = ('menu.manage_menus',)
 
 
 class MenuItemCreate(ModelMutation):
     class Arguments:
         input = MenuItemCreateInput(
             required=True,
-            description="""Fields required to update a menu item.
+            description="""Fields required to create a menu item.
             Only one of 'url', 'category', 'page', 'collection' is allowed
             per item""")
 
     class Meta:
         description = 'Creates a new Menu'
         model = models.MenuItem
-        permissions = ('menu.manage_menus', )
+        permissions = ('menu.manage_menus',)
 
     @classmethod
     def clean_input(cls, info, instance, data):
+        import pdb;
+        pdb.set_trace()
         cleaned_input = super().clean_input(info, instance, data)
         items = [
             cleaned_input.get('page'), cleaned_input.get('collection'),
@@ -143,6 +145,47 @@ class MenuItemCreate(ModelMutation):
         if len(items) > 1:
             raise ValidationError({'items': 'More than one item provided.'})
         return cleaned_input
+
+
+class MenuItemBulkCreate(MenuItemCreate):
+    # instances = graphene.List(MenuItem)
+    count = graphene.Int(
+        required=True,
+        description='Returns how many objects were affected.')
+
+    class Arguments:
+        input = graphene.List(
+            graphene.NonNull(MenuItemCreateInput),
+            required=True,
+            description="""List of fields required to create a menu item.
+            Only one of 'url', 'category', 'page', 'collection' is allowed
+            per item""")
+
+    class Meta:
+        description = 'Creates multiple menu items.'
+        model = models.MenuItem
+        permissions = ('menu.manage_menus',)
+
+    #
+    @classmethod
+    def success_response(cls, count):
+        return cls(count=count, errors=[])
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        data = data.get('input')
+        instances = []
+        for item in data:
+            instance = cls.get_instance(info, **item)
+            cleaned_input = cls.clean_input(info, instance, item)
+            instance = cls.construct_instance(instance, cleaned_input)
+            cls.clean_instance(instance)
+            instances.append(instance)
+        instances = cls._meta.model.bulk_create(instances)
+        import pdb; pdb.set_trace()
+        return cls.success_response( len(instances))
+        # return cls.success_response(instances)
+
 
 
 class MenuItemUpdate(MenuItemCreate):
@@ -158,7 +201,7 @@ class MenuItemUpdate(MenuItemCreate):
     class Meta:
         description = 'Updates a menu item.'
         model = models.MenuItem
-        permissions = ('menu.manage_menus', )
+        permissions = ('menu.manage_menus',)
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -178,7 +221,7 @@ class MenuItemDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a menu item.'
         model = models.MenuItem
-        permissions = ('menu.manage_menus', )
+        permissions = ('menu.manage_menus',)
 
 
 _MenuMoveOperation = namedtuple(
@@ -198,7 +241,7 @@ class MenuItemMove(BaseMutation):
 
     class Meta:
         description = 'Moves items of menus'
-        permissions = ('menu.manage_menus', )
+        permissions = ('menu.manage_menus',)
 
     @staticmethod
     def clean_move(move):

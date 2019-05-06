@@ -250,6 +250,28 @@ def test_create_menu_item(
     assert data['menu']['name'] == menu.name
 
 
+def test_bulk_create_menu_item(
+        staff_api_client, menu, permission_manage_menus):
+    query = """
+    mutation createMenuItems($input: [MenuItemCreateInput!]!){
+        menuItemBulkCreate(input: $input) {
+            count
+        }
+    }
+    """
+    name = 'item menu'
+    url = 'http://www.example.com'
+    menu_id = graphene.Node.to_global_id('Menu', menu.pk)
+    variables = {'input':
+            [{'name': name, 'url': url, 'menu': menu_id}]
+        }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus])
+    import pdb; pdb.set_trace()
+
+    content = get_graphql_content(response)
+
+
 def test_update_menu_item(
         staff_api_client, menu, menu_item, page, permission_manage_menus):
     query = """

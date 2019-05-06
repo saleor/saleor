@@ -120,6 +120,65 @@ class BaseMutation(graphene.Mutation):
             raise ValidationError({field: str(e)})
         return instances
 
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        """Clean input data received from mutation arguments.
+
+        Fields containing IDs or lists of IDs are automatically resolved into
+        model instances. `instance` argument is the model instance the mutation
+        is operating on (before setting the input data). `input` is raw input
+        data the mutation receives.
+
+        Override this method to provide custom transformations of incoming
+        data.
+        """
+
+        def is_list_of_ids(field):
+            return (
+                isinstance(field.type, graphene.List)
+                and field.type.of_type == graphene.ID)
+
+        def is_id_field(field):
+            return (
+                field.type == graphene.ID
+                or isinstance(field.type, graphene.NonNull)
+                and field.type.of_type == graphene.ID)
+
+        def is_upload_field(field):
+            if hasattr(field.type, 'of_type'):
+                return field.type.of_type == Upload
+            return field.type == Upload
+
+        input_cls = getattr(cls.Arguments, 'input')
+        cleaned_input = {}
+        import pdb; pdb.set_trace()
+        for field_name, field_item in input_cls._meta.fields.items():
+            if field_name in data:
+                value = data[field_name]
+
+                # handle list of IDs field
+                if value is not None and is_list_of_ids(field_item):
+                    instances = cls.get_nodes_or_error(
+                        value, field_name) if value else []
+                    cleaned_input[field_name] = instances
+
+                # handle ID field
+                elif value is not None and is_id_field(field_item):
+                    instance = cls.get_node_or_error(info, value, field_name)
+                    cleaned_input[field_name] = instance
+
+                # handle uploaded files
+                elif value is not None and is_upload_field(field_item):
+                    value = info.context.FILES.get(value)
+                    cleaned_input[field_name] = value
+
+                # handle other fields
+                else:
+                    cleaned_input[field_name] = value
+        return cleaned_input
+
+
     @classmethod
     def clean_instance(cls, instance):
         """Clean the instance that was created using the input data.
@@ -192,6 +251,7 @@ class BaseMutation(graphene.Mutation):
 
         try:
             response = cls.perform_mutation(root, info, **data)
+            import pdb; pdb.set_trace()
             if response.errors is None:
                 response.errors = []
             return response
@@ -239,63 +299,6 @@ class ModelMutation(BaseMutation):
             arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        """Clean input data received from mutation arguments.
-
-        Fields containing IDs or lists of IDs are automatically resolved into
-        model instances. `instance` argument is the model instance the mutation
-        is operating on (before setting the input data). `input` is raw input
-        data the mutation receives.
-
-        Override this method to provide custom transformations of incoming
-        data.
-        """
-
-        def is_list_of_ids(field):
-            return (
-                isinstance(field.type, graphene.List)
-                and field.type.of_type == graphene.ID)
-
-        def is_id_field(field):
-            return (
-                field.type == graphene.ID
-                or isinstance(field.type, graphene.NonNull)
-                and field.type.of_type == graphene.ID)
-
-        def is_upload_field(field):
-            if hasattr(field.type, 'of_type'):
-                return field.type.of_type == Upload
-            return field.type == Upload
-
-        input_cls = getattr(cls.Arguments, 'input')
-        cleaned_input = {}
-
-        for field_name, field_item in input_cls._meta.fields.items():
-            if field_name in data:
-                value = data[field_name]
-
-                # handle list of IDs field
-                if value is not None and is_list_of_ids(field_item):
-                    instances = cls.get_nodes_or_error(
-                        value, field_name) if value else []
-                    cleaned_input[field_name] = instances
-
-                # handle ID field
-                elif value is not None and is_id_field(field_item):
-                    instance = cls.get_node_or_error(info, value, field_name)
-                    cleaned_input[field_name] = instance
-
-                # handle uploaded files
-                elif value is not None and is_upload_field(field_item):
-                    value = info.context.FILES.get(value)
-                    cleaned_input[field_name] = value
-
-                # handle other fields
-                else:
-                    cleaned_input[field_name] = value
-        return cleaned_input
-
-    @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
         opts = instance._meta
         for f in chain(opts.many_to_many, opts.private_fields):
@@ -306,8 +309,9 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def success_response(cls, instance):
+        return {'ehe': 'aha'}
         """Return a success response."""
-        return cls(**{cls._meta.return_field_name: instance, 'errors': []})
+        # return cls(**{cls._meta.return_field_name: instance, 'errors': []})
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -409,7 +413,7 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, ids, **data):
-        """Perform a mutation that deletes a list of model instances."""
+        """Perform a mutation on a cleaned queryset."""
         clean_instance_ids, errors = [], {}
         instance_model = cls._meta.model
         model_type = registry.get_type_for_model(instance_model)
