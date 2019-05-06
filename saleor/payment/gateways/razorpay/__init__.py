@@ -6,8 +6,8 @@ from typing import Dict
 import razorpay
 import razorpay.errors
 
+from ...interface import GatewayResponse, PaymentData
 from . import errors
-from ...interface import GatewayResponse, PaymentInformation
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
 
@@ -37,7 +37,7 @@ class TransactionKind:
 
 
 def _generate_response(
-        payment_information: PaymentInformation, kind: str, data: Dict
+        payment_information: PaymentData, kind: str, data: Dict
 ) -> GatewayResponse:
     """Generate Saleor transaction information from
     Razorpay's success payload or from passed data."""
@@ -52,7 +52,7 @@ def _generate_response(
     )
 
 
-def check_payment_supported(payment_information: PaymentInformation):
+def check_payment_supported(payment_information: PaymentData):
     """Checks that a given payment is supported."""
     if payment_information.currency not in SUPPORTED_CURRENCIES:
         return errors.UNSUPPORTED_CURRENCY % {
@@ -95,7 +95,7 @@ def get_client_token(**_):
 
 
 def charge(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     """Charge a authorized payment using the razorpay client.
 
@@ -131,7 +131,7 @@ def charge(
 
 
 def refund(
-        payment_information: PaymentInformation, connection_params
+        payment_information: PaymentData, connection_params
 ) -> GatewayResponse:
     """Refund a payment using the razorpay client.
 
@@ -166,7 +166,7 @@ def refund(
 
 
 def process_payment(
-        payment_information: PaymentInformation, connection_params
+        payment_information: PaymentData, connection_params
 ) -> GatewayResponse:
     return charge(
         payment_information=payment_information,

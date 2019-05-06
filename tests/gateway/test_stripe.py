@@ -19,6 +19,7 @@ from saleor.payment.gateways.stripe.forms import (
     StripeCheckoutWidget, StripePaymentModalForm)
 from saleor.payment.gateways.stripe.utils import (
     get_payment_billing_fullname, shipping_to_stripe_dict)
+from saleor.payment.interface import AddressData
 from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal(42.42)
@@ -162,6 +163,7 @@ def test_get_payment_billing_fullname(payment_dummy):
 
 
 def test_shipping_address_to_stripe_dict(address):
+    address_data = AddressData(**address.as_data())
     expected_address_dict = {
         'line1': address.street_address_1,
         'line2': address.street_address_2,
@@ -169,7 +171,7 @@ def test_shipping_address_to_stripe_dict(address):
         'state': address.country_area,
         'postal_code': address.postal_code,
         'country': dict(countries).get(address.country, '')}
-    assert shipping_to_stripe_dict(address.as_data()) == expected_address_dict
+    assert shipping_to_stripe_dict(address_data) == expected_address_dict
 
 
 def test_widget_with_default_options(stripe_payment, gateway_params):

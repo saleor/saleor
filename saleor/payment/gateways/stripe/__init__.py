@@ -2,7 +2,7 @@ from typing import Dict
 
 import stripe
 
-from ...interface import GatewayResponse, PaymentInformation
+from ...interface import GatewayResponse, PaymentData
 from .forms import StripePaymentModalForm
 from .utils import (
     get_amount_for_stripe, get_amount_from_stripe, get_currency_for_stripe,
@@ -28,7 +28,7 @@ def get_client_token(**_):
 
 
 def authorize(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
@@ -48,7 +48,7 @@ def authorize(
 
 
 def capture(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
@@ -72,7 +72,7 @@ def capture(
 
 
 def charge(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
@@ -92,7 +92,7 @@ def charge(
 
 
 def refund(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
@@ -117,7 +117,7 @@ def refund(
 
 
 def void(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     client, error = _get_client(**connection_params), None
 
@@ -136,13 +136,13 @@ def void(
 
 
 def process_payment(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     return charge(payment_information, connection_params)
 
 
 def create_form(
-        data: Dict, payment_information: PaymentInformation,
+        data: Dict, payment_information: PaymentData,
         connection_params: Dict) -> StripePaymentModalForm:
     return StripePaymentModalForm(
         data=data, payment_information=payment_information,
@@ -155,7 +155,7 @@ def _get_client(**connection_params):
 
 
 def _get_stripe_charge_payload(
-        payment_information: PaymentInformation, should_capture: bool) -> Dict:
+        payment_information: PaymentData, should_capture: bool) -> Dict:
     shipping = payment_information.shipping
 
     # Get currency
@@ -193,7 +193,7 @@ def _create_stripe_charge(client, payment_information, should_capture: bool):
 
 
 def _create_response(
-        payment_information: PaymentInformation, kind: str, response: Dict,
+        payment_information: PaymentData, kind: str, response: Dict,
         error: str) -> GatewayResponse:
     # Get currency from response or payment
     currency = get_currency_from_stripe(

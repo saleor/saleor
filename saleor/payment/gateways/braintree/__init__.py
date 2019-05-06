@@ -5,7 +5,7 @@ import braintree as braintree_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
-from ...interface import GatewayResponse, PaymentInformation
+from ...interface import GatewayResponse, PaymentData
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
@@ -39,20 +39,20 @@ class TransactionKind:
     VOID = 'void'
 
 
-def get_customer_data(payment_information: PaymentInformation) -> Dict:
+def get_customer_data(payment_information: PaymentData) -> Dict:
     billing = payment_information.billing
     return {
         'order_id': payment_information.order_id,
         'billing': {
-            'first_name': billing['first_name'],
-            'last_name': billing['last_name'],
-            'company': billing['company_name'],
-            'postal_code': billing['postal_code'],
-            'street_address': billing['street_address_1'],
-            'extended_address': billing['street_address_2'],
-            'locality': billing['city'],
-            'region': billing['country_area'],
-            'country_code_alpha2': billing['country']},
+            'first_name': billing.first_name,
+            'last_name': billing.last_name,
+            'company': billing.company_name,
+            'postal_code': billing.postal_code,
+            'street_address': billing.street_address_1,
+            'extended_address': billing.street_address_2,
+            'locality': billing.city,
+            'region': billing.country_area,
+            'country_code_alpha2': billing.country},
         'risk_data': {
             'customer_ip': payment_information.customer_ip_address or ''},
         'customer': {'email': payment_information.customer_email}}
@@ -121,7 +121,7 @@ def get_client_token(connection_params: Dict) -> str:
 
 
 def authorize(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     gateway = get_braintree_gateway(**connection_params)
 
@@ -154,7 +154,7 @@ def authorize(
 
 
 def capture(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     gateway = get_braintree_gateway(**connection_params)
 
@@ -183,7 +183,7 @@ def capture(
 
 
 def void(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     gateway = get_braintree_gateway(**connection_params)
 
@@ -240,7 +240,7 @@ def refund(
 
 
 def process_payment(
-        payment_information: PaymentInformation, connection_params: Dict
+        payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     auth_resp = authorize(payment_information, connection_params)
     if auth_resp.is_success:

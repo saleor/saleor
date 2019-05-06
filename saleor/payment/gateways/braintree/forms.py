@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 
-from ...interface import PaymentInformation
+from ...interface import PaymentData
 
 
 class BraintreePaymentForm(forms.Form):
@@ -16,7 +16,7 @@ class BraintreePaymentForm(forms.Form):
     payment_method_nonce = forms.CharField()
 
     def __init__(
-            self, payment_information: PaymentInformation, *args, **kwargs):
+            self, payment_information: PaymentData, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.payment_information = payment_information
         self.fields['amount'].initial = payment_information.amount
