@@ -29,17 +29,6 @@ def home(request):
 
 @staff_member_required
 def styleguide(request):
-    from saleor.events import OrderEventsEmails
-    from saleor.order.models import Order
-    from saleor.events.order import OrderEventManager
-
-    for i in range(2):
-        order = Order.objects.first()
-        e1 = OrderEventManager().email_sent_event(
-            order=order, email_type=OrderEventsEmails.TRACKING_UPDATED, user=request.user)
-        e2 = e1.email_sent_event(order=order, email_type=OrderEventsEmails.TRACKING_UPDATED, user=request.user)
-        assert len(e1.instances) == 2
-        e1.save()
     return TemplateResponse(request, 'styleguide.html')
 
 

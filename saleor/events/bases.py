@@ -1,4 +1,5 @@
 from django.core.exceptions import ImproperlyConfigured
+from django.db import models
 
 
 class EventManager:
@@ -12,7 +13,7 @@ class EventManager:
         self.instances = []
 
     @property
-    def base_type(self):
+    def base_type(self) -> models.Model:
         return self._meta.model
 
     @property
@@ -31,5 +32,5 @@ class EventManager:
 
     def save(self):
         if not self.instances:
-            return
+            return None
         return self._commit()
