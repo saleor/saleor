@@ -77853,6 +77853,28 @@ exports[`Storyshots Views / Staff / Staff member details himself 1`] = `
                       class="StaffProperties-avatarImage-id"
                       src="avatar1.png"
                     />
+                    <div
+                      class="StaffProperties-avatarHover-id"
+                    >
+                      <span
+                        class="isvg pending"
+                      />
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      >
+                        Change photo
+                      </p>
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      >
+                        Delete photo
+                      </p>
+                      <input
+                        class="StaffProperties-fileField-id"
+                        id="fileUpload"
+                        type="file"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -78006,9 +78028,13 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                   <div
                     class="StaffProperties-avatar-id"
                   >
-                    <img
-                      class="StaffProperties-avatarImage-id"
-                    />
+                    <div
+                      class="StaffProperties-avatarDefault-id"
+                    >
+                      <p
+                        class="MuiTypography-root-id MuiTypography-body1-id"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -79987,9 +80013,13 @@ exports[`Storyshots Views / Staff / Staff members when loading 1`] = `
               <div
                 class="StaffList-avatar-id"
               >
-                <img
-                  class="StaffList-avatarImage-id"
-                />
+                <div
+                  class="StaffList-avatarDefault-id"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body1-id"
+                  />
+                </div>
               </div>
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id"
