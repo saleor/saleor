@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from django.core.exceptions import ValidationError
 from graphene.types import InputObjectType
@@ -49,8 +47,8 @@ class DraftOrderInput(InputObjectType):
 class DraftOrderCreateInput(DraftOrderInput):
     lines = graphene.List(
         OrderLineCreateInput,
-        description=dedent("""Variant line input consisting of variant ID
-        and quantity of products."""))
+        description="""Variant line input consisting of variant ID
+        and quantity of products.""")
 
 
 class DraftOrderCreate(ModelMutation, I18nMixin):
@@ -218,7 +216,7 @@ class DraftOrderLinesCreate(BaseMutation):
             description='ID of the draft order to add the lines to.')
         input = graphene.List(
             OrderLineCreateInput, required=True,
-            description=dedent("""Fields required to add order lines."""))
+            description='Fields required to add order lines.')
 
     class Meta:
         description = 'Create order lines for a draft order.'

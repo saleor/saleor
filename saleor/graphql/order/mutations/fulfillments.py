@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
@@ -187,8 +185,8 @@ class FulfillmentCancel(BaseMutation):
             description='Fields required to cancel an fulfillment.')
 
     class Meta:
-        description = dedent("""Cancels existing fulfillment
-        and optionally restocks items.""")
+        description = """Cancels existing fulfillment
+        and optionally restocks items."""
         permissions = ('order.manage_orders', )
 
     @classmethod

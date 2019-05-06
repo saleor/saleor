@@ -5,8 +5,8 @@ autopep8==1.4.4
 babel==2.6.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.137
-botocore==1.12.137
+boto3==1.9.138
+botocore==1.12.138
 braintree==3.49.0
 cairocffi==1.0.2
 cairosvg==2.3.1
@@ -54,7 +54,7 @@ freezegun==0.3.11
 google-i18n-address==2.3.4
 google-measurement-protocol==1.0.0
 gprof2dot==2016.10.13
-graphene-django-optimizer==0.3.6
+graphene-django-optimizer==0.4.0
 graphene-django==2.2.0
 graphene==2.1.3
 graphql-core==2.1
