@@ -6,6 +6,7 @@ from typing import Dict
 import razorpay
 import razorpay.errors
 
+from ... import TransactionKind
 from ...interface import GatewayResponse, PaymentData
 from . import errors
 from .forms import RazorPaymentForm
@@ -15,6 +16,9 @@ TEMPLATE_PATH = 'order/payment/razorpay.html'
 
 # The list of currencies supported by razorpay
 SUPPORTED_CURRENCIES = 'INR',
+
+# The gateway does not support payment authorization
+SUPPORTS_AUTHORIZATION = False
 
 # Define what are the razorpay exceptions,
 # as the razorpay provider doesn't define a base exception as of now.
@@ -26,14 +30,6 @@ RAZORPAY_EXCEPTIONS = (
 # Get the logger for this file, it will allow us to log
 # error responses from razorpay.
 logger = logging.getLogger(__name__)
-
-
-class TransactionKind:
-    AUTH = 'auth'
-    CAPTURE = 'capture'
-    CHARGE = 'charge'
-    REFUND = 'refund'
-    VOID = 'void'
 
 
 def _generate_response(
@@ -94,7 +90,7 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def charge(
+def capture(
         payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     """Charge a authorized payment using the razorpay client.
@@ -127,7 +123,7 @@ def charge(
 
     return _generate_response(
         payment_information=payment_information,
-        kind=TransactionKind.CHARGE, data=response)
+        kind=TransactionKind.CAPTURE, data=response)
 
 
 def refund(
@@ -168,6 +164,6 @@ def refund(
 def process_payment(
         payment_information: PaymentData, connection_params
 ) -> GatewayResponse:
-    return charge(
+    return capture(
         payment_information=payment_information,
         connection_params=connection_params)

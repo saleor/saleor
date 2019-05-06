@@ -28,7 +28,6 @@ class OperationType(Enum):
     PROCESS_PAYMENT = 'process_payment'
     AUTH = 'authorize'
     CAPTURE = 'capture'
-    CHARGE = 'charge'
     VOID = 'void'
     REFUND = 'refund'
 
@@ -54,7 +53,6 @@ class TransactionKind:
     The following transactions types are possible:
     - AUTH - an amount reserved against the customer's funding source. Money
     does not change hands until the authorization is captured.
-    - CHARGE - authorization and capture in a single step.
     - VOID - a cancellation of a pending authorization or capture.
     - CAPTURE - a transfer of the money that was reserved during the
     authorization stage.
@@ -62,7 +60,6 @@ class TransactionKind:
     """
 
     AUTH = 'auth'
-    CHARGE = 'charge'
     CAPTURE = 'capture'
     VOID = 'void'
     REFUND = 'refund'
@@ -70,7 +67,6 @@ class TransactionKind:
     # Which were authorized, but needs to be confirmed manually by staff
     # eg. Braintree with "submit_for_settlement" enabled
     CHOICES = [(AUTH, pgettext_lazy('transaction kind', 'Authorization')),
-               (CHARGE, pgettext_lazy('transaction kind', 'Charge')),
                (REFUND, pgettext_lazy('transaction kind', 'Refund')),
                (CAPTURE, pgettext_lazy('transaction kind', 'Capture')),
                (VOID, pgettext_lazy('transaction kind', 'Void'))]

@@ -139,12 +139,15 @@ class Payment(models.Model):
         return self.is_active and self.not_charged
 
     def can_capture(self):
-        return self.is_active and self.not_charged and self.is_authorized
+        from .utils import get_can_gateway_authorize
 
-    def can_charge(self):
-        not_fully_charged = (
-            self.charge_status == ChargeStatus.PARTIALLY_CHARGED)
-        return self.is_active and (self.not_charged or not_fully_charged)
+        if not (self.is_active and self.not_charged):
+            return False
+
+        if get_can_gateway_authorize(self.gateway):
+            return self.is_authorized
+
+        return True
 
     def can_void(self):
         return self.is_active and self.not_charged and self.is_authorized

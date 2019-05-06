@@ -4,9 +4,9 @@ from unittest.mock import patch
 import pytest
 from razorpay.errors import BadRequestError, ServerError
 
-from saleor.payment import ChargeStatus
+from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.gateways.razorpay import (
-    TransactionKind, charge, check_payment_supported, clean_razorpay_response,
+    capture, check_payment_supported, clean_razorpay_response,
     create_form, errors, get_amount_for_razorpay, get_client, get_client_token,
     logger, refund)
 from saleor.payment.gateways.razorpay.forms import (
@@ -48,7 +48,7 @@ def charged_payment(razorpay_payment):
 
     razorpay_payment.transactions.create(
         amount=razorpay_payment.total,
-        kind=TransactionKind.CHARGE,
+        kind=TransactionKind.CAPTURE,
         gateway_response={},
         is_success=True)
     return razorpay_payment
@@ -145,13 +145,13 @@ def test_charge(
         amount=TRANSACTION_AMOUNT)
 
     # Attempt charging
-    response = charge(payment_info, gateway_params)
+    response = capture(payment_info, gateway_params)
 
     # Ensure the was no error returned
     assert not response.error
     assert response.is_success
 
-    assert response.kind == TransactionKind.CHARGE
+    assert response.kind == TransactionKind.CAPTURE
     assert response.amount == TRANSACTION_AMOUNT
     assert response.currency == razorpay_success_response['currency']
     assert response.raw_response == razorpay_success_response
@@ -171,7 +171,7 @@ def test_charge_unsupported_currency(razorpay_payment, gateway_params):
         amount=TRANSACTION_AMOUNT)
 
     # Attempt charging
-    response = charge(payment_info, gateway_params)
+    response = capture(payment_info, gateway_params)
 
     # Ensure a error was returned
     assert response.error == (
@@ -179,7 +179,7 @@ def test_charge_unsupported_currency(razorpay_payment, gateway_params):
     assert not response.is_success
 
     # Ensure the response is correctly set
-    assert response.kind == TransactionKind.CHARGE
+    assert response.kind == TransactionKind.CAPTURE
     assert response.transaction_id == payment_token
 
 
@@ -194,7 +194,7 @@ def test_charge_invalid_request(
     # Data to be passed
     payment_token = '123'
 
-    # Assign the side effect to the gateway's `charge()` method,
+    # Assign the side effect to the gateway's `capture()` method,
     # that should trigger the expected error.
     mocked_gateway.return_value.payment.capture.side_effect = BadRequestError()
 
@@ -203,14 +203,14 @@ def test_charge_invalid_request(
         amount=TRANSACTION_AMOUNT)
 
     # Attempt charging
-    response = charge(payment_info, gateway_params)
+    response = capture(payment_info, gateway_params)
 
     # Ensure an error was returned
     assert response.error == errors.INVALID_REQUEST
     assert not response.is_success
 
     # Ensure the response is correctly set
-    assert response.kind == TransactionKind.CHARGE
+    assert response.kind == TransactionKind.CAPTURE
     assert response.transaction_id == payment_token
 
     # Ensure the HTTP error was logged

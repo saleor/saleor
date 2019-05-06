@@ -37,12 +37,15 @@ def get_gateway_operation_func(gateway, operation_type):
         return gateway.authorize
     if operation_type == OperationType.CAPTURE:
         return gateway.capture
-    if operation_type == OperationType.CHARGE:
-        return gateway.charge
     if operation_type == OperationType.VOID:
         return gateway.void
     if operation_type == OperationType.REFUND:
         return gateway.refund
+
+
+def get_can_gateway_authorize(gateway):
+    gateway, _ = get_payment_gateway(gateway)
+    return getattr(gateway, 'SUPPORTS_AUTHORIZATION', True)
 
 
 def create_payment_information(
@@ -217,17 +220,6 @@ def gateway_get_client_token(gateway_name: str):
     return gateway.get_client_token(connection_params=gateway_params)
 
 
-def clean_charge(payment: Payment, amount: Decimal):
-    """Check if payment can be charged."""
-    if amount <= 0:
-        raise PaymentError('Amount should be a positive number.')
-    if not payment.can_charge():
-        raise PaymentError('This payment cannot be charged.')
-    if amount > payment.total or amount > (
-            payment.total - payment.captured_amount):
-        raise PaymentError('Unable to charge more than un-captured amount.')
-
-
 def clean_capture(payment: Payment, amount: Decimal):
     """Check if payment can be captured."""
     if amount <= 0:
@@ -342,7 +334,7 @@ def validate_gateway_response(response: GatewayResponse):
 def _gateway_postprocess(transaction, payment):
     transaction_kind = transaction.kind
 
-    if transaction_kind in [TransactionKind.CHARGE, TransactionKind.CAPTURE]:
+    if transaction_kind == TransactionKind.CAPTURE:
         payment.captured_amount += transaction.amount
 
         # Set payment charge status to fully charged
@@ -384,31 +376,6 @@ def gateway_process_payment(
 
 
 @require_active_payment
-def gateway_charge(
-        payment: Payment, payment_token: str,
-        amount: Decimal = None) -> Transaction:
-    """Performs authorization and capture in a single run.
-
-    For gateways not supporting the authorization it should be a
-    dedicated CHARGE transaction.
-
-    For gateways not supporting capturing without authorizing,
-    it should create two transaction - auth and capture, but only the last one
-    is returned.
-    """
-    if amount is None:
-        amount = payment.get_charge_amount()
-    clean_charge(payment, amount)
-
-    transaction = call_gateway(
-        operation_type=OperationType.CHARGE,
-        payment=payment, payment_token=payment_token, amount=amount)
-
-    _gateway_postprocess(transaction, payment)
-    return transaction
-
-
-@require_active_payment
 def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
     """Authorizes the payment and creates relevant transaction.
 
@@ -429,11 +396,14 @@ def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
         amount = payment.get_charge_amount()
     clean_capture(payment, amount)
 
-    auth_transaction = payment.transactions.filter(
-        kind=TransactionKind.AUTH, is_success=True).first()
-    if auth_transaction is None:
-        raise PaymentError('Cannot capture unauthorized transaction')
-    payment_token = auth_transaction.token
+    if get_can_gateway_authorize(payment):
+        auth_transaction = payment.transactions.filter(
+            kind=TransactionKind.AUTH, is_success=True).first()
+        if auth_transaction is None:
+            raise PaymentError('Cannot capture unauthorized transaction')
+        payment_token = auth_transaction.token
+    else:
+        payment_token = payment.token
 
     transaction = call_gateway(
         operation_type=OperationType.CAPTURE,
@@ -480,8 +450,7 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
         raise PaymentError('Cannot refund more than captured')
 
     transaction = payment.transactions.filter(
-        kind__in=[TransactionKind.CAPTURE, TransactionKind.CHARGE],
-        is_success=True).first()
+        kind=TransactionKind.CAPTURE, is_success=True).first()
     if transaction is None:
         raise PaymentError('Cannot refund uncaptured/uncharged transaction')
     payment_token = transaction.token
