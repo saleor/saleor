@@ -918,7 +918,7 @@ def test_checkout_complete(
     assert order.payments.exists()
     order_payment = order.payments.first()
     assert order_payment == payment
-    assert payment.transactions.count() == 2
+    assert payment.transactions.count() == 1
 
     # assert that the checkout instance has been deleted after checkout
     with pytest.raises(Checkout.DoesNotExist):

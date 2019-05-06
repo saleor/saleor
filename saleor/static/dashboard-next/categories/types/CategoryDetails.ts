@@ -54,7 +54,7 @@ export interface CategoryDetails_category_products_pageInfo {
 }
 
 export interface CategoryDetails_category_products_edges_node_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
 }
 
