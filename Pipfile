@@ -60,7 +60,7 @@ celery = {version = ">=4.3", extras = ["redis"]}
 redis = "<4.0"
 kombu = "<5.0.0"
 weasyprint = ">=0.42.2"
-graphene-django-optimizer = "*"
+graphene-django-optimizer = ">=0.4.0"
 braintree = "==3.49.0"
 razorpay = ">=1.1.1"
 stripe = "*"

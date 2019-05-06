@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d3b550b4be6f5768434398744fbbdf4ba7258850456aa18e78c1cbf882a602a4"
+            "sha256": "ceaf3fccfc09a4e0b71b2559370f7c12857514544bb35a400d12107a3844166b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -60,18 +60,18 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:882cc4869b47b51dae4b4a900769e72171ff00e0b6bca644b2d7a7ad7378f324",
-                "sha256:cd503a7e7a04f1c14d2801f9727159dfa88c393b4004e98940fa4aa205d920c8"
+                "sha256:679d8084ad40d18908a97c785d614fed554a424924d4ab30e464c16bfe95722b",
+                "sha256:d5ccb985caf4ea522f2fbfe4fbf270cd1e2c0c6d46ea7d13e9cda6bb6c36deb6"
             ],
             "index": "pypi",
-            "version": "==1.9.137"
+            "version": "==1.9.138"
         },
         "botocore": {
             "hashes": [
-                "sha256:0d95794f6b1239c75e2c5f966221bcd4b68020fddb5676f757531eedbb612ed8",
-                "sha256:3213cf48cf2ceee10fc3b93221f2cd1c38521cca7584f547d5c086213cc60f35"
+                "sha256:73bf439ba6d97606f8acbe4e037cc7a6e7a2b83f080b472c37c22d810c7dd8a8",
+                "sha256:ff4171f850cfb221b553f32948b93ea0a8d82e636fe121ff08945f4581c21ad9"
             ],
-            "version": "==1.12.137"
+            "version": "==1.12.138"
         },
         "braintree": {
             "hashes": [
@@ -472,11 +472,11 @@
         },
         "graphene-django-optimizer": {
             "hashes": [
-                "sha256:e3eafbcf343a9501ced71d0a8537dda2b1fe0d7bcf9c31bf0b371556d8ee4467",
-                "sha256:f55adcb5452d6d65dfce4afa5de50f6d987bb84c5dd3ccdc89b0802662852b1b"
+                "sha256:8d1d73514ec892e6307f90f8035db47cf6b75f3a0188d58848b1d7261f056e86",
+                "sha256:9632998a7e3303ebe95a2df6dadcc1d4d137d5946e6c03a2680ce620b49408e2"
             ],
             "index": "pypi",
-            "version": "==0.3.6"
+            "version": "==0.4.0"
         },
         "graphql-core": {
             "hashes": [

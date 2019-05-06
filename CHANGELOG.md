@@ -36,6 +36,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Ensure adding to quantities in checkout is respecting the limits set both in storefront 1.0 and in the API - #4005 by @NyanKiyoshi
 - Fix price_range_as_dict function - #3999 by @zodiacfireworks
 - Remove unused decorator - #4036 by @maarcingebala
+- Overall improvement of the GraphQL performances, especially on single nodes - #3968 @NyanKiyoshi
+- Remove unnecessary dedents from GraphQL schema so new Playground can work - #4045 by @salwator
 - Add user avatar management - #4030 by @benekex2
 
 
