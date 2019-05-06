@@ -5,14 +5,14 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ...core import analytics
 from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_checkout, add_voucher_to_checkout,
     change_billing_address_in_checkout, change_shipping_address_in_checkout,
-    clean_checkout, get_or_create_user_checkout, get_taxes_for_checkout,
-    get_voucher_for_checkout,
-    recalculate_checkout_discount, remove_voucher_from_checkout, create_order)
+    clean_checkout, create_order, get_or_create_user_checkout,
+    get_taxes_for_checkout, get_voucher_for_checkout,
+    recalculate_checkout_discount, remove_voucher_from_checkout)
+from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...discount import models as voucher_model

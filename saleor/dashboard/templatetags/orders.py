@@ -105,8 +105,8 @@ def display_order_event(order_event: OrderEvent):
             'Dashboard message related to an order',
             '%(email_type)s email was sent to the customer '
             '(%(email)s)') % {
-               'email_type': EMAIL_CHOICES[params['email_type']],
-               'email': params['email']}
+                'email_type': EMAIL_CHOICES[params['email_type']],
+                'email': params['email']}
     if event_type == OrderEvents.TRACKING_UPDATED:
         return pgettext_lazy(
             'Dashboard message related to an order',

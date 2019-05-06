@@ -229,7 +229,7 @@ class DraftOrderComplete(BaseMutation):
                 oversold_items.append(str(line))
 
         event = OrderEventManager().order_created_event(
-                order=order, user=info.context.user, from_draft=True)
+            order=order, user=info.context.user, from_draft=True)
 
         if oversold_items:
             event.draft_order_oversold_items_event(

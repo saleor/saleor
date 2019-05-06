@@ -3,16 +3,16 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
 
-from ...core import analytics
 from ...account.models import Address
+from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...discount.models import NotApplicable
 from ..forms import CheckoutNoteForm
 from ..utils import (
-    get_checkout_context, get_taxes_for_checkout,
+    create_order, get_checkout_context, get_taxes_for_checkout,
     update_billing_address_in_anonymous_checkout,
     update_billing_address_in_checkout,
-    update_billing_address_in_checkout_with_shipping, create_order)
+    update_billing_address_in_checkout_with_shipping)
 
 
 def _handle_order_placement(request, checkout):

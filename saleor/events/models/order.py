@@ -3,9 +3,9 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
 
+from .. import OrderEvents
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...order.models import Order
-from .. import OrderEvents
 
 
 class OrderEvent(models.Model):

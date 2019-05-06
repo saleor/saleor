@@ -3,13 +3,13 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from django.contrib.auth.base_user import AbstractBaseUser
 
-from .bases import EventManager
-from .models import OrderEvent
+from . import OrderEvents, OrderEventsEmails
 from ..account.models import Address
 from ..order.models import Fulfillment, Order, OrderLine
 from ..payment.models import Payment
 from ..product.models import ProductVariant
-from . import OrderEvents, OrderEventsEmails
+from .bases import EventManager
+from .models import OrderEvent
 
 UserType = AbstractBaseUser
 
