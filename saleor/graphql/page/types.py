@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from graphene import relay
 
@@ -28,9 +26,8 @@ class Page(CountableDjangoObjectType):
         resolver=resolve_translation)
 
     class Meta:
-        description = dedent(
-            """A static page that can be manually added by a shop
-               operator through the dashboard.""")
+        description = """A static page that can be manually added by a shop
+               operator through the dashboard."""
         only_fields = [
             'content', 'content_json', 'created', 'id', 'is_published',
             'publication_date', 'seo_description', 'seo_title', 'slug',
