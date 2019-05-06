@@ -41,6 +41,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unnecessary dedents from GraphQL schema so new Playground can work - #4045 by @salwator
 - Add user avatar management - #4030 by @benekex2
 - Use dataclasses as a structure for payment's gateways - #4028 by @korycins
+- Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
 
 
 ## 2.5.0
