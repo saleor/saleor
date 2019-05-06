@@ -6,7 +6,7 @@ from django.forms.widgets import HiddenInput
 from django.utils.html import format_html
 from django.utils.translation import pgettext_lazy
 
-from ...interface import PaymentInformation
+from ...interface import PaymentData
 from .utils import get_amount_for_stripe
 
 CHECKOUT_SCRIPT_URL = 'https://checkout.stripe.com/checkout.js'
@@ -17,7 +17,7 @@ CHECKOUT_DESCRIPTION = pgettext_lazy(
 class StripeCheckoutWidget(HiddenInput):
 
     def __init__(
-            self, payment_information: PaymentInformation,
+            self, payment_information: PaymentData,
             gateway_params: Dict, *args, **kwargs):
         attrs = kwargs.get('attrs', {})
         kwargs['attrs'] = {
@@ -65,7 +65,7 @@ class StripePaymentModalForm(forms.Form):
     stripeToken = forms.CharField(required=True, widget=HiddenInput)
 
     def __init__(
-            self, payment_information: PaymentInformation,
+            self, payment_information: PaymentData,
             gateway_params: Dict, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

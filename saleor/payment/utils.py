@@ -18,7 +18,7 @@ from ..order.models import Order
 from . import (
     ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
     PaymentError, TransactionKind, get_payment_gateway)
-from .interface import GatewayResponse, PaymentInformation
+from .interface import AddressData, GatewayResponse, PaymentData
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def get_gateway_operation_func(gateway, operation_type):
 
 def create_payment_information(
         payment: Payment, payment_token: str = None,
-        amount: Decimal = None) -> PaymentInformation:
+        amount: Decimal = None) -> PaymentData:
     """Extracts order information along with payment details.
 
     Returns information required to process payment and additional
@@ -56,12 +56,12 @@ def create_payment_information(
     billing, shipping = None, None
 
     if payment.order.billing_address:
-        billing = payment.order.billing_address.as_data()
+        billing = AddressData(**payment.order.billing_address.as_data())
 
     if payment.order.shipping_address:
-        shipping = payment.order.shipping_address.as_data()
+        shipping = AddressData(**payment.order.shipping_address.as_data())
 
-    return PaymentInformation(
+    return PaymentData(
         token=payment_token,
         amount=amount or payment.total,
         currency=payment.currency,
