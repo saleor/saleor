@@ -36,6 +36,14 @@ Example
         client_token = gateway.client_token.generate()
         return client_token
 
+
+.. note::
+
+    All the below methods receive payment_information as a dataclass - PaymentData. 
+    Methods should return a response as a dataclass - GatewayResponse. 
+    Description of the given structures can be found below.
+
+
 authorize(payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -48,23 +56,23 @@ Example
 .. code-block:: python
 
     def authorize(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+            payment_information: PaymentData,
+            connection_params: Dict) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the auth request here
-        response = gateway.authorize(token=payment_information['token'])
+        response = gateway.authorize(token=payment_information.token)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'auth',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind='auth',
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
 refund(payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,23 +85,23 @@ Example
 .. code-block:: python
 
     def refund(
-            payment_information: Dict,
-            **connection_params: Dict) -> Dict:
+            payment_information: PaymentData,
+            **connection_params: Dict) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the refund request here
-        response = gateway.refund(token=payment_information['token'])
+        response = gateway.refund(token=payment_information.token)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'refund',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind='refund',
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
 capture(payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,23 +114,23 @@ Example
 .. code-block:: python
 
     def capture(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+            payment_information: PaymentData,
+            connection_params: Dict) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the capture request here
-        response = gateway.capture(token=payment_information['token'])
+        response = gateway.capture(token=payment_information.token)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'refund',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind='capture',
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
 void(payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -135,23 +143,23 @@ Example
 .. code-block:: python
 
     def void(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+            payment_information: PaymentData,
+            connection_params: Dict) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the void request here
-        response = gateway.void(token=payment_information['token'])
+        response = gateway.void(token=payment_information.token)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'refund',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind='void',
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
 charge(payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -164,25 +172,25 @@ Example
 .. code-block:: python
 
     def charge(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+            payment_information: PaymentData,
+            connection_params: Dict) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the charge request here
         response = gateway.charge(
-            token=payment_information['token'],
-            amount=payment_information['amount'])
+            token=payment_information.token,
+            amount=payment_information.amount)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'refund',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind='charge',
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
 process_payment(payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -197,83 +205,95 @@ Example
 .. code-block:: python
 
     def process_payment(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+            payment_information: PaymentData,
+            connection_params: Dict) -> GatewayResponse:
 
         # Authorize, update the token, then capture
         authorize_response = authorize(
             payment_information, connection_params)
-        payment_information['token'] = authorize_response['transaction_id']
+        payment_information.token = authorize_response.transaction_id
 
         capture_response = capture(
             payment_information, connection_params)
 
-        # Return a list of responses, each response must be json serializable
-        return [authorize_response, capture_response]
+        return capture_response
 
 Parameters
 ^^^^^^^^^^
 
-+-------------------------+----------+------------------------------------------------------------------------------------+
-| name                    | type     | description                                                                        |
-+-------------------------+----------+------------------------------------------------------------------------------------+
-| ``payment_information`` | ``dict`` | Payment information, containing the token, amount, currency and billing.           |
-+-------------------------+----------+------------------------------------------------------------------------------------+
-| ``connection_params``   | ``dict`` | List of parameters used for connecting to the payment's gateway.                   |
-+-------------------------+----------+------------------------------------------------------------------------------------+
++-------------------------+-----------------+-----------------------------------------------------------------------------+
+| name                    | type            | description                                                                 |
++-------------------------+-----------------+-----------------------------------------------------------------------------+
+| ``payment_information`` | ``PaymentData`` | Payment information, containing the token, amount, currency and billing.    |
++-------------------------+-----------------+-----------------------------------------------------------------------------+
+| ``connection_params``   | ``dict``        | List of parameters used for connecting to the payment's gateway.            |
++-------------------------+-----------------+-----------------------------------------------------------------------------+
 
-Example
-"""""""
+PaymentData
+"""""""""""""""""""""""
 
-.. code-block:: python
++---------------------+-----------------+-----------------------------------------------------------------+
+| name                | type            | description                                                     |
++---------------------+-----------------+-----------------------------------------------------------------+
+| token               | ``str``         | Token used for transaction, provided by gateway.                |
++---------------------+-----------------+-----------------------------------------------------------------+
+| amount              | ``Decimal``     | Amount to be authorized/captured/charged/refunded.              |
++---------------------+-----------------+-----------------------------------------------------------------+
+| billing             | ``AddressData`` | Billing information.                                            |
++---------------------+-----------------+-----------------------------------------------------------------+
+| shipping            | ``AddressData`` | Shipping information.                                           |
++---------------------+-----------------+-----------------------------------------------------------------+
+| order_id            | ``int``         | Order id.                                                       |
++---------------------+-----------------+-----------------------------------------------------------------+
+| customer_ip_address | ``str``         | Ip address of the cusomter                                      |
++---------------------+-----------------+-----------------------------------------------------------------+
+| customer_email      | ``str``         | Email address of the cusomter.                                  |
++---------------------+-----------------+-----------------------------------------------------------------+
 
-    payment_information = {
-        'token': 'token-used-for-transaction',  # provided by gateway
-        'amount': Decimal('174.32'),  # amount to be authorized/captured/charged/refunded
-        'currency': 'USD',  # ISO 4217 currency code
-        'billing': {  # billing information
-            'first_name': 'Joe',
-            'last_name': 'Doe',
-            'company_name': 'JoeDoe Inc.',
-            'street_address_1': '3417 Bridge Street',
-            'street_address_2': '',
-            'city': 'Pryor',
-            'city_area': '',
-            'postal_code': '74361',
-            'country': 'US',
-            'country_area': 'OK',
-            'phone': '+19188249023'},
-        'shipping': {  # shipping information
-            'first_name': 'Dollie',
-            'last_name': 'Sullivan',
-            'company_name': '',
-            'street_address_1': '2003 Progress Way',
-            'street_address_2': '',
-            'city': 'Waterloo',
-            'city_area': '',
-            'postal_code': '50797',
-            'country': 'US',
-            'country_area': 'IA',
-            'phone': '+19188249023'},
-        'order': 117,  # order id
-        'customer_ip_address': '10.0.0.1',  # ip address of the customer
-        'customer_email': 'joedoe@example.com',  # email of the customer
-    }
+
+AddressData
+"""""""""""""""""""""""
+
++------------------+---------+
+| name             | type    |
++------------------+---------+
+| first_name       | ``str`` |
++------------------+---------+
+| last_name        | ``str`` |
++------------------+---------+
+| company_name     | ``str`` |
++------------------+---------+
+| street_address_1 | ``str`` |
++------------------+---------+
+| street_address_2 | ``str`` |
++------------------+---------+
+| city             | ``str`` |
++------------------+---------+
+| city_area        | ``str`` |
++------------------+---------+
+| postal_code      | ``str`` |
++------------------+---------+
+| country          | ``str`` |
++------------------+---------+
+| country_area     | ``str`` |
++------------------+---------+
+| phone            | ``str`` |
++------------------+---------+
 
 
 Returns
 ^^^^^^^
 
-+----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| name                 | type                       | description                                                                                                                              |
-+----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| ``gateway_response`` | ``dict`` or ``list[dict]`` | Dictionary or list of dictionaries containing details about every transaction, with ``is_success`` set to ``True`` if no error occurred. |
-+----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| ``client_token``     | ``str``                    | Unique client's token that will be used as his indentifier in the payment process.                                                       |
-+----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------+
+| name                 | type                       | description                                                                                                            |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------+
+| ``gateway_response`` | ``GatewayResponse``        | GatewayResponse containing details about every transaction, with ``is_success`` set to ``True`` if no error occurred.  |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------+
+| ``client_token``     | ``str``                    | Unique client's token that will be used as his indentifier in the payment process.                                     |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------+
 
 
-Gateway response fields
+GatewayResponse
 """""""""""""""""""""""
 
 +----------------+-------------+--------------------------------------------------------------------------+
@@ -291,25 +311,8 @@ Gateway response fields
 +----------------+-------------+--------------------------------------------------------------------------+
 | error          | ``str``     | An error message if one occured. Should be ``None`` if no error occured. |
 +----------------+-------------+--------------------------------------------------------------------------+
-
-Additional fields can be sent for logging/debug purposes. The only requirement is that they're serializable by
-``DjangoJSONEncoder``. They will be saved in ``gateway_response`` field on Transaction model.
-
-
-Example
-=======
-
-.. code-block: python
-
-    response = {
-        'transaction_id': 'token-from-gateway',
-        'kind': 'auth',
-        'is_success': True,
-        'amount': Decimal(14.50),
-        'currency': 'USD',
-        'error': None,
-        'extra_field': 'additional information',
-        'raw_response': raw_gateway_response_as_dict}
+| raw_response   | ``dict``     | Raw gateway response as a dict object. By default it is ``None``        |
++----------------+-------------+--------------------------------------------------------------------------+
 
 
 Handling errors
