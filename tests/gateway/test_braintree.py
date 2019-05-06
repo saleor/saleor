@@ -2,8 +2,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from braintree import (
-    CreditCard, Environment, ErrorResult, SuccessfulResult, Transaction)
+from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
 from braintree.errors import Errors
 from braintree.exceptions import NotFoundError
 from braintree.validation_error import ValidationError
@@ -201,11 +200,7 @@ def test_process_payment_error_response(
     payment_info = create_payment_information(payment, payment_token)
     response = process_payment(payment_info, gateway_config)
 
-    assert isinstance(response, list)
-    auth_resp, void_resp = response
-
-    assert auth_resp['kind'] == TransactionKind.AUTH
-    assert void_resp['kind'] == TransactionKind.VOID
+    assert response.kind == TransactionKind.AUTH
 
 
 @pytest.mark.integration
@@ -221,11 +216,8 @@ def test_process_payment(
     payment_info = create_payment_information(payment, payment_token)
     response = process_payment(payment_info, gateway_config)
 
-    assert isinstance(response, list)
-    auth_resp, capture_resp = response
+    assert response.kind == TransactionKind.CAPTURE
 
-    assert auth_resp['kind'] == TransactionKind.AUTH
-    assert capture_resp['kind'] == TransactionKind.CAPTURE
 
 @pytest.mark.integration
 @patch('saleor.payment.gateways.braintree.get_braintree_gateway')
@@ -239,9 +231,9 @@ def test_authorize_error_response(
     payment_info = create_payment_information(payment, payment_token)
     response = authorize(payment_info, gateway_config)
 
-    assert response['raw_response'] == extract_gateway_response(braintree_error_response)
-    assert not response['is_success']
-    assert response['error'] == DEFAULT_ERROR
+    assert response.raw_response == extract_gateway_response(braintree_error_response)
+    assert not response.is_success
+    assert response.error == DEFAULT_ERROR
 
 
 @pytest.mark.integration
@@ -271,13 +263,13 @@ def test_authorize(
 
     payment_info = create_payment_information(payment, 'auth-token')
     response = authorize(payment_info, gateway_config)
-    assert not response['error']
+    assert not response.error
 
-    assert response['kind'] == TransactionKind.AUTH
-    assert response['amount'] == braintree_success_response.transaction.amount
-    assert response['currency'] == braintree_success_response.transaction.currency_iso_code
-    assert response['transaction_id'] == braintree_success_response.transaction.id
-    assert response['is_success'] == braintree_success_response.is_success
+    assert response.kind == TransactionKind.AUTH
+    assert response.amount == braintree_success_response.transaction.amount
+    assert response.currency == braintree_success_response.transaction.currency_iso_code
+    assert response.transaction_id == braintree_success_response.transaction.id
+    assert response.is_success == braintree_success_response.is_success
 
     mock_response.assert_called_once_with({
         'amount': str(payment.total),
@@ -293,7 +285,7 @@ def test_authorize(
 @patch('saleor.payment.gateways.braintree.get_braintree_gateway')
 def test_refund(
         mock_gateway, payment_txn_captured, braintree_success_response,
-        settings, gateway_config):
+        gateway_config):
     payment = payment_txn_captured
     amount = Decimal('10.00')
     mock_response = Mock(return_value=braintree_success_response)
@@ -301,15 +293,15 @@ def test_refund(
 
     payment_info = create_payment_information(payment, 'token', amount)
     response = refund(payment_info, gateway_config)
-    assert not response['error']
+    assert not response.error
 
-    assert response['kind'] == TransactionKind.REFUND
-    assert response['amount'] == braintree_success_response.transaction.amount
-    assert response['currency'] == braintree_success_response.transaction.currency_iso_code
-    assert response['transaction_id'] == braintree_success_response.transaction.id
-    assert response['is_success'] == braintree_success_response.is_success
+    assert response.kind == TransactionKind.REFUND
+    assert response.amount == braintree_success_response.transaction.amount
+    assert response.currency == braintree_success_response.transaction.currency_iso_code
+    assert response.transaction_id == braintree_success_response.transaction.id
+    assert response.is_success == braintree_success_response.is_success
     mock_response.assert_called_once_with(
-        amount_or_options=str(amount), transaction_id=payment_info['token'])
+        amount_or_options=str(amount), transaction_id=payment_info.token)
 
 
 @pytest.mark.integration
@@ -342,17 +334,17 @@ def test_refund_error_response(
     payment_info = create_payment_information(payment, 'token', amount)
     response = refund(payment_info, gateway_config)
 
-    assert response['raw_response'] == extract_gateway_response(
+    assert response.raw_response == extract_gateway_response(
         braintree_error_response)
-    assert not response['is_success']
-    assert response['error'] == DEFAULT_ERROR
+    assert not response.is_success
+    assert response.error == DEFAULT_ERROR
 
 
 @pytest.mark.integration
 @patch('saleor.payment.gateways.braintree.get_braintree_gateway')
 def test_capture(
         mock_gateway, payment_txn_preauth, braintree_success_response,
-        settings, gateway_config):
+        gateway_config):
     payment = payment_txn_preauth
     amount = Decimal('10.00')
     mock_response = Mock(return_value=braintree_success_response)
@@ -361,16 +353,16 @@ def test_capture(
 
     payment_info = create_payment_information(payment, 'token', amount)
     response = capture(payment_info, gateway_config)
-    assert not response['error']
+    assert not response.error
 
-    assert response['kind'] == TransactionKind.CAPTURE
-    assert response['amount'] == braintree_success_response.transaction.amount
-    assert response['currency'] == braintree_success_response.transaction.currency_iso_code
-    assert response['transaction_id'] == braintree_success_response.transaction.id
-    assert response['is_success'] == braintree_success_response.is_success
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.amount == braintree_success_response.transaction.amount
+    assert response.currency == braintree_success_response.transaction.currency_iso_code
+    assert response.transaction_id == braintree_success_response.transaction.id
+    assert response.is_success == braintree_success_response.is_success
 
     mock_response.assert_called_once_with(
-        amount=str(amount), transaction_id=payment_info['token'])
+        amount=str(amount), transaction_id=payment_info.token)
 
 
 @pytest.mark.integration
@@ -379,7 +371,6 @@ def test_capture_incorrect_token(
         mock_gateway, payment_txn_preauth, braintree_not_found_error,
         gateway_config):
     payment = payment_txn_preauth
-    amount = Decimal('10.00')
     mock_response = Mock(side_effect=braintree_not_found_error)
     mock_gateway.return_value = Mock(
         transaction=Mock(submit_for_settlement=mock_response))
@@ -396,7 +387,6 @@ def test_capture_error_response(
         mock_gateway, payment_txn_preauth, braintree_error_response,
         gateway_config):
     payment = payment_txn_preauth
-    amount = Decimal('10.00')
     mock_response = Mock(return_value=braintree_error_response)
     mock_gateway.return_value = Mock(
         transaction=Mock(submit_for_settlement=mock_response))
@@ -404,10 +394,10 @@ def test_capture_error_response(
     payment_info = create_payment_information(payment, 'token')
     response = capture(payment_info, gateway_config)
 
-    assert response['raw_response'] == extract_gateway_response(
+    assert response.raw_response == extract_gateway_response(
         braintree_error_response)
-    assert not response['is_success']
-    assert response['error'] == DEFAULT_ERROR
+    assert not response.is_success
+    assert response.error == DEFAULT_ERROR
 
 
 @pytest.mark.integration
@@ -421,14 +411,14 @@ def test_void(
 
     payment_info = create_payment_information(payment, 'token')
     response = void(payment_info, gateway_config)
-    assert not response['error']
+    assert not response.error
 
-    assert response['kind'] == TransactionKind.VOID
-    assert response['amount'] == braintree_success_response.transaction.amount
-    assert response['currency'] == braintree_success_response.transaction.currency_iso_code
-    assert response['transaction_id'] == braintree_success_response.transaction.id
-    assert response['is_success'] == braintree_success_response.is_success
-    mock_response.assert_called_once_with(transaction_id=payment_info['token'])
+    assert response.kind == TransactionKind.VOID
+    assert response.amount == braintree_success_response.transaction.amount
+    assert response.currency == braintree_success_response.transaction.currency_iso_code
+    assert response.transaction_id == braintree_success_response.transaction.id
+    assert response.is_success == braintree_success_response.is_success
+    mock_response.assert_called_once_with(transaction_id=payment_info.token)
 
 
 @pytest.mark.integration
@@ -446,6 +436,7 @@ def test_void_incorrect_token(
         void(payment_info, gateway_config)
     assert str(e.value) == DEFAULT_ERROR_MESSAGE
 
+
 @pytest.mark.integration
 @patch('saleor.payment.gateways.braintree.get_braintree_gateway')
 def test_void_error_response(
@@ -458,10 +449,10 @@ def test_void_error_response(
     payment_info = create_payment_information(payment)
     response = void(payment_info, gateway_config)
 
-    assert response['raw_response'] == extract_gateway_response(
+    assert response.raw_response == extract_gateway_response(
         braintree_error_response)
-    assert not response['is_success']
-    assert response['error'] == DEFAULT_ERROR
+    assert not response.is_success
+    assert response.error == DEFAULT_ERROR
 
 
 def test_braintree_payment_form_incorrect_amount(payment_dummy):
