@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -63,7 +64,7 @@ export interface UnassignCollectionProduct {
 
 export interface UnassignCollectionProductVariables {
   collectionId: string;
-  productId: string;
+  productIds: (string | null)[];
   first?: number | null;
   after?: string | null;
   last?: number | null;

@@ -68,8 +68,8 @@ def test_payment_void_gateway_error(
 
 
 CREATE_QUERY = """
-    mutation CheckoutPaymentCreate($input: PaymentInput!) {
-        checkoutPaymentCreate(input: $input) {
+    mutation CheckoutPaymentCreate($checkoutId: ID!, $input: PaymentInput!) {
+        checkoutPaymentCreate(checkoutId: $checkoutId, input: $input) {
             payment {
                 transactions {
                     kind,
@@ -87,18 +87,15 @@ CREATE_QUERY = """
 
 
 def test_checkout_add_payment(
-        user_api_client, cart_with_item, graphql_address_data):
-    cart = cart_with_item
-    assert cart.user is None
-
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
-
+        user_api_client, checkout_with_item, graphql_address_data):
+    checkout = checkout_with_item
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     variables = {
+        'checkoutId': checkout_id,
         'input': {
-            'checkoutId': checkout_id,
             'gateway': 'DUMMY',
             'token': 'sample-token',
-            'amount': str(cart.get_total().gross.amount),
+            'amount': str(checkout.get_total().gross.amount),
             'billingAddress': graphql_address_data}}
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
@@ -107,80 +104,45 @@ def test_checkout_add_payment(
     transactions = data['payment']['transactions']
     assert not transactions
     payment = Payment.objects.get()
-    assert payment.checkout == cart
+    assert payment.checkout == checkout
     assert payment.is_active
     assert payment.token == 'sample-token'
-    total = cart.get_total().gross
+    total = checkout.get_total().gross
     assert payment.total == total.amount
     assert payment.currency == total.currency
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
-AUTHORIZE_QUERY = """
-    mutation PaymentAuthorize($paymentId: ID!, $paymentToken: String!) {
-        paymentAuthorize(paymentId: $paymentId, paymentToken: $paymentToken) {
-            payment {
-                id,
-                chargeStatus
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
-
-
-def test_payment_authorize_success(
-        staff_api_client, permission_manage_orders, payment_dummy):
-    payment = payment_dummy
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
-
-    payment_id = graphene.Node.to_global_id(
-        'Payment', payment.pk)
+def test_use_checkout_billing_address_as_payment_billing(
+        user_api_client, checkout_with_item, address):
+    checkout = checkout_with_item
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     variables = {
-        'paymentId': payment_id,
-        'paymentToken': 'Fake'}
-    response = staff_api_client.post_graphql(
-        AUTHORIZE_QUERY, variables, permissions=[permission_manage_orders])
+        'checkoutId': checkout_id,
+        'input': {
+            'gateway': 'DUMMY',
+            'token': 'sample-token',
+            'amount': str(checkout.get_total().gross.amount)}}
+    response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
-    data = content['data']['paymentAuthorize']
-    assert not data['errors']
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    assert payment.transactions.count() == 1
-    txn = payment.transactions.first()
-    assert txn.kind == TransactionKind.AUTH
+    data = content['data']['checkoutPaymentCreate']
 
+    # check if proper error is returned if address is missing
+    assert data['errors'][0]['field'] == 'billingAddress'
 
-def test_payment_authorize_gateway_error(
-        staff_api_client, permission_manage_orders, payment_dummy,
-        monkeypatch):
-    payment = payment_dummy
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
-
-    payment_id = graphene.Node.to_global_id(
-        'Payment', payment.pk)
-    variables = {
-        'paymentId': payment_id,
-        'paymentToken': 'Fake'}
-    monkeypatch.setattr(
-        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
-    response = staff_api_client.post_graphql(
-        AUTHORIZE_QUERY, variables, permissions=[permission_manage_orders])
+    # assign the address and try again
+    address.street_address_1 = 'spanish-inqusition'
+    address.save()
+    checkout.billing_address = address
+    checkout.save()
+    response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
-    data = content['data']['paymentAuthorize']
-    assert data['errors']
-    assert data['errors'][0]['field'] is None
-    assert data['errors'][0]['message']
+    data = content['data']['checkoutPaymentCreate']
 
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    assert payment.transactions.count() == 1
-    txn = payment.transactions.first()
-    assert txn.kind == TransactionKind.AUTH
-    assert not txn.is_success
+    checkout.refresh_from_db()
+    assert checkout.payments.count() == 1
+    payment = checkout.payments.first()
+    assert payment.billing_address_1 == address.street_address_1
 
 
 CAPTURE_QUERY = """
@@ -215,10 +177,29 @@ def test_payment_capture_success(
     data = content['data']['paymentCapture']
     assert not data['errors']
     payment_txn_preauth.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.CAPTURE
+
+
+def test_payment_capture_with_invalid_argument(
+        staff_api_client, permission_manage_orders, payment_txn_preauth):
+    payment = payment_txn_preauth
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment_txn_preauth.pk)
+
+    variables = {
+        'paymentId': payment_id,
+        'amount': 0}
+    response = staff_api_client.post_graphql(
+        CAPTURE_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentCapture']
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == \
+        'Amount should be a positive number.'
 
 
 def test_payment_capture_gateway_error(
@@ -249,76 +230,6 @@ def test_payment_capture_gateway_error(
     assert not txn.is_success
 
 
-CHARGE_QUERY = """
-    mutation PaymentCharge($paymentId: ID!, $paymentToken: String!, $amount: Decimal!) {
-        paymentCharge(paymentId: $paymentId, paymentToken: $paymentToken, amount: $amount) {
-            payment {
-                id,
-                chargeStatus
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
-
-
-def test_payment_charge_success(
-        staff_api_client, permission_manage_orders, payment_dummy):
-    payment = payment_dummy
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
-
-    payment_id = graphene.Node.to_global_id(
-        'Payment', payment.pk)
-    variables = {
-        'paymentId': payment_id,
-        'paymentToken': 'Fake',
-        'amount': str(payment.total)}
-    response = staff_api_client.post_graphql(
-        CHARGE_QUERY, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    data = content['data']['paymentCharge']
-    assert not data['errors']
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.CHARGED
-    assert payment.transactions.count() == 2
-    capture_txn, auth_txn = payment.transactions.all()
-    assert auth_txn.kind == TransactionKind.AUTH
-    assert capture_txn.kind == TransactionKind.CAPTURE
-
-
-def test_payment_charge_gateway_error(
-        staff_api_client, permission_manage_orders, payment_dummy,
-        monkeypatch):
-    payment = payment_dummy
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
-
-    payment_id = graphene.Node.to_global_id(
-        'Payment', payment.pk)
-    variables = {
-        'paymentId': payment_id,
-        'paymentToken': 'Fake',
-        'amount': str(payment.total)}
-    monkeypatch.setattr(
-        'saleor.payment.gateways.dummy.dummy_success', lambda: False)
-    response = staff_api_client.post_graphql(
-        CHARGE_QUERY, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    data = content['data']['paymentCharge']
-    assert data['errors']
-    assert data['errors'][0]['field'] is None
-    assert data['errors'][0]['message']
-
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    assert payment.transactions.count() == 1
-    txn = payment.transactions.last()
-    assert txn.kind == TransactionKind.AUTH
-    assert not txn.is_success
-
-
 REFUND_QUERY = """
     mutation PaymentRefund($paymentId: ID!, $amount: Decimal!) {
         paymentRefund(paymentId: $paymentId, amount: $amount) {
@@ -338,7 +249,7 @@ REFUND_QUERY = """
 def test_payment_refund_success(
         staff_api_client, permission_manage_orders, payment_txn_captured):
     payment = payment_txn_captured
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
     payment_id = graphene.Node.to_global_id(
@@ -359,11 +270,32 @@ def test_payment_refund_success(
     assert txn.kind == TransactionKind.REFUND
 
 
+def test_payment_refund_with_invalid_argument(
+        staff_api_client, permission_manage_orders, payment_txn_captured):
+    payment = payment_txn_captured
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    payment_id = graphene.Node.to_global_id(
+        'Payment', payment.pk)
+
+    variables = {
+        'paymentId': payment_id,
+        'amount': 0}
+    response = staff_api_client.post_graphql(
+        REFUND_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentRefund']
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == \
+        'Amount should be a positive number.'
+
+
 def test_payment_refund_error(
         staff_api_client, permission_manage_orders, payment_txn_captured,
         monkeypatch):
     payment = payment_txn_captured
-    payment.charge_status = ChargeStatus.CHARGED
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = payment.total
     payment.save()
     payment_id = graphene.Node.to_global_id(
@@ -382,7 +314,7 @@ def test_payment_refund_error(
     assert data['errors'][0]['field'] is None
     assert data['errors'][0]['message']
     payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
@@ -449,7 +381,7 @@ def test_payments_query(
     assert data['capturedAmount'] == {
         'amount': pay.captured_amount, 'currency': pay.currency}
     assert data['total'] == {'amount': pay.total, 'currency': pay.currency}
-    assert data['chargeStatus'] == PaymentChargeStatusEnum.CHARGED.name
+    assert data['chargeStatus'] == PaymentChargeStatusEnum.FULLY_CHARGED.name
     assert data['billingAddress'] == {
         'firstName': pay.billing_first_name,
         'lastName': pay.billing_last_name,
@@ -479,7 +411,8 @@ def test_payments_query(
         'lastDigits': pay.cc_last_digits}
 
 
-def test_query_payment(payment_dummy, user_api_client):
+def test_query_payment(
+        payment_dummy, user_api_client, permission_manage_orders):
     query = """
     query payment($id: ID) {
         payment(id: $id) {
@@ -490,7 +423,8 @@ def test_query_payment(payment_dummy, user_api_client):
     payment = payment_dummy
     payment_id = graphene.Node.to_global_id('Payment', payment.pk)
     variables = {'id': payment_id}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     received_id = content['data']['payment']['id']
     assert received_id == payment_id

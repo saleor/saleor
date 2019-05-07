@@ -40,4 +40,3 @@ class CharsLeftWidget(TextInput):
     """Displays number of characters left on the right side of the label,
     requires different rendering on the frontend.
     """
-    pass

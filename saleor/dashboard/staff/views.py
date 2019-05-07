@@ -8,7 +8,7 @@ from django.utils.translation import pgettext_lazy
 from ...account.models import User
 from ...core.utils import get_paginator_items
 from ..emails import (
-    send_promote_customer_to_staff_email, send_set_password_email)
+    send_promote_customer_to_staff_email, send_set_password_staff_email)
 from ..views import staff_member_required
 from .filters import StaffFilter
 from .forms import StaffForm
@@ -42,7 +42,7 @@ def staff_details(request, pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Updated staff member %s') % (staff_member,)
         messages.success(request, msg)
-        redirect('dashboard:staff-list')
+        return redirect('dashboard:staff-list')
     ctx = {'staff_member': staff_member, 'form': form}
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
 
@@ -56,14 +56,16 @@ def staff_create(request):
     except User.DoesNotExist:
         staff = User()
         created = True
-    form = StaffForm(request.POST or None, instance=staff)
+    form = StaffForm(
+        request.POST or None,
+        instance=staff, user=request.user, initial={'is_staff': True})
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Added staff member %s') % (staff,)
         messages.success(request, msg)
         if created:
-            send_set_password_email.delay(staff.pk)
+            send_set_password_staff_email.delay(staff.pk)
         else:
             send_promote_customer_to_staff_email.delay(staff.pk)
         return redirect('dashboard:staff-list')

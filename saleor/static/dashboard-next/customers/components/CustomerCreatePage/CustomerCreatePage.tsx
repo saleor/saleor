@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -16,6 +17,8 @@ import CustomerCreateDetails from "../CustomerCreateDetails";
 import CustomerCreateNote from "../CustomerCreateNote/CustomerCreateNote";
 
 export interface CustomerCreatePageFormData extends AddressTypeInput {
+  customerFirstName: string;
+  customerLastName: string;
   email: string;
   note: string;
 }
@@ -29,6 +32,8 @@ const initialForm: CustomerCreatePageFormData = {
     value: ""
   },
   countryArea: "",
+  customerFirstName: "",
+  customerLastName: "",
   email: "",
   firstName: "",
   lastName: "",
@@ -58,8 +63,9 @@ const CustomerCreatePage: React.StatelessComponent<CustomerCreatePageProps> = ({
 }: CustomerCreatePageProps) => (
   <Form initial={initialForm} onSubmit={onSubmit} errors={errors} confirmLeave>
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
-      <Container width="md">
-        <PageHeader title={i18n.t("Add customer")} onBack={onBack} />
+      <Container>
+        <AppHeader onBack={onBack}>{i18n.t("Customers")}</AppHeader>
+        <PageHeader title={i18n.t("Add customer")} />
         <Grid>
           <div>
             <CustomerCreateDetails

@@ -6,6 +6,7 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import { fade } from "@material-ui/core/styles/colorManipulator";
 import TextField, { StandardTextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import CloseIcon from "@material-ui/icons/Close";
@@ -20,10 +21,11 @@ interface ListFieldState {
 const styles = (theme: Theme) =>
   createStyles({
     chip: {
-      background: "rgba(90, 179, 120, .1)",
+      background: fade(theme.palette.primary.main, 0.2),
       borderRadius: 8,
       display: "inline-block",
       marginRight: theme.spacing.unit * 2,
+      marginTop: theme.spacing.unit,
       padding: "4px 8px"
     },
     chipContainer: {
@@ -112,7 +114,7 @@ const ListField = withStyles(styles)(
               endAdornment: (
                 <Button
                   variant="text"
-                  color="secondary"
+                  color="primary"
                   onClick={this.handleValueAdd}
                 >
                   {i18n.t("Add", { context: "button" })}

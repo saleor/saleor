@@ -1,16 +1,15 @@
-import uuid
-
 from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
+from django_countries import countries
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
-from ...core.i18n import COUNTRY_CODE_CHOICES
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
+from ...discount.utils import generate_voucher_code
 from ...product.models import Category, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 
@@ -116,21 +115,15 @@ class VoucherForm(forms.ModelForm):
         initial = kwargs.get('initial', {})
         instance = kwargs.get('instance')
         if instance and instance.id is None and not initial.get('code'):
-            initial['code'] = self._generate_code
+            initial['code'] = generate_voucher_code()
         kwargs['initial'] = initial
         super().__init__(*args, **kwargs)
-
-    def _generate_code(self):
-        while True:
-            code = str(uuid.uuid4()).replace('-', '').upper()[:12]
-            if not Voucher.objects.filter(code=code).exists():
-                return code
 
 
 class ShippingVoucherForm(forms.ModelForm):
     min_amount_spent = MinAmountSpent
     countries = forms.MultipleChoiceField(
-        choices=COUNTRY_CODE_CHOICES,
+        choices=countries,
         required=False,
         label=pgettext_lazy(
             'Text above the dropdown of countries',
@@ -179,6 +172,11 @@ class ProductVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
         fields = ['products', 'apply_once_per_order']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['products'].set_initial(self.instance.products.all())
 
 
 class CollectionVoucherForm(CommonVoucherForm):

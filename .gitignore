@@ -12,6 +12,7 @@
 !.gitignore
 !.nvmrc
 !.npmrc
+!.plop
 !.pylintrc
 !.travis*
 !.tx

@@ -1,4 +1,5 @@
 import Card from "@material-ui/core/Card";
+import Checkbox from "@material-ui/core/Checkbox";
 import {
   createStyles,
   Theme,
@@ -9,66 +10,79 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
+import TableHead from "../../../components/TableHead";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
-import { ListProps } from "../../../types";
+import { maybe, renderCollection } from "../../../misc";
+import { ListActions, ListProps } from "../../../types";
+import { PageList_pages_edges_node } from "../../types/PageList";
+
+export interface PageListProps extends ListProps, ListActions {
+  pages: PageList_pages_edges_node[];
+}
 
 const styles = (theme: Theme) =>
   createStyles({
-    link: {
-      color: theme.palette.secondary.main,
-      cursor: "pointer",
-      textDecoration: "none"
+    [theme.breakpoints.up("lg")]: {
+      colSlug: {
+        width: 250
+      },
+      colTitle: {},
+      colVisibility: {
+        width: 200
+      }
     },
-    textRight: {
-      textAlign: "right"
+    colSlug: {},
+    colTitle: {},
+    colVisibility: {},
+    link: {
+      cursor: "pointer"
     }
   });
-
-interface PageListProps extends ListProps, WithStyles<typeof styles> {
-  pages?: Array<{
-    id: string;
-    title: string;
-    slug: string;
-    isVisible: boolean;
-  }>;
-}
-
-export const PageList = withStyles(styles, { name: "PageList" })(
+const PageList = withStyles(styles, { name: "PageList" })(
   ({
     classes,
-    disabled,
-    pageInfo,
     pages,
+    disabled,
     onNextPage,
+    pageInfo,
+    onRowClick,
     onPreviousPage,
-    onRowClick
-  }: PageListProps) => (
+    isChecked,
+    selected,
+    toggle,
+    toolbar
+  }: PageListProps & WithStyles<typeof styles>) => (
     <Card>
       <Table>
-        <TableHead>
+        <TableHead selected={selected} toolbar={toolbar}>
           <TableRow>
-            <TableCell>{i18n.t("Name", { context: "object" })}</TableCell>
-            <TableCell>{i18n.t("Url", { context: "object" })}</TableCell>
-            <TableCell>{i18n.t("Visibility", { context: "object" })}</TableCell>
+            <TableCell />
+            <TableCell className={classes.colTitle} padding="dense">
+              {i18n.t("Title", { context: "table header" })}
+            </TableCell>
+            <TableCell className={classes.colSlug} padding="dense">
+              {i18n.t("Slug", { context: "table header" })}
+            </TableCell>
+            <TableCell className={classes.colVisibility} padding="dense">
+              {i18n.t("Visibility", { context: "table header" })}
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={3}
+              colSpan={4}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
+              onNextPage={onNextPage}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }
-              onNextPage={onNextPage}
               onPreviousPage={onPreviousPage}
             />
           </TableRow>
@@ -76,34 +90,55 @@ export const PageList = withStyles(styles, { name: "PageList" })(
         <TableBody>
           {renderCollection(
             pages,
-            page => (
-              <TableRow key={page ? page.id : "skeleton"}>
-                <TableCell
-                  onClick={page && onRowClick(page.id)}
-                  className={classes.link}
+            page => {
+              const isSelected = page ? isChecked(page.id) : false;
+
+              return (
+                <TableRow
+                  hover={!!page}
+                  className={!!page ? classes.link : undefined}
+                  onClick={page ? onRowClick(page.id) : undefined}
+                  key={page ? page.id : "skeleton"}
+                  selected={isSelected}
                 >
-                  {page ? page.title : <Skeleton />}
-                </TableCell>
-                <TableCell>{page ? `/${page.slug}` : <Skeleton />}</TableCell>
-                <TableCell>
-                  {page ? (
-                    <StatusLabel
-                      label={
-                        page.isVisible
-                          ? i18n.t("Published", { context: "object" })
-                          : i18n.t("Not published", { context: "object" })
-                      }
-                      status={page.isVisible ? "success" : "error"}
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      color="primary"
+                      checked={isSelected}
+                      disabled={disabled}
+                      onClick={event => {
+                        toggle(page.id);
+                        event.stopPropagation();
+                      }}
                     />
-                  ) : (
-                    <Skeleton />
-                  )}
-                </TableCell>
-              </TableRow>
-            ),
+                  </TableCell>
+                  <TableCell className={classes.colTitle}>
+                    {maybe<React.ReactNode>(() => page.title, <Skeleton />)}
+                  </TableCell>
+                  <TableCell className={classes.colSlug}>
+                    {maybe<React.ReactNode>(() => page.slug, <Skeleton />)}
+                  </TableCell>
+                  <TableCell className={classes.colVisibility}>
+                    {maybe<React.ReactNode>(
+                      () => (
+                        <StatusLabel
+                          label={
+                            page.isVisible
+                              ? i18n.t("Published")
+                              : i18n.t("Not Published")
+                          }
+                          status={page.isVisible ? "success" : "error"}
+                        />
+                      ),
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            },
             () => (
               <TableRow>
-                <TableCell colSpan={3}>{i18n.t("No pages found")}</TableCell>
+                <TableCell colSpan={4}>{i18n.t("No pages found")}</TableCell>
               </TableRow>
             )
           )}

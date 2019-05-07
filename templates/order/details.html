@@ -46,8 +46,8 @@
   <div class="row order-details">
     <div class="col-lg-10 m-auto">
       <h2 class="order-details__header">
-        {% blocktrans trimmed with order_status=order.get_status_display context "Order detail text" %}
-          Order {{ order }}: {{ order_status }}
+        {% blocktrans trimmed with payment_status=order.get_payment_status_display order_status=order.get_status_display context "Order detail text" %}
+          Order {{ order }}: {{ payment_status }} & {{ order_status }}
         {% endblocktrans %}
       </h2>
       {% if not order.is_partly_paid %}

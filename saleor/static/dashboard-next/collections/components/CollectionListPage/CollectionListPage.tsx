@@ -5,11 +5,11 @@ import * as React from "react";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { CollectionList_collections_edges_node } from "../../types/CollectionList";
 import CollectionList from "../CollectionList/CollectionList";
 
-export interface CollectionListPageProps extends PageListProps {
+export interface CollectionListPageProps extends PageListProps, ListActions {
   collections: CollectionList_collections_edges_node[];
 }
 
@@ -18,10 +18,10 @@ const CollectionListPage: React.StatelessComponent<CollectionListPageProps> = ({
   onAdd,
   ...listProps
 }) => (
-  <Container width="md">
+  <Container>
     <PageHeader title={i18n.t("Collections", { context: "page title" })}>
       <Button
-        color="secondary"
+        color="primary"
         disabled={disabled}
         variant="contained"
         onClick={onAdd}

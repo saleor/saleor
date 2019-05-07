@@ -175,14 +175,14 @@
     padding: $global-padding * 2 0;
     display: flex;
     align-items: center;
-    svg {
+    a svg {
       height: 38px;
-      width: 100%;
+      width: auto;
+      max-width: 113px;
     }
     .menu-icon-mobile {
       position: relative;
       display: inline-block;
-      top: -5px;
       span {
         position: absolute;
         top: 1.3rem;
@@ -191,6 +191,7 @@
         font-size: 0.45rem;
       }
       svg {
+        height: 30px;
         vertical-align: top;
       }
       @media (max-width: 370px) {
@@ -231,17 +232,17 @@
     .static {
       position: static;
     }
-    &__cart {
+    &__checkout {
       z-index: 4;
       @include media-breakpoint-up(md) {
         line-height: 2.4rem;
       }
-      .cart__icon {
+      .checkout__icon {
         color: $body-color;
         display: block;
         border: solid 1px transparent;
         border-radius: 4px 4px 0 0;
-        padding: $global-padding * 2;
+        padding: $global-padding * 2.5 $global-padding * 1.5;
         position: absolute;
         right: 0;
         top: 0;
@@ -266,11 +267,11 @@
         &:hover {
           text-decoration: none;
         }
-        .cart-label {
+        .checkout-label {
           padding-right: $global-padding / 2;
           display: inline-block;
         }
-        .navbar__brand__cart__icon {
+        .navbar__brand__checkout__icon {
           display: inline-block;
           svg {
             vertical-align: middle;
@@ -278,8 +279,8 @@
         }
         .badge {
           position: absolute;
-          right: 20px;
-          top: 20px;
+          right: 10px;
+          top: 30px;
           background-color: $light-turquoise;
           border-radius: 100px;
           color: $white;
@@ -292,12 +293,12 @@
           }
           @include media-breakpoint-down(sm) {
             right: 0;
+            top: 20px;
           }
         }
       }
     }
     &__menu-toggle {
-      max-height: 22px;
       padding-right: $global-padding;
       padding-left: $global-padding;
       vertical-align: super;
@@ -315,7 +316,7 @@
         background-color: $white;
         padding-left: 0;
         padding-right: $global-padding;
-        padding-top: $global-padding * 5;
+        padding-top: $global-padding * 2;
         transition: 0.3s ease-in-out;
         ul {
           text-align: left;

@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { StockAvailability } from "./../../types/globalTypes";
@@ -13,7 +14,7 @@ export interface ProductList_products_edges_node_thumbnail {
 }
 
 export interface ProductList_products_edges_node_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
 }
 

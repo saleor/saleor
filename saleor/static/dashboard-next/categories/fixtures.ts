@@ -1,3 +1,4 @@
+import { content } from "../storybook/stories/components/RichTextEditor";
 import { CategoryDetails_category } from "./types/CategoryDetails";
 
 export const categories = [
@@ -75,8 +76,7 @@ export const category: (
     __typename: "CategoryCountableConnection",
     edges: []
   },
-  description:
-    "Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.",
+  descriptionJson: JSON.stringify(content),
   id: "Q2F0ZWdvcnk6NA==",
   name: "Coffees",
   parent: {
@@ -92,7 +92,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyMQ==",
@@ -116,7 +116,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyMg==",
@@ -140,7 +140,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyMw==",
@@ -164,7 +164,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyNA==",
@@ -188,7 +188,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyNQ==",
@@ -212,7 +212,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyNg==",
@@ -236,7 +236,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyNw==",
@@ -260,7 +260,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyOA==",
@@ -284,7 +284,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDoyOQ==",
@@ -308,7 +308,7 @@ export const category: (
         node: {
           __typename: "Product",
           availability: {
-            __typename: "ProductAvailability",
+            __typename: "ProductPricingInfo",
             available: true
           },
           id: "UHJvZHVjdDozMA==",

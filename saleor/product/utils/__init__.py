@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db.models import F
 
 from ...checkout.utils import (
-    get_cart_from_request, get_or_create_cart_from_request)
+    get_checkout_from_request, get_or_create_checkout_from_request)
 from ...core.utils import get_paginator_items
 from ...core.utils.filters import get_now_sorted_by
 from ...core.utils.taxes import ZERO_TAXED_MONEY, TaxedMoney
@@ -17,7 +17,7 @@ def products_visible_to_user(user):
     from ..models import Product
     if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
-    return Product.objects.available_products()
+    return Product.objects.published()
 
 
 def products_with_details(user):
@@ -41,7 +41,8 @@ def products_for_products_list(user):
 def products_for_homepage(user, homepage_collection):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
-        'translations', 'images', 'variants__variant_images__image')
+        'translations', 'images', 'variants__variant_images__image',
+        'collections')
     products = products.filter(collections=homepage_collection)
     return products
 
@@ -51,18 +52,18 @@ def get_product_images(product):
     return list(product.images.all())
 
 
-def handle_cart_form(request, product, create_cart=False):
-    if create_cart:
-        cart = get_or_create_cart_from_request(request)
+def handle_checkout_form(request, product, create_checkout=False):
+    if create_checkout:
+        checkout = get_or_create_checkout_from_request(request)
     else:
-        cart = get_cart_from_request(request)
+        checkout = get_checkout_from_request(request)
     form = ProductForm(
-        cart=cart, product=product, data=request.POST or None,
+        checkout=checkout, product=product, data=request.POST or None,
         discounts=request.discounts, taxes=request.taxes)
-    return form, cart
+    return form, checkout
 
 
-def products_for_cart(user):
+def products_for_checkout(user):
     products = products_visible_to_user(user)
     products = products.prefetch_related('variants__variant_images__image')
     return products
@@ -138,7 +139,7 @@ def collections_visible_to_user(user):
     from ..models import Collection
     if user.is_authenticated and user.is_active and user.is_staff:
         return Collection.objects.all()
-    return Collection.objects.public()
+    return Collection.objects.published()
 
 
 def calculate_revenue_for_variant(variant, start_date):

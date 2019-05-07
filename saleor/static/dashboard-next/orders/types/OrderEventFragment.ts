@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { OrderEventsEmails, OrderEvents } from "./../../types/globalTypes";
@@ -9,6 +10,7 @@ import { OrderEventsEmails, OrderEvents } from "./../../types/globalTypes";
 
 export interface OrderEventFragment_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

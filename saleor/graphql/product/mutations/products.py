@@ -1,10 +1,8 @@
-from textwrap import dedent
-
 import graphene
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ....product.tasks import update_variants_names
@@ -16,15 +14,18 @@ from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
-from ...core.utils import clean_seo_fields
+from ...core.utils import clean_seo_fields, validate_image_file
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
-from ..utils import attributes_to_hstore, validate_image_file
+from ..utils import attributes_to_hstore
 
 
 class CategoryInput(graphene.InputObjectType):
-    description = graphene.String(description='Category description')
-    name = graphene.String(description='Category name')
-    slug = graphene.String(description='Category slug')
+    description = graphene.String(
+        description='Category description (HTML/text).')
+    description_json = graphene.JSONString(
+        description='Category description (JSON).')
+    name = graphene.String(description='Category name.')
+    slug = graphene.String(description='Category slug.')
     seo = SeoInput(description='Search engine optimization fields.')
     background_image = Upload(description='Background image file.')
     background_image_alt = graphene.String(
@@ -36,39 +37,36 @@ class CategoryCreate(ModelMutation):
         input = CategoryInput(
             required=True, description='Fields required to create a category.')
         parent_id = graphene.ID(
-            description=dedent('''
+            description='''
                 ID of the parent category. If empty, category will be top level
-                category.'''), name='parent')
+                category.''', name='parent')
 
     class Meta:
         description = 'Creates a new category.'
         model = models.Category
+        permissions = ('product.manage_products', )
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
-        parent_id = input['parent_id']
+        parent_id = data['parent_id']
         if parent_id:
             parent = cls.get_node_or_error(
-                info, parent_id, errors, field='parent', only_type=Category)
+                info, parent_id, field='parent', only_type=Category)
             cleaned_input['parent'] = parent
-        if input.get('background_image'):
-            image_data = info.context.FILES.get(input['background_image'])
-            validate_image_file(cls, image_data, 'background_image', errors)
+        if data.get('background_image'):
+            image_data = info.context.FILES.get(data['background_image'])
+            validate_image_file(image_data, 'background_image')
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
-
-    @classmethod
-    def mutate(cls, root, info, **data):
+    def perform_mutation(cls, root, info, **data):
         parent_id = data.pop('parent_id', None)
         data['input']['parent_id'] = parent_id
-        return super().mutate(root, info, **data)
+        return super().perform_mutation(root, info, **data)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -87,6 +85,7 @@ class CategoryUpdate(CategoryCreate):
     class Meta:
         description = 'Updates a category.'
         model = models.Category
+        permissions = ('product.manage_products', )
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -103,10 +102,7 @@ class CategoryDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a category.'
         model = models.Category
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class CollectionInput(graphene.InputObjectType):
@@ -114,12 +110,15 @@ class CollectionInput(graphene.InputObjectType):
         description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
-    description = graphene.String(description='Description of the collection.')
+    description = graphene.String(
+        description='Description of the collection (HTML/text).')
+    description_json = graphene.JSONString(
+        description='Description of the collection (JSON).')
     background_image = Upload(description='Background image file.')
     background_image_alt = graphene.String(
         description='Alt text for an image.')
     seo = SeoInput(description='Search engine optimization fields.')
-    published_date = graphene.Date(
+    publication_date = graphene.Date(
         description='Publication date. ISO 8601 standard.')
 
 
@@ -139,19 +138,16 @@ class CollectionCreate(ModelMutation):
     class Meta:
         description = 'Creates a new collection.'
         model = models.Collection
+        permissions = ('product.manage_products', )
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
-
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         if 'slug' not in cleaned_input and 'name' in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
-        if input.get('background_image'):
-            image_data = info.context.FILES.get(input['background_image'])
-            validate_image_file(cls, image_data, 'background_image', errors)
+        if data.get('background_image'):
+            image_data = info.context.FILES.get(data['background_image'])
+            validate_image_file(image_data, 'background_image')
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -173,6 +169,7 @@ class CollectionUpdate(CollectionCreate):
     class Meta:
         description = 'Updates a collection.'
         model = models.Collection
+        permissions = ('product.manage_products', )
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -189,10 +186,7 @@ class CollectionDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a collection.'
         model = models.Collection
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class CollectionAddProducts(BaseMutation):
@@ -210,17 +204,15 @@ class CollectionAddProducts(BaseMutation):
 
     class Meta:
         description = 'Adds products to a collection.'
+        permissions = ('product.manage_products', )
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, collection_id, products):
-        errors = []
+    def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
-            info, collection_id, errors, 'collectionId', only_type=Collection)
-        products = cls.get_nodes_or_error(
-            products, errors, 'products', only_type=Product)
+            info, collection_id, field='collection_id', only_type=Collection)
+        products = cls.get_nodes_or_error(products, 'products', Product)
         collection.products.add(*products)
-        return CollectionAddProducts(collection=collection, errors=errors)
+        return CollectionAddProducts(collection=collection)
 
 
 class CollectionRemoveProducts(BaseMutation):
@@ -236,17 +228,16 @@ class CollectionRemoveProducts(BaseMutation):
 
     class Meta:
         description = 'Remove products from a collection.'
+        permissions = ('product.manage_products', )
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, collection_id, products):
-        errors = []
+    def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
-            info, collection_id, errors, 'collectionId', only_type=Collection)
+            info, collection_id, field='collection_id', only_type=Collection)
         products = cls.get_nodes_or_error(
-            products, errors, 'products', only_type=Product)
+            products, 'products', only_type=Product)
         collection.products.remove(*products)
-        return CollectionRemoveProducts(collection=collection, errors=errors)
+        return CollectionRemoveProducts(collection=collection)
 
 
 class AttributeValueInput(InputObjectType):
@@ -260,7 +251,7 @@ class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
         description='List of attributes.')
-    available_on = graphene.types.datetime.Date(
+    publication_date = graphene.types.datetime.Date(
         description='Publication date. ISO 8601 standard.')
     category = graphene.ID(
         description='ID of the product\'s category.', name='category')
@@ -270,7 +261,10 @@ class ProductInput(graphene.InputObjectType):
         graphene.ID,
         description='List of IDs of collections that the product belongs to.',
         name='collections')
-    description = graphene.String(description='Product description.')
+    description = graphene.String(
+        description='Product description (HTML/text).')
+    description_json = graphene.JSONString(
+        description='Product description (JSON).')
     is_published = graphene.Boolean(
         description='Determines if product is visible to customers.')
     name = graphene.String(description='Product name.')
@@ -280,17 +274,17 @@ class ProductInput(graphene.InputObjectType):
     weight = WeightScalar(
         description='Weight of the Product.', required=False)
     sku = graphene.String(
-        description=dedent("""Stock keeping unit of a product. Note: this
-        field is only used if a product doesn't use variants."""))
+        description="""Stock keeping unit of a product. Note: this
+        field is only used if a product doesn't use variants.""")
     quantity = graphene.Int(
-        description=dedent("""The total quantity of a product available for
+        description="""The total quantity of a product available for
         sale. Note: this field is only used if a product doesn't
-        use variants."""))
+        use variants.""")
     track_inventory = graphene.Boolean(
-        description=dedent("""Determines if the inventory of this product
+        description="""Determines if the inventory of this product
         should be tracked. If false, the quantity won't change when customers
         buy this item. Note: this field is only used if a product doesn't
-        use variants."""))
+        use variants.""")
 
 
 class ProductCreateInput(ProductInput):
@@ -307,10 +301,11 @@ class ProductCreate(ModelMutation):
     class Meta:
         description = 'Creates a new product.'
         model = models.Product
+        permissions = ('product.manage_products', )
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -326,15 +321,15 @@ class ProductCreate(ModelMutation):
             try:
                 attributes = attributes_to_hstore(attributes, qs)
             except ValueError as e:
-                cls.add_error(errors, 'attributes', str(e))
+                raise ValidationError({'attributes': str(e)})
             else:
                 cleaned_input['attributes'] = attributes
         clean_seo_fields(cleaned_input)
-        cls.clean_sku(product_type, cleaned_input, errors)
+        cls.clean_sku(product_type, cleaned_input)
         return cleaned_input
 
     @classmethod
-    def clean_sku(cls, product_type, cleaned_input, errors):
+    def clean_sku(cls, product_type, cleaned_input):
         """Validate SKU input field.
 
         When creating products that don't use variants, SKU is required in
@@ -342,13 +337,13 @@ class ProductCreate(ModelMutation):
         See the documentation for `has_variants` field for details:
         http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
         """
-        if not product_type.has_variants:
+        if product_type and not product_type.has_variants:
             input_sku = cleaned_input.get('sku')
             if not input_sku:
-                cls.add_error(errors, 'sku', 'This field cannot be blank.')
+                raise ValidationError({'sku': 'This field cannot be blank.'})
             elif models.ProductVariant.objects.filter(sku=input_sku).exists():
-                cls.add_error(
-                    errors, 'sku', 'Product with this SKU already exists.')
+                raise ValidationError({
+                    'sku': 'Product with this SKU already exists.'})
 
     @classmethod
     @transaction.atomic
@@ -370,10 +365,6 @@ class ProductCreate(ModelMutation):
         if collections is not None:
             instance.collections.set(collections)
 
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
-
 
 class ProductUpdate(ProductCreate):
     class Arguments:
@@ -385,15 +376,16 @@ class ProductUpdate(ProductCreate):
     class Meta:
         description = 'Updates an existing product.'
         model = models.Product
+        permissions = ('product.manage_products', )
 
     @classmethod
-    def clean_sku(cls, product_type, cleaned_input, errors):
+    def clean_sku(cls, product_type, cleaned_input):
         input_sku = cleaned_input.get('sku')
         if (not product_type.has_variants and
                 input_sku and
                 models.ProductVariant.objects.filter(sku=input_sku).exists()):
-            cls.add_error(
-                errors, 'sku', 'Product with this SKU already exists.')
+            raise ValidationError({
+                'sku': 'Product with this SKU already exists.'})
 
     @classmethod
     @transaction.atomic
@@ -423,10 +415,7 @@ class ProductDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a product.'
         model = models.Product
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -440,9 +429,9 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        description=dedent("""Determines if the inventory of this variant should
-        be tracked. If false, the quantity won't change when customers
-        buy this item."""))
+        description="""Determines if the inventory of this variant should
+               be tracked. If false, the quantity won't change when customers
+               buy this item.""")
     weight = WeightScalar(
         description='Weight of the Product Variant.', required=False)
 
@@ -465,10 +454,10 @@ class ProductVariantCreate(ModelMutation):
     class Meta:
         description = 'Creates a new variant for a product'
         model = models.ProductVariant
+        permissions = ('product.manage_products', )
 
     @classmethod
-    def clean_product_type_attributes(
-            cls, attributes_qs, attributes_input, errors):
+    def clean_product_type_attributes(cls, attributes_qs, attributes_input):
         # transform attributes_input list to a dict of slug:value pairs
         attributes_input = {
             item['slug']: item['value'] for item in attributes_input}
@@ -477,18 +466,19 @@ class ProductVariantCreate(ModelMutation):
             value = attributes_input.get(attr.slug, None)
             if not value:
                 fieldname = 'attributes:%s' % attr.slug
-                cls.add_error(errors, fieldname, 'This field cannot be blank.')
+                raise ValidationError({
+                    fieldname: 'This field cannot be blank.'})
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
 
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
 
-        if 'attributes' in input:
+        if 'attributes' in data:
             attributes_input = cleaned_input.pop('attributes')
             product = instance.product if instance.pk else cleaned_input.get(
                 'product')
@@ -497,11 +487,11 @@ class ProductVariantCreate(ModelMutation):
                 'values')
             try:
                 cls.clean_product_type_attributes(
-                    variant_attrs, attributes_input, errors)
+                    variant_attrs, attributes_input)
                 attributes = attributes_to_hstore(
                     attributes_input, variant_attrs)
             except ValueError as e:
-                cls.add_error(errors, 'attributes', str(e))
+                raise ValidationError({'attributes': str(e)})
             else:
                 cleaned_input['attributes'] = attributes
         return cleaned_input
@@ -511,10 +501,6 @@ class ProductVariantCreate(ModelMutation):
         attributes = instance.product.product_type.variant_attributes.all()
         instance.name = get_name_from_attributes(instance, attributes)
         instance.save()
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
 
 
 class ProductVariantUpdate(ProductVariantCreate):
@@ -528,6 +514,7 @@ class ProductVariantUpdate(ProductVariantCreate):
     class Meta:
         description = 'Updates an existing variant for product'
         model = models.ProductVariant
+        permissions = ('product.manage_products', )
 
 
 class ProductVariantDelete(ModelDeleteMutation):
@@ -538,31 +525,31 @@ class ProductVariantDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a product variant.'
         model = models.ProductVariant
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
-        description=dedent("""Determines if product of this type has multiple
+        description="""Determines if product of this type has multiple
         variants. This option mainly simplifies product management
         in the dashboard. There is always at least one variant created under
-        the hood."""))
+        the hood.""")
     product_attributes = graphene.List(
         graphene.ID,
         description='List of attributes shared among all product variants.',
         name='productAttributes')
     variant_attributes = graphene.List(
         graphene.ID,
-        description=dedent("""List of attributes used to distinguish between
-        different variants of a product."""),
+        description="""List of attributes used to distinguish between
+        different variants of a product.""",
         name='variantAttributes')
     is_shipping_required = graphene.Boolean(
-        description=dedent("""Determines if shipping is required for products
-        of this variant."""))
+        description="""Determines if shipping is required for products
+        of this variant.""")
+    is_digital = graphene.Boolean(
+        description='Determines if products are digital.',
+        required=False)
     weight = WeightScalar(description='Weight of the ProductType items.')
     tax_rate = TaxRateType(description='A type of goods.')
 
@@ -576,10 +563,7 @@ class ProductTypeCreate(ModelMutation):
     class Meta:
         description = 'Creates a new product type.'
         model = models.ProductType
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -601,6 +585,7 @@ class ProductTypeUpdate(ProductTypeCreate):
     class Meta:
         description = 'Updates an existing product type.'
         model = models.ProductType
+        permissions = ('product.manage_products', )
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -620,10 +605,7 @@ class ProductTypeDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a product type.'
         model = models.ProductType
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+        permissions = ('product.manage_products', )
 
 
 class ProductImageCreateInput(graphene.InputObjectType):
@@ -645,25 +627,24 @@ class ProductImageCreate(BaseMutation):
             description='Fields required to create a product image.')
 
     class Meta:
-        description = dedent('''Create a product image. This mutation must be
+        description = '''Create a product image. This mutation must be
         sent as a `multipart` request. More detailed specs of the upload format
         can be found here:
-        https://github.com/jaydenseric/graphql-multipart-request-spec''')
+        https://github.com/jaydenseric/graphql-multipart-request-spec'''
+        permissions = ('product.manage_products', )
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, input):
-        errors = []
+    def perform_mutation(cls, _root, info, **data):
+        data = data.get('input')
         product = cls.get_node_or_error(
-            info, input['product'], errors, 'product', only_type=Product)
-        image_data = info.context.FILES.get(input['image'])
-        validate_image_file(cls, image_data, 'image', errors)
-        image = None
-        if not errors:
-            image = product.images.create(
-                image=image_data, alt=input.get('alt', ''))
-            create_product_thumbnails.delay(image.pk)
-        return ProductImageCreate(product=product, image=image, errors=errors)
+            info, data['product'], field='product', only_type=Product)
+        image_data = info.context.FILES.get(data['image'])
+        validate_image_file(image_data, 'image')
+
+        image = product.images.create(
+            image=image_data, alt=data.get('alt', ''))
+        create_product_thumbnails.delay(image.pk)
+        return ProductImageCreate(product=product, image=image)
 
 
 class ProductImageUpdateInput(graphene.InputObjectType):
@@ -683,20 +664,18 @@ class ProductImageUpdate(BaseMutation):
 
     class Meta:
         description = 'Updates a product image.'
+        permissions = ('product.manage_products', )
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, id, input):
-        errors = []
+    def perform_mutation(cls, _root, info, **data):
         image = cls.get_node_or_error(
-            info, id, errors, 'id', only_type=ProductImage)
+            info, data.get('id'), only_type=ProductImage)
         product = image.product
-        if not errors:
-            alt = input.get('alt')
-            if alt is not None:
-                image.alt = alt
-                image.save(update_fields=['alt'])
-        return ProductImageUpdate(product=product, image=image, errors=errors)
+        alt = data.get('input').get('alt')
+        if alt is not None:
+            image.alt = alt
+            image.save(update_fields=['alt'])
+        return ProductImageUpdate(product=product, image=image)
 
 
 class ProductImageReorder(BaseMutation):
@@ -713,32 +692,33 @@ class ProductImageReorder(BaseMutation):
 
     class Meta:
         description = 'Changes ordering of the product image.'
+        permissions = ('product.manage_products', )
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, product_id, images_ids):
-        errors = []
+    def perform_mutation(cls, _root, info, product_id, images_ids):
         product = cls.get_node_or_error(
-            info, product_id, errors, 'productId', Product)
+            info, product_id, field='product_id', only_type=Product)
         if len(images_ids) != product.images.count():
-            cls.add_error(
-                errors, 'order', 'Incorrect number of image IDs provided.')
+            raise ValidationError({
+                'order': 'Incorrect number of image IDs provided.'})
+
         images = []
         for image_id in images_ids:
             image = cls.get_node_or_error(
-                info, image_id, errors, 'order', only_type=ProductImage)
+                info, image_id, field='order', only_type=ProductImage)
             if image and image.product != product:
-                cls.add_error(
-                    errors, 'order',
-                    "Image with id %r does not belong to product %r" % (
-                        image_id, product_id))
+                raise ValidationError({
+                    'order':
+                        'Image %(image_id)s does not belong to this product.'},
+                    params={'image_id': image_id})
             images.append(image)
-        if not errors:
-            for order, image in enumerate(images):
-                image.sort_order = order
-                image.save(update_fields=['sort_order'])
+
+        for order, image in enumerate(images):
+            image.sort_order = order
+            image.save(update_fields=['sort_order'])
+
         return ProductImageReorder(
-            product=product, images=images, errors=errors)
+            product=product, images=images)
 
 
 class ProductImageDelete(BaseMutation):
@@ -751,19 +731,17 @@ class ProductImageDelete(BaseMutation):
 
     class Meta:
         description = 'Deletes a product image.'
+        permissions = ('product.manage_products', )
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, id):
-        errors = []
+    def perform_mutation(cls, _root, info, **data):
         image = cls.get_node_or_error(
-            info, id, errors, 'id', only_type=ProductImage)
+            info, data.get('id'), only_type=ProductImage)
         image_id = image.id
-        if not errors:
-            image.delete()
+        image.delete()
         image.id = image_id
         return ProductImageDelete(
-            product=image.product, image=image, errors=errors)
+            product=image.product, image=image)
 
 
 class VariantImageAssign(BaseMutation):
@@ -780,15 +758,14 @@ class VariantImageAssign(BaseMutation):
 
     class Meta:
         description = 'Assign an image to a product variant'
+        permissions = ('product.manage_products', )
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, image_id, variant_id):
-        errors = []
+    def perform_mutation(cls, _root, info, image_id, variant_id):
         image = cls.get_node_or_error(
-            info, image_id, errors, 'imageId', ProductImage)
+            info, image_id, field='image_id', only_type=ProductImage)
         variant = cls.get_node_or_error(
-            info, variant_id, errors, 'variantId', ProductVariant)
+            info, variant_id, field='variant_id', only_type=ProductVariant)
         if image and variant:
             # check if the given image and variant can be matched together
             image_belongs_to_product = variant.product.images.filter(
@@ -796,10 +773,10 @@ class VariantImageAssign(BaseMutation):
             if image_belongs_to_product:
                 image.variant_images.create(variant=variant)
             else:
-                cls.add_error(
-                    errors, 'imageId', 'Image must be for this product')
+                raise ValidationError({
+                    'image_id': 'This image doesn\'t belong to that product.'})
         return VariantImageAssign(
-            product_variant=variant, image=image, errors=errors)
+            product_variant=variant, image=image)
 
 
 class VariantImageUnassign(BaseMutation):
@@ -815,25 +792,22 @@ class VariantImageUnassign(BaseMutation):
 
     class Meta:
         description = 'Unassign an image from a product variant'
+        permissions = ('product.manage_products', )
 
     @classmethod
-    @permission_required('product.manage_products')
-    def mutate(cls, root, info, image_id, variant_id):
-        errors = []
+    def perform_mutation(cls, _root, info, image_id, variant_id):
         image = cls.get_node_or_error(
-            info, image_id, errors, 'imageId', ProductImage)
+            info, image_id, field='image_id', only_type=ProductImage)
         variant = cls.get_node_or_error(
-            info, variant_id, errors, 'variantId', ProductVariant)
-        if not errors:
-            if image and variant:
-                try:
-                    variant_image = models.VariantImage.objects.get(
-                        image=image, variant=variant)
-                except models.VariantImage.DoesNotExist:
-                    cls.add_error(
-                        errors, 'imageId',
-                        'Image is not assigned to this variant.')
-                else:
-                    variant_image.delete()
-        return VariantImageUnassign(
-            product_variant=variant, image=image, errors=errors)
+            info, variant_id, field='variant_id', only_type=ProductVariant)
+
+        try:
+            variant_image = models.VariantImage.objects.get(
+                image=image, variant=variant)
+        except models.VariantImage.DoesNotExist:
+            raise ValidationError({
+                'image_id': 'Image is not assigned to this variant.'})
+        else:
+            variant_image.delete()
+
+        return VariantImageUnassign(product_variant=variant, image=image)

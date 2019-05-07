@@ -35,10 +35,10 @@ def test_menu(menu_with_items):
 
 def test_render_page_availability(page):
     page_ctx = render_page_availability(page)
-    assert page_ctx == {'page': page, 'is_published': False}
+    assert page_ctx == {
+        'page': page, 'is_visible': True, 'label_cls': LABEL_SUCCESS}
 
-    page.is_visible = True
+    page.is_published = False
     page.save()
     page_ctx = render_page_availability(page)
-    assert page_ctx == {
-        'page': page, 'is_published': True, 'label_cls': LABEL_SUCCESS}
+    assert page_ctx == {'page': page, 'is_visible': False}

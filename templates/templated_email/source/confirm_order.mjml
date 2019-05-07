@@ -11,7 +11,7 @@
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {% trans "Hi!" context "Order confirmation e-mail text" %}
+          {% trans "Hi!" context "Standard e-mail greeting" %}
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Order confirmation e-mail text" %}
@@ -33,7 +33,11 @@
           <tbody>
             <tr>
               <td class="address">
-                {% format_address order.billing_address %}
+                {% if order.billing_address %}
+                  {% format_address order.billing_address %}
+                {% else %}
+                  {% trans "No billing address" context "Order confirmation e-mail text" %}
+                {% endif %}
               </td>
               <td css-class="address">
                 {% if order.shipping_address %}

@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import Container from "../../../components/Container";
@@ -108,8 +109,9 @@ const ProductTypeDetailsPage: React.StatelessComponent<
       confirmLeave
     >
       {({ change, data, hasChanged, submit }) => (
-        <Container width="md">
-          <PageHeader title={pageTitle} onBack={onBack} />
+        <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Product Types")}</AppHeader>
+          <PageHeader title={pageTitle} />
           <Grid>
             <div>
               <ProductTypeDetails

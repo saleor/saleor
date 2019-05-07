@@ -304,3 +304,93 @@ def test_delete_variant(staff_api_client, product, permission_manage_products):
     assert data['productVariant']['sku'] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
+
+
+def _fetch_all_variants(client, permissions=None):
+    query = """
+        query fetchAllVariants {
+            productVariants(first: 10) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    response = client.post_graphql(
+        query, {}, permissions=permissions, check_no_permissions=False)
+    content = get_graphql_content(response)
+    return content['data']['productVariants']
+
+
+def test_fetch_all_variants_staff_user(
+        staff_api_client, unavailable_product_with_variant,
+        permission_manage_products):
+    data = _fetch_all_variants(
+        staff_api_client, permissions=[permission_manage_products])
+    variant = unavailable_product_with_variant.variants.first()
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
+    assert data['totalCount'] == 1
+    assert data['edges'][0]['node']['id'] == variant_id
+
+
+def test_fetch_all_variants_customer(
+        user_api_client, unavailable_product_with_variant):
+    data = _fetch_all_variants(user_api_client)
+    assert data['totalCount'] == 0
+
+
+def test_fetch_all_variants_anonymous_user(
+        api_client, unavailable_product_with_variant):
+    data = _fetch_all_variants(api_client)
+    assert data['totalCount'] == 0
+
+
+def _fetch_variant(client, variant, permissions=None):
+    query = """
+    query ProductVariantDetails($variantId: ID!) {
+        productVariant(id: $variantId) {
+            id
+            product {
+                id
+            }
+        }
+    }
+    """
+    variables = {
+        'variantId': graphene.Node.to_global_id('ProductVariant', variant.id)}
+    response = client.post_graphql(
+        query, variables, permissions=permissions, check_no_permissions=False)
+    content = get_graphql_content(response)
+    return content['data']['productVariant']
+
+
+def test_fetch_unpublished_variant_staff_user(
+        staff_api_client, unavailable_product_with_variant,
+        permission_manage_products):
+    variant = unavailable_product_with_variant.variants.first()
+    data = _fetch_variant(
+        staff_api_client, variant, permissions=[permission_manage_products])
+
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
+    product_id = graphene.Node.to_global_id(
+        'Product', unavailable_product_with_variant.pk)
+
+    assert data['id'] == variant_id
+    assert data['product']['id'] == product_id
+
+
+def test_fetch_unpublished_variant_customer(
+        user_api_client, unavailable_product_with_variant):
+    variant = unavailable_product_with_variant.variants.first()
+    data = _fetch_variant(user_api_client, variant)
+    assert data is None
+
+
+def test_fetch_unpublished_variant_anonymous_user(
+        api_client, unavailable_product_with_variant):
+    variant = unavailable_product_with_variant.variants.first()
+    data = _fetch_variant(api_client, variant)
+    assert data is None

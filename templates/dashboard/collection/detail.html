@@ -16,7 +16,11 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li><a href="{% url "dashboard:collection-list" %}" class="breadcrumb">{% trans "Collections" %}</a></li>
-    <li class="back-mobile"><a href="{% url "dashboard:collection-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:collection-list" %}" class="breadcrumb">
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
     <li><span class="breadcrumbs--ellipsed-item">{% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %}</span></li>
   </ul>
 {% endblock %}
@@ -68,7 +72,7 @@
               {{ form.is_published|materializecss }}
             </div>
             <div class="row">
-              {{ form.published_date|materializecss }}
+              {{ form.publication_date|materializecss }}
             </div>
             {% include "dashboard/includes/_google_preview.html" with object=collection form=form %}
           </div>

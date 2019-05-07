@@ -3,13 +3,14 @@ from decimal import Decimal
 
 import pytest
 from django.urls import reverse
+from phonenumber_field.phonenumber import PhoneNumber
 from prices import Money
 
 from saleor.checkout import AddressType
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.dashboard.order.utils import (
-    fulfill_order_line, remove_customer_from_order, save_address_in_order,
+    remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
 from saleor.discount.utils import increase_voucher_usage
 from saleor.order import (
@@ -78,7 +79,7 @@ def test_view_capture_order_payment_preauth(
             'amount': str(order.total.gross.amount)})
     assert response.status_code == 302
     payment = order.payments.last()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == order.total.gross.amount
     assert payment.currency == order.total.gross.currency
 
@@ -97,7 +98,7 @@ def test_view_capture_order_invalid_payment_confirmed_status(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
     payment = order.payments.last()
-    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
 
 
 @pytest.mark.integration
@@ -230,7 +231,7 @@ def test_view_void_order_invalid_payment_confirmed_status(
         'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 400
     order_payment = order.payments.last()
-    assert order_payment.charge_status == ChargeStatus.CHARGED
+    assert order_payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert order_payment.captured_amount == order.total.gross.amount
     assert order_payment.total == order.total.gross.amount
     assert order_payment.currency == order.total.gross.currency
@@ -356,8 +357,8 @@ def test_view_change_order_line_quantity_with_invalid_data(
     assert response.status_code == 400
 
 
-def test_dashboard_change_quantity_form(request_cart_with_item, order):
-    for line in request_cart_with_item:
+def test_dashboard_change_quantity_form(request_checkout_with_item, order):
+    for line in request_checkout_with_item:
         add_variant_to_order(order, line.variant, line.quantity)
     order_line = order.lines.get()
     quantity_before = order_line.variant.quantity_allocated
@@ -481,47 +482,6 @@ def test_view_add_variant_to_order(admin_client, order_with_lines):
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
     assert line.quantity == line_quantity_before + added_quantity
-
-
-def test_fulfill_order_line(order_with_lines):
-    order = order_with_lines
-    line = order.lines.first()
-    quantity_fulfilled_before = line.quantity_fulfilled
-    variant = line.variant
-    stock_quantity_after = variant.quantity - line.quantity
-
-    fulfill_order_line(line, line.quantity)
-
-    variant.refresh_from_db()
-    assert variant.quantity == stock_quantity_after
-    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
-
-
-def test_fulfill_order_line_with_variant_deleted(order_with_lines):
-    line = order_with_lines.lines.first()
-    line.variant.delete()
-
-    line.refresh_from_db()
-
-    fulfill_order_line(line, line.quantity)
-
-
-def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
-    order = order_with_lines
-    line = order.lines.first()
-    quantity_fulfilled_before = line.quantity_fulfilled
-    variant = line.variant
-    variant.track_inventory = False
-    variant.save()
-
-    # stock should not change
-    stock_quantity_after = variant.quantity
-
-    fulfill_order_line(line, line.quantity)
-
-    variant.refresh_from_db()
-    assert variant.quantity == stock_quantity_after
-    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
 def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):
@@ -791,6 +751,33 @@ def test_view_order_shipping_edit_not_draft_order(
     assert response.status_code == 404
 
 
+def test_view_order_address_edit(
+        admin_client, order_with_lines, address_other_country):
+
+    order = order_with_lines
+    new_address = address_other_country
+
+    new_address.phone = PhoneNumber.from_string(
+        region=new_address.country.code, phone_number='+33.600000000')
+
+    address_data = new_address.as_data()
+    address_data.pop('phone')
+
+    address_data.update({
+        'phone_0': '+33',
+        'phone_1': '600000000'})
+
+    url = reverse(
+        'dashboard:address-edit',
+        kwargs={'order_pk': order.pk, 'address_type': 'shipping'})
+
+    response = admin_client.post(url, address_data)
+    assert response.status_code == 302
+
+    order.refresh_from_db(fields=['shipping_address'])
+    assert new_address.as_data() == order.shipping_address.as_data()
+
+
 def test_view_order_shipping_remove(admin_client, draft_order):
     url = reverse(
         'dashboard:order-shipping-remove', kwargs={'order_pk': draft_order.pk})
@@ -1011,8 +998,60 @@ def test_view_fulfill_order_lines(admin_client, order_with_lines):
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
     order_with_lines.refresh_from_db()
-    for line in order_with_lines:
+    for line in order_with_lines.lines.all():
         assert line.quantity_unfulfilled == 0
+
+
+def test_view_fulfill_order_lines_with_empty_quantity(admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:fulfill-order-lines',
+        kwargs={'order_pk': order_with_lines.pk})
+    data = {
+        'csrfmiddlewaretoken': 'hello',
+        'form-INITIAL_FORMS': '0',
+        'form-MAX_NUM_FORMS': '1000',
+        'form-MIN_NUM_FORMS': '0',
+        'form-TOTAL_FORMS': order_with_lines.lines.count(),
+        'send_mail': 'on',
+        'tracking_number': ''}
+    for i, line in enumerate(order_with_lines):
+        data['form-{}-order_line'.format(i)] = line.pk
+        data['form-{}-quantity'.format(i)] = line.quantity_unfulfilled
+
+    # Set first order line's fulfill quantity to 0
+    data['form-0-quantity'] = 0
+
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse(
+        'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
+    order_with_lines.refresh_from_db()
+    assert not order_with_lines.lines.all()[0].quantity_unfulfilled == 0
+    for line in order_with_lines.lines.all()[1:]:
+        assert line.quantity_unfulfilled == 0
+
+
+def test_view_fulfill_order_lines_with_all_empty_quantity(
+        admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:fulfill-order-lines',
+        kwargs={'order_pk': order_with_lines.pk})
+    data = {
+        'csrfmiddlewaretoken': 'hello',
+        'form-INITIAL_FORMS': '0',
+        'form-MAX_NUM_FORMS': '1000',
+        'form-MIN_NUM_FORMS': '0',
+        'form-TOTAL_FORMS': order_with_lines.lines.count(),
+        'send_mail': 'on',
+        'tracking_number': ''}
+    for i, line in enumerate(order_with_lines):
+        data['form-{}-order_line'.format(i)] = line.pk
+        data['form-{}-quantity'.format(i)] = 0
+
+    response = admin_client.post(url, data)
+    assert response.status_code == 200
+    for line in order_with_lines.lines.all():
+        assert not line.quantity_unfulfilled == 0
 
 
 def test_render_fulfillment_page(admin_client, order_with_lines):
@@ -1079,6 +1118,13 @@ def test_order_event_display(admin_user, type, order):
 
 def test_filter_order_by_status(admin_client):
     url = reverse('dashboard:orders',)
-    data = {'status': 'unfulfilled', 'payment_status': 'charged'}
+    data = {
+        'status': 'unfulfilled', 'payment_status': ChargeStatus.NOT_CHARGED}
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+
+    data = {
+        'status': 'unfulfilled',
+        'payment_status': ChargeStatus.FULLY_REFUNDED}
     response = admin_client.get(url, data)
     assert response.status_code == 200

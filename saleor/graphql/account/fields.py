@@ -5,5 +5,5 @@ from ...account.models import PossiblePhoneNumberField
 
 
 @convert_django_field.register(PossiblePhoneNumberField)
-def convert_json_field_to_string(field, registry=None):
+def convert_json_field_to_string(*_args):
     return graphene.String()

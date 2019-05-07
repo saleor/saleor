@@ -10,7 +10,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
-import DateFormatter from "../../../components/DateFormatter";
+import { DateTime } from "../../../components/Date";
 import { Hr } from "../../../components/Hr";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
@@ -20,8 +20,7 @@ import { CustomerDetails_user } from "../../types/CustomerDetails";
 const styles = (theme: Theme) =>
   createStyles({
     label: {
-      marginBottom: theme.spacing.unit,
-      textTransform: "uppercase"
+      marginBottom: theme.spacing.unit
     },
     value: {
       fontSize: 24
@@ -37,7 +36,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
     <Card>
       <CardTitle title={i18n.t("Customer History")} />
       <CardContent>
-        <Typography className={classes.label} variant="body2">
+        <Typography className={classes.label} variant="caption">
           {i18n.t("Last login")}
         </Typography>
         {maybe(
@@ -46,7 +45,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
               {customer.lastLogin === null ? (
                 i18n.t("-")
               ) : (
-                <DateFormatter date={customer.lastLogin} />
+                <DateTime date={customer.lastLogin} />
               )}
             </Typography>
           ),
@@ -55,7 +54,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
       </CardContent>
       <Hr />
       <CardContent>
-        <Typography className={classes.label} variant="body2">
+        <Typography className={classes.label} variant="caption">
           {i18n.t("Last order")}
         </Typography>
         {maybe(
@@ -64,7 +63,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
               {customer.lastPlacedOrder.edges.length === 0 ? (
                 i18n.t("-")
               ) : (
-                <DateFormatter
+                <DateTime
                   date={customer.lastPlacedOrder.edges[0].node.created}
                 />
               )}

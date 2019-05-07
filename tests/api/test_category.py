@@ -1,13 +1,14 @@
+import json
 from unittest.mock import Mock
 
 import graphene
 import pytest
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
-from tests.api.utils import get_graphql_content, get_multipart_request_body
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.product.models import Category
+from tests.api.utils import get_graphql_content, get_multipart_request_body
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 
 def test_category_query(user_api_client, product):
@@ -48,14 +49,18 @@ def test_category_query(user_api_client, product):
 
 
 def test_category_create_mutation(
-        monkeypatch, staff_api_client, permission_manage_products):
+        monkeypatch, staff_api_client, permission_manage_products, media_root):
     query = """
-        mutation($name: String, $slug: String, $description: String, $backgroundImage: Upload, $backgroundImageAlt: String, $parentId: ID) {
+        mutation(
+                $name: String, $slug: String, $description: String,
+                $descriptionJson: JSONString, $backgroundImage: Upload,
+                $backgroundImageAlt: String, $parentId: ID) {
             categoryCreate(
                 input: {
                     name: $name
                     slug: $slug
                     description: $description
+                    descriptionJson: $descriptionJson
                     backgroundImage: $backgroundImage
                     backgroundImageAlt: $backgroundImageAlt
                 },
@@ -66,6 +71,7 @@ def test_category_create_mutation(
                     name
                     slug
                     description
+                    descriptionJson
                     parent {
                         name
                         id
@@ -91,12 +97,14 @@ def test_category_create_mutation(
     category_name = 'Test category'
     category_slug = slugify(category_name)
     category_description = 'Test description'
+    category_description_json = json.dumps({'content': 'description'})
     image_file, image_name = create_image()
     image_alt = 'Alt text for an image.'
 
     # test creating root category
     variables = {
         'name': category_name, 'description': category_description,
+        'descriptionJson': category_description_json,
         'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
         'slug': category_slug}
     body = get_multipart_request_body(query, variables, image_file, image_name)
@@ -107,6 +115,7 @@ def test_category_create_mutation(
     assert data['errors'] == []
     assert data['category']['name'] == category_name
     assert data['category']['description'] == category_description
+    assert data['category']['descriptionJson'] == category_description_json
     assert not data['category']['parent']
     category = Category.objects.get(name=category_name)
     assert category.background_image.file
@@ -198,7 +207,8 @@ MUTATION_CATEGORY_UPDATE_MUTATION = """
 
 
 def test_category_update_mutation(
-        monkeypatch, staff_api_client, category, permission_manage_products):
+        monkeypatch, staff_api_client, category, permission_manage_products,
+        media_root):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.category.forms.'
@@ -376,7 +386,8 @@ FETCH_CATEGORY_QUERY = """
     """
 
 
-def test_category_image_query(user_api_client, non_default_category):
+def test_category_image_query(
+        user_api_client, non_default_category, media_root):
     alt_text = 'Alt text for an image.'
     category = non_default_category
     image_file, image_name = create_image()

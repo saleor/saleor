@@ -1,4 +1,3 @@
-import grey from "@material-ui/core/colors/grey";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
@@ -12,32 +11,33 @@ import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import * as React from "react";
 
-import DateFormatter from "../DateFormatter";
+import { DateTime } from "../Date";
 
 const styles = (theme: Theme) =>
   createStyles({
     date: {
+      color: theme.typography.caption.color,
+    },
+    dateExpander:{
+      color: theme.typography.caption.color,
       position: "absolute",
       right: theme.spacing.unit * 3
     },
     dot: {
       backgroundColor: theme.palette.primary.main,
-      borderColor: grey[300],
       borderRadius: "100%",
-      borderStyle: "solid",
-      borderWidth: 2,
-      height: 16,
-      left: -33,
+      height: 8,
+      left: -29,
       position: "absolute",
-      top: 2,
-      width: 16
+      top: 6,
+      width: 8
     },
     noExpander: {
       alignItems: "center",
       display: "flex",
       justifyContent: "space-between",
       marginBottom: theme.spacing.unit,
-      marginLeft: theme.spacing.unit,
+      marginLeft: theme.spacing.unit * 3,
       width: "100%"
     },
     panel: {
@@ -79,7 +79,7 @@ export const TimelineEvent = withStyles(styles)(
         <ExpansionPanel className={classes.panel} elevation={0}>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>{title}</Typography>
-            <Typography className={classes.date}>{title}</Typography>
+            <Typography className={classes.dateExpander}>{title}</Typography>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
             <Typography>{children}</Typography>
@@ -88,8 +88,8 @@ export const TimelineEvent = withStyles(styles)(
       ) : (
         <div className={classes.noExpander}>
           <Typography>{title}</Typography>
-          <Typography>
-            <DateFormatter date={date} />
+          <Typography className={classes.date}>
+            <DateTime date={date} />
           </Typography>
         </div>
       )}

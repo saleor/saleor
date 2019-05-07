@@ -9,11 +9,12 @@ from ..seo.utils import prepare_seo_description
 
 class PageForm(forms.ModelForm):
     content = RichTextField(
-        label=pgettext_lazy('Page form: page content field', 'Content'))
+        label=pgettext_lazy('Page form: page content field', 'Content'),
+        required=True)
 
     class Meta:
         model = Page
-        exclude = ['created']
+        exclude = ['created', 'content_json']
         widgets = {
             'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})}
         labels = {
@@ -22,8 +23,8 @@ class PageForm(forms.ModelForm):
             'slug': pgettext_lazy('Page form: slug field', 'Slug'),
             'available_on': pgettext_lazy(
                 'Page form: available on which date field', 'Available on'),
-            'is_visible': pgettext_lazy(
-                'Page form: visibility status indicator', 'Is visible')}
+            'is_published': pgettext_lazy(
+                'Page form: publication status indicator', 'Is published')}
         help_texts = {
             'slug': pgettext_lazy(
                 'Form field help text',

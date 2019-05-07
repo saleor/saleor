@@ -5,8 +5,8 @@ from django.contrib.auth import forms as django_forms, update_session_auth_hash
 from django.utils.translation import pgettext, pgettext_lazy
 from phonenumbers.phonenumberutil import country_code_for_region
 
-from . import emails
 from ..account.models import User
+from . import emails
 from .i18n import AddressMetaForm, get_address_form_class
 
 
@@ -46,6 +46,11 @@ def get_address_form(
             not preview and data or None,
             initial=initial_address,
             **kwargs)
+
+    if hasattr(address_form.fields['country_area'], 'choices'):
+        choices = address_form.fields['country_area'].choices
+        choices = [(choice[1], choice[1]) for choice in choices]
+        address_form.fields['country_area'].choices = choices
     return address_form, preview
 
 

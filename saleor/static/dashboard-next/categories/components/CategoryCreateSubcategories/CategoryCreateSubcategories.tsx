@@ -84,7 +84,7 @@ export const CategoryCreateSubcategories = withStyles(styles, {
                 <div className={classes.inputGrid}>
                   <TextField label={i18n.t("Category Name")} />
                   <TextField label={i18n.t("Category Description")} />
-                  <IconButton className={classes.deleteIcon} color="secondary">
+                  <IconButton className={classes.deleteIcon} color="primary">
                     <DeleteIcon />
                   </IconButton>
                 </div>
@@ -92,7 +92,7 @@ export const CategoryCreateSubcategories = withStyles(styles, {
                 <Hr />
                 <Button
                   variant="text"
-                  color="secondary"
+                  color="primary"
                   className={classes.addSubCat}
                 >
                   {i18n.t("Add subcategory")}

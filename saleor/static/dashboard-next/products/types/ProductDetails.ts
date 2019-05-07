@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -103,7 +104,7 @@ export interface ProductDetails_product_availability_priceRange {
 }
 
 export interface ProductDetails_product_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
   priceRange: ProductDetails_product_availability_priceRange | null;
 }
@@ -145,7 +146,7 @@ export interface ProductDetails_product {
   __typename: "Product";
   id: string;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductDetails_product_category;
@@ -155,7 +156,7 @@ export interface ProductDetails_product {
   purchaseCost: ProductDetails_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
-  availableOn: any | null;
+  publicationDate: any | null;
   attributes: ProductDetails_product_attributes[];
   availability: ProductDetails_product_availability | null;
   images: (ProductDetails_product_images | null)[] | null;

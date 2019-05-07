@@ -1,12 +1,23 @@
+import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-const pageSectionUrl = "/pages/";
+import { BulkAction, Dialog, Pagination } from "../types";
 
-export const pageListPath = pageSectionUrl;
-export const pageListUrl = pageListPath;
+export const pagesSection = "/pages/";
 
-export const pagePath = (id: string) => urlJoin(pageSectionUrl, id);
-export const pageUrl = (id: string) => pagePath(encodeURIComponent(id));
+export const pageListPath = pagesSection;
+export type PageListUrlDialog = "publish" | "unpublish" | "remove";
+export type PageListUrlQueryParams = BulkAction &
+  Dialog<PageListUrlDialog> &
+  Pagination;
+export const pageListUrl = (params?: PageListUrlQueryParams) =>
+  pageListPath + "?" + stringifyQs(params);
 
-export const pageAddPath = urlJoin(pageSectionUrl, "add");
-export const pageAddUrl = pageAddPath;
+export const pagePath = (id: string) => urlJoin(pagesSection, id);
+export type PageUrlDialog = "remove";
+export type PageUrlQueryParams = Dialog<PageUrlDialog>;
+export const pageUrl = (id: string, params?: PageUrlQueryParams) =>
+  pagePath(encodeURIComponent(id)) + "?" + stringifyQs(params);
+
+export const pageCreatePath = urlJoin(pagesSection, "add");
+export const pageCreateUrl = pageCreatePath;

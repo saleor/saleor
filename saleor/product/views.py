@@ -1,22 +1,28 @@
 import datetime
 import json
+import mimetypes
+import os
+from typing import Union
 
-from django.http import HttpResponsePermanentRedirect, JsonResponse
+from django.http import (
+    FileResponse, HttpResponseNotFound, HttpResponsePermanentRedirect,
+    JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
-from ..checkout.utils import set_cart_cookie
+from ..checkout.utils import set_checkout_cookie
 from ..core.utils import serialize_decimal
 from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
-from .models import Category
+from .models import Category, DigitalContentUrl
 from .utils import (
     collections_visible_to_user, get_product_images, get_product_list_context,
-    handle_cart_form, products_for_cart, products_for_products_list,
+    handle_checkout_form, products_for_checkout, products_for_products_list,
     products_with_details)
 from .utils.attributes import get_product_attributes_data
-from .utils.availability import get_availability
+from .utils.availability import get_product_availability
+from .utils.digital_products import digital_content_url_is_valid
 from .utils.variants_picker import get_variant_picker_data
 
 
@@ -33,7 +39,7 @@ def product_details(request, slug, product_id, form=None):
         admin is previewing a product before publishing).
 
     form:
-        The add-to-cart form.
+        The add-to-checkout form.
 
     price_range:
         The PriceRange for the product including all discounts.
@@ -56,10 +62,10 @@ def product_details(request, slug, product_id, form=None):
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     today = datetime.date.today()
     is_visible = (
-        product.available_on is None or product.available_on <= today)
+        product.publication_date is None or product.publication_date <= today)
     if form is None:
-        form = handle_cart_form(request, product, create_cart=False)[0]
-    availability = get_availability(
+        form = handle_checkout_form(request, product, create_checkout=False)[0]
+    availability = get_product_availability(
         product, discounts=request.discounts, taxes=request.taxes,
         local_currency=request.currency)
     product_images = get_product_images(product)
@@ -84,7 +90,31 @@ def product_details(request, slug, product_id, form=None):
     return TemplateResponse(request, 'product/details.html', ctx)
 
 
-def product_add_to_cart(request, slug, product_id):
+def digital_product(
+        request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
+    """Returns direct download link to content if given token is still valid"""
+
+    content_url = get_object_or_404(DigitalContentUrl, token=token)
+    if not digital_content_url_is_valid(content_url):
+        return HttpResponseNotFound("Url is not valid anymore")
+    digital_content = content_url.content
+    digital_content.content_file.open()
+    opened_file = digital_content.content_file.file
+    filename = os.path.basename(digital_content.content_file.name)
+    file_expr = 'filename="{}"'.format(filename)
+
+    content_type = mimetypes.guess_type(str(filename))[0]
+    response = FileResponse(opened_file)
+    response['Content-Length'] = digital_content.content_file.size
+
+    response['Content-Type'] = content_type
+    response['Content-Disposition'] = 'attachment; {}'.format(file_expr)
+    content_url.download_num += 1
+    content_url.save(update_fields=['download_num', ])
+    return response
+
+
+def product_add_to_checkout(request, slug, product_id):
     # types: (int, str, dict) -> None
 
     if not request.method == 'POST':
@@ -92,23 +122,23 @@ def product_add_to_cart(request, slug, product_id):
             'product:details',
             kwargs={'product_id': product_id, 'slug': slug}))
 
-    products = products_for_cart(user=request.user)
+    products = products_for_checkout(user=request.user)
     product = get_object_or_404(products, pk=product_id)
-    form, cart = handle_cart_form(request, product, create_cart=True)
+    form, checkout = handle_checkout_form(request, product, create_checkout=True)
     if form.is_valid():
         form.save()
         if request.is_ajax():
             response = JsonResponse(
-                {'next': reverse('cart:index')}, status=200)
+                {'next': reverse('checkout:index')}, status=200)
         else:
-            response = redirect('cart:index')
+            response = redirect('checkout:index')
     else:
         if request.is_ajax():
             response = JsonResponse({'error': form.errors}, status=400)
         else:
             response = product_details(request, slug, product_id, form)
     if not request.user.is_authenticated:
-        set_cart_cookie(cart, response)
+        set_checkout_cookie(checkout, response)
     return response
 
 
@@ -121,8 +151,10 @@ def category_index(request, slug, category_id):
             category_id=category_id)
     # Check for subcategories
     categories = category.get_descendants(include_self=True)
-    products = products_for_products_list(user=request.user).filter(
-        category__in=categories).order_by('name')
+    products = products_for_products_list(user=request.user)\
+        .filter(category__in=categories)\
+        .order_by('name')\
+        .prefetch_related('collections')
     product_filter = ProductCategoryFilter(
         request.GET, queryset=products, category=category)
     ctx = get_product_list_context(request, product_filter)

@@ -7,10 +7,11 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { CardMenu } from "../../../components/CardMenu/CardMenu";
+import AppHeader from "../../../components/AppHeader";
+import CardMenu from "../../../components/CardMenu";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { Container } from "../../../components/Container";
-import DateFormatter from "../../../components/DateFormatter";
+import { DateTime } from "../../../components/Date";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
@@ -29,13 +30,10 @@ const styles = (theme: Theme) =>
   createStyles({
     date: {
       marginBottom: theme.spacing.unit * 3,
-      marginLeft: theme.spacing.unit * 7
+      marginTop: -theme.spacing.unit * 2
     },
     header: {
       marginBottom: 0
-    },
-    menu: {
-      marginRight: -theme.spacing.unit
     }
   });
 
@@ -89,15 +87,14 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
     );
 
     return (
-      <Container width="md">
+      <Container>
+        <AppHeader onBack={onBack}>{i18n.t("Orders")}</AppHeader>
         <PageHeader
           className={classes.header}
           title={maybe(() => order.number) ? "#" + order.number : undefined}
-          onBack={onBack}
         >
           {canCancel && (
             <CardMenu
-              className={classes.menu}
               menuItems={[
                 {
                   label: i18n.t("Cancel order", { context: "button" }),
@@ -110,7 +107,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
         <div className={classes.date}>
           {order && order.created ? (
             <Typography variant="caption">
-              <DateFormatter date={order.created} />
+              <DateTime date={order.created} />
             </Typography>
           ) : (
             <Skeleton style={{ width: "10em" }} />

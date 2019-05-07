@@ -5,10 +5,11 @@ import CollectionListPage, {
   CollectionListPageProps
 } from "../../../collections/components/CollectionListPage";
 import { collections } from "../../../collections/fixtures";
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
 const props: CollectionListPageProps = {
+  ...listActionsProps,
   ...pageListProps.default,
   collections
 };

@@ -48,14 +48,16 @@ export const CategoryCreateView: React.StatelessComponent<
                       disabled={createCategoryResult.loading}
                       onBack={() =>
                         navigate(
-                          parentId ? categoryUrl(parentId) : categoryListUrl
+                          parentId ? categoryUrl(parentId) : categoryListUrl()
                         )
                       }
                       onSubmit={formData =>
                         createCategory({
                           variables: {
                             input: {
-                              description: formData.description,
+                              descriptionJson: JSON.stringify(
+                                formData.description
+                              ),
                               name: formData.name,
                               seo: {
                                 description: formData.seoDescription,

@@ -1,8 +1,13 @@
+import json
+from random import shuffle
+from typing import Dict, List
+
 import graphene
 import pytest
+from graphql_relay import from_global_id
 
 from saleor.graphql.menu.mutations import NavigationType
-from saleor.menu.models import MenuItem
+from saleor.menu.models import MenuItem, Menu
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
@@ -370,3 +375,301 @@ def test_assign_menu(
     assert not content['data']['assignNavigation']['menu']
     site_settings.refresh_from_db()
     assert site_settings.top_menu is None
+
+
+QUERY_REORDER_MENU = '''
+mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput]!) {
+  menuItemMove(menu: $menu, moves: $moves) {
+    errors {
+      field
+      message
+    }
+
+    menu {
+      id
+      items {
+        id
+        sortOrder
+        parent {
+          id
+        }
+        children {
+          id
+          sortOrder
+          parent {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+'''
+
+
+def _assert_menu_is_exactly(
+        menu_id: str,
+        actual_data: dict, expected_data: List[Dict]):
+
+    menu = actual_data.get('menu')
+    assert menu, 'Expected to receive a valid menu to compare from'
+
+    # Check the returned menu is actually the one we requested to change
+    assert menu['id'] == menu_id
+
+    actual_menu_items = menu.get('items')
+    assert actual_menu_items, 'Expected the menu to have items'
+
+    for expected_item in expected_data:
+        the_item_was_found = False
+        expected_sort_order = expected_item.get('sortOrder')
+        expected_parent_id = expected_item.get('parentId')
+        expected_item_id = from_global_id(expected_item['itemId'])[1]
+
+        for actual_item in actual_menu_items:
+            # Get the item that we want to compare, we retrieve by the database
+            # entry ID as the node id may have changed between the initial
+            # request and the one returned by the mutation
+            actual_item_id = from_global_id(actual_item['id'])[1]
+            if actual_item_id != expected_item_id:
+                # Append the children, to check, if any
+                children = actual_item.get('children')
+                if children:
+                    actual_menu_items += children
+
+                # Skip this node as it is not the one we are looking for
+                continue
+
+            the_item_was_found = True
+
+            if expected_sort_order:
+                assert actual_item['sortOrder'] == expected_sort_order, \
+                    'The menu item did not have the expected sorting order'
+
+            if 'parentId' in expected_item:
+                if expected_parent_id:
+                    assert actual_item['parent'], \
+                        'Expected the menu item to have a parent'
+                    assert actual_item['parent']['id'] == expected_parent_id, \
+                        'The menu item did not have the expected parent'
+                else:
+                    assert not actual_item['parent'], \
+                        'Expected the menu item to not have a parent'
+
+        assert the_item_was_found, \
+            'The expected menu item was not found in the response'
+
+
+def test_menu_reorder(
+        staff_api_client, permission_manage_menus, menu_item_list):
+
+    menu_item_list = list(menu_item_list)
+    menu_id = graphene.Node.to_global_id('Menu', menu_item_list[0].menu_id)
+
+    # Randomize the menu ordering
+    shuffle(menu_item_list)
+
+    moves = [{
+        "itemId": graphene.Node.to_global_id('MenuItem', item.pk),
+        "parentId": None, "sortOrder": pos
+    } for pos, item in enumerate(menu_item_list)]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU,
+        {
+            'moves': moves,
+            'menu': menu_id
+        },
+        [permission_manage_menus])
+    )['data']['menuItemMove']
+    assert not response.get('errors')
+
+    # Ensure the order is right
+    _assert_menu_is_exactly(menu_id, response, moves)
+
+
+def test_menu_reorder_assign_parent(
+        staff_api_client, permission_manage_menus, menu_item_list):
+
+    menu_item_list = list(menu_item_list)
+    menu_id = graphene.Node.to_global_id('Menu', menu_item_list[1].menu_id)
+
+    root = menu_item_list[0]
+    moves = [{
+        "itemId": graphene.Node.to_global_id('MenuItem', item.pk),
+        "parentId": graphene.Node.to_global_id('MenuItem', root.pk),
+        "sortOrder": None
+    } for item in menu_item_list[1:]]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU,
+        {
+            'moves': moves,
+            'menu': menu_id
+        },
+        [permission_manage_menus]
+    ))['data']['menuItemMove']
+    assert not response.get('errors')
+
+    # Ensure the parent were assigned correctly
+    _assert_menu_is_exactly(menu_id, response, moves)
+
+
+def test_menu_reorder_assign_parent_to_top_level(
+        staff_api_client, permission_manage_menus, menu_item_list):
+
+    menu_item_list = list(menu_item_list)
+    menu_id = graphene.Node.to_global_id('Menu', menu_item_list[0].menu_id)
+
+    root = menu_item_list[0]
+    root_node_id = graphene.Node.to_global_id('MenuItem', root.pk)
+
+    # Give to the item menu a parent
+    root.move_to(menu_item_list[1])
+    root.save()
+
+    assert root.parent
+
+    moves = [{
+        "itemId": root_node_id,
+        "parentId": None,
+        "sortOrder": None
+    }]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU,
+        {
+            'moves': moves,
+            'menu': menu_id
+        },
+        [permission_manage_menus]
+    ))['data']['menuItemMove']
+    assert not response.get('errors')
+
+    # Ensure the order is right
+    _assert_menu_is_exactly(menu_id, response, moves)
+
+
+def test_menu_reorder_cannot_assign_to_ancestor(
+        staff_api_client, permission_manage_menus, menu_item_list):
+
+    menu_item_list = list(menu_item_list)
+    menu_id = graphene.Node.to_global_id('Menu', menu_item_list[0].menu_id)
+
+    root = menu_item_list[0]
+    root_node_id = graphene.Node.to_global_id('MenuItem', root.pk)
+
+    child = menu_item_list[2]
+    child_node_id = graphene.Node.to_global_id('MenuItem', child.pk)
+
+    # Give the child an ancestor
+    child.move_to(root)
+    child.save()
+
+    # Give the child an ancestor
+    child.move_to(root)
+    child.save()
+
+    assert not root.parent
+    assert child.parent
+
+    moves = [{
+        "itemId": root_node_id,
+        "parentId": child_node_id,
+        "sortOrder": None
+    }]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU,
+        {
+            'moves': moves,
+            'menu': menu_id
+        },
+        [permission_manage_menus]
+    ))['data']['menuItemMove']
+
+    assert response['errors'] == [
+        {'field': 'parent',
+         'message': 'Cannot assign a node as child of '
+                    'one of its descendants.'}]
+
+
+def test_menu_reorder_cannot_assign_to_itself(
+        staff_api_client, permission_manage_menus, menu_item):
+
+    menu_id = graphene.Node.to_global_id('Menu', menu_item.menu_id)
+    node_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
+    moves = [{
+        "itemId": node_id,
+        "parentId": node_id,
+        "sortOrder": None
+    }]
+
+    response = get_graphql_content(staff_api_client.post_graphql(
+        QUERY_REORDER_MENU,
+        {
+            'moves': moves,
+            'menu': menu_id
+        },
+        [permission_manage_menus]
+    ))['data']['menuItemMove']
+
+    assert response['errors'] == [
+        {'field': 'parent',
+         'message': 'Cannot assign a node to itself.'}]
+
+
+def test_menu_cannot_get_menu_item_not_from_same_menu(
+        staff_api_client, permission_manage_menus, menu_item):
+    """You shouldn't be able to edit menu items that are not from the menu
+    you are actually editing"""
+
+    menu_without_items = Menu.objects.create(name='this menu has no items')
+
+    menu_id = graphene.Node.to_global_id('Menu', menu_without_items.id)
+    node_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
+    moves = [{
+        "itemId": node_id
+    }]
+
+    response = staff_api_client.post_graphql(
+        QUERY_REORDER_MENU,
+        {
+            'moves': moves,
+            'menu': menu_id
+        },
+        [permission_manage_menus]
+    )
+
+    assert (
+        json.loads(
+            response.content.decode('utf8'))['errors'][0]['message'] == (
+                'MenuItem matching query does not exist.'))
+
+
+def test_menu_cannot_pass_an_invalid_menu_item_node_type(
+        staff_api_client, staff_user, permission_manage_menus, menu_item):
+    """You shouldn't be able to pass a menu item node
+    that is not an actual MenuType."""
+
+    menu_without_items = Menu.objects.create(name='this menu has no items')
+
+    menu_id = graphene.Node.to_global_id('Menu', menu_without_items.id)
+    node_id = graphene.Node.to_global_id('User', staff_user.pk)
+    moves = [{
+        "itemId": node_id
+    }]
+
+    response = staff_api_client.post_graphql(
+        QUERY_REORDER_MENU,
+        {
+            'moves': moves,
+            'menu': menu_id
+        },
+        [permission_manage_menus]
+    )
+
+    assert (
+        json.loads(
+            response.content.decode('utf8'))['errors'][0]['message'] == (
+                'The menu item node must be of type MenuItem.'))

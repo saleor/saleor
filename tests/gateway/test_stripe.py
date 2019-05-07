@@ -19,6 +19,7 @@ from saleor.payment.gateways.stripe.forms import (
     StripeCheckoutWidget, StripePaymentModalForm)
 from saleor.payment.gateways.stripe.utils import (
     get_payment_billing_fullname, shipping_to_stripe_dict)
+from saleor.payment.interface import AddressData
 from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal(42.42)
@@ -66,7 +67,7 @@ def stripe_authorized_payment(stripe_payment):
 @pytest.fixture()
 def stripe_captured_payment(stripe_payment):
     stripe_payment.captured_amount = stripe_payment.total
-    stripe_payment.charge_status = ChargeStatus.CHARGED
+    stripe_payment.charge_status = ChargeStatus.FULLY_CHARGED
     stripe_payment.save(update_fields=['captured_amount', 'charge_status'])
 
     return stripe_payment
@@ -75,7 +76,7 @@ def stripe_captured_payment(stripe_payment):
 @pytest.fixture()
 def stripe_charged_payment(stripe_payment):
     stripe_payment.captured_amount = stripe_payment.total
-    stripe_payment.charge_status = ChargeStatus.CHARGED
+    stripe_payment.charge_status = ChargeStatus.FULLY_CHARGED
     stripe_payment.save(update_fields=['captured_amount', 'charge_status'])
 
     stripe_payment.transactions.create(
@@ -162,6 +163,7 @@ def test_get_payment_billing_fullname(payment_dummy):
 
 
 def test_shipping_address_to_stripe_dict(address):
+    address_data = AddressData(**address.as_data())
     expected_address_dict = {
         'line1': address.street_address_1,
         'line2': address.street_address_2,
@@ -169,7 +171,7 @@ def test_shipping_address_to_stripe_dict(address):
         'state': address.country_area,
         'postal_code': address.postal_code,
         'country': dict(countries).get(address.country, '')}
-    assert shipping_to_stripe_dict(address.as_data()) == expected_address_dict
+    assert shipping_to_stripe_dict(address_data) == expected_address_dict
 
 
 def test_widget_with_default_options(stripe_payment, gateway_params):
@@ -289,7 +291,7 @@ def test_get_stripe_charge_payload_with_shipping(stripe_payment):
         'description': billing_name,
         'shipping': {
             'name': billing_name,
-            'address': shipping_to_stripe_dict(payment_info['shipping'])}}
+            'address': shipping_to_stripe_dict(payment_info.shipping)}}
 
     charge_payload = _get_stripe_charge_payload(payment_info, True)
 
@@ -322,10 +324,10 @@ def test_create_transaction_with_charge_success_response(
         payment_information=payment_info, kind='ANYKIND',
         response=stripe_charge_success_response, error=None)
 
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['is_success'] is True
-    assert isclose(response['amount'], TRANSACTION_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.is_success is True
+    assert isclose(response.amount, TRANSACTION_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
 
 
 def test_create_transaction_with_partial_charge_success_response(
@@ -337,11 +339,11 @@ def test_create_transaction_with_partial_charge_success_response(
         payment_information=payment_info, kind='ANYKIND',
         response=stripe_partial_charge_success_response, error=None)
 
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['is_success'] is True
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.is_success is True
     assert isclose(
-        response['amount'], TRANSACTION_AMOUNT - TRANSACTION_REFUND_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
+        response.amount, TRANSACTION_AMOUNT - TRANSACTION_REFUND_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
 
 
 def test_create_transaction_with_refund_success_response(
@@ -353,10 +355,10 @@ def test_create_transaction_with_refund_success_response(
         payment_information=payment_info, kind='ANYKIND',
         response=stripe_refund_success_response, error=None)
 
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['is_success'] is True
-    assert isclose(response['amount'], TRANSACTION_REFUND_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.is_success is True
+    assert isclose(response.amount, TRANSACTION_REFUND_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
 
 
 def test_create_response_with_error_response(stripe_payment):
@@ -368,10 +370,10 @@ def test_create_response_with_error_response(stripe_payment):
         payment_information=payment_info, kind='ANYKIND',
         response=stripe_error_response, error=None)
 
-    assert response['transaction_id'] == FAKE_TOKEN
-    assert response['is_success'] is False
-    assert response['amount'] == payment.total
-    assert response['currency'] == payment.currency
+    assert response.transaction_id == FAKE_TOKEN
+    assert response.is_success is False
+    assert response.amount == payment.total
+    assert response.currency == payment.currency
 
 
 @pytest.mark.integration
@@ -388,13 +390,13 @@ def test_authorize(
 
     response = authorize(payment_info, gateway_params)
 
-    assert not response['error']
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.AUTH
-    assert response['is_success']
-    assert isclose(response['amount'], TRANSACTION_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == stripe_charge_success_response
+    assert not response.error
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.AUTH
+    assert response.is_success
+    assert isclose(response.amount, TRANSACTION_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == stripe_charge_success_response
 
 
 @pytest.mark.integration
@@ -411,14 +413,13 @@ def test_authorize_error_response(
 
     response = authorize(payment_info, gateway_params)
 
-    assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == FAKE_TOKEN
-    assert response['kind'] == TransactionKind.AUTH
-    assert not response['is_success']
-    assert response['amount'] == payment.total
-    assert response['currency'] == payment.currency
-    assert response['raw_response'] == _get_error_response_from_exc(
-        stripe_error)
+    assert response.error == ERROR_MESSAGE
+    assert response.transaction_id == FAKE_TOKEN
+    assert response.kind == TransactionKind.AUTH
+    assert not response.is_success
+    assert response.amount == payment.total
+    assert response.currency == payment.currency
+    assert response.raw_response == _get_error_response_from_exc(stripe_error)
 
 
 @pytest.mark.integration
@@ -437,13 +438,13 @@ def test_capture(
 
     response = capture(payment_info, gateway_params)
 
-    assert not response['error']
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.CAPTURE
-    assert response['is_success']
-    assert isclose(response['amount'], TRANSACTION_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == stripe_charge_success_response
+    assert not response.error
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.is_success
+    assert isclose(response.amount, TRANSACTION_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == stripe_charge_success_response
 
 
 @pytest.mark.integration
@@ -462,13 +463,14 @@ def test_partial_capture(
 
     response = capture(payment_info, gateway_params)
 
-    assert not response['error']
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.CAPTURE
-    assert response['is_success']
-    assert isclose(response['amount'], TRANSACTION_AMOUNT - TRANSACTION_REFUND_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == stripe_partial_charge_success_response
+    assert not response.error
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.is_success
+    assert isclose(
+        response.amount, TRANSACTION_AMOUNT - TRANSACTION_REFUND_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == stripe_partial_charge_success_response
 
 
 @pytest.mark.integration
@@ -486,14 +488,13 @@ def test_capture_error_response(
 
     response = capture(payment_info, gateway_params)
 
-    assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.CAPTURE
-    assert not response['is_success']
-    assert response['amount'] == payment.total
-    assert response['currency'] == payment.currency
-    assert response['raw_response'] == _get_error_response_from_exc(
-        stripe_error)
+    assert response.error == ERROR_MESSAGE
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.CAPTURE
+    assert not response.is_success
+    assert response.amount == payment.total
+    assert response.currency == payment.currency
+    assert response.raw_response == _get_error_response_from_exc(stripe_error)
 
 
 @pytest.mark.integration
@@ -511,13 +512,13 @@ def test_charge(
 
     response = charge(payment_info, gateway_params)
 
-    assert not response['error']
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.CHARGE
-    assert response['is_success']
-    assert isclose(response['amount'], TRANSACTION_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == stripe_charge_success_response
+    assert not response.error
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.CHARGE
+    assert response.is_success
+    assert isclose(response.amount, TRANSACTION_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == stripe_charge_success_response
 
 
 @pytest.mark.integration
@@ -535,14 +536,13 @@ def test_charge_error_response(
 
     response = charge(payment_info, gateway_params)
 
-    assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == FAKE_TOKEN
-    assert response['kind'] == TransactionKind.CHARGE
-    assert not response['is_success']
-    assert response['amount'] == payment.total
-    assert response['currency'] == payment.currency
-    assert response['raw_response'] == _get_error_response_from_exc(
-        stripe_error)
+    assert response.error == ERROR_MESSAGE
+    assert response.transaction_id == FAKE_TOKEN
+    assert response.kind == TransactionKind.CHARGE
+    assert not response.is_success
+    assert response.amount == payment.total
+    assert response.currency == payment.currency
+    assert response.raw_response == _get_error_response_from_exc(stripe_error)
 
 
 @pytest.mark.integration
@@ -563,13 +563,13 @@ def test_refund_charged(
 
     response = refund(payment_info, gateway_params)
 
-    assert not response['error']
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.REFUND
-    assert response['is_success']
-    assert isclose(response['amount'], TRANSACTION_REFUND_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == stripe_refund_success_response
+    assert not response.error
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.REFUND
+    assert response.is_success
+    assert isclose(response.amount, TRANSACTION_REFUND_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == stripe_refund_success_response
 
 
 @pytest.mark.integration
@@ -590,13 +590,13 @@ def test_refund_captured(
 
     response = refund(payment_info, gateway_params)
 
-    assert not response['error']
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.REFUND
-    assert response['is_success']
-    assert isclose(response['amount'], TRANSACTION_REFUND_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == stripe_refund_success_response
+    assert not response.error
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.REFUND
+    assert response.is_success
+    assert isclose(response.amount, TRANSACTION_REFUND_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == stripe_refund_success_response
 
 
 @pytest.mark.integration
@@ -617,14 +617,13 @@ def test_refund_error_response(
 
     response = refund(payment_info, gateway_params)
 
-    assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.REFUND
-    assert not response['is_success']
-    assert response['amount'] == payment.total
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == _get_error_response_from_exc(
-        stripe_error)
+    assert response.error == ERROR_MESSAGE
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.REFUND
+    assert not response.is_success
+    assert response.amount == payment.total
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == _get_error_response_from_exc(stripe_error)
 
 
 @pytest.mark.integration
@@ -644,13 +643,13 @@ def test_void(
 
     response = void(payment_info, gateway_params)
 
-    assert not response['error']
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.VOID
-    assert response['is_success']
-    assert isclose(response['amount'], TRANSACTION_REFUND_AMOUNT)
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == stripe_refund_success_response
+    assert not response.error
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.VOID
+    assert response.is_success
+    assert isclose(response.amount, TRANSACTION_REFUND_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == stripe_refund_success_response
 
 
 @pytest.mark.integration
@@ -670,10 +669,10 @@ def test_void_error_response(
 
     response = void(payment_info, gateway_params)
 
-    assert response['error'] == ERROR_MESSAGE
-    assert response['transaction_id'] == TRANSACTION_TOKEN
-    assert response['kind'] == TransactionKind.VOID
-    assert not response['is_success']
-    assert response['amount'] == payment.total
-    assert response['currency'] == TRANSACTION_CURRENCY
-    assert response['raw_response'] == {}
+    assert response.error == ERROR_MESSAGE
+    assert response.transaction_id == TRANSACTION_TOKEN
+    assert response.kind == TransactionKind.VOID
+    assert not response.is_success
+    assert response.amount == payment.total
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.raw_response == {}

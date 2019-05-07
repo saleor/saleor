@@ -28,7 +28,7 @@ const styles = (theme: Theme) =>
   createStyles({
     card: {
       "&:hover": {
-        boxShadow: theme.shadows[12]
+        boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.15);"
       },
       cursor: "pointer",
       marginBottom: theme.spacing.unit * 3,
@@ -63,8 +63,8 @@ const styles = (theme: Theme) =>
     },
     sectionDescription: {},
     sectionTitle: {
-      fontWeight: 600 as 600,
-      marginBottom: 4
+      fontSize: 20,
+      fontWeight: 600 as 600
     }
   });
 
@@ -77,7 +77,7 @@ export interface ConfigurationPageProps extends WithStyles<typeof styles> {
 export const ConfigurationPage = withStyles(styles, {
   name: "ConfigurationPage"
 })(({ classes, menu, user, onSectionClick }: ConfigurationPageProps) => (
-  <Container width="md">
+  <Container>
     <PageHeader title={i18n.t("Configure")} />
     <div className={classes.root}>
       {menu

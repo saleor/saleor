@@ -1,5 +1,7 @@
+import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
+import AppHeader from "../../../components/AppHeader";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
@@ -10,7 +12,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
 import { CollectionImage } from "../CollectionImage/CollectionImage";
@@ -19,7 +21,7 @@ import CollectionStatus from "../CollectionStatus/CollectionStatus";
 
 export interface CollectionDetailsPageFormData {
   backgroundImageAlt: string;
-  description: string;
+  description: RawDraftContentState;
   name: string;
   seoDescription: string;
   seoTitle: string;
@@ -27,7 +29,7 @@ export interface CollectionDetailsPageFormData {
   isPublished: boolean;
 }
 
-export interface CollectionDetailsPageProps extends PageListProps {
+export interface CollectionDetailsPageProps extends PageListProps, ListActions {
   collection: CollectionDetails_collection;
   isFeatured: boolean;
   saveButtonBarState: ConfirmButtonTransitionState;
@@ -56,7 +58,7 @@ const CollectionDetailsPage: React.StatelessComponent<
   <Form
     initial={{
       backgroundImageAlt: maybe(() => collection.backgroundImage.alt, ""),
-      description: maybe(() => collection.description, ""),
+      description: maybe(() => JSON.parse(collection.descriptionJson)),
       isFeatured,
       isPublished: maybe(() => collection.isPublished, false),
       name: maybe(() => collection.name, ""),
@@ -67,11 +69,13 @@ const CollectionDetailsPage: React.StatelessComponent<
     confirmLeave
   >
     {({ change, data, errors: formErrors, hasChanged, submit }) => (
-      <Container width="md">
-        <PageHeader title={maybe(() => collection.name)} onBack={onBack} />
+      <Container>
+        <AppHeader onBack={onBack}>{i18n.t("Collections")}</AppHeader>
+        <PageHeader title={maybe(() => collection.name)} />
         <Grid>
           <div>
             <CollectionDetails
+              collection={collection}
               data={data}
               disabled={disabled}
               errors={formErrors}

@@ -43,7 +43,7 @@ def razorpay_payment(payment_dummy):
 @pytest.fixture()
 def charged_payment(razorpay_payment):
     razorpay_payment.captured_amount = razorpay_payment.total
-    razorpay_payment.charge_status = ChargeStatus.CHARGED
+    razorpay_payment.charge_status = ChargeStatus.FULLY_CHARGED
     razorpay_payment.save(update_fields=['captured_amount', 'charge_status'])
 
     razorpay_payment.transactions.create(
@@ -148,14 +148,14 @@ def test_charge(
     response = charge(payment_info, gateway_params)
 
     # Ensure the was no error returned
-    assert not response['error']
-    assert response['is_success']
+    assert not response.error
+    assert response.is_success
 
-    assert response['kind'] == TransactionKind.CHARGE
-    assert response['amount'] == TRANSACTION_AMOUNT
-    assert response['currency'] == razorpay_success_response['currency']
-    assert response['raw_response'] == razorpay_success_response
-    assert response['transaction_id'] == razorpay_success_response['id']
+    assert response.kind == TransactionKind.CHARGE
+    assert response.amount == TRANSACTION_AMOUNT
+    assert response.currency == razorpay_success_response['currency']
+    assert response.raw_response == razorpay_success_response
+    assert response.transaction_id == razorpay_success_response['id']
 
 
 @pytest.mark.integration
@@ -174,13 +174,13 @@ def test_charge_unsupported_currency(razorpay_payment, gateway_params):
     response = charge(payment_info, gateway_params)
 
     # Ensure a error was returned
-    assert response['error'] == (
+    assert response.error == (
         errors.UNSUPPORTED_CURRENCY % {'currency': 'USD'})
-    assert not response['is_success']
+    assert not response.is_success
 
     # Ensure the response is correctly set
-    assert response['kind'] == TransactionKind.CHARGE
-    assert response['transaction_id'] == payment_token
+    assert response.kind == TransactionKind.CHARGE
+    assert response.transaction_id == payment_token
 
 
 @patch.object(logger, 'exception')
@@ -206,12 +206,12 @@ def test_charge_invalid_request(
     response = charge(payment_info, gateway_params)
 
     # Ensure an error was returned
-    assert response['error'] == errors.INVALID_REQUEST
-    assert not response['is_success']
+    assert response.error == errors.INVALID_REQUEST
+    assert not response.is_success
 
     # Ensure the response is correctly set
-    assert response['kind'] == TransactionKind.CHARGE
-    assert response['transaction_id'] == payment_token
+    assert response.kind == TransactionKind.CHARGE
+    assert response.transaction_id == payment_token
 
     # Ensure the HTTP error was logged
     assert mocked_logger.call_count == 1
@@ -236,14 +236,14 @@ def test_refund(
     response = refund(payment_info, gateway_params)
 
     # Ensure the was no error returned
-    assert not response['error']
-    assert response['is_success']
+    assert not response.error
+    assert response.is_success
 
-    assert response['kind'] == TransactionKind.REFUND
-    assert response['amount'] == TRANSACTION_AMOUNT
-    assert response['currency'] == razorpay_success_response['currency']
-    assert response['raw_response'] == razorpay_success_response
-    assert response['transaction_id'] == razorpay_success_response['id']
+    assert response.kind == TransactionKind.REFUND
+    assert response.amount == TRANSACTION_AMOUNT
+    assert response.currency == razorpay_success_response['currency']
+    assert response.raw_response == razorpay_success_response
+    assert response.transaction_id == razorpay_success_response['id']
 
 
 @pytest.mark.integration
@@ -259,12 +259,12 @@ def test_refund_unsupported_currency(
     response = refund(payment_info, gateway_params)
 
     # Ensure a error was returned
-    assert response['error'] == (
+    assert response.error == (
         errors.UNSUPPORTED_CURRENCY % {'currency': 'USD'})
-    assert not response['is_success']
+    assert not response.is_success
 
     # Ensure the kind is correctly set
-    assert response['kind'] == TransactionKind.REFUND
+    assert response.kind == TransactionKind.REFUND
 
 
 @pytest.mark.integration
@@ -287,11 +287,11 @@ def test_refund_invalid_data(
     response = refund(payment_info, gateway_params)
 
     # Ensure a error was returned
-    assert response['error'] == errors.SERVER_ERROR
-    assert not response['is_success']
+    assert response.error == errors.SERVER_ERROR
+    assert not response.is_success
 
     # Ensure the transaction is correctly set
-    assert response['kind'] == TransactionKind.REFUND
+    assert response.kind == TransactionKind.REFUND
 
     # Ensure the HTTP error was logged
     assert mocked_logger.call_count == 1

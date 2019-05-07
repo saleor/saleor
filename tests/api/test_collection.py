@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from unittest.mock import Mock
 
@@ -5,9 +6,9 @@ import graphene
 import pytest
 from django.utils.text import slugify
 from graphql_relay import to_global_id
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from saleor.product.models import Collection
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import get_graphql_content, get_multipart_request_body
 
@@ -43,7 +44,8 @@ def test_collections_query(
     assert collection_data['name'] == collection.name
     assert collection_data['slug'] == collection.slug
     assert collection_data['description'] == collection.description
-    assert collection_data['products']['totalCount'] == collection.products.count()
+    assert collection_data['products'][
+               'totalCount'] == collection.products.count()
 
     # query all collections only as a staff user with proper permissions
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -54,20 +56,34 @@ def test_collections_query(
 
 
 def test_create_collection(
-        monkeypatch, staff_api_client, product_list, permission_manage_products):
+        monkeypatch, staff_api_client, product_list, media_root,
+        permission_manage_products):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $description: String, $products: [ID], $backgroundImage: Upload!, $backgroundImageAlt: String, $isPublished: Boolean!, $publishedDate: Date) {
+                $name: String!, $slug: String!, $description: String,
+                $descriptionJson: JSONString, $products: [ID],
+                $backgroundImage: Upload!, $backgroundImageAlt: String,
+                $isPublished: Boolean!, $publicationDate: Date) {
             collectionCreate(
-                input: {name: $name, slug: $slug, description: $description, products: $products, backgroundImage: $backgroundImage, backgroundImageAlt: $backgroundImageAlt, isPublished: $isPublished, publishedDate: $publishedDate}) {
+                input: {
+                    name: $name,
+                    slug: $slug,
+                    description: $description,
+                    descriptionJson: $descriptionJson,
+                    products: $products,
+                    backgroundImage: $backgroundImage,
+                    backgroundImageAlt: $backgroundImageAlt,
+                    isPublished: $isPublished,
+                    publicationDate: $publicationDate}) {
                 collection {
                     name
                     slug
                     description
+                    descriptionJson
                     products {
                         totalCount
                     }
-                    publishedDate
+                    publicationDate
                     backgroundImage{
                         alt
                     }
@@ -89,12 +105,13 @@ def test_create_collection(
     name = 'test-name'
     slug = 'test-slug'
     description = 'test-description'
-    published_date = date.today()
+    description_json = json.dumps({'content': 'description'})
+    publication_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
-        'products': product_ids, 'backgroundImage': image_name,
-        'backgroundImageAlt': image_alt, 'isPublished': True,
-        'publishedDate': published_date}
+        'descriptionJson': description_json, 'products': product_ids,
+        'backgroundImage': image_name, 'backgroundImageAlt': image_alt,
+        'isPublished': True, 'publicationDate': publication_date}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products])
@@ -103,7 +120,8 @@ def test_create_collection(
     assert data['name'] == name
     assert data['slug'] == slug
     assert data['description'] == description
-    assert data['publishedDate'] == published_date.isoformat()
+    assert data['descriptionJson'] == description_json
+    assert data['publicationDate'] == publication_date.isoformat()
     assert data['products']['totalCount'] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
@@ -112,7 +130,8 @@ def test_create_collection(
 
 
 def test_create_collection_without_background_image(
-        monkeypatch, staff_api_client, product_list, permission_manage_products):
+        monkeypatch, staff_api_client, product_list,
+        permission_manage_products):
     query = """
         mutation createCollection(
             $name: String!, $slug: String!, $products: [ID], $isPublished: Boolean!) {
@@ -133,7 +152,7 @@ def test_create_collection_without_background_image(
         mock_create_thumbnails)
 
     variables = {
-        'name': 'test-name', 'slug': 'test-slug', 'isPublished': True,}
+        'name': 'test-name', 'slug': 'test-slug', 'isPublished': True, }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     get_graphql_content(response)
@@ -144,14 +163,14 @@ def test_update_collection(
         monkeypatch, staff_api_client, collection, permission_manage_products):
     query = """
         mutation updateCollection(
-            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publishedDate: Date) {
+            $name: String!, $slug: String!, $description: String, $id: ID!, $isPublished: Boolean!, $publicationDate: Date) {
             collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publishedDate: $publishedDate}) {
+                id: $id, input: {name: $name, slug: $slug, description: $description, isPublished: $isPublished, publicationDate: $publicationDate}) {
                 collection {
                     name
                     slug
                     description
-                    publishedDate
+                    publicationDate
                 }
             }
         }
@@ -166,17 +185,18 @@ def test_update_collection(
     name = 'new-name'
     slug = 'new-slug'
     description = 'new-description'
-    published_date = date.today()
+    publication_date = date.today()
     variables = {
         'name': name, 'slug': slug, 'description': description,
-        'id': to_global_id('Collection', collection.id), 'isPublished': True, 'publishedDate': published_date}
+        'id': to_global_id('Collection', collection.id), 'isPublished': True,
+        'publicationDate': publication_date}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['collectionUpdate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
-    assert data['publishedDate'] == published_date.isoformat()
+    assert data['publicationDate'] == publication_date.isoformat()
     assert mock_create_thumbnails.call_count == 0
 
 
@@ -206,7 +226,8 @@ MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
 
 
 def test_update_collection_with_background_image(
-        monkeypatch, staff_api_client, collection, permission_manage_products):
+        monkeypatch, staff_api_client, collection, permission_manage_products,
+        media_root):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.collection.forms.'
@@ -330,7 +351,8 @@ def test_add_products_to_collection(
     content = get_graphql_content(response)
     data = content['data']['collectionAddProducts']['collection']
     assert data[
-        'products']['totalCount'] == no_products_before + len(product_ids)
+               'products']['totalCount'] == no_products_before + len(
+        product_ids)
 
 
 def test_remove_products_from_collection(
@@ -359,7 +381,8 @@ def test_remove_products_from_collection(
     content = get_graphql_content(response)
     data = content['data']['collectionRemoveProducts']['collection']
     assert data[
-        'products']['totalCount'] == no_products_before - len(product_ids)
+               'products']['totalCount'] == no_products_before - len(
+        product_ids)
 
 
 FETCH_COLLECTION_QUERY = """
@@ -375,7 +398,7 @@ FETCH_COLLECTION_QUERY = """
 """
 
 
-def test_collection_image_query(user_api_client, collection):
+def test_collection_image_query(user_api_client, collection, media_root):
     alt_text = 'Alt text for an image.'
     image_file, image_name = create_image()
     collection.background_image = image_file
@@ -434,3 +457,93 @@ def test_update_collection_mutation_remove_background_image(
     assert not data['backgroundImage']
     collection_with_image.refresh_from_db()
     assert not collection_with_image.background_image
+
+
+def _fetch_collection(client, collection, permissions=None):
+    query = """
+    query fetchCollection($collectionId: ID!){
+        collection(id: $collectionId) {
+            name,
+            isPublished
+        }
+    }
+    """
+    variables = {
+        'collectionId': graphene.Node.to_global_id(
+            'Collection', collection.id)}
+    response = client.post_graphql(
+        query, variables, permissions=permissions, check_no_permissions=False)
+    content = get_graphql_content(response)
+    return content['data']['collection']
+
+
+def test_fetch_unpublished_collection_staff_user(
+        staff_api_client, unpublished_collection, permission_manage_products):
+    collection_data = _fetch_collection(
+        staff_api_client,
+        unpublished_collection,
+        permissions=[permission_manage_products])
+    assert collection_data['name'] == unpublished_collection.name
+    assert collection_data[
+               'isPublished'] == unpublished_collection.is_published
+
+
+def test_fetch_unpublished_collection_customer(
+        user_api_client, unpublished_collection):
+    collection_data = _fetch_collection(
+        user_api_client, unpublished_collection)
+    assert collection_data is None
+
+
+def test_fetch_unpublished_collection_anonymous_user(
+        api_client, unpublished_collection):
+    collection_data = _fetch_collection(api_client, unpublished_collection)
+    assert collection_data is None
+
+
+MUTATION_BULK_PUBLISH_COLLECTIONS = """
+        mutation publishManyCollections($ids: [ID]!, $is_published: Boolean!) {
+            collectionBulkPublish(ids: $ids, isPublished: $is_published) {
+                count
+            }
+        }
+    """
+
+
+def test_bulk_publish_collection(
+        staff_api_client, collection_list_unpublished,
+        permission_manage_products):
+    collection_list = collection_list_unpublished
+    assert not any(collection.is_published for collection in collection_list)
+
+    variables = {'ids': [
+        graphene.Node.to_global_id('Collection', collection.id)
+        for collection in collection_list], 'is_published': True}
+    response = staff_api_client.post_graphql(
+        MUTATION_BULK_PUBLISH_COLLECTIONS, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    collection_list = Collection.objects.filter(
+        id__in=[collection.pk for collection in collection_list])
+
+    assert content['data']['collectionBulkPublish']['count'] == len(
+        collection_list)
+    assert all(collection.is_published for collection in collection_list)
+
+
+def test_bulk_unpublish_collection(
+        staff_api_client, collection_list,
+        permission_manage_products):
+    assert all(collection.is_published for collection in collection_list)
+
+    variables = {'ids': [
+        graphene.Node.to_global_id('Collection', collection.id)
+        for collection in collection_list], 'is_published': False}
+    response = staff_api_client.post_graphql(
+        MUTATION_BULK_PUBLISH_COLLECTIONS, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    collection_list = Collection.objects.filter(
+        id__in=[collection.pk for collection in collection_list])
+
+    assert content['data']['collectionBulkPublish']['count'] == len(
+        collection_list)
+    assert not any(collection.is_published for collection in collection_list)

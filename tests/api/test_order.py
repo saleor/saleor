@@ -1,25 +1,83 @@
+import uuid
+from datetime import date, timedelta
 from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
+from freezegun import freeze_time
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.order.enums import OrderEventsEmailsEnum
 from saleor.graphql.order.mutations.orders import (
-    clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
-    clean_refund_payment, clean_void_payment)
-from saleor.graphql.order.enums import (
-    OrderEventsEmailsEnum, OrderStatusFilter)
-from saleor.graphql.order.utils import can_finalize_draft_order
+    clean_order_cancel, clean_order_capture, clean_refund_payment,
+    clean_void_payment)
+from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
-from tests.api.utils import get_graphql_content
 
-from .utils import assert_no_permission
+from .utils import assert_no_permission, get_graphql_content
+
+
+@pytest.fixture
+def orders_query_with_filter():
+    query = """
+      query ($filter: OrderFilterInput!, ) {
+        orders(first: 5, filter:$filter) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    """
+    return query
+
+
+@pytest.fixture
+def draft_orders_query_with_filter():
+    query = """
+      query ($filter: OrderDraftFilterInput!, ) {
+        draftOrders(first: 5, filter:$filter) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    """
+    return query
+
+@pytest.fixture
+def orders(customer_user):
+    return Order.objects.bulk_create([
+        Order(
+            user=customer_user,
+            status=OrderStatus.CANCELED,
+            token=uuid.uuid4()),
+        Order(
+            user=customer_user,
+            status=OrderStatus.UNFULFILLED,
+            token=uuid.uuid4()),
+        Order(
+            user=customer_user,
+            status=OrderStatus.PARTIALLY_FULFILLED,
+            token=uuid.uuid4()),
+        Order(
+            user=customer_user,
+            status=OrderStatus.FULFILLED,
+            token=uuid.uuid4()),
+        Order(
+            user=customer_user,
+            status=OrderStatus.DRAFT,
+            token=uuid.uuid4())])
 
 
 def test_orderline_query(
@@ -31,7 +89,12 @@ def test_orderline_query(
                 edges {
                     node {
                         lines {
-                            thumbnailUrl(size: 540)
+                            thumbnail(size: 540) {
+                                url
+                            }
+                            variant {
+                                id
+                            }
                         }
                     }
                 }
@@ -39,16 +102,16 @@ def test_orderline_query(
         }
     """
     line = order.lines.first()
-    line.variant = None
     line.save()
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content['data']['orders']['edges'][0]['node']
-    thumbnails = [l['thumbnailUrl'] for l in order_data['lines']]
-    assert len(thumbnails) == 2
-    assert thumbnails[0] is None
-    assert '/static/images/placeholder540x540.png' in thumbnails[1]
+    assert '/static/images/placeholder540x540.png' in \
+           order_data['lines'][0]['thumbnail']['url']
+    variant_id = graphene.Node.to_global_id('ProductVariant', line.variant.pk)
+    assert order_data['lines'][0]['variant']['id'] == variant_id
 
 
 def test_order_query(
@@ -146,24 +209,63 @@ def test_order_query(
     assert expected_method.type.upper() == method['type']
 
 
-def test_order_status_filter_param(user_api_client):
+def test_order_query_customer(api_client):
     query = """
-    query OrdersQuery($status: OrderStatusFilter) {
-        orders(status: $status) {
-            totalCount
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+
+    response = api_client.post_graphql(query)
+    assert_no_permission(response)
+
+
+def test_order_query_draft_excluded(
+        staff_api_client, permission_manage_orders, orders):
+    query = """
+    query OrdersQuery {
+        orders(first: 10) {
+            edges {
+                node {
+                    id
+                }
+            }
         }
     }
     """
 
-    # Check that both calls return a succesful response (underlying logic
-    # is tested separately in querysets' tests).
-    variables = {'status': OrderStatusFilter.READY_TO_CAPTURE.name}
-    response = user_api_client.post_graphql(query, variables)
-    get_graphql_content(response)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    edges = get_graphql_content(response)['data']['orders']['edges']
 
-    variables = {'status': OrderStatusFilter.READY_TO_FULFILL.name}
-    response = user_api_client.post_graphql(query, variables)
-    get_graphql_content(response)
+    assert len(edges) == Order.objects.confirmed().count()
+
+
+def test_draft_order_query(
+        staff_api_client, permission_manage_orders, orders):
+    query = """
+    query DraftOrdersQuery {
+        draftOrders(first: 10) {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    edges = get_graphql_content(response)['data']['draftOrders']['edges']
+
+    assert len(edges) == Order.objects.drafts().count()
 
 
 def test_nested_order_events_query(
@@ -307,9 +409,12 @@ def test_draft_order_create(
 
     order = Order.objects.first()
     assert order.user == customer_user
-    assert order.billing_address == customer_user.default_billing_address
+    # billing address should be copied
+    assert order.billing_address.pk != customer_user.default_billing_address.pk
+    assert order.billing_address.as_data() == customer_user.default_billing_address.as_data()
     assert order.shipping_method == shipping_method
-    assert order.shipping_address.first_name == graphql_address_data['firstName']
+    assert order.shipping_address.first_name == graphql_address_data[
+        'firstName']
 
 
 def test_draft_order_update(
@@ -366,6 +471,7 @@ ORDER_CAN_FINALIZE_QUERY = """
     }
 """
 
+
 def test_can_finalize_order(
         staff_api_client, permission_manage_orders, order_with_lines):
     order_id = graphene.Node.to_global_id('Order', order_with_lines.id)
@@ -389,8 +495,8 @@ def test_can_finalize_order_no_order_lines(
 
 
 def test_can_finalize_draft_order(order_with_lines):
-    errors = can_finalize_draft_order(order_with_lines, [])
-    assert not errors
+    # should not raise any errors
+    validate_draft_order(order_with_lines)
 
 
 def test_can_finalize_draft_order_wrong_shipping(order_with_lines):
@@ -399,14 +505,31 @@ def test_can_finalize_draft_order_wrong_shipping(order_with_lines):
     shipping_zone.countries = ['DE']
     shipping_zone.save()
     assert order.shipping_address.country.code not in shipping_zone.countries
-    errors = can_finalize_draft_order(order, [])
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order)
     msg = 'Shipping method is not valid for chosen shipping address'
-    assert errors[0].message == msg
+    assert e.value.error_dict['shipping'][0].message == msg
 
 
 def test_can_finalize_draft_order_no_order_lines(order):
-    errors = can_finalize_draft_order(order, [])
-    assert errors[0].message == 'Could not create order without any products.'
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order)
+    msg = 'Could not create order without any products.'
+    assert e.value.error_dict['lines'][0].message == msg
+
+
+def test_can_finalize_draft_order_non_existing_variant(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    variant = line.variant
+    variant.delete()
+    line.refresh_from_db()
+    assert line.variant is None
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order)
+    msg = 'Could not create orders with non-existing products.'
+    assert e.value.error_dict['lines'][0].message == msg
 
 
 def test_draft_order_complete(
@@ -739,8 +862,10 @@ def test_order_update(
         """
     email = 'not_default@example.com'
     assert not order.user_email == email
-    assert not order.shipping_address.first_name == graphql_address_data['firstName']
-    assert not order.billing_address.last_name == graphql_address_data['lastName']
+    assert not order.shipping_address.first_name == graphql_address_data[
+        'firstName']
+    assert not order.billing_address.last_name == graphql_address_data[
+        'lastName']
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {
         'id': order_id, 'email': email, 'address': graphql_address_data}
@@ -754,7 +879,8 @@ def test_order_update(
     order.refresh_from_db()
     order.shipping_address.refresh_from_db()
     order.billing_address.refresh_from_db()
-    assert order.shipping_address.first_name == graphql_address_data['firstName']
+    assert order.shipping_address.first_name == graphql_address_data[
+        'firstName']
     assert order.billing_address.last_name == graphql_address_data['lastName']
     assert order.user_email == email
     assert order.user is None
@@ -836,7 +962,8 @@ def test_order_update_user_email_existing_user(
     order.refresh_from_db()
     order.shipping_address.refresh_from_db()
     order.billing_address.refresh_from_db()
-    assert order.shipping_address.first_name == graphql_address_data['firstName']
+    assert order.shipping_address.first_name == graphql_address_data[
+        'firstName']
     assert order.billing_address.last_name == graphql_address_data['lastName']
     assert order.user_email == email
     assert order.user == customer_user
@@ -850,8 +977,8 @@ def test_order_add_note(
         mutation addNote($id: ID!, $message: String) {
             orderAddNote(order: $id, input: {message: $message}) {
                 errors {
-                field
-                message
+                    field
+                    message
                 }
                 order {
                     id
@@ -957,9 +1084,9 @@ def test_order_capture(
     content = get_graphql_content(response)
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
-    assert data['paymentStatus'] == PaymentChargeStatusEnum.CHARGED.name
+    assert data['paymentStatus'] == PaymentChargeStatusEnum.FULLY_CHARGED.name
     payment_status_display = dict(ChargeStatus.CHOICES).get(
-        ChargeStatus.CHARGED)
+        ChargeStatus.FULLY_CHARGED)
     assert data['paymentStatusDisplay'] == payment_status_display
     assert data['isPaid']
     assert data['totalCaptured']['amount'] == float(amount)
@@ -1038,24 +1165,30 @@ def test_order_mark_as_paid(
     assert event_order_paid.user == staff_user
 
 
+ORDER_VOID = """
+    mutation voidOrder($id: ID!) {
+        orderVoid(id: $id) {
+            order {
+                paymentStatus
+                paymentStatusDisplay
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
 def test_order_void(
         staff_api_client, permission_manage_orders, payment_txn_preauth,
         staff_user):
     order = payment_txn_preauth.order
-    query = """
-            mutation voidOrder($id: ID!) {
-                orderVoid(id: $id) {
-                    order {
-                        paymentStatus
-                        paymentStatusDisplay
-                    }
-                }
-            }
-        """
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {'id': order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        ORDER_VOID, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['orderVoid']['order']
     assert data['paymentStatus'] == PaymentChargeStatusEnum.NOT_CHARGED.name
@@ -1065,6 +1198,22 @@ def test_order_void(
     event_payment_voided = order.events.last()
     assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED.value
     assert event_payment_voided.user == staff_user
+
+
+def test_order_void_payment_error(staff_api_client, permission_manage_orders,
+                                  payment_txn_preauth):
+    msg = 'error has happened'
+    order = payment_txn_preauth.order
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = {'id': order_id}
+    with patch('saleor.graphql.order.mutations.orders.gateway_void',
+               side_effect=ValueError(msg)):
+        response = staff_api_client.post_graphql(
+            ORDER_VOID, variables, permissions=[permission_manage_orders])
+        content = get_graphql_content(response)
+        errors = content['data']['orderVoid']['errors']
+        assert errors[0]['field'] == 'payment'
+        assert errors[0]['message'] == msg
 
 
 def test_order_refund(
@@ -1106,58 +1255,40 @@ def test_order_refund(
 def test_clean_order_void_payment():
     payment = MagicMock(spec=Payment)
     payment.is_active = False
-    errors = clean_void_payment(payment, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == 'Only pre-authorized payments can be voided'
-
-    payment.is_active = True
-    error_msg = 'error has happened.'
-    with patch(
-        'saleor.graphql.order.mutations.orders.gateway_void',
-        side_effect=ValueError(error_msg)):
-            errors = clean_void_payment(payment, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == error_msg
+    with pytest.raises(ValidationError) as e:
+        clean_void_payment(payment)
+    msg = 'Only pre-authorized payments can be voided'
+    assert e.value.error_dict['payment'][0].message == msg
 
 
 def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
     payment.gateway = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
-    errors = clean_refund_payment(payment, amount, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == 'Manual payments can not be refunded.'
+    with pytest.raises(ValidationError) as e:
+        clean_refund_payment(payment, amount)
+    msg = 'Manual payments can not be refunded.'
+    assert e.value.error_dict['payment'][0].message == msg
 
 
 def test_clean_order_capture():
-    amount = Mock(spec='string')
-    errors = clean_order_capture(None, amount, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == (
-        'There\'s no payment associated with the order.')
-
-
-def test_clean_order_mark_as_paid(payment_txn_preauth):
-    order = payment_txn_preauth.order
-    errors = clean_order_mark_as_paid(order, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == (
-        'Orders with payments can not be manually marked as paid.')
-
-
-def test_clean_order_mark_as_paid_no_payments(order):
-    assert clean_order_mark_as_paid(order, []) == []
+    with pytest.raises(ValidationError) as e:
+        clean_order_capture(None)
+    msg = 'There\'s no payment associated with the order.'
+    assert e.value.error_dict['payment'][0].message == msg
 
 
 def test_clean_order_cancel(order):
-    assert clean_order_cancel(order, []) == []
+    # Shouldn't raise any errors
+    clean_order_cancel(order)
 
     order.status = OrderStatus.DRAFT
     order.save()
 
-    errors = clean_order_cancel(order, [])
-    assert errors[0].field == 'order'
-    assert errors[0].message == 'This order can\'t be canceled.'
+    with pytest.raises(ValidationError) as e:
+        clean_order_cancel(order)
+    msg = 'This order can\'t be canceled.'
+    assert e.value.error_dict['order'][0].message == msg
 
 
 ORDER_UPDATE_SHIPPING_QUERY = """
@@ -1319,5 +1450,266 @@ def test_orders_total(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     assert (
-        content['data']['ordersTotal']['gross']['amount'] ==
-        order_with_lines.total.gross.amount)
+            content['data']['ordersTotal']['gross']['amount'] ==
+            order_with_lines.total.gross.amount)
+
+
+def test_order_by_token_query(api_client, order):
+    query = """
+    query OrderByToken($token: String!) {
+        orderByToken(token: $token) {
+            id
+        }
+    }
+    """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    response = api_client.post_graphql(query, {'token': order.token})
+    content = get_graphql_content(response)
+    assert content['data']['orderByToken']['id'] == order_id
+
+
+MUTATION_CANCEL_ORDERS = """
+    mutation CancelManyOrders($ids: [ID]!, $restock: Boolean!) {
+        orderBulkCancel(ids: $ids, restock: $restock) {
+            count
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+
+def test_order_bulk_cancel_with_restock(
+        staff_api_client, orders, order_with_lines,
+        permission_manage_orders):
+    assert order_with_lines.can_cancel()
+    orders.append(order_with_lines)
+    expected_count = sum(order.can_cancel() for order in orders)
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('Order', order.id)
+            for order in orders],
+        'restock': True}
+    response = staff_api_client.post_graphql(
+        MUTATION_CANCEL_ORDERS, variables,
+        permissions=[permission_manage_orders])
+    order_with_lines.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content['data']['orderBulkCancel']
+    assert data['count'] == expected_count
+    event = order_with_lines.events.first()
+    assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
+    assert event.user == staff_api_client.user
+
+
+
+@pytest.mark.parametrize('orders_filter, count', [
+    (
+      {
+        'created': {'gte': str(date.today() - timedelta(days=3)),
+                    'lte': str(date.today())}}, 1
+    ),
+    ({'created': {'gte': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'lte': str(date.today())}}, 2),
+    ({'created': {'lte': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'gte': str(date.today() + timedelta(days=1))}}, 0),
+])
+def test_order_query_with_filter_created(
+        orders_filter, count, orders_query_with_filter, staff_api_client,
+        permission_manage_orders):
+    Order.objects.create()
+    with freeze_time("2012-01-14"):
+        Order.objects.create()
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['orders']['edges']
+
+    assert len(orders) == count
+
+
+@pytest.mark.parametrize('orders_filter, count, payment_status', [
+        ({'paymentStatus': 'FULLY_CHARGED'}, 1, ChargeStatus.FULLY_CHARGED),
+        ({'paymentStatus': 'NOT_CHARGED'}, 2, ChargeStatus.NOT_CHARGED),
+        (
+            {'paymentStatus': 'PARTIALLY_CHARGED'},
+            1,
+            ChargeStatus.PARTIALLY_CHARGED
+        ),
+        (
+            {'paymentStatus': 'PARTIALLY_REFUNDED'},
+            1,
+            ChargeStatus.PARTIALLY_REFUNDED
+        ),
+        ({'paymentStatus': 'FULLY_REFUNDED'}, 1, ChargeStatus.FULLY_REFUNDED),
+        ({'paymentStatus': 'FULLY_CHARGED'}, 0, ChargeStatus.FULLY_REFUNDED),
+        ({'paymentStatus': 'NOT_CHARGED'}, 1, ChargeStatus.FULLY_REFUNDED),
+    ]
+)
+def test_order_query_with_filter_payment_status(
+        orders_filter, count, payment_status, orders_query_with_filter,
+        staff_api_client, payment_dummy, permission_manage_orders):
+    payment_dummy.charge_status = payment_status
+    payment_dummy.save()
+
+    payment_dummy.id = None
+    payment_dummy.order = Order.objects.create()
+    payment_dummy.charge_status = ChargeStatus.NOT_CHARGED
+    payment_dummy.save()
+
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['orders']['edges']
+
+    assert len(orders) == count
+
+
+@pytest.mark.parametrize('orders_filter, count, status', [
+        ({'status': 'UNFULFILLED'}, 2, OrderStatus.UNFULFILLED),
+        (
+            {'status': 'PARTIALLY_FULFILLED'},
+            1,
+            OrderStatus.PARTIALLY_FULFILLED
+        ),
+        (
+            {'status': 'FULFILLED'},
+            1,
+            OrderStatus.FULFILLED
+        ),
+        ({'status': 'CANCELED'}, 1, OrderStatus.CANCELED),
+    ]
+)
+def test_order_query_with_filter_status(
+        orders_filter, count, status, orders_query_with_filter,
+        staff_api_client, payment_dummy, permission_manage_orders, order):
+    order.status = status
+    order.save()
+
+    Order.objects.create()
+
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['orders']['edges']
+    order_id = graphene.Node.to_global_id('Order', order.pk)
+
+    orders_ids_from_response = [o['node']['id'] for o in orders]
+    assert len(orders) == count
+    assert order_id in orders_ids_from_response
+
+
+@pytest.mark.parametrize('orders_filter, user_field, user_value', [
+        ({'customer': 'admin'}, 'email', 'admin@example.com'),
+        (
+            {'customer': 'John'},
+            'first_name',
+            'johnny'
+        ),
+        (
+            {'customer': 'Snow'},
+            'last_name',
+            'snow'
+        ),
+    ]
+)
+def test_order_query_with_filter_customer_fields(
+        orders_filter, user_field, user_value, orders_query_with_filter,
+        staff_api_client, permission_manage_orders,
+        customer_user):
+    setattr(customer_user, user_field, user_value)
+    customer_user.save()
+    customer_user.refresh_from_db()
+
+    order = Order(user=customer_user, token=str(uuid.uuid4()))
+    Order.objects.bulk_create([
+        order,
+        Order(token=str(uuid.uuid4()))]
+    )
+
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['orders']['edges']
+    order_id = graphene.Node.to_global_id('Order', order.pk)
+
+    assert len(orders) == 1
+    assert orders[0]['node']['id'] == order_id
+
+
+@pytest.mark.parametrize('orders_filter, user_field, user_value', [
+        ({'customer': 'admin'}, 'email', 'admin@example.com'),
+        (
+            {'customer': 'John'},
+            'first_name',
+            'johnny'
+        ),
+        (
+            {'customer': 'Snow'},
+            'last_name',
+            'snow'
+        ),
+    ]
+)
+def test_draft_order_query_with_filter_customer_fields(
+        orders_filter, user_field, user_value, draft_orders_query_with_filter,
+        staff_api_client, permission_manage_orders,
+        customer_user):
+    setattr(customer_user, user_field, user_value)
+    customer_user.save()
+    customer_user.refresh_from_db()
+
+    order = Order(
+        status=OrderStatus.DRAFT, user=customer_user, token=str(uuid.uuid4()))
+    Order.objects.bulk_create([
+        order,
+        Order(token=str(uuid.uuid4()), status=OrderStatus.DRAFT)
+    ])
+
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        draft_orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['draftOrders']['edges']
+    order_id = graphene.Node.to_global_id('Order', order.pk)
+
+    assert len(orders) == 1
+    assert orders[0]['node']['id'] == order_id
+
+                
+@pytest.mark.parametrize('orders_filter, count', [
+    (
+      {
+        'created': {'gte': str(date.today() - timedelta(days=3)),
+                    'lte': str(date.today())}}, 1
+    ),
+    ({'created': {'gte': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'lte': str(date.today())}}, 2),
+    ({'created': {'lte': str(date.today() - timedelta(days=3))}}, 1),
+    ({'created': {'gte': str(date.today() + timedelta(days=1))}}, 0),
+])
+def test_order_query_with_filter_created(
+        orders_filter, count, draft_orders_query_with_filter, staff_api_client,
+        permission_manage_orders):
+    Order.objects.create(status=OrderStatus.DRAFT)
+    with freeze_time("2012-01-14"):
+        Order.objects.create(status=OrderStatus.DRAFT)
+    variables = {'filter': orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        draft_orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content['data']['draftOrders']['edges']
+
+    assert len(orders) == count

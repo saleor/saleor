@@ -10,16 +10,16 @@ from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 
-from . import forms
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale
 from ...product.models import (
     Attribute, AttributeValue, Product, ProductImage, ProductType,
     ProductVariant)
-from ...product.utils.availability import get_availability
+from ...product.utils.availability import get_product_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..views import staff_member_required
+from . import forms
 from .filters import AttributeFilter, ProductFilter, ProductTypeFilter
 
 
@@ -48,7 +48,7 @@ def product_details(request, pk):
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
     images = product.images.all()
-    availability = get_availability(
+    availability = get_product_availability(
         product, discounts=request.discounts, taxes=request.taxes)
     sale_price = availability.price_range_undiscounted
     discounted_price = availability.price_range
@@ -206,7 +206,7 @@ def ajax_products_list(request):
     queryset = (
         Product.objects.all()
         if request.user.has_perm('product.manage_products')
-        else Product.objects.available_products())
+        else Product.objects.published())
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(Q(name__icontains=search_query))
@@ -405,7 +405,7 @@ def ajax_available_variants_list(request):
 
     Response format is that of a Select2 JS widget.
     """
-    available_products = Product.objects.available_products().prefetch_related(
+    available_products = Product.objects.published().prefetch_related(
         'category',
         'product_type__product_attributes')
     queryset = ProductVariant.objects.filter(

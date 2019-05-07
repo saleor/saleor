@@ -7,12 +7,14 @@ function loadStories() {
   require("./stories/components/AddressEdit");
   require("./stories/components/AddressFormatter");
   require("./stories/components/CardMenu");
-  require("./stories/components/DateFormatter");
+  require("./stories/components/Date");
+  require("./stories/components/DateTime");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/ErrorPage");
   require("./stories/components/ExternalLink");
   require("./stories/components/Money");
+  require("./stories/components/MoneyRange");
   require("./stories/components/MultiAutocompleteSelectField");
   require("./stories/components/MultiSelectField");
   require("./stories/components/NotFoundPage");
@@ -20,6 +22,7 @@ function loadStories() {
   require("./stories/components/Percent");
   require("./stories/components/PhoneField");
   require("./stories/components/PriceField");
+  require("./stories/components/RichTextEditor");
   require("./stories/components/SaveButtonBar");
   require("./stories/components/SingleAutocompleteSelectField");
   require("./stories/components/SingleSelectField");
@@ -27,6 +30,8 @@ function loadStories() {
   require("./stories/components/StatusLabel");
   require("./stories/components/TablePagination");
   require("./stories/components/Timeline");
+  require("./stories/components/Weight");
+  require("./stories/components/WeightRange");
   require("./stories/components/messages");
 
   // Authentication
@@ -48,9 +53,20 @@ function loadStories() {
   require("./stories/configuration/ConfigurationPage");
 
   // Customers
+  require("./stories/customers/CustomerAddressDialog");
+  require("./stories/customers/CustomerAddressListPage");
   require("./stories/customers/CustomerCreatePage");
   require("./stories/customers/CustomerDetailsPage");
   require("./stories/customers/CustomerListPage");
+
+  // Discounts
+  require("./stories/discounts/DiscountCountrySelectDialog");
+  require("./stories/discounts/SaleCreatePage");
+  require("./stories/discounts/SaleDetailsPage");
+  require("./stories/discounts/SaleListPage");
+  require("./stories/discounts/VoucherCreatePage");
+  require("./stories/discounts/VoucherDetailsPage");
+  require("./stories/discounts/VoucherListPage");
 
   // Homepage
   require("./stories/home/HomePage");
@@ -60,11 +76,8 @@ function loadStories() {
   require("./stories/staff/StaffDetailsPage");
 
   // Pages
-  require("./stories/pages/PageContent");
-  require("./stories/pages/PageDeleteDialog");
   require("./stories/pages/PageDetailsPage");
   require("./stories/pages/PageListPage");
-  require("./stories/pages/PageProperties");
 
   // Products
   require("./stories/products/ProductCreatePage");
@@ -77,12 +90,14 @@ function loadStories() {
 
   // Orders
   require("./stories/orders/OrderAddressEditDialog");
+  require("./stories/orders/OrderBulkCancelDialog");
   require("./stories/orders/OrderCancelDialog");
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderCustomerEditDialog");
   require("./stories/orders/OrderDetailsPage");
   require("./stories/orders/OrderDraftCancelDialog");
   require("./stories/orders/OrderDraftFinalizeDialog");
+  require("./stories/orders/OrderDraftListPage");
   require("./stories/orders/OrderDraftPage");
   require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
@@ -95,23 +110,30 @@ function loadStories() {
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
 
-  // Vouchers
-  require("./stories/vouchers/VoucherDetailsPage");
-  require("./stories/vouchers/VoucherListPage");
-
   // Product types
   require("./stories/productTypes/ProductTypeAttributeEditDialog");
   require("./stories/productTypes/ProductTypeCreatePage");
   require("./stories/productTypes/ProductTypeDetailsPage");
   require("./stories/productTypes/ProductTypeListPage");
 
+  // Shipping
+  require("./stories/shipping/ShippingZoneCountriesAssignDialog");
+  require("./stories/shipping/ShippingZoneCreatePage");
+  require("./stories/shipping/ShippingZoneDetailsPage");
+  require("./stories/shipping/ShippingZoneRateDialog");
+  require("./stories/shipping/ShippingZonesListPage");
+
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");
   require("./stories/siteSettings/SiteSettingsPage");
-  
+
   // Taxes
   require("./stories/taxes/CountryListPage");
   require("./stories/taxes/CountryTaxesPage");
+
+  // Translations
+  require("./stories/translations/TranslationsEntitiesListPage");
+  require("./stories/translations/TranslationsLanguageListPage");
 }
 
 configure(loadStories, module);

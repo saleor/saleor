@@ -41,7 +41,13 @@ def collect_data_for_email(order_pk, template):
 def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
     fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
     email_data = collect_data_for_email(order_pk, template)
-    email_data['context'].update({'fulfillment': fulfillment})
+    lines = fulfillment.lines.all()
+    physical_lines = [line for line in lines if not line.order_line.is_digital]
+    digital_lines = [line for line in lines if line.order_line.is_digital]
+    context = email_data['context']
+    context.update(
+        {'fulfillment': fulfillment, 'physical_lines': physical_lines,
+         'digital_lines': digital_lines})
     return email_data
 
 

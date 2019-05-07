@@ -4,15 +4,16 @@ from django.db.models import Q, Sum
 
 from ...order import OrderStatus
 from ...product import models
+from ...search.backends import picker
 from ..utils import (
     filter_by_period, filter_by_query_param, get_database_id, get_nodes)
-from .enums import StockAvailability
 from .filters import (
     filter_products_by_attributes, filter_products_by_categories,
-    filter_products_by_collections, filter_products_by_price, sort_qs)
+    filter_products_by_collections, filter_products_by_price,
+    filter_products_by_stock_availability, sort_qs)
 from .types import Category, Collection, ProductVariant
 
-PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')
+PRODUCT_SEARCH_FIELDS = ('name', 'description')
 CATEGORY_SEARCH_FIELDS = ('name', 'slug', 'description', 'parent__name')
 COLLECTION_SEARCH_FIELDS = ('name', 'slug')
 ATTRIBUTES_SEARCH_FIELDS = ('name', 'slug')
@@ -73,14 +74,22 @@ def resolve_collections(info, query):
     return gql_optimizer.query(qs, info)
 
 
+def resolve_digital_contents(info):
+    qs = models.DigitalContent.objects.all()
+    return gql_optimizer.query(qs, info)
+
+
 def resolve_products(
         info, attributes=None, categories=None, collections=None,
         price_lte=None, price_gte=None, sort_by=None, stock_availability=None,
-        query=None, **kwargs):
+        query=None, **_kwargs):
 
     user = info.context.user
     qs = models.Product.objects.visible_to_user(user)
-    qs = filter_by_query_param(qs, query, PRODUCT_SEARCH_FIELDS)
+
+    if query:
+        search = picker.pick_backend()
+        qs &= search(query)
 
     if attributes:
         qs = filter_products_by_attributes(qs, attributes)
@@ -92,17 +101,13 @@ def resolve_products(
     if collections:
         collections = get_nodes(collections, Collection)
         qs = filter_products_by_collections(qs, collections)
-
     if stock_availability:
-        qs = qs.annotate(total_quantity=Sum('variants__quantity'))
-        if stock_availability == StockAvailability.IN_STOCK:
-            qs = qs.filter(total_quantity__gt=0)
-        elif stock_availability == StockAvailability.OUT_OF_STOCK:
-            qs = qs.filter(total_quantity__lte=0)
+        qs = filter_products_by_stock_availability(qs, stock_availability)
 
     qs = filter_products_by_price(qs, price_lte, price_gte)
     qs = sort_qs(qs, sort_by)
     qs = qs.distinct()
+
     return gql_optimizer.query(qs, info)
 
 
@@ -113,7 +118,11 @@ def resolve_product_types(info):
 
 
 def resolve_product_variants(info, ids=None):
-    qs = models.ProductVariant.objects.all()
+    user = info.context.user
+    visible_products = models.Product.objects.visible_to_user(
+        user).values_list('pk', flat=True)
+    qs = models.ProductVariant.objects.filter(
+        product__id__in=visible_products)
     if ids:
         db_ids = [
             get_database_id(info, node_id, only_type=ProductVariant)
@@ -122,7 +131,7 @@ def resolve_product_variants(info, ids=None):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_report_product_sales(info, period):
+def resolve_report_product_sales(period):
     qs = models.ProductVariant.objects.prefetch_related(
         'product', 'product__images', 'order_lines__order').all()
 

@@ -4,23 +4,22 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
-import { collectionAddPath, collectionListPath, collectionPath } from "./urls";
+import {
+  collectionAddPath,
+  collectionListPath,
+  CollectionListUrlQueryParams,
+  collectionPath,
+  CollectionUrlQueryParams
+} from "./urls";
 import CollectionCreate from "./views/CollectionCreate";
-import CollectionDetailsView, {
-  CollectionDetailsQueryParams
-} from "./views/CollectionDetails";
-import CollectionListView, {
-  CollectionListQueryParams
-} from "./views/CollectionList";
+import CollectionDetailsView from "./views/CollectionDetails";
+import CollectionListView from "./views/CollectionList";
 
 const CollectionList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: CollectionListQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: CollectionListUrlQueryParams = qs;
   return <CollectionListView params={params} />;
 };
 
@@ -31,10 +30,7 @@ const CollectionDetails: React.StatelessComponent<
   RouteComponentProps<CollectionDetailsRouteProps>
 > = ({ location, match }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: CollectionDetailsQueryParams = {
-    after: qs.after,
-    before: qs.before
-  };
+  const params: CollectionUrlQueryParams = qs;
   return (
     <CollectionDetailsView
       id={decodeURIComponent(match.params.id)}

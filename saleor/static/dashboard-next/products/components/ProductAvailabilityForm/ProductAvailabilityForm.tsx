@@ -29,7 +29,7 @@ const styles = (theme: Theme) =>
 interface ProductAvailabilityFormProps extends WithStyles<typeof styles> {
   data: {
     available: boolean;
-    availableOn: string;
+    publicationDate: string;
   };
   errors: { [key: string]: string };
   loading?: boolean;
@@ -41,7 +41,7 @@ export const ProductAvailabilityForm = withStyles(styles, {
 })(
   ({
     classes,
-    data: { available, availableOn },
+    data: { available, publicationDate },
     errors,
     loading,
     onChange
@@ -67,14 +67,14 @@ export const ProductAvailabilityForm = withStyles(styles, {
         {available && (
           <>
             <TextField
-              error={!!errors.availableOn}
+              error={!!errors.publicationDate}
               disabled={loading}
               label={i18n.t("Publish product on")}
-              name="availableOn"
+              name="publicationDate"
               type="date"
               fullWidth={true}
-              helperText={errors.availableOn}
-              value={availableOn ? availableOn : ""}
+              helperText={errors.publicationDate}
+              value={publicationDate ? publicationDate : ""}
               onChange={onChange}
               className={classes.date}
               InputLabelProps={{

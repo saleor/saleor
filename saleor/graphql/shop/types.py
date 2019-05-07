@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
@@ -16,8 +14,12 @@ from ...site import models as site_models
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay)
+from ..core.utils import str_to_enum
 from ..menu.types import Menu
 from ..product.types import Collection
+from ..translations.enums import LanguageCodeEnum
+from ..translations.resolvers import resolve_translation
+from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
 from .enums import AuthorizationKeyType
 
@@ -64,9 +66,9 @@ class Shop(graphene.ObjectType):
         description='Customer\'s geolocalization data.')
     authorization_keys = graphene.List(
         AuthorizationKey,
-        description=dedent('''List of configured authorization keys. Authorization
-        keys are used to enable thrid party OAuth authorization (currently
-        Facebook or Google).'''),
+        description='''List of configured authorization keys. Authorization
+               keys are used to enable third party OAuth authorization
+               (currently Facebook or Google).''',
         required=True)
     countries = graphene.List(
         CountryDisplay, description='List of countries available in the shop.',
@@ -105,24 +107,40 @@ class Shop(graphene.ObjectType):
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
+    translation = graphene.Field(
+        ShopTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description='A language code to return the translation for.',
+            required=True),
+        description=(
+            'Returns translated Shop fields for the given language code.'))
+    automatic_fulfillment_digital_products = graphene.Boolean(
+        description='Enable automatic fulfillment for all digital products')
+
+    default_digital_max_downloads = graphene.Int(
+        description='Default number of max downloads per digital content url')
+    default_digital_url_valid_days = graphene.Int(
+        description=(
+            'Default number of days which digital content url will be valid'))
 
     class Meta:
-        description = dedent('''
+        description = '''
         Represents a shop resource containing general shop\'s data
-        and configuration.''')
+        and configuration.'''
 
     @permission_required('site.manage_settings')
-    def resolve_authorization_keys(self, info):
+    def resolve_authorization_keys(self, _info):
         return site_models.AuthorizationKey.objects.all()
 
-    def resolve_countries(self, info):
+    def resolve_countries(self, _info):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
         return [
             CountryDisplay(
                 code=country[0], country=country[1], vat=taxes.get(country[0]))
             for country in countries]
 
-    def resolve_currencies(self, info):
+    def resolve_currencies(self, _info):
         return settings.AVAILABLE_CURRENCIES
 
     def resolve_domain(self, info):
@@ -141,7 +159,7 @@ class Shop(graphene.ObjectType):
                     code=country.code, country=country.name))
         return Geolocalization(country=None)
 
-    def resolve_default_currency(self, info):
+    def resolve_default_currency(self, _info):
         return settings.DEFAULT_CURRENCY
 
     def resolve_description(self, info):
@@ -152,9 +170,11 @@ class Shop(graphene.ObjectType):
         qs = product_models.Collection.objects.all()
         return get_node_optimized(qs, {'pk': collection_pk}, info)
 
-    def resolve_languages(self, info):
+    def resolve_languages(self, _info):
         return [
-            LanguageDisplay(code=language[0], language=language[1])
+            LanguageDisplay(
+                code=LanguageCodeEnum[str_to_enum(language[0])],
+                language=language[1])
             for language in settings.LANGUAGES]
 
     def resolve_name(self, info):
@@ -170,11 +190,11 @@ class Shop(graphene.ObjectType):
         return Navigation(main=top_menu, secondary=bottom_menu)
 
     @permission_required('account.manage_users')
-    def resolve_permissions(self, info):
+    def resolve_permissions(self, _info):
         permissions = get_permissions()
         return format_permissions_for_display(permissions)
 
-    def resolve_phone_prefixes(self, info):
+    def resolve_phone_prefixes(self, _info):
         return list(COUNTRY_CODE_TO_REGION_CODE.keys())
 
     def resolve_header_text(self, info):
@@ -195,7 +215,7 @@ class Shop(graphene.ObjectType):
     def resolve_default_weight_unit(self, info):
         return info.context.site.settings.default_weight_unit
 
-    def resolve_default_country(self, info):
+    def resolve_default_country(self, _info):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
         if default_country_name:
@@ -207,6 +227,23 @@ class Shop(graphene.ObjectType):
         else:
             default_country = None
         return default_country
+
+    def resolve_translation(self, info, language_code):
+        return resolve_translation(
+            info.context.site.settings, info, language_code)
+
+    @permission_required('site.manage_settings')
+    def resolve_automatic_fulfillment_digital_products(self, info):
+        site_settings = info.context.site.settings
+        return site_settings.automatic_fulfillment_digital_products
+
+    @permission_required('site.manage_settings')
+    def resolve_default_digital_max_downloads(self, info):
+        return info.context.site.settings.default_digital_max_downloads
+
+    @permission_required('site.manage_settings')
+    def resolve_default_digital_url_valid_days(self, info):
+        return info.context.site.settings.default_digital_url_valid_days
 
 
 def get_node_optimized(qs, lookup, info):
