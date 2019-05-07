@@ -9,10 +9,6 @@ class Migration(migrations.Migration):
         ('order', '0060_auto_20180919_0731'),
     ]
 
-    replaces = [
-        ('order', '0061_auto_20180920_0859'),
-    ]
-
     operations = [
         migrations.AlterField(
             model_name='orderevent',

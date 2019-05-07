@@ -221,7 +221,6 @@ INSTALLED_APPS = [
     'saleor.core',
     'saleor.graphql',
     'saleor.menu',
-    'saleor.events',
     'saleor.order',
     'saleor.dashboard',
     'saleor.seo',

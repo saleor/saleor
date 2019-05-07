@@ -88,38 +88,27 @@ directly run ``save()`` for the creation.
 .. |QuerySet.bulk_create| replace:: ``QuerySet.bulk_create``
 .. _QuerySet.bulk_create: https://docs.djangoproject.com/en/1.10/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
 
-Sending Events
---------------
+Creating Events
+---------------
 
 To send an event, simply do the following:
 
 .. code-block:: python
 
-  event = OrderEvent.note_added_event(
-      order=order, source=user, message='hello world!')
-  event.save()
+  from saleor.order.events import note_added_event
+
+  # returns an OrderEvent
+  note_added_event(
+      order=order, user=user, message='hello world!')
 
 If now you want to send a 'sent email' event you would do the following:
 
 .. code-block:: python
 
-  event = OrderEventManager().email_sent_event(
-      order=order, email_type=OrderEventsEmails.TRACKING_UPDATED,
-      source=user)
-  event.save()
+  email_sent_event(
+      order=order, user=user, email_type=OrderEventsEmails.TRACKING_UPDATED)
 
 Notice how we are providing the email type.
-
-If you want to sent multiple events, you would do the following:
-
-.. code-block:: python
-
-  event = OrderEventManager().email_sent_event(
-      order=order, email_type=OrderEventsEmails.TRACKING_UPDATED,
-      source=user)
-  event.note_added_event(
-      order=order, source=user, message='hello world!')
-  event.save()
 
 .. note::
 

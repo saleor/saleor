@@ -29,7 +29,7 @@ def _get_payment_data(
             'payment_gateway': payment.gateway}}
 
 
-def _new_event(**data):
+def _new_event(**data) -> OrderEvent:
     return OrderEvent.objects.create(**data)
 
 
@@ -37,14 +37,18 @@ def email_sent_event(
         *, order: Order, user: Optional[UserType],
         email_type: OrderEventsEmails, user_pk: int = None):
 
-    if user is not None and user.is_anonymous:
-        user = None
+    if user is not None and not user.is_anonymous:
+        kwargs = {'user': user}
+    elif user_pk:
+        kwargs = {'user_id': user_pk}
+    else:
+        kwargs = {}
 
     return _new_event(
-        order=order, type=OrderEvents.EMAIL_SENT, user=user, user_id=user_pk,
+        order=order, type=OrderEvents.EMAIL_SENT,
         parameters={
             'email': order.get_user_current_email(),
-            'email_type': email_type})
+            'email_type': email_type}, **kwargs)
 
 
 def email_resent_event(

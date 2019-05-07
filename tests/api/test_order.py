@@ -314,6 +314,7 @@ def test_nested_order_events_query(
         'amount': '80.00',
         'quantity': '10',
         'composed_id': '10-10'})
+    event.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
