@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -12,9 +13,11 @@ from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.dashboard.order.utils import (
     remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
+from saleor.dashboard.templatetags.orders import display_order_event
 from saleor.discount.utils import increase_voucher_usage
-from saleor.order import (
-    FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus)
+from saleor.order import FulfillmentStatus, OrderStatus
+from saleor.order.emails import send_fulfillment_confirmation_to_customer
+from saleor.order.events import OrderEvents, OrderEventsEmails
 from saleor.order.models import Order, OrderEvent, OrderLine
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.payment import ChargeStatus, TransactionKind
@@ -258,7 +261,8 @@ def test_view_void_order_invalid_payment_refunded_status(
 
 @pytest.mark.integration
 @pytest.mark.parametrize('track_inventory', (True, False))
-def test_view_cancel_order_line(admin_client, draft_order, track_inventory):
+def test_view_cancel_order_line(
+        admin_client, draft_order, track_inventory, admin_user):
     lines_before = draft_order.lines.all()
     lines_before_count = lines_before.count()
     line = lines_before.first()
@@ -267,6 +271,8 @@ def test_view_cancel_order_line(admin_client, draft_order, track_inventory):
 
     line.variant.track_inventory = track_inventory
     line.variant.save()
+
+    assert not OrderEvent.objects.exists()
 
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
@@ -292,6 +298,12 @@ def test_view_cancel_order_line(admin_client, draft_order, track_inventory):
     else:
         assert line.variant.quantity_allocated == quantity_allocated_before
 
+    removed_items_event = OrderEvent.objects.last()
+    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
+    assert removed_items_event.user == admin_user
+    assert removed_items_event.parameters == {
+        'lines': [{'quantity': line.quantity, 'item': str(line)}]}
+
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
             'order_pk': draft_order.pk,
@@ -306,13 +318,15 @@ def test_view_cancel_order_line(admin_client, draft_order, track_inventory):
 @pytest.mark.integration
 @pytest.mark.parametrize('track_inventory', (True, False))
 def test_view_change_order_line_quantity(
-        admin_client, draft_order, track_inventory):
+        admin_client, draft_order, track_inventory, admin_user):
     lines_before_quantity_change = draft_order.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
 
     line.variant.track_inventory = track_inventory
     line.variant.save()
+
+    assert not OrderEvent.objects.exists()
 
     url = reverse(
         'dashboard:orderline-change-quantity',
@@ -337,6 +351,12 @@ def test_view_change_order_line_quantity(
         assert line.variant.quantity_allocated == 2
     else:
         assert line.variant.quantity_allocated == 3
+
+    removed_items_event = OrderEvent.objects.last()
+    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
+    assert removed_items_event.user == admin_user
+    assert removed_items_event.parameters == {
+        'lines': [{'quantity': 1, 'item': str(line)}]}
 
     line.refresh_from_db()
     # source line quantity should be decreased to 2
@@ -384,7 +404,7 @@ def test_dashboard_change_quantity_form(request_checkout_with_item, order):
     form = ChangeQuantityForm(
         {'quantity': 1}, instance=order_line)
     assert form.is_valid()
-    form.save()
+    form.save(None)
     order_line.variant.refresh_from_db()
     assert order_line.variant.quantity_allocated == quantity_before
 
@@ -392,14 +412,14 @@ def test_dashboard_change_quantity_form(request_checkout_with_item, order):
     form = ChangeQuantityForm(
         {'quantity': 2}, instance=order_line)
     assert form.is_valid()
-    form.save()
+    form.save(None)
     order_line.variant.refresh_from_db()
     assert order_line.variant.quantity_allocated == quantity_before + 1
 
     # Decrease quantity
     form = ChangeQuantityForm({'quantity': 1}, instance=order_line)
     assert form.is_valid()
-    form.save()
+    form.save(None)
     order_line.variant.refresh_from_db()
     assert order_line.variant.quantity_allocated == quantity_before
 
@@ -407,8 +427,8 @@ def test_dashboard_change_quantity_form(request_checkout_with_item, order):
 def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert not order_with_lines.events.count()
     lines = order_with_lines.lines.all()
-    change_order_line_quantity(lines[1], 0)
-    change_order_line_quantity(lines[0], 0)
+    change_order_line_quantity(None, lines[1], lines[1].quantity, 0)
+    change_order_line_quantity(None, lines[0], lines[0].quantity, 0)
     assert order_with_lines.get_total_quantity() == 0
 
 
@@ -462,12 +482,14 @@ def test_view_fulfillment_packing_slips_without_shipping(
     assert response['content-type'] == 'application/pdf'
 
 
-def test_view_add_variant_to_order(admin_client, order_with_lines):
+def test_view_add_variant_to_order(admin_client, order_with_lines, admin_user):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save()
     variant = ProductVariant.objects.get(sku='SKU_A')
     line = OrderLine.objects.get(product_sku='SKU_A')
     line_quantity_before = line.quantity
+
+    assert not OrderEvent.objects.exists()
 
     added_quantity = 2
     url = reverse(
@@ -482,6 +504,12 @@ def test_view_add_variant_to_order(admin_client, order_with_lines):
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
     assert line.quantity == line_quantity_before + added_quantity
+
+    removed_items_event = OrderEvent.objects.last()
+    assert removed_items_event.type == OrderEvents.DRAFT_ADDED_PRODUCTS
+    assert removed_items_event.user == admin_user
+    assert removed_items_event.parameters == {
+        'lines': [{'quantity': line.quantity, 'item': str(line)}]}
 
 
 def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):
@@ -502,9 +530,11 @@ def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):
     assert fulfillment.tracking_number == tracking_number
 
 
-def test_view_order_create(admin_client):
-    url = reverse('dashboard:order-create')
+def test_view_order_create(admin_client, admin_user):
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
 
+    url = reverse('dashboard:order-create')
     response = admin_client.post(url, {})
 
     assert response.status_code == 302
@@ -514,6 +544,11 @@ def test_view_order_create(admin_client):
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert get_redirect_location(response) == redirect_url
     assert order.status == OrderStatus.DRAFT
+
+    created_draft_event = OrderEvent.objects.get()
+    assert created_draft_event.type == OrderEvents.DRAFT_CREATED
+    assert created_draft_event.user == admin_user
+    assert created_draft_event.parameters == {}
 
 
 def test_view_create_from_draft_order_valid(admin_client, draft_order):
@@ -974,10 +1009,62 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
     order_with_lines.refresh_from_db()
     assert order_with_lines.is_fully_paid()
     assert order_with_lines.events.filter(
-        type=OrderEvents.ORDER_MARKED_AS_PAID.value).exists()
+        type=OrderEvents.ORDER_MARKED_AS_PAID).exists()
 
 
-def test_view_fulfill_order_lines(admin_client, order_with_lines):
+@patch('saleor.order.utils.emails.send_fulfillment_confirmation')
+@pytest.mark.parametrize('has_standard,has_digital', (
+        (True, True),
+        (True, False),
+        (False, True)))
+def test_send_fulfillment_order_lines_mails(
+        mocked_send_fulfillment_confirmation,
+        staff_user,
+        fulfilled_order, fulfillment, digital_content,
+        has_standard, has_digital):
+
+    order = fulfilled_order
+    assert order.lines.count() == 2
+
+    if not has_standard:
+        line = order.lines.all()[0]
+        line.variant = digital_content.product_variant
+        assert line.is_digital
+        line.save()
+
+    if has_digital:
+        line = order.lines.all()[1]
+        line.variant = digital_content.product_variant
+        assert line.is_digital
+        line.save()
+
+    send_fulfillment_confirmation_to_customer(
+        order=order, fulfillment=fulfillment, user=staff_user)
+    events = OrderEvent.objects.all()
+
+    mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
+        order.pk, fulfillment.pk)
+
+    # Ensure the standard fulfillment event was triggered
+    assert events[0].user == staff_user
+    assert events[0].parameters == {
+        'email': order.user_email,
+        'email_type': OrderEventsEmails.FULFILLMENT}
+
+    if has_digital:
+        assert len(events) == 2
+        assert events[1].user == staff_user
+        assert events[1].parameters == {
+            'email': order.user_email,
+            'email_type': OrderEventsEmails.DIGITAL_LINKS}
+    else:
+        assert len(events) == 1
+
+
+@patch('saleor.dashboard.order.views.'
+       'send_fulfillment_confirmation_to_customer')
+def test_view_fulfill_order_lines(
+        mock_email_fulfillment, admin_client, order_with_lines):
     url = reverse(
         'dashboard:fulfill-order-lines',
         kwargs={'order_pk': order_with_lines.pk})
@@ -1000,6 +1087,7 @@ def test_view_fulfill_order_lines(admin_client, order_with_lines):
     order_with_lines.refresh_from_db()
     for line in order_with_lines.lines.all():
         assert line.quantity_unfulfilled == 0
+    assert mock_email_fulfillment.call_count == 1
 
 
 def test_view_fulfill_order_lines_with_empty_quantity(admin_client, order_with_lines):
@@ -1100,12 +1188,12 @@ def test_view_add_order_note(admin_client, order_with_lines):
     assert order_with_lines.events.first().parameters['message'] == note_content  # noqa
 
 
-@pytest.mark.parametrize('type', [e.value for e in OrderEvents])
+@pytest.mark.parametrize('type', [value for value, _ in OrderEvents.CHOICES])
 def test_order_event_display(admin_user, type, order):
     parameters = {
         'message': 'Example Note',
         'quantity': 12,
-        'email_type': OrderEventsEmails.PAYMENT.value,
+        'email_type': OrderEventsEmails.PAYMENT,
         'email': 'example@example.com',
         'amount': {'_type': 'Money', 'amount': '10.00', 'currency': 'USD'},
         'composed_id': 12,
@@ -1113,7 +1201,7 @@ def test_order_event_display(admin_user, type, order):
         'oversold_items': ['Blue Shirt', 'Red Shirt']}
     event = OrderEvent(
         user=admin_user, order=order, parameters=parameters, type=type)
-    event.get_event_display()
+    display_order_event(event)
 
 
 def test_filter_order_by_status(admin_client):
