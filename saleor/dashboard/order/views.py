@@ -12,11 +12,6 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 from django_prices.templatetags import prices_i18n
 
-from ...order.events import OrderEventsEmails, email_sent_event, \
-    fulfillment_tracking_updated_event, fulfillment_fulfilled_items_event, \
-    order_updated_address_event, payment_voided_event, payment_refunded_event, \
-    payment_captured_event, order_note_added_event, OrderEvents, \
-    order_created_event, draft_order_created_event
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
 from ...core.utils.taxes import get_taxes_for_address
@@ -24,6 +19,12 @@ from ...order import OrderStatus
 from ...order.emails import (
     send_fulfillment_confirmation_to_customer, send_fulfillment_update,
     send_order_confirmation)
+from ...order.events import (
+    OrderEvents, OrderEventsEmails, draft_order_created_event,
+    email_sent_event, fulfillment_fulfilled_items_event,
+    fulfillment_tracking_updated_event, order_created_event,
+    order_note_added_event, order_updated_address_event,
+    payment_captured_event, payment_refunded_event, payment_voided_event)
 from ...order.models import Fulfillment, FulfillmentLine, Order
 from ...order.utils import update_order_prices, update_order_status
 from ...shipping.models import ShippingMethod

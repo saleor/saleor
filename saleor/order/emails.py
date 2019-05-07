@@ -32,8 +32,7 @@ def collect_data_for_email(order_pk, template):
     # Order confirmation template requires additional information
     if template == CONFIRM_ORDER_TEMPLATE:
         email_markup = get_order_confirmation_markup(order)
-        email_context.update(
-            {'order': order, 'schema_markup': email_markup})
+        email_context['schema_markup'] = email_markup
 
     return {
         'recipient_list': [recipient_email], 'template_name': template,

@@ -6,7 +6,7 @@ from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import models
 from ....order.events import (
     order_note_added_event, payment_captured_event, payment_failed_event,
-    payment_voided_event)
+    payment_refunded_event, payment_voided_event)
 from ....order.utils import cancel_order
 from ....payment import CustomPaymentChoices, PaymentError
 from ....payment.utils import (

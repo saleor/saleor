@@ -237,7 +237,7 @@ def test_view_checkout_shipping_method_without_address(
 
 
 @patch('saleor.checkout.utils.send_order_confirmation')
-def test_view_checkout_summary(
+def test_view_checkout_summary_anonymous_user(
         mock_send_confirmation, client, shipping_zone, address,
         request_checkout_with_item):
     request_checkout_with_item.shipping_address = address
@@ -258,7 +258,9 @@ def test_view_checkout_summary(
     assert order.user_email == 'test@example.com'
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+    # we expect the user to be anonymous, thus None
+    mock_send_confirmation.delay.assert_called_once_with(order.pk, None)
 
     # checkout should be deleted after order is created
     assert request_checkout_with_item.pk is None
@@ -287,7 +289,8 @@ def test_view_checkout_summary_authorized_user(
     assert order.user_email == customer_user.email
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+    mock_send_confirmation.delay.assert_called_once_with(
+        order.pk, customer_user.pk)
 
 
 @patch('saleor.checkout.utils.send_order_confirmation')
@@ -323,7 +326,8 @@ def test_view_checkout_summary_save_language(
     assert order.language_code == user_language
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+    mock_send_confirmation.delay.assert_called_once_with(
+        order.pk, customer_user.pk)
 
 
 def test_view_checkout_summary_without_address(request_checkout_with_item, client):
