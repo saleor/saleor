@@ -476,9 +476,7 @@ def test_checkout_lines_add_clean_shipping(
         MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutLinesAdd']
-    assert len(data['errors']) == 1
-    assert data['errors'][0]['message'] == \
-        'Shipping method cannot be used with this checkout.'
+    assert not data['errors']
     checkout.refresh_from_db()
     assert checkout.shipping_address is not None
     assert checkout.shipping_method is None
@@ -585,9 +583,7 @@ def test_checkout_lines_update_clean_shipping(
     content = get_graphql_content(response)
 
     data = content['data']['checkoutLinesUpdate']
-    assert len(data['errors']) == 1
-    assert data['errors'][0]['message'] == \
-        'Shipping method cannot be used with this checkout.'
+    assert not data['errors']
     checkout.refresh_from_db()
     assert checkout.shipping_address is not None
     assert checkout.shipping_method is None
@@ -647,9 +643,7 @@ def test_checkout_line_delete_clean_shipping(
     content = get_graphql_content(response)
 
     data = content['data']['checkoutLineDelete']
-    assert len(data['errors']) == 1
-    assert data['errors'][0]['message'] == \
-        'This checkout does not requires shipping.'
+    assert not data['errors']
     checkout.refresh_from_db()
     assert checkout.shipping_address is None
     assert checkout.shipping_method is None
@@ -1214,7 +1208,7 @@ def test_checkout_shipping_method_update(
     checkout.refresh_from_db()
     assert checkout.shipping_method == shipping_method
     mock_clean_shipping.assert_called_once_with(
-        checkout=checkout, method=shipping_method, discounts=ANY, taxes=ANY,
+        checkout=checkout, shipping_method=shipping_method, discounts=ANY, taxes=ANY,
         remove=False)
 
 
@@ -1228,12 +1222,10 @@ def test_checkout_shipping_method_update_shipping_not_required(
         MUTATION_CHECKOUT_SHIPPING_METHOD_UPDATE, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutShippingMethodUpdate']
-    assert len(data['errors']) == 2
+    assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == (
         'Cannot choose a shipping method for a '
         'checkout without the shipping address.')
-    assert data['errors'][1]['message'] == \
-        'Shipping method cannot be used with this checkout.'
     checkout.refresh_from_db()
     assert checkout.shipping_method is None
 
@@ -1249,12 +1241,10 @@ def test_checkout_shipping_method_update_no_shipping_address(
         MUTATION_CHECKOUT_SHIPPING_METHOD_UPDATE, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutShippingMethodUpdate']
-    assert len(data['errors']) == 2
+    assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == (
         'Cannot choose a shipping method for a '
         'checkout without the shipping address.')
-    assert data['errors'][1]['message'] == \
-        'Shipping method cannot be used with this checkout.'
     checkout.refresh_from_db()
     assert checkout.shipping_method is None
 
