@@ -4,7 +4,7 @@ import graphene_django_optimizer as gql_optimizer
 from ...order import OrderEvents, OrderStatus, models
 from ...order.utils import sum_order_totals
 from ..utils import filter_by_period, filter_by_query_param
-from .enums import OrderStatusFilter
+from .enums import CustomOrderStatusFilter
 from .types import Order
 
 ORDER_SEARCH_FIELDS = (
@@ -16,9 +16,9 @@ def filter_orders(qs, info, created, status, query):
 
     # filter orders by status
     if status is not None:
-        if status == OrderStatusFilter.READY_TO_FULFILL:
+        if status == CustomOrderStatusFilter.READY_TO_FULFILL:
             qs = qs.ready_to_fulfill()
-        elif status == OrderStatusFilter.READY_TO_CAPTURE:
+        elif status == CustomOrderStatusFilter.READY_TO_CAPTURE:
             qs = qs.ready_to_capture()
 
     # filter orders by creation date

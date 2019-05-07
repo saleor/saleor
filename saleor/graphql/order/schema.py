@@ -9,7 +9,7 @@ from ..descriptions import DESCRIPTIONS
 from .bulk_mutations.draft_orders import (
     DraftOrderBulkDelete, DraftOrderLinesBulkDelete)
 from .bulk_mutations.orders import OrderBulkCancel
-from .enums import OrderStatusFilter
+from .enums import CustomOrderStatusFilter, OrderStatusFilter
 from .filters import DraftOrderFilter, OrderFilter
 from .mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
@@ -51,7 +51,7 @@ class OrderQueries(graphene.ObjectType):
             ReportingPeriod,
             description='Filter orders from a selected timespan.'),
         status=graphene.Argument(
-            OrderStatusFilter, description='Filter order by status'),
+            CustomOrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
     draft_orders = FilterInputConnectionField(
         Order,
