@@ -294,7 +294,7 @@ def test_restock_fulfillment_lines(fulfilled_order):
 
 
 def test_cancel_order(fulfilled_order):
-    cancel_order(fulfilled_order, restock=False)
+    cancel_order(None, fulfilled_order, restock=False)
     assert all([
         f.status == FulfillmentStatus.CANCELED
         for f in fulfilled_order.fulfillments.all()])
@@ -306,7 +306,7 @@ def test_cancel_fulfillment(fulfilled_order):
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.first()
 
-    cancel_fulfillment(fulfillment, restock=False)
+    cancel_fulfillment(None, fulfillment, restock=False)
 
     assert fulfillment.status == FulfillmentStatus.CANCELED
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
@@ -440,7 +440,8 @@ def test_update_order_prices(order_with_lines):
 
 
 def test_order_payment_flow(
-        request_checkout_with_item, client, address, shipping_zone, settings):
+        request_checkout_with_item, client, address, customer_user,
+        shipping_zone, settings):
     request_checkout_with_item.shipping_address = address
     request_checkout_with_item.billing_address = address.get_copy()
     request_checkout_with_item.email = 'test@example.com'
@@ -449,7 +450,8 @@ def test_order_payment_flow(
     request_checkout_with_item.save()
 
     order = create_order(
-        request_checkout_with_item, 'tracking_code', discounts=None, taxes=None)
+        request_checkout_with_item, 'tracking_code', discounts=None,
+        taxes=None, user=customer_user)
 
     # Select payment
     url = reverse('order:payment', kwargs={'token': order.token})
@@ -553,7 +555,7 @@ def test_order_weight_add_new_variant(order_with_lines, product):
 def test_order_weight_change_line_quantity(order_with_lines):
     line = order_with_lines.lines.first()
     new_quantity = line.quantity + 2
-    change_order_line_quantity(line, new_quantity)
+    change_order_line_quantity(None, line, new_quantity, line.quantity)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines)

@@ -236,8 +236,8 @@ def test_view_checkout_shipping_method_without_address(
     assert get_redirect_location(response) == redirect_url
 
 
-@patch('saleor.checkout.views.summary.send_order_confirmation')
-def test_view_checkout_summary(
+@patch('saleor.checkout.utils.send_order_confirmation')
+def test_view_checkout_summary_anonymous_user(
         mock_send_confirmation, client, shipping_zone, address,
         request_checkout_with_item):
     request_checkout_with_item.shipping_address = address
@@ -258,13 +258,15 @@ def test_view_checkout_summary(
     assert order.user_email == 'test@example.com'
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+    # we expect the user to be anonymous, thus None
+    mock_send_confirmation.delay.assert_called_once_with(order.pk, None)
 
     # checkout should be deleted after order is created
     assert request_checkout_with_item.pk is None
 
 
-@patch('saleor.checkout.views.summary.send_order_confirmation')
+@patch('saleor.checkout.utils.send_order_confirmation')
 def test_view_checkout_summary_authorized_user(
         mock_send_confirmation, authorized_client, customer_user,
         shipping_zone, address, request_checkout_with_item):
@@ -287,10 +289,11 @@ def test_view_checkout_summary_authorized_user(
     assert order.user_email == customer_user.email
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+    mock_send_confirmation.delay.assert_called_once_with(
+        order.pk, customer_user.pk)
 
 
-@patch('saleor.checkout.views.summary.send_order_confirmation')
+@patch('saleor.checkout.utils.send_order_confirmation')
 def test_view_checkout_summary_save_language(
         mock_send_confirmation, authorized_client, customer_user,
         shipping_zone, address, request_checkout_with_item, settings):
@@ -323,7 +326,8 @@ def test_view_checkout_summary_save_language(
     assert order.language_code == user_language
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+    mock_send_confirmation.delay.assert_called_once_with(
+        order.pk, customer_user.pk)
 
 
 def test_view_checkout_summary_without_address(request_checkout_with_item, client):
@@ -529,7 +533,8 @@ def test_create_order_insufficient_stock(
 
     with pytest.raises(InsufficientStock):
         create_order(
-            request_checkout, 'tracking_code', discounts=None, taxes=None)
+            request_checkout, 'tracking_code', discounts=None, taxes=None,
+            user=customer_user)
 
 
 def test_create_order_doesnt_duplicate_order(
@@ -541,18 +546,28 @@ def test_create_order_doesnt_duplicate_order(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    order_1 = create_order(checkout, tracking_code='', discounts=None, taxes=None)
-    assert order_1.checkout_token == checkout_with_item.token
-    order_2 = create_order(checkout, tracking_code='', discounts=None, taxes=None)
-    assert order_1.pk == order_2.pk
+    with patch.object(checkout, 'delete') as mocked_delete:
+        order_1 = create_order(
+            checkout, tracking_code='', discounts=None, taxes=None,
+            user=customer_user)
+        assert order_1.checkout_token == checkout.token
+
+        order_2 = create_order(
+            checkout, tracking_code='', discounts=None, taxes=None,
+            user=customer_user)
+        assert order_1.pk == order_2.pk
+
+        assert mocked_delete.call_count == 1
 
 
-def test_note_in_created_order(request_checkout_with_item, address):
+def test_note_in_created_order(
+        request_checkout_with_item, address, customer_user):
     request_checkout_with_item.shipping_address = address
     request_checkout_with_item.note = 'test_note'
     request_checkout_with_item.save()
     order = create_order(
-        request_checkout_with_item, 'tracking_code', discounts=None, taxes=None)
+        request_checkout_with_item, 'tracking_code', discounts=None,
+        taxes=None, user=customer_user)
     assert order.customer_note == request_checkout_with_item.note
 
 

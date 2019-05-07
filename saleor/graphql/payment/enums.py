@@ -1,11 +1,10 @@
 import graphene
 
+from ...graphql.core.enums import to_enum
 from ...payment import GATEWAYS_ENUM, ChargeStatus
-from ..core.utils import str_to_enum
 
-PaymentChargeStatusEnum = graphene.Enum(
-    'PaymentChargeStatusEnum',
-    [(str_to_enum(code.upper()), code) for code, name in ChargeStatus.CHOICES])
+PaymentChargeStatusEnum = to_enum(
+    ChargeStatus, type_name='PaymentChargeStatusEnum')
 PaymentGatewayEnum = graphene.Enum.from_enum(GATEWAYS_ENUM)
 
 

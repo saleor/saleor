@@ -16,8 +16,6 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...discount import models as voucher_model
-from ...order import OrderEvents, OrderEventsEmails
-from ...order.emails import send_order_confirmation
 from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment
 from ...shipping.models import ShippingMethod as ShippingMethodModel
@@ -465,27 +463,21 @@ class CheckoutComplete(BaseMutation):
         taxes = get_taxes_for_checkout(checkout, info.context.taxes)
         clean_checkout(checkout, taxes, info.context.discounts)
 
+        payment = checkout.get_last_active_payment()
+
         try:
             order = create_order(
                 checkout=checkout,
                 tracking_code=analytics.get_client_id(info.context),
-                discounts=info.context.discounts, taxes=taxes)
+                discounts=info.context.discounts,
+                taxes=get_taxes_for_checkout(checkout, info.context.taxes),
+                user=info.context.user)
         except InsufficientStock:
             raise ValidationError('Insufficient product stock.')
         except voucher_model.NotApplicable:
             raise ValidationError('Voucher not applicable')
 
-        payment = checkout.get_last_active_payment()
-
-        # remove checkout after checkout is created
-        checkout.delete()
-        order.events.create(type=OrderEvents.PLACED.value)
-        send_order_confirmation.delay(order.pk)
-        order.events.create(
-            type=OrderEvents.EMAIL_SENT.value,
-            parameters={
-                'email': order.get_user_current_email(),
-                'email_type': OrderEventsEmails.ORDER.value})
+        payment.order = order
 
         try:
             gateway_process_payment(

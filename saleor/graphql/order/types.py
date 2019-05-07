@@ -17,6 +17,11 @@ from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import applicable_shipping_methods, validate_draft_order
 
 
+class OrderEventLineObject(graphene.ObjectType):
+    quantity = graphene.Int(description='The variant quantity.')
+    item = graphene.String(description='The variant name.')
+
+
 class OrderEvent(CountableDjangoObjectType):
     date = graphene.types.datetime.DateTime(
         description='Date when event happened at in ISO 8601 format.')
@@ -25,11 +30,15 @@ class OrderEvent(CountableDjangoObjectType):
         User, id=graphene.Argument(graphene.ID),
         description='User who performed the action.')
     message = graphene.String(
-        description='Content of a note added to the order.')
+        description='Content of the event.')
     email = graphene.String(description='Email of the customer')
     email_type = OrderEventsEmailsEnum(
         description='Type of an email sent to the customer')
     amount = graphene.Float(description='Amount of money.')
+    payment_id = graphene.String(
+        description='The payment ID from the payment gateway')
+    payment_gateway = graphene.String(
+        description='The payment gateway of the payment.')
     quantity = graphene.Int(description='Number of items.')
     composed_id = graphene.String(
         description='Composed id of the Fulfillment.')
@@ -37,6 +46,10 @@ class OrderEvent(CountableDjangoObjectType):
         description='User-friendly number of an order.')
     oversold_items = graphene.List(
         graphene.String, description='List of oversold lines names.')
+    lines = graphene.List(
+        OrderEventLineObject, description='The concerned lines.')
+    fulfilled_items = graphene.List(
+        OrderEventLineObject, description='The lines fulfilled.')
 
     class Meta:
         description = 'History log of the order.'
@@ -54,6 +67,12 @@ class OrderEvent(CountableDjangoObjectType):
         amount = self.parameters.get('amount', None)
         return float(amount) if amount else None
 
+    def resolve_payment_id(self, _info):
+        return self.parameters.get('payment_id', None)
+
+    def resolve_payment_gateway(self, _info):
+        return self.parameters.get('payment_gateway', None)
+
     def resolve_quantity(self, _info):
         quantity = self.parameters.get('quantity', None)
         return int(quantity) if quantity else None
@@ -69,6 +88,12 @@ class OrderEvent(CountableDjangoObjectType):
 
     def resolve_order_number(self, _info):
         return self.order_id
+
+    def resolve_lines(self, _info):
+        lines = self.parameters.get('lines', None)
+        return [
+            OrderEventLineObject(**line) for line in lines
+        ] if lines else None
 
 
 class FulfillmentLine(CountableDjangoObjectType):
