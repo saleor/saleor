@@ -1,5 +1,5 @@
-from django_countries import countries
 from django.core.exceptions import ValidationError
+from django_countries import countries
 
 from ...account.forms import get_address_form
 from ...account.models import Address

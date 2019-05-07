@@ -1,7 +1,7 @@
+from unittest.mock import Mock, patch
+
 import graphene
 import pytest
-
-from unittest.mock import patch, Mock
 
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus

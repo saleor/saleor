@@ -7,7 +7,7 @@ import pytest
 from graphql_relay import from_global_id
 
 from saleor.graphql.menu.mutations import NavigationType
-from saleor.menu.models import MenuItem, Menu
+from saleor.menu.models import Menu, MenuItem
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
