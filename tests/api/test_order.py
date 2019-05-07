@@ -8,9 +8,6 @@ from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
-from saleor.events import OrderEvents, OrderEventsEmails
-from saleor.events.models import OrderEvent
-from saleor.events.order import OrderEventManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_refund_payment,
@@ -18,7 +15,10 @@ from saleor.graphql.order.mutations.orders import (
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderStatus
-from saleor.order.models import Order
+from saleor.order.events import (
+    OrderEvents, OrderEventsEmails, fulfillment_fulfilled_items_event,
+    payment_captured_event)
+from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
@@ -305,17 +305,15 @@ def test_nested_order_events_query(
     """
     line = fulfilled_order.lines.first()
 
-    event = OrderEventManager().fulfillment_fulfilled_items_event(
+    event = fulfillment_fulfilled_items_event(
         order=fulfilled_order, user=staff_user,
         quantities=[line.quantity], order_lines=[line])
-    event.last.parameters.update({
+    event.parameters.update({
         'message': 'Example note',
         'email_type': OrderEventsEmails.PAYMENT,
         'amount': '80.00',
         'quantity': '10',
         'composed_id': '10-10'})
-    event.save()
-    event = event.last
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
@@ -371,9 +369,8 @@ def test_payment_information_order_events_query(
 
     amount = order.total.gross.amount
 
-    OrderEventManager().payment_captured_event(
-        order=order, user=staff_user,
-        amount=amount, payment=payment_dummy).save()
+    payment_captured_event(
+        order=order, user=staff_user, amount=amount, payment=payment_dummy)
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
@@ -564,7 +561,7 @@ def test_draft_order_delete(
         """
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {'id': order_id}
-    response = staff_api_client.post_graphql(
+    staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     with pytest.raises(order._meta.model.DoesNotExist):
         order.refresh_from_db()

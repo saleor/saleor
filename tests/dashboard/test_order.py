@@ -15,11 +15,10 @@ from saleor.dashboard.order.utils import (
     update_order_with_user_addresses)
 from saleor.dashboard.templatetags.orders import display_order_event
 from saleor.discount.utils import increase_voucher_usage
-from saleor.events.models import OrderEvent
-from saleor.events import OrderEvents, OrderEventsEmails
 from saleor.order import FulfillmentStatus, OrderStatus
 from saleor.order.emails import send_fulfillment_confirmation_to_customer
-from saleor.order.models import Order, OrderLine
+from saleor.order.events import OrderEvents, OrderEventsEmails
+from saleor.order.models import Order, OrderEvent, OrderLine
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.product.models import ProductVariant

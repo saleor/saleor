@@ -5,8 +5,11 @@ from graphene.types import InputObjectType
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
-from ....events.order import OrderEventManager
 from ....order import OrderStatus, models
+from ....order.events import (
+    draft_order_added_products_event, draft_order_created_event,
+    draft_order_oversold_items_event, draft_order_removed_products_event,
+    order_created_event)
 from ....order.utils import (
     add_variant_to_order, allocate_stock, change_order_line_quantity,
     delete_order_line, recalculate_order)
@@ -124,9 +127,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     track_inventory=False)
 
             # New event
-            OrderEventManager().draft_order_added_products_event(
-                order=instance, user=info.context.user,
-                order_lines=lines).save()
+            draft_order_added_products_event(
+                order=instance, user=info.context.user, order_lines=lines)
 
     @classmethod
     def _commit_changes(cls, info, instance, cleaned_input):
@@ -135,8 +137,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Create draft created event if the instance is from scratch
         if not created:
-            OrderEventManager().draft_order_created_event(
-                order=instance, user=info.context.user).save()
+            draft_order_created_event(order=instance, user=info.context.user)
 
         instance.save(update_fields=['billing_address', 'shipping_address'])
 
@@ -228,16 +229,14 @@ class DraftOrderComplete(BaseMutation):
                 allocate_stock(line.variant, line.variant.quantity_available)
                 oversold_items.append(str(line))
 
-        event = OrderEventManager().order_created_event(
+        order_created_event(
             order=order, user=info.context.user, from_draft=True)
 
         if oversold_items:
-            event.draft_order_oversold_items_event(
-                order=order,
-                user=info.context.user,
+            draft_order_oversold_items_event(
+                order=order, user=info.context.user,
                 oversold_items=oversold_items)
 
-        event.save()
         return DraftOrderComplete(order=order)
 
 
@@ -286,9 +285,8 @@ class DraftOrderLinesCreate(BaseMutation):
             for quantity, variant in lines_to_add]
 
         # Create the event
-        OrderEventManager().draft_order_added_products_event(
-            order=order, user=info.context.user,
-            order_lines=lines_to_add).save()
+        draft_order_added_products_event(
+            order=order, user=info.context.user, order_lines=lines_to_add)
 
         recalculate_order(order)
         return DraftOrderLinesCreate(order=order, order_lines=lines)
@@ -319,9 +317,9 @@ class DraftOrderLineDelete(BaseMutation):
         line.id = db_id
 
         # Create the removal event
-        OrderEventManager().draft_order_removed_products_event(
+        draft_order_removed_products_event(
             order=order, user=info.context.user,
-            order_lines=[(line.quantity, line)]).save()
+            order_lines=[(line.quantity, line)])
 
         recalculate_order(order)
         return DraftOrderLineDelete(order=order, order_line=line)

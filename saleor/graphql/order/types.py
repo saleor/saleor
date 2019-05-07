@@ -3,7 +3,6 @@ import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
 from graphene import relay
 
-from ...events import models as events_models
 from ...order import models
 from ...order.models import FulfillmentStatus
 from ...product.templatetags.product_images import get_product_image_thumbnail
@@ -54,7 +53,7 @@ class OrderEvent(CountableDjangoObjectType):
 
     class Meta:
         description = 'History log of the order.'
-        model = events_models.OrderEvent
+        model = models.OrderEvent
         interfaces = [relay.Node]
         only_fields = ['id']
 

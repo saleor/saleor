@@ -5,9 +5,8 @@ from templated_email import send_templated_mail
 
 from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
-from ..events import OrderEventsEmails
-from ..events.order import OrderEventManager
 from ..seo.schema.email import get_order_confirmation_markup
+from .events import OrderEventsEmails, email_sent_event
 from .models import Fulfillment, Order
 
 CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
@@ -28,6 +27,7 @@ def collect_data_for_email(order_pk, template):
     email_context = get_email_base_context()
     email_context['order_details_url'] = build_absolute_uri(
         reverse('order:details', kwargs={'token': order.token}))
+    email_context['order'] = order
 
     # Order confirmation template requires additional information
     if template == CONFIRM_ORDER_TEMPLATE:
@@ -54,10 +54,13 @@ def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
 
 
 @shared_task
-def send_order_confirmation(order_pk):
+def send_order_confirmation(order_pk, user_pk=None):
     """Sends order confirmation email."""
     email_data = collect_data_for_email(order_pk, CONFIRM_ORDER_TEMPLATE)
     send_templated_mail(**email_data)
+    email_sent_event(
+        order=email_data['context']['order'],
+        email_type=OrderEventsEmails.ORDER, user=None, user_pk=user_pk)
 
 
 @shared_task
@@ -70,16 +73,14 @@ def send_fulfillment_confirmation(order_pk, fulfillment_pk):
 def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
     send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
 
-    event = OrderEventManager().email_sent_event(
+    email_sent_event(
         order=order, user=user, email_type=OrderEventsEmails.FULFILLMENT)
 
     # If digital lines were sent in the fulfillment email,
     # trigger the event
     if any((line for line in order if line.variant.is_digital())):
-        event.email_sent_event(
+        email_sent_event(
             order=order, user=user, email_type=OrderEventsEmails.DIGITAL_LINKS)
-
-    event.save()
 
 
 @shared_task

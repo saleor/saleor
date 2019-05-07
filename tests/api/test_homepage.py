@@ -1,5 +1,3 @@
-from saleor.events import OrderEvents
-
 from .utils import get_graphql_content
 
 

@@ -1,7 +1,7 @@
 import graphene
 
-from ...events import OrderEvents, OrderEventsEmails
 from ...graphql.core.enums import to_enum
+from ...order import OrderEvents, OrderEventsEmails
 
 OrderEventsEnum = to_enum(OrderEvents)
 OrderEventsEmailsEnum = to_enum(OrderEventsEmails)

@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from saleor.events import OrderEvents
+from saleor.order.events import OrderEvents
 
 
 def _move_updated_events_to_other(apps, *_args, **_kwargs):

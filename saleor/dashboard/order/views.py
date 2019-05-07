@@ -12,11 +12,14 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 from django_prices.templatetags import prices_i18n
 
+from ...order.events import OrderEventsEmails, email_sent_event, \
+    fulfillment_tracking_updated_event, fulfillment_fulfilled_items_event, \
+    order_updated_address_event, payment_voided_event, payment_refunded_event, \
+    payment_captured_event, order_note_added_event, OrderEvents, \
+    order_created_event, draft_order_created_event
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
 from ...core.utils.taxes import get_taxes_for_address
-from ...events import OrderEvents, OrderEventsEmails
-from ...events.order import OrderEventManager
 from ...order import OrderStatus
 from ...order.emails import (
     send_fulfillment_confirmation_to_customer, send_fulfillment_update,
@@ -65,8 +68,7 @@ def order_create(request):
         status=OrderStatus.DRAFT, display_gross_prices=display_gross_prices)
 
     # Create the draft creation event
-    OrderEventManager().draft_order_created_event(
-        order=order, user=request.user).save()
+    draft_order_created_event(order=order, user=request.user)
 
     # Send success message and redirect to the draft details
     messages.success(request, msg)
@@ -85,17 +87,14 @@ def create_order_from_draft(request, order_pk):
             'Dashboard message related to an order',
             'Order created from draft order')
 
-        events = OrderEventManager().order_created_event(
-            order=order, user=request.user, from_draft=True)
-
+        order_created_event(order=order, user=request.user, from_draft=True)
         messages.success(request, msg)
+
         if form.cleaned_data.get('notify_customer'):
-            send_order_confirmation.delay(order.pk)
-            events.email_sent_event(
+            send_order_confirmation.delay(order.pk, request.user.pk)
+            email_sent_event(
                 order=order, email_type=OrderEventsEmails.ORDER,
                 user=request.user)
-
-        events.save()
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
@@ -144,9 +143,9 @@ def order_add_note(request, order_pk):
     form = OrderNoteForm(request.POST or None)
     status = 200
     if form.is_valid():
-        OrderEventManager().order_note_added_event(
+        order_note_added_event(
             order=order, user=request.user,
-            message=form.cleaned_data['message']).save()
+            message=form.cleaned_data['message'])
         msg = pgettext_lazy(
             'Dashboard message related to an order',
             'Added note')
@@ -174,9 +173,9 @@ def capture_payment(request, order_pk, payment_pk):
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
             'Captured %(amount)s') % {'amount': prices_i18n.amount(amount)}
-        OrderEventManager().payment_captured_event(
+        payment_captured_event(
             order=order, user=request.user,
-            amount=amount.amount, payment=payment).save()
+            amount=amount.amount, payment=payment)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
@@ -204,9 +203,8 @@ def refund_payment(request, order_pk, payment_pk):
             'Dashboard message related to a payment',
             'Refunded %(amount)s') % {
                 'amount': prices_i18n.amount(payment.get_captured_amount())}
-        OrderEventManager().payment_refunded_event(
-            order=order, user=request.user,
-            amount=amount, payment=payment).save()
+        payment_refunded_event(
+            order=order, user=request.user, amount=amount, payment=payment)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
@@ -228,8 +226,8 @@ def void_payment(request, order_pk, payment_pk):
     form = VoidPaymentForm(request.POST or None, payment=payment)
     if form.is_valid() and form.void(request.user):
         msg = pgettext_lazy('Dashboard message', 'Voided payment')
-        OrderEventManager().payment_voided_event(
-            order=order, user=request.user, payment=payment).save()
+        payment_voided_event(
+            order=order, user=request.user, payment=payment)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
@@ -348,8 +346,8 @@ def order_address(request, order_pk, address_type):
         if update_prices:
             update_order_prices(order, request.discounts)
         if not order.is_draft():
-            OrderEventManager().order_updated_address_event(
-                order=order, user=request.user, address=address).save()
+            order_updated_address_event(
+                order=order, user=request.user, address=address)
         messages.success(request, success_msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     ctx = {'order': order, 'address_type': address_type, 'form': form}
@@ -617,9 +615,9 @@ def fulfill_order_lines(request, order_pk):
                 number='quantity_fulfilled') % {
                     'quantity_fulfilled': quantity_fulfilled}
 
-            OrderEventManager().fulfillment_fulfilled_items_event(
+            fulfillment_fulfilled_items_event(
                 order=order, user=request.user,
-                quantities=quantities, order_lines=order_lines).save()
+                quantities=quantities, order_lines=order_lines)
 
             if form.cleaned_data.get('send_mail'):
                 send_fulfillment_confirmation_to_customer(
@@ -673,17 +671,15 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
         request.POST or None, instance=fulfillment)
     if form.is_valid():
         form.save()
-        event = OrderEventManager().fulfillment_tracking_updated_event(
+        fulfillment_tracking_updated_event(
             order=order, user=request.user,
             tracking_number=request.POST.get('tracking_number'),
             fulfillment=fulfillment)
         if form.cleaned_data.get('send_mail'):
-            event.email_sent_event(
+            email_sent_event(
                 order=order, email_type=OrderEventsEmails.TRACKING_UPDATED,
                 user=request.user)
             send_fulfillment_update.delay(order.pk, fulfillment.pk)
-
-        event.save()
 
         msg = pgettext_lazy(
             'Dashboard message',
