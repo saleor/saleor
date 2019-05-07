@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
 from saleor.product.utils.availability import (
-    get_availability, get_product_availability_status,
+    get_product_availability, get_product_availability_status,
     get_variant_availability_status)
 
 
@@ -70,7 +70,7 @@ def test_variant_availability_status(unavailable_product):
 
 
 def test_availability(product, monkeypatch, settings, taxes):
-    availability = get_availability(product)
+    availability = get_product_availability(product)
     assert availability.price_range == product.get_price_range()
     assert availability.price_range_local_currency is None
 
@@ -79,11 +79,11 @@ def test_availability(product, monkeypatch, settings, taxes):
         lambda c: {'PLN': Mock(rate=2)})
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    availability = get_availability(product, local_currency='PLN')
+    availability = get_product_availability(product, local_currency='PLN')
     assert availability.price_range_local_currency.start.currency == 'PLN'
     assert availability.available
 
-    availability = get_availability(product, taxes=taxes)
+    availability = get_product_availability(product, taxes=taxes)
     assert availability.price_range.start.tax.amount
     assert availability.price_range.stop.tax.amount
     assert availability.price_range_undiscounted.start.tax.amount

@@ -12,7 +12,7 @@ import { drawerWidth } from "./consts";
 const styles = (theme: Theme) =>
   createStyles({
     drawerDesktop: {
-      backgroundColor: theme.palette.common.white,
+      backgroundColor: theme.palette.background.paper,
       border: "none",
       height: "100vh",
       padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
@@ -20,7 +20,8 @@ const styles = (theme: Theme) =>
       width: drawerWidth
     },
     drawerMobile: {
-      width: drawerWidth
+      padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
+      width: drawerWidth,
     }
   });
 

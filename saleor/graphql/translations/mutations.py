@@ -1,5 +1,4 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -14,24 +13,21 @@ from .enums import LanguageCodeEnum
 
 
 class BaseTranslateMutation(ModelMutation):
-
     class Meta:
         abstract = True
 
     @classmethod
-    @permission_required('site.manage_translations')
-    def mutate(cls, root, info, **data):
-        errors = []
+    def check_permissions(cls, user):
+        return user.has_perm('site.manage_translations')
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
         model_type = registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node_or_error(
-            info, data['id'], errors, 'id', model_type)
-
-        if errors:
-            return cls(errors=errors)
-
+            info, data['id'], only_type=model_type)
         instance.translations.update_or_create(
             language_code=data['language_code'], defaults=data['input'])
-        return cls(**{cls._meta.return_field_name: instance, 'errors': errors})
+        return cls(**{cls._meta.return_field_name: instance})
 
 
 class NameTranslationInput(graphene.InputObjectType):
@@ -126,6 +122,19 @@ class AttributeValueTranslate(BaseTranslateMutation):
         model = product_models.AttributeValue
 
 
+class SaleTranslate(BaseTranslateMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description='Voucher ID')
+        language_code = graphene.Argument(
+            LanguageCodeEnum,
+            required=True, description='Translation language code')
+        input = NameTranslationInput(required=True)
+
+    class Meta:
+        description = 'Creates/updates translations for a sale.'
+        model = discount_models.Sale
+
+
 class VoucherTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(required=True, description='Voucher ID')
@@ -203,11 +212,11 @@ class ShopSettingsTranslate(BaseMutation):
 
     class Meta:
         description = 'Creates/Updates translations for Shop Settings.'
+        permissions = ('site.manage_translations', )
 
     @classmethod
-    @permission_required('site.manage_translations')
-    def mutate(cls, root, info, language_code, input):
+    def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
         instance.translations.update_or_create(
-            language_code=language_code, defaults=input)
-        return ShopSettingsTranslate(shop=Shop(), errors=[])
+            language_code=language_code, defaults=data.get('input'))
+        return ShopSettingsTranslate(shop=Shop())

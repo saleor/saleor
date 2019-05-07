@@ -87,7 +87,7 @@ const OrderCustomer = withStyles(styles, { name: "OrderCustomer" })(
                 toolbar={
                   !!canEditCustomer && (
                     <Button
-                      color="secondary"
+                      color="primary"
                       variant="text"
                       disabled={!onCustomerEdit}
                       onClick={toggleEditMode}
@@ -179,7 +179,7 @@ const OrderCustomer = withStyles(styles, { name: "OrderCustomer" })(
             {canEditAddresses && (
               <div className={classes.sectionHeaderToolbar}>
                 <Button
-                  color="secondary"
+                  color="primary"
                   variant="text"
                   onClick={onShippingAddressEdit}
                   disabled={!onShippingAddressEdit && user === undefined}
@@ -232,7 +232,7 @@ const OrderCustomer = withStyles(styles, { name: "OrderCustomer" })(
             {canEditAddresses && (
               <div className={classes.sectionHeaderToolbar}>
                 <Button
-                  color="secondary"
+                  color="primary"
                   variant="text"
                   onClick={onBillingAddressEdit}
                   disabled={!onBillingAddressEdit && user === undefined}

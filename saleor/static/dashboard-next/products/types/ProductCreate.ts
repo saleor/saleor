@@ -112,7 +112,7 @@ export interface ProductCreate_productCreate_product_availability_priceRange {
 }
 
 export interface ProductCreate_productCreate_product_availability {
-  __typename: "ProductAvailability";
+  __typename: "ProductPricingInfo";
   available: boolean | null;
   priceRange: ProductCreate_productCreate_product_availability_priceRange | null;
 }
@@ -194,4 +194,6 @@ export interface ProductCreateVariables {
   name: string;
   price?: any | null;
   productType: string;
+  sku?: string | null;
+  stockQuantity?: number | null;
 }

@@ -23,6 +23,8 @@
   <a href="https://twitter.com/getsaleor">Twitter</a>
   <span> | </span>
   <a href="https://gitter.im/mirumee/saleor">Gitter</a>
+  <span> | </span>
+  <a href="https://spectrum.chat/saleor">Spectrum</a>
 </div>
 
 <br>
@@ -78,7 +80,7 @@ Help us out… If you love free stuff and great software, give us a star! 🌟
 
 ## Installation
 
-Saleor requires Python 3.5+, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
+Saleor requires Python 3.6+, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
 
 [See the Saleor docs](https://saleor.readthedocs.io) for step-by-step installation and deployment instructions.
 

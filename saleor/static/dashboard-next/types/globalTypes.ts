@@ -6,6 +6,11 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum AddressTypeEnum {
+  BILLING = "BILLING",
+  SHIPPING = "SHIPPING",
+}
+
 export enum AttributeTypeEnum {
   PRODUCT = "PRODUCT",
   VARIANT = "VARIANT",
@@ -24,6 +29,47 @@ export enum DiscountValueTypeEnum {
 export enum FulfillmentStatus {
   CANCELED = "CANCELED",
   FULFILLED = "FULFILLED",
+}
+
+export enum LanguageCodeEnum {
+  AR = "AR",
+  AZ = "AZ",
+  BG = "BG",
+  BN = "BN",
+  CA = "CA",
+  CS = "CS",
+  DA = "DA",
+  DE = "DE",
+  EN = "EN",
+  ES = "ES",
+  ET = "ET",
+  FA = "FA",
+  FR = "FR",
+  HI = "HI",
+  HU = "HU",
+  HY = "HY",
+  ID = "ID",
+  IT = "IT",
+  JA = "JA",
+  KO = "KO",
+  MN = "MN",
+  NB = "NB",
+  NL = "NL",
+  PL = "PL",
+  PT = "PT",
+  PT_BR = "PT_BR",
+  RO = "RO",
+  RU = "RU",
+  SK = "SK",
+  SR = "SR",
+  SV = "SV",
+  SW = "SW",
+  TH = "TH",
+  TR = "TR",
+  UK = "UK",
+  VI = "VI",
+  ZH_HANS = "ZH_HANS",
+  ZH_HANT = "ZH_HANT",
 }
 
 export enum OrderAction {
@@ -69,8 +115,12 @@ export enum OrderStatus {
 }
 
 export enum OrderStatusFilter {
+  CANCELED = "CANCELED",
+  FULFILLED = "FULFILLED",
+  PARTIALLY_FULFILLED = "PARTIALLY_FULFILLED",
   READY_TO_CAPTURE = "READY_TO_CAPTURE",
   READY_TO_FULFILL = "READY_TO_FULFILL",
+  UNFULFILLED = "UNFULFILLED",
 }
 
 export enum PaymentChargeStatusEnum {
@@ -160,10 +210,10 @@ export enum VoucherTypeEnum {
 }
 
 export enum WeightUnitsEnum {
-  g = "g",
-  kg = "kg",
-  lb = "lb",
-  oz = "oz",
+  G = "G",
+  KG = "KG",
+  LB = "LB",
+  OZ = "OZ",
 }
 
 export interface AddressInput {
@@ -175,7 +225,7 @@ export interface AddressInput {
   city?: string | null;
   cityArea?: string | null;
   postalCode?: string | null;
-  country: string;
+  country?: string | null;
   countryArea?: string | null;
   phone?: string | null;
 }
@@ -287,6 +337,10 @@ export interface FulfillmentUpdateTrackingInput {
   notifyCustomer?: boolean | null;
 }
 
+export interface NameTranslationInput {
+  name?: string | null;
+}
+
 export interface OrderAddNoteInput {
   message?: string | null;
 }
@@ -320,12 +374,21 @@ export interface PageInput {
   seo?: SeoInput | null;
 }
 
+export interface PageTranslationInput {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  title?: string | null;
+  content?: string | null;
+  contentJson?: any | null;
+}
+
 export interface ProductTypeInput {
   name?: string | null;
   hasVariants?: boolean | null;
   productAttributes?: (string | null)[] | null;
   variantAttributes?: (string | null)[] | null;
   isShippingRequired?: boolean | null;
+  isDigital?: boolean | null;
   weight?: any | null;
   taxRate?: TaxRateType | null;
 }
@@ -381,6 +444,9 @@ export interface ShopSettingsInput {
   chargeTaxesOnShipping?: boolean | null;
   trackInventoryByDefault?: boolean | null;
   defaultWeightUnit?: WeightUnitsEnum | null;
+  automaticFulfillmentDigitalProducts?: boolean | null;
+  defaultDigitalMaxDownloads?: number | null;
+  defaultDigitalUrlValidDays?: number | null;
 }
 
 export interface SiteDomainInput {
@@ -405,6 +471,14 @@ export interface StaffInput {
   isActive?: boolean | null;
   note?: string | null;
   permissions?: (PermissionEnum | null)[] | null;
+}
+
+export interface TranslationInput {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  name?: string | null;
+  description?: string | null;
+  descriptionJson?: any | null;
 }
 
 export interface UserCreateInput {

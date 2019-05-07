@@ -12,26 +12,23 @@ const styles = (theme: Theme) =>
   createStyles({
     children: theme.mixins.gutters({}),
     constantHeight: {
-      height: 48
+      height: 56
     },
     hr: {
-      backgroundColor: "#eaeaea",
       border: "none",
-      height: 1,
+      borderTop: `1px solid ${theme.overrides.MuiCard.root.borderColor}`,
+      height: 0,
       marginBottom: 0,
-      marginTop: 0
+      marginTop: 0,
+      width: "100%"
     },
     root: theme.mixins.gutters({
       alignItems: "center",
       display: "flex",
-      minHeight: theme.spacing.unit * 6,
-      paddingBottom: theme.spacing.unit * 2,
-      paddingTop: theme.spacing.unit * 2
+      minHeight: 56
     }),
     title: {
       flex: 1,
-      fontSize: "1rem",
-      fontWeight: 600 as 600,
       lineHeight: 1
     },
     toolbar: {
@@ -69,7 +66,7 @@ const CardTitle = withStyles(styles, { name: "CardTitle" })(
       >
         <Typography
           className={classes.title}
-          variant="body1"
+          variant="headline"
           onClick={onClick}
           component="span"
         >

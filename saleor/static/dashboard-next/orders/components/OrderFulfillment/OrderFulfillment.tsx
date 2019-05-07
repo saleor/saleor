@@ -15,7 +15,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { CardMenu } from "../../../components/CardMenu/CardMenu";
+import CardMenu from "../../../components/CardMenu";
 import CardTitle from "../../../components/CardTitle";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
@@ -185,7 +185,7 @@ const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
         </Table>
         {status === FulfillmentStatus.FULFILLED && !fulfillment.trackingNumber && (
           <CardActions>
-            <Button color="secondary" onClick={onTrackingCodeAdd}>
+            <Button color="primary" onClick={onTrackingCodeAdd}>
               {i18n.t("Add tracking")}
             </Button>
           </CardActions>

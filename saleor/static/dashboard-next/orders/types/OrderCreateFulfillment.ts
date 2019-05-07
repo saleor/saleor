@@ -38,6 +38,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order_billingAddr
 
 export interface OrderCreateFulfillment_orderFulfillmentCreate_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

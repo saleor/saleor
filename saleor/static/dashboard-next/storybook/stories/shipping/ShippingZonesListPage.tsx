@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import ShippingZonesListPage, {
   ShippingZonesListPageProps
 } from "../../../shipping/components/ShippingZonesListPage";
@@ -10,9 +10,11 @@ import { WeightUnitsEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const props: ShippingZonesListPageProps = {
+  ...listActionsProps,
   ...pageListProps.default,
-  defaultWeightUnit: WeightUnitsEnum.kg,
+  defaultWeightUnit: WeightUnitsEnum.KG,
   onAdd: () => undefined,
+  onBack: () => undefined,
   onRemove: () => undefined,
   onSubmit: () => undefined,
   shippingZones

@@ -81,7 +81,7 @@ const ErrorPage = withStyles(styles, { name: "NotFoundPage" })(
           <div>
             <Button
               className={classes.button}
-              color="secondary"
+              color="primary"
               variant="contained"
               onClick={onBack}
             >

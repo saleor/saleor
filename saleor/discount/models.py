@@ -35,6 +35,11 @@ class VoucherQueryset(models.QuerySet):
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date)
 
+    def expired(self, date):
+        return self.filter(
+            Q(used__gte=F('usage_limit')) | Q(end_date__lt=date),
+            start_date__lt=date)
+
 
 class Voucher(models.Model):
     type = models.CharField(
@@ -145,6 +150,10 @@ class SaleQueryset(models.QuerySet):
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date)
 
+    def expired(self, date):
+        return self.filter(
+            end_date__lt=date, start_date__lt=date)
+
 
 class VoucherTranslation(models.Model):
     language_code = models.CharField(max_length=10)
@@ -172,6 +181,7 @@ class Sale(models.Model):
     end_date = models.DateField(null=True, blank=True)
 
     objects = SaleQueryset.as_manager()
+    translated = TranslationProxy()
 
     class Meta:
         app_label = 'discount'
@@ -193,3 +203,13 @@ class Sale(models.Model):
         if self.type == DiscountValueType.PERCENTAGE:
             return partial(percentage_discount, percentage=self.value)
         raise NotImplementedError('Unknown discount type')
+
+
+class SaleTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    sale = models.ForeignKey(
+        Sale, related_name='translations', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('language_code', 'sale'),)

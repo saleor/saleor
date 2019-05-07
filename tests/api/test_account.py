@@ -1,22 +1,68 @@
 import json
 import re
-from unittest.mock import Mock, patch
+import uuid
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.shortcuts import reverse
+from freezegun import freeze_time
+from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.checkout import AddressType
 from saleor.graphql.account.mutations import (
     CustomerDelete, SetPassword, StaffDelete, StaffUpdate, UserDelete)
 from saleor.graphql.core.enums import PermissionEnum
-from saleor.order.models import FulfillmentStatus
+from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
+from tests.utils import create_image
 
-from .utils import assert_no_permission, convert_dict_keys_to_camel_case
+from .utils import (
+    assert_no_permission, convert_dict_keys_to_camel_case,
+    get_multipart_request_body)
+
+
+@pytest.fixture
+def query_customer_with_filter():
+    query = """
+    query ($filter: CustomerFilterInput!, ) {
+        customers(first: 5, filter: $filter) {
+            totalCount
+            edges {
+                node {
+                    id
+                    lastName
+                    firstName
+                }
+            }
+        }
+    }
+    """
+    return query
+
+
+@pytest.fixture
+def query_staff_users_with_filter():
+    query = """
+    query ($filter: StaffUserInput!, ) {
+        staffUsers(first: 5, filter: $filter) {
+            totalCount
+            edges {
+                node {
+                    id
+                    lastName
+                    firstName
+                }
+            }
+        }
+    }
+    """
+    return query
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -91,11 +137,17 @@ def test_token_create_user_data(
 
 
 def test_query_user(
-        staff_api_client, customer_user, address, permission_manage_users):
+        staff_api_client, customer_user, address, permission_manage_users,
+        media_root):
     user = customer_user
     user.default_shipping_address.country = 'US'
     user.default_shipping_address.save()
     user.addresses.add(address.get_copy())
+
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = 'image.jpg'
+    user.avatar = avatar_mock
+    user.save()
 
     query = """
     query User($id: ID!) {
@@ -149,6 +201,9 @@ def test_query_user(
                 isDefaultShippingAddress
                 isDefaultBillingAddress
             }
+            avatar {
+                url
+            }
         }
     }
     """
@@ -164,6 +219,7 @@ def test_query_user(
     assert data['isStaff'] == user.is_staff
     assert data['isActive'] == user.is_active
     assert data['orders']['totalCount'] == user.orders.count()
+    assert data['avatar']['url']
 
     assert len(data['addresses']) == user.addresses.count()
     for address in data['addresses']:
@@ -367,15 +423,15 @@ def test_me_query_customer_can_not_see_note(
     assert data['note'] == staff_api_client.user.note
 
 
-def test_me_query_checkout(user_api_client, cart):
+def test_me_query_checkout(user_api_client, checkout):
     user = user_api_client.user
-    cart.user = user
-    cart.save()
+    checkout.user = user
+    checkout.save()
 
     response = user_api_client.post_graphql(ME_QUERY)
     content = get_graphql_content(response)
     data = content['data']['me']
-    assert data['checkout']['token'] == str(cart.token)
+    assert data['checkout']['token'] == str(checkout.token)
 
 
 def test_me_with_cancelled_fulfillments(
@@ -728,19 +784,20 @@ def test_customer_delete(
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
     info = Mock(context=Mock(user=admin_user))
-    errors = []
-    CustomerDelete.clean_instance(info, staff_user, errors)
-    assert errors[0].field == 'id'
-    assert errors[0].message == 'Cannot delete a staff account.'
+    with pytest.raises(ValidationError) as e:
+        CustomerDelete.clean_instance(info, staff_user)
 
-    errors = []
-    CustomerDelete.clean_instance(info, customer_user, errors)
-    assert errors == []
+    msg = 'Cannot delete a staff account.'
+    assert e.value.error_dict['id'][0].message == msg
+
+    # shuold not raise any errors
+    CustomerDelete.clean_instance(info, customer_user)
 
 
 @patch('saleor.dashboard.emails.send_set_password_staff_email.delay')
 def test_staff_create(
-        send_set_password_staff_email_mock, staff_api_client, permission_manage_staff):
+        send_set_password_staff_email_mock, staff_api_client, media_root,
+        permission_manage_staff):
     query = """
     mutation CreateStaff(
             $email: String, $permissions: [PermissionEnum],
@@ -758,6 +815,9 @@ def test_staff_create(
                 isActive
                 permissions {
                     code
+                }
+                avatar {
+                    url
                 }
             }
         }
@@ -778,6 +838,10 @@ def test_staff_create(
     assert data['user']['email'] == email
     assert data['user']['isStaff']
     assert data['user']['isActive']
+    assert re.match(
+        r'http://testserver/media/user-avatars/avatar\d+.*',
+        data['user']['avatar']['url']
+    )
     permissions = data['user']['permissions']
     assert permissions[0]['code'] == 'MANAGE_PRODUCTS'
 
@@ -792,7 +856,7 @@ def test_staff_create(
     assert call_pk == staff_user.pk
 
 
-def test_staff_update(staff_api_client, permission_manage_staff):
+def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     query = """
     mutation UpdateStaff(
             $id: ID!, $permissions: [PermissionEnum], $is_active: Boolean) {
@@ -855,49 +919,47 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
 
 def test_user_delete_errors(staff_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
-    errors = []
-    UserDelete.clean_instance(info, staff_user, errors)
-    assert errors[0].field == 'id'
-    assert errors[0].message == 'You cannot delete your own account.'
+    with pytest.raises(ValidationError) as e:
+        UserDelete.clean_instance(info, staff_user)
+
+    msg = 'You cannot delete your own account.'
+    assert e.value.error_dict['id'][0].message == msg
 
     info = Mock(context=Mock(user=staff_user))
-    errors = []
-    UserDelete.clean_instance(info, admin_user, errors)
-    assert errors[0].field == 'id'
-    assert errors[0].message == 'Only superuser can delete his own account.'
+    with pytest.raises(ValidationError) as e:
+        UserDelete.clean_instance(info, admin_user)
+
+    msg = 'Cannot delete this account.'
+    assert e.value.error_dict['id'][0].message == msg
 
 
 def test_staff_delete_errors(staff_user, customer_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
-    errors = []
-    StaffDelete.clean_instance(info, customer_user, errors)
-    assert errors[0].field == 'id'
-    assert errors[0].message == 'Cannot delete a non-staff user.'
+    with pytest.raises(ValidationError) as e:
+        StaffDelete.clean_instance(info, customer_user)
+    msg = 'Cannot delete a non-staff user.'
+    assert e.value.error_dict['id'][0].message == msg
 
+    # shuold not raise any errors
     info = Mock(context=Mock(user=admin_user))
-    errors = []
-    StaffDelete.clean_instance(info, staff_user, errors)
-    assert not errors
+    StaffDelete.clean_instance(info, staff_user)
 
 
 def test_staff_update_errors(staff_user, customer_user, admin_user):
-    errors = []
-    StaffUpdate.clean_is_active(None, customer_user, staff_user, errors)
-    assert not errors
+    StaffUpdate.clean_is_active(None, customer_user, staff_user)
 
-    errors = []
-    StaffUpdate.clean_is_active(False, staff_user, staff_user, errors)
-    assert errors[0].field == 'isActive'
-    assert errors[0].message == 'Cannot deactivate your own account.'
+    with pytest.raises(ValidationError) as e:
+        StaffUpdate.clean_is_active(False, staff_user, staff_user)
+    msg = 'Cannot deactivate your own account.'
+    assert e.value.error_dict['is_active'][0].message == msg
 
-    errors = []
-    StaffUpdate.clean_is_active(False, admin_user, staff_user, errors)
-    assert errors[0].field == 'isActive'
-    assert errors[0].message == 'Cannot deactivate superuser\'s account.'
+    with pytest.raises(ValidationError) as e:
+        StaffUpdate.clean_is_active(False, admin_user, staff_user)
+    msg = 'Cannot deactivate superuser\'s account.'
+    assert e.value.error_dict['is_active'][0].message == msg
 
-    errors = []
-    StaffUpdate.clean_is_active(False, customer_user, staff_user, errors)
-    assert not errors
+    # shuold not raise any errors
+    StaffUpdate.clean_is_active(False, customer_user, staff_user)
 
 
 def test_set_password(user_api_client, customer_user):
@@ -955,7 +1017,7 @@ def test_password_reset_email(
         query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['passwordReset']
-    assert data is None
+    assert data == {'errors': []}
     assert send_password_reset_mock.call_count == 1
     args, kwargs = send_password_reset_mock.call_args
     call_context = args[0]
@@ -993,18 +1055,21 @@ def test_create_address_mutation(
         staff_api_client, customer_user, permission_manage_users):
     query = """
     mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
-        addressCreate(input: {userId: $user, city: $city, country: $country}) {
-         errors {
-            field
-            message
-         }
-         address {
-            id
-            city
-            country {
-                code
+        addressCreate(userId: $user, input: {city: $city, country: $country}) {
+            errors {
+                field
+                message
             }
-         }
+            address {
+                id
+                city
+                country {
+                    code
+                }
+            }
+            user {
+                id
+            }
         }
     }
     """
@@ -1014,11 +1079,12 @@ def test_create_address_mutation(
         query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     assert content['data']['addressCreate']['errors'] == []
-    address_response = content['data']['addressCreate']['address']
-    assert address_response['city'] == 'Dummy'
-    assert address_response['country']['code'] == 'PL'
+    data = content['data']['addressCreate']
+    assert data['address']['city'] == 'Dummy'
+    assert data['address']['country']['code'] == 'PL'
     address_obj = Address.objects.get(city='Dummy')
     assert address_obj.user_addresses.first() == customer_user
+    assert data['user']['id'] == user_id
 
 
 ADDRESS_UPDATE_MUTATION = """
@@ -1026,6 +1092,9 @@ ADDRESS_UPDATE_MUTATION = """
         addressUpdate(id: $addressId, input: $address) {
             address {
                 city
+            }
+            user {
+                id
             }
         }
     }
@@ -1090,6 +1159,9 @@ ADDRESS_DELETE_MUTATION = """
             address {
                 city
             }
+            user {
+                id
+            }
         }
     }
 """
@@ -1105,6 +1177,8 @@ def test_address_delete_mutation(
     content = get_graphql_content(response)
     data = content['data']['addressDelete']
     assert data['address']['city'] == address_obj.city
+    assert data['user']['id'] == graphene.Node.to_global_id(
+        'User', customer_user.pk)
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
 
@@ -1130,6 +1204,60 @@ def test_customer_delete_address_for_other(
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
     address_obj.refresh_from_db()
+
+
+SET_DEFAULT_ADDRESS_MUTATION = """
+mutation($address_id: ID!, $user_id: ID!, $type: AddressTypeEnum!) {
+  addressSetDefault(addressId: $address_id, userId: $user_id, type: $type) {
+    errors {
+      field
+      message
+    }
+    user {
+      defaultBillingAddress {
+        id
+      }
+      defaultShippingAddress {
+        id
+      }
+    }
+  }
+}
+"""
+
+
+def test_set_default_address(
+        staff_api_client, address_other_country, customer_user,
+        permission_manage_users):
+    customer_user.default_billing_address = None
+    customer_user.default_shipping_address = None
+    customer_user.save()
+
+    # try to set an address that doesn't belong to that user
+    address = address_other_country
+
+    variables = {
+        'address_id': graphene.Node.to_global_id('Address', address.id),
+        'user_id': graphene.Node.to_global_id('User', customer_user.id),
+        'type': AddressType.SHIPPING.upper()}
+
+    response = staff_api_client.post_graphql(
+        SET_DEFAULT_ADDRESS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['addressSetDefault']
+    assert data['errors'][0]['field'] == 'addressId'
+
+    # try to set a new billing address using one of user's addresses
+    address = customer_user.addresses.first()
+    address_id = graphene.Node.to_global_id('Address', address.id)
+
+    variables['address_id'] = address_id
+    response = staff_api_client.post_graphql(
+        SET_DEFAULT_ADDRESS_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content['data']['addressSetDefault']
+    assert data['user']['defaultShippingAddress']['id'] == address_id
 
 
 def test_address_validator(user_api_client):
@@ -1409,4 +1537,409 @@ def test_customer_change_default_address_invalid_address(
         'id': graphene.Node.to_global_id('Address', address_other_country.id),
         'type': AddressType.SHIPPING.upper()}
     response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert (
+            content['data']['customerSetDefaultAddress']['errors'][0][
+                'field'] ==
+            'id')
+
+
+USER_AVATAR_UPDATE_MUTATION = """
+    mutation userAvatarUpdate($image: Upload!) {
+        userAvatarUpdate(image: $image) {
+            user {
+                avatar {
+                    url
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_avatar_update_mutation_permission(api_client):
+    """ Should raise error if user is not staff. """
+
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    image_file, image_name = create_image('avatar')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = api_client.post_multipart(body)
+
     assert_no_permission(response)
+
+
+def test_user_avatar_update_mutation(
+        monkeypatch, staff_api_client, media_root):
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    user = staff_api_client.user
+
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        ('saleor.graphql.account.mutations.'
+         'create_user_avatar_thumbnails.delay'),
+        mock_create_thumbnails)
+
+    image_file, image_name = create_image('avatar')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    data = content['data']['userAvatarUpdate']
+    user.refresh_from_db()
+
+    assert user.avatar
+    assert data['user']['avatar']['url'].startswith(
+        'http://testserver/media/user-avatars/avatar'
+    )
+
+    # The image creation should have triggered a warm-up
+    mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
+
+
+def test_user_avatar_update_mutation_image_exists(
+        staff_api_client, media_root):
+    query = USER_AVATAR_UPDATE_MUTATION
+
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = 'image.jpg'
+    user.avatar = avatar_mock
+    user.save()
+
+    image_file, image_name = create_image('new_image')
+    variables = {'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    data = content['data']['userAvatarUpdate']
+    user.refresh_from_db()
+
+    assert user.avatar != avatar_mock
+    assert data['user']['avatar']['url'].startswith(
+        'http://testserver/media/user-avatars/new_image'
+    )
+
+
+USER_AVATAR_DELETE_MUTATION = """
+    mutation userAvatarDelete {
+        userAvatarDelete {
+            user {
+                avatar {
+                    url
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_avatar_delete_mutation_permission(api_client):
+    """ Should raise error if user is not staff. """
+
+    query = USER_AVATAR_DELETE_MUTATION
+
+    response = api_client.post_graphql(query)
+
+    assert_no_permission(response)
+
+
+def test_user_avatar_delete_mutation(staff_api_client):
+    query = USER_AVATAR_DELETE_MUTATION
+
+    user = staff_api_client.user
+
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    user.refresh_from_db()
+
+    assert not user.avatar
+    assert not content['data']['userAvatarDelete']['user']['avatar']
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'placedOrders': {'gte': '2019-04-18'}}, 1),
+    ({'placedOrders': {'lte': '2012-01-14'}}, 1),
+    ({'placedOrders': {'lte': '2012-01-14', 'gte': '2012-01-13'}}, 1),
+    ({'placedOrders': {'gte': '2012-01-14'}}, 2),
+
+])
+def test_query_customers_with_filter_placed_orders(
+        customer_filter, count, query_customer_with_filter, staff_api_client,
+        permission_manage_users, customer_user):
+    Order.objects.create(user=customer_user)
+    second_customer = User.objects.create(email='second_example@example.com')
+    with freeze_time("2012-01-14 11:00:00"):
+        o = Order.objects.create(user=second_customer)
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+            query_customer_with_filter, variables,
+            permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'dateJoined': {'gte': '2019-04-18'}}, 1),
+    ({'dateJoined': {'lte': '2012-01-14'}}, 1),
+    ({'dateJoined': {'lte': '2012-01-14', 'gte': '2012-01-13'}},
+     1),
+    ({'dateJoined': {'gte': '2012-01-14'}}, 2),
+
+])
+def test_query_customers_with_filter_date_joined(
+        customer_filter, count, query_customer_with_filter,
+        staff_api_client,
+        permission_manage_users, customer_user):
+    with freeze_time("2012-01-14 11:00:00"):
+        User.objects.create(
+            email='second_example@example.com')
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'numberOfOrders': {"gte": 0, "lte": 1}}, 1),
+    ({'numberOfOrders': {"gte": 1, "lte": 3}}, 2),
+    ({'numberOfOrders': {"gte": 0}}, 2),
+    ({'numberOfOrders': {"lte": 3}}, 2),
+
+])
+def test_query_customers_with_filter_placed_orders(
+        customer_filter, count, query_customer_with_filter, staff_api_client,
+        permission_manage_users, customer_user):
+    Order.objects.bulk_create([
+        Order(user=customer_user, token=str(uuid.uuid4())),
+        Order(user=customer_user, token=str(uuid.uuid4())),
+        Order(user=customer_user, token=str(uuid.uuid4()))
+    ])
+    second_customer = User.objects.create(email='second_example@example.com')
+    with freeze_time("2012-01-14 11:00:00"):
+        Order.objects.create(user=second_customer)
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+            query_customer_with_filter, variables,
+            permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'moneySpent': {"gte": 16, "lte": 25}}, 1),
+    ({'moneySpent': {"gte": 15, "lte": 26}}, 2),
+    ({'moneySpent': {"gte": 0}}, 2),
+    ({'moneySpent': {"lte": 16}}, 1),
+
+])
+def test_query_customers_with_filter_placed_orders(
+        customer_filter, count, query_customer_with_filter, staff_api_client,
+        permission_manage_users, customer_user):
+    second_customer = User.objects.create(email='second_example@example.com')
+    Order.objects.bulk_create([
+        Order(
+            user=customer_user, token=str(uuid.uuid4()),
+            total_gross=Money(15, 'USD')),
+        Order(
+            user=second_customer, token=str(uuid.uuid4()),
+            total_gross=Money(25, 'USD'))
+    ])
+
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+            query_customer_with_filter, variables,
+            permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('customer_filter, count', [
+    ({'search': 'example.com'}, 2), ({'search': 'Alice'}, 1),
+    ({'search': 'Kowalski'}, 1),
+    ({'search': 'John'}, 1),  # default_shipping_address__first_name
+    ({'search': 'Doe'}, 1),  # default_shipping_address__last_name
+    ({'search': 'wroc'}, 1),  # default_shipping_address__city
+    ({'search': 'pl'}, 2),  # default_shipping_address__country, email
+])
+def test_query_customer_memebers_with_filter_search(
+        customer_filter, count, query_customer_with_filter,
+        staff_api_client, permission_manage_users, address, staff_user):
+
+    User.objects.bulk_create([
+        User(email='second@example.com', first_name='Alice',
+             last_name='Kowalski', is_active=False),
+        User(
+            email='third@example.com', is_active=True,
+            default_shipping_address=address)
+    ])
+
+    variables = {'filter': customer_filter}
+    response = staff_api_client.post_graphql(
+            query_customer_with_filter, variables,
+            permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    users = content['data']['customers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('staff_member_filter, count', [
+    ({'status': 'DEACTIVATED'}, 1),
+    ({'status': 'ACTIVE'}, 2),
+])
+def test_query_staff_memebers_with_filter_status(
+        staff_member_filter, count, query_staff_users_with_filter,
+        staff_api_client, permission_manage_staff, staff_user):
+
+    User.objects.bulk_create([
+        User(email='second@example.com', is_staff=True, is_active=False),
+        User(email='third@example.com', is_staff=True, is_active=True)
+    ])
+
+    variables = {'filter': staff_member_filter}
+    response = staff_api_client.post_graphql(
+            query_staff_users_with_filter, variables,
+            permissions=[permission_manage_staff])
+    content = get_graphql_content(response)
+    users = content['data']['staffUsers']['edges']
+
+    assert len(users) == count
+
+
+@pytest.mark.parametrize('staff_member_filter, count', [
+    ({'search': 'example.com'}, 3), ({'search': 'Alice'}, 1),
+    ({'search': 'Kowalski'}, 1),
+    ({'search': 'John'}, 1),  # default_shipping_address__first_name
+    ({'search': 'Doe'}, 1),  # default_shipping_address__last_name
+    ({'search': 'wroc'}, 1),  # default_shipping_address__city
+    ({'search': 'pl'}, 3),  # default_shipping_address__country, email
+])
+def test_query_staff_memebers_with_filter_search(
+        staff_member_filter, count, query_staff_users_with_filter,
+        staff_api_client, permission_manage_staff, address, staff_user):
+
+    User.objects.bulk_create([
+        User(email='second@example.com', first_name='Alice',
+             last_name='Kowalski', is_staff=True, is_active=False),
+        User(
+            email='third@example.com', is_staff=True, is_active=True,
+            default_shipping_address=address),
+        User(email='customer@example.com', first_name='Alice',
+             last_name='Kowalski', is_staff=False, is_active=True),
+    ])
+
+    variables = {'filter': staff_member_filter}
+    response = staff_api_client.post_graphql(
+            query_staff_users_with_filter, variables,
+            permissions=[permission_manage_staff])
+    content = get_graphql_content(response)
+    users = content['data']['staffUsers']['edges']
+
+    assert len(users) == count
+
+
+USER_CHANGE_ACTIVE_STATUS_MUTATION = """
+    mutation userChangeActiveStatus($ids: [ID]!, $is_active: Boolean!) {
+        userBulkSetActive(ids: $ids, isActive: $is_active) {
+            count
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+
+def test_staff_bulk_set_active(
+        staff_api_client, user_list_not_active, permission_manage_users):
+    users = user_list_not_active
+    active_status = True
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['count'] == users.count()
+    users = User.objects.filter(pk__in=[user.pk for user in users])
+    assert all(user.is_active for user in users)
+
+
+def test_staff_bulk_set_not_active(
+        staff_api_client, user_list, permission_manage_users):
+    users = user_list
+    active_status = False
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['count'] == len(users)
+    users = User.objects.filter(pk__in=[user.pk for user in users])
+    assert not any(user.is_active for user in users)
+
+
+def test_change_active_status_for_superuser(
+        staff_api_client, superuser, permission_manage_users):
+    users = [superuser]
+    superuser_id = graphene.Node.to_global_id('User', superuser.id)
+    active_status = False
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['errors'][0]['field'] == superuser_id
+    assert data['errors'][0]['message'] == 'Cannot activate or deactivate ' \
+                                           'superuser\'s account.'
+
+
+def test_change_active_status_for_himself(
+        staff_api_client, permission_manage_users):
+    users = [staff_api_client.user]
+    user_id = graphene.Node.to_global_id('User', staff_api_client.user.id)
+    active_status = False
+    variables = {
+        'ids': [
+            graphene.Node.to_global_id('User', user.id)
+            for user in users],
+        'is_active': active_status}
+    response = staff_api_client.post_graphql(
+        USER_CHANGE_ACTIVE_STATUS_MUTATION, variables,
+        permissions=[permission_manage_users])
+    content = get_graphql_content(response)
+    data = content['data']['userBulkSetActive']
+    assert data['errors'][0]['field'] == user_id
+    assert data['errors'][0]['message'] == 'Cannot activate or deactivate ' \
+                                           'your own account.'

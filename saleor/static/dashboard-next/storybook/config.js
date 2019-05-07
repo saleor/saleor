@@ -53,6 +53,8 @@ function loadStories() {
   require("./stories/configuration/ConfigurationPage");
 
   // Customers
+  require("./stories/customers/CustomerAddressDialog");
+  require("./stories/customers/CustomerAddressListPage");
   require("./stories/customers/CustomerCreatePage");
   require("./stories/customers/CustomerDetailsPage");
   require("./stories/customers/CustomerListPage");
@@ -74,8 +76,8 @@ function loadStories() {
   require("./stories/staff/StaffDetailsPage");
 
   // Pages
-  require("./stories/pages/PageDetailsPage")
-  require("./stories/pages/PageListPage")
+  require("./stories/pages/PageDetailsPage");
+  require("./stories/pages/PageListPage");
 
   // Products
   require("./stories/products/ProductCreatePage");
@@ -88,12 +90,14 @@ function loadStories() {
 
   // Orders
   require("./stories/orders/OrderAddressEditDialog");
+  require("./stories/orders/OrderBulkCancelDialog");
   require("./stories/orders/OrderCancelDialog");
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderCustomerEditDialog");
   require("./stories/orders/OrderDetailsPage");
   require("./stories/orders/OrderDraftCancelDialog");
   require("./stories/orders/OrderDraftFinalizeDialog");
+  require("./stories/orders/OrderDraftListPage");
   require("./stories/orders/OrderDraftPage");
   require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
@@ -126,6 +130,10 @@ function loadStories() {
   // Taxes
   require("./stories/taxes/CountryListPage");
   require("./stories/taxes/CountryTaxesPage");
+
+  // Translations
+  require("./stories/translations/TranslationsEntitiesListPage");
+  require("./stories/translations/TranslationsLanguageListPage");
 }
 
 configure(loadStories, module);

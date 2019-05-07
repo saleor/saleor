@@ -68,12 +68,7 @@ const ProductVariantCreatePage: React.StatelessComponent<
     sku: ""
   };
   return (
-    <Form
-      initial={initialForm}
-      errors={formErrors}
-      onSubmit={onSubmit}
-      key={product ? JSON.stringify(product) : "noproduct"}
-    >
+    <Form initial={initialForm} errors={formErrors} onSubmit={onSubmit}>
       {({ change, data, errors, hasChanged, submit }) => (
         <Container>
           <AppHeader onBack={onBack}>{maybe(() => product.name)}</AppHeader>
@@ -81,6 +76,7 @@ const ProductVariantCreatePage: React.StatelessComponent<
           <Grid variant="inverted">
             <div>
               <ProductVariantNavigation
+                fallbackThumbnail={maybe(() => product.thumbnail.url)}
                 variants={maybe(() => product.variants)}
                 onRowClick={(variantId: string) => {
                   if (product && product.variants) {

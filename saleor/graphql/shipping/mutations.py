@@ -1,7 +1,5 @@
-from textwrap import dedent
-
 import graphene
-from graphql_jwt.decorators import permission_required
+from django.core.exceptions import ValidationError
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
@@ -36,21 +34,20 @@ class ShippingZoneInput(graphene.InputObjectType):
         graphene.String,
         description='List of countries in this shipping zone.')
     default = graphene.Boolean(
-        description=dedent(
-            """
+        description="""
             Is default shipping zone, that will be used
-            for countries not covered by other zones."""))
+            for countries not covered by other zones.""")
 
 
 class ShippingZoneMixin:
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         default = cleaned_input.get('default')
         if default:
             if default_shipping_zone_exists(instance.pk):
-                cls.add_error(
-                    errors, 'default', 'Default shipping zone already exists.')
+                raise ValidationError({
+                    'default': 'Default shipping zone already exists.'})
             elif cleaned_input.get('countries'):
                 cleaned_input['countries'] = []
         else:
@@ -70,10 +67,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = 'Creates a new shipping zone.'
         model = models.ShippingZone
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
 
 class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
@@ -90,10 +84,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = 'Updates a new shipping zone.'
         model = models.ShippingZone
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
 
 class ShippingZoneDelete(ModelDeleteMutation):
@@ -104,36 +95,33 @@ class ShippingZoneDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a shipping zone.'
         model = models.ShippingZone
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
 
 class ShippingPriceMixin:
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        type = cleaned_input.get('type')
-        if type:
-            if type == ShippingMethodTypeEnum.PRICE.value:
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_type = cleaned_input.get('type')
+        if cleaned_type:
+            if cleaned_type == ShippingMethodTypeEnum.PRICE.value:
                 min_price = cleaned_input.get('minimum_order_price')
                 max_price = cleaned_input.get('maximum_order_price')
                 if (min_price is not None and max_price is not None
                         and max_price <= min_price):
-                    cls.add_error(
-                        errors, 'maximum_order_price',
+                    raise ValidationError({
+                        'maximum_order_price':
                         'Maximum order price should be larger than the '
-                        'minimum order price.')
+                        'minimum order price.'})
             else:
                 min_weight = cleaned_input.get('minimum_order_weight')
                 max_weight = cleaned_input.get('maximum_order_weight')
                 if (min_weight is not None and max_weight is not None
                         and max_weight <= min_weight):
-                    cls.add_error(
-                        errors, 'maximum_order_weight',
+                    raise ValidationError({
+                        'maximum_order_weight':
                         'Maximum order weight should be larger than the '
-                        'minimum order weight.')
+                        'minimum order weight.'})
         return cleaned_input
 
 
@@ -150,10 +138,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
     class Meta:
         description = 'Creates a new shipping price.'
         model = models.ShippingMethod
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
     @classmethod
     def success_response(cls, instance):
@@ -177,10 +162,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
     class Meta:
         description = 'Updates a new shipping price.'
         model = models.ShippingMethod
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ('shipping.manage_shipping', )
 
     @classmethod
     def success_response(cls, instance):
@@ -202,22 +184,15 @@ class ShippingPriceDelete(BaseMutation):
 
     class Meta:
         description = 'Deletes a shipping price.'
+        permissions = ('shipping.manage_shipping', )
 
     @classmethod
-    @permission_required('shipping.manage_shipping')
-    def mutate(cls, root, info, id):
-        errors = []
+    def perform_mutation(cls, _root, info, **data):
         shipping_method = cls.get_node_or_error(
-            info, id, errors, 'id', only_type=ShippingMethod)
-        if not shipping_method:
-            return ShippingPriceDelete(errors=errors)
-
+            info, data.get('id'), only_type=ShippingMethod)
         shipping_method_id = shipping_method.id
         shipping_zone = shipping_method.shipping_zone
-
         shipping_method.delete()
         shipping_method.id = shipping_method_id
         return ShippingPriceDelete(
-            shipping_method=shipping_method,
-            shipping_zone=shipping_zone,
-            errors=errors)
+            shipping_method=shipping_method, shipping_zone=shipping_zone)

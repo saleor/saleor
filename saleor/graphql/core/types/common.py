@@ -1,7 +1,7 @@
-from textwrap import dedent
-
 import graphene
 
+from ....product.templatetags.product_images import get_thumbnail
+from ...translations.enums import LanguageCodeEnum
 from ..enums import PermissionEnum
 from .money import VAT
 
@@ -14,9 +14,9 @@ class CountryDisplay(graphene.ObjectType):
 
 class Error(graphene.ObjectType):
     field = graphene.String(
-        description=dedent("""Name of a field that caused the error. A value of
+        description="""Name of a field that caused the error. A value of
         `null` indicates that the error isn't associated with a particular
-        field."""), required=False)
+        field.""", required=False)
     message = graphene.String(description='The error message.')
 
     class Meta:
@@ -24,7 +24,7 @@ class Error(graphene.ObjectType):
 
 
 class LanguageDisplay(graphene.ObjectType):
-    code = graphene.String(description='Language code.', required=True)
+    code = LanguageCodeEnum(description='Language code.', required=True)
     language = graphene.String(description='Language.', required=True)
 
 
@@ -50,3 +50,47 @@ class Weight(graphene.ObjectType):
 
     class Meta:
         description = 'Represents weight value in a specific weight unit.'
+
+
+class Image(graphene.ObjectType):
+    url = graphene.String(
+        required=True,
+        description='The URL of the image.')
+    alt = graphene.String(description='Alt text for an image.')
+
+    class Meta:
+        description = 'Represents an image.'
+
+    @staticmethod
+    def get_adjusted(image, alt, size, rendition_key_set, info):
+        """Return Image adjusted with given size."""
+        if size:
+            url = get_thumbnail(
+                image_file=image,
+                size=size,
+                method='thumbnail',
+                rendition_key_set=rendition_key_set,
+            )
+        else:
+            url = image.url
+        url = info.context.build_absolute_uri(url)
+        return Image(url, alt)
+
+
+class PriceRangeInput(graphene.InputObjectType):
+    gte = graphene.Float(
+        description='Price greater than or equal', required=False)
+    lte = graphene.Float(
+        description='Price less than or equal', required=False)
+
+
+class DateRangeInput(graphene.InputObjectType):
+    gte = graphene.Date(description='Start date', required=False)
+    lte = graphene.Date(description='End date', required=False)
+
+
+class IntRangeInput(graphene.InputObjectType):
+    gte = graphene.Int(
+        description='Value greater than or equal', required=False)
+    lte = graphene.Int(
+        description='Value less than or equal', required=False)

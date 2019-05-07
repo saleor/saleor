@@ -9,43 +9,37 @@ import { voucherDetailsPageTab } from "./components/VoucherDetailsPage";
 import {
   saleAddPath,
   saleListPath,
+  SaleListUrlQueryParams,
   salePath,
+  SaleUrlQueryParams,
   voucherAddPath,
   voucherListPath,
-  voucherPath
+  VoucherListUrlQueryParams,
+  voucherPath,
+  VoucherUrlQueryParams
 } from "./urls";
 import SaleCreateView from "./views/SaleCreate";
-import SaleDetailsViewComponent, {
-  SaleDetailsQueryParams
-} from "./views/SaleDetails";
-import SaleListViewComponent, { SaleListQueryParams } from "./views/SaleList";
+import SaleDetailsViewComponent from "./views/SaleDetails";
+import SaleListViewComponent from "./views/SaleList";
 import VoucherCreateView from "./views/VoucherCreate";
-import VoucherDetailsViewComponent, {
-  VoucherDetailsQueryParams
-} from "./views/VoucherDetails";
-import VoucherListViewComponent, {
-  VoucherListQueryParams
-} from "./views/VoucherList";
+import VoucherDetailsViewComponent from "./views/VoucherDetails";
+import VoucherListViewComponent from "./views/VoucherList";
 
 const SaleListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const { after, before } = parseQs(location.search.substr(1));
-  const params: SaleListQueryParams = {
-    after,
-    before
-  };
+  const qs = parseQs(location.search.substr(1));
+  const params: SaleListUrlQueryParams = qs;
   return <SaleListViewComponent params={params} />;
 };
 
 const SaleDetailsView: React.StatelessComponent<
   RouteComponentProps<{ id: string }>
 > = ({ match, location }) => {
-  const { after, before, tab } = parseQs(location.search.substr(1));
-  const params: SaleDetailsQueryParams = {
-    after,
-    before,
-    tab: saleDetailsPageTab(tab)
+  const { activeTab, ...qs } = parseQs(location.search.substr(1));
+  const params: SaleUrlQueryParams = {
+    ...qs,
+    activeTab: saleDetailsPageTab(activeTab)
   };
   return (
     <SaleDetailsViewComponent
@@ -58,22 +52,18 @@ const SaleDetailsView: React.StatelessComponent<
 const VoucherListView: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const { after, before } = parseQs(location.search.substr(1));
-  const params: VoucherListQueryParams = {
-    after,
-    before
-  };
+  const qs = parseQs(location.search.substr(1));
+  const params: VoucherListUrlQueryParams = qs;
   return <VoucherListViewComponent params={params} />;
 };
 
 const VoucherDetailsView: React.StatelessComponent<
   RouteComponentProps<{ id: string }>
 > = ({ match, location }) => {
-  const { after, before, tab } = parseQs(location.search.substr(1));
-  const params: VoucherDetailsQueryParams = {
-    after,
-    before,
-    tab: voucherDetailsPageTab(tab)
+  const { activeTab, ...qs } = parseQs(location.search.substr(1));
+  const params: VoucherUrlQueryParams = {
+    ...qs,
+    activeTab: voucherDetailsPageTab(activeTab)
   };
   return (
     <VoucherDetailsViewComponent

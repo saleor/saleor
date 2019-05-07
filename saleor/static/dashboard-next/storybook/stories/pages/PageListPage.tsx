@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import PageListPage, {
   PageListPageProps
 } from "../../../pages/components/PageListPage";
@@ -9,7 +9,9 @@ import { pageList } from "../../../pages/fixtures";
 import Decorator from "../../Decorator";
 
 const props: PageListPageProps = {
+  ...listActionsProps,
   ...pageListProps.default,
+  onBack: () => undefined,
   pages: pageList
 };
 

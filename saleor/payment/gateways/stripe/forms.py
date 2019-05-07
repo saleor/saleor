@@ -1,9 +1,12 @@
+from typing import Dict
+
 from django import forms
 from django.forms.utils import flatatt
 from django.forms.widgets import HiddenInput
 from django.utils.html import format_html
 from django.utils.translation import pgettext_lazy
 
+from ...interface import PaymentData
 from .utils import get_amount_for_stripe
 
 CHECKOUT_SCRIPT_URL = 'https://checkout.stripe.com/checkout.js'
@@ -13,19 +16,21 @@ CHECKOUT_DESCRIPTION = pgettext_lazy(
 
 class StripeCheckoutWidget(HiddenInput):
 
-    def __init__(self, payment_information, gateway_params, *args, **kwargs):
+    def __init__(
+            self, payment_information: PaymentData,
+            gateway_params: Dict, *args, **kwargs):
         attrs = kwargs.get('attrs', {})
         kwargs['attrs'] = {
             'class': 'stripe-button',
             'src': CHECKOUT_SCRIPT_URL,
             'data-key': gateway_params.get('public_key'),
             'data-amount': get_amount_for_stripe(
-                payment_information['amount'],
-                payment_information['currency']),
+                payment_information.amount,
+                payment_information.currency),
             'data-name': gateway_params.get('store_name'),
             'data-image': gateway_params.get('store_image'),
             'data-description': CHECKOUT_DESCRIPTION,
-            'data-currency': payment_information['currency'],
+            'data-currency': payment_information.currency,
             'data-locale': gateway_params.get('locale'),
             'data-allow-remember-me': 'true' if gateway_params.get(
                 'remember_me') else 'false',
@@ -39,7 +44,7 @@ class StripeCheckoutWidget(HiddenInput):
 
         if gateway_params.get('prefill'):
             kwargs['attrs'].update({
-                'data-email': payment_information['customer_email']})
+                'data-email': payment_information.customer_email})
 
         kwargs['attrs'].update(attrs)
         super(StripeCheckoutWidget, self).__init__(*args, **kwargs)
@@ -59,7 +64,9 @@ class StripePaymentModalForm(forms.Form):
     """
     stripeToken = forms.CharField(required=True, widget=HiddenInput)
 
-    def __init__(self, payment_information, gateway_params, *args, **kwargs):
+    def __init__(
+            self, payment_information: PaymentData,
+            gateway_params: Dict, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.fields['stripe'] = forms.CharField(

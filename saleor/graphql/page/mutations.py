@@ -30,14 +30,11 @@ class PageCreate(ModelMutation):
     class Meta:
         description = 'Creates a new page.'
         model = models.Page
+        permissions = ('page.manage_pages', )
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('page.manage_pages')
-
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
         slug = cleaned_input.get('slug', '')
         if not slug:
             cleaned_input['slug'] = slugify(cleaned_input['title'])
@@ -63,7 +60,4 @@ class PageDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a page.'
         model = models.Page
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('page.manage_pages')
+        permissions = ('page.manage_pages', )

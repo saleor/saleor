@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 from unittest.mock import patch
 from urllib.parse import urlencode
@@ -8,6 +9,7 @@ import pytest
 from captcha import constants as recaptcha_constants
 from captcha.client import RecaptchaResponse
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.forms import Form
 from django.http import QueryDict
 from django.template import Context, Template
@@ -18,7 +20,8 @@ from saleor.account import forms, i18n
 from saleor.account.forms import FormWithReCaptcha, NameForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
-from saleor.account.utils import get_user_first_name, get_user_last_name
+from saleor.account.utils import (
+    get_random_avatar, get_user_first_name, get_user_last_name)
 from saleor.account.validators import validate_possible_number
 
 
@@ -171,7 +174,7 @@ def test_address_as_data(address):
         'company_name': 'Mirumee Software',
         'street_address_1': 'Tęczowa 7',
         'street_address_2': '',
-        'city': 'Wrocław',
+        'city': 'WROCŁAW',
         'city_area': '',
         'postal_code': '53-601',
         'country': 'PL',
@@ -280,6 +283,12 @@ def test_get_user_last_name(last_name, default_billing_address_last_name,
     address.last_name = default_billing_address_last_name
     user = User(last_name=last_name, default_billing_address=address)
     assert get_user_last_name(user) == result
+
+
+def test_get_random_avatar():
+    avatar = get_random_avatar()
+    assert isinstance(avatar, File)
+    assert re.match(r"avatar\d+.png", avatar.name)
 
 
 def test_disabled_recaptcha():

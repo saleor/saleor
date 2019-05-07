@@ -44,7 +44,27 @@ export const fragmentProductImage = gql`
   }
 `;
 
-export const fragmentProduct = gql`
+export const productFragment = gql`
+  ${fragmentMoney}
+  fragment ProductFragment on Product {
+    id
+    name
+    thumbnail {
+      url
+    }
+    availability {
+      available
+    }
+    price {
+      ...Money
+    }
+    productType {
+      id
+      name
+    }
+  }
+`;
+export const productFragmentDetails = gql`
   ${fragmentProductImage}
   ${fragmentMoney}
   fragment Product on Product {
@@ -193,7 +213,7 @@ export const fragmentVariant = gql`
 `;
 
 const productListQuery = gql`
-  ${fragmentMoney}
+  ${productFragment}
   query ProductList(
     $first: Int
     $after: String
@@ -210,21 +230,7 @@ const productListQuery = gql`
     ) {
       edges {
         node {
-          id
-          name
-          thumbnail {
-            url
-          }
-          availability {
-            available
-          }
-          price {
-            ...Money
-          }
-          productType {
-            id
-            name
-          }
+          ...ProductFragment
         }
       }
       pageInfo {
@@ -242,7 +248,7 @@ export const TypedProductListQuery = TypedQuery<
 >(productListQuery);
 
 const productDetailsQuery = gql`
-  ${fragmentProduct}
+  ${productFragmentDetails}
   query ProductDetails($id: ID!) {
     product(id: $id) {
       ...Product
@@ -318,6 +324,9 @@ const productVariantCreateQuery = gql`
             slug
           }
         }
+      }
+      thumbnail {
+        url
       }
       variants {
         id

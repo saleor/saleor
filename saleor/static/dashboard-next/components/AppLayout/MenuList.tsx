@@ -14,6 +14,7 @@ import { appMountPoint } from "../..";
 import { User } from "../../auth/types/User";
 import { configurationMenu, configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
+import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
 import Toggle from "../Toggle";
 import { IMenuItem } from "./menuStructure";
 
@@ -32,7 +33,6 @@ const styles = (theme: Theme) =>
         color: theme.palette.primary.main
       },
       alignItems: "center",
-      color: "#616161",
       display: "block",
       marginTop: theme.spacing.unit * 2,
       paddingLeft: 0,
@@ -46,7 +46,7 @@ const styles = (theme: Theme) =>
         height: "100%",
         left: -32,
         position: "absolute",
-        width: 3
+        width: 5
       },
       position: "relative"
     },
@@ -56,6 +56,7 @@ const styles = (theme: Theme) =>
       },
       cursor: "pointer",
       fontSize: "1rem",
+      fontWeight: 500,
       textTransform: "uppercase",
       transition: theme.transitions.duration.standard + "ms"
     },
@@ -98,31 +99,37 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     onMenuItemClick
   }: MenuListProps & WithStyles<typeof styles>) => (
     <div className={className}>
+      {/* FIXME: this .split("?")[0] looks gross */}
       {menuItems.map(menuItem => {
+        const isActive = (menuItem: IMenuItem) =>
+          location.split("?")[0] === orderDraftListUrl().split("?")[0] &&
+          menuItem.url.split("?")[0] === orderListUrl().split("?")[0]
+            ? false
+            : !!matchPath(location.split("?")[0], {
+                exact: menuItem.url.split("?")[0] === "/",
+                path: menuItem.url.split("?")[0]
+              });
+
         if (
           menuItem.permission &&
           !user.permissions.map(perm => perm.code).includes(menuItem.permission)
         ) {
           return null;
         }
+
         if (!menuItem.url) {
-          const isActive = menuItem.children.reduce(
-            (acc, child) =>
-              acc ||
-              !!matchPath(location, {
-                exact: child.url === "/",
-                path: child.url
-              }),
+          const isAnyChildActive = menuItem.children.reduce(
+            (acc, child) => acc || isActive(child),
             false
           );
           return (
-            <Toggle key={menuItem.label} initial={isActive}>
-              {(openedMenu, { enable: enableMenu }) => (
+            <Toggle key={menuItem.label} initial={isAnyChildActive}>
+              {(openedMenu, { toggle: toggleMenu }) => (
                 <>
                   <div
-                    onClick={enableMenu}
+                    onClick={toggleMenu}
                     className={classNames(classes.menuListItem, {
-                      [classes.menuListItemActive]: isActive
+                      [classes.menuListItemActive]: isAnyChildActive
                     })}
                   >
                     <Typography
@@ -148,15 +155,11 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             </Toggle>
           );
         }
-        const isActive = !!matchPath(location, {
-          exact: menuItem.url === "/",
-          path: menuItem.url
-        });
 
         return (
           <a
             className={classNames(classes.menuListItem, {
-              [classes.menuListItemActive]: isActive
+              [classes.menuListItemActive]: isActive(menuItem)
             })}
             href={urlJoin(appMountPoint, menuItem.url)}
             onClick={event => onMenuItemClick(menuItem.url, event)}

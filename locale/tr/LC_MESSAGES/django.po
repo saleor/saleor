@@ -12,17 +12,19 @@
 # Taygun YI <yildirimtaygun@gmail.com>, 2019
 # Yasin Karadeniz <antiykd@gmail.com>, 2019
 # İsmail Bülent Önsoy <bulent@gaia.gen.tr>, 2019
-# Engin Öz <o.enginoz@gmail.com>, 2019
 # Ramazan Acar <acarist@gmail.com>, 2019
+# Engin Öz <o.enginoz@gmail.com>, 2019
+# Tugba Cekirge <tugbacekirge@gmail.com>, 2019
+# Hakan ıı, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-25 10:45-0600\n"
+"POT-Creation-Date: 2019-03-25 09:50-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Ramazan Acar <acarist@gmail.com>, 2019\n"
+"Last-Translator: Hakan ıı, 2019\n"
 "Language-Team: Turkish (https://www.transifex.com/mirumee/teams/34782/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -225,17 +227,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Bu değer seçilen ülke için geçersiz"
 
-#: saleor/account/models.py:135
+#: saleor/account/models.py:147
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "Müşterileri yönet."
 
-#: saleor/account/models.py:138
+#: saleor/account/models.py:150
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "Personel yönet."
 
-#: saleor/account/models.py:141
+#: saleor/account/models.py:153
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr "Müşterilerinizi tanıyın."
@@ -399,58 +401,58 @@ msgstr ""
 "Üzgünüz. Seçtiğiniz üründen stokta istediğiniz miktarda yok. Bu nedenle "
 "miktar alanına, stokta bulunan miktarı yazdırdık."
 
-#: saleor/checkout/utils.py:628
+#: saleor/checkout/utils.py:630
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Siparişiniz kargo gerektirmiyor."
 
-#: saleor/checkout/utils.py:634
+#: saleor/checkout/utils.py:636
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Lütfen önce teslimat metodunu seçiniz."
 
-#: saleor/checkout/utils.py:642
+#: saleor/checkout/utils.py:644
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "Bu teklif ülkeniz için geçerli değil."
 
-#: saleor/checkout/utils.py:664
+#: saleor/checkout/utils.py:666
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "Bu teklif sadece belirlenen ürünler içindir."
 
-#: saleor/checkout/utils.py:791
+#: saleor/checkout/utils.py:793
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr ""
 "Kupon kısa süre içinde geçerliliğini yitirdi.  Verilen sipariş iptal edildi."
 
-#: saleor/checkout/utils.py:904
+#: saleor/checkout/utils.py:898
 msgctxt "order placement_error"
 msgid "Shipping method is not set"
 msgstr "Teslimat metodu seçilmedi."
 
-#: saleor/checkout/utils.py:907
+#: saleor/checkout/utils.py:901
 msgctxt "order placement error"
 msgid "Shipping address is not set"
 msgstr "Teslimat adresi seçilmedi."
 
-#: saleor/checkout/utils.py:911
+#: saleor/checkout/utils.py:905
 msgctxt "order placement error"
 msgid "Shipping method is not valid for your shipping address"
 msgstr "Teslimat adresiniz için geçersiz teslimat metodu"
 
-#: saleor/checkout/utils.py:914
-msgctxt "order placement error"
-msgid "Checkout is not fully paid"
-msgstr "Ödeme tamamlanamadı."
+#: saleor/checkout/utils.py:908
+msgctxt "order placement_error"
+msgid "Billing address is not set"
+msgstr "Fatura adresi seçilmedi."
 
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr "Kuponun son kullanma tarihi geçmiş. Lütfen bilgileri kontrol ediniz."
 
-#: saleor/checkout/views/summary.py:34
+#: saleor/checkout/views/summary.py:37
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "Lütfen bilgileri kontrol ediniz."
@@ -463,17 +465,17 @@ msgstr "Borç Tutarı"
 #: saleor/core/__init__.py:56
 msgctxt "VAT rate type"
 msgid "admission to cultural events"
-msgstr ""
+msgstr "kültürel etkinliklere giriş"
 
 #: saleor/core/__init__.py:58
 msgctxt "VAT rate type"
 msgid "admission to entertainment events"
-msgstr ""
+msgstr "eğlence etkinliklerine giriş"
 
 #: saleor/core/__init__.py:60
 msgctxt "VAT rate type"
 msgid "admission to sporting events"
-msgstr ""
+msgstr "spor etkinliklerine giriş"
 
 #: saleor/core/__init__.py:61
 msgctxt "VAT rate type"
@@ -513,7 +515,7 @@ msgstr ""
 #: saleor/core/__init__.py:71
 msgctxt "VAT rate type"
 msgid "domestic services"
-msgstr ""
+msgstr "yurtiçi hizmetler"
 
 #: saleor/core/__init__.py:72
 msgctxt "VAT rate type"
@@ -598,22 +600,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "{} olarak giriş yaptınız"
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr "kg"
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr "lb"
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr "oz"
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr "g"
@@ -689,7 +691,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr "Bu teklif sadece %(amount)s üstü siparişlerde geçerlidir."
 
-#: saleor/discount/models.py:179
+#: saleor/discount/models.py:180
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "Satışları ve kuponları yönet."
@@ -699,7 +701,7 @@ msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "İndirim bu ürüne uygulanamaz."
 
-#: saleor/graphql/order/mutations/fulfillments.py:79
+#: saleor/graphql/order/mutations/fulfillments.py:78
 #, python-format
 msgctxt "Fulfill order line mutation error"
 msgid "Only %(quantity)d item remaining to fulfill."
@@ -707,7 +709,7 @@ msgid_plural "Only %(quantity)d items remaining to fulfill."
 msgstr[0] "Tamamlamaya sadece %(quantity)d ürün kaldı."
 msgstr[1] "Tamamlamaya sadece %(quantity)d ürün kaldı."
 
-#: saleor/graphql/order/mutations/fulfillments.py:212
+#: saleor/graphql/order/mutations/fulfillments.py:216
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr "Tamamlanmış sipariş iptal olamaz"
@@ -911,12 +913,12 @@ msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr "Ödeme iptal edilemez."
 
-#: saleor/order/models.py:134
+#: saleor/order/models.py:135
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "Siparişleri yönet."
 
-#: saleor/order/models.py:339
+#: saleor/order/models.py:344
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -927,12 +929,12 @@ msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
-msgstr ""
+msgstr "E-posta adresleri eşleşmediğinden siparişinizi hesabınıza atamadık"
 
 #: saleor/order/views.py:203
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
-msgstr ""
+msgstr "Sipariş hesabınıza atandı"
 
 #: saleor/page/models.py:33
 msgctxt "Permission description"
@@ -944,42 +946,52 @@ msgctxt "Custom payment choice type"
 msgid "Manual"
 msgstr ""
 
-#: saleor/payment/__init__.py:68
+#: saleor/payment/__init__.py:72
 msgctxt "transaction kind"
 msgid "Authorization"
 msgstr "Yetkilendirme"
 
-#: saleor/payment/__init__.py:69
+#: saleor/payment/__init__.py:73
 msgctxt "transaction kind"
 msgid "Charge"
 msgstr ""
 
-#: saleor/payment/__init__.py:70
+#: saleor/payment/__init__.py:74
 msgctxt "transaction kind"
 msgid "Refund"
-msgstr ""
+msgstr "Geri ödeme"
 
-#: saleor/payment/__init__.py:71
+#: saleor/payment/__init__.py:75
 msgctxt "transaction kind"
 msgid "Capture"
 msgstr ""
 
-#: saleor/payment/__init__.py:72
+#: saleor/payment/__init__.py:76
 msgctxt "transaction kind"
 msgid "Void"
 msgstr ""
 
-#: saleor/payment/__init__.py:91
-msgctxt "payment status"
-msgid "Charged"
-msgstr ""
-
-#: saleor/payment/__init__.py:92
+#: saleor/payment/__init__.py:99
 msgctxt "payment status"
 msgid "Not charged"
 msgstr ""
 
-#: saleor/payment/__init__.py:93
+#: saleor/payment/__init__.py:101
+msgctxt "payment status"
+msgid "Partially charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:102
+msgctxt "payment status"
+msgid "Fully charged"
+msgstr ""
+
+#: saleor/payment/__init__.py:104
+msgctxt "payment status"
+msgid "Partially refunded"
+msgstr ""
+
+#: saleor/payment/__init__.py:105
 msgctxt "payment status"
 msgid "Fully refunded"
 msgstr ""
@@ -994,6 +1006,12 @@ msgstr "Ödemeniz alınamadı. Daha sonra tekrar deneyiniz"
 msgctxt "Payment status form field"
 msgid "Payment status"
 msgstr "Ödeme durumu"
+
+#: saleor/payment/gateways/dummy/forms.py:23
+msgid ""
+"Setting charge status to {} directly is not supported. Please use the "
+"dashboard to refund partially."
+msgstr ""
 
 #: saleor/payment/gateways/razorpay/errors.py:5
 msgctxt "Razorpay payment error"
@@ -1014,7 +1032,7 @@ msgstr "Siparişinize devam edemiyoruz"
 #, python-format
 msgctxt "Razorpay payment error"
 msgid "The %(currency)s currency is not supported."
-msgstr ""
+msgstr "%(currency)s para birimi desteklenmiyor."
 
 #: saleor/payment/gateways/razorpay/forms.py:14
 msgctxt "Rozorpay payment gateway primary button"
@@ -1044,12 +1062,12 @@ msgstr "Toplam ödeme"
 #: saleor/payment/utils.py:236
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
-msgstr ""
+msgstr "Siparişlere ait ödemeler ödendi olarak işaretlenemez."
 
 #: saleor/product/__init__.py:15
 msgctxt "Product status"
 msgid "not published"
-msgstr ""
+msgstr "yayınlanmadı"
 
 #: saleor/product/__init__.py:17
 msgctxt "Product status"
@@ -1069,7 +1087,7 @@ msgstr "stok azaldı"
 #: saleor/product/__init__.py:23
 msgctxt "Product status"
 msgid "not yet available"
-msgstr ""
+msgstr "henüz mevcut değil"
 
 #: saleor/product/__init__.py:25
 msgctxt "Product status"
@@ -1079,7 +1097,7 @@ msgstr "satın almak için hazır"
 #: saleor/product/__init__.py:37
 msgctxt "Variant status"
 msgid "available"
-msgstr ""
+msgstr "mevcut"
 
 #: saleor/product/__init__.py:39
 msgctxt "Variant status"
@@ -1115,7 +1133,7 @@ msgstr "Ücret"
 #, python-format
 msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
-msgstr ""
+msgstr "%(variant_label)s - %(price)s"
 
 #: saleor/product/models.py:129
 msgctxt "Permission description"
@@ -1129,142 +1147,150 @@ msgstr "Sorgu"
 
 #: saleor/settings.py:61
 msgid "Arabic"
-msgstr ""
+msgstr "Arapça"
 
 #: saleor/settings.py:62
 msgid "Azerbaijani"
-msgstr ""
+msgstr "Azerice"
 
 #: saleor/settings.py:63
 msgid "Bulgarian"
-msgstr ""
+msgstr "Bulgarca"
 
 #: saleor/settings.py:64
 msgid "Bengali"
-msgstr ""
+msgstr "Bengalce"
 
 #: saleor/settings.py:65
 msgid "Catalan"
-msgstr ""
+msgstr "Katalanca"
 
 #: saleor/settings.py:66
 msgid "Czech"
-msgstr ""
+msgstr "Çekçe"
 
 #: saleor/settings.py:67
 msgid "Danish"
-msgstr ""
+msgstr "Danca"
 
 #: saleor/settings.py:68
 msgid "German"
-msgstr ""
+msgstr "Almanca"
 
 #: saleor/settings.py:69
 msgid "English"
-msgstr ""
+msgstr "İngilizce"
 
 #: saleor/settings.py:70
 msgid "Spanish"
-msgstr ""
+msgstr "İspanyolca"
 
 #: saleor/settings.py:71
-msgid "Persian"
+msgid "Estonian"
 msgstr ""
 
 #: saleor/settings.py:72
-msgid "French"
-msgstr ""
+msgid "Persian"
+msgstr "Farsça"
 
 #: saleor/settings.py:73
-msgid "Hindi"
-msgstr ""
+msgid "French"
+msgstr "Fransızca"
 
 #: saleor/settings.py:74
-msgid "Hungarian"
-msgstr ""
+msgid "Hindi"
+msgstr "Hintçe"
 
 #: saleor/settings.py:75
-msgid "Indonesian"
-msgstr ""
+msgid "Hungarian"
+msgstr "Macarca"
 
 #: saleor/settings.py:76
-msgid "Italian"
-msgstr ""
+msgid "Indonesian"
+msgstr "Endonezce"
 
 #: saleor/settings.py:77
-msgid "Japanese"
-msgstr ""
+msgid "Italian"
+msgstr "İtalyanca"
 
 #: saleor/settings.py:78
-msgid "Korean"
-msgstr ""
+msgid "Japanese"
+msgstr "Japonca"
 
 #: saleor/settings.py:79
-msgid "Mongolian"
-msgstr ""
+msgid "Korean"
+msgstr "Korece"
 
 #: saleor/settings.py:80
-msgid "Norwegian"
-msgstr ""
+msgid "Mongolian"
+msgstr "Moğolca"
 
 #: saleor/settings.py:81
-msgid "Dutch"
-msgstr ""
+msgid "Norwegian"
+msgstr "Norveççe"
 
 #: saleor/settings.py:82
-msgid "Polish"
-msgstr ""
+msgid "Dutch"
+msgstr "Flemenkçe"
 
 #: saleor/settings.py:83
+msgid "Polish"
+msgstr "Polonyaca"
+
+#: saleor/settings.py:84
 msgid "Brazilian Portuguese"
 msgstr ""
 
-#: saleor/settings.py:84
-msgid "Romanian"
-msgstr ""
-
 #: saleor/settings.py:85
-msgid "Russian"
-msgstr ""
+msgid "Romanian"
+msgstr "Romence"
 
 #: saleor/settings.py:86
-msgid "Slovak"
-msgstr ""
+msgid "Russian"
+msgstr "Rusça"
 
 #: saleor/settings.py:87
-msgid "Serbian"
-msgstr ""
+msgid "Slovak"
+msgstr "Slovakça"
 
 #: saleor/settings.py:88
+msgid "Serbian"
+msgstr "Sırpça"
+
+#: saleor/settings.py:89
 msgid "Swedish"
 msgstr ""
 
-#: saleor/settings.py:89
-msgid "Turkish"
-msgstr "Türkçe"
-
 #: saleor/settings.py:90
-msgid "Ukrainian"
+msgid "Thai"
 msgstr ""
 
 #: saleor/settings.py:91
-msgid "Vietnamese"
-msgstr ""
+msgid "Turkish"
+msgstr "Türkçe"
 
 #: saleor/settings.py:92
-msgid "Simplified Chinese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:93
-msgid "Traditional Chinese"
+msgid "Vietnamese"
 msgstr ""
 
-#: saleor/settings.py:329
+#: saleor/settings.py:94
+msgid "Simplified Chinese"
+msgstr "Basitleştirilmiş Çince"
+
+#: saleor/settings.py:95
+msgid "Traditional Chinese"
+msgstr "Geleneksel Çince"
+
+#: saleor/settings.py:331
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
-msgstr ""
+msgstr "Avrupa Birliği"
 
-#: saleor/settings.py:566
+#: saleor/settings.py:568
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1318,6 +1344,11 @@ msgstr "%(min_weight)s ile %(max_weight)s arası"
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr "Ayarları Yönet"
+
+#: saleor/site/models.py:42
+msgctxt "Permission description"
+msgid "Manage translations."
+msgstr ""
 
 #: templates/404.html:6
 msgctxt "Eror page not found"
@@ -2271,7 +2302,7 @@ msgstr "İptal:"
 #: templates/dashboard/menu/form.html:60
 #: templates/dashboard/menu/item/form.html:82
 #: templates/dashboard/order/address_form.html:61
-#: templates/dashboard/order/fulfillment.html:133
+#: templates/dashboard/order/fulfillment.html:136
 #: templates/dashboard/product/attribute/form.html:77
 #: templates/dashboard/product/attribute/form.html:84
 #: templates/dashboard/product/attribute/values/form.html:78
@@ -2633,12 +2664,12 @@ msgstr "Not"
 #: templates/dashboard/customer/detail.html:79
 msgctxt "Customer action"
 msgid "Edit customer"
-msgstr ""
+msgstr "Müşteri düzenle"
 
 #: templates/dashboard/customer/detail.html:82
 msgctxt "Customer action"
 msgid "Remove customer"
-msgstr ""
+msgstr "Müşteri sil"
 
 #: templates/dashboard/customer/detail.html:86
 msgctxt "Customer impersonate action"
@@ -2648,12 +2679,12 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:95
 msgctxt "Customer recent orders table title"
 msgid "Recent orders"
-msgstr ""
+msgstr "Son siparişler"
 
 #: templates/dashboard/customer/detail.html:104
 msgctxt "Customer orders table header"
 msgid "Number"
-msgstr ""
+msgstr "Numara"
 
 #: templates/dashboard/customer/detail.html:107
 msgctxt "Customer orders table header"
@@ -2678,12 +2709,12 @@ msgstr "Sipariş bulunamadı"
 #: templates/dashboard/customer/detail.html:149
 msgctxt "Customer notes card title"
 msgid "Customer notes"
-msgstr ""
+msgstr "Müşteri notları"
 
 #: templates/dashboard/customer/detail.html:162
 msgctxt "Customer without notes message"
 msgid "There are no notes associated with this customer"
-msgstr ""
+msgstr "Bu müşteri ile ilişkilendirilmiş not yok"
 
 #: templates/dashboard/customer/detail.html:168
 msgctxt "Customer notes card action"
@@ -2693,27 +2724,27 @@ msgstr "Not ekle"
 #: templates/dashboard/customer/detail.html:181
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
-msgstr ""
+msgstr "Varsayılan teslimat adresi"
 
 #: templates/dashboard/customer/detail.html:188
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
-msgstr ""
+msgstr "Varsayılan teslimat adresi yok."
 
 #: templates/dashboard/customer/detail.html:201
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
-msgstr ""
+msgstr "Varsayılan fatura adresi"
 
 #: templates/dashboard/customer/detail.html:209
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
-msgstr ""
+msgstr "Varsayılan fatura adresi yok."
 
 #: templates/dashboard/customer/form.html:10
 msgctxt "Dashboard add customer"
 msgid "Add new customer"
-msgstr ""
+msgstr "Yeni müşteri ekle"
 
 #: templates/dashboard/customer/form.html:12
 #: templates/dashboard/search/results.html:89
@@ -2724,12 +2755,12 @@ msgstr "Müşteri"
 #: templates/dashboard/customer/form.html:36
 msgctxt "Dashboard add customer action"
 msgid "Add customer"
-msgstr ""
+msgstr "Müşteri ekle"
 
 #: templates/dashboard/customer/form.html:47
 msgctxt "Customer details header"
 msgid "Customer details"
-msgstr ""
+msgstr "Müşteri detayları"
 
 #: templates/dashboard/customer/form.html:69
 #: templates/dashboard/staff/detail.html:79
@@ -2740,7 +2771,7 @@ msgstr "Ekle"
 #: templates/dashboard/customer/list.html:17
 msgctxt "Customer list add button text"
 msgid "Add customer"
-msgstr ""
+msgstr "Müşteri ekle"
 
 #: templates/dashboard/customer/list.html:40
 msgctxt "Customers table header"
@@ -2760,7 +2791,7 @@ msgstr "Yer"
 #: templates/dashboard/customer/list.html:86
 msgctxt "Empty customers table message"
 msgid "No customers found."
-msgstr ""
+msgstr "Müşteri yok."
 
 #: templates/dashboard/customer/modal/add_note.html:11
 #: templates/dashboard/order/modal/add_note.html:11
@@ -2772,13 +2803,13 @@ msgstr "Not ekle"
 #: templates/dashboard/order/modal/add_note.html:19
 msgctxt "Modal add note primary action"
 msgid "Save note"
-msgstr ""
+msgstr "Not  kaydet"
 
 #: templates/dashboard/customer/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Header of modal used for removing customer's account "
 msgid "Remove customer %(customer)s"
-msgstr ""
+msgstr "%(customer)s kullanıcısını kaldır."
 
 #: templates/dashboard/customer/modal/confirm_delete.html:19
 #, python-format
@@ -2793,22 +2824,23 @@ msgstr ""
 #: templates/dashboard/customer/modal/confirm_promote.html:12
 msgctxt "Dashboard confirmation modal"
 msgid "Promote to staff member"
-msgstr ""
+msgstr "Personel yetkisini yükselt"
 
 #: templates/dashboard/customer/modal/confirm_promote.html:17
 #, python-format
 msgctxt "Modal promote to staff member text"
 msgid "Are you sure you want to promote %(customer)s to staff member?"
 msgstr ""
+"%(customer)s kullanıcısının yetkisini yükseltmek istediğinize emin misiniz?"
 
 #: templates/dashboard/customer/modal/confirm_promote.html:24
 msgctxt "Dashboard promote action"
 msgid "Promote"
-msgstr ""
+msgstr "Yetki yükselt"
 
 #: templates/dashboard/customer/zero_page.html:5
 msgid "No customers found."
-msgstr ""
+msgstr "Müşteri yok."
 
 #: templates/dashboard/customer/zero_page.html:8
 msgid ""
@@ -2820,7 +2852,7 @@ msgstr ""
 #: templates/dashboard/discount/sale/form.html:10
 msgctxt "Sale (discount) page title"
 msgid "Add new sale"
-msgstr ""
+msgstr "Yeni satış ekle"
 
 #: templates/dashboard/discount/sale/form.html:12
 #: templates/dashboard/discount/sale/form.html:43
@@ -2832,12 +2864,12 @@ msgstr "Satışlar"
 #: templates/dashboard/discount/sale/form.html:32
 msgctxt "Sale (discount) action"
 msgid "Remove sale"
-msgstr ""
+msgstr "Satış sil"
 
 #: templates/dashboard/discount/sale/form.html:56
 msgctxt "Sale (discount) breadcrumbs"
 msgid "Add new sale"
-msgstr ""
+msgstr "Yeni satış ekle"
 
 #: templates/dashboard/discount/sale/list.html:9
 msgid "Sales"
@@ -2846,7 +2878,7 @@ msgstr "Satışlar"
 #: templates/dashboard/discount/sale/list.html:27
 msgctxt "Sale (discount) list add button text"
 msgid "Add sale"
-msgstr ""
+msgstr "Satış ekle"
 
 #: templates/dashboard/discount/sale/list.html:42
 msgctxt "Sale (discount) table header"
@@ -2871,22 +2903,22 @@ msgstr "İndirim"
 #: templates/dashboard/discount/sale/list.html:84
 msgctxt "Empty sales table message"
 msgid "No sales found"
-msgstr ""
+msgstr "Satış bulunmadı"
 
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:12
 msgctxt "Remove sale (discount) text"
 msgid "Remove sale"
-msgstr ""
+msgstr "Satış sil"
 
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:17
 #, python-format
 msgctxt "Remove sale (discount) text"
 msgid "Are you sure you want to remove <strong>%(sale)s</strong>?"
-msgstr ""
+msgstr "<strong>%(sale)s</strong> satışını silmek istediğinize emin misiniz?"
 
 #: templates/dashboard/discount/sale/zero_page.html:5
 msgid "No sales found."
-msgstr ""
+msgstr "Satış bulunamadı."
 
 #: templates/dashboard/discount/sale/zero_page.html:8
 #, python-format
@@ -2900,22 +2932,22 @@ msgstr ""
 #: templates/dashboard/discount/voucher/form.html:10
 msgctxt "Voucher page title"
 msgid "Add new voucher"
-msgstr ""
+msgstr "Yeni kupon ekle"
 
 #: templates/dashboard/discount/voucher/form.html:32
 msgctxt "Voucher action"
 msgid "Remove voucher"
-msgstr ""
+msgstr "Kupon kaldır"
 
 #: templates/dashboard/discount/voucher/form.html:56
 msgctxt "Voucher breadcrumbs"
 msgid "Add new voucher"
-msgstr ""
+msgstr "Yeni kupon ekle"
 
 #: templates/dashboard/discount/voucher/list.html:28
 msgctxt "Voucher list add button text"
 msgid "Add voucher"
-msgstr ""
+msgstr "Kupon ekle"
 
 #: templates/dashboard/discount/voucher/list.html:43
 msgctxt "Voucher table header"
@@ -2940,33 +2972,34 @@ msgstr "Bitiş tarihi"
 #: templates/dashboard/discount/voucher/list.html:55
 msgctxt "Voucher table header"
 msgid "Used"
-msgstr ""
+msgstr "Kullanılmış"
 
 #: templates/dashboard/discount/voucher/list.html:58
 msgctxt "Voucher table header"
 msgid "Min amount spent"
-msgstr ""
+msgstr "Minimum harcama tutarı"
 
 #: templates/dashboard/discount/voucher/list.html:105
 msgctxt "Empty vouchers table message"
 msgid "No vouchers found"
-msgstr ""
+msgstr "Kupon bulunamadı"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Remove voucher text"
 msgid "Remove voucher %(voucher)s"
-msgstr ""
+msgstr "%(voucher)s kuponu kaldır"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Remove voucher text"
 msgid "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
 msgstr ""
+"<strong>%(voucher)s</strong> kuponu kaldırmak istediğinize emin misiniz?"
 
 #: templates/dashboard/discount/voucher/zero_page.html:5
 msgid "No vouchers found."
-msgstr ""
+msgstr "Kupon bulunamadı."
 
 #: templates/dashboard/discount/voucher/zero_page.html:8
 #, python-format
@@ -2994,7 +3027,7 @@ msgstr ""
 #: templates/dashboard/includes/_collection_availability.html:13
 msgctxt "Collection availability status"
 msgid "Hidden"
-msgstr ""
+msgstr "Gizlenmiş"
 
 #: templates/dashboard/includes/_filters.html:10
 msgctxt "Dashboard card title"
@@ -3004,22 +3037,22 @@ msgstr "Filtreler"
 #: templates/dashboard/includes/_filters.html:43
 msgctxt "Category page filters"
 msgid "Clear"
-msgstr ""
+msgstr "Temizle"
 
 #: templates/dashboard/includes/_filters.html:47
 msgctxt "Category price filter"
 msgid "Filter"
-msgstr ""
+msgstr "Filtrele"
 
 #: templates/dashboard/includes/_google_preview.html:5
 msgctxt "Title of the box showing preview from the search engine perspective"
 msgid "Search engine listing preview"
-msgstr ""
+msgstr "Arama motoru listeleme önizlemesi"
 
 #: templates/dashboard/includes/_menu_items.html:9
 msgctxt "Title of the menu items list"
 msgid "Menu items"
-msgstr ""
+msgstr "Menü öğeleri"
 
 #: templates/dashboard/includes/_menu_items.html:23
 msgctxt "Menu items list table header name"
@@ -3034,7 +3067,7 @@ msgstr "Gösterir"
 #: templates/dashboard/includes/_menu_items.html:28
 msgctxt "Menu items status"
 msgid "Status"
-msgstr ""
+msgstr "Durum"
 
 #: templates/dashboard/includes/_menu_items.html:47
 msgctxt "Menu items status"
@@ -3059,7 +3092,7 @@ msgstr "Kaldır"
 #: templates/dashboard/includes/_menu_items.html:65
 msgctxt "Empty list of menu items"
 msgid "No menu items"
-msgstr ""
+msgstr "Menü öğesi yok"
 
 #: templates/dashboard/includes/_page_availability.html:5
 msgctxt "Page availability status"
@@ -3070,7 +3103,7 @@ msgstr "Yayınlandı"
 #: templates/dashboard/includes/_page_availability.html:19
 msgctxt "Page availability status"
 msgid "Hidden"
-msgstr ""
+msgstr "Gizlenmiş"
 
 #: templates/dashboard/includes/_page_availability.html:13
 #, python-format
@@ -3122,7 +3155,7 @@ msgstr "Toplam"
 #: templates/dashboard/order/list.html:69
 msgctxt "Anonymous user account value"
 msgid "Guest"
-msgstr ""
+msgstr "Misafir"
 
 #: templates/dashboard/index.html:74
 msgctxt "Empty order table message"
@@ -3132,7 +3165,7 @@ msgstr "Teslimata hazır sipariş yok."
 #: templates/dashboard/index.html:83
 msgctxt "Dashboard homepage table title"
 msgid "Preauthorized payments"
-msgstr ""
+msgstr "Ön Onaylı Ödemeler"
 
 #: templates/dashboard/index.html:92
 msgctxt "Preauthorized payments table header"
@@ -3156,7 +3189,7 @@ msgstr "Tutar"
 
 #: templates/dashboard/index.html:116
 msgid "Guest"
-msgstr ""
+msgstr "Misafir"
 
 #: templates/dashboard/index.html:130
 msgctxt "Empty Preauthorized payments table message"
@@ -3166,12 +3199,12 @@ msgstr ""
 #: templates/dashboard/index.html:139
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
-msgstr ""
+msgstr "Stoğu azalan ürünler"
 
 #: templates/dashboard/index.html:148
 msgctxt "Low stock product list"
 msgid "Product name"
-msgstr ""
+msgstr "Ürün adı"
 
 #: templates/dashboard/index.html:151
 msgctxt "Low stock product list"
@@ -3181,7 +3214,7 @@ msgstr ""
 #: templates/dashboard/index.html:172
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
-msgstr ""
+msgstr "Stoğu azalan ürün yok."
 
 #: templates/dashboard/menu/detail.html:7 templates/dashboard/menu/list.html:9
 msgctxt "Menu list page title"
@@ -3191,32 +3224,32 @@ msgstr "Menü"
 #: templates/dashboard/menu/detail.html:50
 msgctxt "Menu detail view action"
 msgid "Edit menu"
-msgstr ""
+msgstr "Menü düzenle"
 
 #: templates/dashboard/menu/detail.html:53
 msgctxt "Menu detail view action"
 msgid "Remove menu"
-msgstr ""
+msgstr "Menü kaldır"
 
 #: templates/dashboard/menu/form.html:8
 msgctxt "Menu form page title"
 msgid "Edit menu"
-msgstr ""
+msgstr "Menü düzenle"
 
 #: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:23
 msgctxt "Menu form page title"
 msgid "Add new menu"
-msgstr ""
+msgstr "Yeni menü ekle"
 
 #: templates/dashboard/menu/form.html:41
 msgctxt "Menu detail breadcrumbs"
 msgid "Add new menu"
-msgstr ""
+msgstr "Yeni menü ekle"
 
 #: templates/dashboard/menu/item/detail.html:7
 msgctxt "Menu item list page title"
 msgid "Menu items"
-msgstr ""
+msgstr "Menü öğeleri"
 
 #: templates/dashboard/menu/item/detail.html:75
 msgctxt "Menu item field"
@@ -3226,28 +3259,28 @@ msgstr "Gösterir"
 #: templates/dashboard/menu/item/detail.html:87
 msgctxt "Menu item detail view action"
 msgid "Edit menu item"
-msgstr ""
+msgstr "Menü öğesi düzenle"
 
 #: templates/dashboard/menu/item/detail.html:90
 msgctxt "Menu item detail view action"
 msgid "Remove menu item"
-msgstr ""
+msgstr "Menü öğesi kaldır"
 
 #: templates/dashboard/menu/item/form.html:8
 msgctxt "Menu item page title"
 msgid "Edit menu item"
-msgstr ""
+msgstr "Menü öğesi düzenle"
 
 #: templates/dashboard/menu/item/form.html:10
 #: templates/dashboard/menu/item/form.html:23
 msgctxt "Menu item page title"
 msgid "Add new menu item"
-msgstr ""
+msgstr "Yeni menü öğesi ekle"
 
 #: templates/dashboard/menu/item/form.html:12
 msgctxt "Dashboard menu items list"
 msgid "Menu items"
-msgstr ""
+msgstr "Menü öğeleri"
 
 #: templates/dashboard/menu/item/form.html:56
 msgctxt "Menu form page title"
@@ -3257,13 +3290,13 @@ msgstr "Düzenle"
 #: templates/dashboard/menu/item/form.html:62
 msgctxt "Menu form page title"
 msgid "Add new menu item"
-msgstr ""
+msgstr "Yeni menü öğesi ekle"
 
 #: templates/dashboard/menu/item/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Remove menu item modal title"
 msgid "Remove menu item %(menu_item)s"
-msgstr ""
+msgstr "%(menu_item)s menü öğesini kaldır"
 
 #: templates/dashboard/menu/item/modal/confirm_delete.html:19
 #, python-format
@@ -3282,7 +3315,7 @@ msgstr ""
 #: templates/dashboard/menu/list.html:22
 msgctxt "Menu list add button text"
 msgid "Add menu"
-msgstr ""
+msgstr "Menü ekle"
 
 #: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
@@ -3292,7 +3325,7 @@ msgstr "Menü adı"
 #: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
 msgid "No menus found."
-msgstr ""
+msgstr "Menü bulunmadı."
 
 #: templates/dashboard/menu/list.html:84
 msgid "Storefront Menus"
@@ -3316,17 +3349,17 @@ msgstr "KAydet"
 #, python-format
 msgctxt "Remove menu modal title"
 msgid "Remove menu %(menu)s"
-msgstr ""
+msgstr "%(menu)s menüsünü kaldır"
 
 #: templates/dashboard/menu/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Remove menu modal title"
 msgid "Are you sure you want to remove menu <strong>%(menu)s</strong>?"
-msgstr ""
+msgstr "<strong>%(menu)s</strong> menüyü kaldırmak istediğinize emin misiniz?"
 
 #: templates/dashboard/menu/zero_page.html:5
 msgid "No menus found."
-msgstr ""
+msgstr "Menü bulunmadı."
 
 #: templates/dashboard/menu/zero_page.html:8
 #, python-format
@@ -3340,7 +3373,7 @@ msgstr ""
 #: templates/dashboard/next.html:11
 msgctxt "Dashboard default page title"
 msgid "Dashboard - Saleor"
-msgstr ""
+msgstr "Saleor - Yönetim Paneli"
 
 #: templates/dashboard/order/address_form.html:7
 msgctxt ""
@@ -3362,17 +3395,17 @@ msgstr "Fatura adresi"
 #: templates/dashboard/order/detail.html:32
 msgctxt "Order detail action"
 msgid "Cancel Order"
-msgstr ""
+msgstr "Sipariş İptal"
 
 #: templates/dashboard/order/detail.html:39
 msgctxt "Order detail action"
 msgid "Remove draft order"
-msgstr ""
+msgstr "Taslak siparişi kaldır"
 
 #: templates/dashboard/order/detail.html:45
 msgctxt "Order detail action"
 msgid "Print"
-msgstr ""
+msgstr "Yazdır"
 
 #: templates/dashboard/order/detail.html:79
 msgctxt "Order detail tab"
@@ -3380,26 +3413,26 @@ msgid "Details"
 msgstr "Detaylar"
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:571
+#: templates/dashboard/order/detail.html:575
 msgctxt "Order detail tab"
 msgid "Payments"
-msgstr ""
+msgstr "Ödemeler"
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:621
+#: templates/dashboard/order/detail.html:625
 msgctxt "Order detail tab"
 msgid "History"
-msgstr ""
+msgstr "Geçmiş"
 
 #: templates/dashboard/order/detail.html:108
 msgctxt "Order summary card header"
 msgid "Payments"
-msgstr ""
+msgstr "Ödemeler"
 
 #: templates/dashboard/order/detail.html:114
 msgctxt "Payment status not available"
 msgid "N/A"
-msgstr ""
+msgstr "Bilinmiyor"
 
 #: templates/dashboard/order/detail.html:124
 msgctxt "Order summary card header"
@@ -3414,7 +3447,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:143
 msgctxt "Preauthorized amount not available"
 msgid "N/A"
-msgstr ""
+msgstr "Bilinmiyor"
 
 #: templates/dashboard/order/detail.html:149
 msgctxt "Order summary card header"
@@ -3429,7 +3462,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:168
 msgctxt "Order summary card action"
 msgid "Refund"
-msgstr ""
+msgstr "Geri ödeme"
 
 #: templates/dashboard/order/detail.html:173
 msgctxt "Order summary card action"
@@ -3493,7 +3526,7 @@ msgid "Placed on"
 msgstr "Sipariş tarihi"
 
 #: templates/dashboard/order/detail.html:280
-#: templates/dashboard/order/detail.html:473
+#: templates/dashboard/order/detail.html:477
 #: templates/dashboard/order/pdf/packing_slip.html:58
 msgctxt "Order table header"
 msgid "Item"
@@ -3505,7 +3538,7 @@ msgid "Price"
 msgstr "Ücret"
 
 #: templates/dashboard/order/detail.html:286
-#: templates/dashboard/order/detail.html:476
+#: templates/dashboard/order/detail.html:480
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Quantity"
@@ -3521,7 +3554,7 @@ msgstr "Toplam"
 #, python-format
 msgctxt "Order table text"
 msgid "SKU: %(sku)s"
-msgstr ""
+msgstr "Barkod: %(sku)s"
 
 #: templates/dashboard/order/detail.html:320
 #: templates/dashboard/order/detail.html:321
@@ -3535,206 +3568,206 @@ msgctxt "Order table row action"
 msgid "Remove line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:347
+#: templates/dashboard/order/detail.html:348
 msgctxt "Order totals action"
 msgid "Edit shipping"
 msgstr "Teslimatı düzenle"
 
-#: templates/dashboard/order/detail.html:349
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:350
+#: templates/dashboard/order/detail.html:359
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
 msgstr "Teslimat(%(shipping_name)s)"
 
-#: templates/dashboard/order/detail.html:353
-#: templates/dashboard/order/detail.html:362
+#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:363
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "Kargo"
 
-#: templates/dashboard/order/detail.html:368
+#: templates/dashboard/order/detail.html:370
 msgctxt "Order total taxes"
 msgid "Taxes (included)"
 msgstr "Vergiler(dahildir)"
 
-#: templates/dashboard/order/detail.html:370
+#: templates/dashboard/order/detail.html:372
 msgctxt "Order total taxes"
 msgid "Taxes"
 msgstr "Vergiler"
 
-#: templates/dashboard/order/detail.html:378
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:380
+#: templates/dashboard/order/detail.html:404
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
 msgstr "İndirim(%(voucher)s)"
 
-#: templates/dashboard/order/detail.html:382
-#: templates/dashboard/order/detail.html:406
+#: templates/dashboard/order/detail.html:384
+#: templates/dashboard/order/detail.html:408
 msgctxt "Order totals header"
 msgid "Discount"
 msgstr "İndirim"
 
-#: templates/dashboard/order/detail.html:389
+#: templates/dashboard/order/detail.html:391
 msgctxt "Order totals action"
 msgid "Edit voucher"
 msgstr "Kupon düzenle"
 
-#: templates/dashboard/order/detail.html:390
+#: templates/dashboard/order/detail.html:392
 msgctxt "Order detail action"
 msgid "Edit voucher"
 msgstr "Kupon düzenle"
 
-#: templates/dashboard/order/detail.html:395
+#: templates/dashboard/order/detail.html:397
 msgctxt "Order totals action"
 msgid "Edit discount"
 msgstr "İndirim düzenle"
 
-#: templates/dashboard/order/detail.html:396
+#: templates/dashboard/order/detail.html:398
 msgctxt "Order detail action"
 msgid "Edit discount"
 msgstr "İndirim düzenle"
 
-#: templates/dashboard/order/detail.html:411
+#: templates/dashboard/order/detail.html:413
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr "Toplam tutar"
 
-#: templates/dashboard/order/detail.html:432
+#: templates/dashboard/order/detail.html:436
 msgctxt "Order summary card action title"
 msgid "Fulfill order"
 msgstr "Siparişi tamamla"
 
-#: templates/dashboard/order/detail.html:433
+#: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action"
 msgid "Fulfill"
 msgstr "Tamamla"
 
-#: templates/dashboard/order/detail.html:437
+#: templates/dashboard/order/detail.html:441
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr "Siparişe ürün ekle"
 
-#: templates/dashboard/order/detail.html:438
+#: templates/dashboard/order/detail.html:442
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr "Ürün ekle"
 
-#: templates/dashboard/order/detail.html:443
+#: templates/dashboard/order/detail.html:447
 msgctxt "Order summary card action title"
 msgid "Create order"
 msgstr "Sipariş oluştur"
 
-#: templates/dashboard/order/detail.html:444
+#: templates/dashboard/order/detail.html:448
 msgctxt "Order summary card action"
 msgid "Create order"
 msgstr "Sipariş oluştur"
 
-#: templates/dashboard/order/detail.html:450
+#: templates/dashboard/order/detail.html:454
 msgctxt "Order detail action"
 msgid "Invoice"
 msgstr "Fatura"
 
-#: templates/dashboard/order/detail.html:453
+#: templates/dashboard/order/detail.html:457
 msgctxt "Order detail action"
 msgid "View on site"
 msgstr "Sitede Gör"
 
-#: templates/dashboard/order/detail.html:462
+#: templates/dashboard/order/detail.html:466
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr "#%(fulfillment)s tamamlandı"
 
-#: templates/dashboard/order/detail.html:494
+#: templates/dashboard/order/detail.html:498
 #, python-format
 msgctxt "Fulfillment table text"
 msgid "Tracking number: %(tracking)s"
 msgstr "Takip numarası : %(tracking)s"
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:510
 msgctxt "Fulfillment summary card action title"
 msgid "Cancel fulfillment"
 msgstr "Tamamlamayı iptal et"
 
-#: templates/dashboard/order/detail.html:507
+#: templates/dashboard/order/detail.html:511
 msgctxt "Fulfillment summary card action"
 msgid "Cancel"
 msgstr "İptal et"
 
-#: templates/dashboard/order/detail.html:510
+#: templates/dashboard/order/detail.html:514
 msgctxt "Fulfillment summary card action title"
 msgid "Edit tracking number"
 msgstr "Takip numarası düzenelendi"
 
-#: templates/dashboard/order/detail.html:512
+#: templates/dashboard/order/detail.html:516
 msgctxt "Fulfillment summary card action"
 msgid "Edit tracking"
 msgstr "Takip düzenle"
 
-#: templates/dashboard/order/detail.html:514
+#: templates/dashboard/order/detail.html:518
 msgctxt "Fulfillment summary card action"
 msgid "Add tracking"
 msgstr "Takip ekle"
 
-#: templates/dashboard/order/detail.html:519
+#: templates/dashboard/order/detail.html:523
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:529
+#: templates/dashboard/order/detail.html:533
 msgctxt "Customer order note card title"
 msgid "Customer note"
 msgstr "Müşteri notu"
 
-#: templates/dashboard/order/detail.html:535
+#: templates/dashboard/order/detail.html:539
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:544
+#: templates/dashboard/order/detail.html:548
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr "Sipariş notu"
 
-#: templates/dashboard/order/detail.html:557
+#: templates/dashboard/order/detail.html:561
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:563
+#: templates/dashboard/order/detail.html:567
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr "Not ekle"
 
-#: templates/dashboard/order/detail.html:578
+#: templates/dashboard/order/detail.html:582
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr "İşlem No"
 
-#: templates/dashboard/order/detail.html:581
+#: templates/dashboard/order/detail.html:585
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr "Tarih"
 
-#: templates/dashboard/order/detail.html:584
+#: templates/dashboard/order/detail.html:588
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "Ödeme durumu"
 
-#: templates/dashboard/order/detail.html:587
+#: templates/dashboard/order/detail.html:591
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr "Tutar"
 
-#: templates/dashboard/order/detail.html:595
+#: templates/dashboard/order/detail.html:599
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr "#%(payment_id)s"
 
-#: templates/dashboard/order/detail.html:616
+#: templates/dashboard/order/detail.html:620
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr "Bu sipariş için ödeme yok"
@@ -3768,7 +3801,7 @@ msgctxt "Fulfill order table quantity unfulfilled"
 msgid "of %(quantity_unfulfilled)s"
 msgstr "%(quantity_unfulfilled)s"
 
-#: templates/dashboard/order/fulfillment.html:136
+#: templates/dashboard/order/fulfillment.html:139
 msgctxt "Dashboard update action"
 msgid "Fulfill"
 msgstr "Tamamla"
@@ -3809,7 +3842,7 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_fulfillment.html:26
 msgctxt "Modal cancel fulfillment cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "İptal Et"
 
 #: templates/dashboard/order/modal/cancel_fulfillment.html:30
 msgctxt "Modal cancel fulfillment primary action"
@@ -3855,12 +3888,12 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_order.html:24
 msgctxt "Modal cancel order cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "İptal Et"
 
 #: templates/dashboard/order/modal/cancel_order.html:28
 msgctxt "Modal cancel order primary action"
 msgid "Cancel Order"
-msgstr ""
+msgstr "Sipariş İptal"
 
 #: templates/dashboard/order/modal/capture.html:13
 msgctxt "Modal capture payment title"
@@ -4015,7 +4048,7 @@ msgstr ""
 #: templates/dashboard/order/modal/mark_as_paid.html:23
 msgctxt "Modal mark order as paid cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "İptal Et"
 
 #: templates/dashboard/order/modal/mark_as_paid.html:27
 msgctxt "Modal mark order as paid primary action"
@@ -4050,12 +4083,12 @@ msgstr ""
 #: templates/dashboard/order/modal/refund.html:36
 msgctxt "Modal refund payment primary action"
 msgid "Refund"
-msgstr ""
+msgstr "Geri ödeme"
 
 #: templates/dashboard/order/modal/remove_order.html:13
 msgctxt "Modal remove order title"
 msgid "Remove draft order"
-msgstr ""
+msgstr "Taslak siparişi kaldır"
 
 #: templates/dashboard/order/modal/remove_order.html:18
 #, python-format
@@ -4066,12 +4099,12 @@ msgstr ""
 #: templates/dashboard/order/modal/remove_order.html:25
 msgctxt "Modal remove order cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "İptal Et"
 
 #: templates/dashboard/order/modal/remove_order.html:29
 msgctxt "Modal remove order primary action"
 msgid "Remove draft order"
-msgstr ""
+msgstr "Taslak siparişi kaldır"
 
 #: templates/dashboard/order/modal/void.html:11
 msgctxt "Modal void payment text"
@@ -4544,7 +4577,7 @@ msgstr "İsim"
 
 #: templates/dashboard/product/detail.html:101
 msgid "Status"
-msgstr ""
+msgstr "Durum"
 
 #: templates/dashboard/product/detail.html:104
 msgid "Gross price"
@@ -5934,7 +5967,7 @@ msgid "You've authorized transaction. Order is in processing"
 msgstr ""
 
 #: templates/order/payment/braintree.html:29
-#: templates/order/payment/dummy.html:30
+#: templates/order/payment/dummy.html:37
 msgctxt "Payment form primary action"
 msgid "Make payment"
 msgstr ""
@@ -5959,7 +5992,7 @@ msgctxt "Header of the order summary table"
 msgid "Order details"
 msgstr ""
 
-#: templates/order/payment/dummy.html:25
+#: templates/order/payment/dummy.html:32
 #: templates/order/payment/stripe.html:11
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment"

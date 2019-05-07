@@ -1,4 +1,4 @@
-import { RawDraftContentState } from "draft-js";
+import { convertFromRaw, RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import AppHeader from "../../../components/AppHeader";
@@ -12,7 +12,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { UserError } from "../../../types";
+import { ListActions, UserError } from "../../../types";
 import {
   ProductDetails_product,
   ProductDetails_product_attributes_attribute,
@@ -27,7 +27,7 @@ import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
 
-interface ProductUpdateProps {
+interface ProductUpdateProps extends ListActions {
   errors: UserError[];
   placeholderImage: string;
   collections?: Array<{
@@ -122,7 +122,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   onSeoClick,
   onSubmit,
   onVariantAdd,
-  onVariantShow
+  onVariantShow,
+  isChecked,
+  selected,
+  toggle,
+  toolbar
 }) => {
   const initialData: FormData = {
     attributes: maybe(
@@ -158,8 +162,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       }
     })),
     publicationDate: maybe(() => product.publicationDate),
-    seoDescription: maybe(() => product.seoDescription),
-    seoTitle: maybe(() => product.seoTitle),
+    seoDescription: maybe(() => product.seoDescription) || "",
+    seoTitle: maybe(() => product.seoTitle) || "",
     sku: maybe(() =>
       product.productType.hasVariants
         ? undefined
@@ -234,11 +238,16 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 <CardSpacer />
                 {hasVariants ? (
                   <ProductVariants
+                    disabled={disabled}
                     variants={variants}
                     fallbackPrice={product ? product.price : undefined}
                     onAttributesEdit={onAttributesEdit}
                     onRowClick={onVariantShow}
                     onVariantAdd={onVariantAdd}
+                    toolbar={toolbar}
+                    isChecked={isChecked}
+                    selected={selected}
+                    toggle={toggle}
                   />
                 ) : (
                   <ProductStock
@@ -246,6 +255,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     disabled={disabled}
                     product={product}
                     onChange={change}
+                    errors={errors}
                   />
                 )}
                 <CardSpacer />
@@ -253,7 +263,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   title={data.seoTitle}
                   titlePlaceholder={data.name}
                   description={data.seoDescription}
-                  descriptionPlaceholder={data.description}
+                  descriptionPlaceholder={maybe(() =>
+                    convertFromRaw(data.description)
+                      .getPlainText()
+                      .slice(0, 300)
+                  )}
                   loading={disabled}
                   onClick={onSeoClick}
                   onChange={change}
@@ -261,6 +275,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
               </div>
               <div>
                 <ProductOrganization
+                  canChangeType={false}
                   categories={categories}
                   errors={errors}
                   fetchCategories={fetchCategories}

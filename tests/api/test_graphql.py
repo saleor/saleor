@@ -110,13 +110,7 @@ def test_real_query(user_api_client, product):
     fragment ProductFragmentQuery on Product {
         id
         name
-        price {
-            amount
-            currency
-            localized
-            __typename
-        }
-        availability {
+        pricing {
             ...ProductPriceFragmentQuery
             __typename
         }
@@ -126,7 +120,7 @@ def test_real_query(user_api_client, product):
         __typename
     }
 
-    fragment ProductPriceFragmentQuery on ProductAvailability {
+    fragment ProductPriceFragmentQuery on ProductPricingInfo {
         available
         discount {
             gross {
@@ -216,14 +210,14 @@ def test_get_nodes(product_list):
 
     # Raise an error if no nodes were found
     global_ids = []
-    msg = 'Could not resolve to a nodes with the global id list of {}.'.format(
+    msg = 'Could not resolve to a node with the global id list of {}.'.format(
         global_ids)
     with pytest.raises(Exception, message=msg):
         get_nodes(global_ids, Product)
 
     # Raise an error if pass wrong ids
     global_ids = ['a', 'bb']
-    msg = 'Could not resolve to a nodes with the global id list of {}.'.format(
+    msg = 'Could not resolve to a node with the global id list of {}.'.format(
         global_ids)
     with pytest.raises(Exception, message=msg):
         get_nodes(global_ids, Product)

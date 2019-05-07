@@ -73,6 +73,7 @@ LANGUAGES = [
     ('fr', _('French')),
     ('hi', _('Hindi')),
     ('hu', _('Hungarian')),
+    ('hy', _('Armenian')),
     ('id', _('Indonesian')),
     ('it', _('Italian')),
     ('ja', _('Japanese')),
@@ -81,12 +82,15 @@ LANGUAGES = [
     ('nb', _('Norwegian')),
     ('nl', _('Dutch')),
     ('pl', _('Polish')),
+    ('pt', _('Portuguese')),
     ('pt-br', _('Brazilian Portuguese')),
     ('ro', _('Romanian')),
     ('ru', _('Russian')),
     ('sk', _('Slovak')),
     ('sr', _('Serbian')),
+    ('sw', _('Swahili')),
     ('sv', _('Swedish')),
+    ('th', _('Thai')),
     ('tr', _('Turkish')),
     ('uk', _('Ukrainian')),
     ('vi', _('Vietnamese')),
@@ -149,7 +153,7 @@ context_processors = [
     'django.contrib.messages.context_processors.messages',
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
-    'saleor.checkout.context_processors.cart_counter',
+    'saleor.checkout.context_processors.checkout_counter',
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.site',
     'social_django.context_processors.backends',
@@ -246,7 +250,9 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'captcha']
 
-if DEBUG:
+
+ENABLE_DEBUG_TOOLBAR = get_bool_from_env('ENABLE_DEBUG_TOOLBAR', False)
+if ENABLE_DEBUG_TOOLBAR:
     MIDDLEWARE.append(
         'debug_toolbar.middleware.DebugToolbarMiddleware')
     INSTALLED_APPS.append('debug_toolbar')
@@ -364,7 +370,7 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
 
 LOW_STOCK_THRESHOLD = 10
-MAX_CART_LINE_QUANTITY = int(os.environ.get('MAX_CART_LINE_QUANTITY', 50))
+MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get('MAX_CHECKOUT_LINE_QUANTITY', 50))
 
 PAGINATE_BY = 16
 DASHBOARD_PAGINATE_BY = 30
@@ -415,7 +421,11 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_list', 'thumbnail__255x255'),
         ('product_list_2x', 'thumbnail__510x510')],
     'background_images': [
-        ('header_image', 'thumbnail__1080x440')]}
+        ('header_image', 'thumbnail__1080x440')],
+    'user_avatars': [
+        ('default', 'thumbnail__445x445'),
+    ],
+}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment

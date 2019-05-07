@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -12,15 +13,17 @@ from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.core.weight import zero_weight
 from saleor.order import FulfillmentStatus, OrderStatus, models
-from saleor.order.models import Order
+from saleor.order.models import Fulfillment, Order
 from saleor.order.utils import (
-    add_variant_to_order, cancel_fulfillment, cancel_order,
-    change_order_line_quantity, delete_order_line, recalculate_order,
-    recalculate_order_weight, restock_fulfillment_lines, restock_order_lines,
-    update_order_prices, update_order_status)
+    add_variant_to_order, automatically_fulfill_digital_lines,
+    cancel_fulfillment, cancel_order, change_order_line_quantity,
+    delete_order_line, fulfill_order_line, recalculate_order,
+    restock_fulfillment_lines, restock_order_lines, update_order_prices,
+    update_order_status)
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
-from tests.utils import get_redirect_location
+from saleor.product.models import DigitalContent
+from tests.utils import create_image, get_redirect_location
 
 
 def test_total_setter():
@@ -437,16 +440,16 @@ def test_update_order_prices(order_with_lines):
 
 
 def test_order_payment_flow(
-        request_cart_with_item, client, address, shipping_zone, settings):
-    request_cart_with_item.shipping_address = address
-    request_cart_with_item.billing_address = address.get_copy()
-    request_cart_with_item.email = 'test@example.com'
-    request_cart_with_item.shipping_method = (
+        request_checkout_with_item, client, address, shipping_zone, settings):
+    request_checkout_with_item.shipping_address = address
+    request_checkout_with_item.billing_address = address.get_copy()
+    request_checkout_with_item.email = 'test@example.com'
+    request_checkout_with_item.shipping_method = (
         shipping_zone.shipping_methods.first())
-    request_cart_with_item.save()
+    request_checkout_with_item.save()
 
     order = create_order(
-        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
+        request_checkout_with_item, 'tracking_code', discounts=None, taxes=None)
 
     # Select payment
     url = reverse('order:payment', kwargs={'token': order.token})
@@ -478,8 +481,7 @@ def test_order_payment_flow(
     payment = order.payments.all()[0]
     assert payment.total == order.total.gross.amount
     assert payment.currency == order.total.gross.currency
-    assert payment.transactions.count() == 2
-    assert payment.transactions.first().kind == 'auth'
+    assert payment.transactions.count() == 1
     assert payment.transactions.last().kind == 'capture'
 
 
@@ -577,3 +579,73 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
     new_weight = order.get_total_weight()
 
     assert old_weight == new_weight
+
+
+@patch('saleor.order.utils.emails.send_fulfillment_confirmation')
+@patch('saleor.order.utils.get_default_digital_content_settings')
+def test_fulfill_digital_lines(
+        mock_digital_settings, mock_email_fulfillment, order_with_lines,
+        media_root):
+    mock_digital_settings.return_value = {'automatic_fulfillment': True}
+    line = order_with_lines.lines.all()[0]
+
+    image_file, image_name = create_image()
+    variant = line.variant
+    digital_content = DigitalContent.objects.create(
+        content_file=image_file, product_variant=variant,
+        use_default_settings=True)
+
+    line.variant.digital_content = digital_content
+    line.is_shipping_required = False
+    line.save()
+
+    order_with_lines.refresh_from_db()
+    automatically_fulfill_digital_lines(order_with_lines)
+    line.refresh_from_db()
+    fulfillment = Fulfillment.objects.get(order=order_with_lines)
+    fulfillment_lines = fulfillment.lines.all()
+
+    assert fulfillment_lines.count() == 1
+    assert line.digital_content_url
+    assert mock_email_fulfillment.delay.called
+
+
+def test_fulfill_order_line(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    quantity_fulfilled_before = line.quantity_fulfilled
+    variant = line.variant
+    stock_quantity_after = variant.quantity - line.quantity
+
+    fulfill_order_line(line, line.quantity)
+
+    variant.refresh_from_db()
+    assert variant.quantity == stock_quantity_after
+    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
+
+
+def test_fulfill_order_line_with_variant_deleted(order_with_lines):
+    line = order_with_lines.lines.first()
+    line.variant.delete()
+
+    line.refresh_from_db()
+
+    fulfill_order_line(line, line.quantity)
+
+
+def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    quantity_fulfilled_before = line.quantity_fulfilled
+    variant = line.variant
+    variant.track_inventory = False
+    variant.save()
+
+    # stock should not change
+    stock_quantity_after = variant.quantity
+
+    fulfill_order_line(line, line.quantity)
+
+    variant.refresh_from_db()
+    assert variant.quantity == stock_quantity_after
+    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity

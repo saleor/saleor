@@ -1,8 +1,10 @@
+dist: xenial
 language: python
 sudo: false
 python:
-  - "3.5"
   - "3.6"
+  - "3.7"
+
 cache:
   pip: true
   directories:
@@ -22,29 +24,15 @@ env:
     - DATABASE_URL="postgres://postgres@localhost:5432/saleor"
     - SECRET_KEY="irrelevant"
   matrix:
-  - DJANGO="1.11"
-  - DJANGO="2.1"
+  - DJANGO="2.2"
   - DJANGO="master"
 matrix:
-  include:
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="2.1"
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="master"
   fast_finish: true
   allow_failures:
-    - python: "3.5"
-      env: DJANGO="master"
     - python: "3.6"
       env: DJANGO="master"
     - python: "3.7"
       env: DJANGO="master"
-      sudo: required
-      dist: xenial
 services:
   - postgresql
 addons:

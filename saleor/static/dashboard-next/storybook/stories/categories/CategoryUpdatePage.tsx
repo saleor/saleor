@@ -9,6 +9,7 @@ import CategoryUpdatePage, {
   CategoryPageTab,
   CategoryUpdatePageProps
 } from "../../../categories/components/CategoryUpdatePage";
+import { listActionsProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
 const category = categoryFixture(placeholderImage);
@@ -34,9 +35,12 @@ const updateProps: Omit<CategoryUpdatePageProps, "classes"> = {
     hasNextPage: true,
     hasPreviousPage: true
   },
+  productListToolbar: null,
   products: category.products.edges.map(edge => edge.node),
   saveButtonBarState: "default",
-  subcategories: category.children.edges.map(edge => edge.node)
+  subcategories: category.children.edges.map(edge => edge.node),
+  subcategoryListToolbar: null,
+  ...listActionsProps
 };
 
 storiesOf("Views / Categories / Update category", module)

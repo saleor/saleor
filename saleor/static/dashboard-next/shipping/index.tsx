@@ -7,23 +7,19 @@ import i18n from "../i18n";
 import {
   shippingZoneAddPath,
   shippingZonePath,
-  shippingZonesListPath
+  shippingZonesListPath,
+  ShippingZonesListUrlQueryParams,
+  ShippingZoneUrlQueryParams
 } from "./urls";
 import ShippingZoneCreate from "./views/ShippingZoneCreate";
 import ShippingZoneDetailsComponent from "./views/ShippingZoneDetails";
-import ShippingZonesListComponent, {
-  ShippingZonesListQueryParams
-} from "./views/ShippingZonesList";
+import ShippingZonesListComponent from "./views/ShippingZonesList";
 
 const ShippingZonesList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  const params: ShippingZonesListQueryParams = {
-    after: qs.after,
-    before: qs.before,
-    delete: qs.delete
-  };
+  const params: ShippingZonesListUrlQueryParams = qs;
   return <ShippingZonesListComponent params={params} />;
 };
 
@@ -32,9 +28,16 @@ interface ShippingZoneDetailsRouteProps {
 }
 const ShippingZoneDetails: React.StatelessComponent<
   RouteComponentProps<ShippingZoneDetailsRouteProps>
-> = ({ match }) => (
-  <ShippingZoneDetailsComponent id={decodeURIComponent(match.params.id)} />
-);
+> = ({ location, match }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params: ShippingZoneUrlQueryParams = qs;
+  return (
+    <ShippingZoneDetailsComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
+};
 
 export const ShippingRouter: React.StatelessComponent = () => (
   <>

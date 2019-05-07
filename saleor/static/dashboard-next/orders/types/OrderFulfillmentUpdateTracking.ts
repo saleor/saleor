@@ -38,6 +38,7 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
 
 export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 

@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from graphene import relay
 
@@ -28,15 +26,17 @@ class Page(CountableDjangoObjectType):
         resolver=resolve_translation)
 
     class Meta:
-        description = dedent("""A static page that can be manually added by a shop
-        operator through the dashboard.""")
-        exclude_fields = [
-            'voucher_set', 'sale_set', 'menuitem_set', 'translations']
+        description = """A static page that can be manually added by a shop
+               operator through the dashboard."""
+        only_fields = [
+            'content', 'content_json', 'created', 'id', 'is_published',
+            'publication_date', 'seo_description', 'seo_title', 'slug',
+            'title']
         interfaces = [relay.Node]
         model = models.Page
 
-    def resolve_available_on(self, info):
+    def resolve_available_on(self, _info):
         return self.publication_date
 
-    def resolve_is_visible(self, info):
+    def resolve_is_visible(self, _info):
         return self.is_published

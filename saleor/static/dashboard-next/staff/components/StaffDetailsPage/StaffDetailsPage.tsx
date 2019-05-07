@@ -29,22 +29,32 @@ interface FormData {
 }
 
 export interface StaffDetailsPageProps {
+  canEditAvatar: boolean;
+  canEditStatus: boolean;
+  canRemove: boolean;
   disabled: boolean;
   permissions: StaffMemberDetails_shop_permissions[];
   saveButtonBarState: ConfirmButtonTransitionState;
   staffMember: StaffMemberDetails_user;
   onBack: () => void;
   onDelete: () => void;
+  onImageDelete: () => void;
   onSubmit: (data: FormData) => void;
+  onImageUpload(file: File);
 }
 
 const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
+  canEditAvatar,
+  canEditStatus,
+  canRemove,
   disabled,
   permissions,
   saveButtonBarState,
   staffMember,
   onBack,
   onDelete,
+  onImageDelete,
+  onImageUpload,
   onSubmit
 }: StaffDetailsPageProps) => {
   const initialForm: FormData = {
@@ -75,27 +85,36 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
               <StaffProperties
                 data={data}
                 disabled={disabled}
+                canEditAvatar={canEditAvatar}
                 staffMember={staffMember}
                 onChange={change}
+                onImageUpload={onImageUpload}
+                onImageDelete={onImageDelete}
               />
             </div>
-            <div>
-              <StaffPermissions
-                data={data}
-                disabled={disabled}
-                permissions={permissions}
-                onChange={change}
-              />
-              <CardSpacer />
-              <StaffStatus data={data} disabled={disabled} onChange={change} />
-            </div>
+            {canEditStatus && (
+              <div>
+                <StaffPermissions
+                  data={data}
+                  disabled={disabled}
+                  permissions={permissions}
+                  onChange={change}
+                />
+                <CardSpacer />
+                <StaffStatus
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+              </div>
+            )}
           </Grid>
           <SaveButtonBar
             disabled={disabled || !hasChanged}
             state={saveButtonBarState}
             onCancel={onBack}
             onSave={submit}
-            onDelete={onDelete}
+            onDelete={canRemove ? onDelete : undefined}
           />
         </Container>
       )}

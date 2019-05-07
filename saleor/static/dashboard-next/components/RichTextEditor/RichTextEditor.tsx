@@ -36,6 +36,7 @@ export interface RichTextEditorProps {
   helperText: string;
   label: string;
   name: string;
+  scroll?: boolean;
   initial?: RawDraftContentState;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
@@ -65,24 +66,24 @@ const styles = (theme: Theme) =>
       marginTop: theme.spacing.unit * 0.75
     },
     label: {
+      fontSize: theme.typography.caption.fontSize,
       marginBottom: theme.spacing.unit * 2
     },
     root: {
       "& .DraftEditor": {
         "&-editorContainer": {
           "& .public-DraftEditor-content": {
-            lineHeight: 1.62,
-            maxHeight: 300,
-            minHeight: 100,
-            overflowY: "scroll"
+            lineHeight: 1.62
           },
           "& a": {
-            color: theme.palette.secondary.light
+            color: theme.palette.primary.light
           },
           "&:after": {
             animationDuration: theme.transitions.duration.shortest + "ms",
             animationFillMode: "both",
-            background: theme.palette.grey[700],
+            background: theme.palette.getContrastText(
+              theme.palette.background.default
+            ),
             bottom: -1,
             content: "''",
             display: "block",
@@ -122,17 +123,17 @@ const styles = (theme: Theme) =>
           "&Button": {
             "&--active": {
               "&:hover": {
-                background: theme.palette.secondary.main
+                background: theme.palette.primary.main
               },
               "&:not(:hover)": {
-                borderRightColor: theme.palette.secondary.main
+                borderRightColor: theme.palette.primary.main
               },
-              background: theme.palette.secondary.main
+              background: theme.palette.primary.main
             },
             "&:focus": {
               "&:active": {
                 "&:after": {
-                  background: fade(theme.palette.secondary.main, 0.3),
+                  background: fade(theme.palette.primary.main, 0.3),
                   borderRadius: "100%",
                   content: "''",
                   display: "block",
@@ -142,12 +143,15 @@ const styles = (theme: Theme) =>
               }
             },
             "&:hover": {
-              background: fade(theme.palette.secondary.main, 0.3)
+              background: fade(theme.palette.primary.main, 0.3)
             },
             alignItems: "center",
             background: "none",
             border: "none",
-            borderRight: `1px ${theme.palette.grey[300]} solid`,
+            borderRight: `1px ${
+              theme.overrides.MuiCard.root.borderColor
+            } solid`,
+            color: theme.typography.body1.color,
             cursor: "pointer",
             display: "inline-flex",
             height: 36,
@@ -166,13 +170,14 @@ const styles = (theme: Theme) =>
             },
             display: "flex"
           },
-          border: `1px ${theme.palette.grey[300]} solid`,
+          background: theme.palette.background.default,
+          border: `1px ${theme.overrides.MuiCard.root.borderColor} solid`,
           display: "inline-flex",
           marginBottom: theme.spacing.unit
         },
         "&-block": {
           "&--blockquote": {
-            borderLeft: `2px solid ${theme.palette.grey[300]}`,
+            borderLeft: `2px solid ${theme.overrides.MuiCard.root.borderColor}`,
             margin: 0,
             padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px`
           }
@@ -203,6 +208,15 @@ const styles = (theme: Theme) =>
           }
         }
       }
+    },
+    scroll: {
+      "& .DraftEditor": {
+        "&-editorContainer": {
+          "& .public-DraftEditor-content": {
+            lineHeight: 1.62
+          }
+        }
+      }
     }
   });
 const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
@@ -213,12 +227,14 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
     initial,
     label,
     name,
+    scroll,
     onChange
   }: RichTextEditorProps & WithStyles<typeof styles>) => (
     <div
       className={classNames({
         [classes.error]: error,
-        [classes.root]: true
+        [classes.root]: true,
+        [classes.scroll]: scroll
       })}
     >
       <Typography className={classes.label} variant="caption" color="primary">
@@ -279,4 +295,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
   )
 );
 RichTextEditor.displayName = "RichTextEditor";
+RichTextEditor.defaultProps = {
+  scroll: true
+};
 export default RichTextEditor;

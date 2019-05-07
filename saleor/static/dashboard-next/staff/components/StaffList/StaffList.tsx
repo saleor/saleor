@@ -31,19 +31,28 @@ const styles = (theme: Theme) =>
   createStyles({
     avatar: {
       alignItems: "center",
-      backgroundColor: theme.palette.primary.main,
       borderRadius: "100%",
       display: "grid",
       float: "left",
-      height: 37,
+      height: 47,
       justifyContent: "center",
       marginRight: theme.spacing.unit * 1 + "px",
-      width: 37
+      overflow: "hidden",
+      width: 47
     },
-    avatarText: {
-      color: "#ffffff",
-      fontSize: 18,
-      pointerEvents: "none"
+    avatarDefault: {
+      "& p": {
+        color: "#fff",
+        lineHeight: "47px"
+      },
+      background: theme.palette.primary.main,
+      height: 47,
+      textAlign: "center",
+      width: 47
+    },
+    avatarImage: {
+      pointerEvents: "none",
+      width: "100%"
     },
     statusText: {
       color: "#9E9D9D"
@@ -111,9 +120,16 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
               >
                 <TableCell>
                   <div className={classes.avatar}>
-                    <Typography className={classes.avatarText}>
-                      {getUserInitials(staffMember)}
-                    </Typography>
+                    {maybe(() => staffMember.avatar.url) ? (
+                      <img
+                        className={classes.avatarImage}
+                        src={maybe(() => staffMember.avatar.url)}
+                      />
+                    ) : (
+                      <div className={classes.avatarDefault}>
+                        <Typography>{getUserInitials(staffMember)}</Typography>
+                      </div>
+                    )}
                   </div>
                   <Typography>
                     {getUserName(staffMember) || <Skeleton />}
@@ -141,7 +157,7 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
             ),
             () => (
               <TableRow>
-                <TableCell colSpan={2}>
+                <TableCell colSpan={3}>
                   {i18n.t("No staff members found")}
                 </TableCell>
               </TableRow>

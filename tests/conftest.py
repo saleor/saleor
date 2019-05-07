@@ -18,26 +18,28 @@ from prices import Money
 from saleor.account.backends import BaseBackend
 from saleor.account.models import Address, User
 from saleor.checkout import utils
-from saleor.checkout.models import Cart
-from saleor.checkout.utils import add_variant_to_cart
+from saleor.checkout.models import Checkout
+from saleor.checkout.utils import add_variant_to_checkout
+from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
-from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderEvents, OrderStatus
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import recalculate_order
+from saleor.order.utils import fulfill_order_line, recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
-    Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
+    DigitalContent, Product, ProductImage, ProductTranslation, ProductType,
+    ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from tests.utils import create_image
 
 
 @pytest.fixture(autouse=True)
@@ -66,17 +68,27 @@ def site_settings(db, settings):
 
 
 @pytest.fixture
-def cart(db):
-    return Cart.objects.create()
+def checkout(db):
+    return Checkout.objects.create()
 
 
 @pytest.fixture
-def cart_with_item(cart, product):
+def checkout_with_item(checkout, product):
     variant = product.variants.get()
-    add_variant_to_cart(cart, variant, 3)
-    cart.save()
-    return cart
+    add_variant_to_checkout(checkout, variant, 3)
+    checkout.save()
+    return checkout
 
+
+@pytest.fixture
+def checkout_with_voucher(checkout, product, voucher):
+    variant = product.variants.get()
+    add_variant_to_checkout(checkout, variant, 3)
+    checkout.voucher_code = voucher.code
+    checkout.discount_amount = Money('20.00', 'USD')
+    checkout.save()
+    return checkout
+    
 
 @pytest.fixture
 def cart_with_item_and_address(cart_with_item, address):
@@ -97,11 +109,11 @@ def cart_with_invalid_shipping_method(
 @pytest.fixture
 def cart_with_voucher(cart, product, voucher):
     variant = product.variants.get()
-    add_variant_to_cart(cart, variant, 3)
-    cart.voucher_code = voucher.code
-    cart.discount_amount = Money('20.00', 'USD')
-    cart.save()
-    return cart
+    add_variant_to_checkout(checkout, variant, 3)
+    checkout.voucher_code = voucher.code
+    checkout.discount_amount = Money('20.00', 'USD')
+    checkout.save()
+    return checkout
 
 
 @pytest.fixture
@@ -110,7 +122,7 @@ def address(db):  # pylint: disable=W0613
         first_name='John', last_name='Doe',
         company_name='Mirumee Software',
         street_address_1='Tęczowa 7',
-        city='Wrocław',
+        city='WROCŁAW',
         postal_code='53-601',
         country='PL',
         phone='+48713988102')
@@ -122,7 +134,7 @@ def address_other_country():
         first_name='John',
         last_name='Doe',
         street_address_1='4371 Lucas Knoll Apt. 791',
-        city='Bennettmouth',
+        city='BENNETTMOUTH',
         postal_code='13377',
         country='IS',
         phone='')
@@ -155,20 +167,25 @@ def customer_user(address):  # pylint: disable=W0613
     return user
 
 
+@pytest.fixture()
+def user_checkout(customer_user):
+    return Checkout.objects.get_or_create(user=customer_user)[0]
+
+
 @pytest.fixture
-def request_cart(cart, monkeypatch):
+def request_checkout(checkout, monkeypatch):
     # FIXME: Fixtures should not have any side effects
     monkeypatch.setattr(
-        utils, 'get_cart_from_request',
-        lambda request, cart_queryset=None: cart)
-    return cart
+        utils, 'get_checkout_from_request',
+        lambda request, checkout_queryset=None: checkout)
+    return checkout
 
 
 @pytest.fixture
-def request_cart_with_item(product, request_cart):
+def request_checkout_with_item(product, request_checkout):
     variant = product.variants.get()
-    add_variant_to_cart(request_cart, variant)
-    return request_cart
+    add_variant_to_checkout(request_checkout, variant)
+    return request_checkout
 
 
 @pytest.fixture
@@ -291,7 +308,7 @@ def category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def category_with_image(db, image):  # pylint: disable=W0613
+def category_with_image(db, image, media_root):  # pylint: disable=W0613
     return Category.objects.create(
         name='Default', slug='default', background_image=image)
 
@@ -331,7 +348,8 @@ def permission_manage_orders():
 @pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
-        name='Default Type', has_variants=True, is_shipping_required=True)
+        name='Default Type', has_variants=True, is_shipping_required=True,
+        tax_rate=DEFAULT_TAX_RATE_NAME)
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
     return product_type
@@ -352,7 +370,8 @@ def product(product_type, category):
 
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, attributes=attributes, category=category)
+        product_type=product_type, attributes=attributes, category=category,
+        tax_rate=DEFAULT_TAX_RATE_NAME)
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -402,22 +421,40 @@ def product_list(product_type, category):
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
-    product_1 = Product.objects.create(
-        pk=1486, name='Test product 1', price=Money('10.00', 'USD'),
-        category=category, product_type=product_type, attributes=attributes,
-        is_published=True)
+    products = Product.objects.bulk_create(
+        [Product(pk=1486, name='Test product 1',
+                 price=Money('10.00', 'USD'),
+                 category=category, product_type=product_type,
+                 attributes=attributes,
+                 is_published=True),
+         Product(pk=1487, name='Test product 2',
+                 price=Money('20.00', 'USD'),
+                 category=category, product_type=product_type,
+                 attributes=attributes,
+                 is_published=False),
+         Product(pk=1489, name='Test product 3',
+                 price=Money('20.00', 'USD'),
+                 category=category, product_type=product_type,
+                 attributes=attributes,
+                 is_published=True)]
+    )
+    return products
 
-    product_2 = Product.objects.create(
-        pk=1487, name='Test product 2', price=Money('20.00', 'USD'),
-        category=category, product_type=product_type, attributes=attributes,
-        is_published=False)
 
-    product_3 = Product.objects.create(
-        pk=1489, name='Test product 3', price=Money('20.00', 'USD'),
-        category=category, product_type=product_type, attributes=attributes,
-        is_published=True)
+@pytest.fixture
+def product_list_unpublished(product_list):
+    products = Product.objects.filter(
+        pk__in=[product.pk for product in product_list])
+    products.update(is_published=False)
+    return products
 
-    return [product_1, product_2, product_3]
+
+@pytest.fixture
+def product_list_published(product_list):
+    products = Product.objects.filter(
+        pk__in=[product.pk for product in product_list])
+    products.update(is_published=True)
+    return products
 
 
 @pytest.fixture
@@ -434,7 +471,7 @@ def order_list(customer_user):
 
 
 @pytest.fixture
-def product_with_image(product, image):
+def product_with_image(product, image, media_root):
     ProductImage.objects.create(product=product, image=image)
     return product
 
@@ -466,7 +503,7 @@ def unavailable_product_with_variant(product_type, category):
 
 
 @pytest.fixture
-def product_with_images(product_type, category):
+def product_with_images(product_type, category, media_root):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=category)
@@ -730,11 +767,31 @@ def collection(db):
 
 
 @pytest.fixture
-def collection_with_image(db, image):
+def collection_with_image(db, image, media_root):
     collection = Collection.objects.create(
         name='Collection', slug='collection',
         description='Test description', background_image=image)
     return collection
+
+
+@pytest.fixture
+def collection_list(db):
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(name='Collection 1'),
+            Collection(name='Collection 2'),
+            Collection(name='Collection 3'),
+        ]
+    )
+    return collections
+
+
+@pytest.fixture
+def collection_list_unpublished(collection_list):
+    collections = Collection.objects.filter(
+        pk__in=[collection.pk for collection in collection_list])
+    collections.update(is_published=False)
+    return collections
 
 
 @pytest.fixture
@@ -764,6 +821,29 @@ def page(db):
 
 
 @pytest.fixture
+def page_list(db):
+    data_1 = {
+        'slug': 'test-url',
+        'title': 'Test page',
+        'content': 'test content'}
+    data_2 = {
+        'slug': 'test-url-2',
+        'title': 'Test page',
+        'content': 'test content'}
+    pages = Page.objects.bulk_create([Page(**data_1), Page(**data_2)])
+    return pages
+
+
+@pytest.fixture
+def page_list_unpublished(db):
+    pages = Page.objects.bulk_create(
+        [Page(slug='page-1', title='Page 1', is_published=False),
+         Page(slug='page-2', title='Page 2', is_published=False),
+         Page(slug='page-3', title='Page 3', is_published=False)])
+    return pages
+
+
+@pytest.fixture
 def model_form_class():
     mocked_form_class = MagicMock(name='test', spec=ModelForm)
     mocked_form_class._meta = Mock(name='_meta')
@@ -783,6 +863,14 @@ def menu_item(menu):
         menu=menu,
         name='Link 1',
         url='http://example.com/')
+
+
+@pytest.fixture
+def menu_item_list(menu):
+    menu_item_1 = MenuItem.objects.create(menu=menu, name='Link 1')
+    menu_item_2 = MenuItem.objects.create(menu=menu, name='Link 2')
+    menu_item_3 = MenuItem.objects.create(menu=menu, name='Link 3')
+    return menu_item_1, menu_item_2, menu_item_3
 
 
 @pytest.fixture
@@ -899,3 +987,28 @@ def payment_dummy(db, settings, order_with_lines):
         billing_country_code=order_with_lines.billing_address.country.code,
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email)
+
+
+@pytest.fixture
+def digital_content(category, media_root):
+    product_type = ProductType.objects.create(
+        name='Digital Type', has_variants=True, is_shipping_required=False,
+        is_digital=True
+    )
+    product = Product.objects.create(
+        name='Test digital product', price=Money('10.00', 'USD'),
+        product_type=product_type, category=category)
+    product_variant = ProductVariant.objects.create(
+        product=product, sku='SKU_554', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
+
+    image_file, image_name = create_image()
+    d_content = DigitalContent.objects.create(
+        content_file=image_file, product_variant=product_variant,
+        use_default_settings=True)
+    return d_content
+
+
+@pytest.fixture()
+def media_root(tmpdir, settings):
+    settings.MEDIA_ROOT = str(tmpdir.mkdir("media"))

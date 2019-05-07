@@ -49,7 +49,7 @@ def test_category_query(user_api_client, product):
 
 
 def test_category_create_mutation(
-        monkeypatch, staff_api_client, permission_manage_products):
+        monkeypatch, staff_api_client, permission_manage_products, media_root):
     query = """
         mutation(
                 $name: String, $slug: String, $description: String,
@@ -207,7 +207,8 @@ MUTATION_CATEGORY_UPDATE_MUTATION = """
 
 
 def test_category_update_mutation(
-        monkeypatch, staff_api_client, category, permission_manage_products):
+        monkeypatch, staff_api_client, category, permission_manage_products,
+        media_root):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         ('saleor.dashboard.category.forms.'
@@ -385,7 +386,8 @@ FETCH_CATEGORY_QUERY = """
     """
 
 
-def test_category_image_query(user_api_client, non_default_category):
+def test_category_image_query(
+        user_api_client, non_default_category, media_root):
     alt_text = 'Alt text for an image.'
     category = non_default_category
     image_file, image_name = create_image()

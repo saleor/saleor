@@ -22,6 +22,9 @@ const styles = (theme: Theme) =>
         width: "100%"
       }
     },
+    helpText: {
+      gridColumnEnd: "span 4"
+    },
     image: {
       height: "100%",
       objectFit: "contain",
@@ -57,7 +60,7 @@ export const ProductVariantImages = withStyles(styles, {
       title={i18n.t("Images")}
       toolbar={
         <Button
-          color="secondary"
+          color="primary"
           variant="text"
           disabled={disabled}
           onClick={onImageAdd}
@@ -79,7 +82,9 @@ export const ProductVariantImages = withStyles(styles, {
               </div>
             ))
         ) : (
-          <Typography>{i18n.t("No images available")}</Typography>
+          <Typography className={classes.helpText}>
+            {i18n.t("Select a specific variant image from product images")}
+          </Typography>
         )}
       </div>
     </CardContent>

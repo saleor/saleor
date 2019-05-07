@@ -7,12 +7,12 @@ import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 import OrderList from "../OrderList";
 import OrderListFilter, { OrderListFilterTabs } from "../OrderListFilter";
 
-interface OrderListPageProps extends PageListProps {
+interface OrderListPageProps extends PageListProps, ListActions {
   orders: OrderList_orders_edges_node[];
   currentTab: OrderListFilterTabs;
   filtersList: Filter[];
@@ -24,23 +24,19 @@ interface OrderListPageProps extends PageListProps {
 
 const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   disabled,
-  orders,
-  pageInfo,
   onAdd,
-  onNextPage,
-  onPreviousPage,
-  onRowClick,
   currentTab,
   filtersList,
   onAllProducts,
   onToFulfill,
   onToCapture,
-  onCustomFilter
+  onCustomFilter,
+  ...listProps
 }) => (
   <Container>
     <PageHeader title={i18n.t("Orders")}>
       <Button
-        color="secondary"
+        color="primary"
         variant="contained"
         disabled={disabled}
         onClick={onAdd}
@@ -57,14 +53,7 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
         onToCapture={onToCapture}
         onCustomFilter={onCustomFilter}
       />
-      <OrderList
-        disabled={disabled}
-        onRowClick={onRowClick}
-        orders={orders}
-        pageInfo={pageInfo}
-        onNextPage={onNextPage}
-        onPreviousPage={onPreviousPage}
-      />
+      <OrderList disabled={disabled} {...listProps} />
     </Card>
   </Container>
 );
