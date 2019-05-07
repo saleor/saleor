@@ -178,7 +178,7 @@ def mark_order_as_paid(order: Order, request_user: User):
 
 
 def create_transaction(
-        payment: Payment, kind: str, payment_information: Dict,
+        payment: Payment, kind: str, payment_information: PaymentData,
         gateway_response: GatewayResponse = None, error_msg=None
 ) -> Transaction:
     """Create a transaction based on transaction kind and gateway response."""
