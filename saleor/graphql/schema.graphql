@@ -609,6 +609,11 @@ type CreditCard {
   expYear: Int!
 }
 
+enum CustomOrderStatusFilter {
+  READY_TO_FULFILL
+  READY_TO_CAPTURE
+}
+
 type CustomerAddressCreate {
   errors: [Error!]
   address: Address
@@ -1461,10 +1466,11 @@ enum OrderEventsEmails {
 }
 
 input OrderFilterInput {
-  paymentStatus: PaymentChargeStatusEnum
-  status: OrderStatusFilter
+  paymentStatus: [PaymentChargeStatusEnum]
+  status: [OrderStatusFilter]
   customer: String
   created: DateRangeInput
+  customStatus: CustomOrderStatusFilter
 }
 
 type OrderLine implements Node {
@@ -1511,8 +1517,6 @@ enum OrderStatus {
 }
 
 enum OrderStatusFilter {
-  READY_TO_FULFILL
-  READY_TO_CAPTURE
   UNFULFILLED
   PARTIALLY_FULFILLED
   FULFILLED
@@ -2114,7 +2118,7 @@ type Query {
   pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
-  orders(filter: OrderFilterInput, query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  orders(filter: OrderFilterInput, query: String, created: ReportingPeriod, status: CustomOrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   draftOrders(filter: OrderDraftFilterInput, query: String, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: String!): Order
@@ -2770,9 +2774,9 @@ enum VoucherDiscountValueType {
 }
 
 input VoucherFilterInput {
-  status: DiscountStatusEnum
+  status: [DiscountStatusEnum]
   timesUsed: IntRangeInput
-  discountType: VoucherDiscountType
+  discountType: [VoucherDiscountType]
   started: DateRangeInput
   search: String
 }
