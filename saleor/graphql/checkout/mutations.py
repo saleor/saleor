@@ -9,8 +9,8 @@ from ...checkout import models
 from ...checkout.utils import (
     add_variant_to_checkout, add_voucher_to_checkout,
     change_billing_address_in_checkout, change_shipping_address_in_checkout,
-    create_order, get_or_create_user_checkout, get_taxes_for_checkout,
-    get_voucher_for_checkout, is_valid_shipping_method,
+    clean_checkout, create_order, get_or_create_user_checkout,
+    get_taxes_for_checkout, get_voucher_for_checkout, is_valid_shipping_method,
     recalculate_checkout_discount, remove_voucher_from_checkout)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
@@ -31,13 +31,17 @@ from .types import Checkout, CheckoutLine
 
 
 def clean_shipping_address(checkout, shipping_address, remove=True):
+    error = False
+
     if not shipping_address:
         return None
 
-    if not checkout.is_shipping_required() and not remove:
-        raise ValidationError('This checkout does not requires shipping.')
+    if not checkout.is_shipping_required():
+        error = True
+        if not remove:
+            raise ValidationError('This checkout does not requires shipping.')
 
-    if remove:
+    if error and remove:
         checkout.shipping_address = None
         checkout.shipping_method = None
         checkout.save(update_fields=['shipping_address', 'shipping_method'])
@@ -45,25 +49,28 @@ def clean_shipping_address(checkout, shipping_address, remove=True):
 
 def clean_shipping_method(
         checkout, shipping_method, discounts, taxes, remove=True):
+    error = False
+
     if not shipping_method:
         return None
 
-    if not checkout.is_shipping_required():
-        raise ValidationError('This checkout does not requires shipping.')
-
     if not checkout.shipping_address:
-        raise ValidationError(
-            'Cannot choose a shipping method for a checkout without the '
-            'shipping address.')
+        error = True
+        if not remove:
+            raise ValidationError(
+                'Cannot choose a shipping method for a checkout without the '
+                'shipping address.')
 
     shipping_method_is_valid = is_valid_shipping_method(
         checkout, taxes, discounts,
         shipping_method=shipping_method, remove=remove)
-    if not shipping_method_is_valid and not remove:
-        raise ValidationError(
-            'Shipping method cannot be used with this checkout.')
+    if not shipping_method_is_valid:
+        error = True
+        if not remove:
+            raise ValidationError(
+                'Shipping method cannot be used with this checkout.')
 
-    if remove:
+    if error and remove:
         checkout.shipping_method = None
         checkout.save(update_fields=['shipping_method'])
 

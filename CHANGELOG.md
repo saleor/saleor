@@ -3,14 +3,6 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-- Update typescript types after apollo is upgraded - #3823 by @jxltom
-- Add languageCode enum to API - #3819 by @michaljelonek
-- Bump backend dependencies - #3827 by @maarcingebala
-- Fix django-recaptcha tests after upgraded to 1.5.0 - 3835 by @jxltom
-- Resort imports by upgraded isort - #3836 by @jxltom
-- Support is_default_shipping/billing_address for address API - #3787 by @jxltom
-- Improvements on shipping validation - #3812 by @jxltom
-
 - Dropped Python 3.5 support - #4028 by @korycins
 - Refactor error handling in mutations #3891 by @maarcingebala @akjanik
 - Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
@@ -50,6 +42,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use dataclasses as a structure for payment's gateways - #4028 by @korycins
 - Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
 - Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
+- Improvements on shipping validation - #3812 by @jxltom
 
 
 ## 2.5.0

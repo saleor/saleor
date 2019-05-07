@@ -462,10 +462,10 @@ def test_checkout_lines_add_invalid_variant_id(user_api_client, checkout, varian
 
 
 def test_checkout_lines_add_clean_shipping(
-        user_api_client, cart_with_invalid_shipping_method, variant):
-    cart = cart_with_invalid_shipping_method
+        user_api_client, checkout_with_invalid_shipping_method, variant):
+    checkout = checkout_with_invalid_shipping_method
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
 
     variables = {
         'checkoutId': checkout_id,
@@ -479,9 +479,9 @@ def test_checkout_lines_add_clean_shipping(
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == \
         'Shipping method cannot be used with this checkout.'
-    cart.refresh_from_db()
-    assert cart.shipping_address is not None
-    assert cart.shipping_method is None
+    checkout.refresh_from_db()
+    assert checkout.shipping_address is not None
+    assert checkout.shipping_method is None
 
 
 MUTATION_CHECKOUT_LINES_UPDATE = """
@@ -568,12 +568,12 @@ def test_checkout_lines_update_check_lines_quantity(
 
 
 def test_checkout_lines_update_clean_shipping(
-        user_api_client, cart_with_invalid_shipping_method):
-    cart = cart_with_invalid_shipping_method
-    line = cart.lines.first()
+        user_api_client, checkout_with_invalid_shipping_method):
+    checkout = checkout_with_invalid_shipping_method
+    line = checkout.lines.first()
     variant = line.variant
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
 
     variables = {
         'checkoutId': checkout_id,
@@ -588,9 +588,9 @@ def test_checkout_lines_update_clean_shipping(
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == \
         'Shipping method cannot be used with this checkout.'
-    cart.refresh_from_db()
-    assert cart.shipping_address is not None
-    assert cart.shipping_method is None
+    checkout.refresh_from_db()
+    assert checkout.shipping_address is not None
+    assert checkout.shipping_method is None
 
 
 MUTATION_CHECKOUT_LINES_DELETE = """
@@ -635,10 +635,10 @@ def test_checkout_line_delete(user_api_client, checkout_with_item):
 
 
 def test_checkout_line_delete_clean_shipping(
-        user_api_client, cart_with_invalid_shipping_method):
-    cart = cart_with_invalid_shipping_method
-    line = cart.lines.first()
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+        user_api_client, checkout_with_invalid_shipping_method):
+    checkout = checkout_with_invalid_shipping_method
+    line = checkout.lines.first()
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     line_id = graphene.Node.to_global_id('CheckoutLine', line.pk)
 
     variables = {'checkoutId': checkout_id, 'lineId': line_id}
@@ -650,9 +650,9 @@ def test_checkout_line_delete_clean_shipping(
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == \
         'This checkout does not requires shipping.'
-    cart.refresh_from_db()
-    assert cart.shipping_address is None
-    assert cart.shipping_method is None
+    checkout.refresh_from_db()
+    assert checkout.shipping_address is None
+    assert checkout.shipping_method is None
 
 
 def test_checkout_customer_attach(
@@ -833,9 +833,9 @@ def test_checkout_shipping_address_update_invalid_country_code(
 
 
 def test_checkout_shipping_address_update_shipping_not_required(
-        user_api_client, cart, graphql_address_data):
-    assert cart.shipping_address is None
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+        user_api_client, checkout, graphql_address_data):
+    assert checkout.shipping_address is None
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
 
     shipping_address = graphql_address_data
     variables = {
@@ -849,16 +849,16 @@ def test_checkout_shipping_address_update_shipping_not_required(
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == \
         'This checkout does not requires shipping.'
-    cart.refresh_from_db()
-    assert cart.shipping_address is None
+    checkout.refresh_from_db()
+    assert checkout.shipping_address is None
 
 
 def test_checkout_shipping_address_update_keep_previous_address_when_error(
-        user_api_client, cart_with_item_and_address, graphql_address_data):
-    cart = cart_with_item_and_address
-    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+        user_api_client, checkout_with_item_and_address, graphql_address_data):
+    checkout = checkout_with_item_and_address
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
 
-    cart.lines.all().delete()
+    checkout.lines.all().delete()
     shipping_address = graphql_address_data
     variables = {
         'checkoutId': checkout_id,
@@ -871,8 +871,8 @@ def test_checkout_shipping_address_update_keep_previous_address_when_error(
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == \
         'This checkout does not requires shipping.'
-    cart.refresh_from_db()
-    assert cart.shipping_address is not None
+    checkout.refresh_from_db()
+    assert checkout.shipping_address is not None
 
 
 def test_checkout_billing_address_update(
@@ -1219,8 +1219,7 @@ def test_checkout_shipping_method_update(
 
 
 def test_checkout_shipping_method_update_shipping_not_required(
-        staff_api_client, cart, shipping_method):
-    checkout = cart
+        staff_api_client, checkout, shipping_method):
     checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     method_id = graphene.Node.to_global_id(
         'ShippingMethod', shipping_method.id)
@@ -1240,8 +1239,8 @@ def test_checkout_shipping_method_update_shipping_not_required(
 
 
 def test_checkout_shipping_method_update_no_shipping_address(
-        staff_api_client, cart_with_item, shipping_method):
-    checkout = cart_with_item
+        staff_api_client, checkout_with_item, shipping_method):
+    checkout = checkout_with_item
     checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
     method_id = graphene.Node.to_global_id(
         'ShippingMethod', shipping_method.id)
@@ -1261,9 +1260,9 @@ def test_checkout_shipping_method_update_no_shipping_address(
 
 
 def test_checkout_shipping_method_update_invalid_method(
-        staff_api_client, cart_with_item_and_address,
+        staff_api_client, checkout_with_item_and_address,
         shipping_zone_without_countries):
-    checkout = cart_with_item_and_address
+    checkout = checkout_with_item_and_address
     assert checkout.shipping_address is not None
 
     shipping_method = shipping_zone_without_countries.shipping_methods.first()
@@ -1284,9 +1283,9 @@ def test_checkout_shipping_method_update_invalid_method(
 
 
 def test_checkout_shipping_method_update_keep_previous_method_when_error(
-        staff_api_client, cart_with_item_and_address,
+        staff_api_client, checkout_with_item_and_address,
         shipping_method, shipping_zone_without_countries):
-    checkout = cart_with_item_and_address
+    checkout = checkout_with_item_and_address
     checkout.shipping_method = shipping_method
     checkout.save()
     assert checkout.shipping_address is not None

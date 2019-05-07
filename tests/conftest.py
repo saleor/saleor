@@ -91,23 +91,23 @@ def checkout_with_voucher(checkout, product, voucher):
     
 
 @pytest.fixture
-def cart_with_item_and_address(cart_with_item, address):
-    cart_with_item.shipping_address = address
-    cart_with_item.save()
-    return cart_with_item
+def checkout_with_item_and_address(checkout_with_item, address):
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    return checkout_with_item
 
 
 @pytest.fixture
-def cart_with_invalid_shipping_method(
-        cart_with_item_and_address, shipping_zone_without_countries):
+def checkout_with_invalid_shipping_method(
+        checkout_with_item_and_address, shipping_zone_without_countries):
     shipping_method = shipping_zone_without_countries.shipping_methods.first()
-    cart_with_item_and_address.shipping_method = shipping_method
-    cart_with_item_and_address.save()
-    return cart_with_item_and_address
+    checkout_with_item_and_address.shipping_method = shipping_method
+    checkout_with_item_and_address.save()
+    return checkout_with_item_and_address
 
 
 @pytest.fixture
-def cart_with_voucher(cart, product, voucher):
+def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 3)
     checkout.voucher_code = voucher.code
