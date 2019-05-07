@@ -332,7 +332,8 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description='An updated checkout')
 
     class Arguments:
-        checkout_id = graphene.ID(description='ID of the Checkout.')
+        checkout_id = graphene.ID(
+            required=True, description='ID of the Checkout.')
         shipping_address = AddressInput(
             required=True,
             description=(
@@ -367,7 +368,8 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
     checkout = graphene.Field(Checkout, description='An updated checkout')
 
     class Arguments:
-        checkout_id = graphene.ID(description='ID of the Checkout.')
+        checkout_id = graphene.ID(
+            required=True, description='ID of the Checkout.')
         billing_address = AddressInput(
             required=True,
             description=('The billing address of the checkout.'))
