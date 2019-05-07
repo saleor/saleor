@@ -385,7 +385,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         with transaction.atomic():
             billing_address.save()
             change_billing_address_in_checkout(checkout, billing_address)
-        return CheckoutShippingAddressUpdate(checkout=checkout)
+        return CheckoutBillingAddressUpdate(checkout=checkout)
 
 
 class CheckoutEmailUpdate(BaseMutation):
