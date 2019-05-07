@@ -43,7 +43,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use dataclasses as a structure for payment's gateways - #4028 by @korycins
 - Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
 - Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
-
+- Resort imports and remove unused imports - #4069 by @jxltom
 
 ## 2.5.0
 
