@@ -44,6 +44,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
 - Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
 - Update test function names since ready_to_place_order is renamed to clean_checkout- #4070 by @jxltom
+- Resort imports and remove unused imports - #4069 by @jxltom
 
 
 ## 2.5.0
