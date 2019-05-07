@@ -45,6 +45,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
 - Update test function names since ready_to_place_order is renamed to clean_checkout- #4070 by @jxltom
 - Resort imports and remove unused imports - #4069 by @jxltom
+- Fix typo in CheckoutBillingAddressUpdate - #4073 by @jxltom
 - Required checkout ID for updating checkout's shipping and billing address - #4074 by @jxltom
 
 
