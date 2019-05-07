@@ -25,6 +25,7 @@ export interface MenuDetailsPageProps {
   menu: MenuDetails_menu;
   onBack: () => void;
   onDelete: () => void;
+  onItemAdd: () => void;
   onSubmit: () => void;
 }
 
@@ -34,6 +35,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
   saveButtonState,
   onBack,
   onDelete,
+  onItemAdd,
   onSubmit
 }) => {
   const initialForm: MenuDetailsFormData = {
@@ -80,6 +82,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
                     ? setTreePermutations([...treePermutations, permutation])
                     : undefined
                 }
+                onItemAdd={onItemAdd}
               />
             </div>
           </Grid>

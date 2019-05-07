@@ -32,6 +32,7 @@ export interface AutocompleteSelectMenuProps {
   options: SelectMenuItem[];
   placeholder: string;
   onChange: (event: React.ChangeEvent<any>) => void;
+  onInputChange?: (value: string) => void;
 }
 
 function getOptionValues(option: SelectMenuItem): string[] {
@@ -100,7 +101,8 @@ const AutocompleteSelectMenu = withStyles(styles, {
     name,
     options,
     placeholder,
-    onChange
+    onChange,
+    onInputChange
   }: AutocompleteSelectMenuProps & WithStyles<typeof styles>) => {
     const [inputValue, setInputValue] = React.useState(displayValue || "");
     const [menuPath, setMenuPath] = React.useState<number[]>([]);
@@ -124,13 +126,15 @@ const AutocompleteSelectMenu = withStyles(styles, {
     // Navigate back to main menu after input field change
     React.useEffect(() => setMenuPath([]), [JSON.stringify(options)]);
 
+    // Reset input value after displayValue change
+    React.useEffect(() => setInputValue(displayValue), [displayValue]);
+
     return (
-      <DebounceAutocomplete debounceFn={undefined}>
+      <DebounceAutocomplete debounceFn={onInputChange}>
         {debounceFn => (
           <Downshift
             itemToString={item => (item ? item.label : "")}
             onSelect={handleChange}
-            onInputValueChange={value => debounceFn(value)}
           >
             {({ getItemProps, isOpen, openMenu, closeMenu, selectItem }) => {
               return (
@@ -143,7 +147,10 @@ const AutocompleteSelectMenu = withStyles(styles, {
                         closeMenu();
                         setMenuPath([]);
                       },
-                      onChange: event => setInputValue(event.target.value),
+                      onChange: event => {
+                        debounceFn(event.target.value);
+                        setInputValue(event.target.value);
+                      },
                       onFocus: () => openMenu(),
                       placeholder
                     }}

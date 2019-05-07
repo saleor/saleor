@@ -32,6 +32,7 @@ const NODE_MARGIN = 40;
 export interface MenuItemsProps {
   items: MenuDetails_menu_items[];
   onChange: (operation: TreePermutation) => void;
+  onItemAdd: () => void;
 }
 
 const styles = (theme: Theme) =>
@@ -166,7 +167,8 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
   ({
     classes,
     items,
-    onChange
+    onChange,
+    onItemAdd
   }: MenuItemsProps & WithStyles<typeof styles>) => {
     const { isDark } = useTheme();
 
@@ -199,7 +201,7 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
           />
         </div>
         <CardActions className={classes.actions}>
-          <Button color="primary">
+          <Button color="primary" onClick={onItemAdd}>
             {i18n.t("Add new item", {
               context: "add menu item"
             })}

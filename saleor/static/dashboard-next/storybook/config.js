@@ -76,6 +76,7 @@ function loadStories() {
 
   // Navigation
   require("./stories/navigation/MenuCreateDialog");
+  require("./stories/navigation/MenuCreateItemDialog");
   require("./stories/navigation/MenuDetailsPage");
   require("./stories/navigation/MenuListPage");
 
