@@ -12,10 +12,8 @@ from django.utils.translation import pgettext_lazy
 from ..account.models import Address, User
 from ..checkout.models import Checkout
 from ..core import analytics
-from ..order import utils as order_utils
+from ..order import events, utils as order_utils
 from ..order.emails import send_payment_confirmation
-from ..order.events import order_manually_marked_as_paid_event, \
-    order_fully_paid_event, email_sent_event, OrderEventsEmails
 from ..order.models import Order
 from . import (
     ChargeStatus, CustomPaymentChoices, GatewayError, OperationType,
@@ -76,11 +74,12 @@ def create_payment_information(
 
 
 def handle_fully_paid_order(order):
-    order_fully_paid_event(order=order)
+    events.order_fully_paid_event(order=order)
 
     if order.get_user_current_email():
-        email_sent_event(
-            order=order, email_type=OrderEventsEmails.PAYMENT, user=None)
+        events.email_sent_event(
+            order=order, user=None,
+            email_type=events.OrderEventsEmails.PAYMENT)
         send_payment_confirmation.delay(order.pk)
 
         if order_utils.order_needs_automatic_fullfilment(order):
@@ -174,7 +173,7 @@ def mark_order_as_paid(order: Order, request_user: User):
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=['captured_amount', 'charge_status'])
-    order_manually_marked_as_paid_event(order=order, user=request_user)
+    events.order_manually_marked_as_paid_event(order=order, user=request_user)
 
 
 def create_transaction(

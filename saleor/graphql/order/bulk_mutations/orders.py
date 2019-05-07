@@ -1,8 +1,6 @@
 import graphene
 
-from ....order import models
-from ....order.events import (
-    fulfillment_restocked_items_event, order_canceled_event)
+from ....order import events, models
 from ....order.utils import cancel_order
 from ...core.mutations import BaseBulkMutation
 from ..mutations.orders import clean_order_cancel
@@ -37,7 +35,7 @@ class OrderBulkCancel(BaseBulkMutation):
         for order in queryset:
             cancel_order(user=user, order=order, restock=restock)
             if restock:
-                fulfillment_restocked_items_event(
+                events.fulfillment_restocked_items_event(
                     order=order, user=user, fulfillment=order)
 
-            order_canceled_event(order=order, user=user)
+            events.order_canceled_event(order=order, user=user)

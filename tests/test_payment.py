@@ -14,7 +14,7 @@ from saleor.payment import (
 from saleor.payment.interface import GatewayResponse
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
-    ALLOWED_GATEWAY_KINDS, REQUIRED_GATEWAY_KEYS, call_gateway,
+    ALLOWED_GATEWAY_KINDS, call_gateway,
     clean_authorize, clean_capture, clean_charge, clean_mark_order_as_paid,
     create_payment, create_payment_information, create_transaction,
     gateway_authorize, gateway_capture, gateway_charge,

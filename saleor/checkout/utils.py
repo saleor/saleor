@@ -23,7 +23,7 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     get_products_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
-from ..order.events import order_created_event
+from ..order import events
 from ..order.emails import send_order_confirmation
 from ..order.models import Order
 from ..shipping.models import ShippingMethod
@@ -880,7 +880,7 @@ def create_order(
     checkout.delete()
 
     # Create the order placed
-    order_created_event(order=order, user=user)
+    events.order_created_event(order=order, user=user)
 
     # Send the order confirmation email
     send_order_confirmation.delay(order.pk, user.pk)

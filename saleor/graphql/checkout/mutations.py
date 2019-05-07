@@ -466,7 +466,6 @@ class CheckoutComplete(BaseMutation):
         payment = checkout.get_last_active_payment()
 
         try:
-            # FIXME: we shouldn't create the order, but only do checks
             order = create_order(
                 checkout=checkout,
                 tracking_code=analytics.get_client_id(info.context),

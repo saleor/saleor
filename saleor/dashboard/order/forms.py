@@ -12,9 +12,7 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
-from ...order import OrderStatus
-from ...order.events import (
-    draft_order_added_products_event, payment_failed_event)
+from ...order import OrderStatus, events
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
@@ -278,7 +276,7 @@ class BasePaymentForm(forms.Form):
         except (PaymentError, ValueError) as e:
             message = str(e)
             self.payment_error(message)
-            payment_failed_event(
+            events.payment_failed_event(
                 order=self.payment.order, user=user,
                 message=message, payment=self.payment)
             return False
@@ -581,7 +579,7 @@ class AddVariantToOrderForm(forms.Form):
         quantity = self.cleaned_data.get('quantity')
         line = add_variant_to_order(
             self.order, variant, quantity, self.discounts, self.taxes)
-        draft_order_added_products_event(
+        events.draft_order_added_products_event(
             order=self.order, user=user, order_lines=[(line.quantity, line)])
         recalculate_order(self.order)
 
