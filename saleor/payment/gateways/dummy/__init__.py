@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, List
+from typing import Dict
 
 from ... import ChargeStatus
 from ...interface import GatewayResponse, PaymentData

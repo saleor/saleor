@@ -1,6 +1,5 @@
 import decimal
 import logging
-import os
 from json import JSONEncoder
 from urllib.parse import urljoin
 

@@ -4,9 +4,9 @@ from graphql_jwt.decorators import login_required, permission_required
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from ..descriptions import DESCRIPTIONS
-from .filters import CustomerFilter, StaffUserFilter
 from .bulk_mutations import (
     CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive)
+from .filters import CustomerFilter, StaffUserFilter
 from .mutations import (
     AddressCreate, AddressDelete, AddressSetDefault, AddressUpdate,
     CustomerAddressCreate, CustomerCreate, CustomerDelete,

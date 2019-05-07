@@ -1,12 +1,12 @@
 from collections import namedtuple
 from decimal import Decimal
-
 from typing import Union
 
 from prices import TaxedMoneyRange
 
 from saleor.graphql.core.types import MoneyRange
-from saleor.product.models import ProductVariant, Product
+from saleor.product.models import Product, ProductVariant
+
 from ...core.utils import to_local_currency
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
