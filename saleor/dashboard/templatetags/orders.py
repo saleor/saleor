@@ -4,8 +4,8 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.templatetags import prices_i18n
 from prices import Money
 
-from ...events import OrderEvents, OrderEventsEmails
-from ...events.models import OrderEvent
+from ...order.events import OrderEvents, OrderEventsEmails
+from ...order.models import OrderEvent
 
 register = Library()
 

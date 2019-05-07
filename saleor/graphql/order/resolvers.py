@@ -1,9 +1,9 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
-from ...events import OrderEvents
-from ...events.models import OrderEvent
 from ...order import OrderStatus, models
+from ...order.events import OrderEvents
+from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
 from ..utils import filter_by_period, filter_by_query_param
 from .enums import OrderStatusFilter
