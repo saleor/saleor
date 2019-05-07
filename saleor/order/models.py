@@ -411,8 +411,8 @@ class OrderEvent(models.Model):
     type = models.CharField(
         max_length=255,
         choices=[(
-            type_name.upper(), type_name)
-            for type_name, _ in OrderEvents.CHOICES])
+            type_name.upper(), type_name
+        ) for type_name, _ in OrderEvents.CHOICES])
     order = models.ForeignKey(
         Order, related_name='events', on_delete=models.CASCADE)
     parameters = JSONField(

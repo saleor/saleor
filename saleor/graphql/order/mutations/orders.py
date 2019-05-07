@@ -3,10 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
-from ....order import models
-from ....order.events import (
-    order_note_added_event, payment_captured_event, payment_failed_event,
-    payment_refunded_event, payment_voided_event)
+from ....order import events, models
 from ....order.utils import cancel_order
 from ....payment import CustomPaymentChoices, PaymentError
 from ....payment.utils import (
@@ -77,7 +74,7 @@ def try_payment_action(order, user, payment, func, *args, **kwargs):
         func(*args, **kwargs)
     except (PaymentError, ValueError) as e:
         message = str(e)
-        payment_failed_event(
+        events.payment_failed_event(
             order=order, user=user, message=message, payment=payment)
         raise ValidationError({'payment': message})
     return True
@@ -196,7 +193,7 @@ class OrderAddNote(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(
             info, data.get('id'), only_type=Order)
-        event = order_note_added_event(
+        event = events.order_note_added_event(
             order=order, user=info.context.user,
             message=data.get('input')['message'])
         return OrderAddNote(order=order, event=event)
@@ -276,7 +273,7 @@ class OrderCapture(BaseMutation):
             order, info.context.user, payment,
             gateway_capture, payment, amount)
 
-        payment_captured_event(
+        events.payment_captured_event(
             order=order, user=info.context.user,
             amount=amount, payment=payment)
         return OrderCapture(order=order)
@@ -303,7 +300,7 @@ class OrderVoid(BaseMutation):
         try_payment_action(
             order, info.context.user, payment, gateway_void, payment)
 
-        payment_voided_event(
+        events.payment_voided_event(
             order=order, user=info.context.user, payment=payment)
         return OrderVoid(order=order)
 
@@ -335,7 +332,7 @@ class OrderRefund(BaseMutation):
         try_payment_action(
             order, info.context.user, payment, gateway_refund, payment, amount)
 
-        payment_refunded_event(
+        events.payment_refunded_event(
             order=order, user=info.context.user,
             amount=amount, payment=payment)
         return OrderRefund(order=order)

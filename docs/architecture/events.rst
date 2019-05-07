@@ -72,21 +72,13 @@ Email Event Types
 Events Design
 -------------
 
-The ``OrderEventManager`` class contains a bunch of static methods suffixed by
-``_event``. They take care of all the logic and required fields, then
-returns an instance of ``OrderEventManager`` to allow the user to commit or
-to add more events. This design has for objective to allow
-delayed (or not) event creation in the database.
+Each package representing an entity (order, account, etc.) that generate events
+define both a model and a ``events.py`` file containing a set of functions
+having ``_event`` for suffix.
 
-The main power of this design comes when one wants to create multiple
-order events in one go. Instead of generating multiple create query, one
-can simply pass the objects to django's |QuerySet.bulk_create|_ method.
+Those functions are taking care of any logic and required fields for
+creating given events.
 
-If one simply does not want to bulk create, delay the creation, one can
-directly run ``save()`` for the creation.
-
-.. |QuerySet.bulk_create| replace:: ``QuerySet.bulk_create``
-.. _QuerySet.bulk_create: https://docs.djangoproject.com/en/1.10/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
 
 Creating Events
 ---------------
@@ -95,18 +87,21 @@ To send an event, simply do the following:
 
 .. code-block:: python
 
-  from saleor.order.events import note_added_event
+  from saleor.order import events
 
   # returns an OrderEvent
-  note_added_event(
+  events.note_added_event(
       order=order, user=user, message='hello world!')
 
 If now you want to send a 'sent email' event you would do the following:
 
 .. code-block:: python
 
-  email_sent_event(
-      order=order, user=user, email_type=OrderEventsEmails.TRACKING_UPDATED)
+  from saleor.order import events
+
+  events.email_sent_event(
+      order=order, user=user,
+      email_type=events.OrderEventsEmails.TRACKING_UPDATED)
 
 Notice how we are providing the email type.
 

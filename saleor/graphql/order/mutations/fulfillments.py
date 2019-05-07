@@ -2,10 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
-from ....order import models
+from ....order import events, models
 from ....order.emails import send_fulfillment_confirmation_to_customer
-from ....order.events import (
-    fulfillment_fulfilled_items_event, fulfillment_tracking_updated_event)
 from ....order.utils import (
     cancel_fulfillment, fulfill_order_line, update_order_status)
 from ...core.mutations import BaseMutation
@@ -106,7 +104,7 @@ class FulfillmentCreate(BaseMutation):
 
         fulfillment.lines.bulk_create(fulfillment_lines)
         update_order_status(order)
-        fulfillment_fulfilled_items_event(
+        events.fulfillment_fulfilled_items_event(
             order=order, user=user,
             quantities=quantities, order_lines=order_lines)
 
@@ -155,7 +153,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
-        fulfillment_tracking_updated_event(
+        events.fulfillment_tracking_updated_event(
             order=order, user=info.context.user,
             tracking_number=tracking_number, fulfillment=fulfillment)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)

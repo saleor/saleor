@@ -5,9 +5,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
-from .events import draft_order_added_products_event, \
-    draft_order_removed_products_event, fulfillment_restocked_items_event, \
-    fulfillment_canceled_event, order_canceled_event
+from . import events
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import (
@@ -174,9 +172,9 @@ def cancel_order(user, order, restock):
     Return products to corresponding stocks if restock is set to True.
     """
 
-    order_canceled_event(order=order, user=user)
+    events.order_canceled_event(order=order, user=user)
     if restock:
-        fulfillment_restocked_items_event(
+        events.fulfillment_restocked_items_event(
             order=order, user=user, fulfillment=order)
         restock_order_lines(order)
 
@@ -218,10 +216,10 @@ def cancel_fulfillment(user, fulfillment, restock):
 
     Return products to corresponding stocks if restock is set to True.
     """
-    fulfillment_canceled_event(
+    events.fulfillment_canceled_event(
         order=fulfillment.order, user=user, fulfillment=fulfillment)
     if restock:
-        fulfillment_restocked_items_event(
+        events.fulfillment_restocked_items_event(
             order=fulfillment.order, user=user, fulfillment=fulfillment)
         restock_fulfillment_lines(fulfillment)
     for line in fulfillment:
@@ -297,11 +295,11 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
 
     # Create the removal event
     if quantity_diff > 0:
-        draft_order_removed_products_event(
+        events.draft_order_removed_products_event(
             order=line.order, user=user,
             order_lines=[(quantity_diff, line)])
     elif quantity_diff < 0:
-        draft_order_added_products_event(
+        events.draft_order_added_products_event(
             order=line.order, user=user,
             order_lines=[(quantity_diff * -1, line)])
 
