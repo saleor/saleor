@@ -50,8 +50,7 @@ def test_collect_data_for_email(order):
     template = emails.CONFIRM_PAYMENT_TEMPLATE
     email_data = emails.collect_data_for_email(order.pk, template)
     email_context = email_data['context']
-    # Those properties should be present only for order confirmation email
-    assert 'order' not in email_context
+    # This properties should be present only for order confirmation email
     assert 'schema_markup' not in email_context
 
 
