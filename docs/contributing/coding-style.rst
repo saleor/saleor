@@ -16,6 +16,8 @@ Python
 
 Always follow `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_ but keep in mind that consistency is important.
 
+The only difference with ``PEP 8`` is that we use a 88 characters line limit instead of 79.
+
 String Literals
 ~~~~~~~~~~~~~~~
 
