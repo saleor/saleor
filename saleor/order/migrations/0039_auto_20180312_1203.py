@@ -7,19 +7,27 @@ import django_prices.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0038_auto_20180228_0451'),
-    ]
+    dependencies = [("order", "0038_auto_20180228_0451")]
 
     operations = [
         migrations.AlterField(
-            model_name='order',
-            name='total_gross',
-            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=2, default=0, max_digits=12),
+            model_name="order",
+            name="total_gross",
+            field=django_prices.models.MoneyField(
+                currency=settings.DEFAULT_CURRENCY,
+                decimal_places=2,
+                default=0,
+                max_digits=12,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='total_net',
-            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=2, default=0, max_digits=12),
+            model_name="order",
+            name="total_net",
+            field=django_prices.models.MoneyField(
+                currency=settings.DEFAULT_CURRENCY,
+                decimal_places=2,
+                default=0,
+                max_digits=12,
+            ),
         ),
     ]

@@ -7,14 +7,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0049_collection'),
-    ]
+    dependencies = [("product", "0049_collection")]
 
     operations = [
         migrations.AlterField(
-            model_name='collection',
-            name='slug',
-            field=models.SlugField(max_length=255),
-        ),
+            model_name="collection", name="slug", field=models.SlugField(max_length=255)
+        )
     ]

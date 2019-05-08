@@ -13,15 +13,14 @@ def get_product_costs_data(product):
     variants = product.variants.all()
     costs_data = get_cost_data_from_variants(variants)
     if costs_data.costs:
-        purchase_costs_range = MoneyRange(
-            min(costs_data.costs), max(costs_data.costs))
+        purchase_costs_range = MoneyRange(min(costs_data.costs), max(costs_data.costs))
     if costs_data.margins:
         margin = (costs_data.margins[0], costs_data.margins[-1])
     return purchase_costs_range, margin
 
 
 class CostsData:
-    __slots__ = ('costs', 'margins')
+    __slots__ = ("costs", "margins")
 
     def __init__(self, costs, margins):
         self.costs = sorted(costs)

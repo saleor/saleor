@@ -32,19 +32,34 @@ def convert_field_measurements(*_args):
 class PrefetchingConnectionField(DjangoConnectionField):
     @classmethod
     def connection_resolver(
-            cls, resolver, connection, default_manager, max_limit,
-            enforce_first_or_last, root, info, **args):
+        cls,
+        resolver,
+        connection,
+        default_manager,
+        max_limit,
+        enforce_first_or_last,
+        root,
+        info,
+        **args,
+    ):
 
         # Disable `enforce_first_or_last` if not querying for `edges`.
         values = [
-            field.name.value
-            for field in info.field_asts[0].selection_set.selections]
-        if 'edges' not in values:
+            field.name.value for field in info.field_asts[0].selection_set.selections
+        ]
+        if "edges" not in values:
             enforce_first_or_last = False
 
         return super().connection_resolver(
-            resolver, connection, default_manager, max_limit,
-            enforce_first_or_last, root, info, **args)
+            resolver,
+            connection,
+            default_manager,
+            max_limit,
+            enforce_first_or_last,
+            root,
+            info,
+            **args,
+        )
 
     @classmethod
     def resolve_connection(cls, connection, default_manager, args, iterable):
@@ -72,8 +87,8 @@ class PrefetchingConnectionField(DjangoConnectionField):
 
 
 class FilterInputConnectionField(DjangoConnectionField):
-    def __init__(self,  *args, **kwargs):
-        self.filter_field_name = kwargs.pop('filter_field_name', 'filter')
+    def __init__(self, *args, **kwargs):
+        self.filter_field_name = kwargs.pop("filter_field_name", "filter")
         self.filter_input = kwargs.get(self.filter_field_name)
         self.filterset_class = None
         if self.filter_input:
@@ -82,52 +97,59 @@ class FilterInputConnectionField(DjangoConnectionField):
 
     @classmethod
     def connection_resolver(
-            cls, resolver, connection, default_manager, max_limit,
-            enforce_first_or_last, filterset_class, filters_name, root, info,
-            **args):
+        cls,
+        resolver,
+        connection,
+        default_manager,
+        max_limit,
+        enforce_first_or_last,
+        filterset_class,
+        filters_name,
+        root,
+        info,
+        **args,
+    ):
 
         # Disable `enforce_first_or_last` if not querying for `edges`.
         values = [
-            field.name.value
-            for field in info.field_asts[0].selection_set.selections]
-        if 'edges' not in values:
+            field.name.value for field in info.field_asts[0].selection_set.selections
+        ]
+        if "edges" not in values:
             enforce_first_or_last = False
 
-        first = args.get('first')
-        last = args.get('last')
+        first = args.get("first")
+        last = args.get("last")
 
         if enforce_first_or_last:
             assert first or last, (
-                'You must provide a `first` or `last` value to properly '
-                'paginate the `{}` connection.'
+                "You must provide a `first` or `last` value to properly "
+                "paginate the `{}` connection."
             ).format(info.field_name)
 
         if max_limit:
             if first:
                 assert first <= max_limit, (
-                    'Requesting {} records on the `{}` connection exceeds the '
-                    '`first` limit of {} records.'
+                    "Requesting {} records on the `{}` connection exceeds the "
+                    "`first` limit of {} records."
                 ).format(first, info.field_name, max_limit)
-                args['first'] = min(first, max_limit)
+                args["first"] = min(first, max_limit)
 
             if last:
                 assert last <= max_limit, (
-                    'Requesting {} records on the `{}` connection exceeds the '
-                    '`last` limit of {} records.'
+                    "Requesting {} records on the `{}` connection exceeds the "
+                    "`last` limit of {} records."
                 ).format(last, info.field_name, max_limit)
-                args['last'] = min(last, max_limit)
+                args["last"] = min(last, max_limit)
 
         iterable = resolver(root, info, **args)
 
-        on_resolve = partial(cls.resolve_connection, connection,
-                             default_manager, args)
+        on_resolve = partial(cls.resolve_connection, connection, default_manager, args)
 
         filter_input = args.get(filters_name)
         if filter_input and filterset_class:
             iterable = filterset_class(
-                data=dict(filter_input),
-                queryset=iterable,
-                request=info.context).qs
+                data=dict(filter_input), queryset=iterable, request=info.context
+            ).qs
 
         if Promise.is_thenable(iterable):
             return Promise.resolve(iterable).then(on_resolve)
@@ -137,5 +159,5 @@ class FilterInputConnectionField(DjangoConnectionField):
         return partial(
             super().get_resolver(parent_resolver),
             self.filterset_class,
-            self.filter_field_name
+            self.filter_field_name,
         )

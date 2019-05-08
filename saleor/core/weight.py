@@ -23,16 +23,17 @@ from measurement.measures import Weight
 
 
 class WeightUnits:
-    KILOGRAM = 'kg'
-    POUND = 'lb'
-    OUNCE = 'oz'
-    GRAM = 'g'
+    KILOGRAM = "kg"
+    POUND = "lb"
+    OUNCE = "oz"
+    GRAM = "g"
 
     CHOICES = [
-        (KILOGRAM, pgettext_lazy('Kilogram weight unit symbol', 'kg')),
-        (POUND, pgettext_lazy('Pound weight unit symbol', 'lb')),
-        (OUNCE, pgettext_lazy('Ounce weight unit symbol', 'oz')),
-        (GRAM, pgettext_lazy('Gram weight unit symbol', 'g'))]
+        (KILOGRAM, pgettext_lazy("Kilogram weight unit symbol", "kg")),
+        (POUND, pgettext_lazy("Pound weight unit symbol", "lb")),
+        (OUNCE, pgettext_lazy("Ounce weight unit symbol", "oz")),
+        (GRAM, pgettext_lazy("Gram weight unit symbol", "g")),
+    ]
 
 
 def zero_weight():
@@ -53,8 +54,8 @@ def get_default_weight_unit():
 
 
 class WeightInput(forms.TextInput):
-    template = 'dashboard/shipping/weight_widget.html'
-    input_type = 'number'
+    template = "dashboard/shipping/weight_widget.html"
+    input_type = "number"
 
     def format_value(self, value):
         if isinstance(value, Weight):
@@ -69,14 +70,14 @@ class WeightInput(forms.TextInput):
         unit = get_default_weight_unit()
         translated_unit = dict(WeightUnits.CHOICES)[unit]
         return render_to_string(
-            self.template,
-            {'widget': widget, 'value': value, 'unit': translated_unit})
+            self.template, {"widget": widget, "value": value, "unit": translated_unit}
+        )
 
 
 class WeightField(forms.FloatField):
     def __init__(self, *args, widget=WeightInput, min_value=0, **kwargs):
         if isinstance(widget, type):
-            widget = widget(attrs={'type': 'number', 'step': 'any'})
+            widget = widget(attrs={"type": "number", "step": "any"})
         super().__init__(*args, widget=widget, **kwargs)
         if min_value is not None:
             self.validators.append(MinValueValidator(min_value))
@@ -94,12 +95,11 @@ class WeightField(forms.FloatField):
         else:
             unit = get_default_weight_unit()
             if not isinstance(weight, Weight):
-                raise Exception(
-                    '%r is not a valid weight.' % (weight,))
+                raise Exception("%r is not a valid weight." % (weight,))
             if weight.unit != unit:
                 raise forms.ValidationError(
-                    'Invalid unit: %r (expected %r).' % (
-                        weight.unit, unit))
+                    "Invalid unit: %r (expected %r)." % (weight.unit, unit)
+                )
             super().validate(weight.value)
 
     def clean(self, value):

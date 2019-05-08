@@ -7,30 +7,28 @@ from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 class PageBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
-            graphene.ID,
-            required=True,
-            description='List of page IDs to delete.')
+            graphene.ID, required=True, description="List of page IDs to delete."
+        )
 
     class Meta:
-        description = 'Deletes pages.'
+        description = "Deletes pages."
         model = models.Page
-        permissions = ('page.manage_pages', )
+        permissions = ("page.manage_pages",)
 
 
 class PageBulkPublish(BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
-            graphene.ID,
-            required=True,
-            description='List of page IDs to (un)publish.')
+            graphene.ID, required=True, description="List of page IDs to (un)publish."
+        )
         is_published = graphene.Boolean(
-            required=True,
-            description='Determine if pages will be published or not.')
+            required=True, description="Determine if pages will be published or not."
+        )
 
     class Meta:
-        description = 'Publish pages.'
+        description = "Publish pages."
         model = models.Page
-        permissions = ('page.manage_pages', )
+        permissions = ("page.manage_pages",)
 
     @classmethod
     def bulk_action(cls, queryset, is_published):

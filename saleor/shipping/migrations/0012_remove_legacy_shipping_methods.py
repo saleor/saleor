@@ -9,18 +9,14 @@ import saleor.core.weight
 
 
 def remove_legacy_shipping_methods(apps, schema_editor):
-    ShippingMethod = apps.get_model('shipping', 'ShippingMethod')
+    ShippingMethod = apps.get_model("shipping", "ShippingMethod")
     ShippingMethod.objects.all().delete()
 
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('shipping', '0011_auto_20180802_1238'),
-    ]
+    dependencies = [("shipping", "0011_auto_20180802_1238")]
 
     operations = [
-        migrations.RunPython(
-            remove_legacy_shipping_methods,
-            migrations.RunPython.noop)
+        migrations.RunPython(remove_legacy_shipping_methods, migrations.RunPython.noop)
     ]
