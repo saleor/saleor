@@ -81,22 +81,6 @@ def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
     assert rates == reduced_rates
 
 
-def test_query_default_country(user_api_client, settings):
-    query = """
-    query {
-        shop {
-            defaultCountry {
-                country
-            }
-        }
-    }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]["defaultCountry"]
-    assert data["country"] == settings.DEFAULT_COUNTRY
-
-
 def test_query_default_country_with_tax(user_api_client, settings, vatlayer, tax_rates):
     settings.DEFAULT_COUNTRY = "PL"
     query = """
@@ -445,7 +429,7 @@ def test_homepage_collection_update_set_null(
     assert site_settings.homepage_collection is None
 
 
-def test_query_default_country_(user_api_client, settings):
+def test_query_default_country(user_api_client, settings):
     settings.DEFAULT_COUNTRY = "US"
     query = """
     query {
