@@ -39,16 +39,32 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
   onSubmit
 }) => {
   const initialForm: MenuDetailsFormData = {
-    name: maybe(() => menu.name)
+    name: maybe(() => menu.name, "")
   };
 
-  const [treePermutations, setTreePermutations] = React.useState<
-    TreePermutation[]
-  >([]);
+  const [treeOperations, setTreeOperations] = React.useState<TreePermutation[]>(
+    [
+      {
+        id: "TWVudUl0ZW06Mw==",
+        operation: "move",
+        parentId: "TWVudUl0ZW06Mg==",
+        sortOrder: 0
+      }
+    ]
+  );
 
   const handleSubmit = () => {
     onSubmit();
   };
+
+  const handleChange = (operation: TreePermutation) => {
+    if (!!operation) {
+      setTreeOperations([...treeOperations, operation]);
+    }
+  };
+
+  const newHandleChange = v => handleChange(v);
+  newHandleChange._version = new Date();
 
   return (
     <Form initial={initialForm}>
@@ -73,15 +89,10 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
               />
               <CardSpacer />
               <MenuItems
-                items={computeTree(
-                  maybe(() => menu.items, []),
-                  treePermutations
-                )}
-                onChange={permutation =>
-                  !!permutation
-                    ? setTreePermutations([...treePermutations, permutation])
-                    : undefined
-                }
+                items={computeTree(maybe(() => menu.items, []), [
+                  ...treeOperations
+                ])}
+                onChange={newHandleChange}
                 onItemAdd={onItemAdd}
               />
             </div>

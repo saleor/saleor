@@ -5,6 +5,7 @@ import { MenuDetails_menu_items } from "../../types/MenuDetails";
 
 export interface TreePermutation {
   id: string;
+  operation: "move" | "remove";
   parentId?: string;
   sortOrder?: number;
 }
@@ -37,7 +38,7 @@ export function getDiff(
   const originalMap = treeToMap(originalTree, "root");
   const newMap = treeToMap(newTree, "root");
 
-  const diff = Object.keys(newMap).map(key => {
+  const diff: TreePermutation[] = Object.keys(newMap).map(key => {
     const originalNode = originalMap[key];
     const newNode = newMap[key];
 
@@ -48,22 +49,26 @@ export function getDiff(
       if (!!addedNode) {
         return {
           id: addedNode.items[0],
+          operation: "move",
           parentId: key === "root" ? undefined : key,
           sortOrder: addedNode.newPos
         };
       }
     }
-    return null;
   });
 
   return diff.find(d => !!d);
 }
 
-export function getNodeData(item: MenuDetails_menu_items): TreeNode {
+export function getNodeData(
+  item: MenuDetails_menu_items,
+  onChange: (operation: TreePermutation) => void
+): TreeNode {
   return {
-    children: item.children.map(getNodeData),
+    children: item.children.map(child => getNodeData(child, onChange)),
     expanded: true,
     id: item.id,
+    onChange,
     title: item.name
   };
 }

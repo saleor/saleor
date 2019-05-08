@@ -44,3 +44,14 @@ Glasses
 ··Apparel
 ····Accessories"
 `;
+
+exports[`Properly computes trees # 6`] = `
+"
+Groceries
+Apparel"
+`;
+
+exports[`Properly computes trees # 7`] = `
+"
+Apparel"
+`;

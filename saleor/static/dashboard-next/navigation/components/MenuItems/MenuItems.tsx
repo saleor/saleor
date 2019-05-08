@@ -1,6 +1,7 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
+import IconButton from "@material-ui/core/IconButton";
 import Paper from "@material-ui/core/Paper";
 import {
   createStyles,
@@ -9,11 +10,13 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
+import DeleteIcon from "@material-ui/icons/Delete";
 import classNames from "classnames";
 import * as React from "react";
 import SortableTree, { NodeRendererProps } from "react-sortable-tree";
 
 import CardTitle from "../../../components/CardTitle";
+import Skeleton from "../../../components/Skeleton";
 import useTheme from "../../../hooks/useTheme";
 import i18n from "../../../i18n";
 import Draggable from "../../../icons/Draggable";
@@ -46,6 +49,9 @@ const styles = (theme: Theme) =>
     darkContainer: {
       background: `${theme.palette.grey[800]} !important`
     },
+    deleteButton: {
+      marginRight: theme.spacing.unit
+    },
     dragIcon: {
       cursor: "grab"
     },
@@ -57,7 +63,11 @@ const styles = (theme: Theme) =>
         display: "none"
       },
       "& .rst__node": {
-        height: "auto !important"
+        "&:first-of-type": {
+          "& $row": {
+            borderTop: `1px ${theme.overrides.MuiCard.root.borderColor} solid`
+          }
+        }
       }
     },
     row: {
@@ -80,9 +90,6 @@ const styles = (theme: Theme) =>
     },
     rowContainerDragged: {
       "&$rowContainer": {
-        "& > *": {
-          opacity: 0
-        },
         "&:before": {
           background: theme.palette.background.paper,
           border: `1px solid ${theme.palette.primary.main}`,
@@ -101,19 +108,25 @@ const styles = (theme: Theme) =>
       }
     },
     rowContainerPlaceholder: {
-      borderRadius: 8,
-      width: 300
+      opacity: 0
+    },
+    spacer: {
+      flex: 1
     }
   });
 
-class Node extends React.Component<NodeRendererProps> {
-  render() {
-    return <NodeComponent {...this.props} key={this.props.node.id} />;
-  }
-}
+const Placeholder = withStyles(styles, {
+  name: "Placeholder"
+})(({ classes }: WithStyles<typeof styles>) => (
+  <Paper className={classes.row} elevation={0}>
+    <Typography>
+      {i18n.t("Add new menu item to begin creating menu")}
+    </Typography>
+  </Paper>
+));
 
-const NodeComponent = withStyles(styles, {
-  name: "NodeComponent"
+const Node = withStyles(styles, {
+  name: "Node"
 })(
   ({
     classes,
@@ -157,6 +170,19 @@ const NodeComponent = withStyles(styles, {
             </div>
           )}
           <Typography className={classes.nodeTitle}>{node.title}</Typography>
+          <div className={classes.spacer} />
+          <IconButton
+            className={classes.deleteButton}
+            color="primary"
+            onClick={() =>
+              node.onChange({
+                id: node.id as any,
+                operation: "remove"
+              })
+            }
+          >
+            <DeleteIcon />
+          </IconButton>
         </Paper>
       </div>
     );
@@ -179,26 +205,38 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
           className={classNames(classes.container, {
             [classes.darkContainer]: isDark
           })}
-          style={{ minHeight: (getNodeQuantity(items) - 0.5) * NODE_HEIGHT }}
+          style={{
+            minHeight: (getNodeQuantity(items) - 1) * NODE_HEIGHT
+          }}
         >
-          <SortableTree
-            className={classes.root}
-            generateNodeProps={({ path }) => ({
-              className: classes.row,
-              style: {
-                marginLeft: NODE_MARGIN * (path.length - 1)
+          {items === undefined ? (
+            <Skeleton />
+          ) : (
+            <SortableTree
+              className={classes.root}
+              generateNodeProps={({ path }) => ({
+                className: classes.row,
+                style: {
+                  marginLeft: NODE_MARGIN * (path.length - 1)
+                }
+              })}
+              isVirtualized={false}
+              rowHeight={NODE_HEIGHT}
+              treeData={items.map(item => getNodeData(item, onChange))}
+              theme={{
+                nodeContentRenderer: Node as any
+              }}
+              onChange={newTree =>
+                onChange(
+                  getDiff(
+                    items.map(item => getNodeData(item, onChange)),
+                    newTree as TreeNode[]
+                  )
+                )
               }
-            })}
-            isVirtualized={false}
-            rowHeight={NODE_HEIGHT}
-            treeData={items.map(getNodeData)}
-            theme={{
-              nodeContentRenderer: Node
-            }}
-            onChange={newTree =>
-              onChange(getDiff(items.map(getNodeData), newTree as TreeNode[]))
-            }
-          />
+              placeholderRenderer={Placeholder as any}
+            />
+          )}
         </div>
         <CardActions className={classes.actions}>
           <Button color="primary" onClick={onItemAdd}>
