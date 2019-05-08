@@ -11,14 +11,15 @@
 	<!ENTITY ns_adobe_xpath "http://ns.adobe.com/XPath/1.0/">
 ]>
 <svg version="1.1" id="Layer_1" xmlns:x="&ns_extend;" xmlns:i="&ns_ai;" xmlns:graph="&ns_graphs;"
-	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="687.184px"
-	 height="300.063px" viewBox="0 275.938 687.184 300.063" enable-background="new 0 275.938 687.184 300.063" xml:space="preserve">
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1030.776px"
+	 height="465.095px" viewBox="-49.407 217.448 1030.776 465.095" enable-background="new -49.407 217.448 1030.776 465.095"
+	 xml:space="preserve">
 <metadata>
 	<sfw  xmlns="&ns_sfw;">
 		<slices></slices>
-		<sliceSourceBounds  width="687.184" y="216.5" x="-0.5" height="300.063" bottomLeftOrigin="true"></sliceSourceBounds>
+		<sliceSourceBounds  width="1030.776" y="-60.996" x="-259.295" height="465.095" bottomLeftOrigin="true"></sliceSourceBounds>
 	</sfw>
 </metadata>
-<path fill="#13BEBB" d="M164.688,308.875H0l32.938-32.938h164.688L164.688,308.875z"/>
-<text transform="matrix(0.6243 0 0 1 30.9985 509.8867)" fill="#222046" font-family="'Impact'" font-size="200">Builders Hub</text>
+<path fill="#13BEBB" d="M197.625,266.857H-49.407L0,217.448h247.031L197.625,266.857z"/>
+<text transform="matrix(0.6243 0 0 1 -2.9092 583.3735)" fill="#222046" font-family="'Impact'" font-size="300">Builders Hub</text>
 </svg>
