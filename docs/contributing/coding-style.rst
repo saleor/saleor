@@ -1,6 +1,15 @@
 Coding Style
 ============
 
+Saleor uses the `pre-commit <https://pre-commit.com/#install>`_ tool to check and
+automatically fix any formatting issue before creating a git commit.
+
+You can easily install it after having setup saleor by running the below instruction.
+
+.. code-block:: console
+
+  $ pre-commit install
+
 
 Python
 ------
@@ -10,34 +19,35 @@ Always follow `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_ but keep in m
 String Literals
 ~~~~~~~~~~~~~~~
 
-Prefer single quotes to double quotes unless the string itself contains single quotes that would need to be needlessly escaped.
+Prefer double quotes to single quotes.
 
 Wrapping Code
 ~~~~~~~~~~~~~
 
-When wrapping code follow the "hanging grid" format:
+When wrapping code follow the "vertical hanging indent" format:
 
 .. code-block:: python
 
    some_dict = {
        'one': 1,
        'two': 2,
-       'three': 3}
+       'three': 3,
+   }
 
 .. code-block:: python
 
    some_list = [
-       'foo', 'bar', 'baz']
-
-Python is an indent-based language and we believe that beautiful, readable code is more important than saving a single line of ``git diff``. Please avoid dangling parentheses, brackets, square brackets or hanging commas even if the Django project seems to encourage this programming style:
+       'foo',
+       'bar',
+       'baz',
+   ]
 
 .. code-block:: python
 
    this_is_wrong = {
       'one': 1,
       'two': 2,
-      'three': 3,
-   }
+      'three': 3}
 
 Please break multi-line code immediately after the parenthesis and avoid relying on a precise number of spaces for alignment:
 
@@ -49,6 +59,8 @@ Please break multi-line code immediately after the parenthesis and avoid relying
 
 Linters
 ~~~~~~~
+
+Use `black <https://github.com/python/black/>`_ to make sure your code is correctly formatted.
 
 Use `isort <https://github.com/timothycrosley/isort>`_ to maintain consistent imports.
 
