@@ -35,3 +35,8 @@ COUNTRIES_ONLY = None
 
 MEDIA_ROOT = None
 MAX_CHECKOUT_LINE_QUANTITY = 50
+
+
+PASSWORD_HASHERS = [
+    'tests.dummy_password_hasher.DummyHasher',
+]
