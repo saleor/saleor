@@ -33,9 +33,11 @@ const NODE_HEIGHT = 56;
 const NODE_MARGIN = 40;
 
 export interface MenuItemsProps {
+  canUndo: boolean;
   items: MenuDetails_menu_items[];
   onChange: (operation: TreePermutation) => void;
   onItemAdd: () => void;
+  onUndo: () => void;
 }
 
 const styles = (theme: Theme) =>
@@ -191,16 +193,25 @@ const Node = withStyles(styles, {
 
 const MenuItems = withStyles(styles, { name: "MenuItems" })(
   ({
+    canUndo,
     classes,
     items,
     onChange,
-    onItemAdd
+    onItemAdd,
+    onUndo
   }: MenuItemsProps & WithStyles<typeof styles>) => {
     const { isDark } = useTheme();
 
     return (
       <Card>
-        <CardTitle title={i18n.t("Menu Items")} />
+        <CardTitle
+          title={i18n.t("Menu Items")}
+          toolbar={
+            <Button color="primary" disabled={!canUndo} onClick={onUndo}>
+              {i18n.t("Undo")}
+            </Button>
+          }
+        />
         <div
           className={classNames(classes.container, {
             [classes.darkContainer]: isDark

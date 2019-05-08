@@ -43,14 +43,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
   };
 
   const [treeOperations, setTreeOperations] = React.useState<TreePermutation[]>(
-    [
-      {
-        id: "TWVudUl0ZW06Mw==",
-        operation: "move",
-        parentId: "TWVudUl0ZW06Mg==",
-        sortOrder: 0
-      }
-    ]
+    []
   );
 
   const handleSubmit = () => {
@@ -86,11 +79,17 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
               />
               <CardSpacer />
               <MenuItems
+                canUndo={treeOperations.length > 0}
                 items={computeTree(maybe(() => menu.items, []), [
                   ...treeOperations
                 ])}
                 onChange={handleChange}
                 onItemAdd={onItemAdd}
+                onUndo={() =>
+                  setTreeOperations(
+                    treeOperations.slice(0, treeOperations.length - 1)
+                  )
+                }
               />
             </div>
           </Grid>
