@@ -348,6 +348,16 @@ export interface MenuCreateInput {
   items?: (MenuItemInput | null)[] | null;
 }
 
+export interface MenuItemCreateInput {
+  name?: string | null;
+  url?: string | null;
+  category?: string | null;
+  collection?: string | null;
+  page?: string | null;
+  menu: string;
+  parent?: string | null;
+}
+
 export interface MenuItemInput {
   name?: string | null;
   url?: string | null;

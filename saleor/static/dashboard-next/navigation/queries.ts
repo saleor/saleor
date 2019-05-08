@@ -3,7 +3,7 @@ import { pageInfoFragment, TypedQuery } from "../queries";
 import { MenuDetails, MenuDetailsVariables } from "./types/MenuDetails";
 import { MenuList, MenuListVariables } from "./types/MenuList";
 
-const menuFragment = gql`
+export const menuFragment = gql`
   fragment MenuFragment on Menu {
     id
     name
@@ -13,7 +13,7 @@ const menuFragment = gql`
   }
 `;
 
-const menuItemFragment = gql`
+export const menuItemFragment = gql`
   fragment MenuItemFragment on MenuItem {
     category {
       id
@@ -35,6 +35,32 @@ const menuItemFragment = gql`
   }
 `;
 
+// GraphQL does not support recurive fragments
+export const menuItemNestedFragment = gql`
+  ${menuItemFragment}
+  fragment MenuItemNestedFragment on MenuItem {
+    ...MenuItemFragment
+    children {
+      ...MenuItemFragment
+      children {
+        ...MenuItemFragment
+        children {
+          ...MenuItemFragment
+          children {
+            ...MenuItemFragment
+            children {
+              ...MenuItemFragment
+              children {
+                ...MenuItemFragment
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 const menuList = gql`
   ${menuFragment}
   ${pageInfoFragment}
@@ -53,32 +79,13 @@ const menuList = gql`
 `;
 export const MenuListQuery = TypedQuery<MenuList, MenuListVariables>(menuList);
 
-// GraphQL does not support recurive fragments
 const menuDetails = gql`
-  ${menuItemFragment}
+  ${menuItemNestedFragment}
   query MenuDetails($id: ID!) {
     menu(id: $id) {
       id
       items {
-        ...MenuItemFragment
-        children {
-          ...MenuItemFragment
-          children {
-            ...MenuItemFragment
-            children {
-              ...MenuItemFragment
-              children {
-                ...MenuItemFragment
-                children {
-                  ...MenuItemFragment
-                  children {
-                    ...MenuItemFragment
-                  }
-                }
-              }
-            }
-          }
-        }
+        ...MenuItemNestedFragment
       }
       name
     }

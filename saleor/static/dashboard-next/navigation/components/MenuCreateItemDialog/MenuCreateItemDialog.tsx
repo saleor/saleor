@@ -16,7 +16,6 @@ import Form from "../../../components/Form";
 import FormSpacer from "../../../components/FormSpacer";
 import { SearchCategories_categories_edges_node } from "../../../containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "../../../containers/SearchCollections/types/SearchCollections";
-import { SearchProducts_products_edges_node } from "../../../containers/SearchProducts/types/SearchProducts";
 import i18n from "../../../i18n";
 
 export type MenuItemType =
@@ -40,7 +39,6 @@ export interface MenuCreateItemDialogProps {
   initial?: MenuCreateItemDialogFormData;
   loading: boolean;
   open: boolean;
-  products: SearchProducts_products_edges_node[];
   collections: SearchCollections_collections_edges_node[];
   categories: SearchCategories_categories_edges_node[];
   onClose: () => void;
@@ -60,9 +58,9 @@ function findMenuItem(menu: SelectMenuItem[], value: string): SelectMenuItem {
       ? findMenuItem(menuItem.children, value)
       : menuItem.value === value
       ? menuItem
-      : null
+      : undefined
   );
-  return matches.find(match => match !== null);
+  return matches.find(match => match !== undefined);
 }
 
 function getMenuItemData(value: string): MenuItemData {
@@ -89,8 +87,7 @@ const MenuCreateItemDialog: React.StatelessComponent<
   onQueryChange,
   open,
   categories,
-  collections,
-  products
+  collections
 }) => {
   const [displayValue, setDisplayValue] = React.useState("");
 
@@ -111,15 +108,6 @@ const MenuCreateItemDialog: React.StatelessComponent<
       })),
       label: i18n.t("Collections ({{ number }})", {
         number: collections.length
-      })
-    },
-    {
-      children: products.map(product => ({
-        label: product.name,
-        value: "product:" + product.id
-      })),
-      label: i18n.t("Products ({{ number }})", {
-        number: products.length
       })
     }
   ];
