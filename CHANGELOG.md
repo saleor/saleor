@@ -51,6 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Implemented new events: `DRAFT_CREATED`, `DRAFT_ADDED_PRODUCTS`, `DRAFT_REMOVED_PRODUCTS`, and `PAYMENT_FAILED`;
   - Implemented new mail events: `TRACKING_UPDATED`, `DIGITAL_LINKS`;
   - Refactored logic of events, it's now easier than ever to add and send events.
+- Reduce the time of tests execution by using dummy password hasher - #4083 by @korycins
 
 
 ## 2.5.0
