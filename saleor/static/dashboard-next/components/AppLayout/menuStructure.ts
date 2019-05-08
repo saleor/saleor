@@ -23,6 +23,11 @@ const menuStructure: IMenuItem[] = [
     url: "/"
   },
   {
+    ariaLabel: "analytics",
+    label: i18n.t("analytics", { context: "Analytics label" }),
+    url: "/analytics"
+  },
+  {
     ariaLabel: "catalogue",
     children: [
       {
