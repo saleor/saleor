@@ -348,7 +348,7 @@ def permission_manage_discounts():
 
 
 @pytest.fixture
-def permission_manage_giftcard():
+def permission_manage_gift_card():
     return Permission.objects.get(codename='manage_gift_card')
 
 
@@ -617,10 +617,17 @@ def order_line(order, variant, vatlayer):
 
 
 @pytest.fixture
-def gift_card(customer_user):  # pylint: disable=W0613
+def gift_card(customer_user):
     return GiftCard.objects.create(
         code='mirumee', creator=customer_user, initial_balance=10,
         current_balance=10)
+
+
+@pytest.fixture
+def gift_card_created_by_staff(staff_user):
+    return GiftCard.objects.create(
+        code='mirumee_staff', creator=staff_user, initial_balance=100,
+        current_balance=100)
 
 
 @pytest.fixture()
