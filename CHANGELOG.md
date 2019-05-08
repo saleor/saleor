@@ -52,6 +52,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Implemented new mail events: `TRACKING_UPDATED`, `DIGITAL_LINKS`;
   - Refactored logic of events, it's now easier than ever to add and send events.
 - Allow filtering by lists of enums for some fields - #4078 by @korycins
+- Allow filtering by lists of enums for fields: ``Voucher.filter.status``, ``Voucher.filter.discount_type``, ``Sale.filter.status``, ``Order.filter.payment_status``, ``Order.filter.status``, ``Order.filter.custom_status``,    - #4078 by @korycins
 
 ## 2.5.0
 

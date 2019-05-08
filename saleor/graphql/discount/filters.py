@@ -16,15 +16,16 @@ from .enums import (
 def filter_status(
         qs: VoucherQueryset, _, value: List[DiscountStatusEnum]
 ) -> VoucherQueryset:
-    if value:
-        query_objects = qs.none()
-        today = date.today()
-        if DiscountStatusEnum.ACTIVE in value:
-            query_objects |= qs.active(today)
-        if DiscountStatusEnum.EXPIRED in value:
-            query_objects |= qs.expired(today)
-        if DiscountStatusEnum.SCHEDULED in value:
-            query_objects |= qs.filter(start_date__gt=today)
+    if not value:
+        return qs
+    query_objects = qs.none()
+    today = date.today()
+    if DiscountStatusEnum.ACTIVE in value:
+        query_objects |= qs.active(today)
+    if DiscountStatusEnum.EXPIRED in value:
+        query_objects |= qs.expired(today)
+    if DiscountStatusEnum.SCHEDULED in value:
+        query_objects |= qs.filter(start_date__gt=today)
     return qs & query_objects
 
 
