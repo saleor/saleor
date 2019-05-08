@@ -1,5 +1,4 @@
 import * as cubejs from '@cubejs-client/core';
-import * as generate_token from 'cubejs_token';
 import { QueryRenderer } from '@cubejs-client/react';
 import Card from "@material-ui/core/Card";
 import { Axis, Chart, Coord, Geom, Legend, Tooltip } from 'bizcharts';
@@ -11,7 +10,7 @@ import CardTitle from "../../components/CardTitle";
 import Skeleton from "../../components/Skeleton";
 
 const CHART_HEIGHT = 400;
-const API_KEY =generate_token();
+const API_KEY = 'd242612162ecbe8c2436d47d74b83ecc1640f690ef73aef1ccfd26cf6b887bc2';
 const API_URL = 'https://cubejs-analytics.herokuapp.com/cubejs-api/v1';
 const cubejsApi = cubejs(API_KEY, { apiUrl: API_URL });
 
