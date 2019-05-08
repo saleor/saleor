@@ -17,6 +17,8 @@
     "npm": ">=6.1.0"
   },
   "dependencies": {
+    "@cubejs-client/core": "^0.8.4",
+    "@cubejs-client/react": "^0.8.4",
     "@material-ui/core": "^3.6.1",
     "@material-ui/icons": "^3.0.1",
     "@types/classnames": "^2.2.6",
@@ -38,6 +40,7 @@
     "apollo-link-context": "^1.0.10",
     "apollo-link-error": "^1.1.2",
     "apollo-upload-client": "^9.1.0",
+    "bizcharts": "^3.5.2",
     "bootstrap": "4.3.1",
     "classnames": "^2.2.6",
     "crc-32": "^1.2.0",
@@ -64,7 +67,9 @@
     "medium-editor": "^5.23.3",
     "mobx": "^3.0.2",
     "mobx-react": "^4.1.0",
+    "moment": "^2.24.0",
     "moment-timezone": "^0.5.21",
+    "numeral": "^2.0.6",
     "popper.js": "^1.14.6",
     "prop-types": "^15.6.0",
     "qs": "^6.5.2",
