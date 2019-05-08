@@ -703,8 +703,8 @@ def test_checkout_shipping_address_update(
 @pytest.mark.parametrize(
     'number', [
         '+48321321888',
-        '+1 (555) 555-5555',
-        '00 44 (0155 55) 5555'
+        '+44 (113) 892-1113',
+        '00 44 (0113 892) 1113'
     ]
 )
 def test_checkout_shipping_address_update_with_phone_country_prefix(
