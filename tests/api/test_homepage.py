@@ -1,5 +1,3 @@
-from saleor.order import OrderEvents
-
 from .utils import get_graphql_content
 
 
@@ -20,8 +18,6 @@ def test_homepage_events(order_events, staff_api_client, permission_manage_order
         query, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     edges = content['data']['homepageEvents']['edges']
-    only_types = [
-        OrderEvents.PLACED, OrderEvents.PLACED_FROM_DRAFT,
-        OrderEvents.ORDER_FULLY_PAID]
-    only_types = {t.name for t in only_types}
+    only_types = {
+        'PLACED', 'PLACED_FROM_DRAFT', 'ORDER_FULLY_PAID'}
     assert {edge['node']['type'] for edge in edges} == only_types

@@ -1,4 +1,3 @@
-from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
@@ -7,6 +6,7 @@ from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
 
 from ..account.models import User
+from ..celeryconf import app
 from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
 
@@ -30,17 +30,17 @@ def _send_set_password_email(pk, template_name):
         context=ctx)
 
 
-@shared_task
+@app.task
 def send_set_password_staff_email(staff_pk):
     _send_set_password_email(staff_pk, 'dashboard/staff/set_password')
 
 
-@shared_task
+@app.task
 def send_set_password_customer_email(pk):
     _send_set_password_email(pk, 'dashboard/customer/set_password')
 
 
-@shared_task
+@app.task
 def send_promote_customer_to_staff_email(staff_pk):
     staff = User.objects.get(pk=staff_pk)
     ctx = get_email_base_context()

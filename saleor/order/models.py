@@ -22,7 +22,7 @@ from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
 from ..payment import ChargeStatus, TransactionKind
 from ..shipping.models import ShippingMethod
-from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
+from . import FulfillmentStatus, OrderEvents, OrderStatus
 
 
 class OrderQueryset(models.QuerySet):
@@ -402,14 +402,17 @@ class FulfillmentLine(models.Model):
 class OrderEvent(models.Model):
     """Model used to store events that happened during the order lifecycle.
 
-        Args:
-            parameters: Values needed to display the event on the storefront
-            type: Type of an order
+    Args:
+        parameters: Values needed to display the event on the storefront
+        type: Type of an order
     """
+
     date = models.DateTimeField(default=now, editable=False)
     type = models.CharField(
         max_length=255,
-        choices=((event.name, event.value) for event in OrderEvents))
+        choices=[(
+            type_name.upper(), type_name
+        ) for type_name, _ in OrderEvents.CHOICES])
     order = models.ForeignKey(
         Order, related_name='events', on_delete=models.CASCADE)
     parameters = JSONField(
@@ -423,6 +426,3 @@ class OrderEvent(models.Model):
 
     def __repr__(self):
         return 'OrderEvent(type=%r, user=%r)' % (self.type, self.user)
-
-    def get_event_display(self):
-        return display_order_event(self)

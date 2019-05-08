@@ -1,8 +1,9 @@
 import uuid
 
 import google_measurement_protocol as ga
-from celery import shared_task
 from django.conf import settings
+
+from ..celeryconf import app
 
 FINGERPRINT_PARTS = [
     'HTTP_ACCEPT_ENCODING',
@@ -20,7 +21,7 @@ def get_client_id(request):
     return uuid.uuid5(UUID_NAMESPACE, name)
 
 
-@shared_task
+@app.task
 def ga_report(
         tracking_id, client_id, payloads, extra_headers=None, **extra_data):
     ga.report(
