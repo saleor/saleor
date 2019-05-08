@@ -1,13 +1,13 @@
-from celery import shared_task
 from django.conf import settings
 from django.urls import reverse
 from templated_email import send_templated_mail
 
+from ..celeryconf import app
 from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
 
 
-@shared_task
+@app.task
 def send_password_reset_email(context, recipient):
     reset_url = build_absolute_uri(
         reverse(
@@ -24,7 +24,7 @@ def send_password_reset_email(context, recipient):
         context=context)
 
 
-@shared_task
+@app.task
 def send_account_delete_confirmation_email(token, recipient_email):
     delete_url = build_absolute_uri(
         reverse('account:delete-confirm', kwargs={'token': token}))
