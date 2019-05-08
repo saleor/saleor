@@ -11,7 +11,7 @@ import Skeleton from "../../components/Skeleton";
 
 const CHART_HEIGHT = 400;
 const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1NTY5Mjg4OTYsImV4cCI6MTU1OTUyMDg5Nn0.AAQ9iNwmwKEohceYKTOGgW8algK-nevqcKeq8YN5z1M';
-const API_URL = 'https://builders-hub.herokuapp.com/cubejs-api/v1';
+const API_URL = 'https://cubejs-analytics.herokuapp.com/cubejs-api/v1';
 const cubejsApi = cubejs(API_KEY, { apiUrl: API_URL });
 
 const formatters = {
