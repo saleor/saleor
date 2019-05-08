@@ -6,11 +6,11 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..core.mutations import BaseMutation, ModelMutation, registry
-
-# discount types need to be imported to get Voucher in the graphene registry
-from ..discount import types  # noqa # pylint: disable=unused-import
 from ..shop.types import Shop
 from .enums import LanguageCodeEnum
+
+# discount types need to be imported to get Voucher in the graphene registry
+from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
 
 
 class BaseTranslateMutation(ModelMutation):
