@@ -5,7 +5,6 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
-from . import events
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address
@@ -23,6 +22,7 @@ from ..product.utils import (
     increase_stock,
 )
 from ..product.utils.digital_products import get_default_digital_content_settings
+from . import events
 
 
 def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
