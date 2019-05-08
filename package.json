@@ -59,6 +59,7 @@
     "invariant": "^2.2.4",
     "jquery": "^3.4.0",
     "jquery.cookie": "^1.4.1",
+    "jsonwebtoken": "^8.5.1",
     "jss": "^9.8.7",
     "keycode": "^2.2.0",
     "lazysizes": "^4.0.1",
