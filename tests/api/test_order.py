@@ -9,15 +9,17 @@ from freezegun import freeze_time
 
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.order.enums import OrderEventsEmailsEnum
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_refund_payment,
-    clean_void_payment)
+    try_payment_action)
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.order import OrderEvents, OrderEventsEmails, OrderStatus
+from saleor.order import OrderStatus
+from saleor.order.events import (
+    OrderEvents, OrderEventsEmails, fulfillment_fulfilled_items_event,
+    payment_captured_event)
 from saleor.order.models import Order, OrderEvent
-from saleor.payment import ChargeStatus, CustomPaymentChoices
+from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 
@@ -275,48 +277,118 @@ def test_nested_order_events_query(
         query OrdersQuery {
             orders(first: 1) {
                 edges {
-                node {
-                    events {
-                        date
-                        type
-                        user {
+                    node {
+                        events {
+                            date
+                            type
+                            user {
+                                email
+                            }
+                            message
                             email
-                        }
-                        message
-                        email
-                        emailType
-                        amount
-                        quantity
-                        composedId
-                        orderNumber
+                            emailType
+                            amount
+                            quantity
+                            composedId
+                            orderNumber
+                            lines {
+                                quantity
+                                item
+                            }
+                            paymentId
+                            paymentGateway
                         }
                     }
                 }
             }
         }
     """
-    event = fulfilled_order.events.create(
-        type=OrderEvents.OTHER.value,
-        user=staff_user,
-        parameters={
-            'message': 'Example note',
-            'email_type': OrderEventsEmails.PAYMENT.value,
-            'amount': '80.00',
-            'quantity': '10',
-            'composed_id': '10-10'})
+    line = fulfilled_order.lines.first()
+
+    event = fulfillment_fulfilled_items_event(
+        order=fulfilled_order, user=staff_user,
+        quantities=[line.quantity], order_lines=[line])
+    event.parameters.update({
+        'message': 'Example note',
+        'email_type': OrderEventsEmails.PAYMENT,
+        'amount': '80.00',
+        'quantity': '10',
+        'composed_id': '10-10'})
+    event.save()
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['orders']['edges'][0]['node']['events'][0]
     assert data['message'] == event.parameters['message']
     assert data['amount'] == float(event.parameters['amount'])
-    assert data['emailType'] == OrderEventsEmailsEnum.PAYMENT.name
+    assert data['emailType'] == 'PAYMENT_CONFIRMATION'
     assert data['quantity'] == int(event.parameters['quantity'])
     assert data['composedId'] == event.parameters['composed_id']
     assert data['user']['email'] == staff_user.email
-    assert data['type'] == OrderEvents.OTHER.value.upper()
+    assert data['type'] == 'FULFILLMENT_FULFILLED_ITEMS'
     assert data['date'] == event.date.isoformat()
     assert data['orderNumber'] == str(fulfilled_order.pk)
+    assert data['lines'] == [{
+        'quantity': line.quantity,
+        'item': str(line)}]
+    assert data['paymentId'] is None
+    assert data['paymentGateway'] is None
+
+
+def test_payment_information_order_events_query(
+        staff_api_client, permission_manage_orders, order, payment_dummy,
+        staff_user):
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        events {
+                            type
+                            user {
+                                email
+                            }
+                            message
+                            email
+                            emailType
+                            amount
+                            quantity
+                            composedId
+                            orderNumber
+                            lines {
+                                item
+                            }
+                            paymentId
+                            paymentGateway
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    amount = order.total.gross.amount
+
+    payment_captured_event(
+        order=order, user=staff_user, amount=amount, payment=payment_dummy)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content['data']['orders']['edges'][0]['node']['events'][0]
+
+    assert data['message'] is None
+    assert data['amount'] == amount
+    assert data['emailType'] is None
+    assert data['quantity'] is None
+    assert data['composedId'] is None
+    assert data['lines'] is None
+    assert data['user']['email'] == staff_user.email
+    assert data['type'] == 'PAYMENT_CAPTURED'
+    assert data['orderNumber'] == str(order.pk)
+    assert data['paymentId'] == payment_dummy.token
+    assert data['paymentGateway'] == payment_dummy.gateway
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):
@@ -343,9 +415,9 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
 
 
 def test_draft_order_create(
-        staff_api_client, permission_manage_orders, customer_user,
-        product_without_shipping, shipping_method, variant, voucher,
-        graphql_address_data):
+        staff_api_client, permission_manage_orders, staff_user,
+        customer_user, product_without_shipping, shipping_method,
+        variant, voucher, graphql_address_data):
     variant_0 = variant
     query = """
     mutation draftCreate(
@@ -378,6 +450,10 @@ def test_draft_order_create(
                 }
         }
     """
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
     user_id = graphene.Node.to_global_id('User', customer_user.id)
     variant_0_id = graphene.Node.to_global_id('ProductVariant', variant_0.id)
     variant_1 = product_without_shipping.variants.first()
@@ -416,6 +492,12 @@ def test_draft_order_create(
     assert order.shipping_address.first_name == graphql_address_data[
         'firstName']
 
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=OrderEvents.DRAFT_CREATED)
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
 
 def test_draft_order_update(
         staff_api_client, permission_manage_orders, order_with_lines):
@@ -443,6 +525,29 @@ def test_draft_order_update(
     assert data['userEmail'] == email
 
 
+def test_draft_order_update_doing_nothing_generates_no_events(
+        staff_api_client, permission_manage_orders, order_with_lines):
+    assert not OrderEvent.objects.exists()
+
+    query = """
+        mutation draftUpdate($id: ID!) {
+            draftOrderUpdate(id: $id, input: {}) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id('Order', order_with_lines.id)
+    response = staff_api_client.post_graphql(
+        query, {'id': order_id}, permissions=[permission_manage_orders])
+    get_graphql_content(response)
+
+    # Ensure not event was created
+    assert not OrderEvent.objects.exists()
+
+
 def test_draft_order_delete(
         staff_api_client, permission_manage_orders, order_with_lines):
     order = order_with_lines
@@ -457,7 +562,7 @@ def test_draft_order_delete(
         """
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = {'id': order_id}
-    response = staff_api_client.post_graphql(
+    staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     with pytest.raises(order._meta.model.DoesNotExist):
         order.refresh_from_db()
@@ -544,6 +649,10 @@ def test_draft_order_complete(
             }
         }
         """
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
     line_1, line_2 = order.lines.order_by('-quantity').all()
     line_1.quantity = 1
     line_1.save(update_fields=['quantity'])
@@ -558,14 +667,14 @@ def test_draft_order_complete(
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
-    missing_stock_event, draft_placed_event = OrderEvent.objects.all()
+    draft_placed_event, missing_stock_event = OrderEvent.objects.all()
 
     assert missing_stock_event.user == staff_user
-    assert missing_stock_event.type == OrderEvents.OVERSOLD_ITEMS.value
+    assert missing_stock_event.type == OrderEvents.OVERSOLD_ITEMS
     assert missing_stock_event.parameters == {'oversold_items': [str(line_2)]}
 
     assert draft_placed_event.user == staff_user
-    assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT.value
+    assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT
     assert draft_placed_event.parameters == {}
 
 
@@ -746,13 +855,20 @@ DRAFT_ORDER_LINE_UPDATE_MUTATION = """
 
 
 def test_draft_order_line_update(
-        draft_order, permission_manage_orders, staff_api_client):
+        draft_order, permission_manage_orders, staff_api_client, staff_user):
     query = DRAFT_ORDER_LINE_UPDATE_MUTATION
     order = draft_order
     line = order.lines.first()
     new_quantity = 1
+    removed_quantity = 2
     line_id = graphene.Node.to_global_id('OrderLine', line.id)
     variables = {'lineId': line_id, 'quantity': new_quantity}
+
+    # Ensure the line has the expected quantity
+    assert line.quantity == 3
+
+    # No event should exist yet
+    assert not OrderEvent.objects.exists()
 
     # mutation should fail without proper permissions
     response = staff_api_client.post_graphql(query, variables)
@@ -764,6 +880,12 @@ def test_draft_order_line_update(
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineUpdate']
     assert data['orderLine']['quantity'] == new_quantity
+
+    removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
+    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
+    assert removed_items_event.user == staff_user
+    assert removed_items_event.parameters == {
+        'lines': [{'quantity': removed_quantity, 'item': str(line)}]}
 
     # mutation should fail when quantity is lower than 1
     variables = {'lineId': line_id, 'quantity': 0}
@@ -1006,7 +1128,7 @@ def test_order_add_note(
     assert data['event']['message'] == message
 
     event = order.events.get()
-    assert event.type == OrderEvents.NOTE_ADDED.value
+    assert event.type == OrderEvents.NOTE_ADDED
     assert event.user == staff_user
     assert event.parameters == {'message': message}
 
@@ -1037,7 +1159,7 @@ def test_order_cancel_and_restock(
     order.refresh_from_db()
     order_event = order.events.last()
     assert order_event.parameters['quantity'] == quantity
-    assert order_event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
+    assert order_event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
     assert data['status'] == order.status.upper()
 
 
@@ -1054,7 +1176,7 @@ def test_order_cancel(
     data = content['data']['orderCancel']['order']
     order.refresh_from_db()
     order_event = order.events.last()
-    assert order_event.type == OrderEvents.CANCELED.value
+    assert order_event.type == OrderEvents.CANCELED
     assert data['status'] == order.status.upper()
 
 
@@ -1092,17 +1214,18 @@ def test_order_capture(
     assert data['totalCaptured']['amount'] == float(amount)
 
     event_order_paid = order.events.first()
-    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID.value
+    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
     assert event_order_paid.user is None
 
     event_email_sent, event_captured = list(order.events.all())[-2:]
     assert event_email_sent.user is None
     assert event_email_sent.parameters == {
         'email': order.user_email,
-        'email_type': OrderEventsEmails.PAYMENT.value}
-    assert event_captured.type == OrderEvents.PAYMENT_CAPTURED.value
+        'email_type': OrderEventsEmails.PAYMENT}
+    assert event_captured.type == OrderEvents.PAYMENT_CAPTURED
     assert event_captured.user == staff_user
-    assert event_captured.parameters == {'amount': str(amount)}
+    assert event_captured.parameters == {
+        'amount': str(amount), 'payment_gateway': 'dummy', 'payment_id': ''}
 
 
 def test_paid_order_mark_as_paid(
@@ -1161,7 +1284,7 @@ def test_order_mark_as_paid(
     assert data['isPaid'] == True == order.is_fully_paid()
 
     event_order_paid = order.events.first()
-    assert event_order_paid.type == OrderEvents.ORDER_MARKED_AS_PAID.value
+    assert event_order_paid.type == OrderEvents.ORDER_MARKED_AS_PAID
     assert event_order_paid.user == staff_user
 
 
@@ -1196,7 +1319,7 @@ def test_order_void(
         ChargeStatus.NOT_CHARGED)
     assert data['paymentStatusDisplay'] == payment_status_display
     event_payment_voided = order.events.last()
-    assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED.value
+    assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED
     assert event_payment_voided.user == staff_user
 
 
@@ -1219,7 +1342,7 @@ def test_order_void_payment_error(staff_api_client, permission_manage_orders,
 def test_order_refund(
         staff_api_client, permission_manage_orders,
         payment_txn_captured):
-    order = order = payment_txn_captured.order
+    order = payment_txn_captured.order
     query = """
         mutation refundOrder($id: ID!, $amount: Decimal!) {
             orderRefund(id: $id, amount: $amount) {
@@ -1249,16 +1372,64 @@ def test_order_refund(
 
     order_event = order.events.last()
     assert order_event.parameters['amount'] == str(amount)
-    assert order_event.type == OrderEvents.PAYMENT_REFUNDED.value
+    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
 
 
-def test_clean_order_void_payment():
-    payment = MagicMock(spec=Payment)
-    payment.is_active = False
-    with pytest.raises(ValidationError) as e:
-        clean_void_payment(payment)
-    msg = 'Only pre-authorized payments can be voided'
-    assert e.value.error_dict['payment'][0].message == msg
+@pytest.mark.parametrize('requires_amount, mutation_name', (
+    (True, 'orderRefund'),
+    (False, 'orderVoid'),
+    (True, 'orderCapture')))
+def test_clean_payment_without_payment_associated_to_order(
+        staff_api_client, permission_manage_orders,
+        order, requires_amount, mutation_name):
+
+    assert not OrderEvent.objects.exists()
+
+    additional_arguments = ', amount: 2' if requires_amount else ''
+    query = """
+        mutation %(mutationName)s($id: ID!) {
+          %(mutationName)s(id: $id %(args)s) {
+            errors {
+              field
+              message
+            }
+          }
+        }
+    """ % {'mutationName': mutation_name, 'args': additional_arguments}
+
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = {'id': order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    errors = get_graphql_content(response)['data'][mutation_name].get('errors')
+
+    message = 'There\'s no payment associated with the order.'
+
+    assert errors, 'expected an error'
+    assert errors == [{'field': 'payment', 'message': message}]
+    assert not OrderEvent.objects.exists()
+
+
+def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
+    message = 'The payment did a oopsie!'
+    assert not OrderEvent.objects.exists()
+
+    def _test_operation():
+        raise PaymentError(message)
+
+    with pytest.raises(
+            ValidationError, message={'payment': message}):
+        try_payment_action(
+            order=order, user=staff_user, payment=payment_dummy,
+            func=_test_operation)
+
+    error_event = OrderEvent.objects.get()  # type: OrderEvent
+    assert error_event.type == OrderEvents.PAYMENT_FAILED
+    assert error_event.user == staff_user
+    assert error_event.parameters == {
+        'message': message,
+        'gateway': payment_dummy.gateway,
+        'payment_id': payment_dummy.token}
 
 
 def test_clean_order_refund_payment():
@@ -1266,7 +1437,7 @@ def test_clean_order_refund_payment():
     payment.gateway = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
     with pytest.raises(ValidationError) as e:
-        clean_refund_payment(payment, amount)
+        clean_refund_payment(payment)
     msg = 'Manual payments can not be refunded.'
     assert e.value.error_dict['payment'][0].message == msg
 
@@ -1499,10 +1670,9 @@ def test_order_bulk_cancel_with_restock(
     content = get_graphql_content(response)
     data = content['data']['orderBulkCancel']
     assert data['count'] == expected_count
-    event = order_with_lines.events.first()
-    assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
+    event = order_with_lines.events.all()[1]
+    assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
     assert event.user == staff_api_client.user
-
 
 
 @pytest.mark.parametrize('orders_filter, count', [

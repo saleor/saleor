@@ -45,6 +45,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
 - Update test function names since ready_to_place_order is renamed to clean_checkout- #4070 by @jxltom
 - Resort imports and remove unused imports - #4069 by @jxltom
+- Fix typo in CheckoutBillingAddressUpdate - #4073 by @jxltom
+- Required checkout ID for updating checkout's shipping and billing address - #4074 by @jxltom
+- Implement order events - #4018 by @NyanKiyosho 
+  - Implemented new events: `DRAFT_CREATED`, `DRAFT_ADDED_PRODUCTS`, `DRAFT_REMOVED_PRODUCTS`, and `PAYMENT_FAILED`;
+  - Implemented new mail events: `TRACKING_UPDATED`, `DIGITAL_LINKS`;
+  - Refactored logic of events, it's now easier than ever to add and send events.
 - Allow filtering by lists of enums for some fields - #4078 by @korycins
 
 ## 2.5.0
