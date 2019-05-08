@@ -5,8 +5,11 @@ import os
 from typing import Union
 
 from django.http import (
-    FileResponse, HttpResponseNotFound, HttpResponsePermanentRedirect,
-    JsonResponse)
+    FileResponse,
+    HttpResponseNotFound,
+    HttpResponsePermanentRedirect,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -17,9 +20,14 @@ from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category, DigitalContentUrl
 from .utils import (
-    collections_visible_to_user, get_product_images, get_product_list_context,
-    handle_checkout_form, products_for_checkout, products_for_products_list,
-    products_with_details)
+    collections_visible_to_user,
+    get_product_images,
+    get_product_list_context,
+    handle_checkout_form,
+    products_for_checkout,
+    products_for_products_list,
+    products_with_details,
+)
 from .utils.attributes import get_product_attributes_data
 from .utils.availability import get_product_availability
 from .utils.digital_products import digital_content_url_is_valid
@@ -61,37 +69,40 @@ def product_details(request, slug, product_id, form=None):
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     today = datetime.date.today()
-    is_visible = (
-        product.publication_date is None or product.publication_date <= today)
+    is_visible = product.publication_date is None or product.publication_date <= today
     if form is None:
         form = handle_checkout_form(request, product, create_checkout=False)[0]
     availability = get_product_availability(
-        product, discounts=request.discounts, taxes=request.taxes,
-        local_currency=request.currency)
+        product,
+        discounts=request.discounts,
+        taxes=request.taxes,
+        local_currency=request.currency,
+    )
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
-        product, request.discounts, request.taxes, request.currency)
+        product, request.discounts, request.taxes, request.currency
+    )
     product_attributes = get_product_attributes_data(product)
     # show_variant_picker determines if variant picker is used or select input
     show_variant_picker = all([v.attributes for v in product.variants.all()])
     json_ld_data = product_json_ld(product, product_attributes)
     ctx = {
-        'is_visible': is_visible,
-        'form': form,
-        'availability': availability,
-        'product': product,
-        'product_attributes': product_attributes,
-        'product_images': product_images,
-        'show_variant_picker': show_variant_picker,
-        'variant_picker_data': json.dumps(
-            variant_picker_data, default=serialize_decimal),
-        'json_ld_product_data': json.dumps(
-            json_ld_data, default=serialize_decimal)}
-    return TemplateResponse(request, 'product/details.html', ctx)
+        "is_visible": is_visible,
+        "form": form,
+        "availability": availability,
+        "product": product,
+        "product_attributes": product_attributes,
+        "product_images": product_images,
+        "show_variant_picker": show_variant_picker,
+        "variant_picker_data": json.dumps(
+            variant_picker_data, default=serialize_decimal
+        ),
+        "json_ld_product_data": json.dumps(json_ld_data, default=serialize_decimal),
+    }
+    return TemplateResponse(request, "product/details.html", ctx)
 
 
-def digital_product(
-        request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
+def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
     """Returns direct download link to content if given token is still valid"""
 
     content_url = get_object_or_404(DigitalContentUrl, token=token)
@@ -105,22 +116,22 @@ def digital_product(
 
     content_type = mimetypes.guess_type(str(filename))[0]
     response = FileResponse(opened_file)
-    response['Content-Length'] = digital_content.content_file.size
+    response["Content-Length"] = digital_content.content_file.size
 
-    response['Content-Type'] = content_type
-    response['Content-Disposition'] = 'attachment; {}'.format(file_expr)
+    response["Content-Type"] = content_type
+    response["Content-Disposition"] = "attachment; {}".format(file_expr)
     content_url.download_num += 1
-    content_url.save(update_fields=['download_num', ])
+    content_url.save(update_fields=["download_num"])
     return response
 
 
 def product_add_to_checkout(request, slug, product_id):
     # types: (int, str, dict) -> None
 
-    if not request.method == 'POST':
-        return redirect(reverse(
-            'product:details',
-            kwargs={'product_id': product_id, 'slug': slug}))
+    if not request.method == "POST":
+        return redirect(
+            reverse("product:details", kwargs={"product_id": product_id, "slug": slug})
+        )
 
     products = products_for_checkout(user=request.user)
     product = get_object_or_404(products, pk=product_id)
@@ -128,13 +139,12 @@ def product_add_to_checkout(request, slug, product_id):
     if form.is_valid():
         form.save()
         if request.is_ajax():
-            response = JsonResponse(
-                {'next': reverse('checkout:index')}, status=200)
+            response = JsonResponse({"next": reverse("checkout:index")}, status=200)
         else:
-            response = redirect('checkout:index')
+            response = redirect("checkout:index")
     else:
         if request.is_ajax():
-            response = JsonResponse({'error': form.errors}, status=400)
+            response = JsonResponse({"error": form.errors}, status=400)
         else:
             response = product_details(request, slug, product_id, form)
     if not request.user.is_authenticated:
@@ -143,35 +153,46 @@ def product_add_to_checkout(request, slug, product_id):
 
 
 def category_index(request, slug, category_id):
-    categories = Category.objects.prefetch_related('translations')
+    categories = Category.objects.prefetch_related("translations")
     category = get_object_or_404(categories, id=category_id)
     if slug != category.slug:
         return redirect(
-            'product:category', permanent=True, slug=category.slug,
-            category_id=category_id)
+            "product:category",
+            permanent=True,
+            slug=category.slug,
+            category_id=category_id,
+        )
     # Check for subcategories
     categories = category.get_descendants(include_self=True)
-    products = products_for_products_list(user=request.user)\
-        .filter(category__in=categories)\
-        .order_by('name')\
-        .prefetch_related('collections')
+    products = (
+        products_for_products_list(user=request.user)
+        .filter(category__in=categories)
+        .order_by("name")
+        .prefetch_related("collections")
+    )
     product_filter = ProductCategoryFilter(
-        request.GET, queryset=products, category=category)
+        request.GET, queryset=products, category=category
+    )
     ctx = get_product_list_context(request, product_filter)
-    ctx.update({'object': category})
-    return TemplateResponse(request, 'category/index.html', ctx)
+    ctx.update({"object": category})
+    return TemplateResponse(request, "category/index.html", ctx)
 
 
 def collection_index(request, slug, pk):
     collections = collections_visible_to_user(request.user).prefetch_related(
-        'translations')
+        "translations"
+    )
     collection = get_object_or_404(collections, id=pk)
     if collection.slug != slug:
         return HttpResponsePermanentRedirect(collection.get_absolute_url())
-    products = products_for_products_list(user=request.user).filter(
-        collections__id=collection.id).order_by('name')
+    products = (
+        products_for_products_list(user=request.user)
+        .filter(collections__id=collection.id)
+        .order_by("name")
+    )
     product_filter = ProductCollectionFilter(
-        request.GET, queryset=products, collection=collection)
+        request.GET, queryset=products, collection=collection
+    )
     ctx = get_product_list_context(request, product_filter)
-    ctx.update({'object': collection})
-    return TemplateResponse(request, 'collection/index.html', ctx)
+    ctx.update({"object": collection})
+    return TemplateResponse(request, "collection/index.html", ctx)

@@ -37,10 +37,11 @@ class Category(MPTTModel, SeoModel):
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
     parent = models.ForeignKey(
-        'self', null=True, blank=True, related_name='children',
-        on_delete=models.CASCADE)
+        "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
+    )
     background_image = VersatileImageField(
-        upload_to='category-backgrounds', blank=True, null=True)
+        upload_to="category-backgrounds", blank=True, null=True
+    )
     background_image_alt = models.CharField(max_length=128, blank=True)
 
     objects = models.Manager()
@@ -52,28 +53,33 @@ class Category(MPTTModel, SeoModel):
 
     def get_absolute_url(self):
         return reverse(
-            'product:category',
-            kwargs={'slug': self.slug, 'category_id': self.id})
+            "product:category", kwargs={"slug": self.slug, "category_id": self.id}
+        )
 
 
 class CategoryTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
     category = models.ForeignKey(
-        Category, related_name='translations', on_delete=models.CASCADE)
+        Category, related_name="translations", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
 
     class Meta:
-        unique_together = (('language_code', 'category'),)
+        unique_together = (("language_code", "category"),)
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
         class_ = type(self)
-        return '%s(pk=%r, name=%r, category_pk=%r)' % (
-            class_.__name__, self.pk, self.name, self.category_id)
+        return "%s(pk=%r, name=%r, category_pk=%r)" % (
+            class_.__name__,
+            self.pk,
+            self.name,
+            self.category_id,
+        )
 
 
 class ProductType(models.Model):
@@ -83,62 +89,73 @@ class ProductType(models.Model):
     is_digital = models.BooleanField(default=False)
     tax_rate = models.CharField(max_length=128, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES,
-        default=zero_weight)
+        measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
+    )
 
     class Meta:
-        app_label = 'product'
+        app_label = "product"
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
         class_ = type(self)
-        return '<%s.%s(pk=%r, name=%r)>' % (
-            class_.__module__, class_.__name__, self.pk, self.name)
+        return "<%s.%s(pk=%r, name=%r)>" % (
+            class_.__module__,
+            class_.__name__,
+            self.pk,
+            self.name,
+        )
 
 
 class Product(SeoModel, PublishableModel):
     product_type = models.ForeignKey(
-        ProductType, related_name='products', on_delete=models.CASCADE)
+        ProductType, related_name="products", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
     category = models.ForeignKey(
-        Category, related_name='products', on_delete=models.CASCADE)
+        Category, related_name="products", on_delete=models.CASCADE
+    )
     price = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
     attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
-    tax_rate = models.CharField(
-        max_length=128, blank=True,
-        choices=TaxRateType.CHOICES)
+    tax_rate = models.CharField(max_length=128, blank=True, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES,
-        blank=True, null=True)
+        measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
+    )
 
     translated = TranslationProxy()
 
     class Meta:
-        app_label = 'product'
-        ordering = ('name', )
-        permissions = ((
-            'manage_products', pgettext_lazy(
-                'Permission description',
-                'Manage products.')),)
+        app_label = "product"
+        ordering = ("name",)
+        permissions = (
+            (
+                "manage_products",
+                pgettext_lazy("Permission description", "Manage products."),
+            ),
+        )
 
     def __iter__(self):
-        if not hasattr(self, '__variants'):
-            setattr(self, '__variants', self.variants.all())
-        return iter(getattr(self, '__variants'))
+        if not hasattr(self, "__variants"):
+            setattr(self, "__variants", self.variants.all())
+        return iter(getattr(self, "__variants"))
 
     def __repr__(self):
         class_ = type(self)
-        return '<%s.%s(pk=%r, name=%r)>' % (
-            class_.__module__, class_.__name__, self.pk, self.name)
+        return "<%s.%s(pk=%r, name=%r)>" % (
+            class_.__module__,
+            class_.__name__,
+            self.pk,
+            self.name,
+        )
 
     def __str__(self):
         return self.name
@@ -149,8 +166,8 @@ class Product(SeoModel, PublishableModel):
 
     def get_absolute_url(self):
         return reverse(
-            'product:details',
-            kwargs={'slug': self.get_slug(), 'product_id': self.id})
+            "product:details", kwargs={"slug": self.get_slug(), "product_id": self.id}
+        )
 
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
@@ -165,8 +182,8 @@ class Product(SeoModel, PublishableModel):
     def get_price_range(self, discounts=None, taxes=None):
         if self.variants.all():
             prices = [
-                variant.get_price(discounts=discounts, taxes=taxes)
-                for variant in self]
+                variant.get_price(discounts=discounts, taxes=taxes) for variant in self
+            ]
             return TaxedMoneyRange(min(prices), max(prices))
         price = calculate_discounted_price(self, self.price, discounts)
         if not self.charge_taxes:
@@ -179,21 +196,26 @@ class Product(SeoModel, PublishableModel):
 class ProductTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
     product = models.ForeignKey(
-        Product, related_name='translations', on_delete=models.CASCADE)
+        Product, related_name="translations", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
 
     class Meta:
-        unique_together = (('language_code', 'product'),)
+        unique_together = (("language_code", "product"),)
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
         class_ = type(self)
-        return '%s(pk=%r, name=%r, product_pk=%r)' % (
-            class_.__name__, self.pk, self.name, self.product_id)
+        return "%s(pk=%r, name=%r, product_pk=%r)" % (
+            class_.__name__,
+            self.pk,
+            self.name,
+            self.product_id,
+        )
 
 
 class ProductVariant(models.Model):
@@ -202,27 +224,36 @@ class ProductVariant(models.Model):
     price_override = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
     product = models.ForeignKey(
-        Product, related_name='variants', on_delete=models.CASCADE)
+        Product, related_name="variants", on_delete=models.CASCADE
+    )
     attributes = HStoreField(default=dict, blank=True)
-    images = models.ManyToManyField('ProductImage', through='VariantImage')
+    images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
     quantity = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(1))
+        validators=[MinValueValidator(0)], default=Decimal(1)
+    )
     quantity_allocated = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(0))
+        validators=[MinValueValidator(0)], default=Decimal(0)
+    )
     cost_price = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
     weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES,
-        blank=True, null=True)
+        measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
+    )
     translated = TranslationProxy()
 
     class Meta:
-        app_label = 'product'
+        app_label = "product"
 
     def __str__(self):
         return self.name or self.sku
@@ -251,24 +282,21 @@ class ProductVariant(models.Model):
         return self.price_override or self.product.price
 
     def get_price(self, discounts=None, taxes=None):
-        price = calculate_discounted_price(
-            self.product, self.base_price, discounts)
+        price = calculate_discounted_price(self.product, self.base_price, discounts)
         if not self.product.charge_taxes:
             taxes = None
-        tax_rate = (
-            self.product.tax_rate or self.product.product_type.tax_rate)
+        tax_rate = self.product.tax_rate or self.product.product_type.tax_rate
         return apply_tax_to_price(taxes, tax_rate, price)
 
     def get_weight(self):
-        return (
-            self.weight or self.product.weight or
-            self.product.product_type.weight)
+        return self.weight or self.product.weight or self.product.product_type.weight
 
     def get_absolute_url(self):
         slug = self.product.get_slug()
         product_id = self.product.id
-        return reverse('product:details',
-                       kwargs={'slug': slug, 'product_id': product_id})
+        return reverse(
+            "product:details", kwargs={"slug": slug, "product_id": product_id}
+        )
 
     def is_shipping_required(self):
         return self.product.product_type.is_shipping_required
@@ -288,8 +316,8 @@ class ProductVariant(models.Model):
             variant_display = str(self)
             product = self.product
         product_display = (
-            '%s (%s)' % (product, variant_display)
-            if variant_display else str(product))
+            "%s (%s)" % (product, variant_display) if variant_display else str(product)
+        )
         return smart_text(product_display)
 
     def get_first_image(self):
@@ -298,69 +326,81 @@ class ProductVariant(models.Model):
 
     def get_ajax_label(self, discounts=None):
         price = self.get_price(discounts).gross
-        return '%s, %s, %s' % (
-            self.sku, self.display_product(), prices_i18n.amount(price))
+        return "%s, %s, %s" % (
+            self.sku,
+            self.display_product(),
+            prices_i18n.amount(price),
+        )
 
 
 class ProductVariantTranslation(models.Model):
     language_code = models.CharField(max_length=10)
     product_variant = models.ForeignKey(
-        ProductVariant, related_name='translations', on_delete=models.CASCADE)
+        ProductVariant, related_name="translations", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=255, blank=True)
 
     translated = TranslationProxy()
 
     class Meta:
-        unique_together = (('language_code', 'product_variant'),)
+        unique_together = (("language_code", "product_variant"),)
 
     def __repr__(self):
         class_ = type(self)
-        return '%s(pk=%r, name=%r, variant_pk=%r)' % (
-            class_.__name__, self.pk, self.name, self.product_variant_id)
+        return "%s(pk=%r, name=%r, variant_pk=%r)" % (
+            class_.__name__,
+            self.pk,
+            self.name,
+            self.product_variant_id,
+        )
 
     def __str__(self):
         return self.name or str(self.product_variant)
 
 
 class DigitalContent(models.Model):
-    FILE = 'file'
+    FILE = "file"
     TYPE_CHOICES = (
-        (FILE, pgettext_lazy('File as a digital product', 'digital_product')),
+        (FILE, pgettext_lazy("File as a digital product", "digital_product")),
     )
     use_default_settings = models.BooleanField(default=True)
     automatic_fulfillment = models.BooleanField(default=False)
-    content_type = models.CharField(
-        max_length=128, default=FILE, choices=TYPE_CHOICES)
+    content_type = models.CharField(max_length=128, default=FILE, choices=TYPE_CHOICES)
     product_variant = models.OneToOneField(
-        ProductVariant, related_name='digital_content',
-        on_delete=models.CASCADE)
-    content_file = models.FileField(upload_to='digital_contents', blank=True)
+        ProductVariant, related_name="digital_content", on_delete=models.CASCADE
+    )
+    content_file = models.FileField(upload_to="digital_contents", blank=True)
     max_downloads = models.IntegerField(blank=True, null=True)
     url_valid_days = models.IntegerField(blank=True, null=True)
 
-    def create_new_url(self) -> 'DigitalContentUrl':
+    def create_new_url(self) -> "DigitalContentUrl":
         return self.urls.create()
 
 
 class DigitalContentUrl(models.Model):
     token = models.UUIDField(editable=False, unique=True)
     content = models.ForeignKey(
-        DigitalContent, related_name='urls', on_delete=models.CASCADE)
+        DigitalContent, related_name="urls", on_delete=models.CASCADE
+    )
     created = models.DateTimeField(auto_now_add=True)
     download_num = models.IntegerField(default=0)
     line = models.OneToOneField(
-        'order.OrderLine', related_name='digital_content_url', blank=True,
-        null=True, on_delete=models.CASCADE)
+        "order.OrderLine",
+        related_name="digital_content_url",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
         if not self.token:
-            self.token = str(uuid4()).replace('-', '')
+            self.token = str(uuid4()).replace("-", "")
         super().save(force_insert, force_update, using, update_fields)
 
     def get_absolute_url(self) -> str:
-        url = reverse(
-            'product:digital-product', kwargs={'token': str(self.token)})
+        url = reverse("product:digital-product", kwargs={"token": str(self.token)})
         return build_absolute_uri(url)
 
 
@@ -368,23 +408,30 @@ class Attribute(models.Model):
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=50)
     product_type = models.ForeignKey(
-        ProductType, related_name='product_attributes', blank=True,
-        null=True, on_delete=models.CASCADE)
+        ProductType,
+        related_name="product_attributes",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     product_variant_type = models.ForeignKey(
-        ProductType, related_name='variant_attributes', blank=True,
-        null=True, on_delete=models.CASCADE)
+        ProductType,
+        related_name="variant_attributes",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
 
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('slug', )
+        ordering = ("slug",)
 
     def __str__(self):
         return self.name
 
     def get_formfield_name(self):
-        return slugify(
-            'attribute-%s-%s' % (self.slug, self.pk), allow_unicode=True)
+        return slugify("attribute-%s-%s" % (self.slug, self.pk), allow_unicode=True)
 
     def has_values(self):
         return self.values.exists()
@@ -393,17 +440,21 @@ class Attribute(models.Model):
 class AttributeTranslation(models.Model):
     language_code = models.CharField(max_length=10)
     attribute = models.ForeignKey(
-        Attribute, related_name='translations',
-        on_delete=models.CASCADE)
+        Attribute, related_name="translations", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = (('language_code', 'attribute'),)
+        unique_together = (("language_code", "attribute"),)
 
     def __repr__(self):
         class_ = type(self)
-        return '%s(pk=%r, name=%r, attribute_pk=%r)' % (
-            class_.__name__, self.pk, self.name, self.attribute_id)
+        return "%s(pk=%r, name=%r, attribute_pk=%r)" % (
+            class_.__name__,
+            self.pk,
+            self.name,
+            self.attribute_id,
+        )
 
     def __str__(self):
         return self.name
@@ -411,16 +462,17 @@ class AttributeTranslation(models.Model):
 
 class AttributeValue(SortableModel):
     name = models.CharField(max_length=100)
-    value = models.CharField(max_length=100, blank=True, default='')
+    value = models.CharField(max_length=100, blank=True, default="")
     slug = models.SlugField(max_length=100)
     attribute = models.ForeignKey(
-        Attribute, related_name='values', on_delete=models.CASCADE)
+        Attribute, related_name="values", on_delete=models.CASCADE
+    )
 
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('sort_order', )
-        unique_together = ('name', 'attribute')
+        ordering = ("sort_order",)
+        unique_together = ("name", "attribute")
 
     def __str__(self):
         return self.name
@@ -432,18 +484,21 @@ class AttributeValue(SortableModel):
 class AttributeValueTranslation(models.Model):
     language_code = models.CharField(max_length=10)
     attribute_value = models.ForeignKey(
-        AttributeValue, related_name='translations',
-        on_delete=models.CASCADE)
+        AttributeValue, related_name="translations", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = (('language_code', 'attribute_value'),)
+        unique_together = (("language_code", "attribute_value"),)
 
     def __repr__(self):
         class_ = type(self)
-        return '%s(pk=%r, name=%r, attribute_value_pk=%r)' % (
-            class_.__name__, self.pk, self.name,
-            self.attribute_value_id)
+        return "%s(pk=%r, name=%r, attribute_value_pk=%r)" % (
+            class_.__name__,
+            self.pk,
+            self.name,
+            self.attribute_value_id,
+        )
 
     def __str__(self):
         return self.name
@@ -451,15 +506,15 @@ class AttributeValueTranslation(models.Model):
 
 class ProductImage(SortableModel):
     product = models.ForeignKey(
-        Product, related_name='images', on_delete=models.CASCADE)
-    image = VersatileImageField(
-        upload_to='products', ppoi_field='ppoi', blank=False)
+        Product, related_name="images", on_delete=models.CASCADE
+    )
+    image = VersatileImageField(upload_to="products", ppoi_field="ppoi", blank=False)
     ppoi = PPOIField()
     alt = models.CharField(max_length=128, blank=True)
 
     class Meta:
-        ordering = ('sort_order', )
-        app_label = 'product'
+        ordering = ("sort_order",)
+        app_label = "product"
 
     def get_ordering_queryset(self):
         return self.product.images.all()
@@ -467,19 +522,20 @@ class ProductImage(SortableModel):
 
 class VariantImage(models.Model):
     variant = models.ForeignKey(
-        'ProductVariant', related_name='variant_images',
-        on_delete=models.CASCADE)
+        "ProductVariant", related_name="variant_images", on_delete=models.CASCADE
+    )
     image = models.ForeignKey(
-        ProductImage, related_name='variant_images', on_delete=models.CASCADE)
+        ProductImage, related_name="variant_images", on_delete=models.CASCADE
+    )
 
 
 class Collection(SeoModel, PublishableModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
-    products = models.ManyToManyField(
-        Product, blank=True, related_name='collections')
+    products = models.ManyToManyField(Product, blank=True, related_name="collections")
     background_image = VersatileImageField(
-        upload_to='collection-backgrounds', blank=True, null=True)
+        upload_to="collection-backgrounds", blank=True, null=True
+    )
     background_image_alt = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
@@ -487,33 +543,35 @@ class Collection(SeoModel, PublishableModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ('slug', )
+        ordering = ("slug",)
 
     def __str__(self):
         return self.name
 
     def get_absolute_url(self):
-        return reverse(
-            'product:collection',
-            kwargs={'pk': self.id, 'slug': self.slug})
+        return reverse("product:collection", kwargs={"pk": self.id, "slug": self.slug})
 
 
 class CollectionTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
     collection = models.ForeignKey(
-        Collection, related_name='translations',
-        on_delete=models.CASCADE)
+        Collection, related_name="translations", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
 
     class Meta:
-        unique_together = (('language_code', 'collection'),)
+        unique_together = (("language_code", "collection"),)
 
     def __repr__(self):
         class_ = type(self)
-        return '%s(pk=%r, name=%r, collection_pk=%r)' % (
-            class_.__name__, self.pk, self.name, self.collection_id)
+        return "%s(pk=%r, name=%r, collection_pk=%r)" % (
+            class_.__name__,
+            self.pk,
+            self.name,
+            self.collection_id,
+        )
 
     def __str__(self):
         return self.name

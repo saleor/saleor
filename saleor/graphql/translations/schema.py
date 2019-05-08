@@ -9,8 +9,12 @@ from ..page import types as page_types
 from ..page.resolvers import resolve_pages
 from ..product import types as product_types
 from ..product.resolvers import (
-    resolve_attributes, resolve_categories, resolve_collections,
-    resolve_product_variants, resolve_products)
+    resolve_attributes,
+    resolve_categories,
+    resolve_collections,
+    resolve_product_variants,
+    resolve_products,
+)
 from ..shipping import types as shipping_types
 from .resolvers import resolve_attribute_values, resolve_shipping_methods
 
@@ -28,7 +32,8 @@ class TranslatableItem(graphene.Union):
             shipping_types.ShippingMethod,
             discount_types.Sale,
             discount_types.Voucher,
-            menu_types.MenuItem)
+            menu_types.MenuItem,
+        )
 
 
 class TranslatableItemConnection(CountableConnection):
@@ -37,26 +42,27 @@ class TranslatableItemConnection(CountableConnection):
 
 
 class TranslatableKinds(graphene.Enum):
-    ATTRIBUTE = 'Attribute'
-    ATTRIBUTE_VALUE = 'Attribute Value'
-    CATEGORY = 'Category'
-    COLLECTION = 'Collection'
-    MENU_ITEM = 'Menu Item'
-    PAGE = 'Page'
-    PRODUCT = 'Product'
-    SALE = 'Sale'
-    SHIPPING_METHOD = 'Shipping Method'
-    VARIANT = 'Variant'
-    VOUCHER = 'Voucher'
+    ATTRIBUTE = "Attribute"
+    ATTRIBUTE_VALUE = "Attribute Value"
+    CATEGORY = "Category"
+    COLLECTION = "Collection"
+    MENU_ITEM = "Menu Item"
+    PAGE = "Page"
+    PRODUCT = "Product"
+    SALE = "Sale"
+    SHIPPING_METHOD = "Shipping Method"
+    VARIANT = "Variant"
+    VOUCHER = "Voucher"
 
 
 class TranslationQueries(graphene.ObjectType):
     translations = graphene.ConnectionField(
         TranslatableItemConnection,
-        description='Returns list of all translatable items of a given kind.',
+        description="Returns list of all translatable items of a given kind.",
         kind=graphene.Argument(
-            TranslatableKinds,
-            required=True, description='Kind of objects to retrieve.'))
+            TranslatableKinds, required=True, description="Kind of objects to retrieve."
+        ),
+    )
 
     def resolve_translations(self, info, kind, **_kwargs):
         if kind == TranslatableKinds.PRODUCT:

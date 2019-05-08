@@ -5,24 +5,22 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('menu', '0012_auto_20190104_0443'),
-    ]
+    dependencies = [("menu", "0012_auto_20190104_0443")]
 
     operations = [
         migrations.AlterField(
-            model_name='menuitem',
-            name='level',
+            model_name="menuitem",
+            name="level",
             field=models.PositiveIntegerField(editable=False),
         ),
         migrations.AlterField(
-            model_name='menuitem',
-            name='lft',
+            model_name="menuitem",
+            name="lft",
             field=models.PositiveIntegerField(editable=False),
         ),
         migrations.AlterField(
-            model_name='menuitem',
-            name='rght',
+            model_name="menuitem",
+            name="rght",
             field=models.PositiveIntegerField(editable=False),
         ),
     ]

@@ -7,13 +7,16 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('site', '0009_auto_20171109_0849'),
-    ]
+    dependencies = [("site", "0009_auto_20171109_0849")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='sitesettings',
-            options={'permissions': (('edit_settings', 'Can edit site settings'), ('view_settings', 'Can view site settings'))},
-        ),
+            name="sitesettings",
+            options={
+                "permissions": (
+                    ("edit_settings", "Can edit site settings"),
+                    ("view_settings", "Can view site settings"),
+                )
+            },
+        )
     ]

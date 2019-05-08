@@ -1,8 +1,7 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django_countries.fields import Country
-from django_prices_vatlayer.utils import (
-    get_tax_for_rate, get_tax_rates_for_country)
+from django_prices_vatlayer.utils import get_tax_for_rate, get_tax_rates_for_country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...core import TaxRateType
@@ -27,15 +26,16 @@ def apply_tax_to_price(taxes, rate_name, base):
         if isinstance(base, MoneyRange):
             return TaxedMoneyRange(
                 apply_tax_to_price(taxes, rate_name, base.start),
-                apply_tax_to_price(taxes, rate_name, base.stop))
+                apply_tax_to_price(taxes, rate_name, base.stop),
+            )
         if isinstance(base, (TaxedMoney, TaxedMoneyRange)):
             return base
-        raise TypeError('Unknown base for flat_tax: %r' % (base,))
+        raise TypeError("Unknown base for flat_tax: %r" % (base,))
 
     if rate_name in taxes:
-        tax_to_apply = taxes[rate_name]['tax']
+        tax_to_apply = taxes[rate_name]["tax"]
     else:
-        tax_to_apply = taxes[DEFAULT_TAX_RATE_NAME]['tax']
+        tax_to_apply = taxes[DEFAULT_TAX_RATE_NAME]["tax"]
 
     keep_gross = include_taxes_in_prices()
     return tax_to_apply(base, keep_gross=keep_gross)
@@ -46,15 +46,22 @@ def get_taxes_for_country(country):
     if tax_rates is None:
         return None
 
-    taxes = {DEFAULT_TAX_RATE_NAME: {
-        'value': tax_rates['standard_rate'],
-        'tax': get_tax_for_rate(tax_rates)}}
-    if tax_rates['reduced_rates']:
-        taxes.update({
-            rate_name: {
-                'value': tax_rates['reduced_rates'][rate_name],
-                'tax': get_tax_for_rate(tax_rates, rate_name)}
-            for rate_name in tax_rates['reduced_rates']})
+    taxes = {
+        DEFAULT_TAX_RATE_NAME: {
+            "value": tax_rates["standard_rate"],
+            "tax": get_tax_for_rate(tax_rates),
+        }
+    }
+    if tax_rates["reduced_rates"]:
+        taxes.update(
+            {
+                rate_name: {
+                    "value": tax_rates["reduced_rates"][rate_name],
+                    "tax": get_tax_for_rate(tax_rates, rate_name),
+                }
+                for rate_name in tax_rates["reduced_rates"]
+            }
+        )
     return taxes
 
 
@@ -73,9 +80,9 @@ def get_tax_rate_by_name(rate_name, taxes=None):
     if not taxes or not rate_name:
         tax_rate = 0
     elif rate_name in taxes:
-        tax_rate = taxes[rate_name]['value']
+        tax_rate = taxes[rate_name]["value"]
     else:
-        tax_rate = taxes[DEFAULT_TAX_RATE_NAME]['value']
+        tax_rate = taxes[DEFAULT_TAX_RATE_NAME]["value"]
 
     return tax_rate
 

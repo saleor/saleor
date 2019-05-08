@@ -2,43 +2,90 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ..core.enums import ReportingPeriod
-from ..core.fields import (
-    FilterInputConnectionField, PrefetchingConnectionField)
+from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.types import FilterInputObjectType
 from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import (
-    AttributeTranslate, AttributeValueTranslate, CategoryTranslate,
-    CollectionTranslate, ProductTranslate, ProductVariantTranslate)
-from .bulk_mutations.attributes import (
-    AttributeBulkDelete, AttributeValueBulkDelete)
+    AttributeTranslate,
+    AttributeValueTranslate,
+    CategoryTranslate,
+    CollectionTranslate,
+    ProductTranslate,
+    ProductVariantTranslate,
+)
+from .bulk_mutations.attributes import AttributeBulkDelete, AttributeValueBulkDelete
 from .bulk_mutations.products import (
-    CategoryBulkDelete, CollectionBulkDelete, CollectionBulkPublish,
-    ProductBulkDelete, ProductBulkPublish, ProductImageBulkDelete,
-    ProductTypeBulkDelete, ProductVariantBulkDelete)
+    CategoryBulkDelete,
+    CollectionBulkDelete,
+    CollectionBulkPublish,
+    ProductBulkDelete,
+    ProductBulkPublish,
+    ProductImageBulkDelete,
+    ProductTypeBulkDelete,
+    ProductVariantBulkDelete,
+)
 from .enums import StockAvailability
 from .filters import CollectionFilter, ProductFilter, ProductTypeFilter
 from .mutations.attributes import (
-    AttributeCreate, AttributeDelete, AttributeUpdate, AttributeValueCreate,
-    AttributeValueDelete, AttributeValueUpdate)
+    AttributeCreate,
+    AttributeDelete,
+    AttributeUpdate,
+    AttributeValueCreate,
+    AttributeValueDelete,
+    AttributeValueUpdate,
+)
 from .mutations.digital_contents import (
-    DigitalContentCreate, DigitalContentDelete, DigitalContentUpdate,
-    DigitalContentUrlCreate)
+    DigitalContentCreate,
+    DigitalContentDelete,
+    DigitalContentUpdate,
+    DigitalContentUrlCreate,
+)
 from .mutations.products import (
-    CategoryCreate, CategoryDelete, CategoryUpdate, CollectionAddProducts,
-    CollectionCreate, CollectionDelete, CollectionRemoveProducts,
-    CollectionUpdate, ProductCreate, ProductDelete, ProductImageCreate,
-    ProductImageDelete, ProductImageReorder, ProductImageUpdate,
-    ProductTypeCreate, ProductTypeDelete, ProductTypeUpdate, ProductUpdate,
-    ProductVariantCreate, ProductVariantDelete, ProductVariantUpdate,
-    VariantImageAssign, VariantImageUnassign)
+    CategoryCreate,
+    CategoryDelete,
+    CategoryUpdate,
+    CollectionAddProducts,
+    CollectionCreate,
+    CollectionDelete,
+    CollectionRemoveProducts,
+    CollectionUpdate,
+    ProductCreate,
+    ProductDelete,
+    ProductImageCreate,
+    ProductImageDelete,
+    ProductImageReorder,
+    ProductImageUpdate,
+    ProductTypeCreate,
+    ProductTypeDelete,
+    ProductTypeUpdate,
+    ProductUpdate,
+    ProductVariantCreate,
+    ProductVariantDelete,
+    ProductVariantUpdate,
+    VariantImageAssign,
+    VariantImageUnassign,
+)
 from .resolvers import (
-    resolve_attributes, resolve_categories, resolve_collections,
-    resolve_digital_contents, resolve_product_types, resolve_product_variants,
-    resolve_products, resolve_report_product_sales)
+    resolve_attributes,
+    resolve_categories,
+    resolve_collections,
+    resolve_digital_contents,
+    resolve_product_types,
+    resolve_product_variants,
+    resolve_products,
+    resolve_report_product_sales,
+)
 from .scalars import AttributeScalar
 from .types import (
-    Attribute, Category, Collection, DigitalContent, Product, ProductOrder,
-    ProductType, ProductVariant)
+    Attribute,
+    Category,
+    Collection,
+    DigitalContent,
+    Product,
+    ProductOrder,
+    ProductType,
+    ProductVariant,
+)
 
 
 class ProductFilterInput(FilterInputObjectType):
@@ -58,80 +105,112 @@ class ProductTypeFilterInput(FilterInputObjectType):
 
 class ProductQueries(graphene.ObjectType):
     digital_content = graphene.Field(
-        DigitalContent, id=graphene.Argument(graphene.ID, required=True))
+        DigitalContent, id=graphene.Argument(graphene.ID, required=True)
+    )
     digital_contents = PrefetchingConnectionField(
-        DigitalContent, query=graphene.String(),
+        DigitalContent,
+        query=graphene.String(),
         level=graphene.Argument(graphene.Int),
-        description='List of the digital contents.')
+        description="List of the digital contents.",
+    )
     attributes = PrefetchingConnectionField(
         Attribute,
-        description='List of the shop\'s attributes.',
-        query=graphene.String(description=DESCRIPTIONS['attributes']),
+        description="List of the shop's attributes.",
+        query=graphene.String(description=DESCRIPTIONS["attributes"]),
         in_category=graphene.Argument(
-            graphene.ID, description='''Return attributes for products 
-            belonging to the given category.'''),
+            graphene.ID,
+            description="""Return attributes for products 
+            belonging to the given category.""",
+        ),
         in_collection=graphene.Argument(
-            graphene.ID, description='''Return attributes for products
-            belonging to the given collection.'''), )
+            graphene.ID,
+            description="""Return attributes for products
+            belonging to the given collection.""",
+        ),
+    )
     categories = PrefetchingConnectionField(
-        Category, query=graphene.String(
-            description=DESCRIPTIONS['category']),
+        Category,
+        query=graphene.String(description=DESCRIPTIONS["category"]),
         level=graphene.Argument(graphene.Int),
-        description='List of the shop\'s categories.')
+        description="List of the shop's categories.",
+    )
     category = graphene.Field(
-        Category, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a category by ID.')
+        Category,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup a category by ID.",
+    )
     collection = graphene.Field(
-        Collection, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a collection by ID.')
+        Collection,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup a collection by ID.",
+    )
     collections = FilterInputConnectionField(
-        Collection, filter=CollectionFilterInput(), query=graphene.String(
-            description=DESCRIPTIONS['collection']),
-        description='List of the shop\'s collections.')
+        Collection,
+        filter=CollectionFilterInput(),
+        query=graphene.String(description=DESCRIPTIONS["collection"]),
+        description="List of the shop's collections.",
+    )
     product = graphene.Field(
-        Product, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a product by ID.')
+        Product,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup a product by ID.",
+    )
     products = FilterInputConnectionField(
         Product,
         filter=ProductFilterInput(),
         attributes=graphene.List(
-            AttributeScalar, description='Filter products by attributes.'),
+            AttributeScalar, description="Filter products by attributes."
+        ),
         categories=graphene.List(
-            graphene.ID, description='Filter products by category.'),
+            graphene.ID, description="Filter products by category."
+        ),
         collections=graphene.List(
-            graphene.ID, description='Filter products by collections.'),
+            graphene.ID, description="Filter products by collections."
+        ),
         price_lte=graphene.Float(
-            description='Filter by price less than or equal to the given value.'),
+            description="Filter by price less than or equal to the given value."
+        ),
         price_gte=graphene.Float(
-            description='Filter by price greater than or equal to the given value.'),
-        sort_by=graphene.Argument(
-            ProductOrder, description='Sort products.'),
+            description="Filter by price greater than or equal to the given value."
+        ),
+        sort_by=graphene.Argument(ProductOrder, description="Sort products."),
         stock_availability=graphene.Argument(
-            StockAvailability,
-            description='Filter products by the stock availability'),
-        query=graphene.String(description=DESCRIPTIONS['product']),
-        description='List of the shop\'s products.')
+            StockAvailability, description="Filter products by the stock availability"
+        ),
+        query=graphene.String(description=DESCRIPTIONS["product"]),
+        description="List of the shop's products.",
+    )
     product_type = graphene.Field(
-        ProductType, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a product type by ID.')
+        ProductType,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup a product type by ID.",
+    )
     product_types = FilterInputConnectionField(
-        ProductType, filter=ProductTypeFilterInput(),
-        description='List of the shop\'s product types.')
+        ProductType,
+        filter=ProductTypeFilterInput(),
+        description="List of the shop's product types.",
+    )
     product_variant = graphene.Field(
-        ProductVariant, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a variant by ID.')
+        ProductVariant,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup a variant by ID.",
+    )
     product_variants = PrefetchingConnectionField(
-        ProductVariant, ids=graphene.List(graphene.ID),
-        description='Lookup multiple variants by ID')
+        ProductVariant,
+        ids=graphene.List(graphene.ID),
+        description="Lookup multiple variants by ID",
+    )
     report_product_sales = PrefetchingConnectionField(
         ProductVariant,
         period=graphene.Argument(
-            ReportingPeriod, required=True, description='Span of time.'),
-        description='List of top selling products.')
+            ReportingPeriod, required=True, description="Span of time."
+        ),
+        description="List of top selling products.",
+    )
 
     def resolve_attributes(
-            self, info, in_category=None, in_collection=None, query=None,
-            **_kwargs):
+        self, info, in_category=None, in_collection=None, query=None, **_kwargs
+    ):
         return resolve_attributes(info, in_category, in_collection, query)
 
     def resolve_categories(self, info, level=None, query=None, **_kwargs):
@@ -146,11 +225,11 @@ class ProductQueries(graphene.ObjectType):
     def resolve_collections(self, info, query=None, **_kwargs):
         return resolve_collections(info, query)
 
-    @permission_required('product.manage_products')
+    @permission_required("product.manage_products")
     def resolve_digital_content(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, DigitalContent)
 
-    @permission_required('product.manage_products')
+    @permission_required("product.manage_products")
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
@@ -172,7 +251,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_variants(self, info, ids=None, **_kwargs):
         return resolve_product_variants(info, ids)
 
-    @permission_required(['order.manage_orders', 'product.manage_products'])
+    @permission_required(["order.manage_orders", "product.manage_products"])
     def resolve_report_product_sales(self, *_args, period, **_kwargs):
         return resolve_report_product_sales(period)
 
