@@ -119,7 +119,7 @@ class ProductQueries(graphene.ObjectType):
         query=graphene.String(description=DESCRIPTIONS["attributes"]),
         in_category=graphene.Argument(
             graphene.ID,
-            description="""Return attributes for products 
+            description="""Return attributes for products
             belonging to the given category.""",
         ),
         in_collection=graphene.Argument(

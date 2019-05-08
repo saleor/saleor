@@ -2,11 +2,11 @@ from django.conf import settings
 from django.urls import reverse
 from templated_email import send_templated_mail
 
-from . import events
 from ..celeryconf import app
 from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
 from ..seo.schema.email import get_order_confirmation_markup
+from . import events
 from .models import Fulfillment, Order
 
 CONFIRM_ORDER_TEMPLATE = "order/confirm_order"
