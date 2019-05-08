@@ -1,11 +1,16 @@
 import gql from "graphql-tag";
 import { TypedMutation } from "../mutations";
+import { menuItemNestedFragment } from "./queries";
 import {
   MenuBulkDelete,
   MenuBulkDeleteVariables
 } from "./types/MenuBulkDelete";
 import { MenuCreate, MenuCreateVariables } from "./types/MenuCreate";
 import { MenuDelete, MenuDeleteVariables } from "./types/MenuDelete";
+import {
+  MenuItemCreate,
+  MenuItemCreateVariables
+} from "./types/MenuItemCreate";
 
 const menuCreate = gql`
   mutation MenuCreate($input: MenuCreateInput!) {
@@ -54,3 +59,27 @@ export const MenuDeleteMutation = TypedMutation<
   MenuDelete,
   MenuDeleteVariables
 >(menuDelete);
+
+const menuItemCreate = gql`
+  ${menuItemNestedFragment}
+  mutation MenuItemCreate($input: MenuItemCreateInput!) {
+    menuItemCreate(input: $input) {
+      errors {
+        field
+        message
+      }
+      menuItem {
+        menu {
+          id
+          items {
+            ...MenuItemNestedFragment
+          }
+        }
+      }
+    }
+  }
+`;
+export const MenuItemCreateMutation = TypedMutation<
+  MenuItemCreate,
+  MenuItemCreateVariables
+>(menuItemCreate);

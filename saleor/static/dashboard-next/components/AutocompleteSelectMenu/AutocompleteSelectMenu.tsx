@@ -146,6 +146,7 @@ const AutocompleteSelectMenu = withStyles(styles, {
                       onBlur: () => {
                         closeMenu();
                         setMenuPath([]);
+                        setInputValue(displayValue);
                       },
                       onChange: event => {
                         debounceFn(event.target.value);
@@ -179,7 +180,7 @@ const AutocompleteSelectMenu = withStyles(styles, {
                       )}
                       {getMenu(options, menuPath).map((suggestion, index) => (
                         <MenuItem
-                          key={suggestion.value}
+                          key={suggestion.label.toString() + suggestion.value}
                           component="div"
                           {...getItemProps({ item: suggestion })}
                           onClick={() =>
