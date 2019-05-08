@@ -152,7 +152,6 @@ class BaseMutation(graphene.Mutation):
 
         input_cls = getattr(cls.Arguments, 'input')
         cleaned_input = {}
-        import pdb; pdb.set_trace()
         for field_name, field_item in input_cls._meta.fields.items():
             if field_name in data:
                 value = data[field_name]
@@ -251,7 +250,6 @@ class BaseMutation(graphene.Mutation):
 
         try:
             response = cls.perform_mutation(root, info, **data)
-            import pdb; pdb.set_trace()
             if response.errors is None:
                 response.errors = []
             return response
@@ -309,9 +307,8 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def success_response(cls, instance):
-        return {'ehe': 'aha'}
         """Return a success response."""
-        # return cls(**{cls._meta.return_field_name: instance, 'errors': []})
+        return cls(**{cls._meta.return_field_name: instance, 'errors': []})
 
     @classmethod
     def save(cls, info, instance, cleaned_input):

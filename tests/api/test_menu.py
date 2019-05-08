@@ -251,7 +251,7 @@ def test_create_menu_item(
 
 
 def test_bulk_create_menu_item(
-        staff_api_client, menu, permission_manage_menus):
+        staff_api_client, menu, permission_manage_menus, page):
     query = """
     mutation createMenuItems($input: [MenuItemCreateInput!]!){
         menuItemBulkCreate(input: $input) {
@@ -259,17 +259,22 @@ def test_bulk_create_menu_item(
         }
     }
     """
-    name = 'item menu'
-    url = 'http://www.example.com'
+    name_1 = 'item menu'
+    name_2 = 'another menu'
+
+    url_1 = 'http://www.example.com'
+    page_id = graphene.Node.to_global_id('Page', page.pk)
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
     variables = {'input':
-            [{'name': name, 'url': url, 'menu': menu_id}]
-        }
+                     [{'name': name_1, 'url': url_1, 'menu': menu_id},
+                      {'name': name_2, 'page': page_id, 'menu': menu_id}]
+                 }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus])
-    import pdb; pdb.set_trace()
 
     content = get_graphql_content(response)
+    data = content['data']['menuItemBulkCreate']
+    assert data['count'] == len(variables.get('input'))
 
 
 def test_update_menu_item(
@@ -432,7 +437,6 @@ mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput]!) {
 def _assert_menu_is_exactly(
         menu_id: str,
         actual_data: dict, expected_data: List[Dict]):
-
     menu = actual_data.get('menu')
     assert menu, 'Expected to receive a valid menu to compare from'
 
@@ -484,7 +488,6 @@ def _assert_menu_is_exactly(
 
 def test_menu_reorder(
         staff_api_client, permission_manage_menus, menu_item_list):
-
     menu_item_list = list(menu_item_list)
     menu_id = graphene.Node.to_global_id('Menu', menu_item_list[0].menu_id)
 
@@ -512,7 +515,6 @@ def test_menu_reorder(
 
 def test_menu_reorder_assign_parent(
         staff_api_client, permission_manage_menus, menu_item_list):
-
     menu_item_list = list(menu_item_list)
     menu_id = graphene.Node.to_global_id('Menu', menu_item_list[1].menu_id)
 
@@ -539,7 +541,6 @@ def test_menu_reorder_assign_parent(
 
 def test_menu_reorder_assign_parent_to_top_level(
         staff_api_client, permission_manage_menus, menu_item_list):
-
     menu_item_list = list(menu_item_list)
     menu_id = graphene.Node.to_global_id('Menu', menu_item_list[0].menu_id)
 
@@ -574,7 +575,6 @@ def test_menu_reorder_assign_parent_to_top_level(
 
 def test_menu_reorder_cannot_assign_to_ancestor(
         staff_api_client, permission_manage_menus, menu_item_list):
-
     menu_item_list = list(menu_item_list)
     menu_id = graphene.Node.to_global_id('Menu', menu_item_list[0].menu_id)
 
@@ -618,7 +618,6 @@ def test_menu_reorder_cannot_assign_to_ancestor(
 
 def test_menu_reorder_cannot_assign_to_itself(
         staff_api_client, permission_manage_menus, menu_item):
-
     menu_id = graphene.Node.to_global_id('Menu', menu_item.menu_id)
     node_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
     moves = [{
@@ -664,8 +663,8 @@ def test_menu_cannot_get_menu_item_not_from_same_menu(
     )
 
     assert (
-        json.loads(
-            response.content.decode('utf8'))['errors'][0]['message'] == (
+            json.loads(
+                response.content.decode('utf8'))['errors'][0]['message'] == (
                 'MenuItem matching query does not exist.'))
 
 
@@ -692,6 +691,6 @@ def test_menu_cannot_pass_an_invalid_menu_item_node_type(
     )
 
     assert (
-        json.loads(
-            response.content.decode('utf8'))['errors'][0]['message'] == (
+            json.loads(
+                response.content.decode('utf8'))['errors'][0]['message'] == (
                 'The menu item node must be of type MenuItem.'))

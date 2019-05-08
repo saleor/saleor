@@ -1047,6 +1047,11 @@ type MenuItem implements Node {
   translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
 }
 
+type MenuItemBulkCreate {
+  errors: [Error!]
+  count: Int!
+}
+
 type MenuItemBulkDelete {
   errors: [Error!]
   count: Int!
@@ -1237,6 +1242,7 @@ type Mutations {
   menuUpdate(id: ID!, input: MenuInput!): MenuUpdate
   menuItemCreate(input: MenuItemCreateInput!): MenuItemCreate
   menuItemDelete(id: ID!): MenuItemDelete
+  menuItemBulkCreate(input: [MenuItemCreateInput!]!): MenuItemBulkCreate
   menuItemBulkDelete(ids: [ID]!): MenuItemBulkDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate

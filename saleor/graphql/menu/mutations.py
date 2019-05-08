@@ -135,8 +135,6 @@ class MenuItemCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        import pdb;
-        pdb.set_trace()
         cleaned_input = super().clean_input(info, instance, data)
         items = [
             cleaned_input.get('page'), cleaned_input.get('collection'),
@@ -147,8 +145,7 @@ class MenuItemCreate(ModelMutation):
         return cleaned_input
 
 
-class MenuItemBulkCreate(MenuItemCreate):
-    # instances = graphene.List(MenuItem)
+class MenuItemBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
         description='Returns how many objects were affected.')
@@ -163,29 +160,49 @@ class MenuItemBulkCreate(MenuItemCreate):
 
     class Meta:
         description = 'Creates multiple menu items.'
-        model = models.MenuItem
         permissions = ('menu.manage_menus',)
 
-    #
     @classmethod
     def success_response(cls, count):
         return cls(count=count, errors=[])
 
     @classmethod
+    def clean_input(cls, info, instance, data):
+        items = [
+            data.get('page'), data.get('collection'),
+            data.get('url'), data.get('category')]
+        items = [item for item in items if item is not None]
+        if len(items) > 1:
+            raise ValidationError({'items': 'More than one item provided.'})
+        if data.get('url') is None:
+            if data.get('page'):
+                data['page'] = cls.get_node_or_error(
+                    info, data['page'], only_type=Page)
+            elif data.get('collection'):
+                data['collection'] = cls.get_node_or_error(
+                    info, data['collection'],
+                    only_type=Collection)
+            elif data.get('category'):
+                data['category'] = cls.get_node_or_error(
+                    info, data['category'],
+                    only_type=Category)
+        return data
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         data = data.get('input')
-        instances = []
+        count = 0
         for item in data:
-            instance = cls.get_instance(info, **item)
-            cleaned_input = cls.clean_input(info, instance, item)
-            instance = cls.construct_instance(instance, cleaned_input)
+            instance = models.MenuItem()
+            item = cls.clean_input(info, instance, item)
+            menu = cls.get_node_or_error(
+                info, item.get('menu'), only_type=Menu)
+            item['menu'] = menu
+            instance = cls.construct_instance(instance, item)
             cls.clean_instance(instance)
-            instances.append(instance)
-        instances = cls._meta.model.bulk_create(instances)
-        import pdb; pdb.set_trace()
-        return cls.success_response( len(instances))
-        # return cls.success_response(instances)
-
+            instance.save()
+            count += 1
+        return cls.success_response(count=count)
 
 
 class MenuItemUpdate(MenuItemCreate):
