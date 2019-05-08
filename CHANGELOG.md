@@ -54,6 +54,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Reduce the time of tests execution by using dummy password hasher - #4083 by @korycins
 - Add migrations since unnecessary indexes are removed in mptt model in [django-mptt/django-mptt#578](https://github.com/django-mptt/django-mptt/pull/578) - #4071 by @jxltom
 - Update order events and order email events names in typescripts - #4089 by @jxltom
+- Migrated code style to Black. Saleor now includes configurations and tools related to use black. - #3852 by krzysztofwolski and NyanKiyoshi
 
 
 ## 2.5.0
