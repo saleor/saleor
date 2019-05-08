@@ -63,9 +63,6 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
     }
   };
 
-  const newHandleChange = v => handleChange(v);
-  newHandleChange._version = new Date();
-
   return (
     <Form initial={initialForm}>
       {({ change, data, hasChanged }) => (
@@ -92,7 +89,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
                 items={computeTree(maybe(() => menu.items, []), [
                   ...treeOperations
                 ])}
-                onChange={newHandleChange}
+                onChange={handleChange}
                 onItemAdd={onItemAdd}
               />
             </div>
