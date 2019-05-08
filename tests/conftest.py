@@ -25,7 +25,8 @@ from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
-from saleor.order import OrderEvents, OrderStatus
+from saleor.order import OrderStatus
+from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
 from saleor.order.utils import fulfill_order_line, recalculate_order
 from saleor.page.models import Page
@@ -561,8 +562,8 @@ def order_with_lines(
 
 @pytest.fixture()
 def order_events(order):
-    for event_type in OrderEvents:
-        OrderEvent.objects.create(type=event_type.value, order=order)
+    for event_type, _ in OrderEvents.CHOICES:
+        OrderEvent.objects.create(type=event_type, order=order)
 
 
 @pytest.fixture()
@@ -975,6 +976,8 @@ def digital_content(category, media_root):
     product_variant = ProductVariant.objects.create(
         product=product, sku='SKU_554', cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=3)
+
+    assert product_variant.is_digital()
 
     image_file, image_name = create_image()
     d_content = DigitalContent.objects.create(

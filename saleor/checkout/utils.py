@@ -23,6 +23,8 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     get_products_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
+from ..order import events
+from ..order.emails import send_order_confirmation
 from ..order.models import Order
 from ..shipping.models import ShippingMethod
 from . import AddressType, logger
@@ -835,7 +837,9 @@ def _process_user_data_for_order(checkout):
 
 
 @transaction.atomic
-def create_order(checkout: Checkout, tracking_code: str, discounts, taxes):
+def create_order(
+        checkout: Checkout, tracking_code: str, discounts, taxes,
+        user: User):
     """Create an order from the checkout.
 
     Each order will get a private copy of both the billing and the shipping
@@ -871,6 +875,15 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, taxes):
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
+
+    # remove checkout after order is created
+    checkout.delete()
+
+    # Create the order placed
+    events.order_created_event(order=order, user=user)
+
+    # Send the order confirmation email
+    send_order_confirmation.delay(order.pk, user.pk)
     return order
 
 
