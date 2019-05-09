@@ -7,24 +7,34 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Page',
+            name="Page",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('slug', models.SlugField(max_length=100, unique=True)),
-                ('title', models.CharField(max_length=200)),
-                ('content', models.TextField()),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('is_visible', models.BooleanField(default=False)),
-                ('available_on', models.DateField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("slug", models.SlugField(max_length=100, unique=True)),
+                ("title", models.CharField(max_length=200)),
+                ("content", models.TextField()),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                ("is_visible", models.BooleanField(default=False)),
+                ("available_on", models.DateField(blank=True, null=True)),
             ],
             options={
-                'ordering': ('slug',),
-                'permissions': (('view_page', 'Can view pages'), ('edit_page', 'Can edit pages')),
+                "ordering": ("slug",),
+                "permissions": (
+                    ("view_page", "Can view pages"),
+                    ("edit_page", "Can edit pages"),
+                ),
             },
-        ),
+        )
     ]

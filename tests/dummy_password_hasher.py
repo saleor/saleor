@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from django.contrib.auth.hashers import BasePasswordHasher
+from django.utils.translation import pgettext_lazy
 
 
 class DummyHasher(BasePasswordHasher):
@@ -15,15 +16,18 @@ class DummyHasher(BasePasswordHasher):
         return "%s$%s" % (self.algorithm, password)
 
     def verify(self, password, encoded):
-        algorithm, dummy_password = encoded.split('$')
+        algorithm, dummy_password = encoded.split("$")
         assert algorithm == self.algorithm
         return password == dummy_password
 
     def safe_summary(self, encoded):
-        algorithm, dummy_password = encoded.split('$')
-        return OrderedDict([
-            (_('algorithm'), algorithm),
-            (_('hash'), dummy_password)])
+        algorithm, dummy_password = encoded.split("$")
+        return OrderedDict(
+            [
+                (pgettext_lazy("algorithm"), algorithm),
+                (pgettext_lazy("hash"), dummy_password),
+            ]
+        )
 
     def harden_runtime(self, password, encoded):
         pass

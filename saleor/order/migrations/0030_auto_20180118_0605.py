@@ -7,23 +7,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0029_auto_20180111_0845'),
-    ]
+    dependencies = [("order", "0029_auto_20180111_0845")]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='ordernote',
-            options={'ordering': ('date',)},
-        ),
+        migrations.AlterModelOptions(name="ordernote", options={"ordering": ("date",)}),
         migrations.AddField(
-            model_name='ordernote',
-            name='is_public',
+            model_name="ordernote",
+            name="is_public",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='ordernote',
-            name='date',
+            model_name="ordernote",
+            name="date",
             field=models.DateTimeField(auto_now_add=True, db_index=True),
         ),
     ]

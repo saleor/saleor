@@ -1,5 +1,4 @@
-from django.contrib.postgres.search import (
-    SearchQuery, SearchRank, SearchVector)
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 
 from ...account.models import User
 from ...order.models import Order
@@ -8,11 +7,9 @@ from ...product.models import Product
 
 def search_products(phrase):
     """Return matching products for dashboard views."""
-    sv = (SearchVector('name', weight='A') +
-          SearchVector('description', weight='B'))
+    sv = SearchVector("name", weight="A") + SearchVector("description", weight="B")
     rank = SearchRank(sv, SearchQuery(phrase))
-    return Product.objects.annotate(rank=rank).filter(
-        rank__gte=0.2).order_by('-rank')
+    return Product.objects.annotate(rank=rank).filter(rank__gte=0.2).order_by("-rank")
 
 
 def search_orders(phrase):
@@ -28,27 +25,27 @@ def search_orders(phrase):
         pass
 
     sv = (
-        SearchVector('user__first_name', weight='B') +
-        SearchVector('user__last_name', weight='B') +
-        SearchVector(
-            'user__default_shipping_address__first_name', weight='B') +
-        SearchVector('user__default_shipping_address__last_name', weight='B') +
-        SearchVector('user__email', weight='A'))
+        SearchVector("user__first_name", weight="B")
+        + SearchVector("user__last_name", weight="B")
+        + SearchVector("user__default_shipping_address__first_name", weight="B")
+        + SearchVector("user__default_shipping_address__last_name", weight="B")
+        + SearchVector("user__email", weight="A")
+    )
     rank = SearchRank(sv, SearchQuery(phrase))
-    return Order.objects.annotate(rank=rank).filter(
-        rank__gte=0.2).order_by('-rank')
+    return Order.objects.annotate(rank=rank).filter(rank__gte=0.2).order_by("-rank")
 
 
 def search_users(phrase):
     """Return matching users for dashboard views."""
-    sv = (SearchVector('email', weight='A') +
-          SearchVector('first_name', weight='B') +
-          SearchVector('last_name', weight='B') +
-          SearchVector('default_billing_address__first_name', weight='B') +
-          SearchVector('default_billing_address__last_name', weight='B'))
+    sv = (
+        SearchVector("email", weight="A")
+        + SearchVector("first_name", weight="B")
+        + SearchVector("last_name", weight="B")
+        + SearchVector("default_billing_address__first_name", weight="B")
+        + SearchVector("default_billing_address__last_name", weight="B")
+    )
     rank = SearchRank(sv, SearchQuery(phrase))
-    return User.objects.annotate(rank=rank).filter(
-        rank__gte=0.2).order_by('-rank')
+    return User.objects.annotate(rank=rank).filter(rank__gte=0.2).order_by("-rank")
 
 
 def search(phrase):
@@ -60,6 +57,7 @@ def search(phrase):
         phrase (str): searched phrase
     """
     return {
-        'products': search_products(phrase),
-        'orders': search_orders(phrase),
-        'users': search_users(phrase)}
+        "products": search_products(phrase),
+        "orders": search_orders(phrase),
+        "users": search_users(phrase),
+    }

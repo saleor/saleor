@@ -5,13 +5,11 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('menu', '0004_sort_order_index'),
-    ]
+    dependencies = [("menu", "0004_sort_order_index")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='menu',
-            options={'permissions': (('manage_menus', 'Manage navigation.'),)},
-        ),
+            name="menu",
+            options={"permissions": (("manage_menus", "Manage navigation."),)},
+        )
     ]

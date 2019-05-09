@@ -11,11 +11,13 @@ def validate_checkout(view):
 
     If the checkout is empty, redirect to the checkout details.
     """
+
     @wraps(view)
     def func(request, checkout):
         if checkout:
             return view(request, checkout)
-        return redirect('checkout:index')
+        return redirect("checkout:index")
+
     return func
 
 
@@ -27,15 +29,17 @@ def validate_shipping_address(view):
 
     Expects to be decorated with `@validate_checkout`.
     """
+
     @wraps(view)
     def func(request, checkout):
         if not checkout.email or not checkout.shipping_address:
-            return redirect('checkout:shipping-address')
+            return redirect("checkout:shipping-address")
         try:
             checkout.shipping_address.full_clean()
         except ValidationError:
-            return redirect('checkout:shipping-address')
+            return redirect("checkout:shipping-address")
         return view(request, checkout)
+
     return func
 
 
@@ -47,12 +51,13 @@ def validate_shipping_method(view):
 
     Expects to be decorated with `@validate_checkout`.
     """
+
     @wraps(view)
     def func(request, checkout):
-        if not is_valid_shipping_method(
-                checkout, request.taxes, request.discounts):
-            return redirect('checkout:shipping-method')
+        if not is_valid_shipping_method(checkout, request.taxes, request.discounts):
+            return redirect("checkout:shipping-method")
         return view(request, checkout)
+
     return func
 
 
@@ -63,9 +68,11 @@ def validate_is_shipping_required(view):
 
     Expects to be decorated with `@validate_checkout`.
     """
+
     @wraps(view)
     def func(request, checkout):
         if not checkout.is_shipping_required():
-            return redirect('checkout:summary')
+            return redirect("checkout:summary")
         return view(request, checkout)
+
     return func

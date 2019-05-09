@@ -15,12 +15,12 @@ def limit_results(*results):
 def get_results(request, form):
     user = request.user
     results = form.search()
-    products = results['products']
-    orders = results['orders']
-    users = results['users']
-    if not user.has_perm('order.manage_orders'):
+    products = results["products"]
+    orders = results["orders"]
+    users = results["users"]
+    if not user.has_perm("order.manage_orders"):
         orders = orders.none()
-    if not user.has_perm('account.manage_users'):
+    if not user.has_perm("account.manage_users"):
         users = users.none()
     return limit_results(products, orders, users)
 
@@ -28,20 +28,21 @@ def get_results(request, form):
 @staff_member_required
 def search(request):
     if not settings.ENABLE_SEARCH:
-        raise Http404('No such page!')
+        raise Http404("No such page!")
     form = DashboardSearchForm(data=request.GET or None)
-    query = ''
+    query = ""
     users = []
     products = []
     orders = []
     if form.is_valid():
         products, orders, users = get_results(request, form)
-        query = form.cleaned_data['q']
+        query = form.cleaned_data["q"]
     ctx = {
-        'form': form,
-        'query': query,
-        'products': products,
-        'orders': orders,
-        'users': users,
-        'query_string': '?q=%s' % query}
-    return render(request, 'dashboard/search/results.html', ctx)
+        "form": form,
+        "query": query,
+        "products": products,
+        "orders": orders,
+        "users": users,
+        "query_string": "?q=%s" % query,
+    }
+    return render(request, "dashboard/search/results.html", ctx)

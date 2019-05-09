@@ -8,23 +8,41 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('site', '0003_sitesettings_description'),
-    ]
+    dependencies = [("site", "0003_sitesettings_description")]
 
     operations = [
         migrations.CreateModel(
-            name='AuthorizationKey',
+            name="AuthorizationKey",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(choices=[('facebook', 'Facebook'), ('google-oauth2', 'Google')], max_length=20, verbose_name='name')),
-                ('key', models.TextField(verbose_name='key')),
-                ('password', models.TextField(verbose_name='password')),
-                ('site_settings', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='site.SiteSettings')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        choices=[("facebook", "Facebook"), ("google-oauth2", "Google")],
+                        max_length=20,
+                        verbose_name="name",
+                    ),
+                ),
+                ("key", models.TextField(verbose_name="key")),
+                ("password", models.TextField(verbose_name="password")),
+                (
+                    "site_settings",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="site.SiteSettings",
+                    ),
+                ),
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='authorizationkey',
-            unique_together=set([('site_settings', 'name')]),
+            name="authorizationkey", unique_together=set([("site_settings", "name")])
         ),
     ]

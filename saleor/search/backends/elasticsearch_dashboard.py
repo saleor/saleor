@@ -5,26 +5,25 @@ from ..documents import OrderDocument, ProductDocument, UserDocument
 
 def _search_products(phrase):
     prod_query = MultiMatch(
-        fields=['name', 'title', 'description'],
-        query=phrase,
-        type='cross_fields')
-    return ProductDocument.search().query(prod_query).sort('_score').source(
-        False)
+        fields=["name", "title", "description"], query=phrase, type="cross_fields"
+    )
+    return ProductDocument.search().query(prod_query).sort("_score").source(False)
 
 
 def _search_users(phrase):
     user_query = MultiMatch(
-        fields=['user', 'email', 'first_name', 'last_name'],
+        fields=["user", "email", "first_name", "last_name"],
         query=phrase,
-        type='cross_fields',
-        operator='and')
+        type="cross_fields",
+        operator="and",
+    )
     return UserDocument.search().query(user_query).source(False)
 
 
 def _search_orders(phrase):
     order_query = MultiMatch(
-        fields=['user', 'first_name', 'last_name', 'discount_name'],
-        query=phrase)
+        fields=["user", "first_name", "last_name", "discount_name"], query=phrase
+    )
     return OrderDocument.search().query(order_query).source(False)
 
 
@@ -35,9 +34,10 @@ def get_search_queries(phrase):
         phrase (str): searched phrase
     """
     return {
-        'products': _search_products(phrase),
-        'users': _search_users(phrase),
-        'orders': _search_orders(phrase)}
+        "products": _search_products(phrase),
+        "users": _search_users(phrase),
+        "orders": _search_orders(phrase),
+    }
 
 
 def search(phrase):

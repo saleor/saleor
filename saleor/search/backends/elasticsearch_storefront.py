@@ -5,12 +5,13 @@ from ..documents import ProductDocument
 
 def get_search_query(phrase):
     """Return matching products for storefront views."""
-    query = MultiMatch(fields=['title', 'name', 'description'], query=phrase)
+    query = MultiMatch(fields=["title", "name", "description"], query=phrase)
     return (
         ProductDocument.search()
         .query(query)
         .source(False)
-        .filter('term', is_published=True))
+        .filter("term", is_published=True)
+    )
 
 
 def search(phrase):

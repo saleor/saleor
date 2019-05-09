@@ -14,16 +14,35 @@ from .shop.schema import ShopMutations, ShopQueries
 from .translations.schema import TranslationQueries
 
 
-class Query(AccountQueries, CheckoutQueries, DiscountQueries, MenuQueries,
-            OrderQueries, PageQueries, PaymentQueries, ProductQueries,
-            ShippingQueries, ShopQueries, TranslationQueries):
+class Query(
+    AccountQueries,
+    CheckoutQueries,
+    DiscountQueries,
+    MenuQueries,
+    OrderQueries,
+    PageQueries,
+    PaymentQueries,
+    ProductQueries,
+    ShippingQueries,
+    ShopQueries,
+    TranslationQueries,
+):
     node = graphene.Node.Field()
 
 
-class Mutations(AccountMutations, CheckoutMutations, CoreMutations,
-                DiscountMutations, MenuMutations, OrderMutations,
-                PageMutations, PaymentMutations, ProductMutations,
-                ShippingMutations, ShopMutations):
+class Mutations(
+    AccountMutations,
+    CheckoutMutations,
+    CoreMutations,
+    DiscountMutations,
+    MenuMutations,
+    OrderMutations,
+    PageMutations,
+    PaymentMutations,
+    ProductMutations,
+    ShippingMutations,
+    ShopMutations,
+):
     pass
 
 
