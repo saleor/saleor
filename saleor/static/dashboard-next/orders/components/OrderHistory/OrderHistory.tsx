@@ -17,7 +17,7 @@ import {
   TimelineNote
 } from "../../../components/Timeline";
 import i18n from "../../../i18n";
-import { OrderEventsEnum, OrderEventsEmails } from "../../../types/globalTypes";
+import { OrderEventsEnum, OrderEventsEmailsEnum } from "../../../types/globalTypes";
 import { OrderDetails_order_events } from "../../types/OrderDetails";
 
 export interface FormData {
@@ -32,19 +32,19 @@ const getEventMessage = (event: OrderDetails_order_events) => {
       });
     case OrderEventsEnum.EMAIL_SENT:
       switch (event.emailType) {
-        case OrderEventsEmails.FULFILLMENT:
+        case OrderEventsEmailsEnum.FULFILLMENT:
           return i18n.t("Fulfillment confirmation has been sent to customer", {
             context: "order history message"
           });
-        case OrderEventsEmails.ORDER:
+        case OrderEventsEmailsEnum.ORDER:
           return i18n.t("Order confirmation has been sent to customer", {
             context: "order history message"
           });
-        case OrderEventsEmails.PAYMENT:
+        case OrderEventsEmailsEnum.PAYMENT:
           return i18n.t("Payment confirmation has been sent to customer", {
             context: "order history message"
           });
-        case OrderEventsEmails.SHIPPING:
+        case OrderEventsEmailsEnum.SHIPPING:
           return i18n.t("Shipping details has been sent to customer", {
             context: "order history message"
           });

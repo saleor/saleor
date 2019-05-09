@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderLineCreateInput, OrderEventsEmails, OrderEventsEnum, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
+import { OrderLineCreateInput, OrderEventsEmailsEnum, OrderEventsEnum, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLineAdd
@@ -46,7 +46,7 @@ export interface OrderLineAdd_draftOrderLinesCreate_order_events {
   amount: number | null;
   date: any | null;
   email: string | null;
-  emailType: OrderEventsEmails | null;
+  emailType: OrderEventsEmailsEnum | null;
   message: string | null;
   quantity: number | null;
   type: OrderEventsEnum | null;
