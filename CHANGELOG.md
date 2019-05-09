@@ -45,17 +45,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
 - Update test function names since ready_to_place_order is renamed to clean_checkout- #4070 by @jxltom
 - Resort imports and remove unused imports - #4069 by @jxltom
-- Fix typo in CheckoutBillingAddressUpdate - #4073se by @jxltom
+- Fix typo in CheckoutBillingAddressUpdate - #4073 by @jxltom
 - Required checkout ID for updating checkout's shipping and billing address - #4074 by @jxltom
 - Implement order events - #4018 by @NyanKiyosho 
   - Implemented new events: `DRAFT_CREATED`, `DRAFT_ADDED_PRODUCTS`, `DRAFT_REMOVED_PRODUCTS`, and `PAYMENT_FAILED`;
   - Implemented new mail events: `TRACKING_UPDATED`, `DIGITAL_LINKS`;
   - Refactored logic of events, it's now easier than ever to add and send events.
-- Allow filtering by lists of enums for fields: ``Voucher.filter.status``, ``Voucher.filter.discount_type``, ``Sale.filter.status``, ``Order.filter.payment_status``, ``Order.filter.status``, ``Order.filter.custom_status`` - #4078 by @korycins
 - Reduce the time of tests execution by using dummy password hasher - #4083 by @korycins
 - Add migrations since unnecessary indexes are removed in mptt model in [django-mptt/django-mptt#578](https://github.com/django-mptt/django-mptt/pull/578) - #4071 by @jxltom
 - Update order events and order email events names in typescripts - #4089 by @jxltom
 - Migrated code style to Black. Saleor now includes configurations and tools related to use black. - #3852 by krzysztofwolski and NyanKiyoshi
+- Allow filtering by lists of enums for fields: ``Voucher.filter.status``, ``Voucher.filter.discount_type``, ``Sale.filter.status``, ``Order.filter.payment_status``, ``Order.filter.status``, ``Order.filter.custom_status`` - #4078 by @korycins
 
 
 ## 2.5.0
