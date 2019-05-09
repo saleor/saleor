@@ -124,7 +124,7 @@ const AutocompleteSelectMenu = withStyles(styles, {
     }, []);
 
     // Navigate back to main menu after input field change
-    React.useEffect(() => setMenuPath([]), [JSON.stringify(options)]);
+    React.useEffect(() => setMenuPath([]), [options]);
 
     // Reset input value after displayValue change
     React.useEffect(() => setInputValue(displayValue), [displayValue]);
