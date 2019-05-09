@@ -107,7 +107,7 @@ const getEventMessage = (event: OrderDetails_order_events) => {
         context: "order history message"
       });
     case OrderEventsEnum.PAYMENT_FAILED:
-      return i18n.t("Payment has been failed", {
+      return i18n.t("Payment failed", {
         context: "order history message"
       });
     case OrderEventsEnum.PAYMENT_REFUNDED:
