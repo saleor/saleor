@@ -1,0 +1,119 @@
+{% load i18n %}{% load static %}
+<div id="RequestHistoryPanelContent">
+
+    <div style="position: absolute;top: 0px;left: 10px;right: 10px;bottom: 20px;overflow-x: scroll;">
+        <table style="max-height:100%;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{% trans "Time" %}</th>
+                    <th>{% trans "Method" %}</th>
+                    <th>{% trans "Path" %}</th>
+                    <th>{% trans "Post Variables" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, toolbar in toolbars.items %}
+                    <tr class="{% cycle 'djDebugOdd' 'djDebugEven' %}">
+                        <td onclick="djdt.rh.loadToolbar('{{ id }}');" style="cursor: pointer;">{{forloop.counter}}</td>
+                    <td onclick="djdt.rh.loadToolbar('{{ id }}');" style="cursor: pointer;">
+                            {{ toolbar.toolbar.stats.RequestHistoryPanel.time|escape }}
+                        </td>
+                        <td onclick="djdt.rh.loadToolbar('{{ id }}');" style="cursor: pointer;">
+                            <p>{{ toolbar.toolbar.stats.RequestHistoryPanel.request_method|escape }}</p>
+                        </td>
+                        <td onclick="djdt.rh.loadToolbar('{{ id }}');" style="cursor: pointer;">
+                            <p>{{ toolbar.toolbar.stats.RequestHistoryPanel.request_url|escape }}</p>
+                        </td>
+                        <td style="white-space: nowrap;">
+                            <a class="djToggleSwitch djdtTogglePost" href="#">+</a>
+                            {% if trunc_length %}
+                                <span style="white-space: nowrap;">{{ toolbar.toolbar.stats.RequestHistoryPanel.post|truncatechars:trunc_length|escape }}</span>
+                            {% else %}
+                                <span style="white-space: nowrap;">{{ toolbar.toolbar.stats.RequestHistoryPanel.post|escape }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script id="ddtRequestHistoryScript">
+        var LOADING_RESET =
+            '<img src="{% static 'debug_toolbar/img/ajax-loader.gif' %}" alt="loading" class="djdt-loader">' +
+            '<div class="djdt-scroll"></div>';
+
+        function clearPanels() {
+            document.querySelectorAll('.djDebugPanelContent .djdt-scroll').forEach(function(ele) {
+                ele.parentElement.innerHTML = LOADING_RESET;
+            });
+            document.querySelectorAll('.djDebugPanelContent .scroll').forEach(function(ele) {
+                ele.innerHTML = '';
+            });
+        }
+
+        function loadToolbar(id) {
+            document.querySelector('#djDebug').setAttribute('data-store-id', id);
+            document.querySelector('.djdt-panelContent').style.display = 'none';
+            var panCon = document.querySelector('.panelContent');
+            if (panCon) panCon.style.display = 'none';
+
+            for (i = 0; i < djdtSidebarContent[id].length; i++) {
+                var panel = djdtSidebarContent[id][i];
+                var panelEle = document.querySelector('.' + panel['panel_id']);
+                if (panelEle) panelEle.innerHTML = panel['nav_title'] + '<br /><small>' + panel['nav_subtitle'] + '</small>';
+            }
+            clearPanels();
+        };
+
+        function emptyHistoryPanel() {
+            document.querySelector('.RequestHistoryPanel').removeEventListener('click', emptyHistoryPanel);
+            var histroyPanel = document.getElementById('RequestHistoryPanelContent');
+            if (histroyPanel) histroyPanel.parentElement.parentElement.innerHTML = LOADING_RESET;
+        }
+
+        function togglePost() {
+            if (this.nextElementSibling.style.whiteSpace == 'pre') {
+                this.innerHTL = '+';
+                this.nextElementSibling.style.whiteSpace = 'nowrap';
+            } else {
+                this.innerHTML = '-';
+                this.nextElementSibling.style.whiteSpace =  'pre';
+            }
+        }
+
+        var djdtSidebarContent = {
+            {% for id, toolbar in toolbars.items %}
+                "{{ id }}": [
+                    {% for dummy, panel in toolbar.content.items %}
+                        {
+                            "panel_id": "{{ panel.panel_id }}",
+                            "nav_title": "{{ panel.nav_title|escapejs }}",
+                            "nav_subtitle": "{{ panel.nav_subtitle|escapejs }}"
+                        },
+                    {% endfor %}
+                ],
+            {% endfor %}
+        };
+
+        window.djdt.rh = {
+            loadToolbar: loadToolbar
+        };
+
+        document.querySelector('.RequestHistoryPanel').addEventListener('click', emptyHistoryPanel);
+        document.querySelectorAll('.djdtTogglePost').forEach(function(ele) {
+            ele.addEventListener('click',  togglePost);
+        });
+    </script>
+
+    <!-- XXX: total hack to avoid adding panel to INSTALLED_APPS to allow static content -->
+    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+         style="display:none;"
+         onload="
+            var ele = document.getElementById('ddtRequestHistoryScript');
+            var script = document.createElement('script');
+            script.appendChild(document.createTextNode(ele.innerHTML));
+            this.appendChild(script);
+            ele.parentElement.removeChild(ele);">
+</div>

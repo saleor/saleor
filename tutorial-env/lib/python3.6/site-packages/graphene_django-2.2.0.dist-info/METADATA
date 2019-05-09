@@ -1,0 +1,190 @@
+Metadata-Version: 2.1
+Name: graphene-django
+Version: 2.2.0
+Summary: Graphene Django integration
+Home-page: https://github.com/graphql-python/graphene-django
+Author: Syrus Akbary
+Author-email: me@syrusakbary.com
+License: MIT
+Keywords: api graphql protocol rest relay graphene
+Platform: any
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Provides-Extra: rest_framework
+Provides-Extra: test
+Requires-Dist: six (>=1.10.0)
+Requires-Dist: graphene (<3,>=2.1.3)
+Requires-Dist: graphql-core (<3,>=2.1.0)
+Requires-Dist: Django (>=1.11)
+Requires-Dist: singledispatch (>=3.4.0.3)
+Requires-Dist: promise (>=2.1)
+Provides-Extra: rest_framework
+Requires-Dist: djangorestframework (>=3.6.3); extra == 'rest_framework'
+Provides-Extra: test
+Requires-Dist: pytest (>=3.6.3); extra == 'test'
+Requires-Dist: pytest-cov; extra == 'test'
+Requires-Dist: coveralls; extra == 'test'
+Requires-Dist: mock; extra == 'test'
+Requires-Dist: pytz; extra == 'test'
+Requires-Dist: pytest-django (>=3.3.2); extra == 'test'
+Requires-Dist: djangorestframework (>=3.6.3); extra == 'test'
+Provides-Extra: test
+Requires-Dist: django-filter (<2); (python_version < "3") and extra == 'test'
+Provides-Extra: test
+Requires-Dist: django-filter (>=2); (python_version >= "3") and extra == 'test'
+
+Please read
+`UPGRADE-v2.0.md <https://github.com/graphql-python/graphene/blob/master/UPGRADE-v2.0.md>`__
+to learn how to upgrade to Graphene ``2.0``.
+
+--------------
+
+|Graphene Logo| Graphene-Django |Build Status| |PyPI version| |Coverage Status|
+===============================================================================
+
+A `Django <https://www.djangoproject.com/>`__ integration for
+`Graphene <http://graphene-python.org/>`__.
+
+Installation
+------------
+
+For installing graphene, just run this command in your shell
+
+.. code:: bash
+
+    pip install "graphene-django>=2.0"
+
+Settings
+~~~~~~~~
+
+.. code:: python
+
+    INSTALLED_APPS = (
+        # ...
+        'graphene_django',
+    )
+
+    GRAPHENE = {
+        'SCHEMA': 'app.schema.schema' # Where your Graphene schema lives
+    }
+
+Urls
+~~~~
+
+We need to set up a ``GraphQL`` endpoint in our Django app, so we can
+serve the queries.
+
+.. code:: python
+
+    from django.conf.urls import url
+    from graphene_django.views import GraphQLView
+
+    urlpatterns = [
+        # ...
+        url(r'^graphql', GraphQLView.as_view(graphiql=True)),
+    ]
+
+Examples
+--------
+
+Here is a simple Django model:
+
+.. code:: python
+
+    from django.db import models
+
+    class UserModel(models.Model):
+        name = models.CharField(max_length=100)
+        last_name = models.CharField(max_length=100)
+
+To create a GraphQL schema for it you simply have to write the
+following:
+
+.. code:: python
+
+    from graphene_django import DjangoObjectType
+    import graphene
+
+    class User(DjangoObjectType):
+        class Meta:
+            model = UserModel
+
+    class Query(graphene.ObjectType):
+        users = graphene.List(User)
+
+        @graphene.resolve_only_args
+        def resolve_users(self):
+            return UserModel.objects.all()
+
+    schema = graphene.Schema(query=Query)
+
+Then you can simply query the schema:
+
+.. code:: python
+
+    query = '''
+        query {
+          users {
+            name,
+            lastName
+          }
+        }
+    '''
+    result = schema.execute(query)
+
+To learn more check out the following `examples <examples/>`__:
+
+-  **Schema with Filtering**: `Cookbook example <examples/cookbook>`__
+-  **Relay Schema**: `Starwars Relay example <examples/starwars>`__
+
+Contributing
+------------
+
+After cloning this repo, ensure dependencies are installed by running:
+
+.. code:: sh
+
+    pip install -e ".[test]"
+
+After developing, the full test suite can be evaluated by running:
+
+.. code:: sh
+
+    py.test graphene_django --cov=graphene_django # Use -v -s for verbose mode
+
+Documentation
+~~~~~~~~~~~~~
+
+The `documentation <http://docs.graphene-python.org/projects/django/en/latest/>`__ is generated using the excellent
+`Sphinx <http://www.sphinx-doc.org/>`__ and a custom theme.
+
+The documentation dependencies are installed by running:
+
+.. code:: sh
+
+    cd docs
+    pip install -r requirements.txt
+
+Then to produce a HTML version of the documentation:
+
+.. code:: sh
+
+    make html
+
+.. |Graphene Logo| image:: http://graphene-python.org/favicon.png
+.. |Build Status| image:: https://travis-ci.org/graphql-python/graphene-django.svg?branch=master
+   :target: https://travis-ci.org/graphql-python/graphene-django
+.. |PyPI version| image:: https://badge.fury.io/py/graphene-django.svg
+   :target: https://badge.fury.io/py/graphene-django
+.. |Coverage Status| image:: https://coveralls.io/repos/graphql-python/graphene-django/badge.svg?branch=master&service=github
+   :target: https://coveralls.io/github/graphql-python/graphene-django?branch=master
+
+

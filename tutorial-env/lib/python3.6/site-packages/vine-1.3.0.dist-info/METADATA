@@ -1,0 +1,67 @@
+Metadata-Version: 2.1
+Name: vine
+Version: 1.3.0
+Summary: Promises, promises, promises.
+Home-page: http://github.com/celery/vine
+Author: Ask Solem
+Author-email: ask@celeryproject.org
+License: BSD
+Keywords: promise promises lazy future futures
+Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*
+
+=====================================================================
+ vine - Python Promises
+=====================================================================
+
+|build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
+
+:Version: 1.3.0
+:Web: https://vine.readthedocs.io/
+:Download: https://pypi.org/project/vine/
+:Source: http://github.com/celery/vine/
+:Keywords: promise, async, future
+
+About
+=====
+
+
+.. |build-status| image:: https://secure.travis-ci.org/celery/vine.png?branch=master
+    :alt: Build status
+    :target: https://travis-ci.org/celery/vine
+
+.. |coverage| image:: https://codecov.io/github/celery/vine/coverage.svg?branch=master
+    :target: https://codecov.io/github/celery/vine?branch=master
+
+.. |license| image:: https://img.shields.io/pypi/l/vine.svg
+    :alt: BSD License
+    :target: https://opensource.org/licenses/BSD-3-Clause
+
+.. |wheel| image:: https://img.shields.io/pypi/wheel/vine.svg
+    :alt: Vine can be installed via wheel
+    :target: https://pypi.org/project/vine/
+
+.. |pyversion| image:: https://img.shields.io/pypi/pyversions/vine.svg
+    :alt: Supported Python versions.
+    :target: https://pypi.org/project/vine/
+
+.. |pyimp| image:: https://img.shields.io/pypi/implementation/vine.svg
+    :alt: Support Python implementations.
+    :target: https://pypi.org/project/vine/
+
+
+

@@ -1,0 +1,1 @@
+{"IS": {"fmt": "%N%n%O%n%A%n%Z %C", "id": "data/IS", "key": "IS", "name": "ICELAND", "posturl": "http://www.postur.is/einstaklingar/posthus/postnumer/", "zip": "\\d{3}", "zipex": "320,121,220,110"}}

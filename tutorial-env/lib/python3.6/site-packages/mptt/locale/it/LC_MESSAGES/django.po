@@ -1,0 +1,194 @@
+# Translation of django-mptt into Italian.
+# This file is distributed under the same license as the django-mptt package.
+# Andrea Rabbaglietti <rabbagliettiandrea@gmail.com>, 2018.
+msgid ""
+msgstr ""
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: mptt/admin.py:87
+#, python-format
+msgid "Successfully deleted %(count)d items."
+msgstr "%(count)d elementi eliminati con successo"
+
+#: mptt/admin.py:100
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Elimina %(verbose_name_plural)s"
+
+#: mptt/admin.py:182
+msgid "title"
+msgstr "titolo"
+
+#: mptt/admin.py:212
+msgid "Did not understand moving instruction."
+msgstr "Spostamento non valido"
+
+#: mptt/admin.py:220
+msgid "Objects have disappeared, try again."
+msgstr "Gli oggetti sono spariti, riprova per favore."
+
+#: mptt/admin.py:224
+msgid "No permission"
+msgstr "Non hai il permesso"
+
+#: mptt/admin.py:233
+#, python-format
+msgid "Database error: %s"
+msgstr "Errore database : %s"
+
+#: mptt/admin.py:238
+#, python-format
+msgid "%s has been successfully moved."
+msgstr "%s è stato spostato con successo."
+
+#: mptt/admin.py:249
+msgid "move node before node"
+msgstr "muovi il nodo prima del nodo"
+
+#: mptt/admin.py:250
+msgid "move node to child position"
+msgstr "muovi il nodo in posizione figlio"
+
+#: mptt/admin.py:251
+msgid "move node after node"
+msgstr "muovi il nodo dopo il nodo"
+
+#: mptt/admin.py:252
+msgid "Collapse tree"
+msgstr "Comprimi l'albero"
+
+#: mptt/admin.py:253
+msgid "Expand tree"
+msgstr "Espandi l'albero"
+
+#: mptt/admin.py:364
+msgid "All"
+msgstr "Tutto"
+
+#: mptt/forms.py:63
+msgid "First child"
+msgstr "Primo figlio"
+
+#: mptt/forms.py:64
+msgid "Last child"
+msgstr "Ultimo figlio"
+
+#: mptt/forms.py:65
+msgid "Left sibling"
+msgstr "Fratello sinistro"
+
+#: mptt/forms.py:66
+msgid "Right sibling"
+msgstr "Fratello destro"
+
+#: mptt/forms.py:184
+msgid "Invalid parent"
+msgstr "Padre non valido"
+
+#: mptt/managers.py:521
+msgid "Cannot insert a node which has already been saved."
+msgstr "Non è possibile inserire un nodo che è stato salvato."
+
+#: mptt/managers.py:739 mptt/managers.py:912 mptt/managers.py:948
+#: mptt/managers.py:1114
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "E' stata fornita una posizione non valida : %s."
+
+#: mptt/managers.py:898 mptt/managers.py:1094
+msgid "A node may not be made a sibling of itself."
+msgstr "Un nodo non può essere il fratello di se stesso."
+
+#: mptt/managers.py:1073 mptt/managers.py:1199
+msgid "A node may not be made a child of itself."
+msgstr "Un nodo non può essere figlio di se stesso."
+
+#: mptt/managers.py:1075 mptt/managers.py:1201
+msgid "A node may not be made a child of any of its descendants."
+msgstr "Un nodo non può essere figlio di uno dei suoi discendenti."
+
+#: mptt/managers.py:1096
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "Un nodo non può essere fratello di uno dei suoi discendenti."
+
+#: mptt/models.py:292
+msgid "register() expects a Django model class argument"
+msgstr "register() richiede un Django model come argomento"
+
+#: mptt/templates/admin/mptt_filter.html:3
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " Per %(filter_title)s "
+
+#: mptt/templatetags/mptt_tags.py:31
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "il tag full_tree_for_model ha ricevuto un model non valido : %s"
+
+#: mptt/templatetags/mptt_tags.py:55
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "il tag drilldown_tree_for_node ha ricevuto un model non valido : %s"
+
+#: mptt/templatetags/mptt_tags.py:62
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "il tag drilldown_tree_for_node ha ricevuto un model field non valido : %s"
+
+#: mptt/templatetags/mptt_tags.py:89
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "il tag %s richiede tre argomenti"
+
+#: mptt/templatetags/mptt_tags.py:91 mptt/templatetags/mptt_tags.py:146
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "il secondo argomento nel tag %s dev'essere passato come 'as'"
+
+#: mptt/templatetags/mptt_tags.py:143
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "il tag %s richiede tre, sette o otto argomenti"
+
+#: mptt/templatetags/mptt_tags.py:150
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr "se sono forniti sette argomenti, il quarto argomento del tag %s dev'essere 'with'"
+
+#: mptt/templatetags/mptt_tags.py:154
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr "se sono forniti sette argomenti, il sesto argomento del tag %s dev'essere 'in'"
+
+#: mptt/templatetags/mptt_tags.py:160
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr ""
+"se sono forniti otto argomenti, il quarto argomento del tag %s dev'essere 'cumulative'"
+
+#: mptt/templatetags/mptt_tags.py:164
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr ""
+"se sono forniti otto argomenti, il quinto argomento del tag %s dev'essere 'count'"
+
+#: mptt/templatetags/mptt_tags.py:168
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr ""
+"se sono forniti otto argomenti, il settimo argomento del tag %s dev'essere 'in'"
+
+
+#: mptt/templatetags/mptt_tags.py:287
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "il tag %s richiede un queryset"
+
+#: mptt/utils.py:240
+#, python-format
+msgid "Node %s not in depth-first order"
+msgstr "Il nodo %s non è in ordine depth-first"

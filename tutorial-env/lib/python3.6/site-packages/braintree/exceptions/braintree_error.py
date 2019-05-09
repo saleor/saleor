@@ -1,0 +1,2 @@
+class BraintreeError(Exception):
+    pass

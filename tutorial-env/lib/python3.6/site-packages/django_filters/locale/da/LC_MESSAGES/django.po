@@ -1,0 +1,180 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.1\n"
+"Project-Id-Version: django-filter\n"
+"Language: da\n"
+"Last-Translator: Danni Randeris <danni@danniranderis.dk>\n"
+"Language-Team: Danni Randeris <danni@danniranderis.dk>\n"
+"POT-Creation-Date: 2017-10-28\n"
+"PO-Revision-Date: 2017-10-28\n"
+
+#: conf.py:17
+msgid "date"
+msgstr "dato"
+
+#: conf.py:18
+msgid "year"
+msgstr "år"
+
+#: conf.py:19
+msgid "month"
+msgstr "måned"
+
+#: conf.py:20
+msgid "day"
+msgstr "dag"
+
+#: conf.py:21
+msgid "week day"
+msgstr "ugedag"
+
+#: conf.py:22
+msgid "hour"
+msgstr "time"
+
+#: conf.py:23
+msgid "minute"
+msgstr "minut"
+
+#: conf.py:24
+msgid "second"
+msgstr "sekund"
+
+#: conf.py:29 conf.py:30
+msgid "contains"
+msgstr "indeholder"
+
+#: conf.py:31
+msgid "is in"
+msgstr "er i"
+
+#: conf.py:32
+msgid "is greater than"
+msgstr "er større end"
+
+#: conf.py:33
+msgid "is greater than or equal to"
+msgstr "er større end eller lig med"
+
+#: conf.py:34
+msgid "is less than"
+msgstr "er mindre end"
+
+#: conf.py:35
+msgid "is less than or equal to"
+msgstr "er mindre end eller lig med"
+
+#: conf.py:36 conf.py:37
+msgid "starts with"
+msgstr "starter med"
+
+#: conf.py:38 conf.py:39
+msgid "ends with"
+msgstr "slutter med"
+
+#: conf.py:40
+msgid "is in range"
+msgstr "er i intervallet"
+
+#: conf.py:42 conf.py:43
+msgid "matches regex"
+msgstr "matcher regex"
+
+#: conf.py:44 conf.py:52
+msgid "search"
+msgstr "søg"
+
+#: conf.py:47
+msgid "is contained by"
+msgstr "er indeholdt af"
+
+#: conf.py:48
+msgid "overlaps"
+msgstr "overlapper"
+
+#: conf.py:49
+msgid "has key"
+msgstr "har string"
+
+#: conf.py:50
+msgid "has keys"
+msgstr "har stringe"
+
+#: conf.py:51
+msgid "has any keys"
+msgstr "har hvilken som helst string"
+
+#: fields.py:178
+msgid "Range query expects two values."
+msgstr "Interval forespørgslen forventer to værdier."
+
+#: filters.py:429
+msgid "Any date"
+msgstr "Hvilken som helst dag"
+
+#: filters.py:430
+msgid "Today"
+msgstr "I dag"
+
+#: filters.py:435
+msgid "Past 7 days"
+msgstr "Sidste 7 dage"
+
+#: filters.py:439
+msgid "This month"
+msgstr "Denne måned"
+
+#: filters.py:443
+msgid "This year"
+msgstr "Dette år"
+
+#: filters.py:446
+msgid "Yesterday"
+msgstr "I går"
+
+#: filters.py:512
+msgid "Multiple values may be separated by commas."
+msgstr "Flere værdier kan adskilles via komma."
+
+#: filters.py:591
+msgid "%s (descending)"
+msgstr "%s (aftagende)"
+
+#: filters.py:607
+msgid "Ordering"
+msgstr "Sortering"
+
+#: rest_framework/filterset.py:30
+#: templates/django_filters/rest_framework/form.html:5
+#, fuzzy
+msgid "Submit"
+msgstr "Indsend"
+
+#: templates/django_filters/rest_framework/crispy_form.html:4
+#: templates/django_filters/rest_framework/form.html:2
+#, fuzzy
+msgid "Field filters"
+msgstr "Felt filtre"
+
+#: utils.py:224
+msgid "exclude"
+msgstr "udelad"
+
+#: widgets.py:57
+msgid "All"
+msgstr "Alle"
+
+#: widgets.py:159
+msgid "Unknown"
+msgstr "Ukendt"
+
+#: widgets.py:160
+msgid "Yes"
+msgstr "Ja"
+
+#: widgets.py:161
+msgid "No"
+msgstr "Nej"

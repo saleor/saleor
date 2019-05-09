@@ -1,0 +1,198 @@
+# django-mptt Finnish translation (suomeksi).
+# This file is distributed under the same license as the django-mptt package.
+# Taija Mertanen <taija299@gmail.com>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Django-mptt\n"
+"POT-Creation-Date: 2016-11-24 02:16+0200\n"
+"PO-Revision-Date: 2016-11-24 02:47+0200\n"
+"Last-Translator: Taija Mertanen <taija299@gmail.com>\n"
+"Language-Team: Taija Mertanen <taija299@gmail.com>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: mptt/forms.py:63
+msgid "First child"
+msgstr "Ensimmäinen lapsi"
+
+#: mptt/forms.py:64
+msgid "Last child"
+msgstr "Viimeinen lapsi"
+
+#: mptt/forms.py:65
+msgid "Left sibling"
+msgstr "Vasemmanpuoleinen sisarus"
+
+#: mptt/forms.py:66
+msgid "Right sibling"
+msgstr "Oikeanpuoleinen sisarus"
+
+#: mptt/forms.py:184
+msgid "Invalid parent"
+msgstr "Invalidi vanhempi"
+
+#: mptt/models.py:292
+msgid "register() expects a Django model class argument"
+msgstr "register() odottaa Djangon model-luokan argumenttia"
+
+#: mptt/admin.py:87
+#, python-format
+msgid "Successfully deleted %(count)d items."
+msgstr "Onnistuneesti poistettiin %(count)d asiaa."
+
+#: mptt/admin.py:100
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Poista valitut %(verbose_name_plural)s"
+
+#: mptt/admin.py:212
+msgid "Did not understand moving instruction."
+msgstr "Siirto-ohjetta ei ymmärretty"
+
+#: mptt/admin.py:220
+msgid "Objects have disappeared, try again."
+msgstr "Objektit ovat kadonneet, yritä uudelleen."
+
+#: mptt/admin.py:224
+msgid "No permission"
+msgstr "Ei lupaa"
+
+#: mptt/admin.py:233
+#, python-format
+msgid "Database error: %s"
+msgstr "Tietokantavirhe: %s"
+
+#: mptt/admin.py:238
+#, python-format
+msgid "%s has been successfully moved."
+msgstr "%s on onnistuneesti liikutettu."
+
+#: mptt/admin.py:249
+msgid "move node before node"
+msgstr "liikuta solmu solmun edelle"
+
+#: mptt/admin.py:250
+msgid "move node to child position"
+msgstr "liikuta solmu lapsisijaintiin"
+
+#: mptt/admin.py:251
+msgid "move node after node"
+msgstr "liikuta solmu solmun jälkeen"
+
+#: mptt/admin.py:252
+msgid "Collapse tree"
+msgstr "Piilota puu"
+
+#: mptt/admin.py:253
+msgid "Expand tree"
+msgstr "Laajenna puu"
+
+#: mptt/admin.py:364
+msgid "All"
+msgstr "Kaikki"
+
+#: mptt/utils.py:240
+#, python-format
+msgid "Node %s not in depth-first order"
+msgstr "Solmu %s ei ole syvyys-ensin järjestyksessä"
+
+#: mptt/managers.py:521
+msgid "Cannot insert a node which has already been saved."
+msgstr "Ei voida lisätä solmua joka on jo tallennettu."
+
+#: mptt/managers.py:739 mptt/managers.py:912 mptt/managers.py:948
+#: mptt/managers.py:1114
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "Invalidi sijainti annettu: %s."
+
+#: mptt/managers.py:898 mptt/managers.py:1094
+msgid "A node may not be made a sibling of itself."
+msgstr "Solmusta ei voi tehdä itsensä sisarusta."
+
+#: mptt/managers.py:1073 mptt/managers.py:1199
+msgid "A node may not be made a child of itself."
+msgstr "Solmusta ei voi tehdä itsensä lasta."
+
+#: mptt/managers.py:1075 mptt/managers.py:1201
+msgid "A node may not be made a child of any of its descendants."
+msgstr "Solmusta ei voi tehdä oman jälkeläisensä lasta."
+
+#: mptt/managers.py:1096
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "Solmusta ei voi tehdä oman jälkeläisensä sisarusta."
+
+#: mptt/templatetags/mptt_tags.py:31
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "full_tree_for_model -tägille annettiin invalidi malli: %s"
+
+#: mptt/templatetags/mptt_tags.py:55
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "drilldown_tree_for_node -tägille annettiin invalidi malli: %s"
+
+#: mptt/templatetags/mptt_tags.py:62
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "drilldown_tree_for_node -tägille annettiin invalidi malli kenttä: %s"
+
+#: mptt/templatetags/mptt_tags.py:89
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "%s tägi vaatii kolme argumenttia"
+
+#: mptt/templatetags/mptt_tags.py:91 mptt/templatetags/mptt_tags.py:146
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "toinen argumentti %s tägille pitää olla 'as'"
+
+#: mptt/templatetags/mptt_tags.py:143
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "%s tägi vaatii joko kolme, seitsemän tai kahdeksan argumenttia"
+
+#: mptt/templatetags/mptt_tags.py:150
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr ""
+"jos seitsemän argumenttia annetaan, neljännen argumentin %s tägille pitää "
+"olla 'with'"
+
+#: mptt/templatetags/mptt_tags.py:154
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr ""
+"jos seitsemän argumenttia annetaan, kuudennen argumentin %s tägille pitää "
+"olla 'in'"
+
+#: mptt/templatetags/mptt_tags.py:160
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr ""
+"jos kahdeksan argumenttia annetaan, neljännen argumentin %s tägille pitää "
+"olla 'cumulative'"
+
+#: mptt/templatetags/mptt_tags.py:164
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr ""
+"jos kahdeksan argumenttia annetaan, viidennen argumentin %s tägille pitää "
+"olla 'count'"
+
+#: mptt/templatetags/mptt_tags.py:168
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr ""
+"jos kahdeksan argumenttia annetaan, seitsemännen argumentin %s tägille pitää "
+"olla 'in'"
+
+#: mptt/templatetags/mptt_tags.py:287
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "%s tägi vaatii querysetin"

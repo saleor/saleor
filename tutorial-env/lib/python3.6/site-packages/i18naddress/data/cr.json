@@ -1,0 +1,1 @@
+{"CR": {"fmt": "%N%n%O%n%A%n%S, %C%n%Z", "id": "data/CR", "key": "CR", "name": "COSTA RICA", "posturl": "https://www.correos.go.cr/nosotros/codigopostal/busqueda.html", "require": "ACS", "zip": "\\d{4,5}|\\d{3}-\\d{4}", "zipex": "1000,2010,1001"}}

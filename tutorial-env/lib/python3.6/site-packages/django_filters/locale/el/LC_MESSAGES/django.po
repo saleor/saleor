@@ -1,0 +1,187 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Serafeim Papastefanos <spapas@gmail.com>, 2017.
+#
+#: .\conf.py:27 .\conf.py:28 .\conf.py:41
+msgid ""
+msgstr ""
+"Project-Id-Version: django-filter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-11-16 10:06+0200\n"
+"PO-Revision-Date: 2017-11-16 10:04+0200\n"
+"Last-Translator: Serafeim Papastefanos <spapas@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.6.5\n"
+
+#: .\conf.py:17
+msgid "date"
+msgstr "ημερομηνία"
+
+#: .\conf.py:18
+msgid "year"
+msgstr "έτος"
+
+#: .\conf.py:19
+msgid "month"
+msgstr "μήνας"
+
+#: .\conf.py:20
+msgid "day"
+msgstr "ημέρα"
+
+#: .\conf.py:21
+msgid "week day"
+msgstr "ημέρα της εβδομάδας"
+
+#: .\conf.py:22
+msgid "hour"
+msgstr "ώρα"
+
+#: .\conf.py:23
+msgid "minute"
+msgstr "λεπτό"
+
+#: .\conf.py:24
+msgid "second"
+msgstr "δευτερόλεπτο"
+
+#: .\conf.py:29 .\conf.py:30
+msgid "contains"
+msgstr "περιέχει"
+
+#: .\conf.py:31
+msgid "is in"
+msgstr "είναι εντός των"
+
+#: .\conf.py:32
+msgid "is greater than"
+msgstr "είναι μεγαλύτερο από"
+
+#: .\conf.py:33
+msgid "is greater than or equal to"
+msgstr "είναι μεγαλύτερο ή ίσο του"
+
+#: .\conf.py:34
+msgid "is less than"
+msgstr "είναι μικρότερο από"
+
+#: .\conf.py:35
+msgid "is less than or equal to"
+msgstr "είναι μικρότερο ή ίσο του"
+
+#: .\conf.py:36 .\conf.py:37
+msgid "starts with"
+msgstr "ξεκινά με"
+
+#: .\conf.py:38 .\conf.py:39
+msgid "ends with"
+msgstr "τελειώνει με"
+
+#: .\conf.py:40
+msgid "is in range"
+msgstr "είναι εντος του εύρους"
+
+#: .\conf.py:42 .\conf.py:43
+msgid "matches regex"
+msgstr "περιέχει regex"
+
+#: .\conf.py:44 .\conf.py:52
+msgid "search"
+msgstr "αναζήτηση"
+
+#: .\conf.py:47
+msgid "is contained by"
+msgstr "περιέχεται σε"
+
+#: .\conf.py:48
+msgid "overlaps"
+msgstr "επικαλύπτεται"
+
+#: .\conf.py:49
+msgid "has key"
+msgstr "έχει το κλειδί"
+
+#: .\conf.py:50
+msgid "has keys"
+msgstr "έχει τα κλειδιά"
+
+#: .\conf.py:51
+msgid "has any keys"
+msgstr "έχει οποιαδήποτε κλειδιά"
+
+#: .\fields.py:178
+msgid "Range query expects two values."
+msgstr "Το ερώτημα εύρους απαιτεί δύο τιμές,"
+
+#: .\filters.py:429
+msgid "Any date"
+msgstr "Οποιαδήποτε ημερομηνία"
+
+#: .\filters.py:430
+msgid "Today"
+msgstr "Σήμερα"
+
+#: .\filters.py:435
+msgid "Past 7 days"
+msgstr "Τις προηγούμενες 7 ημέρες"
+
+#: .\filters.py:439
+msgid "This month"
+msgstr "Αυτό το μήνα"
+
+#: .\filters.py:443
+msgid "This year"
+msgstr "Αυτό το έτος"
+
+#: .\filters.py:446
+msgid "Yesterday"
+msgstr "Χτες"
+
+#: .\filters.py:512
+msgid "Multiple values may be separated by commas."
+msgstr "Οι πολλαπλές τιμές πρέπει να διαχωρίζονται με κόμμα."
+
+#: .\filters.py:591
+#, python-format
+msgid "%s (descending)"
+msgstr "%s (φθίνουσα"
+
+#: .\filters.py:607
+msgid "Ordering"
+msgstr "Ταξινόμηση"
+
+#: .\rest_framework\filterset.py:30
+#: .\templates\django_filters\rest_framework\form.html:5
+msgid "Submit"
+msgstr "Υποβολή"
+
+#: .\templates\django_filters\rest_framework\crispy_form.html:4
+#: .\templates\django_filters\rest_framework\form.html:2
+msgid "Field filters"
+msgstr "Φίλτρα πεδίων"
+
+#: .\utils.py:224
+msgid "exclude"
+msgstr "απέκλεισε"
+
+#: .\widgets.py:57
+msgid "All"
+msgstr "Όλα"
+
+#: .\widgets.py:159
+msgid "Unknown"
+msgstr "Άγνωστο"
+
+#: .\widgets.py:160
+msgid "Yes"
+msgstr "Ναι"
+
+#: .\widgets.py:161
+msgid "No"
+msgstr "Όχι"

@@ -1,0 +1,47 @@
+# Django Filter translation.
+# Copyright (C) 2013
+# This file is distributed under the same license as the django_filter package.
+# Gonzalo Bustos, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-05 19:24+0200\n"
+"PO-Revision-Date: 2015-10-11 20:53-0300\n"
+"Last-Translator: Gonzalo Bustos\n"
+"Language-Team: Spanish (Argentina)\n"
+"Language: es_AR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.6.10\n"
+
+#: filters.py:51
+msgid "This is an exclusion filter"
+msgstr "Este es un filtro de exclusión"
+
+#: filters.py:158
+msgid "Any date"
+msgstr "Cualquier fecha"
+
+#: filters.py:159
+msgid "Today"
+msgstr "Hoy"
+
+#: filters.py:164
+msgid "Past 7 days"
+msgstr "Últimos 7 días"
+
+#: filters.py:168
+msgid "This month"
+msgstr "Este mes"
+
+#: filters.py:172
+msgid "This year"
+msgstr "Este año"
+
+#: widgets.py:63
+msgid "All"
+msgstr "Todos"

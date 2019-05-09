@@ -1,0 +1,209 @@
+# Copyright (C) 2011-2016 Listed translators
+# This file is distributed under the same license as the django-mptt package.
+# Maxime Haineault, 2011
+# Claude Paroz, 2016
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: django-mptt master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-21 13:25-0500\n"
+"PO-Revision-Date: 2016-09-21 20:28+0200\n"
+"Last-Translator: Claude Paroz <claude@2xlibre.net>\n"
+"Language-Team: French <fr@li.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: mptt/admin.py:87
+#, python-format
+msgid "Successfully deleted %(count)d items."
+msgstr "%(count)d éléments on été supprimés avec succès"
+
+#: mptt/admin.py:100
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Supprimer les %(verbose_name_plural)s sélectionnées"
+
+#: mptt/admin.py:182
+msgid "title"
+msgstr "titre"
+
+#: mptt/admin.py:212
+msgid "Did not understand moving instruction."
+msgstr "L'instruction de déplacement n'a pas été comprise."
+
+#: mptt/admin.py:220
+msgid "Objects have disappeared, try again."
+msgstr "Les objets ont disparu, essayez encore."
+
+#: mptt/admin.py:224
+msgid "No permission"
+msgstr "Pas de permission"
+
+#: mptt/admin.py:233
+#, python-format
+msgid "Database error: %s"
+msgstr "Erreur de base de données : %s"
+
+#: mptt/admin.py:238
+#, python-format
+msgid "%s has been successfully moved."
+msgstr "%s a été déplacé avec succès."
+
+#: mptt/admin.py:249
+msgid "move node before node"
+msgstr "déplacer le nœud avant ce nœud"
+
+#: mptt/admin.py:250
+msgid "move node to child position"
+msgstr "déplacer le nœud à une sous-position"
+
+#: mptt/admin.py:251
+msgid "move node after node"
+msgstr "déplacer le nœud après ce nœud"
+
+#: mptt/admin.py:252
+msgid "Collapse tree"
+msgstr "Condenser l'arborescence"
+
+#: mptt/admin.py:253
+msgid "Expand tree"
+msgstr "Étendre l'arborescence"
+
+#: mptt/admin.py:364
+msgid "All"
+msgstr "Tout"
+
+#: mptt/forms.py:63
+msgid "First child"
+msgstr "Premier enfant"
+
+#: mptt/forms.py:64
+msgid "Last child"
+msgstr "Dernier enfant"
+
+#: mptt/forms.py:65
+msgid "Left sibling"
+msgstr "Voisin de gauche"
+
+#: mptt/forms.py:66
+msgid "Right sibling"
+msgstr "Voisin de droite"
+
+#: mptt/forms.py:184
+msgid "Invalid parent"
+msgstr "Parent non valide"
+
+#: mptt/managers.py:521
+msgid "Cannot insert a node which has already been saved."
+msgstr "Impossible d'insérer un nœud qui a déjà été enregistré."
+
+#: mptt/managers.py:739 mptt/managers.py:912 mptt/managers.py:948
+#: mptt/managers.py:1114
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "Une position non valide a été fournie : %s."
+
+#: mptt/managers.py:898 mptt/managers.py:1094
+msgid "A node may not be made a sibling of itself."
+msgstr "Un nœud ne peut être voisin de lui-même."
+
+#: mptt/managers.py:1073 mptt/managers.py:1199
+msgid "A node may not be made a child of itself."
+msgstr "Un nœud ne peut être son propre enfant."
+
+#: mptt/managers.py:1075 mptt/managers.py:1201
+msgid "A node may not be made a child of any of its descendants."
+msgstr "Un nœud ne peut être l'enfant d'aucun de ses descendants."
+
+#: mptt/managers.py:1096
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "Un nœud ne peut être voisin avec aucun de ses descendants."
+
+#: mptt/models.py:292
+msgid "register() expects a Django model class argument"
+msgstr "register() s'attend à un paramètre de classe de modèle Django"
+
+#: mptt/templates/admin/mptt_filter.html:3
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " Par %(filter_title)s "
+
+#: mptt/templatetags/mptt_tags.py:31
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "la balise full_tree_for_model a reçu un modèle non valide : %s"
+
+#: mptt/templatetags/mptt_tags.py:55
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "la balise drilldown_tree_for_node a reçu un modèle non valide : %s"
+
+#: mptt/templatetags/mptt_tags.py:62
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr ""
+"la balise drilldown_tree_for_node a reçu un champ de modèle non valide : %s"
+
+#: mptt/templatetags/mptt_tags.py:89
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "la balise %s requiert trois paramètres"
+
+#: mptt/templatetags/mptt_tags.py:91 mptt/templatetags/mptt_tags.py:146
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "le second paramètre de la balise %s doit être « as »"
+
+#: mptt/templatetags/mptt_tags.py:143
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "la balise %s requiert trois, sept ou huit paramètres"
+
+#: mptt/templatetags/mptt_tags.py:150
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr ""
+"si sept paramètres sont fournis, le quatrième paramètre de la balise %s doit "
+"être « with »"
+
+#: mptt/templatetags/mptt_tags.py:154
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr ""
+"si sept paramètres sont fournis, le sixième paramètre de la balise %s doit "
+"être « in »"
+
+#: mptt/templatetags/mptt_tags.py:160
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr ""
+"si huit paramètres sont fournis, le quatrième paramètre de la balise %s doit "
+"être « cumulative »"
+
+#: mptt/templatetags/mptt_tags.py:164
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr ""
+"si huit paramètres sont fournis, le cinquième paramètre de la balise %s doit "
+"être « count »"
+
+#: mptt/templatetags/mptt_tags.py:168
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr ""
+"si huit paramètres sont fournis, le septième paramètre de la balise %s doit "
+"être « in »"
+
+#: mptt/templatetags/mptt_tags.py:287
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "la balise %s requiert un « queryset »"
+
+#: mptt/utils.py:240
+#, python-format
+msgid "Node %s not in depth-first order"
+msgstr "Le nœud %s n'est pas dans l'ordre de profondeur d'abord"

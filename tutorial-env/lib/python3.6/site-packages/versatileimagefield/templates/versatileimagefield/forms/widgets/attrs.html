@@ -1,0 +1,2 @@
+{# This is the same as Django 1.11's version of the attrs template, without using `is` and `is not` for comparison #}
+{% for name, value in widget.attrs.items %}{% if value != False %} {{ name }}{% if value != True %}="{{ value }}"{% endif %}{% endif %}{% endfor %}

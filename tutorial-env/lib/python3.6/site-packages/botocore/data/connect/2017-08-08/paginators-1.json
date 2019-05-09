@@ -1,0 +1,34 @@
+{
+  "pagination": {
+    "GetMetricData": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "MetricResults"
+    },
+    "ListRoutingProfiles": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "RoutingProfileSummaryList"
+    },
+    "ListSecurityProfiles": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "SecurityProfileSummaryList"
+    },
+    "ListUserHierarchyGroups": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "UserHierarchyGroupSummaryList"
+    },
+    "ListUsers": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "UserSummaryList"
+    }
+  }
+}

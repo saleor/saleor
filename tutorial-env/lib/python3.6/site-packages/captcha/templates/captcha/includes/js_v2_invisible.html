@@ -1,0 +1,19 @@
+{# The provided implementation caters for only one reCAPTCHA on a page. Override this template and its logic as needed. #}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script type="text/javascript">
+    // Submit function to be called, after reCAPTCHA was successful.
+    var onSubmit = function(token) {
+        document.querySelector('.g-recaptcha').closest('form').submit();
+    };
+
+    // Helper function to prevent form submission and execute verification.
+    var verifyCaptcha = function(e) {
+        e.preventDefault();
+        grecaptcha.execute();
+    };
+
+    // Bind the helper function to the form submit action.
+    document.addEventListener( 'DOMContentLoaded', function () {
+        document.querySelector('.g-recaptcha').closest('form').addEventListener("submit", verifyCaptcha);
+    });
+</script>

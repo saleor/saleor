@@ -1,0 +1,2 @@
+class HeaderNotSupportedException(Exception):
+    pass

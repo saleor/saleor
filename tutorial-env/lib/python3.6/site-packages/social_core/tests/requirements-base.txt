@@ -1,0 +1,4 @@
+httpretty==0.6.5
+coverage>=3.6
+nose>=1.2.1
+rednose>=0.4.1

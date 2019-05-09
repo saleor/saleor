@@ -1,0 +1,28 @@
+Metadata-Version: 2.0
+Name: Rx
+Version: 1.6.1
+Summary: Reactive Extensions (Rx) for Python
+Home-page: http://reactivex.io
+Author: Dag Brattli
+Author-email: dag@brattli.net
+License: Apache License
+Download-URL: https://github.com/ReactiveX/RxPY
+Description-Content-Type: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Other Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Programming Language :: Python :: Implementation :: IronPython
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+
+is a library for composing asynchronous and event-based programs using observable collections and LINQ-style query operators in Python.
+
+

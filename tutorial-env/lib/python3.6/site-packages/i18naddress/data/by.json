@@ -1,0 +1,1 @@
+{"BY": {"fmt": "%S%n%Z %C%n%A%n%O%n%N", "id": "data/BY", "key": "BY", "name": "BELARUS", "posturl": "http://ex.belpost.by/addressbook/", "zip": "\\d{6}", "zipex": "223016,225860,220050"}}

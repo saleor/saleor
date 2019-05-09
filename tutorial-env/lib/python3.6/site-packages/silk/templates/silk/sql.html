@@ -1,0 +1,165 @@
+{% extends 'silk/base/base.html' %}
+
+{% load silk_nav %}
+{% load silk_filters %}
+{% load staticfiles %}
+{% load silk_inclusion %}
+
+{% block js %}
+  <script type="text/javascript" src="{% static 'silk/lib/sortable.js' %}"></script>
+  {{ block.super }}
+  <script>
+      function openInNewTab(url) {
+          var win = window.open(url, '_blank');
+          win.focus();
+      }
+  </script>
+{% endblock %}
+
+
+{% block style %}
+    <style>
+        .right-aligned {
+            text-align: right;
+
+        }
+
+        .center-aligned {
+            text-align: center;
+
+        }
+
+        .left-aligned {
+            text-align: left;
+        }
+
+        #table-pagination {
+            text-align: center;
+            margin: 20px;
+        }
+
+        table {
+            border-spacing: 0;
+            margin: auto;
+            max-width: 920px;
+        }
+
+        tr {
+            height: 20px;
+        }
+
+        tr.data-row:hover {
+            background-color: rgb(51, 51, 68);
+            color: white;
+            cursor: pointer;
+        }
+
+        td {
+            padding: 5px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        th {
+            height: 40px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        #table-div {
+            width: 100%;
+            margin-top: 40px;
+        }
+
+        #table-pagination div {
+            padding: 5px;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'silk/css/colors.css' %}">
+    <link rel="stylesheet" href="{% static 'silk/css/numeric.css' %}">
+    <link rel="stylesheet" href="{% static 'silk/css/summary.css' %}">
+    <link rel="stylesheet" href="{% static 'silk/css/cell.css' %}">
+{% endblock %}
+
+{% block menu %}
+    {% if profile %}
+        {% profile_menu request profile silk_request %}
+    {% elif silk_request %}
+        {% request_menu request silk_request %}
+    {% endif %}
+{% endblock %}
+
+
+{% block data %}
+    {{ block.super }}
+    <div class="wrapper">
+        {% if profile or silk_request %}
+            <div id="query-div">
+            <div id="query-info-div">
+        {% endif %}
+        {% if profile %}
+            {% profile_summary profile %}
+        {% endif %}
+        {% if silk_request %}
+            {% request_summary silk_request %}
+        {% endif %}
+        {% if profile or silk_request %}
+            </div>
+            </div>
+        {% endif %}
+        <div id="table-div">
+
+            <table class="sortable">
+                <tr>
+                    <th class="left-aligned">At</th>
+                    <th class="left-aligned">Tables</th>
+                    <th class="right-aligned">Num. Joins</th>
+                    <th class="right-aligned">Execution Time (ms)</th>
+                </tr>
+                {% for sql_query in items %}
+                    <!-- TODO: Pretty grimy... -->
+                    <tr class="data-row" onclick="openInNewTab(' \
+                       {% if profile and silk_request %}\
+                           {% url "silk:request_and_profile_sql_detail" silk_request.id profile.id sql_query.id %}\
+                       {% elif profile %}\
+                           {% url "silk:profile_sql_detail" profile.id sql_query.id %}\
+                       {% elif silk_request %}\
+                           {% url "silk:request_sql_detail" silk_request.id sql_query.id %}\
+                       {% endif %}\
+                        ');">
+                        <td class="left-aligned">+{{ sql_query.start_time_relative }}</td>
+                        <td class="left-aligned">{{ sql_query.tables_involved|join:", " }}</td>
+                        <td class="right-aligned">{{ sql_query.num_joins }}</td>
+                        <td class="right-aligned">{{ sql_query.time_taken | floatformat:6 }}</td>
+                    </tr>
+                {% endfor %}
+
+            </table>
+
+            <div id="table-pagination" class="pagination">
+                <div class="current">
+                    Page {{ items.number }} of {{ items.paginator.num_pages }}.
+                </div>
+
+                <div class="step-links">
+                    {% if items.has_previous %}
+                        <a href="?page={{ items.previous_page_number }}">previous</a>
+                    {% else %}
+                        previous
+                    {% endif %}
+                    |
+                    {% if items.has_next %}
+                        <a href="?page={{ items.next_page_number }}">next</a>
+                    {% else %}
+                        next
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+{% endblock %}

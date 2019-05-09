@@ -1,0 +1,23 @@
+Metadata-Version: 2.1
+Name: braintree
+Version: 3.49.0
+Summary: Braintree Python Library
+Home-page: https://developers.braintreepayments.com/python/sdk/server/overview
+Author: Braintree
+Author-email: support@braintreepayments.com
+License: MIT
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Requires-Dist: requests (<3.0,>=0.11.1)
+
+The Braintree Python SDK provides integration access to the Braintree Gateway.
+
+1. https://github.com/braintree/braintree_python - README and Samples
+2. https://developers.braintreepayments.com/python/sdk/server/overview - API Reference
+
+

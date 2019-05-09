@@ -1,0 +1,3 @@
+[console_scripts]
+isympy = isympy:main
+

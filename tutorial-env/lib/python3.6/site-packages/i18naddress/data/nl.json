@@ -1,0 +1,1 @@
+{"NL": {"fmt": "%O%n%N%n%A%n%Z %C", "id": "data/NL", "key": "NL", "name": "NETHERLANDS", "posturl": "http://www.postnl.nl/voorthuis/", "require": "ACZ", "zip": "\\d{4} ?[A-Z]{2}", "zipex": "1234 AB,2490 AA"}}

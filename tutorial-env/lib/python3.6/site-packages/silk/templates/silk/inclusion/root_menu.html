@@ -1,0 +1,23 @@
+{% load silk_nav %}
+<div class="menu-item selectable-menu-item {% navactive request 'silk:summary' %}">
+    <a href="{% url "silk:summary" %}">
+        <div class="menu-item-outer">
+            <div class="menu-item-inner">Summary</div>
+        </div>
+    </a>
+</div>
+<div class="menu-item selectable-menu-item {% navactive request 'silk:requests' %}">
+    <a href="{% url "silk:requests" %}">
+        <div class="menu-item-outer">
+            <div class="menu-item-inner">Requests</div>
+        </div>
+    </a>
+</div>
+<div class="menu-item selectable-menu-item {% navactive request 'silk:profiling' %}">
+    <a href="{% url "silk:profiling" %}">
+        <div class="menu-item-outer">
+            <div class="menu-item-inner">Profiling</div>
+        </div>
+    </a>
+</div>
+

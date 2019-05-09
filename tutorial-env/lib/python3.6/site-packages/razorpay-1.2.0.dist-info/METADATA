@@ -1,0 +1,27 @@
+Metadata-Version: 2.1
+Name: razorpay
+Version: 1.2.0
+Summary: Razorpay Python Client
+Home-page: https://github.com/razorpay/razorpay-python
+Author: Team Razorpay
+Author-email: UNKNOWN
+License: MIT
+Keywords: razorpay payment gateway india
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Dist: requests
+
+UNKNOWN
+
+

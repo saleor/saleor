@@ -1,0 +1,194 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-11-21 15:26+0100\n"
+"PO-Revision-Date: 2016-11-21 15:26+0100\n"
+"Last-Translator: Istvan Farkas <istvan.farkas@gmail.com>\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\admin.py:88
+#, python-format
+msgid "Successfully deleted %(count)d items."
+msgstr "%(count)d elem sikeresen törölve."
+
+#: .\admin.py:101
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Kiválasztott %(verbose_name_plural)s törlése"
+
+#: .\admin.py:183
+msgid "title"
+msgstr "cím"
+
+#: .\admin.py:213
+msgid "Did not understand moving instruction."
+msgstr "Nem lehetett értelmezni a mozgatási instrukciókat."
+
+#: .\admin.py:221
+msgid "Objects have disappeared, try again."
+msgstr "Objektumok eltűntek menet közben, kérjük próbálja újra."
+
+#: .\admin.py:225
+msgid "No permission"
+msgstr "Nincs jogosultság"
+
+#: .\admin.py:234
+#, python-format
+msgid "Database error: %s"
+msgstr "Adatbázis hiba: %s"
+
+#: .\admin.py:239
+#, python-format
+msgid "%s has been successfully moved."
+msgstr "%s sikeresen átmozgatva."
+
+#: .\admin.py:250
+msgid "move node before node"
+msgstr "elem mozgatása a másik elem elé"
+
+#: .\admin.py:251
+msgid "move node to child position"
+msgstr "elem mozgatása gyermek pozícióba"
+
+#: .\admin.py:252
+msgid "move node after node"
+msgstr "elem mozgatása a másik elem mögé"
+
+#: .\admin.py:253
+msgid "Collapse tree"
+msgstr "Fa összecsukása"
+
+#: .\admin.py:254
+msgid "Expand tree"
+msgstr "Fa kinyitása"
+
+#: .\admin.py:365
+msgid "All"
+msgstr "Mind"
+
+#: .\forms.py:63
+msgid "First child"
+msgstr "Első gyermek"
+
+#: .\forms.py:64
+msgid "Last child"
+msgstr "Utolsó gyermek"
+
+#: .\forms.py:65
+msgid "Left sibling"
+msgstr "Bal oldali testvér"
+
+#: .\forms.py:66
+msgid "Right sibling"
+msgstr "Jobb oldali testvér"
+
+#: .\forms.py:184
+msgid "Invalid parent"
+msgstr "Érvénytelen szülő"
+
+#: .\managers.py:522
+msgid "Cannot insert a node which has already been saved."
+msgstr "Nem lehet beilleszteni olyan elemt, amely már el van mentve."
+
+#: .\managers.py:740 .\managers.py:913 .\managers.py:949 .\managers.py:1115
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "Érvénytelen pozíció: %s."
+
+#: .\managers.py:899 .\managers.py:1095
+msgid "A node may not be made a sibling of itself."
+msgstr "Egy elem nem lehet a saját maga testvére."
+
+#: .\managers.py:1074 .\managers.py:1200
+msgid "A node may not be made a child of itself."
+msgstr "Egy elem nem lehet a saját maga gyermeke."
+
+#: .\managers.py:1076 .\managers.py:1202
+msgid "A node may not be made a child of any of its descendants."
+msgstr "Egy elem nem lehet a saját leszármazottainak gyermeke."
+
+#: .\managers.py:1097
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "Egy elem nem lehet a saját leszármazottainak testvére."
+
+#: .\models.py:293
+msgid "register() expects a Django model class argument"
+msgstr "A register() eljárás egy Django modell osztályt vár paraméterként"
+
+#: .\templates\admin\mptt_filter.html:3
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " %(filter_title)s alapján "
+
+#: .\templatetags\mptt_tags.py:31
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "a full_tree_for_model tag érvénytelen modell paramétert kapott: %s"
+
+#: .\templatetags\mptt_tags.py:55
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "a drilldown_tree_for_node tag érvénytelen modellt kapott: %s"
+
+#: .\templatetags\mptt_tags.py:62
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "a drilldown_tree_for_node tag érvénytelen modell mezőt kapott: %s"
+
+#: .\templatetags\mptt_tags.py:89
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "a %s tag három paramétert vár"
+
+#: .\templatetags\mptt_tags.py:91 .\templatetags\mptt_tags.py:146
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "A %s tag második paramétere 'as' szó kell, hogy legyen"
+
+#: .\templatetags\mptt_tags.py:143
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "a %s tag vagy három, hét, vagy nyolc paramétert vár"
+
+#: .\templatetags\mptt_tags.py:150
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr "ha hét paraméter van megadva, a %s tag negyedik paramétere 'with' kell, hogy legyen"
+
+#: .\templatetags\mptt_tags.py:154
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr "ha hét paraméter van megadva, a %s tag hatodik paramétere 'in' kell, hogy legyen"
+
+#: .\templatetags\mptt_tags.py:160
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr ""
+"ha nyolc paraméter van megadva, a %s tag negyedik paramétere 'cumulative' kell, hogy legyen"
+
+#: .\templatetags\mptt_tags.py:164
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr "ha nyolc paraméter van megadva, a %s tag ötödik paramétere 'count' kell, hogy legyen"
+
+#: .\templatetags\mptt_tags.py:168
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr "ha nyolc paraméter van megadva, a %s tag hetedik paramétere 'in' kell, hogy legyen"
+
+#: .\templatetags\mptt_tags.py:287
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "a %s tagnek queryset kell"
+
+#: .\utils.py:240
+#, python-format
+msgid "Node %s not in depth-first order"
+msgstr "A(z) %s elem mélység sorrendben van"

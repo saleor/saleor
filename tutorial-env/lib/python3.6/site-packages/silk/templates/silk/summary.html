@@ -1,0 +1,211 @@
+{% extends 'silk/base/root_base.html' %}
+{% load silk_inclusion %}
+{% load staticfiles %}
+{% block menu %}
+    {% root_menu request %}
+{% endblock %}
+
+{% block style %}
+    {{ block.super }}
+    <style>
+        .wrapper {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .inner {
+            margin: auto;
+            width: 960px;
+        }
+
+        .summary-cell {
+            display: inline-block;
+            text-align: center;
+            padding: 10px;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        .summary-cell .desc {
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .no-data {
+            font-size: 12px;
+            font-style: oblique;
+            margin-left: 10px;
+        }
+
+        h2 {
+            margin-bottom: 0;;
+        }
+
+        #filters {
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        #filters input,
+        #filters span {
+            color: black !important;
+            font-weight: bold;
+        }
+
+        #filter-image {
+            width: 20px;
+        }
+
+        #filter-cell {
+            padding-left: 5px;
+        }
+
+
+    </style>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script>
+
+
+        $(document).ready(function () {
+            initFilters();
+            var $inputs = $('.resizing-input');
+            $inputs.focusout(function () {
+                $('#filter-form').submit();
+            });
+        });
+
+    </script>
+{% endblock %}
+{% block data %}
+    <div class="wrapper">
+        <div class="inner">
+            <div id="filters">
+                <form action="." name="filter-form" id="filter-form" method="post">
+                    {% csrf_token %}
+                </form>
+                <table id="filter-table">
+                    <tr>
+                        <td>
+                            <img id="filter-image" src="{% static 'silk/filter2.png' %}">
+
+                        </td>
+                        <td id="filter-cell">
+                            <div class="resizing-input">
+                                Using requests that executed
+                                <input form="filter-form"
+                                       class="typ"
+                                       type="hidden"
+                                       value="SecondsFilter"
+                                       name="filter-seconds-typ">
+                                <input type="text"
+                                       placeholder="seconds"
+                                       form="filter-form"
+                                       name="filter-seconds-value"
+                                       value="{{ filters.seconds.value }}"
+                                        >
+                                seconds ago,
+                                <span style="display:none"></span>
+                            </div>
+                            <div class="resizing-input">
+                                before
+                                <input form="filter-form"
+                                       class="typ"
+                                       type="hidden"
+                                       value="BeforeDateFilter"
+                                       name="filter-beforedate-typ">
+                                <input class="datetimepicker"
+                                       type="text"
+                                       placeholder="date"
+                                       form="filter-form"
+                                       name="filter-beforedate-value"
+                                       value="{{ filters.beforedate.value }}"
+                                        />,
+                                <span style="display:none"></span>
+                            </div>
+                            <div class="resizing-input">
+                                and after
+                                <input form="filter-form"
+                                       class="typ"
+                                       type="hidden"
+                                       value="AfterDateFilter"
+                                       name="filter-afterdate-typ">
+                                <input class="datetimepicker"
+                                       type="text"
+                                       placeholder="date"
+                                       form="filter-form"
+                                       name="filter-afterdate-value"
+                                       value="{{ filters.afterdate.value }}"
+                                        >.
+                                <span style="display:none"></span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+            <h2>Summary</h2>
+            {% if num_requests %}
+                <div class="summary-cell">
+                    <div class="num"><span class="numeric">{{ num_requests }}</span></div>
+                    <div class="desc">Requests</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="num"><span class="numeric">{{ num_profiles }}</span></div>
+                    <div class="desc">Profiles</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="num"><span class="numeric">{{ avg_overall_time | floatformat:0 }}<span class="unit">ms</span></span></div>
+                    <div class="desc">Avg. Time</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="num"><span class="numeric">{{ avg_num_queries | floatformat:2 }}</span></div>
+                    <div class="desc">Avg. #Queries</div>
+                </div>
+                <div class="summary-cell">
+                    <div class="num"><span class="numeric">{{ avg_time_spent_on_queries |floatformat:0 }}<span class="unit">ms</span></span></div>
+                    <div class="desc">Avg. DB Time</div>
+                </div>
+            {% else %}
+                <p class="no-data">No data</p>
+            {% endif %}
+            <h2>Most Time Overall</h2>
+            {% if longest_queries_by_view %}
+                {% for x in longest_queries_by_view %}
+                    <a href="{% url "silk:request_detail" request_id=x.pk %}">
+                        {% request_summary x %}
+                    </a>
+                {% endfor %}
+            {% else %}
+                <p class="no-data">No data</p>
+            {% endif %}
+            <h2>Most Time Spent in Database</h2>
+            {% if most_time_spent_in_db %}
+                {% for x in most_time_spent_in_db %}
+                    <a href="{% url "silk:request_detail" request_id=x.pk %}">
+                        {% request_summary x %}
+                    </a>
+                {% endfor %}
+            {% else %}
+                <p class="no-data">No data</p>
+            {% endif %}
+            <h2>Most Database Queries</h2>
+            {% if most_queries %}
+                {% for x in most_queries %}
+                    <a href="{% url "silk:request_detail" request_id=x.pk %}">
+                        {% request_summary x %}
+                    </a>
+                {% endfor %}
+            {% else %}
+                <p class="no-data">No data</p>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{# Hide filter hamburger menu #}
+{% block top %}{% endblock %}
+{% block filter %}{% endblock %}

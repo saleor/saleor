@@ -1,0 +1,413 @@
+Metadata-Version: 2.0
+Name: aniso8601
+Version: 3.0.2
+Summary: A library for parsing ISO 8601 strings.
+Home-page: https://bitbucket.org/nielsenb/aniso8601
+Author: Brandon Nielsen
+Author-email: nielsenb@jetfuse.net
+License: UNKNOWN
+Project-URL: Source, https://bitbucket.org/nielsenb/aniso8601
+Project-URL: Documentation, http://aniso8601.readthedocs.io/en/latest/
+Project-URL: Tracker, https://bitbucket.org/nielsenb/aniso8601/issues
+Keywords: iso8601 parser
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Provides-Extra: relative
+Provides-Extra: relative
+Requires-Dist: python-dateutil; extra == 'relative'
+
+===========
+ aniso8601
+===========
+
+----------------------------------
+Another ISO 8601 parser for Python
+----------------------------------
+
+Features
+========
+* Pure Python implementation
+* Python 3 support
+* Logical behavior
+
+  - Parse a time, get a `datetime.time <http://docs.python.org/2/library/datetime.html#datetime.time>`_
+  - Parse a date, get a `datetime.date <http://docs.python.org/2/library/datetime.html#datetime.date>`_
+  - Parse a datetime, get a `datetime.datetime <http://docs.python.org/2/library/datetime.html#datetime.datetime>`_
+  - Parse a duration, get a `datetime.timedelta <http://docs.python.org/2/library/datetime.html#datetime.timedelta>`_
+  - Parse an interval, get a tuple of dates or datetimes
+  - Parse a repeating interval, get a date or datetime `generator <http://www.python.org/dev/peps/pep-0255/>`_
+
+* UTC offset represented as fixed-offset tzinfo
+* Optional `dateutil.relativedelta <http://dateutil.readthedocs.io/en/latest/relativedelta.html>`_ support for calendar accuracy
+* No regular expressions
+
+Installation
+============
+
+The recommended installation method is to use pip::
+
+  $ pip install aniso8601
+
+Alternatively, you can download the source (git repository hosted at `Bitbucket <https://bitbucket.org/nielsenb/aniso8601>`_) and install directly::
+
+  $ python setup.py install
+
+Use
+===
+
+Parsing datetimes
+-----------------
+
+To parse a typical ISO 8601 datetime string::
+
+  >>> import aniso8601
+  >>> aniso8601.parse_datetime('1977-06-10T12:00:00Z')
+  datetime.datetime(1977, 6, 10, 12, 0, tzinfo=+0:00:00 UTC)
+
+Alternative delimiters can be specified, for example, a space::
+
+  >>> aniso8601.parse_datetime('1977-06-10 12:00:00Z', delimiter=' ')
+  datetime.datetime(1977, 6, 10, 12, 0, tzinfo=+0:00:00 UTC)
+
+UTC offsets are supported::
+
+  >>> aniso8601.parse_datetime('1979-06-05T08:00:00-08:00')
+  datetime.datetime(1979, 6, 5, 8, 0, tzinfo=-8:00:00 UTC)
+
+If a UTC offset is not specified, the returned datetime will be naive::
+
+  >>> aniso8601.parse_datetime('1983-01-22T08:00:00')
+  datetime.datetime(1983, 1, 22, 8, 0)
+
+Leap seconds are currently not supported and attempting to parse one raises a :code:`LeapSecondError`::
+
+  >>> aniso8601.parse_datetime('2018-03-06T23:59:60')
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "aniso8601/time.py", line 127, in parse_datetime
+      timepart = parse_time(isotimestr)
+    File "aniso8601/time.py", line 110, in parse_time
+      return _parse_time_naive(timestr)
+    File "aniso8601/time.py", line 140, in _parse_time_naive
+      return _RESOLUTION_MAP[get_time_resolution(timestr)](timestr)
+    File "aniso8601/time.py", line 214, in _parse_second_time
+      raise LeapSecondError('Leap seconds are not supported.')
+  aniso8601.exceptions.LeapSecondError: Leap seconds are not supported.
+
+Parsing dates
+-------------
+
+To parse a date represented in an ISO 8601 string::
+
+  >>> import aniso8601
+  >>> aniso8601.parse_date('1984-04-23')
+  datetime.date(1984, 4, 23)
+
+Basic format is supported as well::
+
+  >>> aniso8601.parse_date('19840423')
+  datetime.date(1984, 4, 23)
+
+To parse a date using the ISO 8601 week date format::
+
+  >>> aniso8601.parse_date('1986-W38-1')
+  datetime.date(1986, 9, 15)
+
+To parse an ISO 8601 ordinal date::
+
+  >>> aniso8601.parse_date('1988-132')
+  datetime.date(1988, 5, 11)
+
+Parsing times
+-------------
+
+To parse a time formatted as an ISO 8601 string::
+
+  >>> import aniso8601
+  >>> aniso8601.parse_time('11:31:14')
+  datetime.time(11, 31, 14)
+
+As with all of the above, basic format is supported::
+
+  >>> aniso8601.parse_time('113114')
+  datetime.time(11, 31, 14)
+
+A UTC offset can be specified for times::
+
+  >>> aniso8601.parse_time('17:18:19-02:30')
+  datetime.time(17, 18, 19, tzinfo=-2:30:00 UTC)
+  >>> aniso8601.parse_time('171819Z')
+  datetime.time(17, 18, 19, tzinfo=+0:00:00 UTC)
+
+Reduced accuracy is supported::
+
+  >>> aniso8601.parse_time('21:42')
+  datetime.time(21, 42)
+  >>> aniso8601.parse_time('22')
+  datetime.time(22, 0)
+
+A decimal fraction is always allowed on the lowest order element of an ISO 8601 formatted time::
+
+  >>> aniso8601.parse_time('22:33.5')
+  datetime.time(22, 33, 30)
+  >>> aniso8601.parse_time('23.75')
+  datetime.time(23, 45)
+
+Leap seconds are currently not supported and attempting to parse one raises a :code:`LeapSecondError`::
+
+  >>> aniso8601.parse_time('23:59:60')
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "aniso8601/time.py", line 110, in parse_time
+      return _parse_time_naive(timestr)
+    File "aniso8601/time.py", line 140, in _parse_time_naive
+      return _RESOLUTION_MAP[get_time_resolution(timestr)](timestr)
+    File "aniso8601/time.py", line 214, in _parse_second_time
+      raise LeapSecondError('Leap seconds are not supported.')
+  aniso8601.exceptions.LeapSecondError: Leap seconds are not supported.
+
+Parsing durations
+-----------------
+
+To parse a duration formatted as an ISO 8601 string::
+
+  >>> import aniso8601
+  >>> aniso8601.parse_duration('P1Y2M3DT4H54M6S')
+  datetime.timedelta(428, 17646)
+
+Reduced accuracy is supported::
+
+  >>> aniso8601.parse_duration('P1Y')
+  datetime.timedelta(365)
+
+A decimal fraction is allowed on the lowest order element::
+
+  >>> aniso8601.parse_duration('P1YT3.5M')
+  datetime.timedelta(365, 210)
+
+The decimal fraction can be specified with a comma instead of a full-stop::
+
+  >>> aniso8601.parse_duration('P1YT3,5M')
+  datetime.timedelta(365, 210)
+
+Parsing a duration from a combined date and time is supported as well::
+
+  >>> aniso8601.parse_duration('P0001-01-02T01:30:5')
+  datetime.timedelta(397, 5405)
+
+The above treat years as 365 days and months as 30 days. If calendar level accuracy is required, the relative keyword argument can be used if `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ is installed::
+
+  >>> import aniso8601
+  >>> from datetime import date
+  >>> one_month = aniso8601.parse_duration('P1M', relative=True)
+  >>> print one_month
+  relativedelta(months=+1)
+  >>> date(2003,1,27) + one_month
+  datetime.date(2003, 2, 27)
+  >>> date(2003,1,31) + one_month
+  datetime.date(2003, 2, 28)
+  >>> date(2003,1,31) + two_months
+  datetime.date(2003, 3, 31)
+
+Since a relative fractional month or year is not logical, a :code:`RelativeValueError` is raised when attempting to parse a duration with :code:`relative=True` and fractional month or year::
+
+  >>> aniso8601.parse_duration('P2.1Y', relative=True)
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "aniso8601/duration.py", line 29, in parse_duration
+      return _parse_duration_prescribed(isodurationstr, relative)
+    File "aniso8601/duration.py", line 73, in _parse_duration_prescribed
+      raise RelativeValueError('Fractional months and years are not defined for relative intervals.')
+  aniso8601.exceptions.RelativeValueError: Fractional months and years are not defined for relative intervals.
+
+If :code:`relative=True` is set without python-dateutil available, a :code:`RuntimeError` is raised::
+
+  >>> aniso8601.parse_duration('P1M', relative=True)
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "aniso8601/duration.py", line 29, in parse_duration
+      return _parse_duration_prescribed(isodurationstr, relative)
+    File "aniso8601/duration.py", line 77, in _parse_duration_prescribed
+      raise RuntimeError('dateutil must be installed for relative duration support.')
+  RuntimeError: dateutil must be installed for relative duration support
+
+Parsing intervals
+-----------------
+
+To parse an interval specified by a start and end::
+
+  >>> import aniso8601
+  >>> aniso8601.parse_interval('2007-03-01T13:00:00/2008-05-11T15:30:00')
+  (datetime.datetime(2007, 3, 1, 13, 0), datetime.datetime(2008, 5, 11, 15, 30))
+
+Intervals specified by a start time and a duration are supported::
+
+  >>> aniso8601.parse_interval('2007-03-01T13:00:00Z/P1Y2M10DT2H30M')
+  (datetime.datetime(2007, 3, 1, 13, 0, tzinfo=+0:00:00 UTC), datetime.datetime(2008, 5, 9, 15, 30, tzinfo=+0:00:00 UTC))
+
+A duration can also be specified by a duration and end time::
+
+  >>> aniso8601.parse_interval('P1M/1981-04-05')
+  (datetime.date(1981, 4, 5), datetime.date(1981, 3, 6))
+
+Notice that the result of the above parse is not in order from earliest to latest. If sorted intervals are required, simply use the :code:`sorted` keyword as shown below::
+
+  >>> sorted(aniso8601.parse_interval('P1M/1981-04-05'))
+  [datetime.date(1981, 3, 6), datetime.date(1981, 4, 5)]
+
+The end of an interval is given as a datetime when required to maintain the resolution specified by a duration, even if the duration start is given as a date::
+
+  >>> aniso8601.parse_interval('2014-11-12/PT4H54M6.5S')
+  (datetime.date(2014, 11, 12), datetime.datetime(2014, 11, 12, 4, 54, 6, 500000))
+
+Repeating intervals are supported as well, and return a generator::
+
+  >>> aniso8601.parse_repeating_interval('R3/1981-04-05/P1D')
+  <generator object date_generator at 0x7f698cdefc80>
+  >>> list(aniso8601.parse_repeating_interval('R3/1981-04-05/P1D'))
+  [datetime.date(1981, 4, 5), datetime.date(1981, 4, 6), datetime.date(1981, 4, 7)]
+
+Repeating intervals are allowed to go in the reverse direction::
+
+  >>> list(aniso8601.parse_repeating_interval('R2/PT1H2M/1980-03-05T01:01:00'))
+  [datetime.datetime(1980, 3, 5, 1, 1), datetime.datetime(1980, 3, 4, 23, 59)]
+
+Unbounded intervals are also allowed (Python 2)::
+
+  >>> result = aniso8601.parse_repeating_interval('R/PT1H2M/1980-03-05T01:01:00')
+  >>> result.next()
+  datetime.datetime(1980, 3, 5, 1, 1)
+  >>> result.next()
+  datetime.datetime(1980, 3, 4, 23, 59)
+
+or for Python 3::
+
+  >>> result = aniso8601.parse_repeating_interval('R/PT1H2M/1980-03-05T01:01:00')
+  >>> next(result)
+  datetime.datetime(1980, 3, 5, 1, 1)
+  >>> next(result)
+  datetime.datetime(1980, 3, 4, 23, 59)
+
+Note that you should never try to convert a generator produced by an unbounded interval to a list::
+
+  >>> list(aniso8601.parse_repeating_interval('R/PT1H2M/1980-03-05T01:01:00'))
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "aniso8601/interval.py", line 161, in _date_generator_unbounded
+      currentdate += timedelta
+  OverflowError: date value out of range
+
+The above treat years as 365 days and months as 30 days. If calendar level accuracy is required, the relative keyword argument can be used if `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ is installed::
+
+  >>> aniso8601.parse_interval('2003-01-27/P1M', relative=True)
+  (datetime.date(2003, 1, 27), datetime.date(2003, 2, 27))
+  >>> aniso8601.parse_interval('2003-01-31/P1M', relative=True)
+  (datetime.date(2003, 1, 31), datetime.date(2003, 2, 28))
+  >>> aniso8601.parse_interval('P1Y/2001-02-28', relative=True)
+  (datetime.date(2001, 2, 28), datetime.date(2000, 2, 28)
+
+Fractional years and months do not make sense for relative intervals. A :code:`RelativeValueError` is raised when attempting to parse an interval with :code:`relative=True` and a fractional month or year::
+
+  >>> aniso8601.parse_interval('P1.1Y/2001-02-28', relative=True)
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "aniso8601/interval.py", line 37, in parse_interval
+      interval_parts = _parse_interval_parts(isointervalstr, intervaldelimiter, datetimedelimiter, relative)
+    File "aniso8601/interval.py", line 89, in _parse_interval_parts
+      duration = parse_duration(firstpart, relative=relative)
+    File "aniso8601/duration.py", line 29, in parse_duration
+      return _parse_duration_prescribed(isodurationstr, relative)
+    File "aniso8601/duration.py", line 73, in _parse_duration_prescribed
+      raise RelativeValueError('Fractional months and years are not defined for relative intervals.')
+  aniso8601.exceptions.RelativeValueError: Fractional months and years are not defined for relative intervals.
+
+If :code:`relative=True` is set without python-dateutil available, a :code:`RuntimeError` is raised::
+
+  >>> aniso8601.parse_interval('2003-01-27/P1M', relative=True)
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "aniso8601/interval.py", line 37, in parse_interval
+      interval_parts = _parse_interval_parts(isointervalstr, intervaldelimiter, datetimedelimiter, relative)
+    File "aniso8601/interval.py", line 108, in _parse_interval_parts
+      duration = parse_duration(secondpart, relative=relative)
+    File "aniso8601/duration.py", line 29, in parse_duration
+      return _parse_duration_prescribed(isodurationstr, relative)
+    File "aniso8601/duration.py", line 77, in _parse_duration_prescribed
+      raise RuntimeError('dateutil must be installed for relative duration support.')
+  RuntimeError: dateutil must be installed for relative duration support.
+
+Date and time resolution
+------------------------
+
+In some situations, it may be useful to figure out the resolution provided by an ISO 8601 date or time string. Two functions are provided for this purpose.
+
+To get the resolution of a ISO 8601 time string::
+
+  >>> aniso8601.get_time_resolution('11:31:14') == aniso8601.resolution.TimeResolution.Seconds
+  True
+  >>> aniso8601.get_time_resolution('11:31') == aniso8601.resolution.TimeResolution.Minutes
+  True
+  >>> aniso8601.get_time_resolution('11') == aniso8601.resolution.TimeResolution.Hours
+  True
+
+Similarly, for an ISO 8601 date string::
+
+  >>> aniso8601.get_date_resolution('1981-04-05') == aniso8601.resolution.DateResolution.Day
+  True
+  >>> aniso8601.get_date_resolution('1981-04') == aniso8601.resolution.DateResolution.Month
+  True
+  >>> aniso8601.get_date_resolution('1981') == aniso8601.resolution.DateResolution.Year
+  True
+
+Development
+===========
+
+Setup
+-----
+
+It is recommended to develop using a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
+
+The tests require the :code:`relative` feature to be enabled, install the necessary dependencies using pip::
+
+  $ pip install .[relative]
+
+Tests
+-----
+
+To run the unit tests, navigate to the source directory and run the tests for the python version being worked on (python2, python3)::
+
+   $ python2 -m unittest discover aniso8601/tests/
+
+or::
+
+   $ python3 -m unittest discover aniso8601/tests/
+
+Contributing
+============
+
+aniso8601 is an open source project hosted on `Bitbucket <https://bitbucket.org/nielsenb/aniso8601>`_.
+
+Any and all bugs are welcome on our `issue tracker <https://bitbucket.org/nielsenb/aniso8601/issues>`_.
+Of particular interest are valid ISO 8601 strings that don't parse, or invalid ones that do. At a minimum,
+bug reports should include an example of the misbehaving string, as well as the expected result. Of course
+patches containing unit tests (or fixed bugs) are welcome!
+
+References
+==========
+
+* `ISO 8601:2004(E) <http://dotat.at/tmp/ISO_8601-2004_E.pdf>`_ (Caution, PDF link)
+* `Wikipedia article on ISO 8601 <http://en.wikipedia.org/wiki/Iso8601>`_
+* `Discussion on alternative ISO 8601 parsers for Python <https://groups.google.com/forum/#!topic/comp.lang.python/Q2w4R89Nq1w>`_
+
+

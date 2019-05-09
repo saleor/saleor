@@ -1,0 +1,47 @@
+# Django Filter translation.
+# Copyright (C) 2013
+# This file is distributed under the same license as the django_filter package.
+# Axel Haustant <noirbizarre@gmail.com>, 2013.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-05 19:24+0200\n"
+"PO-Revision-Date: 2013-07-05 19:24+0200\n"
+"Last-Translator: Axel Haustant <noirbizarre@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: French\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: filters.py:51
+msgid "This is an exclusion filter"
+msgstr "Ceci est un filtre d'exclusion"
+
+#: filters.py:158
+msgid "Any date"
+msgstr "Toutes les dates"
+
+#: filters.py:159
+msgid "Today"
+msgstr "Aujourd'hui"
+
+#: filters.py:164
+msgid "Past 7 days"
+msgstr "7 derniers jours"
+
+#: filters.py:168
+msgid "This month"
+msgstr "Ce mois-ci"
+
+#: filters.py:172
+msgid "This year"
+msgstr "Cette année"
+
+#: widgets.py:63
+msgid "All"
+msgstr "Tous"

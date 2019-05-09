@@ -1,0 +1,1 @@
+# will hook into collectstatic

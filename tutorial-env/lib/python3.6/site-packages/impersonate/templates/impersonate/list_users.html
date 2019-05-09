@@ -1,0 +1,24 @@
+<html>
+<head>
+<title>Django Impersonate User List</title>
+</head>
+<body>
+<h1>User List - Page {{ page_number }}</h1>
+{% if page.object_list %}
+  <ul>
+    {% for user in page.object_list %}
+      <li><a href="{% url 'impersonate-start' user.pk %}{{redirect}}">{{ user }}</a> - Impersonate</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% if page.has_previous %}
+<a href="{% url 'impersonate-list' %}?page={{ page.previous_page_number }}">Previous Page</a> &nbsp; 
+{% endif %}
+
+{% if page.has_next %}
+<a href="{% url 'impersonate-list' %}?page={{ page.next_page_number }}">Next Page</a> &nbsp; 
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+# Django Filter translation.
+# Copyright (C) 2017
+# This file is distributed under the same license as the django_filter package.
+# Anderson Scouto da Silva, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-12-11 22:04+0100\n"
+"PO-Revision-Date: 2017-12-11 22:07-0200\n"
+"Last-Translator: Anderson Scouto da Silva\n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.13\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: conf.py:26
+msgid "date"
+msgstr "data"
+
+#: conf.py:27
+msgid "year"
+msgstr "ano"
+
+#: conf.py:28
+msgid "month"
+msgstr "mês"
+
+#: conf.py:29
+msgid "day"
+msgstr "dia"
+
+#: conf.py:30
+msgid "week day"
+msgstr "dia da semana"
+
+#: conf.py:31
+msgid "hour"
+msgstr "hora"
+
+#: conf.py:32
+msgid "minute"
+msgstr "minuto"
+
+#: conf.py:33
+msgid "second"
+msgstr "segundo"
+
+#: conf.py:38 conf.py:39
+msgid "contains"
+msgstr "contém"
+
+#: conf.py:40
+msgid "is in"
+msgstr "presente em"
+
+#: conf.py:41
+msgid "is greater than"
+msgstr "é maior que"
+
+#: conf.py:42
+msgid "is greater than or equal to"
+msgstr "é maior ou igual que"
+
+#: conf.py:43
+msgid "is less than"
+msgstr "é menor que"
+
+#: conf.py:44
+msgid "is less than or equal to"
+msgstr "é menor ou igual que"
+
+#: conf.py:45 conf.py:46
+msgid "starts with"
+msgstr "começa com"
+
+#: conf.py:47 conf.py:48
+msgid "ends with"
+msgstr "termina com"
+
+#: conf.py:49
+msgid "is in range"
+msgstr "está no range"
+
+#: conf.py:51 conf.py:52
+msgid "matches regex"
+msgstr "coincide com a expressão regular"
+
+#: conf.py:53 conf.py:61
+msgid "search"
+msgstr "buscar"
+
+#: conf.py:56
+msgid "is contained by"
+msgstr "está contido por"
+
+#: conf.py:57
+msgid "overlaps"
+msgstr "sobrepõe"
+
+#: conf.py:58
+msgid "has key"
+msgstr "contém a chave"
+
+#: conf.py:59
+msgid "has keys"
+msgstr "contém as chaves"
+
+#: conf.py:60
+msgid "has any keys"
+msgstr "contém uma das chaves"
+
+#: fields.py:167
+msgid "Range query expects two values."
+msgstr "Consulta por range requer dois valores."
+
+#: filters.py:443
+msgid "Any date"
+msgstr "Qualquer data"
+
+#: filters.py:444
+msgid "Today"
+msgstr "Hoje"
+
+#: filters.py:449
+msgid "Past 7 days"
+msgstr "Últimos 7 dias"
+
+#: filters.py:453
+msgid "This month"
+msgstr "Este mês"
+
+#: filters.py:457
+msgid "This year"
+msgstr "Este ano"
+
+#: filters.py:460
+msgid "Yesterday"
+msgstr "Ontem"
+
+#: filters.py:526
+msgid "Multiple values may be separated by commas."
+msgstr "Valores múltiplos podem ser separados por vírgulas."
+
+#: filters.py:605
+#, python-format
+msgid "%s (descending)"
+msgstr "%s (decrescente)"
+
+#: filters.py:621
+msgid "Ordering"
+msgstr "Ordenado"
+
+#: utils.py:220
+msgid "exclude"
+msgstr "excluir"
+
+#: widgets.py:71
+msgid "All"
+msgstr "Tudo"
+
+#: widgets.py:119
+msgid "Unknown"
+msgstr "Desconhecido"
+
+#: widgets.py:120
+msgid "Yes"
+msgstr "Sim"
+
+#: widgets.py:121
+msgid "No"
+msgstr "Não"
+
+#: rest_framework/filterset.py:31
+#: templates/django_filters/rest_framework/form.html:5
+msgid "Submit"
+msgstr "Enviar"
+
+#: templates/django_filters/rest_framework/crispy_form.html:4
+#: templates/django_filters/rest_framework/form.html:2
+msgid "Field filters"
+msgstr "Filtros de campo"

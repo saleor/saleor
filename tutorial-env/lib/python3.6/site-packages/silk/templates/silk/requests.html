@@ -1,0 +1,251 @@
+{% extends 'silk/base/root_base.html' %}
+{% load silk_inclusion %}
+{% load staticfiles %}
+
+{% block menu %}
+    {% root_menu request %}
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script>
+
+        $(document).ready(function () {
+            initFilters();
+            initFilterButton();
+        });
+    </script>
+{% endblock %}
+
+{% block filter %}
+    <form id="filter-form" action="." method="get"></form>
+    <div class="menu-item ">
+        <div class="menu-item-outer">
+            <div class="menu-item-inner">
+                <label>Show:
+                    <select name="show" form="filter-form" onchange="this.form.submit();">
+                        {% for option in options_show %}
+                            <option value="{{ option }}"
+                                    {% if option == show %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="menu-item">
+        <div class="menu-item-outer">
+            <div class="menu-item-inner">
+                <label>Order:
+                    <select name="order_by" form="filter-form" onchange="this.form.submit();">
+                        {% for option in options_order_by %}
+                            <option value="{{ option.value }}"
+                                    {% if option.value == order_by %}selected{% endif %}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="menu-item">
+        <div class="menu-item-outer">
+            <div class="menu-item-inner">
+                <label>Order:
+                    <select name="order_dir" form="filter-form" onchange="this.form.submit();">
+                        {% for option in options_order_dir %}
+                            <option value="{{ option.value }}"
+                                    {% if option.value == order_dir %}selected{% endif %}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+        </div>
+    </div>
+    {{ block.super }}
+{% endblock %}
+>
+{% block filters %}
+    <h4>Request</h4>
+
+    <div class="filter-section">Took longer than
+
+        <div class="resizing-input">
+            <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="OverallTimeFilter"
+                   name="filter-overalltime-typ"/>
+            <input type="text"
+                   placeholder="seconds"
+                   form="filter-form2"
+                   name="filter-overalltime-value"
+                   value="{{ filters.overalltime.value }}"/>
+            <span style="display:none"></span>
+        </div>
+        seconds,
+        executed more than
+        <div class="resizing-input">
+            <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="NumQueriesFilter"
+                   name="filter-numqueriesfilter-typ"/>
+            <input
+                    type="text"
+                    placeholder="n"
+                    form="filter-form2"
+                    name="filter-numqueriesfilter-value"
+                    value="{{ filters.numqueriesfilter.value }}"/>
+            <span style="display:none"></span>
+        </div>
+        queries,
+        and spent longer than
+        <div class="resizing-input">
+
+            <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="TimeSpentOnQueriesFilter"
+                   name="filter-timespentfilter-typ"/>
+            <input
+                    type="text"
+                    placeholder="seconds"
+                    form="filter-form2"
+                    name="filter-timespentfilter-value"
+                    value="{{ filters.timespentfilter.value }}"/>
+            <span style="display:none"></span>
+        </div>
+        seconds executing queries.
+    </div>
+    <h4>Date Range</h4>
+    <div class="filter-section">
+        Executed
+        <div class="resizing-input">
+            <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="SecondsFilter"
+                   name="filter-seconds-typ">
+            <input type="text"
+                   placeholder="seconds"
+                   form="filter-form2"
+                   name="filter-seconds-value"
+                   value="{{ filters.seconds.value }}"
+                    >
+            <span style="display:none"></span>
+        </div>
+        seconds ago, before
+        <div class="resizing-input">
+            <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="BeforeDateFilter"
+                   name="filter-beforedate-typ">
+            <input class="datetimepicker"
+                   type="text"
+                   placeholder="date"
+                   form="filter-form2"
+                   name="filter-beforedate-value"
+                   value="{{ filters.beforedate.value }}"
+                    />
+            <span style="display:none"></span>
+        </div>
+        , and after
+        <div class="resizing-input">
+
+            <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="AfterDateFilter"
+                   name="filter-afterdate-typ">
+            <input class="datetimepicker"
+                   type="text"
+                   placeholder="date"
+                   form="filter-form2"
+                   name="filter-afterdate-value"
+                   value="{{ filters.afterdate.value }}"
+                    >
+            <span style="display:none"></span>
+        </div>
+        .
+    </div>
+    <h4>View</h4>
+    <div class="filter-section">
+        <div>
+           <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="ViewNameFilter"
+                   name="filter-viewname-typ">
+            <label>View:
+                <select  form="filter-form2" name="filter-viewname-value">
+                    <option value="" {% if not filters.viewname.value %}selected{% endif %}></option>
+                    {% for view_name in view_names %}
+                        <option {% if view_name == filters.viewname.value%}selected{% endif %}>{{ view_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+        </div>
+        <div>
+                 <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="PathFilter"
+                   name="filter-path-typ">
+            <label>Path:
+                <select form="filter-form2" name="filter-path-value">
+                    <option value="" {% if not filters.path.value %}selected{% endif %}></option>
+                    {% for path in options_paths %}
+                        <option {% if path == filters.path.value%}selected{% endif %}>{{ path }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+        </div>
+
+        <div>
+            <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="StatusCodeFilter"
+                   name="filter-status_code-typ">
+            <label>Status Code:
+                <select form="filter-form2" name="filter-status_code-value">
+                    <option value="" {% if not filters.status_code.value %}selected{% endif %}></option>
+                    {% for status_code in options_status_codes %}
+                        <option {% if status_code == filters.status_code.value %}selected{% endif %}>{{ status_code }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+
+        <div>
+            <input form="filter-form2"
+                   class="typ"
+                   type="hidden"
+                   value="MethodFilter"
+                   name="filter-method-typ">
+            <label>Method:
+                <select form="filter-form2" name="filter-method-value">
+                    <option value="" {% if not filters.method.value %}selected{% endif %}></option>
+                    {% for method in options_methods %}
+                        <option {% if method == filters.method.value %}selected{% endif %}>{{ method }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+
+
+    </div>
+{% endblock %}
+
+{% block data %}
+    {% if results %}
+        {% for silk_request in results %}
+            <a href="{% url 'silk:request_detail' request_id=silk_request.pk %}">
+                {% request_summary silk_request %}
+            </a>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

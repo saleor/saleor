@@ -1,0 +1,32 @@
+Metadata-Version: 2.0
+Name: django-debug-toolbar-request-history
+Version: 0.0.10
+Summary: Request History Panel for Django Debug Toolbar
+Home-page: https://github.com/djsutho/django-debug-toolbar-request-history
+Author: David Sutherland
+Author-email: djsutho@gmail.com
+License: BSD
+Download-URL: https://github.com/djsutho/django-debug-toolbar-request-history/tarball/0.0.10
+Description-Content-Type: UNKNOWN
+Keywords: django,debug,ajax
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Dist: django-debug-toolbar
+
+UNKNOWN
+
+

@@ -1,0 +1,189 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#: conf.py:27 conf.py:28 conf.py:41
+msgid ""
+msgstr ""
+"Project-Id-Version: django-filter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-01-24 11:03+0500\n"
+"PO-Revision-Date: 2013-08-10 12:29+0100\n"
+"Last-Translator: Florian Apolloner <florian@apolloner.eu>\n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: conf.py:17
+msgid "date"
+msgstr "Daten"
+
+#: conf.py:18
+msgid "year"
+msgstr "Jahr"
+
+#: conf.py:19
+msgid "month"
+msgstr "Monat"
+
+#: conf.py:20
+#, fuzzy
+#| msgid "Today"
+msgid "day"
+msgstr "Heute"
+
+#: conf.py:21
+msgid "week day"
+msgstr "Wochentag"
+
+#: conf.py:22
+msgid "hour"
+msgstr "Stunde"
+
+#: conf.py:23
+msgid "minute"
+msgstr "Minute"
+
+#: conf.py:24
+msgid "second"
+msgstr "zweite"
+
+#: conf.py:29 conf.py:30
+msgid "contains"
+msgstr "enthält"
+
+#: conf.py:31
+msgid "is in"
+msgstr "ist in"
+
+#: conf.py:32
+msgid "is greater than"
+msgstr "ist größer als"
+
+#: conf.py:33
+msgid "is greater than or equal to"
+msgstr "ist größer oder gleich"
+
+#: conf.py:34
+msgid "is less than"
+msgstr "ist kleiner als"
+
+#: conf.py:35
+msgid "is less than or equal to"
+msgstr "ist kleiner oder gleich"
+
+#: conf.py:36 conf.py:37
+msgid "starts with"
+msgstr "beginnt mit"
+
+#: conf.py:38 conf.py:39
+msgid "ends with"
+msgstr "endet mit"
+
+#: conf.py:40
+msgid "is in range"
+msgstr "ist in Reichweite"
+
+#: conf.py:42 conf.py:43
+msgid "matches regex"
+msgstr "passt auf Regex"
+
+#: conf.py:44 conf.py:52
+msgid "search"
+msgstr "Suche"
+
+#: conf.py:47
+msgid "is contained by"
+msgstr "ist enthalten in"
+
+#: conf.py:48
+msgid "overlaps"
+msgstr "überlappen"
+
+#: conf.py:49
+msgid "has key"
+msgstr "hat Schlüssel"
+
+#: conf.py:50
+msgid "has keys"
+msgstr "hat Schlüssel"
+
+#: conf.py:51
+msgid "has any keys"
+msgstr "hat irgendwelche Schlüssel"
+
+#: fields.py:178
+msgid "Range query expects two values."
+msgstr "Die Bereichsabfrage erwartet zwei Werte."
+
+#: filters.py:429
+msgid "Any date"
+msgstr "Alle Daten"
+
+#: filters.py:430
+msgid "Today"
+msgstr "Heute"
+
+#: filters.py:435
+msgid "Past 7 days"
+msgstr "Letzte 7 Tage"
+
+#: filters.py:439
+msgid "This month"
+msgstr "Diesen Monat"
+
+#: filters.py:443
+msgid "This year"
+msgstr "Dieses Jahr"
+
+#: filters.py:446
+msgid "Yesterday"
+msgstr "Gestern"
+
+#: filters.py:512
+msgid "Multiple values may be separated by commas."
+msgstr "Mehrere Werte können durch Kommas getrennt sein."
+
+#: filters.py:591
+#, python-format
+msgid "%s (descending)"
+msgstr "%s (absteigend)"
+
+#: filters.py:607
+msgid "Ordering"
+msgstr "Ordnung"
+
+#: rest_framework/filterset.py:30
+#: templates/django_filters/rest_framework/form.html:5
+msgid "Submit"
+msgstr "Einreichen"
+
+#: templates/django_filters/rest_framework/crispy_form.html:4
+#: templates/django_filters/rest_framework/form.html:2
+msgid "Field filters"
+msgstr "Feldfilter"
+
+#: utils.py:224
+msgid "exclude"
+msgstr "ausschließen"
+
+#: widgets.py:57
+msgid "All"
+msgstr "Alle"
+
+#: widgets.py:159
+msgid "Unknown"
+msgstr "Unbekannte"
+
+#: widgets.py:160
+msgid "Yes"
+msgstr "Ja"
+
+#: widgets.py:161
+msgid "No"
+msgstr "Nein"

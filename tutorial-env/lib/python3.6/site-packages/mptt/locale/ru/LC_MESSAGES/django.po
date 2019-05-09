@@ -1,0 +1,209 @@
+# django-mptt in russian
+# This file is distributed under the same license as the django-mptt package.
+# Translators:
+# Sergey Vishnikin <armicron@yandex.ru>, 2013.
+# Rafael Kamashev <wizzzet@gmail.com>, 2016.
+msgid ""
+msgstr ""
+"Project-Id-Version: django-mptt\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-03-02 12:10+0300\n"
+"PO-Revision-Date: 2013-08-28 19:49+0400\n"
+"Last-Translator: Rafael Kamashev <wizzzet@gmail.com>\n"
+"Language-Team: \n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: admin.py:80
+#, python-format
+#| msgid "Successfully deleted %s items."
+msgid "Successfully deleted %(count)d items."
+msgstr "Успешно удалено %(count)d узлов."
+
+#: admin.py:93
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Удалить выбранное %(verbose_name_plural)s"
+
+#: admin.py:175
+msgid "title"
+msgstr "заголовок"
+
+#: admin.py:205
+msgid "Did not understand moving instruction."
+msgstr "Изучите инструкцию по перемещению узлов."
+
+#: admin.py:213
+msgid "Objects have disappeared, try again."
+msgstr "Объекты пропали, повторите еще раз."
+
+#: admin.py:217
+msgid "No permission"
+msgstr "Нет доступа"
+
+#: admin.py:226
+#, python-format
+#| msgid "Database error"
+msgid "Database error: %s"
+msgstr "Ошибка базы данных: %s"
+
+#: admin.py:231
+#, python-format
+msgid "%s has been successfully moved."
+msgstr "%s был успешно перемещен."
+
+#: admin.py:242
+msgid "move node before node"
+msgstr "переместить узел до узла"
+
+#: admin.py:243
+msgid "move node to child position"
+msgstr "переместить узел в подчиненную позицию"
+
+#: admin.py:244
+msgid "move node after node"
+msgstr "переместить узел после узла"
+
+#: admin.py:245
+msgid "Collapse tree"
+msgstr "Свернуть дерево"
+
+#: admin.py:246
+msgid "Expand tree"
+msgstr "Развернуть дерево"
+
+#: forms.py:63
+msgid "First child"
+msgstr "Первый потомок"
+
+#: forms.py:64
+msgid "Last child"
+msgstr "Последний потомок"
+
+#: forms.py:65
+msgid "Left sibling"
+msgstr "Левый брат"
+
+#: forms.py:66
+msgid "Right sibling"
+msgstr "Правый брат"
+
+#: forms.py:184
+msgid "Invalid parent"
+msgstr "Неверный родительский узел"
+
+#: managers.py:514
+msgid "Cannot insert a node which has already been saved."
+msgstr "Невозможно добавить элемент, который уже был сохранён."
+
+#: managers.py:743 managers.py:916 managers.py:952 managers.py:1116
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "Была дана неверная позиция: %s."
+
+#: managers.py:902 managers.py:1096
+msgid "A node may not be made a sibling of itself."
+msgstr "Элемент не может быть дочерним самому себе."
+
+#: managers.py:1075 managers.py:1200
+msgid "A node may not be made a child of itself."
+msgstr "Элемент не может быть потомком самому себе."
+
+#: managers.py:1077 managers.py:1202
+msgid "A node may not be made a child of any of its descendants."
+msgstr "Элемент не может быть потомком своего наследника."
+
+#: managers.py:1098
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "Элемент не может быть дочерним своему наследнику."
+
+#: models.py:291
+msgid "register() expects a Django model class argument"
+msgstr "register() ожидает модель Django в качестве аргумента"
+
+#: templatetags/mptt_tags.py:31
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "для full_tree_for_model была дана неверная модель: %s"
+
+#: templatetags/mptt_tags.py:55
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "для drilldown_tree_for_node была дана неверная модель: %s"
+
+#: templatetags/mptt_tags.py:62
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "для drilldown_tree_for_node было дано неверное поле модели: %s"
+
+#: templatetags/mptt_tags.py:89
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "%s требует три аргумента"
+
+#: templatetags/mptt_tags.py:91 templatetags/mptt_tags.py:146
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "вторым аргуметом для %s должен быть 'as'"
+
+#: templatetags/mptt_tags.py:143
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "%s требует три, семь или восемь аргументов"
+
+#: templatetags/mptt_tags.py:150
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr ""
+"если дано семь аргументов, то четвёртый аргумент для %s должен быть 'with'"
+
+#: templatetags/mptt_tags.py:154
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr "если дано семь аргументов, то шестой для %s должен быть 'in'"
+
+#: templatetags/mptt_tags.py:160
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr ""
+"если дано восемь аргументов, то четвёртый аргумент для %s должен быть "
+"'cumulative'"
+
+#: templatetags/mptt_tags.py:164
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr ""
+"если дано восемь аргументов, то пятый аргумент для %s должен быть 'count'"
+
+#: templatetags/mptt_tags.py:168
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr ""
+"если дано восемь аргументов, то седьмой аргумент для %s должен быть 'in'"
+
+#: templatetags/mptt_tags.py:287
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "для %s требуется queryset"
+
+#: utils.py:240
+#, python-format
+msgid "Node %s not in depth-first order"
+msgstr "Узел %s имеет уровень меньше первого уровня"
+
+#~ msgid "%(count)s %(name)s was changed successfully."
+#~ msgid_plural "%(count)s %(name)s were changed successfully."
+#~ msgstr[0] "%(count)s %(name)s успешно изменен."
+#~ msgstr[1] "%(count)s %(name)s успешно изменены."
+#~ msgstr[2] "%(count)s %(name)s успешно изменено."
+
+#~ msgid "Add child"
+#~ msgstr "Добавить потомка"
+
+#~ msgid "View on site"
+#~ msgstr "Перейти на сайт"

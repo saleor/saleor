@@ -1,0 +1,332 @@
+{% extends "silk/base/base.html" %}
+{% load silk_nav %}
+{% load silk_inclusion %}
+{% load staticfiles %}
+
+{% block body_class %}
+    cbp-spmenu-push
+{% endblock %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'silk/css/cell.css' %}"/>
+    <link rel="stylesheet" href="{% static 'silk/css/numeric.css' %}"/>
+    <link rel="stylesheet" href="{% static "silk/lib/jquery.datetimepicker.css" %}"/>
+    <link rel="icon" type="image/png" href="{% static 'silk/favicon-32x32.png' %}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{% static 'silk/favicon-16x16.png' %}" sizes="16x16">
+    <!-- Begin Custom Styles -->
+    <style>
+    .cell:hover {
+        background-color: rgb(51, 51, 68);
+        color: white;
+        cursor: pointer;
+
+    }
+
+    .cell {
+        text-align: center;
+    }
+
+    /* General styles for all menus */
+
+    .cbp-spmenu {
+        background: rgb(51, 51, 68);
+        position: fixed;
+    }
+
+    h3 {
+        color: white;
+        font-size: 1.9em;
+        padding: 10px;
+        margin: 0;
+        font-weight: 300;
+        background: rgb(51, 51, 68);
+    }
+
+    /*.cbp-spmenu div {*/
+    /*display: block;*/
+    /*color: #fff;*/
+    /*font-size: 1.1em;*/
+    /*font-weight: 300;*/
+    /*}*/
+
+    /* Orientation-dependent styles for the content of the menu */
+
+    .cbp-spmenu-vertical {
+        width: 300px;
+        height: 100%;
+        top: 0;
+        z-index: 1000;
+    }
+
+    /* Vertical menu that slides from the left or right */
+
+    .cbp-spmenu-right {
+        right: -300px;
+    }
+
+    .cbp-spmenu-right.cbp-spmenu-open {
+        right: 0px;
+    }
+
+    /* Push classes applied to the body */
+
+    .cbp-spmenu-push {
+        overflow-x: hidden;
+        position: relative;
+        left: 0;
+    }
+
+    .cbp-spmenu-push-toleft {
+        left: -300px;
+    }
+
+    /* Transitions */
+
+    .cbp-spmenu,
+    .cbp-spmenu-push {
+        -webkit-transition: all 0.3s ease;
+        -moz-transition: all 0.3s ease;
+        transition: all 0.3s ease;
+    }
+
+    /* Example media queries */
+
+    @media screen and (max-width: 55.1875em) {
+
+        .cbp-spmenu-horizontal {
+            font-size: 75%;
+            height: 110px;
+        }
+
+    }
+
+    .active-filter {
+        font-size: 12px;
+        color: white;
+    }
+
+    .active-filter td {
+        padding: 0;
+        margin: 0;
+    }
+
+    #cbp-spmenu-s2 button {
+        color: white;
+        background: none;
+        border: none;
+    }
+
+    #cbp-spmenu-s2 button:hover {
+        color: black;
+        background: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    #cbp-spmenu-s2 button:focus {
+        outline: none;
+    }
+
+    #slider-label {
+        margin-top: 5px;
+    }
+
+    #outer-slider {
+        text-align: center;
+        width: 80%;
+    }
+
+    #seconds {
+        width: 200px;
+        height: 50px;
+    }
+
+    #slider {
+        width: 80%;
+        margin: auto;
+        margin-top: 10px;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+        border: none;
+        padding: 10px;
+        width: 222px;
+    }
+
+    .add-button {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .add-button.disabled {
+        color: darkgray !important;
+    }
+
+    .add-button.disabled:hover {
+        background: transparent !important;
+        cursor: default !important;
+    }
+
+    .button-div {
+        text-align: center;
+        height: 50px;
+
+    }
+
+    .apply-div {
+        display: inline-block;
+        background-color: white;
+        color: black;
+        margin: 10px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .apply-div:hover {
+        cursor: pointer;
+    }
+
+    select {
+        border-radius: 0;
+    }
+
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+        /*safari and chrome*/
+        select {
+{#            height: 30px;#}
+            line-height: 30px;
+            background: #f4f4f4;
+        }
+    }
+
+    select::-moz-focus-inner {
+        /*Remove button padding in FF*/
+        border: 0;
+        padding: 0;
+    }
+
+
+
+
+    #cbp-spmenu-s2 p {
+        margin-bottom: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+        margin-top: 0;
+        font-size: 12px;
+        color: white;
+        font-style: oblique;
+        line-height: 16px;;
+    }
+
+    #filter-item {
+        width: 24px;
+        height: 20px;
+        float: right;
+        display: inline;
+        background-image: url('{% static 'silk/filter.png' %}');
+        background-size: contain;
+        background-repeat: no-repeat;
+        text-align: right;
+    }
+
+    #filter-item #num-filters {
+        position: relative;
+        top: 7px;
+        left: 1px;
+    }
+
+    .resizing-input {
+        display: inline-block;
+    }
+
+    .resizing-input input, .resizing-input span {
+        font-size: 12px;
+        font-family: FiraSans;
+        white-space: pre;
+        font-weight: 300;
+        background-color: transparent;
+        color: white;
+        padding: 0;
+        padding-left: 4px;
+        padding-right: 4px;
+        margin: 0;
+        letter-spacing: 1px;
+    }
+
+    .resizing-input input:focus {
+        outline: none;
+    }
+
+    .resizing-input input {
+
+    }
+
+    h4 {
+        padding: 0;
+        margin: 3px;
+        margin-left: 10px;
+        color: white;
+        font-weight: lighter;
+        font-size: 20px;
+    }
+
+    .filter-section {
+        color: white;
+        font-size: 12px;
+        line-height: 18px;
+        padding: 10px;
+    }
+
+    </style>
+    <!-- End Custom Styles -->
+{% endblock %}
+
+{% block filter %}
+    <div id="filter-button" class="menu-item selectable-menu-item">
+        <div class="menu-item-outer">
+            <div class="menu-item-inner">
+                <div id="filter-item"><span id="num-filters"><sub>{{ filters | length }}</sub></span></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block top %}
+    <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right" id="cbp-spmenu-s2">
+        <h3>Filters</h3>
+
+        <form id="filter-form2" action="." method="post">{% csrf_token %}</form>
+
+
+        {% block filters %}
+
+        {% endblock %}
+
+        <div class="button-div">
+            <div class="apply-div" onclick="$('#filter-form2').submit();">Apply</div>
+        </div>
+
+    </nav>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'silk/js/cell.js' %}"></script>
+    <script src="{% static 'silk/lib/jquery.datetimepicker.js' %}"></script>
+    <script src="{% static 'silk/js/filters.js' %}"></script>
+
+    <script>
+        function initFilterButton() {
+            $('#filter-button').click(function () {
+                $(this).toggleClass('active');
+                $('body').toggleClass('cbp-spmenu-push-toleft');
+                $('#cbp-spmenu-s2').toggleClass('cbp-spmenu-open');
+                initFilters();
+            });
+        }
+    </script>
+
+{% endblock %}
+

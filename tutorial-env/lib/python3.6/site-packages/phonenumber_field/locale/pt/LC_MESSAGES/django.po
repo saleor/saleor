@@ -1,0 +1,30 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Luis Rodrigues <lfrodrigues@gmail.com>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-26 10:15-0700\n"
+"PO-Revision-Date: 2013-02-26 14:10+0200\n"
+"Last-Translator: Luis Rodrigues <lfrodrigues@gmail.com>\n"
+"Language-Team: Portuguese <lfrodrigues@gmail.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"X-Generator: Lokalize 1.2\n"
+
+#: formfields.py:14 serializerfields.py:12
+msgid "Enter a valid phone number."
+msgstr "Introduza um número de telefone válido."
+
+#: modelfields.py:48
+msgid "Phone number"
+msgstr "Número de telefone"
+
+#: validators.py:14
+msgid "The phone number entered is not valid."
+msgstr "Este número de telefone não é válido."

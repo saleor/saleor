@@ -1,0 +1,127 @@
+{% extends "silk/base/detail_base.html" %}
+{% load silk_filters %}
+{% load silk_nav %}
+{% load silk_inclusion %}
+
+{% block js %}
+    {{ block.super }}
+    <script>
+        $(document).ready(function () {
+            configureSpanFontColors($('#num-joins-div').find('.numeric'), 3, 5);
+            configureSpanFontColors($('#time-taken-div').find('.numeric'), 200, 500);
+        });
+    </script>
+{% endblock %}
+
+{% block style %}
+    {{ block.super }}
+    <style>
+        #traceback {
+            width: 960px;
+            margin: auto;
+        }
+
+        #traceback pre {
+            margin-top: 15px !important;
+            margin-bottom: 15px !important;
+        }
+
+
+        a:hover {
+            color: #9dd0ff;
+        }
+
+        a:active {
+            color: #594F4F;
+        }
+
+        code {
+            background-color: transparent !important;
+        }
+
+        #query-div pre {
+            background-color: transparent !important;
+        }
+
+        #query-div {
+            padding-top: 15px;
+        }
+
+        #query-info-div div {
+            padding-top: 5px;
+        }
+
+        .file-path {
+            font-size: 13px;
+        }
+
+
+
+    </style>
+{% endblock %}
+
+{% block menu %}
+
+    <a href="
+        {% if silk_request and profile %}
+            {% url "silk:request_and_profile_sql" silk_request.id profile.id %}
+        {% elif silk_request %}
+            {% url "silk:request_sql" silk_request.pk %}
+        {% elif profile %}
+            {% url "silk:profile_sql" profile.pk %}
+        {% endif %}
+    ">
+        <div class="menu-item selectable-menu-item">
+            <div class="menu-item-outer">
+                <div class="menu-item-inner">&larr;</div>
+            </div>
+        </div>
+    </a>
+
+    <div class="menu-item menu-item-selected">
+        <div class="menu-item-outer ">
+            <div class="menu-item-inner">SQL Query</div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block data %}
+    <div class="wrapper">
+        <div id="query-div">
+            <pre id="query"><code>{{ sql_query.formatted_query|spacify|linebreaksbr }}</code></pre>
+            <div id="query-info-div">
+                <div id="time-taken-div">
+                    <span class="numeric">{{ sql_query.time_taken }}<span class="unit">ms</span></span>
+                </div>
+                <div id="num-joins-div">
+                    <span class="numeric">{{ sql_query.num_joins }}</span> joins
+                </div>
+            </div>
+
+        </div>
+        <div id="traceback">
+            <div class="heading">
+                <div class="inner-heading">
+                    Traceback
+                </div>
+            </div>
+            <div class="description">
+                The below is the Python stacktrace that leads up the execution of the above SQL query.
+                Use it to figure out where and why this SQL query is being executed and whether or not
+                it's actually neccessary.
+            </div>
+            {% for ln in traceback %}
+                {% if ln %}
+                    <div class="file-path">
+                        {{ ln }}
+                    </div>
+                    {% if forloop.counter == pos %}
+                        {% code code actual_line %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+
+{% endblock %}

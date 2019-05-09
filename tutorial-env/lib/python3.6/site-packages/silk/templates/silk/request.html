@@ -1,0 +1,196 @@
+{% extends "silk/base/base.html" %}
+{% load silk_filters %}
+{% load silk_inclusion %}
+{% load staticfiles %}
+{% block style %}
+    <link rel="stylesheet" href="{% static 'silk/css/cell.css' %}"/>
+    <link rel="stylesheet" href="{% static 'silk/css/numeric.css' %}"/>
+    <link rel="stylesheet" href="{% static 'silk/css/heading.css' %}"/>
+    <link rel="stylesheet" href="{% static 'silk/lib/highlight/foundation.css' %}"/>
+    <style>
+
+        pre {
+            white-space: pre-wrap; /* css-3 */
+            white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+            /*noinspection CssInvalidElement*/
+            white-space: -pre-wrap; /* Opera 4-6 */
+            white-space: -o-pre-wrap; /* Opera 7 */
+            word-wrap: break-word; /* Internet Explorer 5.5+ */
+        }
+
+        #request-summary {
+
+        }
+
+        .cell {
+            background-color: transparent;
+            margin-top: 15px;
+        }
+
+        div.wrapper {
+            width: 100%;
+        }
+
+        div.wrapper div#request-summary {
+            margin: auto;
+            text-align: center;
+            width: 100%;
+        }
+
+        div.wrapper div#request-info {
+            width: 960px;
+            margin: auto auto 20px;
+        }
+
+        a {
+            color: #45ADA8;
+        }
+
+        a:visited {
+            color: #45ADA8;
+        }
+
+        a:hover {
+            color: #547980;
+        }
+
+        a:active {
+            color: #594F4F;
+        }
+
+        .headers {
+            font-size: 12px;
+            font-family: Fantasque;
+            background-color: white;
+            width: 100%;
+        }
+
+        .headers tr:hover {
+            background-color: #f4f4f4;
+        }
+
+        .headers td {
+            padding-bottom: 5px;
+            padding-left: 5px;
+        }
+
+        .headers .key {
+            font-weight: bold;
+        }
+
+        .headers .value {
+
+        }
+
+
+    </style>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'silk/lib/highlight/highlight.pack.js' %}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script src="{% static 'silk/js/cell.js' %}"></script>
+{% endblock %}
+{% block onload %}
+{% endblock %}
+
+{% block menu %}
+    {% request_menu request silk_request %}
+{% endblock %}
+
+{% block data %}
+    <div class="wrapper">
+        <div id="request-summary">
+            {% request_summary silk_request %}
+        </div>
+        <div id="request-info">
+            {% if query_params %}
+                {% heading 'Query Parameters' %}
+                <pre><code>{{ query_params }}</code></pre>
+            {% endif %}
+            {% heading 'Request Headers' %}
+            <table class="headers">
+                {% for k,v in silk_request.headers.items %}
+                    <tr>
+                        <td class="key">{{ k.upper }}</td>
+                        <td class="value">{{ v }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+            {% if silk_request.raw_body %}
+                {% heading 'Raw Request Body' %}
+                {% if silk_request.raw_body|length > 1000 %}
+                    The raw request body is <b>{{ silk_request.raw_body|length }}</b> characters long
+                    and hence is <b>too big</b> to show here.
+                    Click <a href="{% url "silk:raw" silk_request.pk %}?typ=request&subtyp=raw">here</a> to view the raw request body.
+                {% else %}
+                    <pre>{{ silk_request.raw_body }}</pre>
+                {% endif %}
+            {% endif %}
+            {% if silk_request.body %}
+                {% heading 'Request Body' %}
+                {% if silk_request.body|length > 1000 %}
+                    The processed request body is <b>{{ silk_request.body|length }}</b> characters long
+                    and hence is <b>too big</b> to show here.
+                    Click <a href="{% url "silk:raw" silk_request.pk %}?typ=request&subtyp=processed">here</a> to view the request body.
+                {% else %}
+                    <div class="description">
+                        This is the body of the HTTP request represented as JSON for easier reading.
+                    </div>
+                    <pre><code>{{ silk_request.body }}</code></pre>
+                {% endif %}
+            {% endif %}
+            {% if silk_request.response.headers %}
+                {% heading 'Response Headers' %}
+                <table class="headers">
+                    {% for k, v in silk_request.response.headers.items %}
+                        <tr>
+                            <td class="key">{{ k.upper }}</td>
+                            <td class="value">{{ v }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+            {% if silk_request.response.raw_body %}
+                {% heading 'Raw Response Body' %}
+                {% with raw_body=silk_request.response.raw_body_decoded %}
+                    {% if raw_body|length > 1000 %}
+                        The raw response body is <b>{{ raw_body|length }}</b> characters long
+                        and hence is <b>too big</b> to show here.
+                        Click <a href="{% url "silk:raw" silk_request.pk %}?typ=response&subtyp=raw">here</a> to view the raw response body.
+                    {% else %}
+                        <pre>{{ raw_body }}</pre>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+            {% if silk_request.response.body %}
+                {% heading 'Response Body' %}
+                <div class="description">
+                    This is the body of the HTTP response represented as JSON for easier reading.
+                </div>
+                {% if silk_request.response.body|length > 1000 %}
+                    The response body is <b>{{ silk_request.response.body|length }}</b> characters long
+                    and hence is <b>too big</b> to show here.
+                    Click <a href="{% url "silk:raw" silk_request.pk %}?typ=response&subtyp=processed">here</a> to view the response body.
+                {% else %}
+                    <pre><code>{{ silk_request.response.body }}</code></pre>
+                {% endif %}
+            {% endif %}
+            {% if curl %}
+                {% heading 'Curl' %}
+                <div class="description">
+                    Curl is a command-line utility for transferring data from servers. Paste the following into
+                    a terminal to repeat this request via command line.
+                </div>
+                <pre id="pre-curl"><code>{{ curl.strip }}</code></pre>
+            {% endif %}
+            {% if client %}
+                {% heading 'Django Test Client' %}
+                <div class="description">
+                    The following is working python code that makes use of the Django test client. It can be used to
+                    replicate this request from within a Django unit test, or simply as standalone Python.
+                </div>
+                <pre id="pre-curl"><code>{{ client.strip }}</code></pre>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

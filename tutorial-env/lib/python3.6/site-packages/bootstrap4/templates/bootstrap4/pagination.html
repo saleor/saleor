@@ -1,0 +1,40 @@
+{% load bootstrap4 %}
+{% with bpurl=bootstrap_pagination_url|default:"" %}
+
+    <ul class="{{ pagination_css_classes }}">
+
+        <li class="prev page-item{% if current_page == 1 %} disabled{% endif %}">
+            <a class="page-link" href="{% if current_page == 1 %}#{% else %}{% bootstrap_url_replace_param bpurl parameter_name 1 %}{% endif %}">
+                &laquo;
+            </a>
+        </li>
+
+        {% if pages_back %}
+            <li class="page-item">
+                <a class="page-link" href="{% bootstrap_url_replace_param bpurl parameter_name pages_back %}">&hellip;</a>
+            </li>
+        {% endif %}
+
+        {% for p in pages_shown %}
+            <li class="page-item{% if current_page == p %} active{% endif %}">
+                <a class="page-link" href="{% if current_page == p %}#{% else %}{% bootstrap_url_replace_param bpurl parameter_name p %}{% endif %}">
+                    {{ p }}
+                </a>
+            </li>
+        {% endfor %}
+
+        {% if pages_forward %}
+            <li class="page-item">
+                <a class="page-link" href="{% bootstrap_url_replace_param bpurl parameter_name pages_forward %}">&hellip;</a>
+            </li>
+        {% endif %}
+
+        <li class="last page-item{% if current_page == num_pages %} disabled{% endif %}">
+            <a class="page-link" href="{% if current_page == num_pages %}#{% else %}{% bootstrap_url_replace_param bpurl parameter_name num_pages %}{% endif %}">
+                &raquo;
+            </a>
+        </li>
+
+    </ul>
+
+{% endwith %}

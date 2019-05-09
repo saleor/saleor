@@ -1,0 +1,97 @@
+Metadata-Version: 2.1
+Name: social-auth-core
+Version: 3.1.0
+Summary: Python social authentication made simple.
+Home-page: https://github.com/python-social-auth/social-core
+Author: Matias Aguirre
+Author-email: matiasaguirre@gmail.com
+License: BSD
+Keywords: openid,oauth,saml,social auth
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Topic :: Internet
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Intended Audience :: Developers
+Classifier: Environment :: Web Environment
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Requires-Dist: requests (>=2.9.1)
+Requires-Dist: oauthlib (>=1.0.3)
+Requires-Dist: requests-oauthlib (>=0.6.1)
+Requires-Dist: six (>=1.10.0)
+Requires-Dist: PyJWT (>=1.4.0)
+Requires-Dist: python-openid (>=2.2.5); python_version < "3.0"
+Requires-Dist: defusedxml (>=0.5.0rc1); python_version >= "3.0"
+Requires-Dist: python3-openid (>=3.0.10); python_version >= "3.0"
+Provides-Extra: all
+Requires-Dist: python-jose (>=3.0.0); extra == 'all'
+Requires-Dist: pyjwt (>=1.7.1); extra == 'all'
+Requires-Dist: python3-saml (>=1.2.1); extra == 'all'
+Requires-Dist: cryptography (>=2.1.1); extra == 'all'
+Provides-Extra: allpy2
+Requires-Dist: python-jose (>=3.0.0); extra == 'allpy2'
+Requires-Dist: pyjwt (>=1.7.1); extra == 'allpy2'
+Requires-Dist: python3-saml (>=1.2.1); extra == 'allpy2'
+Requires-Dist: cryptography (>=2.1.1); extra == 'allpy2'
+Requires-Dist: python-openid (>=2.2.5); extra == 'allpy2'
+Provides-Extra: allpy3
+Requires-Dist: python-jose (>=3.0.0); extra == 'allpy3'
+Requires-Dist: pyjwt (>=1.7.1); extra == 'allpy3'
+Requires-Dist: python3-saml (>=1.2.1); extra == 'allpy3'
+Requires-Dist: cryptography (>=2.1.1); extra == 'allpy3'
+Requires-Dist: defusedxml (>=0.5.0rc1); extra == 'allpy3'
+Requires-Dist: python3-openid (>=3.0.10); extra == 'allpy3'
+Provides-Extra: azuread
+Requires-Dist: cryptography (>=2.1.1); extra == 'azuread'
+Provides-Extra: openidconnect
+Requires-Dist: python-jose (>=3.0.0); extra == 'openidconnect'
+Requires-Dist: pyjwt (>=1.7.1); extra == 'openidconnect'
+Provides-Extra: saml
+Requires-Dist: python3-saml (>=1.2.1); extra == 'saml'
+
+# Python Social Auth - Core
+
+[![Build Status](https://travis-ci.org/python-social-auth/social-core.svg?branch=master)](https://travis-ci.org/python-social-auth/social-core)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-orange.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=matiasaguirre%40gmail%2ecom&lc=US&item_name=Python%20Social%20Auth&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHostedGuest)
+
+Python Social Auth is an easy to setup social authentication/registration
+mechanism with support for several frameworks and auth providers.
+
+## Description
+
+This is the core component of the python-social-auth ecosystem, it
+implements the common interface to define new authentication backends
+to third parties services, implement integrations with web frameworks
+and storage solutions.
+
+## Documentation
+
+Project documentation is available at http://python-social-auth.readthedocs.org/.
+
+## Setup
+
+```shell
+$ pip install social-auth-core
+```
+
+## Contributing
+
+See the [CONTRIBUTING.md](CONTRIBUTING.md) document for details.
+
+## Versioning
+
+This project follows [Semantic Versioning 2.0.0](http://semver.org/spec/v2.0.0.html).
+
+## License
+
+This project follows the BSD license. See the [LICENSE](LICENSE) for details.
+
+## Donations
+
+This project is maintened on my spare time, consider donating to keep
+it improving.
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-orange.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=matiasaguirre%40gmail%2ecom&lc=US&item_name=Python%20Social%20Auth&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHostedGuest)
+
+

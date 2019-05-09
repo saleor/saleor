@@ -1,0 +1,3 @@
+webpack_loader
+webpack_loader/contrib
+webpack_loader/templatetags

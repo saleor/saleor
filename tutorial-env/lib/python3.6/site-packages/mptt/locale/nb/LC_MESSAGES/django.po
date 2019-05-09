@@ -1,0 +1,180 @@
+# django-mptt in Norwegian bokmål.
+# django-mptt på Bokmål.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Sigurd Gartmann <sigurdga-nb@sigurdga.no>, 2012.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-05-13 22:53+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin.py:96
+msgid "Database error"
+msgstr "Databasefeil"
+
+#: admin.py:132
+#, python-format
+msgid "%(count)s %(name)s was changed successfully."
+msgid_plural "%(count)s %(name)s were changed successfully."
+msgstr[0] "%(count)s %(name)s ble endret."
+msgstr[1] "%(count)s %(name)s ble endret."
+
+#: admin.py:207 admin.py:209
+msgid "Add child"
+msgstr "Legg til barn"
+
+#: admin.py:215 admin.py:217
+msgid "View on site"
+msgstr "Vis på nettsted"
+
+#: admin.py:229
+#, python-format
+msgid "Successfully deleted %s items."
+msgstr "Slettet %s elementer."
+
+#: admin.py:234
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Slett valgte %(verbose_name_plural)s"
+
+#: forms.py:72
+msgid "First child"
+msgstr "Første barn"
+
+#: forms.py:73
+msgid "Last child"
+msgstr "Siste barn"
+
+#: forms.py:74
+msgid "Left sibling"
+msgstr "Venstre søsken"
+
+#: forms.py:75
+msgid "Right sibling"
+msgstr "Høyre søsken"
+
+#: forms.py:177
+msgid "Invalid parent"
+msgstr "Ugyldig forelder"
+
+#: managers.py:206
+msgid "Cannot insert a node which has already been saved."
+msgstr "Kan ikke sette inn en node som allerede har blitt lagret."
+
+#: managers.py:385 managers.py:557 managers.py:593 managers.py:748
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "En ugyldig posisjon ble gitt: %s."
+
+#: managers.py:543 managers.py:728
+msgid "A node may not be made a sibling of itself."
+msgstr "En node kan ikke være søsken av seg selv."
+
+#: managers.py:707 managers.py:829
+msgid "A node may not be made a child of itself."
+msgstr "En node kan ikke være barn av seg selv."
+
+#: managers.py:709 managers.py:831
+msgid "A node may not be made a child of any of its descendants."
+msgstr "En node kan ikke være barn av noen av sine etterkommere."
+
+#: managers.py:730
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "En node kan ikke være søsken av noen av sine etterkommere."
+
+#: models.py:44
+msgid ""
+"`tree_manager_attr` is deprecated; just instantiate a TreeManager as a "
+"normal manager on your model"
+msgstr "`tree_manager_attr` er foreldet. Bare instansier en TreeManager som en normal manager på modellen"
+
+#: models.py:199
+msgid "register() expects a Django model class argument"
+msgstr "register() forventer et Django-modellklasseargument"
+
+#: templatetags/mptt_tags.py:28
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "full_tree_for_model-taggen ble gitt en ugyldig modell: %s"
+
+#: templatetags/mptt_tags.py:52
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "drilldown_tree_for_node-taggen blev gitt en ugyldig modell: %s"
+
+#: templatetags/mptt_tags.py:59
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "drilldown_tree_for_node-taggen ble gitt et ugyldig modellfelt: %s"
+
+#: templatetags/mptt_tags.py:86
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "%s-taggen trenger tre argumenter"
+
+#: templatetags/mptt_tags.py:88 templatetags/mptt_tags.py:143
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "det andre argumentet til %s-taggen må være 'as'"
+
+#: templatetags/mptt_tags.py:140
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "%s-taggen trenger tre, sju eller åtte argumenter"
+
+#: templatetags/mptt_tags.py:147
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr ""
+"hvis sju argumenter er gitt, må det fjerde argumentet til %s-taggen være "
+"'with'"
+
+#: templatetags/mptt_tags.py:150
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr ""
+"hvis sju argumenter er gitt, må det sjette argumentet til %s-taggen være 'in'"
+
+#: templatetags/mptt_tags.py:155
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr ""
+"hvis åtte argumenter er gitt, må det fjerde argumentet til %s-taggen være "
+"'cumulative'"
+
+#: templatetags/mptt_tags.py:158
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr ""
+"hvis åtte argumenter er gitt, må det fjerde argumentet til %s-taggen være "
+"'count'"
+
+#: templatetags/mptt_tags.py:161
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr ""
+"hvis åtte argumenter er gitt, skal det sjuende argumentet til %s-taggen være "
+"'in'"
+
+#: templatetags/mptt_tags.py:251
+msgid "cache_tree_children was passed nodes in the wrong order!"
+msgstr "cache_tree_children ble gitt noder i feil rekkefølge!"
+
+#: templatetags/mptt_tags.py:313
+#, fuzzy, python-format
+msgid "%s tag requires a queryset"
+msgstr "%s-taggen trenger tre argumenter"
+
+#~ msgid "The model %s has already been registered."
+#~ msgstr "Modellen %s har allerede blitt registrert."

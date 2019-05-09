@@ -1,0 +1,14 @@
+Metadata-Version: 2.0
+Name: mpmath
+Version: 1.1.0
+Summary: Python library for arbitrary-precision floating-point arithmetic
+Home-page: http://mpmath.org
+Author: Fredrik Johansson
+Author-email: fredrik.johansson@gmail.com
+License: BSD
+Platform: UNKNOWN
+Classifier: Topic :: Scientific/Engineering :: Mathematics
+
+UNKNOWN
+
+
