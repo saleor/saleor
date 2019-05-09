@@ -9,17 +9,16 @@ from ..mutations.orders import clean_order_cancel
 class OrderBulkCancel(BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
-            graphene.ID,
-            required=True,
-            description='List of orders IDs to cancel.')
+            graphene.ID, required=True, description="List of orders IDs to cancel."
+        )
         restock = graphene.Boolean(
-            required=True,
-            description='Determine if lines will be restocked or not.')
+            required=True, description="Determine if lines will be restocked or not."
+        )
 
     class Meta:
-        description = 'Cancels orders.'
+        description = "Cancels orders."
         model = models.Order
-        permissions = ('order.manage_orders', )
+        permissions = ("order.manage_orders",)
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -27,7 +26,7 @@ class OrderBulkCancel(BaseBulkMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, ids, **data):
-        data['user'] = info.context.user
+        data["user"] = info.context.user
         return super().perform_mutation(root, info, ids, **data)
 
     @classmethod
@@ -36,6 +35,7 @@ class OrderBulkCancel(BaseBulkMutation):
             cancel_order(user=user, order=order, restock=restock)
             if restock:
                 events.fulfillment_restocked_items_event(
-                    order=order, user=user, fulfillment=order)
+                    order=order, user=user, fulfillment=order
+                )
 
             events.order_canceled_event(order=order, user=user)

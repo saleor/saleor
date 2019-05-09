@@ -14,38 +14,47 @@ from ..seo.schema.webpage import get_webpage_schema
 
 def home(request):
     products = products_for_homepage(
-        request.user,
-        request.site.settings.homepage_collection)[:8]
-    products = list(products_with_availability(
-        products, discounts=request.discounts, taxes=request.taxes,
-        local_currency=request.currency))
+        request.user, request.site.settings.homepage_collection
+    )[:8]
+    products = list(
+        products_with_availability(
+            products,
+            discounts=request.discounts,
+            taxes=request.taxes,
+            local_currency=request.currency,
+        )
+    )
     webpage_schema = get_webpage_schema(request)
     return TemplateResponse(
-        request, 'home.html', {
-            'parent': None,
-            'products': products,
-            'webpage_schema': json.dumps(webpage_schema)})
+        request,
+        "home.html",
+        {
+            "parent": None,
+            "products": products,
+            "webpage_schema": json.dumps(webpage_schema),
+        },
+    )
 
 
 @staff_member_required
 def styleguide(request):
-    return TemplateResponse(request, 'styleguide.html')
+    return TemplateResponse(request, "styleguide.html")
 
 
 def impersonate(request, uid):
     response = orig_impersonate(request, uid)
     if request.session.modified:
         msg = pgettext_lazy(
-            'Impersonation message',
-            'You are now logged as {}'.format(User.objects.get(pk=uid)))
+            "Impersonation message",
+            "You are now logged as {}".format(User.objects.get(pk=uid)),
+        )
         messages.success(request, msg)
     return response
 
 
 def handle_404(request, exception=None):
-    return TemplateResponse(request, '404.html', status=404)
+    return TemplateResponse(request, "404.html", status=404)
 
 
 def manifest(request):
-    return TemplateResponse(
-        request, 'manifest.json', content_type='application/json')
+    return TemplateResponse(request, "manifest.json", content_type="application/json")

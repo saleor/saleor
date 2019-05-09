@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0041_auto_20171205_0546'),
-    ]
+    dependencies = [("product", "0041_auto_20171205_0546")]
 
     operations = [
         migrations.AlterField(
-            model_name='category',
-            name='is_hidden',
-            field=models.BooleanField(default=False, verbose_name='is hidden'),
-        ),
+            model_name="category",
+            name="is_hidden",
+            field=models.BooleanField(default=False, verbose_name="is hidden"),
+        )
     ]

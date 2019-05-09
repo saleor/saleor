@@ -7,9 +7,8 @@ import json
 
 
 class Migration(migrations.Migration):
-
     def populate_data(apps, schema_editor):
-        OrderEvent = apps.get_model('order', 'OrderEvent')
+        OrderEvent = apps.get_model("order", "OrderEvent")
         for order_event in OrderEvent.objects.all():
             if isinstance(order_event.parameters, str):
                 json_str = order_event.parameters
@@ -18,15 +17,17 @@ class Migration(migrations.Migration):
                 order_event.parameters_new = json_str
                 order_event.save()
 
-    dependencies = [
-        ('order', '0056_auto_20180911_1541'),
-    ]
+    dependencies = [("order", "0056_auto_20180911_1541")]
 
     operations = [
         migrations.AddField(
-            model_name='orderevent',
-            name='parameters_new',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict, encoder=saleor.core.utils.json_serializer.CustomJsonEncoder),
+            model_name="orderevent",
+            name="parameters_new",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True,
+                default=dict,
+                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+            ),
         ),
-        migrations.RunPython(populate_data)
+        migrations.RunPython(populate_data),
     ]

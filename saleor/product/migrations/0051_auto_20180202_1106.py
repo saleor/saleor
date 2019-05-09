@@ -7,13 +7,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0050_auto_20180131_0746'),
-    ]
+    dependencies = [("product", "0050_auto_20180131_0746")]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='collection',
-            options={'ordering': ['pk']},
-        ),
+        migrations.AlterModelOptions(name="collection", options={"ordering": ["pk"]})
     ]

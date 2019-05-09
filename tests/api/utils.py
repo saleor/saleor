@@ -6,7 +6,7 @@ from saleor.graphql.core.utils import snake_to_camel_case
 
 
 def _get_graphql_content_from_response(response):
-    return json.loads(response.content.decode('utf8'))
+    return json.loads(response.content.decode("utf8"))
 
 
 def get_graphql_content(response):
@@ -15,15 +15,16 @@ def get_graphql_content(response):
     permissions.
     """
     content = _get_graphql_content_from_response(response)
-    assert 'errors' not in content, content['errors']
+    assert "errors" not in content, content["errors"]
     return content
 
 
 def assert_no_permission(response):
     content = _get_graphql_content_from_response(response)
-    assert 'errors' in content
-    assert content['errors'][0]['message'] == (
-        'You do not have permission to perform this action'), content['errors']
+    assert "errors" in content
+    assert content["errors"][0]["message"] == (
+        "You do not have permission to perform this action"
+    ), content["errors"]
 
 
 def get_multipart_request_body(query, variables, file, file_name):
@@ -33,8 +34,12 @@ def get_multipart_request_body(query, variables, file, file_name):
     of additional 'operations' and 'map' keys.
     """
     return {
-        'operations': json.dumps({'query': query, 'variables': variables}, cls=DjangoJSONEncoder),
-        'map': json.dumps({file_name: ['variables.file']}, cls=DjangoJSONEncoder), file_name: file}
+        "operations": json.dumps(
+            {"query": query, "variables": variables}, cls=DjangoJSONEncoder
+        ),
+        "map": json.dumps({file_name: ["variables.file"]}, cls=DjangoJSONEncoder),
+        file_name: file,
+    }
 
 
 def convert_dict_keys_to_camel_case(d):

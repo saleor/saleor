@@ -36,8 +36,11 @@
   <a href="http://codecov.io/github/mirumee/saleor?branch=master">
     <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="Codecov" />
   </a>
-  <a href='https://docs.getsaleor.com/en/latest/?badge=latest'>
-    <img src='https://readthedocs.org/projects/saleor/badge/?version=latest' alt='Documentation Status' />
+  <a href="https://docs.getsaleor.com/en/latest/?badge=latest">
+    <img src="https://readthedocs.org/projects/saleor/badge/?version=latest" alt='Documentation Status" />
+  </a>
+  <a href="https://github.com/python/black">
+    <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black">
   </a>
 </div>
 
