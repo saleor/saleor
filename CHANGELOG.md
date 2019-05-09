@@ -53,6 +53,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Refactored logic of events, it's now easier than ever to add and send events.
 - Reduce the time of tests execution by using dummy password hasher - #4083 by @korycins
 - Add migrations since unnecessary indexes are removed in mptt model in [django-mptt/django-mptt#578](https://github.com/django-mptt/django-mptt/pull/578) - #4071 by @jxltom
+- Update order events and order email events names in typescripts - #4089 by @jxltom
 
 
 ## 2.5.0
