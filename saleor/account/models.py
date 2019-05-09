@@ -6,15 +6,19 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import Q, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
+from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 from versatileimagefield.fields import VersatileImageField
 
+from ..core.utils.json_serializer import CustomJsonEncoder
+from . import CustomerEvents
 from .validators import validate_possible_number
 
 
@@ -198,3 +202,26 @@ class CustomerNote(models.Model):
 
     class Meta:
         ordering = ("date",)
+
+
+class CustomerEvent(models.Model):
+    """Model used to store events that happened during the customer lifecycle."""
+
+    date = models.DateTimeField(default=now, editable=False)
+    type = models.CharField(
+        max_length=255,
+        choices=[
+            (type_name.upper(), type_name) for type_name, _ in CustomerEvents.CHOICES
+        ],
+    )
+
+    order = models.ForeignKey("order.Order", on_delete=models.SET_NULL, null=True)
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+
+    user = models.ForeignKey(User, related_name="events", on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ("date",)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(type=%r, user=%r)" % (self.type, self.user)
