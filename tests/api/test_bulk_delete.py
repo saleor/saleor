@@ -401,9 +401,7 @@ def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):
     }
     """
     menu_item_list = []
-    variables = {
-        "ids": menu_item_list
-    }
+    variables = {"ids": menu_item_list}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
     )
