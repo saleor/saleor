@@ -6,7 +6,7 @@ from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
 from ..utils import filter_by_period, filter_by_query_param
-from .enums import CustomOrderStatusFilter
+from .enums import OrderStatusFilter
 from .types import Order
 
 ORDER_SEARCH_FIELDS = (
@@ -18,9 +18,9 @@ def filter_orders(qs, info, created, status, query):
 
     # filter orders by status
     if status is not None:
-        if status == CustomOrderStatusFilter.READY_TO_FULFILL:
+        if status == OrderStatusFilter.READY_TO_FULFILL:
             qs = qs.ready_to_fulfill()
-        elif status == CustomOrderStatusFilter.READY_TO_CAPTURE:
+        elif status == OrderStatusFilter.READY_TO_CAPTURE:
             qs = qs.ready_to_capture()
 
     # filter orders by creation date
