@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
+import { OrderEventsEmailsEnum, OrderEventsEnum, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderDraftFinalize
@@ -48,10 +48,10 @@ export interface OrderDraftFinalize_draftOrderComplete_order_events {
   amount: number | null;
   date: any | null;
   email: string | null;
-  emailType: OrderEventsEmails | null;
+  emailType: OrderEventsEmailsEnum | null;
   message: string | null;
   quantity: number | null;
-  type: OrderEvents | null;
+  type: OrderEventsEnum | null;
   user: OrderDraftFinalize_draftOrderComplete_order_events_user | null;
 }
 

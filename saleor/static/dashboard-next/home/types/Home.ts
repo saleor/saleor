@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents } from "./../../types/globalTypes";
+import { OrderEventsEmailsEnum, OrderEventsEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: Home
@@ -105,13 +105,13 @@ export interface Home_activities_edges_node {
   composedId: string | null;
   date: any | null;
   email: string | null;
-  emailType: OrderEventsEmails | null;
+  emailType: OrderEventsEmailsEnum | null;
   id: string;
   message: string | null;
   orderNumber: string | null;
   oversoldItems: (string | null)[] | null;
   quantity: number | null;
-  type: OrderEvents | null;
+  type: OrderEventsEnum | null;
   user: Home_activities_edges_node_user | null;
 }
 
