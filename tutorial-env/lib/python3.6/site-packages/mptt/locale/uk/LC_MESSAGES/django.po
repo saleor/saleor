@@ -1,0 +1,207 @@
+# Translation of django-mptt into Ukrainian.
+# This file is distributed under the same license as the django-mptt package.
+# Illia Volochii <illia.volochii@gmail.com>, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: django-mptt\n"
+"Report-Msgid-Bugs-To: https://github.com/django-mptt/django-mptt/issues\n"
+"POT-Creation-Date: 2017-03-12 12:45+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Illia Volochii <illia.volochii@gmail.com>\n"
+"Language-Team: Ukrainian\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: admin.py:89
+#, python-format
+msgid "Successfully deleted %(count)d items."
+msgstr "Успішно видалено %(count)d елементів."
+
+#: admin.py:102
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Видалити вибрані %(verbose_name_plural)s"
+
+#: admin.py:184
+msgid "title"
+msgstr "заголовок"
+
+#: admin.py:216
+msgid "Did not understand moving instruction."
+msgstr "Незрозуміла інструкція переміщення."
+
+#: admin.py:224
+msgid "Objects have disappeared, try again."
+msgstr "Обʼєкти зникли. Спробуйте ще раз."
+
+#: admin.py:228
+msgid "No permission"
+msgstr "Немає прав"
+
+#: admin.py:237
+#, python-format
+msgid "Database error: %s"
+msgstr "Помилка бази даних: %s"
+
+#: admin.py:242
+#, python-format
+msgid "%s has been successfully moved."
+msgstr "%s - успішно переміщений."
+
+#: admin.py:253
+msgid "move node before node"
+msgstr "помістити вузол перед вузлом"
+
+#: admin.py:254
+msgid "move node to child position"
+msgstr "помістити вузол на позицію нащадка"
+
+#: admin.py:255
+msgid "move node after node"
+msgstr "помістити вузол за вузлом"
+
+#: admin.py:256
+msgid "Collapse tree"
+msgstr "Згорнути дерево"
+
+#: admin.py:257
+msgid "Expand tree"
+msgstr "Розгорнути дерево"
+
+#: admin.py:368
+msgid "All"
+msgstr "Всі"
+
+#: forms.py:63
+msgid "First child"
+msgstr "Перший нащадок"
+
+#: forms.py:64
+msgid "Last child"
+msgstr "Останній нащадок"
+
+#: forms.py:65
+msgid "Left sibling"
+msgstr "Лівий брат"
+
+#: forms.py:66
+msgid "Right sibling"
+msgstr "Правий брат"
+
+#: forms.py:184
+msgid "Invalid parent"
+msgstr "Неправильний предок"
+
+#: managers.py:522
+msgid "Cannot insert a node which has already been saved."
+msgstr "Не можна вставити вузол, який вже збережений."
+
+#: managers.py:741 managers.py:904 managers.py:940 managers.py:1106
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "Дано неправильну позицію: %s."
+
+#: managers.py:890 managers.py:1086
+msgid "A node may not be made a sibling of itself."
+msgstr "Вузол не можна зробити братом для самого себе."
+
+#: managers.py:1065 managers.py:1183
+msgid "A node may not be made a child of itself."
+msgstr "Вузол не можна зробити нащадком для самого себе."
+
+#: managers.py:1067 managers.py:1185
+msgid "A node may not be made a child of any of its descendants."
+msgstr "Вузол не можна зробити нащадком будь-якого його нащадка."
+
+#: managers.py:1088
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "Вузол не можна зробити братом будь-якого його нащадка."
+
+#: models.py:301
+msgid "register() expects a Django model class argument"
+msgstr "register() очікує клас Django-моделі, як аргумент"
+
+#: utils.py:247
+#, python-format
+msgid "Node %s not in depth-first order"
+msgstr "Вузол %s не є у порядку типу \"в глибину\""
+
+#: templates/admin/mptt_filter.html:3
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " За %(filter_title)s "
+
+#: templatetags/mptt_tags.py:31
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "тег full_tree_for_model отримав неправильну модель: %s"
+
+#: templatetags/mptt_tags.py:55
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "тег drilldown_tree_for_node отримав неправильну модель: %s"
+
+#: templatetags/mptt_tags.py:62
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "тег drilldown_tree_for_node отримав неправильне поле моделі: %s"
+
+#: templatetags/mptt_tags.py:89
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "тег %s вимагає трьох аргументів"
+
+#: templatetags/mptt_tags.py:91 templatetags/mptt_tags.py:146
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "другий аргумент для тегу %s повинен бути \"as\""
+
+#: templatetags/mptt_tags.py:143
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "тег %s вимагає три, сім або вісім аргументів"
+
+#: templatetags/mptt_tags.py:150
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr ""
+"якщо дано сім аргументів, тоді четвертий аргумент для тегу %s повинен бути "
+"\"with\""
+
+#: templatetags/mptt_tags.py:154
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr ""
+"якщо дано сім аргументів, тоді шостий аргумент для тегу %s повинен бути "
+"\"in\""
+
+#: templatetags/mptt_tags.py:160
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr ""
+"якщо дано вісім аргументів, тоді четвертий аргумент для тегу %s повинен бути "
+"\"cumulative\""
+
+#: templatetags/mptt_tags.py:164
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr ""
+"якщо дано вісім аргументів, тоді пʼятий аргумент для тегу %s повинен бути "
+"\"count\""
+
+#: templatetags/mptt_tags.py:168
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr ""
+"якщо дано вісім аргументів, тоді сьомий аргумент для тегу %s повинен бути "
+"\"in\""
+
+#: templatetags/mptt_tags.py:287
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "тег %s вимагає набору запитів"

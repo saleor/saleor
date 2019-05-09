@@ -1,0 +1,1 @@
+{"IQ": {"fmt": "%O%n%N%n%A%n%C, %S%n%Z", "id": "data/IQ", "key": "IQ", "name": "IRAQ", "require": "ACS", "upper": "CS", "zip": "\\d{5}", "zipex": "31001"}}

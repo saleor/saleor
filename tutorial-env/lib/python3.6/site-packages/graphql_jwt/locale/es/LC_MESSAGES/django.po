@@ -1,0 +1,56 @@
+# Domake.io i18n
+# Copyright (C) mongkok 2019
+# This file is distributed under the same license as the django-graphql-jwt package.
+# Translators:
+# mongkok <domake.io@gmail.com>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Django GraphQL JWT\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-10-23 03:21+0700\n"
+"PO-Revision-Date: 2018-10-21 02:00+0700\n"
+"Last-Translator: mongkok <domake.io@gmail.com>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: decorators.py:86
+msgid "Please, enter valid credentials"
+msgstr "Por favor, introduce unas credenciales válidas"
+
+#: exceptions.py:15
+msgid "You do not have permission to perform this action"
+msgstr "Usted no tiene permiso para realizar esta acción"
+
+#: exceptions.py:19
+msgid "Signature has expired"
+msgstr "La firma ha expirado"
+
+#: mixins.py:59
+msgid "origIat field is required"
+msgstr "El campo origIat es requerido"
+
+#: mixins.py:62
+msgid "Refresh has expired"
+msgstr "El refresco ha expirado"
+
+#: utils.py:73
+msgid "Error decoding signature"
+msgstr "Error decodificando la firma"
+
+#: utils.py:75
+msgid "Invalid token"
+msgstr "Token inválido"
+
+#: utils.py:91
+msgid "Invalid payload"
+msgstr "Payload inválido"
+
+#: utils.py:96
+msgid "User is disabled"
+msgstr "Usuario deshabilitado"

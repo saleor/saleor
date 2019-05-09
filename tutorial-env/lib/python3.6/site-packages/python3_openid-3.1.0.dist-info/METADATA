@@ -1,0 +1,29 @@
+Metadata-Version: 2.0
+Name: python3-openid
+Version: 3.1.0
+Summary: OpenID support for modern servers and consumers.
+Home-page: http://github.com/necaris/python3-openid
+Author: Rami Chowdhury
+Author-email: rami.chowdhury@gmail.com
+License: UNKNOWN
+Download-URL: http://github.com/necaris/python3-openid/tarball/v3.1.0
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content :: CGI Tools/Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: System :: Systems Administration :: Authentication/Directory
+Requires-Dist: defusedxml
+
+This is a set of Python packages to support use of
+the OpenID decentralized identity system in your application, update to Python
+3.  Want to enable single sign-on for your web site?  Use the openid.consumer
+package.  Want to run your own OpenID server? Check out openid.server.
+Includes example code and support for a variety of storage back-ends.
+

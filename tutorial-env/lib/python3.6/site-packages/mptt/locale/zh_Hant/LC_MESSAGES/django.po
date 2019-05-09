@@ -1,0 +1,160 @@
+# Traditional Chinese translation
+# Copyright (C) 2016
+# This file is distributed under the same license as the mptt package.
+# Translators:
+# myyang <ymy1019@gmail.com> 2016.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.8.6\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-11-08 18:24+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: myyang <ymy1019@gmail.com>\n"
+"Language-Team: zh-Hant <zh-hant@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#, python-format
+msgid "Successfully deleted %(count)d items."
+msgstr "成功刪除 %(count)d 項"
+
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "刪除已選: %(verbose_name_plural)s "
+
+msgid "title"
+msgstr "標題"
+
+msgid "Did not understand moving instruction."
+msgstr "無法執行移動"
+
+msgid "Objects have disappeared, try again."
+msgstr "物件已消失，請再試一次"
+
+msgid "No permission"
+msgstr "沒有權限"
+
+#, python-format
+msgid "Database error: %s"
+msgstr "資料庫錯誤: %s"
+
+#, python-format
+msgid "%s has been successfully moved."
+msgstr "已成功移動 %s"
+
+msgid "move node before node"
+msgstr "往前移"
+
+msgid "move node to child position"
+msgstr "移至下一層"
+
+msgid "move node after node"
+msgstr "往後移"
+
+msgid "Collapse tree"
+msgstr "收起關聯樹"
+
+msgid "Expand tree"
+msgstr "展開關聯樹"
+
+msgid "All"
+msgstr "全部"
+
+msgid "First child"
+msgstr "第一子節點"
+
+msgid "Last child"
+msgstr "最後子節點"
+
+msgid "Left sibling"
+msgstr "同層左節點"
+
+msgid "Right sibling"
+msgstr "同層右節點"
+
+msgid "Invalid parent"
+msgstr "無效的父節點"
+
+msgid "Cannot insert a node which has already been saved."
+msgstr "無法加入已存在的節點"
+
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "無效的位置: %s"
+
+msgid "A node may not be made a sibling of itself."
+msgstr "節點無法指定自己成為自己同層節點"
+
+msgid "A node may not be made a child of itself."
+msgstr "節點無法指定自己成為自己的子節點"
+
+msgid "A node may not be made a child of any of its descendants."
+msgstr "節點無法指定自己成為子節點的子節點"
+
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "節點無法指定自己成為子節點的同層節點"
+
+msgid "register() expects a Django model class argument"
+msgstr "register() 需要一個Django模型類別的參數"
+
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " %(filter_title)s "
+
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "full_tree_for_model 標籤被指定到無效的資料庫模型: %s"
+
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "drilldoen_tree_for_node 標籤被指定到無效的資料庫模型: %s"
+
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "drilldoen_tree_for_node 標籤被指定到無效的欄位: %s"
+
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "%s 標籤需要三個參數"
+
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "%s 標籤的第二個參數需為'as'"
+
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "%s 標籤需要3或7或8個參數"
+
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr "%s 標籤傳入7個參數時，第4個需為'with'"
+
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr "%s 標籤傳入7個參數時，第6個需為'in'"
+
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr "%s 標籤傳入8個參數時，第4個需為'cumulative'"
+
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr "%s 標籤傳入8個參數時，第5個需為'count'"
+
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr "%s 標籤傳入8個參數時，第7個需為'in'"
+
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "%s 標籤需要查詢集"
+
+#, python-format
+msgid "Node %s not in depth-first order"
+msgstr "節點 %s 不在深度優先次序中"

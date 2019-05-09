@@ -1,0 +1,17 @@
+{% load silk_filters %}
+<div class="cell">
+    <div class="timestamp-div">{{ profile.start_time | silk_date_time }}</div>
+    <div class="name-div">{% if profile.name %}{{ profile.name }}{% elif profile.func_name %}{{ profile.func_name }}{% endif %}</div>
+    <div class="path-div">{{ profile.path }}</div>
+    <div class="time-taken-div">
+        <span class="numeric">{{ profile.time_taken|floatformat:"0" }}<span class="unit">ms</span></span>
+        <span class="appendage">overall</span>
+    </div>
+    <div class="time-taken-queries-div">
+        <span class="numeric">{{ profile.time_spent_on_sql_queries|floatformat:"0" }}<span class="unit">ms</span></span>
+        <span class="appenage">on queries</span></div>
+    <div class="num-queries-div">
+        <span class="numeric">{{ profile.queries.count }}</span>
+        <span class="appendage">queries</span>
+    </div>
+</div>

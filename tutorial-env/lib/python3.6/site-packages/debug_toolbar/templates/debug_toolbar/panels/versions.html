@@ -1,0 +1,24 @@
+{% load i18n %}
+<table>
+	<colgroup>
+		<col style="width:15%">
+		<col style="width:15%">
+		<col>
+	</colgroup>
+	<thead>
+		<tr>
+            <th>{% trans "Package" %}</th>
+			<th>{% trans "Name" %}</th>
+			<th>{% trans "Version" %}</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for package, name, version in versions %}
+			<tr class="{% cycle 'djDebugOdd' 'djDebugEven' %}">
+				<td>{{ package }}</td>
+                <td>{{ name }}</td>
+				<td>{{ version }}</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>

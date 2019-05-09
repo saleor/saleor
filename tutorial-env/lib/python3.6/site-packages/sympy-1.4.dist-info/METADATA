@@ -1,0 +1,39 @@
+Metadata-Version: 2.1
+Name: sympy
+Version: 1.4
+Summary: Computer algebra system (CAS) in Python
+Home-page: https://sympy.org
+Author: SymPy development team
+Author-email: sympy@googlegroups.com
+License: BSD
+Keywords: Math CAS
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Mathematics
+Classifier: Topic :: Scientific/Engineering :: Physics
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Dist: mpmath (>=0.19)
+
+
+SymPy is a Python library for symbolic mathematics. It aims to become a
+full-featured computer algebra system (CAS) while keeping the code as simple
+as possible in order to be comprehensible and easily extensible.  SymPy is
+written entirely in Python. It depends on mpmath, and other external libraries
+may be optionally for things like plotting support.
+
+See the webpage for more information and documentation:
+
+    https://sympy.org
+
+
+

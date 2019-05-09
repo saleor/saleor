@@ -1,0 +1,58 @@
+Metadata-Version: 2.1
+Name: tinycss2
+Version: 1.0.2
+Summary: Low-level CSS parser for Python
+Home-page: https://tinycss2.readthedocs.io/
+Author: Simon Sapin
+Author-email: community@kozea.fr
+License: BSD
+Project-URL: Documentation, https://tinycss2.readthedocs.io/
+Project-URL: Code, https://github.com/Kozea/tinycss2/
+Project-URL: Issue tracker, https://github.com/Kozea/tinycss2/issues
+Project-URL: Donation, https://www.patreon.com/kozea
+Keywords: css,parser
+Platform: Linux
+Platform: macOS
+Platform: Windows
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Text Processing
+Requires-Python: >= 3.5
+Description-Content-Type: text/x-rst
+Requires-Dist: setuptools (>=39.2.0)
+Requires-Dist: webencodings (>=0.4)
+Provides-Extra: doc
+Requires-Dist: sphinx ; extra == 'doc'
+Requires-Dist: sphinx-rtd-theme ; extra == 'doc'
+Provides-Extra: test
+Requires-Dist: pytest-runner ; extra == 'test'
+Requires-Dist: pytest-cov ; extra == 'test'
+Requires-Dist: pytest-flake8 ; extra == 'test'
+Requires-Dist: pytest-isort ; extra == 'test'
+
+========
+tinycss2
+========
+
+tinycss2 is a low-level CSS parser and generator: it can parse strings, return
+Python objects representing tokens and blocks, and generate CSS strings
+corresponding to these objects.
+
+Based on the `CSS Syntax Level 3`_ specification, tinycss2 knows the grammar of
+CSS but doesn't know specific rules, properties or values supported in various
+CSS modules.
+
+.. _CSS Syntax Level 3: https://drafts.csswg.org/css-syntax-3/
+
+* BSD licensed
+* For Python 3.5+ (tested on CPython and Pypy3)
+* Latest documentation: http://tinycss2.readthedocs.io/
+* Source code and issue tracker: https://github.com/Kozea/tinycss2
+* PyPI releases: https://pypi.python.org/pypi/tinycss2/
+
+

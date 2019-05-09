@@ -1,0 +1,29 @@
+PyJWT lead developer
+---------------------
+
+ - jpadilla <hello@jpadilla.com>
+
+
+Original author
+------------------
+
+- progrium <progrium@gmail.com>
+
+
+Patches and Suggestions
+-----------------------
+
+ - Boris Feld <boris.feld@novapost.fr> <lothiraldan@gmail.com>
+
+ - Åsmund Ødegård <asmund@xal.no> <ao@mcash.no>
+   Adding support for RSA-SHA256 privat/public signature.
+
+ - Mark Adams <mark@markadams.me>
+
+ - Wouter Bolsterlee <uws@xs4all.nl>
+
+ - Michael Davis <mike.philip.davis@gmail.com> <mike.davis@workiva.com>
+
+ - Vinod Gupta <codervinod@gmail.com>
+ 
+ - Derek Weitzel <djw8605@gmail.com>

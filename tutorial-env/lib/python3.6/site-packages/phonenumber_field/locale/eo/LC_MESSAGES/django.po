@@ -1,0 +1,27 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-26 10:15-0700\n"
+"PO-Revision-Date: 2016-01-31 20:07+0100\n"
+"Last-Translator: Meiyer <interDist@users.noreply.github.com>\n"
+"Language-Team: Esperanto\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: formfields.py:14 serializerfields.py:12
+msgid "Enter a valid phone number."
+msgstr "Bv. enigu ĝustan telefon-numeron."
+
+#: modelfields.py:48
+msgid "Phone number"
+msgstr "Telefona numero"
+
+#: validators.py:14
+msgid "The phone number entered is not valid."
+msgstr "La provizita numero ne estas en akceptebla formato."

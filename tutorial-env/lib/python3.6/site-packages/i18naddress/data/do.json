@@ -1,0 +1,1 @@
+{"DO": {"fmt": "%N%n%O%n%A%n%Z %C", "id": "data/DO", "key": "DO", "name": "DOMINICAN REP.", "posturl": "http://inposdom.gob.do/codigo-postal/", "zip": "\\d{5}", "zipex": "11903,10101"}}

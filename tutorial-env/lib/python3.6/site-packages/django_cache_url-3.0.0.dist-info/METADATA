@@ -1,0 +1,40 @@
+Metadata-Version: 2.1
+Name: django-cache-url
+Version: 3.0.0
+Summary: Use Cache URLs in your Django application.
+Home-page: http://github.com/ghickman/django-cache-url
+Author: George Hickman
+Author-email: george@ghickman.co.uk
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 7 - Inactive
+Classifier: Framework :: Django
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+
+
+django-cache-url
+~~~~~~~~~~~~~~~~
+
+This simple Django utility allows you to utilize the
+`12factor <http://www.12factor.net/backing-services>`_ inspired
+``CACHE_URL`` environment variable to configure your Django application.
+
+
+Usage
+-----
+
+Configure your cache in ``settings.py``::
+
+    CACHES={'default': django_cache_url.config()}
+
+Nice and simple.
+
+

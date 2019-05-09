@@ -1,0 +1,226 @@
+Metadata-Version: 2.0
+Name: django-render-block
+Version: 0.5
+Summary: Render a particular block from a template to a string.
+Home-page: https://github.com/clokep/django-render-block
+Author: Patrick Cloke
+Author-email: clokep@patrick.cloke.us
+License: UNKNOWN
+Download-URL: https://github.com/clokep/django-render-block
+Keywords: django,template,block,templates,render,context
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Environment :: Web Environment
+Classifier: Topic :: Internet
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Framework :: Django
+Classifier: License :: OSI Approved :: ISC License (ISCL)
+Requires-Dist: django (>=1.8.0)
+
+Django Render Block
+###################
+
+.. image:: https://travis-ci.org/clokep/django-render-block.svg?branch=master
+    :target: https://travis-ci.org/clokep/django-render-block
+
+Render the content of a specific block tag from a Django template. Works for
+arbitrary template inheritance, even if a block is defined in the child template
+but not in the parent. Generally it works like ``render_to_string`` from Django,
+but allows you to specify a block to render.
+
+Features
+========
+
+*   Render a specific block from a template
+*   Fully supports the Django templating engine
+*   Partially supports the `Jinja2 <http://jinja.pocoo.org/>`_ engine: it does
+    not currently process the ``extends`` tag.
+
+Requirements
+============
+
+Django Render Block supports Django 1.8 and 1.9.
+
+Examples
+========
+
+In ``test1.html``:
+
+.. code-block:: jinja
+
+    {% block block1 %}block1 from test1{% endblock %}
+    {% block block2 %}block2 from test1{% endblock %}
+
+In ``test2.html``:
+
+.. code-block:: jinja
+
+    {% extends 'test1.html' %}
+    {% block block1 %}block1 from test2{% endblock %}
+
+And from the Python shell:
+
+.. code-block:: python
+
+    >>> from render_block import render_block_to_string
+    >>> print render_block_to_string('test2.html', 'block1')
+    u'block1 from test2'
+    >>> print render_block_to_string('test2.html', 'block2')
+    u'block2 from test1'
+
+It can also accept a context as a ``dict`` (just like ``render_to_string``), in
+``test3.html``:
+
+.. code-block:: jinja
+
+    {% block block3 %}Render this {{ variable }}!{% endblock %}
+
+And from Python:
+
+.. code-block:: python
+
+    >>> print render_block_to_string('test3.html', 'block3', {'variable': 'test'})
+    u'Render this test!'
+
+API Reference
+=============
+
+The API is simple and attempts to mirror the built-in ``render_to_string`` API.
+
+``render_block_to_string(template_name, block_name, context=None)``
+
+    ``template_name``
+        The name of the template to load and render. If it’s a list of template
+        names, Django uses ``select_template()`` instead of ``get_template()``
+        to find the template.
+
+    ``block_name``
+        The name of the block to render from the above template.
+
+    ``context``
+        A ``dict`` to be used as the template’s context for rendering.
+
+        ``context`` is now optional. An empty context will be used if it isn’t
+        provided.
+
+Exceptions
+----------
+
+Like ``render_to_string`` this will raise the following exceptions:
+
+    ``TemplateDoesNotExists``
+        Raised if the template(s) specified by ``template_name`` cannot be
+        loaded.
+
+    ``TemplateSyntaxError``
+        Raised if the loaded template contains invalid syntax.
+
+There are also two additional errors that can be raised:
+
+    ``BlockNotFound``
+        Raised if the block given by ``block_name`` does not exist in the
+        template.
+
+    ``UnsupportedEngine``
+        Raised if a template backend besides the Django backend is used.
+
+Contributing
+============
+
+If you find a bug or have an idea for an improvement to Django Render Block,
+please
+`file an issue <https://github.com/clokep/django-render-block/issues/new>`_ or
+provide a pull request! Check the
+`list of issues <https://github.com/clokep/django-render-block/issues/>`_ for
+ideas of what to work on.
+
+Attribution
+===========
+
+This is based on a few sources:
+
+* Originally `Django Snippet 769 <https://djangosnippets.org/snippets/769/>`_
+* Updated version `Django Snippet 942 <https://djangosnippets.org/snippets/942/>`_
+* A version of the snippets was ported as `Django-Block-Render <https://github.com/uniphil/Django-Block-Render/>`_
+* Additionally inspired by part of `django-templated-email <https://github.com/BradWhittington/django-templated-email/blob/master/templated_email/utils.py>`_
+* Also based on a `StackOverflow answer 2687173 <http://stackoverflow.com/questions/2687173/django-how-can-i-get-a-block-from-a-template>`_
+.. :changelog:
+
+Changelog
+#########
+
+0.5 (September 1, 2016)
+=======================
+
+*   Fixes a major issue with inheriting templates and rendering a block found in
+    the parent template, but overwriting part of it in the child template.
+    (`#8 <https://github.com/clokep/django-render-block/pull/8>`_)
+
+0.4 (August 4, 2016)
+====================
+
+*   Initial support for using the `Jinja2 <http://jinja.pocoo.org/>`_ templating
+    engine. See README for caveats. (`#3 <https://github.com/clokep/django-render-block/pull/3>`_)
+*   Support Django 1.10. (`#5 <https://github.com/clokep/django-render-block/pull/5>`_)
+*   Support Python 3. (`#6 <https://github.com/clokep/django-render-block/pull/6>`_)
+
+0.3.1 (June 1, 2016)
+====================
+
+*   Refactoring to make more generic (for potentially supporting multiple
+    templating engines).
+
+0.3 (May 27, 2016)
+==================
+
+*   Largely rewritten.
+*   Updated to support modern Django (1.8, 1.9):
+
+    *   Guards against different template backends.
+    *   Uses internal APIs for each node.
+    *   Removed ``context_instance`` parameter.
+    *   Support for calling ``{{ block.super }}``.
+
+0.2.2 (January 10, 2011)
+========================
+
+*   Updated per
+    `comment 3466 on Django Snippet 942 <https://djangosnippets.org/snippets/942/#c3466>`_
+    to fix an issue with nested extends. The specific bug was not reproducible,
+    but the additional code shouldn't hurt.
+
+0.2.1 (August 27, 2010)
+=======================
+
+*   Updated per
+    `comment 3237 on Django Snippet 942 <https://djangosnippets.org/snippets/942/#c3237>`_
+    to remove a pointless render. The specific bug was not reproducible, but the
+    code is extraneous.
+
+0.2 (August 4, 2008)
+====================
+
+*   Updated version from
+    `Django Snippet 942 <https://djangosnippets.org/snippets/942/>`_ by zbyte64.
+*   Improves include:
+
+    1.  Simpler/better handling of "extends" block tag
+    2.  Searches If/Else blocks
+    3.  Less code
+    4.  Allow list of templates to be passed which is closer to the behavior of
+        render_to_response
+
+
+0.1 (May 22, 2008)
+==================
+
+*   Initial version from
+    `Django Snippet 769 <https://djangosnippets.org/snippets/769/>`_ by sciyoshi.
+*   Supports Django 0.96.
+
+

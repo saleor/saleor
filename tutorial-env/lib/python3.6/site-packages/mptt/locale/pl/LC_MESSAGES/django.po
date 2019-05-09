@@ -1,0 +1,153 @@
+# django-mptt in Polish.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the django-mptt package.
+# Bartosz Biały <ethifus@gmail.com>, 2011.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-10-17 16:06+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: BARTOSZ BIAŁY <ethifus@gmain.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2)\n"
+
+#: admin.py:91
+msgid "Database error"
+msgstr "Błąd bazy danych"
+
+#: admin.py:127
+#, python-format
+msgid "%(count)s %(name)s was changed successfully."
+msgid_plural "%(count)s %(name)s were changed successfully."
+msgstr[0] "%(count)s %(name)s został zmieniony."
+msgstr[1] "%(count)s %(name)s zostały zmienione."
+msgstr[2] "%(count)s %(name)s zostało zmienionych."
+
+#: admin.py:197 admin.py:199
+msgid "Add child"
+msgstr "Dodaj podelement"
+
+#: admin.py:205 admin.py:207
+msgid "View on site"
+msgstr "Pokaż na stronie"
+
+#: admin.py:219
+#, python-format
+msgid "Successfully deleted %s items."
+msgstr "Skutecznie usinięto %s elementów."
+
+#: admin.py:224
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Usuń wybrane %(verbose_name_plural)s"
+
+#: forms.py:65
+msgid "First child"
+msgstr "Pierwszy podelement"
+
+#: forms.py:66
+msgid "Last child"
+msgstr "Ostatni podelement"
+
+#: forms.py:67
+msgid "Left sibling"
+msgstr "Lewy podelement"
+
+#: forms.py:68
+msgid "Right sibling"
+msgstr "Prawy podelement"
+
+#: managers.py:200
+msgid "Cannot insert a node which has already been saved."
+msgstr "Nie można wstawić węzła, który został już zapisany."
+
+#: managers.py:379 managers.py:551 managers.py:587 managers.py:742
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "Podano niewłaściwą pozycję: %s."
+
+#: managers.py:537 managers.py:722
+msgid "A node may not be made a sibling of itself."
+msgstr "Węzeł nie może zostać swoim węzłem równożędnym."
+
+#: managers.py:701 managers.py:823
+msgid "A node may not be made a child of itself."
+msgstr "Węzeł nie może zostać swoim własnym węzłem potomnym."
+
+#: managers.py:703 managers.py:825
+msgid "A node may not be made a child of any of its descendants."
+msgstr "Węzeł nie może zostać węzłem potomnym żadnego ze swoich węzłów potomnych."
+
+#: managers.py:724
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "Węzeł nie może zostać węzłem równożędnym żadnego ze swoich węzłów potomnych."
+
+#: templatetags/mptt_tags.py:29
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "do tagu full_tree_for_model przekazano niewłaściwy model: %s"
+
+#: templatetags/mptt_tags.py:50
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "do tagu drilldown_tree_for_node przekazano niewłaściwy model: %s"
+
+#: templatetags/mptt_tags.py:54
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "do tagu drilldown_tree_for_node przekazano niewłaściwe pole model: %s"
+
+#: templatetags/mptt_tags.py:89 templatetags/mptt_tags.py:176
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "tag %s wymaga trzech argumentów"
+
+#: templatetags/mptt_tags.py:91 templatetags/mptt_tags.py:143
+#: templatetags/mptt_tags.py:179
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "drugim argumentem tagu %s musi być słowo 'as'"
+
+#: templatetags/mptt_tags.py:141
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "tag %s wymaga trzech, siedmiu lub ośmiu argumentów"
+
+#: templatetags/mptt_tags.py:146
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr "jeżeli podano siedem argumentów, to czwartym argumentem tagu %s musi być słowo 'with'"
+
+#: templatetags/mptt_tags.py:148
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr "jeżeli podano siedem argumentów, to szóstym argumentem tagu %s musi być słowo 'in'"
+
+#: templatetags/mptt_tags.py:152
+#, python-format
+msgid ""
+"if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr "jeżeli podano osiem argumentów, to czwartym argumentem tagu %s musi być słowo 'cumulative'"
+
+#: templatetags/mptt_tags.py:154
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr "jeżeli podano osiem argumentów, to piątym argumentem tagu %s musi być słowo 'count'"
+
+#: templatetags/mptt_tags.py:156
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr "jeżeli podano osiem argumentów, to siódmym argumentem tagu %s musi być słowo 'in'"
+
+#: templatetags/mptt_tags.py:329
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "tag %s wymaga argumentu 'queryset'"

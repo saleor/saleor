@@ -1,0 +1,30 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Ville Skyttä <ville.skytta@iki.fi>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-26 10:15-0700\n"
+"PO-Revision-Date: 2015-10-26 10:25+0200\n"
+"Last-Translator: Ville Skyttä <ville.skytta@iki.fi>\n"
+"Language-Team: \n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.5\n"
+
+#: formfields.py:14 serializerfields.py:12
+msgid "Enter a valid phone number."
+msgstr "Syötä oikea puhelinnumero."
+
+#: modelfields.py:48
+msgid "Phone number"
+msgstr "Puhelinnumero"
+
+#: validators.py:14
+msgid "The phone number entered is not valid."
+msgstr "Syötetty puhelinnumero on virheellinen."

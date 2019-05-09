@@ -1,0 +1,56 @@
+{% extends 'silk/base/base.html' %}
+{% load staticfiles %}
+{% block style %}
+    <link rel="stylesheet" href="{% static 'silk/lib/highlight/foundation.css' %}"/>
+    <link rel="stylesheet" href="{% static 'silk/css/heading.css' %}"/>
+    <link rel="icon" type="image/png" href="{% static 'silk/favicon-32x32.png' %}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{% static 'silk/favicon-16x16.png' %}" sizes="16x16">
+    <style>
+        #traceback {
+            overflow: visible;
+        }
+
+        #time-div {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #query-div {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #query {
+            text-align: left;
+            margin: 0 auto;
+            display: inline-block;
+        }
+
+        .line {
+            width: 100%;
+            display: inline-block;
+        }
+
+        .the-line {
+            background-color: #c3c3c3;
+        }
+
+
+
+        pre {
+            margin: 0;
+        }
+
+
+
+
+    </style>
+    <link rel="stylesheet" href="{% static 'silk/css/numeric.css' %}"/>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'silk/js/cell.js' %}"></script>
+    <script src="{% static 'silk/lib/highlight/highlight.pack.js' %}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}
+

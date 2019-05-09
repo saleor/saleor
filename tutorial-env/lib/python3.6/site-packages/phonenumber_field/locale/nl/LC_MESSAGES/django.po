@@ -1,0 +1,29 @@
+# Dutch Translation.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Folkert de Vries <info@fdev.nl>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-26 10:15-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Folkert de Vries <info@fdev.nl>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: formfields.py:14 serializerfields.py:12
+msgid "Enter a valid phone number."
+msgstr "Vul een geldig telefoonnummer in."
+
+#: modelfields.py:48
+msgid "Phone number"
+msgstr "Telefoonnummer"
+
+#: validators.py:14
+msgid "The phone number entered is not valid."
+msgstr "Het ingevulde telefoonnummer is niet geldig."

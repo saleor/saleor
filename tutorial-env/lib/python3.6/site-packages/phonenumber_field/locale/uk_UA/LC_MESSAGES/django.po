@@ -1,0 +1,32 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Nikita Kolesnikov <koles.web@gmail.com>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-26 10:15-0700\n"
+"PO-Revision-Date: 2018-06-06 00:07+0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 2.0.8\n"
+
+#: formfields.py:14 serializerfields.py:12
+msgid "Enter a valid phone number."
+msgstr "Введіть коректний номер телефону."
+
+#: modelfields.py:48
+msgid "Phone number"
+msgstr "Номер телефону"
+
+#: validators.py:14
+msgid "The phone number entered is not valid."
+msgstr "Введено некоректний номер телефону."

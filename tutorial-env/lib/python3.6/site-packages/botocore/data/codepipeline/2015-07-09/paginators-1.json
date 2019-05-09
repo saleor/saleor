@@ -1,0 +1,26 @@
+{
+  "pagination": {
+    "ListActionTypes": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "result_key": "actionTypes"
+    },
+    "ListPipelineExecutions": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "pipelineExecutionSummaries"
+    },
+    "ListPipelines": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "result_key": "pipelines"
+    },
+    "ListWebhooks": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "webhooks"
+    }
+  }
+}

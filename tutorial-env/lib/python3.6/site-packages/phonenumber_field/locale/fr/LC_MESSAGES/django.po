@@ -1,0 +1,30 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Ludovic Gasc <gmludo@gmail.com>, 2011.
+# Stéphane Raimbault <stephane.raimbault@gmail.com>, 2018
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-26 10:15-0700\n"
+"PO-Revision-Date: 2011-10-19 14:10+0200\n"
+"Last-Translator: Stéphane Raimbault <stephane.raimbault@gmail.com>\n"
+"Language-Team: French <gmludo@gmail.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+
+#: formfields.py:14 serializerfields.py:12
+msgid "Enter a valid phone number."
+msgstr "Saisissez un numéro de téléphone valide."
+
+#: modelfields.py:48
+msgid "Phone number"
+msgstr "Numéro de téléphone"
+
+#: validators.py:14
+msgid "The phone number entered is not valid."
+msgstr "Le numéro saisi n'est pas valide."

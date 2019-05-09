@@ -1,0 +1,1 @@
+{"CO": {"fmt": "%N%n%O%n%A%n%C, %S, %Z", "id": "data/CO", "key": "CO", "name": "COLOMBIA", "posturl": "http://www.codigopostal.gov.co/", "require": "AS", "state_name_type": "department", "zip": "\\d{6}", "zipex": "111221,130001,760011"}}

@@ -1,0 +1,201 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: django-mptt\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-08-24 12:25+0200\n"
+"PO-Revision-Date: 2016-08-24 12:32+0200\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Henning Hraban Ramm <hraban@fiee.net>\n"
+"Language-Team: fiëé visuëlle <hraban@fiee.net>\n"
+"X-Generator: Poedit 1.8.7\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#: admin.py:87
+#, python-format
+msgid "Successfully deleted %(count)d items."
+msgstr "%(count)d Einträge gelöscht."
+
+#: admin.py:100
+#, python-format
+msgid "Delete selected %(verbose_name_plural)s"
+msgstr "Ausgewählte %(verbose_name_plural)s löschen"
+
+#: admin.py:182
+msgid "title"
+msgstr "Titel"
+
+#: admin.py:212
+msgid "Did not understand moving instruction."
+msgstr "Unbekannter Verschiebe-Befehl."
+
+#: admin.py:220
+msgid "Objects have disappeared, try again."
+msgstr "Objekte sind verschwunden, bitte noch einmal versuchen."
+
+#: admin.py:224
+msgid "No permission"
+msgstr "Keine Berechtigung"
+
+#: admin.py:233
+#, python-format
+msgid "Database error: %s"
+msgstr "Datenbankfehler: %s"
+
+#: admin.py:238
+#, python-format
+msgid "%s has been successfully moved."
+msgstr "%s wurde erfolgreich verschoben."
+
+#: admin.py:249
+msgid "move node before node"
+msgstr "Knoten vor den Knoten verschieben"
+
+#: admin.py:250
+msgid "move node to child position"
+msgstr "Knoten als Unterknoten einfügen"
+
+#: admin.py:251
+msgid "move node after node"
+msgstr "Knoten nach den Knoten verschieben"
+
+#: admin.py:252
+msgid "Collapse tree"
+msgstr "Alles zuklappen"
+
+#: admin.py:253
+msgid "Expand tree"
+msgstr "Alles aufklappen"
+
+#: admin.py:364
+msgid "All"
+msgstr "Alle"
+
+#: forms.py:63
+msgid "First child"
+msgstr "Erstes Unterelement"
+
+#: forms.py:64
+msgid "Last child"
+msgstr "Letztes Unterelement"
+
+#: forms.py:65
+msgid "Left sibling"
+msgstr "Linker Nachbar"
+
+#: forms.py:66
+msgid "Right sibling"
+msgstr "Rechter Nachbar"
+
+#: forms.py:184
+msgid "Invalid parent"
+msgstr "Ungültiges Eltern-Element"
+
+#: managers.py:521
+msgid "Cannot insert a node which has already been saved."
+msgstr "Kann ein Element, welches schon gespeichert wurde, nicht einfügen."
+
+#: managers.py:739 managers.py:912 managers.py:948 managers.py:1114
+#, python-format
+msgid "An invalid position was given: %s."
+msgstr "Eine ungültige Position wurde angegeben: %s."
+
+#: managers.py:898 managers.py:1094
+msgid "A node may not be made a sibling of itself."
+msgstr "Ein Element kann nicht in ein Geschwister von sich selbst umgewandelt werden."
+
+#: managers.py:1073 managers.py:1199
+msgid "A node may not be made a child of itself."
+msgstr "Ein Element kann nicht Unterelement von sich selbst sein."
+
+#: managers.py:1075 managers.py:1201
+msgid "A node may not be made a child of any of its descendants."
+msgstr "Ein Element kann nicht Unterelement eines seiner Unterlemente sein."
+
+#: managers.py:1096
+msgid "A node may not be made a sibling of any of its descendants."
+msgstr "Ein Element kann nicht ein Geschwister eines seiner Unterelemente sein."
+
+#: models.py:292
+msgid "register() expects a Django model class argument"
+msgstr "register() erwartet als Argument eine Django-Modell-Klasse"
+
+#: templates/admin/mptt_filter.html:3
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " Nach %(filter_title)s "
+
+#: templatetags/mptt_tags.py:31
+#, python-format
+msgid "full_tree_for_model tag was given an invalid model: %s"
+msgstr "full_tree_for_model Tag bekam ein ungültiges Modell: %s"
+
+#: templatetags/mptt_tags.py:55
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model: %s"
+msgstr "drilldown_tree_for_node-Tag bekam ein ungültiges Modell: %s"
+
+#: templatetags/mptt_tags.py:62
+#, python-format
+msgid "drilldown_tree_for_node tag was given an invalid model field: %s"
+msgstr "drilldown_tree_for_node-Tag bekam ein ungültiges Modellfeld: %s"
+
+#: templatetags/mptt_tags.py:89
+#, python-format
+msgid "%s tag requires three arguments"
+msgstr "%s Tag benötigt drei Argumente"
+
+#: templatetags/mptt_tags.py:91 templatetags/mptt_tags.py:146
+#, python-format
+msgid "second argument to %s tag must be 'as'"
+msgstr "Zweites Argument für %s-Tag muss 'as' sein"
+
+#: templatetags/mptt_tags.py:143
+#, python-format
+msgid "%s tag requires either three, seven or eight arguments"
+msgstr "%s-Tag benötigt entweder drei, sieben oder acht Argumente"
+
+#: templatetags/mptt_tags.py:150
+#, python-format
+msgid "if seven arguments are given, fourth argument to %s tag must be 'with'"
+msgstr "wenn '%s' sieben Argumente übergeben werden, muss das vierte 'with' sein"
+
+#: templatetags/mptt_tags.py:154
+#, python-format
+msgid "if seven arguments are given, sixth argument to %s tag must be 'in'"
+msgstr "wenn '%s' sieben Argumente übergeben werden, muss das sechste 'in' sein"
+
+#: templatetags/mptt_tags.py:160
+#, python-format
+msgid "if eight arguments are given, fourth argument to %s tag must be 'cumulative'"
+msgstr "wenn '%s' acht Argumente übergeben werden, muss das vierte 'cumulative' sein"
+
+#: templatetags/mptt_tags.py:164
+#, python-format
+msgid "if eight arguments are given, fifth argument to %s tag must be 'count'"
+msgstr "wenn '%s' acht Argumente übergeben werden, muss das fünfte 'count' sein"
+
+#: templatetags/mptt_tags.py:168
+#, python-format
+msgid "if eight arguments are given, seventh argument to %s tag must be 'in'"
+msgstr "wenn '%s' acht Argumente übergeben werden, muss das achte 'in' sein"
+
+#: templatetags/mptt_tags.py:287
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr "%s-Tag benötigt ein Queryset"
+
+#: utils.py:240
+#, python-format
+msgid "Node %s not in depth-first order"
+msgstr "Knoten %s ist nicht in Tiefe-zuerst-Reihenfolge"
+
+#~ msgid "The model %s has already been registered."
+#~ msgstr "%s wurde schon registriert."

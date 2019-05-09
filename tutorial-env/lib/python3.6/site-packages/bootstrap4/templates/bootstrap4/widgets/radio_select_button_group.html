@@ -1,0 +1,9 @@
+<div{% if widget.attrs.id %} id="{{ widget.attrs.id }}"{% endif %} class="btn-group btn-group-toggle" data-toggle="buttons">
+    {% for group, options, index in widget.optgroups %}
+        {% for option in options %}
+            <label class="{{ widget.attrs.class|add:' btn btn-outline-primary' }}{% if option.attrs.checked %} active{% endif %}" id="{{ widget.attrs.id }}">
+                <input type="{{ option.type }}" name="{{ option.name }}" id="{{ option.attrs.id }}"{% if option.value != None %} value="{{ option.value|stringformat:'s' }}"{% if option.attrs.checked %} checked="checked"{% endif %}{% endif %}{% if widget.required %} required{% endif %}> {{ option.label }}
+            </label>
+        {% endfor %}
+    {% endfor %}
+</div>

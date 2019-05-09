@@ -1,0 +1,68 @@
+Metadata-Version: 2.1
+Name: stripe
+Version: 2.27.0
+Summary: Python bindings for the Stripe API
+Home-page: https://github.com/stripe/stripe-python
+Author: Stripe
+Author-email: support@stripe.com
+License: MIT
+Project-URL: Bug Tracker, https://github.com/stripe/stripe-python/issues
+Project-URL: Documentation, https://stripe.com/docs/api/python
+Project-URL: Source Code, https://github.com/stripe/stripe-python
+Keywords: stripe api payments
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*
+Description-Content-Type: text/x-rst
+Requires-Dist: requests[security] (>=2.20) ; python_version < "3.0"
+Requires-Dist: requests (>=2.20) ; python_version >= "3.0"
+
+Official Stripe Bindings for Python
+===================================
+
+A Python library for Stripe's API.
+
+
+Setup
+-----
+
+You can install this package by using the pip tool and installing:
+
+    $ pip install stripe
+
+Or:
+
+    $ easy_install stripe
+
+
+Setting up a Stripe Account
+---------------------------
+
+Sign up for Stripe at https://dashboard.stripe.com/register.
+
+Using the Stripe API
+--------------------
+
+Documentation for the python bindings can be found alongside Stripe's other bindings here:
+
+- https://stripe.com/docs
+- https://stripe.com/docs/api/python
+
+In the standard documentation (the first link), most of the reference pages will have examples in Stripe's official bindings (including Python). Just click on the Python tab to get the relevant documentation.
+
+In the full API reference for python (the second link), the right half of the page will provide example requests and responses for various API calls.
+
+

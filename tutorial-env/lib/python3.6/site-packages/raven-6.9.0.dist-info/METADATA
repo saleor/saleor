@@ -1,0 +1,68 @@
+Metadata-Version: 2.0
+Name: raven
+Version: 6.9.0
+Summary: Raven is a client for Sentry (https://getsentry.com)
+Home-page: https://github.com/getsentry/raven-python
+Author: Sentry
+Author-email: hello@getsentry.com
+License: BSD
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development
+Requires-Dist: contextlib2; python_version<"3.2"
+Provides-Extra: flask
+Requires-Dist: Flask (>=0.8); extra == 'flask'
+Requires-Dist: blinker (>=1.1); extra == 'flask'
+Provides-Extra: tests
+Requires-Dist: Flask (>=0.8); extra == 'tests'
+Requires-Dist: Flask-Login (>=0.2.0); extra == 'tests'
+Requires-Dist: ZConfig; extra == 'tests'
+Requires-Dist: anyjson; extra == 'tests'
+Requires-Dist: blinker (>=1.1); extra == 'tests'
+Requires-Dist: bottle; extra == 'tests'
+Requires-Dist: celery (>=2.5); extra == 'tests'
+Requires-Dist: coverage (<4); extra == 'tests'
+Requires-Dist: exam (>=0.5.2); extra == 'tests'
+Requires-Dist: flake8 (==3.5.0); extra == 'tests'
+Requires-Dist: logbook; extra == 'tests'
+Requires-Dist: mock; extra == 'tests'
+Requires-Dist: nose; extra == 'tests'
+Requires-Dist: paste; extra == 'tests'
+Requires-Dist: pytest (>=3.2.0,<3.3.0); extra == 'tests'
+Requires-Dist: pytest-cov (==2.5.1); extra == 'tests'
+Requires-Dist: pytest-flake8 (==1.0.0); extra == 'tests'
+Requires-Dist: pytest-pythonpath (==0.7.2); extra == 'tests'
+Requires-Dist: pytest-timeout (==1.2.1); extra == 'tests'
+Requires-Dist: pytest-xdist (==1.18.2); extra == 'tests'
+Requires-Dist: pytz; extra == 'tests'
+Requires-Dist: requests; extra == 'tests'
+Requires-Dist: tornado (>=4.1,<5.0); extra == 'tests'
+Requires-Dist: tox; extra == 'tests'
+Requires-Dist: unittest2; extra == 'tests'
+Requires-Dist: web.py; extra == 'tests'
+Requires-Dist: webob; extra == 'tests'
+Requires-Dist: webtest; extra == 'tests'
+Requires-Dist: wheel; extra == 'tests'
+
+Raven
+=====
+
+Raven is a Python client for `Sentry <http://getsentry.com/>`_. It provides
+full out-of-the-box support for many of the popular frameworks, including
+`Django <djangoproject.com>`_, `Flask <http://flask.pocoo.org/>`_, and `Pylons
+<http://www.pylonsproject.org/>`_. Raven also includes drop-in support for any
+`WSGI <https://wsgi.readthedocs.io/>`_-compatible web application.
+
+

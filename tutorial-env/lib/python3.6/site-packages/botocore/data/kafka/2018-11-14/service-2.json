@@ -1,0 +1,1072 @@
+{
+  "metadata" : {
+    "apiVersion" : "2018-11-14",
+    "endpointPrefix" : "kafka",
+    "signingName" : "kafka",
+    "serviceFullName" : "Managed Streaming for Kafka",
+    "serviceAbbreviation": "Kafka",
+    "serviceId" : "Kafka",
+    "protocol" : "rest-json",
+    "jsonVersion" : "1.1",
+    "uid" : "kafka-2018-11-14",
+    "signatureVersion" : "v4"
+  },
+  "operations" : {
+    "CreateCluster" : {
+      "name" : "CreateCluster",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/v1/clusters",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "CreateClusterRequest"
+      },
+      "output" : {
+        "shape" : "CreateClusterResponse"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      }, {
+        "shape" : "UnauthorizedException",
+        "documentation" : "<p>The request is not authorized. The provided credentials couldn't be validated.</p>"
+      }, {
+        "shape" : "ForbiddenException",
+        "documentation" : "<p>Access forbidden. Check your credentials and then retry your request.</p>"
+      }, {
+        "shape" : "ServiceUnavailableException",
+        "documentation" : "<p>503 response</p>"
+      }, {
+        "shape" : "TooManyRequestsException",
+        "documentation" : "<p>429 response</p>"
+      }, {
+        "shape" : "ConflictException",
+        "documentation" : "<p>This cluster name already exists. Retry your request using another name.</p>"
+      } ],
+      "documentation" : "<p>Creates a new MSK cluster.</p>"
+    },
+    "DeleteCluster" : {
+      "name" : "DeleteCluster",
+      "http" : {
+        "method" : "DELETE",
+        "requestUri" : "/v1/clusters/{clusterArn}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeleteClusterRequest"
+      },
+      "output" : {
+        "shape" : "DeleteClusterResponse",
+        "documentation" : "<p>Successful response.</p>"
+      },
+      "errors" : [ {
+        "shape" : "NotFoundException",
+        "documentation" : "<p>The resource could not be found due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      }, {
+        "shape" : "ForbiddenException",
+        "documentation" : "<p>Access forbidden. Check your credentials and then retry your request.</p>"
+      } ],
+      "documentation" : "<p>Deletes the MSK cluster specified by the Amazon Resource Name (ARN) in the request.</p>"
+    },
+    "DescribeCluster" : {
+      "name" : "DescribeCluster",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/v1/clusters/{clusterArn}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DescribeClusterRequest"
+      },
+      "output" : {
+        "shape" : "DescribeClusterResponse",
+        "documentation" : "<p>Successful response.</p>"
+      },
+      "errors" : [ {
+        "shape" : "NotFoundException",
+        "documentation" : "<p>The resource could not be found due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "UnauthorizedException",
+        "documentation" : "<p>The request is not authorized. The provided credentials couldn't be validated.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      }, {
+        "shape" : "ForbiddenException",
+        "documentation" : "<p>Access forbidden. Check your credentials and then retry your request.</p>"
+      } ],
+      "documentation" : "<p>Returns a description of the MSK cluster whose Amazon Resource Name (ARN) is specified in the request.</p>"
+    },
+    "GetBootstrapBrokers" : {
+      "name" : "GetBootstrapBrokers",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/v1/clusters/{clusterArn}/bootstrap-brokers",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetBootstrapBrokersRequest"
+      },
+      "output" : {
+        "shape" : "GetBootstrapBrokersResponse",
+        "documentation" : "<p>Successful response.</p>"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "UnauthorizedException",
+        "documentation" : "<p>The request is not authorized. The provided credentials couldn't be validated.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      }, {
+        "shape" : "ConflictException",
+        "documentation" : "<p>This cluster name already exists. Retry your request using another name.</p>"
+      }, {
+        "shape" : "ForbiddenException",
+        "documentation" : "<p>Access forbidden. Check your credentials and then retry your request.</p>"
+      } ],
+      "documentation" : "<p>A list of brokers that a client application can use to bootstrap.</p>"
+    },
+    "ListClusters" : {
+      "name" : "ListClusters",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/v1/clusters",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListClustersRequest"
+      },
+      "output" : {
+        "shape" : "ListClustersResponse",
+        "documentation" : "<p>Successful response.</p>"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      }, {
+        "shape" : "UnauthorizedException",
+        "documentation" : "<p>The request is not authorized. The provided credentials couldn't be validated.</p>"
+      }, {
+        "shape" : "ForbiddenException",
+        "documentation" : "<p>Access forbidden. Check your credentials and then retry your request.</p>"
+      } ],
+      "documentation" : "<p>Returns a list of clusters in an account.</p>"
+    },
+    "ListNodes" : {
+      "name" : "ListNodes",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/v1/clusters/{clusterArn}/nodes",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListNodesRequest"
+      },
+      "output" : {
+        "shape" : "ListNodesResponse",
+        "documentation" : "<p>Successful response.</p>"
+      },
+      "errors" : [ {
+        "shape" : "NotFoundException",
+        "documentation" : "<p>The resource could not be found due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      }, {
+        "shape" : "ForbiddenException",
+        "documentation" : "<p>Access forbidden. Check your credentials and then retry your request.</p>"
+      } ],
+      "documentation" : "<p>Returns a list of the broker nodes in the cluster.</p>"
+    },
+    "ListTagsForResource" : {
+      "name" : "ListTagsForResource",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/v1/tags/{resourceArn}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListTagsForResourceRequest"
+      },
+      "output" : {
+        "shape" : "ListTagsForResourceResponse",
+        "documentation" : "<p>Successful response.</p>"
+      },
+      "errors" : [ {
+        "shape" : "NotFoundException",
+        "documentation" : "<p>The resource could not be found due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      } ],
+      "documentation" : "<p>Returns a list of tags attached to a resource.</p>"
+    },
+    "TagResource" : {
+      "name" : "TagResource",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/v1/tags/{resourceArn}",
+        "responseCode" : 204
+      },
+      "input" : {
+        "shape" : "TagResourceRequest"
+      },
+      "errors" : [ {
+        "shape" : "NotFoundException",
+        "documentation" : "<p>The resource could not be found due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      } ],
+      "documentation" : "<p>Tag a resource with given tags.</p>"
+    },
+    "UntagResource" : {
+      "name" : "UntagResource",
+      "http" : {
+        "method" : "DELETE",
+        "requestUri" : "/v1/tags/{resourceArn}",
+        "responseCode" : 204
+      },
+      "input" : {
+        "shape" : "UntagResourceRequest"
+      },
+      "errors" : [ {
+        "shape" : "NotFoundException",
+        "documentation" : "<p>The resource could not be found due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "BadRequestException",
+        "documentation" : "<p>Bad request due to incorrect input. Correct your request and then retry it.</p>"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "<p>There was an unexpected internal server error. Retrying your request might resolve the issue.</p>"
+      } ],
+      "documentation" : "<p>Remove tags of a resource by given tag keys.</p>"
+    }
+  },
+  "shapes" : {
+    "BadRequestException" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>",
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 400
+      }
+    },
+    "BrokerAZDistribution" : {
+      "type" : "string",
+      "documentation" : "<p>The distribution of broker nodes across Availability Zones. By default, broker nodes are distributed among three Availability Zones. Currently, the only supported value is DEFAULT. You can either specify this value explicitly or leave it out.</p>",
+      "enum" : [ "DEFAULT" ]
+    },
+    "BrokerNodeGroupInfo" : {
+      "type" : "structure",
+      "members" : {
+        "BrokerAZDistribution" : {
+          "shape" : "BrokerAZDistribution",
+          "locationName" : "brokerAZDistribution",
+          "documentation" : "<p>The distribution of broker nodes across Availability Zones.</p>"
+        },
+        "ClientSubnets" : {
+          "shape" : "__listOf__string",
+          "locationName" : "clientSubnets",
+          "documentation" : "<p>The list of subnets to connect to in the client virtual private cloud (VPC). AWS creates elastic network interfaces inside these subnets. Client applications use elastic network interfaces to produce and consume data. Client subnets can't be in Availability Zone us-east-1e.</p>"
+        },
+        "InstanceType" : {
+          "shape" : "__stringMin5Max32",
+          "locationName" : "instanceType",
+          "documentation" : "<p>The type of Amazon EC2 instances to use for Kafka brokers. The following instance types are allowed: kafka.m5.large, kafka.m5.xlarge, kafka.m5.2xlarge,\nkafka.m5.4xlarge, kafka.m5.12xlarge, and kafka.m5.24xlarge.</p>"
+        },
+        "SecurityGroups" : {
+          "shape" : "__listOf__string",
+          "locationName" : "securityGroups",
+          "documentation" : "<p>The AWS security groups to associate with the elastic network interfaces in order to specify who can connect to and communicate with the Amazon MSK cluster.</p>"
+        },
+        "StorageInfo" : {
+          "shape" : "StorageInfo",
+          "locationName" : "storageInfo",
+          "documentation" : "<p>Contains information about storage volumes attached to MSK broker nodes.</p>"
+        }
+      },
+      "documentation" : "<p>Describes the setup to be used for Kafka broker nodes in the cluster.</p>",
+      "required" : [ "ClientSubnets", "InstanceType" ]
+    },
+    "BrokerNodeInfo" : {
+      "type" : "structure",
+      "members" : {
+        "AttachedENIId" : {
+          "shape" : "__string",
+          "locationName" : "attachedENIId",
+          "documentation" : "<p>The attached elastic network interface of the broker.</p>"
+        },
+        "BrokerId" : {
+          "shape" : "__double",
+          "locationName" : "brokerId",
+          "documentation" : "<p>The ID of the broker.</p>"
+        },
+        "ClientSubnet" : {
+          "shape" : "__string",
+          "locationName" : "clientSubnet",
+          "documentation" : "<p>The client subnet to which this broker node belongs.</p>"
+        },
+        "ClientVpcIpAddress" : {
+          "shape" : "__string",
+          "locationName" : "clientVpcIpAddress",
+          "documentation" : "<p>The virtual private cloud (VPC) of the client.</p>"
+        },
+        "CurrentBrokerSoftwareInfo" : {
+          "shape" : "BrokerSoftwareInfo",
+          "locationName" : "currentBrokerSoftwareInfo",
+          "documentation" : "<p>Information about the version of software currently deployed on the Kafka brokers in the cluster.</p>"
+        }
+      },
+      "documentation" : "<p>BrokerNodeInfo</p>"
+    },
+    "BrokerSoftwareInfo" : {
+      "type" : "structure",
+      "members" : {
+        "ConfigurationArn" : {
+          "shape" : "__string",
+          "locationName" : "configurationArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) of the configuration used for the cluster.</p>"
+        },
+        "ConfigurationRevision" : {
+          "shape" : "__string",
+          "locationName" : "configurationRevision",
+          "documentation" : "<p>The revision of the configuration to use.</p>"
+        },
+        "KafkaVersion" : {
+          "shape" : "__string",
+          "locationName" : "kafkaVersion",
+          "documentation" : "<p>The version of Apache Kafka.</p>"
+        }
+      },
+      "documentation" : "<p>Information about the current software installed on the cluster.</p>"
+    },
+    "ClusterInfo" : {
+      "type" : "structure",
+      "members" : {
+        "BrokerNodeGroupInfo" : {
+          "shape" : "BrokerNodeGroupInfo",
+          "locationName" : "brokerNodeGroupInfo",
+          "documentation" : "<p>Information about the broker nodes.</p>"
+        },
+        "ClusterArn" : {
+          "shape" : "__string",
+          "locationName" : "clusterArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the cluster.</p>"
+        },
+        "ClusterName" : {
+          "shape" : "__string",
+          "locationName" : "clusterName",
+          "documentation" : "<p>The name of the cluster.</p>"
+        },
+        "CreationTime" : {
+          "shape" : "__timestampIso8601",
+          "locationName" : "creationTime",
+          "documentation" : "<p>The time when the cluster was created.</p>"
+        },
+        "CurrentBrokerSoftwareInfo" : {
+          "shape" : "BrokerSoftwareInfo",
+          "locationName" : "currentBrokerSoftwareInfo",
+          "documentation" : "<p>Information about the version of software currently deployed on the Kafka brokers in the cluster.</p>"
+        },
+        "CurrentVersion" : {
+          "shape" : "__string",
+          "locationName" : "currentVersion",
+          "documentation" : "<p>The current version of the MSK cluster.</p>"
+        },
+        "EncryptionInfo" : {
+          "shape" : "EncryptionInfo",
+          "locationName" : "encryptionInfo",
+          "documentation" : "<p>Includes all encryption-related information.</p>"
+        },
+        "EnhancedMonitoring" : {
+          "shape" : "EnhancedMonitoring",
+          "locationName" : "enhancedMonitoring",
+          "documentation" : "<p>Specifies which metrics are gathered for the MSK cluster. This property has three possible values: DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER.</p>"
+        },
+        "NumberOfBrokerNodes" : {
+          "shape" : "__integer",
+          "locationName" : "numberOfBrokerNodes",
+          "documentation" : "<p>The number of Kafka broker nodes in the cluster.</p>"
+        },
+        "State" : {
+          "shape" : "ClusterState",
+          "locationName" : "state",
+          "documentation" : "<p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>"
+        },
+        "ZookeeperConnectString" : {
+          "shape" : "__string",
+          "locationName" : "zookeeperConnectString",
+          "documentation" : "<p>The connection string to use to connect to the Apache ZooKeeper cluster.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about a cluster.</p>"
+    },
+    "ClusterState" : {
+      "type" : "string",
+      "documentation" : "<p>The state of a Kafka cluster.</p>",
+      "enum" : [ "ACTIVE", "CREATING", "DELETING", "FAILED" ]
+    },
+    "ConflictException" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>",
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 409
+      }
+    },
+    "CreateClusterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "BrokerNodeGroupInfo" : {
+          "shape" : "BrokerNodeGroupInfo",
+          "locationName" : "brokerNodeGroupInfo",
+          "documentation" : "<p>Information about the broker nodes in the cluster.</p>"
+        },
+        "ClusterName" : {
+          "shape" : "__stringMin1Max64",
+          "locationName" : "clusterName",
+          "documentation" : "<p>The name of the cluster.</p>"
+        },
+        "EncryptionInfo" : {
+          "shape" : "EncryptionInfo",
+          "locationName" : "encryptionInfo",
+          "documentation" : "<p>Includes all encryption-related information.</p>"
+        },
+        "EnhancedMonitoring" : {
+          "shape" : "EnhancedMonitoring",
+          "locationName" : "enhancedMonitoring",
+          "documentation" : "<p>Specifies the level of monitoring for the MSK cluster. The possible values are DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER.</p>"
+        },
+        "KafkaVersion" : {
+          "shape" : "__stringMin1Max128",
+          "locationName" : "kafkaVersion",
+          "documentation" : "<p>The version of Apache Kafka.</p>"
+        },
+        "NumberOfBrokerNodes" : {
+          "shape" : "__integerMin1Max15",
+          "locationName" : "numberOfBrokerNodes",
+          "documentation" : "<p>The number of Kafka broker nodes in the Amazon MSK cluster.</p>"
+        }
+      },
+      "required" : [ "BrokerNodeGroupInfo", "KafkaVersion", "NumberOfBrokerNodes", "ClusterName" ]
+    },
+    "CreateClusterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterArn" : {
+          "shape" : "__string",
+          "locationName" : "clusterArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) of the cluster.</p>"
+        },
+        "ClusterName" : {
+          "shape" : "__string",
+          "locationName" : "clusterName",
+          "documentation" : "<p>The name of the MSK cluster.</p>"
+        },
+        "State" : {
+          "shape" : "ClusterState",
+          "locationName" : "state",
+          "documentation" : "<p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>"
+        }
+      }
+    },
+    "DeleteClusterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterArn" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "clusterArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the cluster.</p>"
+        },
+        "CurrentVersion" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "currentVersion",
+          "documentation" : "<p>The current version of the MSK cluster.</p>"
+        }
+      },
+      "required" : [ "ClusterArn" ]
+    },
+    "DeleteClusterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterArn" : {
+          "shape" : "__string",
+          "locationName" : "clusterArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) of the cluster.</p>"
+        },
+        "State" : {
+          "shape" : "ClusterState",
+          "locationName" : "state",
+          "documentation" : "<p>The state of the cluster. The possible states are CREATING, ACTIVE, and FAILED.</p>"
+        }
+      }
+    },
+    "DescribeClusterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterArn" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "clusterArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the cluster.</p>"
+        }
+      },
+      "required" : [ "ClusterArn" ]
+    },
+    "DescribeClusterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterInfo" : {
+          "shape" : "ClusterInfo",
+          "locationName" : "clusterInfo",
+          "documentation" : "<p>The cluster information.</p>"
+        }
+      }
+    },
+    "EBSStorageInfo" : {
+      "type" : "structure",
+      "members" : {
+        "VolumeSize" : {
+          "shape" : "__integerMin1Max16384",
+          "locationName" : "volumeSize",
+          "documentation" : "<p>The size in GiB of the EBS volume for the data drive on each broker node.</p>"
+        }
+      },
+      "documentation" : "<p>Contains information about the EBS storage volumes attached to Kafka broker nodes.</p>"
+    },
+    "EncryptionAtRest" : {
+      "type" : "structure",
+      "members" : {
+        "DataVolumeKMSKeyId" : {
+          "shape" : "__string",
+          "locationName" : "dataVolumeKMSKeyId",
+          "documentation" : "<p>The AWS KMS key used for data encryption.</p>"
+        }
+      },
+      "documentation" : "<p>The data volume encryption details.</p>",
+      "required" : [ "DataVolumeKMSKeyId" ]
+    },
+    "EncryptionInfo" : {
+      "type" : "structure",
+      "members" : {
+        "EncryptionAtRest" : {
+          "shape" : "EncryptionAtRest",
+          "locationName" : "encryptionAtRest",
+          "documentation" : "<p>The data volume encryption details.</p>"
+        }
+      },
+      "documentation" : "<p>Includes encryption-related information, such as the AWS KMS key used for encrypting data at rest.</p>"
+    },
+    "EnhancedMonitoring" : {
+      "type" : "string",
+      "documentation" : "<p>Specifies which metrics are gathered for the MSK cluster. This property has three possible values: DEFAULT, PER_BROKER, and PER_TOPIC_PER_BROKER.</p>",
+      "enum" : [ "DEFAULT", "PER_BROKER", "PER_TOPIC_PER_BROKER" ]
+    },
+    "Error" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>"
+    },
+    "ForbiddenException" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>",
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 403
+      }
+    },
+    "GetBootstrapBrokersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterArn" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "clusterArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the cluster.</p>"
+        }
+      },
+      "required" : [ "ClusterArn" ]
+    },
+    "GetBootstrapBrokersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "BootstrapBrokerString" : {
+          "shape" : "__string",
+          "locationName" : "bootstrapBrokerString",
+          "documentation" : "<p>A string containing one or more hostname:port pairs.</p>"
+        }
+      }
+    },
+    "InternalServerErrorException" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>",
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 500
+      }
+    },
+    "ListClustersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterNameFilter" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "clusterNameFilter",
+          "documentation" : "<p>Specify a prefix of the name of the clusters that you want to list. The service lists all the clusters whose names start with this prefix.</p>"
+        },
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults",
+          "documentation" : "<p>The maximum number of clusters to return in the response. If there are more clusters, the response includes a NextToken parameter.</p>"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken",
+          "documentation" : "<p>The paginated results marker. When the result of a ListClusters operation is truncated, the call returns NextToken in the response. \n To get another batch of clusters, provide this token in your next request.</p>"
+        }
+      }
+    },
+    "ListClustersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterInfoList" : {
+          "shape" : "__listOfClusterInfo",
+          "locationName" : "clusterInfoList",
+          "documentation" : "<p>Information on each of the MSK clusters in the response.</p>"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "locationName" : "nextToken",
+          "documentation" : "<p>The paginated results marker. When the result of a ListClusters operation is truncated, the call returns NextToken in the response. \n To get another batch of clusters, provide this token in your next request.</p>"
+        }
+      }
+    },
+    "ListNodesRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ClusterArn" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "clusterArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the cluster.</p>"
+        },
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults",
+          "documentation" : "<p>The maximum number of clusters to return in the response. If there are more clusters, the response includes a NextToken parameter.</p>"
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken",
+          "documentation" : "<p>The paginated results marker. When the result of a ListClusters operation is truncated, the call returns NextToken in the response. \n To get another batch of clusters, provide this token in your next request.</p>"
+        }
+      },
+      "required" : [ "ClusterArn" ]
+    },
+    "ListNodesResponse" : {
+      "type" : "structure",
+      "members" : {
+        "NextToken" : {
+          "shape" : "__string",
+          "locationName" : "nextToken",
+          "documentation" : "<p>The paginated results marker. When the result of a ListNodes operation is truncated, the call returns NextToken in the response. \n To get another batch of nodes, provide this token in your next request.</p>"
+        },
+        "NodeInfoList" : {
+          "shape" : "__listOfNodeInfo",
+          "locationName" : "nodeInfoList",
+          "documentation" : "<p>List containing a NodeInfo object.</p>"
+        }
+      }
+    },
+    "ListTagsForResourceRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ResourceArn" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "resourceArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the resource.</p>"
+        }
+      },
+      "required" : [ "ResourceArn" ]
+    },
+    "ListTagsForResourceResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Tags" : {
+          "shape" : "__mapOf__string",
+          "locationName" : "tags",
+          "documentation" : "<p>The key-value pairs for the resource tags</p>"
+        }
+      }
+    },
+    "MaxResults" : {
+      "type" : "integer",
+      "min" : 1,
+      "max" : 100
+    },
+    "NodeInfo" : {
+      "type" : "structure",
+      "members" : {
+        "AddedToClusterTime" : {
+          "shape" : "__string",
+          "locationName" : "addedToClusterTime",
+          "documentation" : "<p>The start time.</p>"
+        },
+        "BrokerNodeInfo" : {
+          "shape" : "BrokerNodeInfo",
+          "locationName" : "brokerNodeInfo",
+          "documentation" : "<p>The broker node info.</p>"
+        },
+        "InstanceType" : {
+          "shape" : "__string",
+          "locationName" : "instanceType",
+          "documentation" : "<p>The instance type.</p>"
+        },
+        "NodeARN" : {
+          "shape" : "__string",
+          "locationName" : "nodeARN",
+          "documentation" : "<p>The Amazon Resource Name (ARN) of the node.</p>"
+        },
+        "NodeType" : {
+          "shape" : "NodeType",
+          "locationName" : "nodeType",
+          "documentation" : "<p>The node type.</p>"
+        },
+        "ZookeeperNodeInfo" : {
+          "shape" : "ZookeeperNodeInfo",
+          "locationName" : "zookeeperNodeInfo",
+          "documentation" : "<p>The ZookeeperNodeInfo.</p>"
+        }
+      },
+      "documentation" : "<p>The node information object.</p>"
+    },
+    "NodeType" : {
+      "type" : "string",
+      "documentation" : "<p>The broker or Zookeeper node.</p>",
+      "enum" : [ "BROKER" ]
+    },
+    "NotFoundException" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>",
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 404
+      }
+    },
+    "ServiceUnavailableException" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>",
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 503
+      }
+    },
+    "StorageInfo" : {
+      "type" : "structure",
+      "members" : {
+        "EbsStorageInfo" : {
+          "shape" : "EBSStorageInfo",
+          "locationName" : "ebsStorageInfo",
+          "documentation" : "<p>EBS volume information.</p>"
+        }
+      },
+      "documentation" : "<p>Contains information about storage volumes attached to MSK broker nodes.</p>"
+    },
+    "TagResourceRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ResourceArn" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "resourceArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the resource.</p>"
+        },
+        "Tags" : {
+          "shape" : "__mapOf__string",
+          "locationName" : "tags",
+          "documentation" : "<p>The key-value pairs for the resource tags</p>"
+        }
+      },
+      "required" : [ "ResourceArn", "Tags" ]
+    },
+    "TooManyRequestsException" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>",
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 429
+      }
+    },
+    "UnauthorizedException" : {
+      "type" : "structure",
+      "members" : {
+        "InvalidParameter" : {
+          "shape" : "__string",
+          "locationName" : "invalidParameter",
+          "documentation" : "<p>The parameter that caused the error.</p>"
+        },
+        "Message" : {
+          "shape" : "__string",
+          "locationName" : "message",
+          "documentation" : "<p>The description of the error.</p>"
+        }
+      },
+      "documentation" : "<p>Returns information about an error.</p>",
+      "exception" : true,
+      "error" : {
+        "httpStatusCode" : 401
+      }
+    },
+    "UntagResourceRequest" : {
+      "type" : "structure",
+      "members" : {
+        "ResourceArn" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "resourceArn",
+          "documentation" : "<p>The Amazon Resource Name (ARN) that uniquely identifies the resource.</p>"
+        },
+        "TagKeys" : {
+          "shape" : "__listOf__string",
+          "location" : "querystring",
+          "locationName" : "tagKeys",
+          "documentation" : "<p>The list of tag keys.</p>"
+        }
+    },
+      "required" : [ "TagKeys", "ResourceArn" ]
+    },
+    "ZookeeperNodeInfo" : {
+      "type" : "structure",
+      "members" : {
+        "AttachedENIId" : {
+          "shape" : "__string",
+          "locationName" : "attachedENIId",
+          "documentation" : "<p>The attached elastic network interface of the broker.</p>"
+        },
+        "ClientVpcIpAddress" : {
+          "shape" : "__string",
+          "locationName" : "clientVpcIpAddress",
+          "documentation" : "<p>The virtual private cloud (VPC) IP address of the client.</p>"
+        },
+        "ZookeeperId" : {
+          "shape" : "__double",
+          "locationName" : "zookeeperId",
+          "documentation" : "<p>The role-specific ID for Zookeeper.</p>"
+        },
+        "ZookeeperVersion" : {
+          "shape" : "__string",
+          "locationName" : "zookeeperVersion",
+          "documentation" : "<p>The version of Zookeeper.</p>"
+        }
+      },
+      "documentation" : "<p>Zookeeper node information.</p>"
+    },
+    "__boolean" : {
+      "type" : "boolean"
+    },
+    "__double" : {
+      "type" : "double"
+    },
+    "__integer" : {
+      "type" : "integer"
+    },
+    "__integerMin1Max15" : {
+      "type" : "integer",
+      "min" : 1,
+      "max" : 15
+    },
+    "__integerMin1Max16384" : {
+      "type" : "integer",
+      "min" : 1,
+      "max" : 16384
+    },
+    "__listOfClusterInfo" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "ClusterInfo"
+      }
+    },
+    "__listOfNodeInfo" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "NodeInfo"
+      }
+    },
+    "__listOf__string" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "__string"
+      }
+    },
+    "__long" : {
+      "type" : "long"
+    },
+    "__mapOf__string" : {
+      "type" : "map",
+      "key" : {
+        "shape" : "__string"
+      },
+      "value" : {
+        "shape" : "__string"
+      }
+    },
+    "__string" : {
+      "type" : "string"
+    },
+    "__stringMin1Max128" : {
+      "type" : "string",
+      "min" : 1,
+      "max" : 128
+    },
+    "__stringMin1Max64" : {
+      "type" : "string",
+      "min" : 1,
+      "max" : 64
+    },
+    "__stringMin5Max32" : {
+      "type" : "string",
+      "min" : 5,
+      "max" : 32
+    },
+    "__timestampIso8601" : {
+      "type" : "timestamp",
+      "timestampFormat" : "iso8601"
+    },
+    "__timestampUnix" : {
+      "type" : "timestamp",
+      "timestampFormat" : "unixTimestamp"
+    }
+  },
+  "documentation" : "<p>The operations for managing an Amazon MSK cluster.</p>"
+}

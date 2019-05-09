@@ -1,0 +1,389 @@
+{
+        "version": "2.0",
+      "metadata": {
+          "apiVersion": "2018-08-01",
+          "endpointPrefix": "rds-data",
+        "jsonVersion": "1.1",
+        "protocol": "rest-json",
+          "serviceFullName": "AWS RDS DataService",
+          "serviceId": "RDS Data",
+          "signatureVersion": "v4",
+          "signingName": "rds-data",
+          "uid": "rds-data-2018-08-01"
+        },
+        "documentation": "AWS RDS DataService provides Http Endpoint to query RDS databases.",
+        "operations": {
+        "ExecuteSql": {
+            "name": "ExecuteSql",
+            "http": {
+            "method": "POST",
+            "requestUri": "/ExecuteSql",
+            "responseCode": 200
+          },
+          "input": {
+              "shape": "ExecuteSqlRequest"
+          },
+        "output": {
+          "shape": "ExecuteSqlResponse"
+      },
+      "errors": [
+          {
+            "shape": "BadRequestException"
+        },
+        {
+            "shape": "ForbiddenException"
+          },
+          {
+              "shape": "InternalServerErrorException"
+              },
+              {
+                "shape": "ServiceUnavailableError"
+              }
+            ],
+          "documentation": "Executes any SQL statement on the target database synchronously"
+        }
+    },
+    "shapes": {
+        "Boolean": {
+            "type": "boolean",
+              "box": true
+            },
+            "ForbiddenException": {
+          "type": "structure",
+          "members": {
+            "message": {
+                "shape": "String",
+                "documentation": "Error message"
+              }
+            },
+            "documentation": "Access denied exception",
+            "exception": true,
+        "error": {
+          "code": "ForbiddenException",
+          "httpStatusCode": 403,
+            "senderFault": true
+        }
+      },
+      "Value": {
+          "type": "structure",
+          "members": {
+          "arrayValues": {
+              "shape": "ArrayValues",
+              "documentation": "Arbitrarily nested arrays"
+          },
+          "bigIntValue": {
+              "shape": "Long",
+              "documentation": "Long value"
+            },
+                "bitValue": {
+                "shape": "Boolean",
+                "documentation": "Bit value"
+              },
+              "blobValue": {
+                  "shape": "Blob",
+                  "documentation": "Blob value"
+                },
+                "doubleValue": {
+                  "shape": "Double",
+              "documentation": "Double value"
+            },
+            "intValue": {
+                "shape": "Integer",
+                "documentation": "Integer value"
+                },
+                "isNull": {
+                    "shape": "Boolean",
+                    "documentation": "Is column null"
+                  },
+                  "realValue": {
+                  "shape": "Float",
+                    "documentation": "Float value"
+                  },
+                  "stringValue": {
+                    "shape": "String",
+                    "documentation": "String value"
+                },
+                "structValue": {
+                    "shape": "StructValue",
+                    "documentation": "Struct or UDT"
+                  }
+                },
+                "documentation": "Column value"
+            },
+              "SqlStatementResults": {
+                "type": "list",
+                "member": {
+                  "shape": "SqlStatementResult"
+              },
+              "documentation": "SQL statement execution results"
+            },
+            "ColumnMetadataList": {
+                "type": "list",
+                "member": {
+                "shape": "ColumnMetadata"
+                },
+                "documentation": "List of Column metadata"
+              },
+              "ResultFrame": {
+              "type": "structure",
+              "members": {
+                  "records": {
+                    "shape": "Records",
+                    "documentation": "ResultSet Metadata."
+                },
+                "resultSetMetadata": {
+                    "shape": "ResultSetMetadata",
+                    "documentation": "ResultSet Metadata."
+                  }
+                },
+                "documentation": "Result Frame"
+              },
+              "Long": {
+                "type": "long",
+                "box": true
+              },
+              "Row": {
+                "type": "list",
+                "member": {
+                  "shape": "Value"
+              },
+              "documentation": "List of column values"
+              },
+              "String": {
+                "type": "string"
+              },
+              "ArrayValues": {
+                "type": "list",
+              "member": {
+                  "shape": "Value"
+                },
+                "documentation": "Array value"
+              },
+              "Float": {
+              "type": "float",
+              "box": true
+            },
+            "ExecuteSqlResponse": {
+                "type": "structure",
+                "required": [
+                "sqlStatementResults"
+                ],
+                "members": {
+                  "sqlStatementResults": {
+                    "shape": "SqlStatementResults",
+                  "documentation": "Results returned by executing the sql statement(s)"
+                }
+              },
+              "documentation": "Execute SQL response"
+            },
+            "SqlStatementResult": {
+                "type": "structure",
+                "members": {
+                  "numberOfRecordsUpdated": {
+                    "shape": "Long",
+                  "documentation": "Number of rows updated."
+              },
+              "resultFrame": {
+              "shape": "ResultFrame",
+                "documentation": "ResultFrame returned by executing the sql statement"
+              }
+            },
+            "documentation": "SQL statement execution result"
+        },
+          "ResultSetMetadata": {
+            "type": "structure",
+            "members": {
+              "columnCount": {
+                "shape": "Long",
+                "documentation": "Number of columns"
+              },
+              "columnMetadata": {
+                "shape": "ColumnMetadataList",
+                "documentation": "List of columns and their types"
+              }
+            },
+            "documentation": "List of columns and their types."
+          },
+          "Records": {
+            "type": "list",
+            "member": {
+              "shape": "Record"
+            },
+            "documentation": "List of records"
+        },
+        "ExecuteSqlRequest": {
+            "type": "structure",
+            "required": [
+                  "awsSecretStoreArn",
+                  "dbClusterOrInstanceArn",
+                  "sqlStatements"
+              ],
+            "members": {
+              "awsSecretStoreArn": {
+              "shape": "Arn",
+                "documentation": "ARN of the db credentials in AWS Secret Store or the friendly secret name"
+              },
+                "database": {
+                  "shape": "DbName",
+                  "documentation": "Target DB name"
+                },
+                "dbClusterOrInstanceArn": {
+                  "shape": "Arn",
+                "documentation": "ARN of the target db cluster or instance"
+          },
+        "schema": {
+          "shape": "DbName",
+          "documentation": "Target Schema name"
+        },
+        "sqlStatements": {
+          "shape": "SqlStatement",
+          "documentation": "SQL statement(s) to be executed. Statements can be chained by using semicolons"
+        }
+      },
+      "documentation": "Execute SQL Request"
+    },
+    "Arn": {
+      "type": "string",
+      "max": 1024
+    },
+    "StructValue": {
+      "type": "structure",
+      "members": {
+        "attributes": {
+          "shape": "ArrayValues",
+          "documentation": "Struct or UDT"
+        }
+      },
+      "documentation": "User Defined Type"
+    },
+    "BadRequestException": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "String",
+          "documentation": "Error message"
+        }
+      },
+      "documentation": "Invalid Request exception",
+      "exception": true,
+      "error": {
+        "code": "BadRequestException",
+        "httpStatusCode": 400,
+        "senderFault": true
+      }
+    },
+    "Blob": {
+      "type": "blob"
+    },
+    "SqlStatement": {
+      "type": "string",
+      "max": 65536
+    },
+    "Double": {
+      "type": "double",
+      "box": true
+    },
+    "ServiceUnavailableError": {
+      "type": "structure",
+      "members": { },
+      "documentation": "Internal service unavailable error",
+      "exception": true,
+      "error": {
+        "code": "ServiceUnavailableError",
+        "httpStatusCode": 503,
+        "fault": true
+      }
+    },
+    "ColumnMetadata": {
+      "type": "structure",
+      "members": {
+        "arrayBaseColumnType": {
+          "shape": "Integer",
+          "documentation": "Homogenous array base SQL type from java.sql.Types."
+        },
+        "isAutoIncrement": {
+          "shape": "Boolean",
+          "documentation": "Whether the designated column is automatically numbered"
+        },
+        "isCaseSensitive": {
+          "shape": "Boolean",
+          "documentation": "Whether values in the designated column's case matters"
+        },
+        "isCurrency": {
+          "shape": "Boolean",
+          "documentation": "Whether values in the designated column is a cash value"
+        },
+        "isSigned": {
+          "shape": "Boolean",
+          "documentation": "Whether values in the designated column are signed numbers"
+        },
+        "label": {
+          "shape": "String",
+          "documentation": "Usually specified by the SQL AS. If not specified, return column name."
+        },
+        "name": {
+          "shape": "String",
+          "documentation": "Name of the column."
+        },
+        "nullable": {
+          "shape": "Integer",
+          "documentation": "Indicates the nullability of values in the designated column. One of columnNoNulls (0), columnNullable (1), columnNullableUnknown (2)"
+        },
+        "precision": {
+          "shape": "Integer",
+          "documentation": "Get the designated column's specified column size.For numeric data, this is the maximum precision.  For character data, this is the length in characters. For datetime datatypes, this is the length in characters of the String representation (assuming the maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, this is the length in bytes. 0 is returned for data types where the column size is not applicable."
+        },
+        "scale": {
+          "shape": "Integer",
+          "documentation": "Designated column's number of digits to right of the decimal point. 0 is returned for data types where the scale is not applicable."
+        },
+        "schemaName": {
+          "shape": "String",
+          "documentation": "Designated column's table's schema"
+        },
+        "tableName": {
+          "shape": "String",
+          "documentation": "Designated column's table name"
+        },
+        "type": {
+          "shape": "Integer",
+          "documentation": "SQL type from java.sql.Types."
+        },
+        "typeName": {
+          "shape": "String",
+          "documentation": "Database-specific type name."
+        }
+      },
+      "documentation": "Column Metadata"
+    },
+    "Integer": {
+      "type": "integer",
+      "box": true
+    },
+    "DbName": {
+      "type": "string",
+      "max": 64
+    },
+    "Record": {
+      "type": "structure",
+      "members": {
+        "values": {
+          "shape": "Row",
+          "documentation": "Record"
+        }
+      },
+      "documentation": "Row or Record"
+    },
+    "InternalServerErrorException": {
+      "type": "structure",
+      "members": { },
+      "documentation": "Internal service error",
+      "exception": true,
+      "error": {
+        "code": "InternalServerErrorException",
+        "httpStatusCode": 500,
+        "fault": true
+      }
+    }
+  }
+}

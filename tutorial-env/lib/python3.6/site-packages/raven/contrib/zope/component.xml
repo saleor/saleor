@@ -1,0 +1,25 @@
+<component>
+  <description>
+  </description>
+
+  <import package="ZConfig.components.logger" file="abstract.xml"/>
+
+  <sectiontype name="sentry"
+               datatype="raven.contrib.zope.ZopeSentryHandlerFactory"
+               implements="ZConfig.logger.handler"
+               extends="ZConfig.logger.base-log-handler">
+    <key name="include_paths" required="no" datatype="string-list"/>
+    <key name="exclude_paths" required="no" datatype="string-list"/>
+    <key name="timeout" required="no" datatype="integer"/>
+    <key name="name" required="no"/>
+    <key name="auto_log_stacks" required="no" datatype="boolean"/>
+    <key name="string_max_length" required="no" datatype="integer"/>
+    <key name="list_max_length" required="no" datatype="integer"/>
+    <key name="site" required="no"/>
+    <key name="processors" required="no" datatype="string-list"/>
+    <key name="project" required="no"/>
+    <key name="dsn" required="no"/>
+    <key name="release" required="no"/>
+    <key name="environment" required="no"/>
+  </sectiontype>
+</component>

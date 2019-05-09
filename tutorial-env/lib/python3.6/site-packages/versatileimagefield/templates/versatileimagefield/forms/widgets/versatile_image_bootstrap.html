@@ -1,0 +1,36 @@
+{% load i18n %}
+{% if widget.is_initial %}
+<div class="form-group">
+  <label>{{ widget.initial_text }}</label>
+  <a href="{{ widget.value.url }}">{{ widget.value }}</a>
+</div>
+{% if not widget.required %}
+<div class="form-group sizedimage-mod clear">
+  <input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}" />
+  <label class="checkbox-inline" for="{{ widget.checkbox_id }}">
+    {{ widget.clear_checkbox_label }}:
+  </label>
+</div>
+{% endif %}
+{% endif %}
+<div class="form-group sizedimage-mod preview">
+  <label>{% trans "Primary Point of Interest" %}</label>
+  <div class="image-wrap outer">
+    <div class="point-stage" id="{{ widget.point_stage_id }}"
+         data-image_preview_id="{{ widget.image_preview_id }}">
+      <div class="ppoi-point" id="{{ widget.ppoi_id }}"></div>
+    </div>
+    {% if widget.value and widget.sized_url %}
+    <div class="image-wrap inner">
+      <img src="{{ widget.sized_url }}" id="{{ widget.image_preview_id }}"
+           data-hidden_field_id="{{ widget.hidden_field_id }}"
+           data-point_stage_id="{{ widget.point_stage_id }}"
+           data-ppoi_id="{{ widget.ppoi_id }}" class="sizedimage-preview" />
+    </div>
+    {% endif %}
+  </div>
+</div>
+<div class="form-group sizedimage-mod new-upload">
+  <label>{{ widget.input_text }}</label>
+  <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "versatileimagefield/forms/widgets/attrs.html" %} />
+</div>

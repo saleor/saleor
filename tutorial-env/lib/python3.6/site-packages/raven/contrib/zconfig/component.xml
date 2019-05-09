@@ -1,0 +1,24 @@
+<component>
+  <description>
+  </description>
+
+  <import package="ZConfig.components.logger" file="abstract.xml"/>
+
+  <sectiontype name="sentry"
+               datatype="raven.contrib.zconfig.Factory"
+               implements="ZConfig.logger.handler"
+               extends="ZConfig.logger.base-log-handler">
+    <key name="dsn" required="no"/>
+    <key name="site" required="no"/>
+    <key name="name" required="no"/>
+    <key name="release" required="no"/>
+    <key name="environment" required="no"/>
+    <key name="exclude_paths" required="no" datatype="string-list"/>
+    <key name="include_paths" required="no" datatype="string-list"/>
+    <key name="sample_rate" required="no" datatype="float" default="1.0" />
+    <key name="list_max_length" required="no" datatype="integer"/>
+    <key name="string_max_length" required="no" datatype="integer"/>
+    <key name="auto_log_stacks" required="no" datatype="boolean"/>
+    <key name="processors" required="no" datatype="string-list"/>
+  </sectiontype>
+</component>

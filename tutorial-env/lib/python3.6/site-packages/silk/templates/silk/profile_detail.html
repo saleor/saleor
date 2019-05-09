@@ -1,0 +1,159 @@
+{% extends "silk/base/detail_base.html" %}
+{% load silk_filters %}
+{% load silk_nav %}
+{% load silk_inclusion %}
+{% load staticfiles %}
+
+{% block js %}
+    <script type="text/javascript" src="{% static 'silk/lib/viz-lite.js' %}"></script>
+    <script type="text/javascript" src="{% static 'silk/lib/svg-pan-zoom.min.js' %}"></script>
+    {{ block.super }}
+{% endblock %}
+
+{% block style %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'silk/css/summary.css' %}">
+    <style>
+        #query-info-div {
+            margin-top: 15px;
+        }
+
+        #query-info-div .timestamp-div {
+            font-size: 13px;
+
+        }
+
+        #pyprofile-div {
+            display: block;
+            margin: auto;
+            width: 960px;
+        }
+
+        .pyprofile {
+            text-align: left;
+        }
+
+        a {
+            color: #45ADA8;
+        }
+
+        a:visited {
+            color: #45ADA8;
+        }
+
+        a:hover {
+            color: #547980;
+        }
+
+        a:active {
+            color: #594F4F;
+        }
+
+        #graph-div {
+            padding: 25px;
+            background-color: white;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 25px;
+            width: 960px;
+            text-align: center;
+        }
+
+        #percent {
+            width: 20px;
+        }
+
+        svg {
+          display: block;
+        }
+
+    </style>
+{% endblock %}
+
+{% block menu %}
+    {% profile_menu request profile silk_request %}
+{% endblock %}
+
+{% block data %}
+    <div class="wrapper">
+        <div id="query-div">
+            <div id="query-info-div">
+                {% profile_summary profile %}
+            </div>
+            <div class="heading">
+                <div class="inner-heading">
+                    {% if profile.file_path and profile.line_num %}
+                        {{ profile.file_path }}:{{ profile.line_num }}{% if profile.end_line_num %}:{{ profile.end_line_num }}{% endif %}
+                    {% else %}
+                        Location
+                    {% endif %}
+                </div>
+            </div>
+            <div class="description">
+                Below shows where in your code this profile was defined. If your profile was defined dynamically (i.e in your settings.py),
+                then this will show the range of lines that are covered by the profiling.
+            </div>
+            {% if code %}
+                <pre id="code"><code>{% code code actual_line %}</code></pre>
+            {% elif code_error %}
+                <div id="error-div">
+                    {{ code_error }}
+                </div>
+            {% endif %}
+
+            {% if silk_request.prof_file %}
+            <div class="heading">
+                <div class="inner-heading">Profile graph</div>
+            </div>
+            <div class="description">
+                Below is a graph of the profile, with the nodes coloured by the time taken (red is more time). This should give a good indication of the slowest path through the profiled code.</div>
+
+                <span>Prune nodes taking up less than </span>
+                <input id='percent' type="text" value='5'
+                       onkeypress='return event.charCode >= 48 && event.charCode <= 57 && $("#percent").val().length < 2'
+                       oninput="createViz()"
+                >
+
+                </input>
+                <span>% of the total time</span>
+
+            </div>
+            <div id="graph-div">
+            </div>
+            <script>
+                function createViz() {
+                    $.get(
+                        "{% url 'silk:request_profile_dot' request_id=silk_request.pk %}",
+                        { cutoff: $('#percent').val() },
+                        function (response) {
+                            var svg = '#graph-div';
+                            $(svg).html(Viz(response.dot));
+                            $(svg + ' svg').attr('width', 960).attr('height', 600);
+                            svgPanZoom(svg + ' svg', { controlIconsEnabled: true });
+                        }
+                    );
+                }
+                createViz();
+            </script>
+            {% endif %}
+
+            {% if silk_request.pyprofile %}
+            <div id="pyprofile-div">
+                <div class="heading">
+                    <div class="inner-heading">Python Profiler</div>
+                </div>
+                <div class="description">
+                    The below is a dump from the cPython profiler.
+                </div>
+                {% if silk_request.prof_file %}
+                Click <a href="{% url 'silk:request_profile_download' request_id=silk_request.pk %}">here</a> to download profile.
+                {% endif %}
+                <pre class="pyprofile">{{ silk_request.pyprofile }}</pre>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

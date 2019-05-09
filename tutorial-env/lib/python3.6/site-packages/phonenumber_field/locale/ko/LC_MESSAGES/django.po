@@ -1,0 +1,29 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Jiyoon Ha <cryptography@konkuk.ac.kr>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-26 10:15-0700\n"
+"PO-Revision-Date: 2017-04-15 16:56+0100\n"
+"Last-Translator: Jiyoon Ha <cryptography@konkuk.ac.kr>\n"
+"Language-Team: \n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: formfields.py:14 serializerfields.py:12
+msgid "Enter a valid phone number."
+msgstr "올바른 전화번호를 입력해주세요."
+
+#: modelfields.py:48
+msgid "Phone number"
+msgstr "전화번호"
+
+#: validators.py:14
+msgid "The phone number entered is not valid."
+msgstr "입력하신 전화번호가 올바른 형식이 아닙니다."

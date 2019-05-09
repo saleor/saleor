@@ -1,0 +1,51 @@
+{% load silk_nav %}
+<a href="
+    {% if silk_request %}
+        {% url "silk:request_profiling" silk_request.id %}
+    {% else %}
+        {% url "silk:profiling" %}
+    {% endif %}
+">
+    <div class="menu-item selectable-menu-item">
+        <div class="menu-item-outer">
+            <div class="menu-item-inner">&larr;</div>
+        </div>
+    </div>
+</a>
+<div class="menu-item selectable-menu-item
+            {% if silk_request %}
+                {% navactive request 'silk:request_profile_detail' silk_request.id profile.id %}
+            {% else %}
+                {% navactive request 'silk:profile_detail' profile.id %}
+            {% endif %}">
+    <a href="
+        {% if silk_request %}
+            {% url "silk:request_profile_detail" silk_request.id profile.id %}
+        {% else %}
+            {% url "silk:profile_detail" profile.id %}
+        {% endif %}
+    ">
+        <div class="menu-item-outer ">
+            <div class="menu-item-inner">Detail</div>
+        </div>
+    </a>
+</div>
+<div class="menu-item selectable-menu-item
+            {% if silk_request %}
+                 {% navactive request 'silk:request_and_profile_sql' silk_request.id profile.id %}
+            {% else %}
+                {% navactive request 'silk:profile_sql' profile.id %}
+            {% endif %}">
+    <a href="
+        {% if silk_request %}
+            {% url "silk:request_and_profile_sql" silk_request.id profile.id %}
+        {% else %}
+            {% url "silk:profile_sql" profile.id %}
+        {% endif %}
+    ">
+        <div class="menu-item-outer
+        ">
+            <div class="menu-item-inner">Queries</div>
+        </div>
+    </a>
+</div>

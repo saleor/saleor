@@ -1,0 +1,16 @@
+<script type="text/javascript">
+    var DjangoRecaptchaOptions = {{options}};
+    if (typeof RecaptchaOptions !== 'object') {
+        RecaptchaOptions = DjangoRecaptchaOptions;
+    } else {
+        for (key in DjangoRecaptchaOptions) {
+            RecaptchaOptions[key] = DjangoRecaptchaOptions[key];
+        }
+    }
+</script>
+<script type="text/javascript" src="{{api_server}}/challenge?k={{ public_key }}&hl={{ lang }}"></script>
+<noscript>
+  <iframe src="{{ api_server }}/noscript?k={{ public_key }}&hl={{ lang }}" height="300" width="500" frameborder="0"></iframe><br />
+  <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
+  <input type='hidden' name='recaptcha_response_field' value='manual_challenge' />
+</noscript>

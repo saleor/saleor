@@ -1,0 +1,30 @@
+# django-phonenumber-field
+# This file is distributed under the same license as the django-phonenumber-field package.
+# Cristian Vîjdea <cristi@cvjd.me>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-26 10:15-0700\n"
+"PO-Revision-Date: 2018-10-19 14:07+0300\n"
+"Last-Translator: Cristi Vîjdea <cristi@cvjd.me>\n"
+"Language-Team: \n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?"
+"2:1));\n"
+
+#: formfields.py:14 serializerfields.py:12
+msgid "Enter a valid phone number."
+msgstr "Introduceți un număr de telefon valid."
+
+#: modelfields.py:48
+msgid "Phone number"
+msgstr "Număr de telefon"
+
+#: validators.py:14
+msgid "The phone number entered is not valid."
+msgstr "Numărul de telefon introdus nu este valid."
