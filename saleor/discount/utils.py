@@ -9,14 +9,14 @@ from .models import NotApplicable
 
 def increase_voucher_usage(voucher):
     """Increase voucher uses by 1."""
-    voucher.used = F('used') + 1
-    voucher.save(update_fields=['used'])
+    voucher.used = F("used") + 1
+    voucher.save(update_fields=["used"])
 
 
 def decrease_voucher_usage(voucher):
     """Decrease voucher uses by 1."""
-    voucher.used = F('used') - 1
-    voucher.save(update_fields=['used'])
+    voucher.used = F("used") - 1
+    voucher.save(update_fields=["used"])
 
 
 def are_product_collections_on_sale(product, sale):
@@ -29,24 +29,24 @@ def are_product_collections_on_sale(product, sale):
 def is_category_on_sale(category, sale):
     """Check if category is descendant of one of categories on sale."""
     discounted_categories = set(sale.categories.all())
-    return any([
-        category.is_descendant_of(c, include_self=True)
-        for c in discounted_categories])
+    return any(
+        [category.is_descendant_of(c, include_self=True) for c in discounted_categories]
+    )
 
 
 def get_product_discount_on_sale(sale, product):
     """Return discount value if product is on sale or raise NotApplicable."""
     discounted_products = {p.pk for p in sale.products.all()}
     is_product_on_sale = (
-        product.pk in discounted_products or
-        is_category_on_sale(product.category, sale) or
-        are_product_collections_on_sale(product, sale))
+        product.pk in discounted_products
+        or is_category_on_sale(product.category, sale)
+        or are_product_collections_on_sale(product, sale)
+    )
     if is_product_on_sale:
         return sale.get_discount()
     raise NotApplicable(
-        pgettext(
-            'Voucher not applicable',
-            'Discount not applicable for this product'))
+        pgettext("Voucher not applicable", "Discount not applicable for this product")
+    )
 
 
 def get_product_discounts(product, discounts):
@@ -84,12 +84,11 @@ def get_products_voucher_discount(voucher, prices):
     if voucher.apply_once_per_order:
         product_total = sum(prices, ZERO_TAXED_MONEY)
         return voucher.get_discount_amount_for(product_total)
-    discounts = (
-        voucher.get_discount_amount_for(price) for price in prices)
+    discounts = (voucher.get_discount_amount_for(price) for price in prices)
     total_amount = sum(discounts, ZERO_MONEY)
     return total_amount
 
 
 def generate_voucher_code():
     """Generate new unique voucher code."""
-    return str(uuid.uuid4()).replace('-', '').upper()[:12]
+    return str(uuid.uuid4()).replace("-", "").upper()[:12]

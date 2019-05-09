@@ -8,35 +8,32 @@ from ...core.utils import build_absolute_uri
 
 def get_organization():
     site = Site.objects.get_current()
-    return {'@type': 'Organization', 'name': site.name}
+    return {"@type": "Organization", "name": site.name}
 
 
 def get_product_data(line, organization):
     gross_product_price = line.get_total().gross
     product_data = {
-        '@type': 'Offer',
-        'itemOffered': {
-            '@type': 'Product',
-            'name': line.translated_product_name or line.product_name,
-            'sku': line.product_sku,
+        "@type": "Offer",
+        "itemOffered": {
+            "@type": "Product",
+            "name": line.translated_product_name or line.product_name,
+            "sku": line.product_sku,
         },
-        'price': gross_product_price.amount,
-        'priceCurrency': gross_product_price.currency,
-        'eligibleQuantity': {
-            '@type': 'QuantitativeValue',
-            'value': line.quantity
-        },
-        'seller': organization}
+        "price": gross_product_price.amount,
+        "priceCurrency": gross_product_price.currency,
+        "eligibleQuantity": {"@type": "QuantitativeValue", "value": line.quantity},
+        "seller": organization,
+    }
 
     product = line.variant.product
     product_url = build_absolute_uri(product.get_absolute_url())
-    product_data['itemOffered']['url'] = product_url
+    product_data["itemOffered"]["url"] = product_url
 
     product_image = product.get_first_image()
     if product_image:
         image = product_image.image
-        product_data['itemOffered']['image'] = build_absolute_uri(
-            location=image.url)
+        product_data["itemOffered"]["image"] = build_absolute_uri(location=image.url)
     return product_data
 
 
@@ -45,23 +42,21 @@ def get_order_confirmation_markup(order):
     organization = get_organization()
     order_url = build_absolute_uri(order.get_absolute_url())
     data = {
-        '@context': 'http://schema.org',
-        '@type': 'Order',
-        'merchant': organization,
-        'orderNumber': order.pk,
-        'priceCurrency': order.total.gross.currency,
-        'price': order.total.gross.amount,
-        'acceptedOffer': [],
-        'url': order_url,
-        'potentialAction': {
-            '@type': 'ViewAction',
-            'url': order_url
-        },
-        'orderStatus': 'http://schema.org/OrderProcessing',
-        'orderDate': order.created}
+        "@context": "http://schema.org",
+        "@type": "Order",
+        "merchant": organization,
+        "orderNumber": order.pk,
+        "priceCurrency": order.total.gross.currency,
+        "price": order.total.gross.amount,
+        "acceptedOffer": [],
+        "url": order_url,
+        "potentialAction": {"@type": "ViewAction", "url": order_url},
+        "orderStatus": "http://schema.org/OrderProcessing",
+        "orderDate": order.created,
+    }
 
-    lines = order.lines.prefetch_related('variant')
+    lines = order.lines.prefetch_related("variant")
     for line in lines:
         product_data = get_product_data(line=line, organization=organization)
-        data['acceptedOffer'].append(product_data)
+        data["acceptedOffer"].append(product_data)
     return json.dumps(data, cls=DjangoJSONEncoder)

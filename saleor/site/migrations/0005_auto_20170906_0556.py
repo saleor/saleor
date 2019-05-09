@@ -7,14 +7,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('site', '0004_auto_20170221_0426'),
-    ]
+    dependencies = [("site", "0004_auto_20170221_0426")]
 
     operations = [
         migrations.AlterField(
-            model_name='authorizationkey',
-            name='name',
-            field=models.CharField(choices=[(b'facebook', b'Facebook-Oauth2'), (b'google-oauth2', b'Google-Oauth2')], max_length=20, verbose_name='name'),
-        ),
+            model_name="authorizationkey",
+            name="name",
+            field=models.CharField(
+                choices=[
+                    (b"facebook", b"Facebook-Oauth2"),
+                    (b"google-oauth2", b"Google-Oauth2"),
+                ],
+                max_length=20,
+                verbose_name="name",
+            ),
+        )
     ]

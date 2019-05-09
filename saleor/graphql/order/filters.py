@@ -11,8 +11,7 @@ from .enums import OrderStatusFilter
 
 def filter_payment_status(qs, _, value):
     if value:
-        qs = qs.filter(
-            payments__is_active=True, payments__charge_status__in=value)
+        qs = qs.filter(payments__is_active=True, payments__charge_status__in=value)
     return qs
 
 
@@ -25,7 +24,7 @@ def filter_status(qs, _, value):
     if OrderStatusFilter.READY_TO_FULFILL in value:
         # to use & between queries both of them need to have applied the same
         # annotate
-        qs = qs.annotate(amount_paid=Sum('payments__captured_amount'))
+        qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
         query_objects |= qs.ready_to_fulfill()
 
     if OrderStatusFilter.READY_TO_CAPTURE in value:
@@ -38,17 +37,17 @@ def filter_status(qs, _, value):
 
 def filter_customer(qs, _, value):
     customer_fields = [
-        'user_email',
-        'user__first_name',
-        'user__last_name',
-        'user__email',
+        "user_email",
+        "user__first_name",
+        "user__last_name",
+        "user__email",
     ]
     qs = filter_by_query_param(qs, value, customer_fields)
     return qs
 
 
 def filter_created_range(qs, _, value):
-    gte, lte = value.get('gte'), value.get('lte')
+    gte, lte = value.get("gte"), value.get("lte")
     if gte:
         qs = qs.filter(created__date__gte=gte)
     if lte:
@@ -58,28 +57,21 @@ def filter_created_range(qs, _, value):
 
 class DraftOrderFilter(django_filters.FilterSet):
     customer = django_filters.CharFilter(method=filter_customer)
-    created = ObjectTypeFilter(
-        input_class=DateRangeInput, method=filter_created_range
-    )
+    created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
 
     class Meta:
         model = Order
-        fields = ['customer', 'created']
+        fields = ["customer", "created"]
 
 
 class OrderFilter(DraftOrderFilter):
     payment_status = ListObjectTypeFilter(
         input_class=PaymentChargeStatusEnum, method=filter_payment_status
     )
-    status = ListObjectTypeFilter(
-        input_class=OrderStatusFilter, method=filter_status
-    )
+    status = ListObjectTypeFilter(input_class=OrderStatusFilter, method=filter_status)
     customer = django_filters.CharFilter(method=filter_customer)
-    created = ObjectTypeFilter(
-        input_class=DateRangeInput, method=filter_created_range
-    )
+    created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
 
     class Meta:
         model = Order
-        fields = [
-            'payment_status', 'status', 'customer', 'created']
+        fields = ["payment_status", "status", "customer", "created"]

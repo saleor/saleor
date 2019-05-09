@@ -15,11 +15,10 @@ class BraintreePaymentForm(forms.Form):
     # response
     payment_method_nonce = forms.CharField()
 
-    def __init__(
-            self, payment_information: PaymentData, *args, **kwargs):
+    def __init__(self, payment_information: PaymentData, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.payment_information = payment_information
-        self.fields['amount'].initial = payment_information.amount
+        self.fields["amount"].initial = payment_information.amount
 
     def clean(self):
         cleaned_data = super().clean()
@@ -27,13 +26,14 @@ class BraintreePaymentForm(forms.Form):
         # authorizing different amount than payments' total could happen only
         # when manually adjusting the template value as we do not allow
         # partial-payments at this moment, error is returned instead.
-        amount = cleaned_data.get('amount')
+        amount = cleaned_data.get("amount")
         if amount and amount != self.payment_information.amount:
             msg = pgettext_lazy(
-                'payment error',
-                'Unable to process transaction. Please try again in a moment')
+                "payment error",
+                "Unable to process transaction. Please try again in a moment",
+            )
             raise ValidationError(msg)
         return cleaned_data
 
     def get_payment_token(self):
-        return self.cleaned_data['payment_method_nonce']
+        return self.cleaned_data["payment_method_nonce"]

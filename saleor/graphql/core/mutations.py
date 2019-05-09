@@ -4,7 +4,10 @@ from typing import Tuple
 import graphene
 from django.contrib.auth import get_user_model
 from django.core.exceptions import (
-    NON_FIELD_ERRORS, ImproperlyConfigured, ValidationError)
+    NON_FIELD_ERRORS,
+    ImproperlyConfigured,
+    ValidationError,
+)
 from django.db.models.fields.files import FileField
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
@@ -32,8 +35,8 @@ def get_output_fields(model, return_field_name):
     model_type = registry.get_type_for_model(model)
     if not model_type:
         raise ImproperlyConfigured(
-            'Unable to find type for model %s in graphene registry' %
-            model.__name__)
+            "Unable to find type for model %s in graphene registry" % model.__name__
+        )
     fields = {return_field_name: graphene.Field(model_type)}
     return fields
 
@@ -41,12 +44,13 @@ def get_output_fields(model, return_field_name):
 def validation_error_to_error_type(validation_error: ValidationError) -> list:
     """Convert a ValidationError into a list of Error types."""
     err_list = []
-    if hasattr(validation_error, 'error_dict'):
+    if hasattr(validation_error, "error_dict"):
         # convert field errors
         for field, field_errors in validation_error.message_dict.items():
             for err in field_errors:
-                field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(
-                    field)
+                field = (
+                    None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
+                )
                 err_list.append(Error(field=field, message=err))
     else:
         # convert non-field errors
@@ -64,32 +68,35 @@ class ModelMutationOptions(MutationOptions):
 class BaseMutation(graphene.Mutation):
     errors = graphene.List(
         graphene.NonNull(Error),
-        description='List of errors that occurred executing the mutation.')
+        description="List of errors that occurred executing the mutation.",
+    )
 
     class Meta:
         abstract = True
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, description=None, permissions: Tuple = None,
-            _meta=None, **options):
+        cls, description=None, permissions: Tuple = None, _meta=None, **options
+    ):
 
         if not _meta:
             _meta = MutationOptions(cls)
 
         if not description:
-            raise ImproperlyConfigured('No description provided in Meta')
+            raise ImproperlyConfigured("No description provided in Meta")
 
         if isinstance(permissions, str):
-            permissions = (permissions, )
+            permissions = (permissions,)
 
         if permissions and not isinstance(permissions, tuple):
             raise ImproperlyConfigured(
-                'Permissions should be a tuple or a string in Meta')
+                "Permissions should be a tuple or a string in Meta"
+            )
 
         _meta.permissions = permissions
         super().__init_subclass_with_meta__(
-            description=description, _meta=_meta, **options)
+            description=description, _meta=_meta, **options
+        )
 
     @classmethod
     def _update_mutation_arguments_and_fields(cls, arguments, fields):
@@ -97,19 +104,19 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def get_node_or_error(cls, info, node_id, field='id', only_type=None):
+    def get_node_or_error(cls, info, node_id, field="id", only_type=None):
         if not node_id:
             return None
 
         try:
-            node = graphene.Node.get_node_from_global_id(
-                info, node_id, only_type)
+            node = graphene.Node.get_node_from_global_id(info, node_id, only_type)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError({field: str(e)})
         else:
             if node is None:
-                raise ValidationError({
-                    field: "Couldn't resolve to a node: %s" % node_id})
+                raise ValidationError(
+                    {field: "Couldn't resolve to a node: %s" % node_id}
+                )
         return node
 
     @classmethod
@@ -130,7 +137,7 @@ class BaseMutation(graphene.Mutation):
         try:
             instance.full_clean()
         except ValidationError as error:
-            if hasattr(cls._meta, 'exclude'):
+            if hasattr(cls._meta, "exclude"):
                 # Ignore validation errors for fields that are specified as
                 # excluded.
                 new_error_dict = {}
@@ -152,11 +159,17 @@ class BaseMutation(graphene.Mutation):
         fields, but not saved to the database.
         """
         from django.db import models
+
         opts = instance._meta
 
         for f in opts.fields:
-            if any([not f.editable, isinstance(f, models.AutoField),
-                    f.name not in cleaned_data]):
+            if any(
+                [
+                    not f.editable,
+                    isinstance(f, models.AutoField),
+                    f.name not in cleaned_data,
+                ]
+            ):
                 continue
             data = cleaned_data[f.name]
             if data is None:
@@ -210,15 +223,16 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls,
-            arguments=None,
-            model=None,
-            exclude=None,
-            return_field_name=None,
-            _meta=None,
-            **options):
+        cls,
+        arguments=None,
+        model=None,
+        exclude=None,
+        return_field_name=None,
+        _meta=None,
+        **options,
+    ):
         if not model:
-            raise ImproperlyConfigured('model is required for ModelMutation')
+            raise ImproperlyConfigured("model is required for ModelMutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
 
@@ -235,8 +249,7 @@ class ModelMutation(BaseMutation):
         _meta.return_field_name = return_field_name
         _meta.exclude = exclude
         super().__init_subclass_with_meta__(_meta=_meta, **options)
-        cls._update_mutation_arguments_and_fields(
-            arguments=arguments, fields=fields)
+        cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -254,20 +267,22 @@ class ModelMutation(BaseMutation):
         def is_list_of_ids(field):
             return (
                 isinstance(field.type, graphene.List)
-                and field.type.of_type == graphene.ID)
+                and field.type.of_type == graphene.ID
+            )
 
         def is_id_field(field):
             return (
                 field.type == graphene.ID
                 or isinstance(field.type, graphene.NonNull)
-                and field.type.of_type == graphene.ID)
+                and field.type.of_type == graphene.ID
+            )
 
         def is_upload_field(field):
-            if hasattr(field.type, 'of_type'):
+            if hasattr(field.type, "of_type"):
                 return field.type.of_type == Upload
             return field.type == Upload
 
-        input_cls = getattr(cls.Arguments, 'input')
+        input_cls = getattr(cls.Arguments, "input")
         cleaned_input = {}
 
         for field_name, field_item in input_cls._meta.fields.items():
@@ -276,8 +291,9 @@ class ModelMutation(BaseMutation):
 
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field_item):
-                    instances = cls.get_nodes_or_error(
-                        value, field_name) if value else []
+                    instances = (
+                        cls.get_nodes_or_error(value, field_name) if value else []
+                    )
                     cleaned_input[field_name] = instances
 
                 # handle ID field
@@ -299,7 +315,7 @@ class ModelMutation(BaseMutation):
     def _save_m2m(cls, info, instance, cleaned_data):
         opts = instance._meta
         for f in chain(opts.many_to_many, opts.private_fields):
-            if not hasattr(f, 'save_form_data'):
+            if not hasattr(f, "save_form_data"):
                 continue
             if f.name in cleaned_data and cleaned_data[f.name] is not None:
                 f.save_form_data(instance, cleaned_data[f.name])
@@ -307,7 +323,7 @@ class ModelMutation(BaseMutation):
     @classmethod
     def success_response(cls, instance):
         """Return a success response."""
-        return cls(**{cls._meta.return_field_name: instance, 'errors': []})
+        return cls(**{cls._meta.return_field_name: instance, "errors": []})
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -315,11 +331,10 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def get_instance(cls, info, **data):
-        object_id = data.get('id')
+        object_id = data.get("id")
         if object_id:
             model_type = registry.get_type_for_model(cls._meta.model)
-            instance = cls.get_node_or_error(
-                info, object_id, only_type=model_type)
+            instance = cls.get_node_or_error(info, object_id, only_type=model_type)
         else:
             instance = cls._meta.model()
         return instance
@@ -334,7 +349,7 @@ class ModelMutation(BaseMutation):
         created based on the model associated with this mutation.
         """
         instance = cls.get_instance(info, **data)
-        data = data.get('input')
+        data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance)
@@ -361,7 +376,7 @@ class ModelDeleteMutation(ModelMutation):
         if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
-        node_id = data.get('id')
+        node_id = data.get("id")
         model_type = registry.get_type_for_model(cls._meta.model)
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
 
@@ -379,7 +394,8 @@ class ModelDeleteMutation(ModelMutation):
 
 class BaseBulkMutation(BaseMutation):
     count = graphene.Int(
-        required=True, description='Returns how many objects were affected.')
+        required=True, description="Returns how many objects were affected."
+    )
 
     class Meta:
         abstract = True
@@ -387,7 +403,7 @@ class BaseBulkMutation(BaseMutation):
     @classmethod
     def __init_subclass_with_meta__(cls, model=None, _meta=None, **kwargs):
         if not model:
-            raise ImproperlyConfigured('model is required for bulk mutation')
+            raise ImproperlyConfigured("model is required for bulk mutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
         _meta.model = model
@@ -413,7 +429,7 @@ class BaseBulkMutation(BaseMutation):
         clean_instance_ids, errors = [], {}
         instance_model = cls._meta.model
         model_type = registry.get_type_for_model(instance_model)
-        instances = cls.get_nodes_or_error(ids, 'id', model_type)
+        instances = cls.get_nodes_or_error(ids, "id", model_type)
         for instance, node_id in zip(instances, ids):
             instance_errors = []
 
@@ -422,15 +438,16 @@ class BaseBulkMutation(BaseMutation):
             try:
                 cls.clean_instance(info, instance)
             except ValidationError as e:
-                msg = '. '.join(e.messages)
+                msg = ". ".join(e.messages)
                 instance_errors.append(msg)
 
             if not instance_errors:
                 clean_instance_ids.append(instance.pk)
             else:
-                instance_errors_msg = '. '.join(instance_errors)
-                ValidationError({
-                    node_id: instance_errors_msg}).update_error_dict(errors)
+                instance_errors_msg = ". ".join(instance_errors)
+                ValidationError({node_id: instance_errors_msg}).update_error_dict(
+                    errors
+                )
 
         if errors:
             errors = ValidationError(errors)
