@@ -27,6 +27,7 @@ from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
 
+from ..checks import events as events_checks
 from .utils import (
     assert_no_permission,
     convert_dict_keys_to_camel_case,
@@ -781,7 +782,12 @@ def test_logged_customer_update_anonymus_user(api_client):
     assert_no_permission(response)
 
 
-def test_customer_delete(staff_api_client, customer_user, permission_manage_users):
+def test_customer_delete(
+    staff_api_client, staff_user, customer_user, permission_manage_users
+):
+    """Ensure deleting a customer actually deletes the customer and creates proper
+    related events"""
+
     query = """
     mutation CustomerDelete($id: ID!) {
         customerDelete(id: $id){
@@ -804,6 +810,10 @@ def test_customer_delete(staff_api_client, customer_user, permission_manage_user
     data = content["data"]["customerDelete"]
     assert data["errors"] == []
     assert data["user"]["id"] == customer_id
+
+    # Ensure the customer was properly deleted
+    # and any related event was properly triggered
+    events_checks.was_customer_properly_deleted(staff_user, customer_user)
 
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):

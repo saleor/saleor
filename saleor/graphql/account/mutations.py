@@ -218,6 +218,12 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a customer to delete.")
 
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        results = super().perform_mutation(root, info, **data)
+        cls.post_process(info)
+        return results
+
 
 class StaffCreate(ModelMutation):
     class Arguments:

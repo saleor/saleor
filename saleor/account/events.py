@@ -31,10 +31,21 @@ def customer_added_to_note_order_event(*, user: UserType, order: Order, message:
     )
 
 
-def customer_downloaded_a_digital_link(*, user: UserType, order_line: OrderLine):
+def customer_downloaded_a_digital_link_event(*, user: UserType, order_line: OrderLine):
     return _new_customer_event(
         user=user,
         order=order_line.order,
         type=CustomerEvents.DIGITAL_LINK_DOWNLOADED,
         parameters={"order_line_pk": order_line.pk},
+    )
+
+
+def staff_user_deleted_a_customer_event(
+    *, staff_user: UserType, deleted_count: int = 1
+):
+    return _new_customer_event(
+        user=staff_user,
+        order=None,
+        type=CustomerEvents.CUSTOMER_DELETED,
+        parameters={"count": deleted_count},
     )
