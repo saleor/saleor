@@ -1,6 +1,5 @@
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
-import { FetchResult } from "react-apollo";
 
 import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
