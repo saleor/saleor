@@ -58,7 +58,7 @@ def summary_with_shipping_view(request, checkout):
         checkout.user.addresses.all() if checkout.user else Address.objects.none()
     )
 
-    addresses_form, address_form, updated = update_billing_address_in_checkout_with_shipping(
+    addresses_form, address_form, updated = update_billing_address_in_checkout_with_shipping(  # noqa
         checkout, user_addresses, request.POST or None, request.country
     )
 

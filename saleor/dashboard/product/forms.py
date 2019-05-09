@@ -385,9 +385,8 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
             self.fields["price_override"].widget.attrs[
                 "placeholder"
             ] = self.instance.product.price.amount
-            self.available_attributes = self.instance.product.product_type.variant_attributes.all().prefetch_related(
-                "values"
-            )
+            qs = self.instance.product.product_type.variant_attributes.all()
+            self.available_attributes = qs.prefetch_related("values")
             self.prepare_fields_for_attributes()
 
         if include_taxes_in_prices():

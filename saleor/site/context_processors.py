@@ -1,3 +1,4 @@
+import django.http.request
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import prefetch_related_objects
 
