@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from django.contrib.auth.base_user import AbstractBaseUser
 
+from ..account.events import customer_placed_order_event
 from ..account.models import Address
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
@@ -89,7 +90,11 @@ def draft_order_removed_products_event(
 
 
 def order_created_event(*, order: Order, user: UserType, from_draft=False):
-    event_type = OrderEvents.PLACED_FROM_DRAFT if from_draft else OrderEvents.PLACED
+    if from_draft:
+        event_type = OrderEvents.PLACED_FROM_DRAFT
+    else:
+        event_type = OrderEvents.PLACED
+        customer_placed_order_event(user=user, order=order)
 
     if user.is_anonymous:
         user = None
