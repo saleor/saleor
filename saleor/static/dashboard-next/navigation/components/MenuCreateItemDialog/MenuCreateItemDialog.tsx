@@ -73,6 +73,10 @@ function getMenuItemData(value: string): MenuItemData {
 }
 
 function getDisplayValue(menu: SelectMenuItem[], value: string): string {
+  const menuItemData = getMenuItemData(value);
+  if (menuItemData.type === "link") {
+    return menuItemData.id;
+  }
   return findMenuItem(menu, value).label.toString();
 }
 
@@ -93,43 +97,53 @@ const MenuCreateItemDialog: React.StatelessComponent<
   const [displayValue, setDisplayValue] = React.useState("");
   const [url, setUrl] = React.useState<string>(undefined);
 
-  let options: SelectMenuItem[] = [
-    {
-      children: categories.map(category => ({
-        label: category.name,
-        value: "category:" + category.id
-      })),
-      label: i18n.t("Categories ({{ number }})", {
-        number: categories.length
-      })
-    },
-    {
-      children: collections.map(collection => ({
-        label: collection.name,
-        value: "collection:" + collection.id
-      })),
-      label: i18n.t("Collections ({{ number }})", {
-        number: collections.length
-      })
-    }
-  ];
+  let options: SelectMenuItem[] = [];
+
+  if (categories.length > 0) {
+    options = [
+      ...options,
+      {
+        children: categories.map(category => ({
+          label: category.name,
+          value: "category:" + category.id
+        })),
+        label: i18n.t("Categories ({{ number }})", {
+          number: categories.length
+        })
+      }
+    ];
+  }
+
+  if (collections.length > 0) {
+    options = [
+      ...options,
+      {
+        children: collections.map(collection => ({
+          label: collection.name,
+          value: "collection:" + collection.id
+        })),
+        label: i18n.t("Collections ({{ number }})", {
+          number: collections.length
+        })
+      }
+    ];
+  }
 
   if (url) {
     options = [
-      ...options,
       {
         label: (
           <div
             dangerouslySetInnerHTML={{
               // FIXME: Improve label 'link to:'
-              __html: i18n.t("Link to: <strong>{{ url }}</strong>", {
+              __html: i18n.t("link to: <strong>{{ url }}</strong>", {
                 context: "add link to navigation",
                 url
               })
             }}
           />
         ),
-        value: "url:" + url
+        value: "link:" + url
       }
     ];
   }
