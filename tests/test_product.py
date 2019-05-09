@@ -13,6 +13,7 @@ from django.urls import reverse
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
+from saleor.account import events as customer_events
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
@@ -769,15 +770,40 @@ def test_homepage_collection_render(client, site_settings, collection, product_l
     assert products_in_context == products_available
 
 
-def test_digital_product_view(client, digital_content):
-    digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+@pytest.mark.parametrize("should_user_be_deleted", (True, False))
+def test_digital_product_view(client, digital_content_url, should_user_be_deleted):
+    """Ensure a user (anonymous or not) can download a non-expired digital good
+    using its associated token and that all associated events
+    are correctly generated.
+
+    It also ensures that a digital order line that is associated to a deleted user
+    can still be downloaded if non-expired."""
+
+    expected_user = digital_content_url.line.order.user
+    if should_user_be_deleted:
+        digital_content_url.line.order.user.delete()
+
     url = digital_content_url.get_absolute_url()
     response = client.get(url)
-    filename = os.path.basename(digital_content.content_file.name)
+    filename = os.path.basename(digital_content_url.content.content_file.name)
 
     assert response.status_code == 200
     assert response["content-type"] == "image/jpeg"
     assert response["content-disposition"] == 'attachment; filename="%s"' % filename
+
+    # Ensure a line associated to a deleted user does not generate any event
+    if should_user_be_deleted:
+        assert not customer_events.CustomerEvent.objects.exists()
+        return
+
+    # Ensure an event was generated from downloading a digital good
+    download_event = customer_events.CustomerEvent.objects.get()
+
+    # Check that the event contains all the expected and valid data
+    assert download_event.type == customer_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED
+    assert download_event.user == expected_user
+    assert download_event.order == digital_content_url.line.order
+    assert download_event.parameters == {"order_line_pk": digital_content_url.line.pk}
 
 
 def test_digital_product_view_url_downloaded_max_times(client, digital_content):

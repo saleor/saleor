@@ -14,8 +14,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
+from ..account import events as customer_events
 from ..checkout.utils import set_checkout_cookie
 from ..core.utils import serialize_decimal
+from ..order.models import OrderLine
 from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category, DigitalContentUrl
@@ -105,9 +107,13 @@ def product_details(request, slug, product_id, form=None):
 def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
     """Returns direct download link to content if given token is still valid"""
 
-    content_url = get_object_or_404(DigitalContentUrl, token=token)
+    qs = DigitalContentUrl.objects.prefetch_related("line__order__user")
+    content_url = get_object_or_404(qs, token=token)  # type: DigitalContentUrl
     if not digital_content_url_is_valid(content_url):
         return HttpResponseNotFound("Url is not valid anymore")
+
+    line = content_url.line  # type: OrderLine
+    user = line.order.user
     digital_content = content_url.content
     digital_content.content_file.open()
     opened_file = digital_content.content_file.file
@@ -122,6 +128,10 @@ def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotF
     response["Content-Disposition"] = "attachment; {}".format(file_expr)
     content_url.download_num += 1
     content_url.save(update_fields=["download_num"])
+
+    if user is not None:
+        customer_events.customer_downloaded_a_digital_link(user=user, order_line=line)
+
     return response
 
 
