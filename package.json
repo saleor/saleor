@@ -56,6 +56,7 @@
     "i18next-browser-languagedetector": "^2.2.0",
     "i18next-xhr-backend": "^1.5.1",
     "invariant": "^2.2.4",
+    "is-url": "^1.2.4",
     "jquery": "^3.4.0",
     "jquery.cookie": "^1.4.1",
     "jss": "^9.8.7",

@@ -4,6 +4,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
+import * as isUrl from "is-url";
 import * as React from "react";
 
 import AutocompleteSelectMenu, {
@@ -90,8 +91,9 @@ const MenuCreateItemDialog: React.StatelessComponent<
   collections
 }) => {
   const [displayValue, setDisplayValue] = React.useState("");
+  const [url, setUrl] = React.useState<string>(undefined);
 
-  const options: SelectMenuItem[] = [
+  let options: SelectMenuItem[] = [
     {
       children: categories.map(category => ({
         label: category.name,
@@ -111,6 +113,35 @@ const MenuCreateItemDialog: React.StatelessComponent<
       })
     }
   ];
+
+  if (url) {
+    options = [
+      ...options,
+      {
+        label: (
+          <div
+            dangerouslySetInnerHTML={{
+              // FIXME: Improve label 'link to:'
+              __html: i18n.t("Link to: <strong>{{ url }}</strong>", {
+                context: "add link to navigation",
+                url
+              })
+            }}
+          />
+        ),
+        value: "url:" + url
+      }
+    ];
+  }
+
+  const handleQueryChange = (query: string) => {
+    if ((query && isUrl(query)) || query[0] === "/") {
+      setUrl(query);
+    } else if (url) {
+      setUrl(undefined);
+    }
+    onQueryChange(query);
+  };
 
   return (
     <Dialog
@@ -175,7 +206,7 @@ const MenuCreateItemDialog: React.StatelessComponent<
                   error={false}
                   options={options}
                   placeholder={i18n.t("Start typing to begin search...")}
-                  onInputChange={onQueryChange}
+                  onInputChange={handleQueryChange}
                 />
               </DialogContent>
               <DialogActions>
