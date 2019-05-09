@@ -19,6 +19,10 @@ export interface MenuDetailsFormData {
   name: string;
 }
 
+export interface MenuDetailsSubmitData extends MenuDetailsFormData {
+  operations: TreePermutation[];
+}
+
 export interface MenuDetailsPageProps {
   saveButtonState: ConfirmButtonTransitionState;
   disabled: boolean;
@@ -26,7 +30,7 @@ export interface MenuDetailsPageProps {
   onBack: () => void;
   onDelete: () => void;
   onItemAdd: () => void;
-  onSubmit: () => void;
+  onSubmit: (data: MenuDetailsSubmitData) => void;
 }
 
 const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
@@ -46,8 +50,11 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
     []
   );
 
-  const handleSubmit = () => {
-    onSubmit();
+  const handleSubmit = (data: MenuDetailsFormData) => {
+    onSubmit({
+      name: data.name,
+      operations: treeOperations
+    });
   };
 
   const handleChange = (operation: TreePermutation) => {
@@ -57,8 +64,8 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
   };
 
   return (
-    <Form initial={initialForm}>
-      {({ change, data, hasChanged }) => (
+    <Form initial={initialForm} onSubmit={handleSubmit}>
+      {({ change, data, hasChanged, submit }) => (
         <Container>
           <AppHeader onBack={onBack}>{i18n.t("Navigation")}</AppHeader>
           <Grid variant="inverted">
@@ -80,9 +87,9 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
               <CardSpacer />
               <MenuItems
                 canUndo={treeOperations.length > 0}
-                items={computeTree(maybe(() => menu.items, []), [
-                  ...treeOperations
-                ])}
+                items={maybe(() =>
+                  computeTree(menu.items, [...treeOperations])
+                )}
                 onChange={handleChange}
                 onItemAdd={onItemAdd}
                 onUndo={() =>
@@ -94,10 +101,10 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
             </div>
           </Grid>
           <SaveButtonBar
-            disabled={disabled || !hasChanged}
+            disabled={disabled || (!hasChanged && treeOperations.length === 0)}
             onCancel={onBack}
             onDelete={onDelete}
-            onSave={handleSubmit}
+            onSave={submit}
             state={saveButtonState}
           />
         </Container>

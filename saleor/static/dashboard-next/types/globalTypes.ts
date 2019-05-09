@@ -366,6 +366,12 @@ export interface MenuItemInput {
   page?: string | null;
 }
 
+export interface MenuItemMoveInput {
+  itemId: string;
+  parentId?: string | null;
+  sortOrder?: number | null;
+}
+
 export interface NameTranslationInput {
   name?: string | null;
 }

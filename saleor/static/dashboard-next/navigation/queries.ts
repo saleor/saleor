@@ -61,6 +61,17 @@ export const menuItemNestedFragment = gql`
   }
 `;
 
+export const menuDetailsFragment = gql`
+  ${menuItemNestedFragment}
+  fragment MenuDetailsFragment on Menu {
+    id
+    items {
+      ...MenuItemNestedFragment
+    }
+    name
+  }
+`;
+
 const menuList = gql`
   ${menuFragment}
   ${pageInfoFragment}
@@ -80,14 +91,10 @@ const menuList = gql`
 export const MenuListQuery = TypedQuery<MenuList, MenuListVariables>(menuList);
 
 const menuDetails = gql`
-  ${menuItemNestedFragment}
+  ${menuDetailsFragment}
   query MenuDetails($id: ID!) {
     menu(id: $id) {
-      id
-      items {
-        ...MenuItemNestedFragment
-      }
-      name
+      ...MenuDetailsFragment
     }
   }
 `;
