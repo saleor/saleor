@@ -3,9 +3,10 @@ import { TreeItem } from "react-sortable-tree";
 
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
 
+export type TreeOperationType = "move" | "remove";
 export interface TreeOperation {
   id: string;
-  operation: "move" | "remove";
+  type: TreeOperationType;
   parentId?: string;
   sortOrder?: number;
 }
@@ -49,9 +50,9 @@ export function getDiff(
       if (!!addedNode) {
         return {
           id: addedNode.items[0],
-          operation: "move",
           parentId: key === "root" ? undefined : key,
-          sortOrder: addedNode.newPos
+          sortOrder: addedNode.newPos,
+          type: "move" as TreeOperationType
         };
       }
     }

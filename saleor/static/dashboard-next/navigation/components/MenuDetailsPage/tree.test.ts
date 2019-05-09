@@ -26,153 +26,153 @@ describe("Properly computes trees", () => {
   const testTable: TreeOperation[][] = [
     [],
     [
-      { id: "1glasses", parentId: "0jewelry", sortOrder: 0, operation: "move" },
+      { id: "1glasses", parentId: "0jewelry", sortOrder: 0, type: "move" },
       {
         id: "2accessories",
-        operation: "move",
         parentId: "3groceries",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       }
     ],
     [
-      { id: "1glasses", parentId: "0jewelry", sortOrder: 0, operation: "move" },
+      { id: "1glasses", parentId: "0jewelry", sortOrder: 0, type: "move" },
       {
         id: "2accessories",
-        operation: "move",
         parentId: "3groceries",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
       {
         id: "3groceries",
-        operation: "move",
         parentId: "4apparel",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       }
     ],
     [
-      { id: "0jewelry", sortOrder: 1, operation: "move" },
-      { id: "1glasses", sortOrder: 1, operation: "move" },
+      { id: "0jewelry", sortOrder: 1, type: "move" },
+      { id: "1glasses", sortOrder: 1, type: "move" },
       {
         id: "4apparel",
-        operation: "move",
         parentId: "3groceries",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
       {
         id: "3groceries",
-        operation: "move",
         parentId: "0jewelry",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
-      { id: "0jewelry", parentId: "1glasses", sortOrder: 0, operation: "move" },
+      { id: "0jewelry", parentId: "1glasses", sortOrder: 0, type: "move" },
       {
         id: "1glasses",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
-      { id: "1glasses", sortOrder: 1, operation: "move" },
-      { id: "0jewelry", sortOrder: 2, operation: "move" }
+      { id: "1glasses", sortOrder: 1, type: "move" },
+      { id: "0jewelry", sortOrder: 2, type: "move" }
     ],
     [
-      { id: "1glasses", sortOrder: 1, operation: "move" },
-      { id: "1glasses", parentId: "0jewelry", sortOrder: 0, operation: "move" },
-      { id: "0jewelry", sortOrder: 1, operation: "move" },
+      { id: "1glasses", sortOrder: 1, type: "move" },
+      { id: "1glasses", parentId: "0jewelry", sortOrder: 0, type: "move" },
+      { id: "0jewelry", sortOrder: 1, type: "move" },
       {
         id: "0jewelry",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
-      { id: "3groceries", sortOrder: 0, operation: "move" },
+      { id: "3groceries", sortOrder: 0, type: "move" },
       {
         id: "2accessories",
-        operation: "move",
         parentId: "3groceries",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
-      { id: "2accessories", sortOrder: 1, operation: "move" },
-      { id: "0jewelry", sortOrder: 2, operation: "move" },
-      { id: "1glasses", sortOrder: 3, operation: "move" },
-      { id: "4apparel", sortOrder: 0, operation: "move" },
-      { id: "1glasses", sortOrder: 1, operation: "move" },
-      { id: "2accessories", sortOrder: 0, operation: "move" },
+      { id: "2accessories", sortOrder: 1, type: "move" },
+      { id: "0jewelry", sortOrder: 2, type: "move" },
+      { id: "1glasses", sortOrder: 3, type: "move" },
+      { id: "4apparel", sortOrder: 0, type: "move" },
+      { id: "1glasses", sortOrder: 1, type: "move" },
+      { id: "2accessories", sortOrder: 0, type: "move" },
       {
         id: "4apparel",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
       {
         id: "3groceries",
-        operation: "move",
         parentId: "1glasses",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
-      { id: "0jewelry", sortOrder: 0, operation: "move" },
+      { id: "0jewelry", sortOrder: 0, type: "move" },
       {
         id: "0jewelry",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
       {
         id: "4apparel",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
       {
         id: "0jewelry",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
       {
         id: "1glasses",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 2
+        sortOrder: 2,
+        type: "move"
       },
       {
         id: "0jewelry",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 2
+        sortOrder: 2,
+        type: "move"
       },
       {
         id: "1glasses",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 2
+        sortOrder: 2,
+        type: "move"
       },
       {
         id: "4apparel",
-        operation: "move",
         parentId: "2accessories",
-        sortOrder: 2
+        sortOrder: 2,
+        type: "move"
       },
       {
         id: "3groceries",
-        operation: "move",
         parentId: "0jewelry",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       },
-      { id: "4apparel", parentId: "1glasses", sortOrder: 0, operation: "move" },
-      { id: "1glasses", sortOrder: 1, operation: "move" },
-      { id: "0jewelry", sortOrder: 1, operation: "move" },
+      { id: "4apparel", parentId: "1glasses", sortOrder: 0, type: "move" },
+      { id: "1glasses", sortOrder: 1, type: "move" },
+      { id: "0jewelry", sortOrder: 1, type: "move" },
       {
         id: "2accessories",
-        operation: "move",
         parentId: "4apparel",
-        sortOrder: 0
+        sortOrder: 0,
+        type: "move"
       }
     ],
-    [{ id: "2accessories", operation: "remove" }],
+    [{ id: "2accessories", type: "remove" }],
     [
-      { id: "2accessories", operation: "remove" },
-      { id: "4apparel", operation: "move", sortOrder: 0 },
-      { id: "3groceries", operation: "remove" }
+      { id: "2accessories", type: "remove" },
+      { id: "4apparel", type: "move", sortOrder: 0 },
+      { id: "3groceries", type: "remove" }
     ]
   ];
 
