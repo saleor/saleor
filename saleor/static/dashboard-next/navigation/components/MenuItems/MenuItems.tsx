@@ -217,7 +217,9 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
             [classes.darkContainer]: isDark
           })}
           style={{
-            minHeight: (getNodeQuantity(items) - 1) * NODE_HEIGHT
+            minHeight: (items ? getNodeQuantity(items) - 1 : 1) * NODE_HEIGHT,
+            padding: !items && "0 24px",
+            paddingTop: !items && 20
           }}
         >
           {items === undefined ? (
