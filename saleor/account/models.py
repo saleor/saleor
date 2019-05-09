@@ -11,7 +11,6 @@ from django.db import models
 from django.db.models import Q, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
-from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
@@ -207,7 +206,7 @@ class CustomerNote(models.Model):
 class CustomerEvent(models.Model):
     """Model used to store events that happened during the customer lifecycle."""
 
-    date = models.DateTimeField(default=now, editable=False)
+    date = models.DateTimeField(default=timezone.now, editable=False)
     type = models.CharField(
         max_length=255,
         choices=[
