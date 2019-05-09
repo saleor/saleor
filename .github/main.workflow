@@ -1,6 +1,6 @@
 workflow "Linters" {
-  on = "push"
   resolves = ["Black Linter", "Flake8 Linter"]
+  on = "pull_request"
 }
 
 action "Build" {
