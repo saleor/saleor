@@ -402,10 +402,7 @@ def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):
     """
     menu_item_list = []
     variables = {
-        "ids": [
-            graphene.Node.to_global_id("MenuItem", menu_item.id)
-            for menu_item in menu_item_list
-        ]
+        "ids": menu_item_list
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
