@@ -6,14 +6,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0004_order_total'),
-    ]
+    dependencies = [("order", "0004_order_total")]
 
     operations = [
         migrations.AddField(
-            model_name='deliverygroup',
-            name='last_updated',
+            model_name="deliverygroup",
+            name="last_updated",
             field=models.DateTimeField(auto_now=True, null=True),
-        ),
+        )
     ]

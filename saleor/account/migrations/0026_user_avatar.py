@@ -6,14 +6,14 @@ import versatileimagefield.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('account', '0025_auto_20190314_0550'),
-    ]
+    dependencies = [("account", "0025_auto_20190314_0550")]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='avatar',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='user-avatars'),
-        ),
+            model_name="user",
+            name="avatar",
+            field=versatileimagefield.fields.VersatileImageField(
+                blank=True, null=True, upload_to="user-avatars"
+            ),
+        )
     ]

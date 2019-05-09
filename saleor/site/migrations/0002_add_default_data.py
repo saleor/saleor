@@ -7,20 +7,22 @@ from django.conf import settings
 
 
 def create_default_site(apps, schema_editor):
-    SiteSettings = apps.get_model('site', 'SiteSettings')
-    settings_id = getattr(settings, 'SITE_SETTINGS_ID', None)
-    SiteSettings.objects.get_or_create(pk=settings_id, defaults={
-        'name': 'Saleor e-commerce',
-        'header_text': 'Test Saleor - a sample shop!',
-        'domain': 'localhost:8000'})
+    SiteSettings = apps.get_model("site", "SiteSettings")
+    settings_id = getattr(settings, "SITE_SETTINGS_ID", None)
+    SiteSettings.objects.get_or_create(
+        pk=settings_id,
+        defaults={
+            "name": "Saleor e-commerce",
+            "header_text": "Test Saleor - a sample shop!",
+            "domain": "localhost:8000",
+        },
+    )
+
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('site', '0001_initial'),
-    ]
+    dependencies = [("site", "0001_initial")]
 
     operations = [
-        migrations.RunPython(create_default_site,
-                             lambda app, schema_editor: None)
+        migrations.RunPython(create_default_site, lambda app, schema_editor: None)
     ]
