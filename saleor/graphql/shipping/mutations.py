@@ -116,8 +116,10 @@ class ShippingPriceMixin:
                 ):
                     raise ValidationError(
                         {
-                            "maximum_order_price": "Maximum order price should be larger than the "
-                            "minimum order price."
+                            "maximum_order_price": (
+                                "Maximum order price should be larger than "
+                                "the minimum order price."
+                            )
                         }
                     )
             else:
@@ -130,8 +132,10 @@ class ShippingPriceMixin:
                 ):
                     raise ValidationError(
                         {
-                            "maximum_order_weight": "Maximum order weight should be larger than the "
-                            "minimum order weight."
+                            "maximum_order_weight": (
+                                "Maximum order weight should be larger than the "
+                                "minimum order weight."
+                            )
                         }
                     )
         return cleaned_input
