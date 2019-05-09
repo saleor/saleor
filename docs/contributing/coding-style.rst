@@ -1,15 +1,6 @@
 Coding Style
 ============
 
-Saleor uses the `pre-commit <https://pre-commit.com/#install>`_ tool to check and
-automatically fix any formatting issue before creating a git commit.
-
-You can easily install it after having setup saleor by running the below instruction.
-
-.. code-block:: console
-
-  $ pre-commit install
-
 
 Python
 ------
@@ -72,4 +63,26 @@ Use `pycodestyle <http://pycodestyle.pycqa.org/en/latest/>`_ to make sure your c
 
 Use `pydocstyle <http://pydocstyle.pycqa.org/en/latest/>`_ to check that your docstrings are properly formatted.
 
-``python -m pip install -r requirements_dev.txt`` can install these tools. For Pipenv users, they can also be installed by ``pipenv install --dev``.
+Saleor uses various tools to maintain a common coding style and help with development. To install all the development tools do:
+
+.. code-block:: console
+
+  $ python -m pip install -r requirements_dev.txt``
+
+or if using ``pipenv``:
+
+.. code-block:: console
+
+  $ pipenv install --dev
+
+Saleor uses the `pre-commit <https://pre-commit.com/#install>`_ tool to check and
+automatically fix any formatting issue before creating a git commit.
+
+Run the following command to install pre-commit into your git hooks and have it run on every commit:
+
+.. code-block:: console
+
+  $ pre-commit install
+
+If you want more information on how it works, you can refer to the ``.pre-commit-config.yaml``
+configuration file.
