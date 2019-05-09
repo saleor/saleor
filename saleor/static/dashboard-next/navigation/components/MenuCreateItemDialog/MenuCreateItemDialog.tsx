@@ -67,7 +67,7 @@ function findMenuItem(menu: SelectMenuItem[], value: string): SelectMenuItem {
 function getMenuItemData(value: string): MenuItemData {
   const [type, ...idParts] = value.split(":");
   return {
-    id: idParts.reduce((acc, part) => acc + part, ""),
+    id: idParts.join(":"),
     type: type as MenuItemType
   };
 }
@@ -135,7 +135,7 @@ const MenuCreateItemDialog: React.StatelessComponent<
         label: (
           <div
             dangerouslySetInnerHTML={{
-              // FIXME: Improve label 'link to:'
+              // FIXME: Improve label
               __html: i18n.t("link to: <strong>{{ url }}</strong>", {
                 context: "add link to navigation",
                 url
@@ -149,7 +149,7 @@ const MenuCreateItemDialog: React.StatelessComponent<
   }
 
   const handleQueryChange = (query: string) => {
-    if ((query && isUrl(query)) || query[0] === "/") {
+    if (isUrl(query)) {
       setUrl(query);
     } else if (url) {
       setUrl(undefined);

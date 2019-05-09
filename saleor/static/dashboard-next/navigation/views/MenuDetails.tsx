@@ -114,6 +114,10 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                           variables.input.collection = data.id;
                           break;
 
+                        case "link":
+                          variables.input.url = data.id;
+                          break;
+
                         default:
                           throw new Error("Unknown type");
                           break;
