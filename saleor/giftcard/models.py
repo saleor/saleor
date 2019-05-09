@@ -10,7 +10,7 @@ class GiftCard(models.Model):
     code = models.CharField(max_length=16, unique=True, db_index=True)
     creator = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.SET_NULL, related_name='gift_cards')
     created = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=date.today)
     expiration_date = models.DateField(null=True, blank=True)

@@ -158,6 +158,13 @@ class User(CountableDjangoObjectType):
     checkout = graphene.Field(
         Checkout, description="Returns the last open checkout of this user."
     )
+    gift_cards = gql_optimizer.field(
+        PrefetchingConnectionField(
+            "saleor.graphql.giftcard.types.GiftCard",
+            description="List of user's gift cards.",
+        ),
+        model_field="gift_cards",
+    )
     note = graphene.String(description="A note about the customer")
     orders = gql_optimizer.field(
         PrefetchingConnectionField(
@@ -202,6 +209,10 @@ class User(CountableDjangoObjectType):
     @staticmethod
     def resolve_checkout(root: models.User, _info, **_kwargs):
         return get_user_checkout(root)
+
+    @staticmethod
+    def resolve_gift_cards(root: models.User, info, **_kwargs):
+        return root.gift_cards.all()
 
     @staticmethod
     def resolve_permissions(root: models.User, _info, **_kwargs):

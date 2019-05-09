@@ -3,6 +3,7 @@ from graphql_jwt.decorators import permission_required
 
 from ...giftcard import models
 from ..core.fields import PrefetchingConnectionField
+from .resolvers import resolve_gift_card
 from .types import GiftCard
 
 
@@ -13,9 +14,8 @@ class GiftCardQueries(graphene.ObjectType):
     gift_cards = PrefetchingConnectionField(
         GiftCard, description='List of gift cards')
 
-    @permission_required('giftcard.manage_gift_card')
-    def resolve_gift_card(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, GiftCard)
+    def resolve_gift_card(self, info, **data):
+        return resolve_gift_card(info, data.get('id'))
 
     @permission_required('giftcard.manage_gift_card')
     def resolve_gift_cards(self, info, **_kwargs):
