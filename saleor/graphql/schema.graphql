@@ -910,8 +910,6 @@ input FulfillmentUpdateTrackingInput {
 
 enum GatewaysEnum {
   DUMMY
-  BRAINTREE
-  STRIPE
 }
 
 scalar GenericScalar
@@ -1528,12 +1526,12 @@ enum OrderStatus {
 }
 
 enum OrderStatusFilter {
+  READY_TO_FULFILL
+  READY_TO_CAPTURE
   UNFULFILLED
   PARTIALLY_FULFILLED
   FULFILLED
   CANCELED
-  READY_TO_FULFILL
-  READY_TO_CAPTURE
 }
 
 type OrderUpdate {
