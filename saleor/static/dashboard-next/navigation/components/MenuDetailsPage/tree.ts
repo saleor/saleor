@@ -78,7 +78,7 @@ function removeNodeAndChildren(
       (acc, child) =>
         removeNodeAndChildren(acc, {
           id: child.id,
-          operation: "remove"
+          type: "remove"
         }),
       tree
     );
@@ -116,7 +116,7 @@ function executeOperation(
   tree: MenuDetails_menu_items[],
   operation: TreeOperation
 ): MenuDetails_menu_items[] {
-  return operation.operation === "move"
+  return operation.type === "move"
     ? permuteNode(tree, operation)
     : removeNodeAndChildren(tree, operation);
 }

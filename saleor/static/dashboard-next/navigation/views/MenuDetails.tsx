@@ -85,7 +85,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                     variables: {
                       id,
                       moves: data.operations
-                        .filter(operation => operation.operation === "move")
+                        .filter(operation => operation.type === "move")
                         .map(move => ({
                           itemId: move.id,
                           parentId: move.parentId,
@@ -93,7 +93,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                         })),
                       name: data.name,
                       removeIds: data.operations
-                        .filter(operation => operation.operation === "remove")
+                        .filter(operation => operation.type === "remove")
                         .map(operation => operation.id)
                     }
                   });
