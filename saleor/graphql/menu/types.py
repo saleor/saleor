@@ -15,52 +15,58 @@ from ..translations.types import MenuItemTranslation
 def prefetch_menus(info, *args, **kwargs):
     qs = models.MenuItem.objects.filter(level=0)
     return Prefetch(
-        'items', queryset=gql_optimizer.query(qs, info),
-        to_attr='prefetched_items')
+        "items", queryset=gql_optimizer.query(qs, info), to_attr="prefetched_items"
+    )
 
 
 class Menu(CountableDjangoObjectType):
     children = graphene.List(
-        lambda: MenuItem, required=True,
-        description='List of menu item children items')
+        lambda: MenuItem, required=True, description="List of menu item children items"
+    )
     items = gql_optimizer.field(
-        graphene.List(lambda: MenuItem),
-        prefetch_related=prefetch_menus)
+        graphene.List(lambda: MenuItem), prefetch_related=prefetch_menus
+    )
 
     class Meta:
-        description = dedent("""Represents a single menu - an object that is used
-        to help navigate through the store.""")
+        description = dedent(
+            """Represents a single menu - an object that is used
+        to help navigate through the store."""
+        )
         interfaces = [relay.Node]
-        exclude_fields = ['json_content']
+        exclude_fields = ["json_content"]
         model = models.Menu
 
     def resolve_items(self, info, **kwargs):
-        if hasattr(self, 'prefetched_items'):
+        if hasattr(self, "prefetched_items"):
             return self.prefetched_items
         return self.items.filter(level=0)
 
 
 class MenuItem(CountableDjangoObjectType):
     children = gql_optimizer.field(
-        graphene.List(lambda: MenuItem), model_field='children')
-    url = graphene.String(description='URL to the menu item.')
+        graphene.List(lambda: MenuItem), model_field="children"
+    )
+    url = graphene.String(description="URL to the menu item.")
     translation = graphene.Field(
         MenuItemTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description='A language code to return the translation for.',
-            required=True),
+            description="A language code to return the translation for.",
+            required=True,
+        ),
         description=(
-            'Returns translated Menu item fields '
-            'for the given language code.'),
-        resolver=resolve_translation)
+            "Returns translated Menu item fields " "for the given language code."
+        ),
+        resolver=resolve_translation,
+    )
 
     class Meta:
-        description = dedent("""Represents a single item of the related menu.
-        Can store categories, collection or pages.""")
+        description = dedent(
+            """Represents a single item of the related menu.
+        Can store categories, collection or pages."""
+        )
         interfaces = [relay.Node]
-        exclude_fields = [
-            'sort_order', 'lft', 'rght', 'tree_id', 'translations']
+        exclude_fields = ["sort_order", "lft", "rght", "tree_id", "translations"]
         model = models.MenuItem
 
     def resolve_children(self, info, **kwargs):

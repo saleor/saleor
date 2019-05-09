@@ -6,49 +6,57 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0088_auto_20190220_1928'),
-    ]
+    dependencies = [("product", "0088_auto_20190220_1928")]
 
     operations = [
         migrations.AddField(
-            model_name='category',
-            name='description_json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="category",
+            name="description_json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AddField(
-            model_name='categorytranslation',
-            name='description_json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="categorytranslation",
+            name="description_json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AddField(
-            model_name='collection',
-            name='description_json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="collection",
+            name="description_json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AddField(
-            model_name='collectiontranslation',
-            name='description_json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="collectiontranslation",
+            name="description_json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AddField(
-            model_name='product',
-            name='description_json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="product",
+            name="description_json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AddField(
-            model_name='producttranslation',
-            name='description_json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="producttranslation",
+            name="description_json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='description',
-            field=models.TextField(blank=True),
+            model_name="product", name="description", field=models.TextField(blank=True)
         ),
         migrations.AlterField(
-            model_name='producttranslation',
-            name='description',
+            model_name="producttranslation",
+            name="description",
             field=models.TextField(blank=True),
         ),
     ]

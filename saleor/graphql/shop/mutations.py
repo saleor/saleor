@@ -12,44 +12,46 @@ from .types import AuthorizationKey, AuthorizationKeyType, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
-    header_text = graphene.String(description='Header text')
-    description = graphene.String(description='SEO description')
-    include_taxes_in_prices = graphene.Boolean(
-        description='Include taxes in prices')
+    header_text = graphene.String(description="Header text")
+    description = graphene.String(description="SEO description")
+    include_taxes_in_prices = graphene.Boolean(description="Include taxes in prices")
     display_gross_prices = graphene.Boolean(
-        description='Display prices with tax in store')
-    charge_taxes_on_shipping = graphene.Boolean(
-        description='Charge taxes on shipping')
+        description="Display prices with tax in store"
+    )
+    charge_taxes_on_shipping = graphene.Boolean(description="Charge taxes on shipping")
     track_inventory_by_default = graphene.Boolean(
-        description='Enable inventory tracking')
-    default_weight_unit = WeightUnitsEnum(description='Default weight unit')
+        description="Enable inventory tracking"
+    )
+    default_weight_unit = WeightUnitsEnum(description="Default weight unit")
     automatic_fulfillment_digital_products = graphene.Boolean(
-        description='Enable automatic fulfillment for all digital products')
+        description="Enable automatic fulfillment for all digital products"
+    )
     default_digital_max_downloads = graphene.Int(
-        description='Default number of max downloads per digital content url')
+        description="Default number of max downloads per digital content url"
+    )
     default_digital_url_valid_days = graphene.Int(
-        description=(
-            'Default number of days which digital content url will be valid'))
+        description=("Default number of days which digital content url will be valid")
+    )
 
 
 class SiteDomainInput(graphene.InputObjectType):
-    domain = graphene.String(description='Domain name for shop')
-    name = graphene.String(description='Shop site name')
+    domain = graphene.String(description="Domain name for shop")
+    name = graphene.String(description="Shop site name")
 
 
 class ShopSettingsUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description='Updated Shop')
+    shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
         input = ShopSettingsInput(
-            description='Fields required to update shop settings.',
-            required=True)
+            description="Fields required to update shop settings.", required=True
+        )
 
     class Meta:
-        description = 'Updates shop settings'
+        description = "Updates shop settings"
 
     @classmethod
-    @permission_required('site.manage_settings')
+    @permission_required("site.manage_settings")
     def mutate(cls, root, info, input):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
@@ -69,24 +71,24 @@ class ShopSettingsUpdate(BaseMutation):
 
 
 class ShopDomainUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description='Updated Shop')
+    shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
-        input = SiteDomainInput(description='Fields required to update site')
+        input = SiteDomainInput(description="Fields required to update site")
 
     class Meta:
-        description = 'Updates site domain of the shop'
+        description = "Updates site domain of the shop"
 
     @classmethod
-    @permission_required('site.manage_settings')
+    @permission_required("site.manage_settings")
     def mutate(cls, root, info, input):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
         site = info.context.site
-        domain = input.get('domain')
-        name = input.get('name')
+        domain = input.get("domain")
+        name = input.get("name")
         if domain is not None:
             site.domain = domain
         if name is not None:
@@ -99,39 +101,41 @@ class ShopDomainUpdate(BaseMutation):
 
 
 class ShopFetchTaxRates(BaseMutation):
-    shop = graphene.Field(Shop, description='Updated Shop')
+    shop = graphene.Field(Shop, description="Updated Shop")
 
     class Meta:
-        description = 'Fetch tax rates'
+        description = "Fetch tax rates"
 
     @classmethod
-    @permission_required('site.manage_settings')
+    @permission_required("site.manage_settings")
     def mutate(cls, root, info):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
         if settings.VATLAYER_ACCESS_KEY:
-            call_command('get_vat_rates')
+            call_command("get_vat_rates")
         else:
             cls.add_error(
-                errors, None, 'Could not fetch tax rates. '
-                'Make sure you have supplied a valid API Access Key.')
+                errors,
+                None,
+                "Could not fetch tax rates. "
+                "Make sure you have supplied a valid API Access Key.",
+            )
         return ShopFetchTaxRates(shop=Shop(), errors=errors)
 
 
 class HomepageCollectionUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description='Updated Shop')
+    shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
-        collection = graphene.ID(
-            description='Collection displayed on homepage')
+        collection = graphene.ID(description="Collection displayed on homepage")
 
     class Meta:
-        description = 'Updates homepage collection of the shop'
+        description = "Updates homepage collection of the shop"
 
     @classmethod
-    @permission_required('site.manage_settings')
+    @permission_required("site.manage_settings")
     def mutate(cls, root, info, collection=None):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
@@ -140,7 +144,8 @@ class HomepageCollectionUpdate(BaseMutation):
         new_collection = None
         if collection:
             new_collection = cls.get_node_or_error(
-                info, collection, errors, 'collection', Collection)
+                info, collection, errors, "collection", Collection
+            )
         if errors:
             return HomepageCollectionUpdate(errors=errors)
         site_settings = info.context.site.settings
@@ -148,47 +153,49 @@ class HomepageCollectionUpdate(BaseMutation):
         cls.clean_instance(site_settings, errors)
         if errors:
             return HomepageCollectionUpdate(errors=errors)
-        site_settings.save(update_fields=['homepage_collection'])
+        site_settings.save(update_fields=["homepage_collection"])
         return HomepageCollectionUpdate(shop=Shop(), errors=errors)
 
 
 class AuthorizationKeyInput(graphene.InputObjectType):
     key = graphene.String(
-        required=True, description='Client authorization key (client ID).')
-    password = graphene.String(
-        required=True, description='Client secret.')
+        required=True, description="Client authorization key (client ID)."
+    )
+    password = graphene.String(required=True, description="Client secret.")
 
 
 class AuthorizationKeyAdd(BaseMutation):
     authorization_key = graphene.Field(
-        AuthorizationKey, description='Newly added authorization key.')
-    shop = graphene.Field(Shop, description='Updated Shop')
+        AuthorizationKey, description="Newly added authorization key."
+    )
+    shop = graphene.Field(Shop, description="Updated Shop")
 
     class Meta:
-        description = 'Adds an authorization key.'
+        description = "Adds an authorization key."
 
     class Arguments:
         key_type = AuthorizationKeyType(
-            required=True, description='Type of an authorization key to add.')
+            required=True, description="Type of an authorization key to add."
+        )
         input = AuthorizationKeyInput(
-            required=True,
-            description='Fields required to create an authorization key.')
+            required=True, description="Fields required to create an authorization key."
+        )
 
     @classmethod
-    @permission_required('site.manage_settings')
+    @permission_required("site.manage_settings")
     def mutate(cls, root, info, key_type, input):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
         if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
-            cls.add_error(
-                errors, 'key_type', 'Authorization key already exists.')
+            cls.add_error(errors, "key_type", "Authorization key already exists.")
             return AuthorizationKeyAdd(errors=errors)
 
         site_settings = info.context.site.settings
         instance = site_models.AuthorizationKey(
-            name=key_type, site_settings=site_settings, **input)
+            name=key_type, site_settings=site_settings, **input
+        )
         cls.clean_instance(instance, errors)
         if errors:
             return AuthorizationKeyAdd(errors=errors)
@@ -199,18 +206,20 @@ class AuthorizationKeyAdd(BaseMutation):
 
 class AuthorizationKeyDelete(BaseMutation):
     authorization_key = graphene.Field(
-        AuthorizationKey, description='Auhtorization key that was deleted.')
-    shop = graphene.Field(Shop, description='Updated Shop')
+        AuthorizationKey, description="Auhtorization key that was deleted."
+    )
+    shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
         key_type = AuthorizationKeyType(
-            required=True, description='Type of a key to delete.')
+            required=True, description="Type of a key to delete."
+        )
 
     class Meta:
-        description = 'Deletes an authorization key.'
+        description = "Deletes an authorization key."
 
     @classmethod
-    @permission_required('site.manage_settings')
+    @permission_required("site.manage_settings")
     def mutate(cls, root, info, key_type):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
@@ -219,10 +228,10 @@ class AuthorizationKeyDelete(BaseMutation):
         try:
             site_settings = info.context.site.settings
             instance = site_models.AuthorizationKey.objects.get(
-                name=key_type, site_settings=site_settings)
+                name=key_type, site_settings=site_settings
+            )
         except site_models.AuthorizationKey.DoesNotExist:
-            cls.add_error(
-                errors, 'key_type', 'Couldn\'t resolve authorization key')
+            cls.add_error(errors, "key_type", "Couldn't resolve authorization key")
             return AuthorizationKeyDelete(errors=errors)
 
         instance.delete()

@@ -7,13 +7,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0013_auto_20161130_0608'),
-    ]
+    dependencies = [("product", "0013_auto_20161130_0608")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='productvariant',
-            name='attributes',
-        ),
+        migrations.RemoveField(model_name="productvariant", name="attributes")
     ]

@@ -4,23 +4,30 @@ from ...core.utils import to_local_currency
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 ProductAvailability = namedtuple(
-    'ProductAvailability', (
-        'available', 'on_sale', 'price_range', 'price_range_undiscounted',
-        'discount', 'price_range_local_currency', 'discount_local_currency'))
+    "ProductAvailability",
+    (
+        "available",
+        "on_sale",
+        "price_range",
+        "price_range_undiscounted",
+        "discount",
+        "price_range_local_currency",
+        "discount_local_currency",
+    ),
+)
 
 
 def products_with_availability(products, discounts, taxes, local_currency):
     for product in products:
-        yield (product, get_availability(
-            product, discounts, taxes, local_currency))
+        yield (product, get_availability(product, discounts, taxes, local_currency))
 
 
 def get_product_availability_status(product):
     is_visible = product.is_visible
     are_all_variants_in_stock = all(
-        variant.is_in_stock() for variant in product.variants.all())
-    is_in_stock = any(
-        variant.is_in_stock() for variant in product.variants.all())
+        variant.is_in_stock() for variant in product.variants.all()
+    )
+    is_in_stock = any(variant.is_in_stock() for variant in product.variants.all())
     requires_variants = product.product_type.has_variants
 
     if not product.is_published:
@@ -56,14 +63,10 @@ def get_availability(product, discounts=None, taxes=None, local_currency=None):
 
     # Local currency
     if local_currency:
-        price_range_local = to_local_currency(
-            price_range, local_currency)
-        undiscounted_local = to_local_currency(
-            undiscounted, local_currency)
-        if (undiscounted_local and
-                undiscounted_local.start > price_range_local.start):
-            discount_local_currency = (
-                undiscounted_local.start - price_range_local.start)
+        price_range_local = to_local_currency(price_range, local_currency)
+        undiscounted_local = to_local_currency(undiscounted, local_currency)
+        if undiscounted_local and undiscounted_local.start > price_range_local.start:
+            discount_local_currency = undiscounted_local.start - price_range_local.start
         else:
             discount_local_currency = None
     else:
@@ -72,8 +75,10 @@ def get_availability(product, discounts=None, taxes=None, local_currency=None):
 
     is_available = product.is_in_stock() and product.is_visible
     is_on_sale = (
-        product.is_visible and discount is not None and
-        undiscounted.start != price_range.start)
+        product.is_visible
+        and discount is not None
+        and undiscounted.start != price_range.start
+    )
 
     return ProductAvailability(
         available=is_available,
@@ -82,4 +87,5 @@ def get_availability(product, discounts=None, taxes=None, local_currency=None):
         price_range_undiscounted=undiscounted,
         discount=discount,
         price_range_local_currency=price_range_local,
-        discount_local_currency=discount_local_currency)
+        discount_local_currency=discount_local_currency,
+    )

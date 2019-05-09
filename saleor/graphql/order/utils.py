@@ -5,9 +5,8 @@ from ..core.types.common import Error
 def _check_can_finalize_products_quantity(order, errors):
     if order.get_total_quantity() == 0:
         errors.append(
-            Error(
-                field='lines',
-                message='Could not create order without any products.'))
+            Error(field="lines", message="Could not create order without any products.")
+        )
 
 
 def _check_can_finalize_shipping(order, errors):
@@ -15,14 +14,18 @@ def _check_can_finalize_shipping(order, errors):
         method = order.shipping_method
         shipping_address = order.shipping_address
         shipping_not_valid = (
-            method and shipping_address and
-            shipping_address.country.code not in method.shipping_zone.countries)  # noqa
+            method
+            and shipping_address
+            and shipping_address.country.code not in method.shipping_zone.countries
+        )  # noqa
         if shipping_not_valid:
             errors.append(
                 Error(
-                    field='shipping',
-                    message='Shipping method is not valid for chosen shipping '
-                    'address'))
+                    field="shipping",
+                    message="Shipping method is not valid for chosen shipping "
+                    "address",
+                )
+            )
 
 
 def _check_can_finalize_products_exists(order, errors):
@@ -30,8 +33,10 @@ def _check_can_finalize_products_exists(order, errors):
     if None in line_variants:
         errors.append(
             Error(
-                field='lines',
-                message='Could not create orders with non-existing products.'))
+                field="lines",
+                message="Could not create orders with non-existing products.",
+            )
+        )
 
 
 def can_finalize_draft_order(order, errors):
@@ -56,5 +61,7 @@ def applicable_shipping_methods(obj, info, price):
 
     qs = shipping_models.ShippingMethod.objects
     return qs.applicable_shipping_methods(
-        price=price, weight=obj.get_total_weight(),
-        country_code=obj.shipping_address.country.code)
+        price=price,
+        weight=obj.get_total_weight(),
+        country_code=obj.shipping_address.country.code,
+    )

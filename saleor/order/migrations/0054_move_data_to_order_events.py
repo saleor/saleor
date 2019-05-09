@@ -15,9 +15,10 @@ def move_order_note_to_events(apps, schema_editor):
         OrderEvent.objects.create(
             type=OrderEvents.NOTE_ADDED.value,
             user=note.user,
-            parameters={'message': note.content},
+            parameters={"message": note.content},
             order=note.order,
-            date=note.date)
+            date=note.date,
+        )
 
 
 def move_order_history_entry_to_events(apps, schema_editor):
@@ -30,17 +31,16 @@ def move_order_history_entry_to_events(apps, schema_editor):
     for entry in OrderHistoryEntry.objects.all():
         OrderEvent.objects.create(
             type=OrderEvents.OTHER.value,
-            parameters={'message': entry.content},
+            parameters={"message": entry.content},
             date=entry.date,
             order=entry.order,
-            user=entry.user)
+            user=entry.user,
+        )
 
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0053_orderevent'),
-    ]
+    dependencies = [("order", "0053_orderevent")]
 
     operations = [
         migrations.RunPython(move_order_note_to_events),

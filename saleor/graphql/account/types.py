@@ -15,38 +15,38 @@ from ..utils import format_permissions_for_display
 
 
 class AddressInput(graphene.InputObjectType):
-    first_name = graphene.String(description='Given name.')
-    last_name = graphene.String(description='Family name.')
-    company_name = graphene.String(description='Company or organization.')
-    street_address_1 = graphene.String(description='Address.')
-    street_address_2 = graphene.String(description='Address.')
-    city = graphene.String(description='City.')
-    city_area = graphene.String(description='District.')
-    postal_code = graphene.String(description='Postal code.')
-    country = graphene.String(required=True, description='Country.')
-    country_area = graphene.String(description='State or province.')
-    phone = graphene.String(description='Phone number.')
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
+    company_name = graphene.String(description="Company or organization.")
+    street_address_1 = graphene.String(description="Address.")
+    street_address_2 = graphene.String(description="Address.")
+    city = graphene.String(description="City.")
+    city_area = graphene.String(description="District.")
+    postal_code = graphene.String(description="Postal code.")
+    country = graphene.String(required=True, description="Country.")
+    country_area = graphene.String(description="State or province.")
+    phone = graphene.String(description="Phone number.")
 
 
 class Address(CountableDjangoObjectType):
     country = graphene.Field(
-        CountryDisplay, required=True, description='Default shop\'s country')
+        CountryDisplay, required=True, description="Default shop's country"
+    )
     is_default_shipping_address = graphene.Boolean(
-        required=False,
-        description='Address is user\'s default shipping address')
+        required=False, description="Address is user's default shipping address"
+    )
     is_default_billing_address = graphene.Boolean(
-        required=False,
-        description='Address is user\'s default billing address')
+        required=False, description="Address is user's default billing address"
+    )
 
     class Meta:
-        exclude_fields = ['user_set', 'user_addresses']
-        description = 'Represents user address data.'
+        exclude_fields = ["user_set", "user_addresses"]
+        description = "Represents user address data."
         interfaces = [relay.Node]
         model = models.Address
 
     def resolve_country(self, info):
-        return CountryDisplay(
-            code=self.country.code, country=self.country.name)
+        return CountryDisplay(code=self.country.code, country=self.country.name)
 
     def resolve_is_default_shipping_address(self, info):
         """
@@ -55,11 +55,12 @@ class Address(CountableDjangoObjectType):
         `resolve_default_shipping_address` and
         `resolve_default_billing_address`
         """
-        if not hasattr(self, 'user_default_shipping_address_pk'):
+        if not hasattr(self, "user_default_shipping_address_pk"):
             return None
 
         user_default_shipping_address_pk = getattr(
-            self, 'user_default_shipping_address_pk')
+            self, "user_default_shipping_address_pk"
+        )
         if user_default_shipping_address_pk == self.pk:
             return True
         return False
@@ -71,11 +72,12 @@ class Address(CountableDjangoObjectType):
         `resolve_default_shipping_address` and
         `resolve_default_billing_address`
         """
-        if not hasattr(self, 'user_default_billing_address_pk'):
+        if not hasattr(self, "user_default_billing_address_pk"):
             return None
 
         user_default_billing_address_pk = getattr(
-            self, 'user_default_billing_address_pk')
+            self, "user_default_billing_address_pk"
+        )
         if user_default_billing_address_pk == self.pk:
             return True
         return False
@@ -83,26 +85,27 @@ class Address(CountableDjangoObjectType):
 
 class User(CountableDjangoObjectType):
     addresses = gql_optimizer.field(
-        graphene.List(Address, description='List of all user\'s addresses.'),
-        model_field='addresses')
+        graphene.List(Address, description="List of all user's addresses."),
+        model_field="addresses",
+    )
     checkout = graphene.Field(
-        Checkout,
-        description='Returns the last open checkout of this user.')
-    note = graphene.String(description='A note about the customer')
+        Checkout, description="Returns the last open checkout of this user."
+    )
+    note = graphene.String(description="A note about the customer")
     orders = gql_optimizer.field(
         PrefetchingConnectionField(
-            'saleor.graphql.order.types.Order',
-            description='List of user\'s orders.'),
-        model_field='orders')
+            "saleor.graphql.order.types.Order", description="List of user's orders."
+        ),
+        model_field="orders",
+    )
     permissions = graphene.List(
-        PermissionDisplay, description='List of user\'s permissions.')
-    avatar = graphene.Field(
-        Image, size=graphene.Int(description='Size of the avatar.'))
+        PermissionDisplay, description="List of user's permissions."
+    )
+    avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
 
     class Meta:
-        exclude_fields = [
-            'carts', 'password', 'is_superuser', 'OrderEvent_set']
-        description = 'Represents user data.'
+        exclude_fields = ["carts", "password", "is_superuser", "OrderEvent_set"]
+        description = "Represents user data."
         interfaces = [relay.Node]
         model = get_user_model()
 
@@ -117,16 +120,17 @@ class User(CountableDjangoObjectType):
             permissions = get_permissions()
         else:
             permissions = self.user_permissions.prefetch_related(
-                'content_type').order_by('codename')
+                "content_type"
+            ).order_by("codename")
         return format_permissions_for_display(permissions)
 
-    @permission_required('account.manage_users')
+    @permission_required("account.manage_users")
     def resolve_note(self, info):
         return self.note
 
     def resolve_orders(self, info, **kwargs):
         viewer = info.context.user
-        if viewer.has_perm('order.manage_orders'):
+        if viewer.has_perm("order.manage_orders"):
             return self.orders.all()
         return self.orders.confirmed()
 
@@ -136,7 +140,7 @@ class User(CountableDjangoObjectType):
                 image=self.avatar,
                 alt=None,
                 size=size,
-                rendition_key_set='user_avatars',
+                rendition_key_set="user_avatars",
                 info=info,
             )
 

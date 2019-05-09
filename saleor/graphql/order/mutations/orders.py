@@ -8,8 +8,12 @@ from ....order import OrderEvents, models
 from ....order.utils import cancel_order
 from ....payment import CustomPaymentChoices, PaymentError
 from ....payment.utils import (
-    clean_mark_order_as_paid, gateway_capture, gateway_refund, gateway_void,
-    mark_order_as_paid)
+    clean_mark_order_as_paid,
+    gateway_capture,
+    gateway_refund,
+    gateway_void,
+    mark_order_as_paid,
+)
 from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
@@ -26,31 +30,33 @@ def clean_order_update_shipping(order, method, errors):
     if not order.shipping_address:
         errors.append(
             Error(
-                field='order',
+                field="order",
                 message=(
-                    'Cannot choose a shipping method for an '
-                    'order without the shipping address.')))
+                    "Cannot choose a shipping method for an "
+                    "order without the shipping address."
+                ),
+            )
+        )
         return errors
-    valid_methods = (
-        ShippingMethodModel.objects.applicable_shipping_methods(
-            price=order.get_subtotal().gross.amount,
-            weight=order.get_total_weight(),
-            country_code=order.shipping_address.country.code))
-    valid_methods = valid_methods.values_list('id', flat=True)
+    valid_methods = ShippingMethodModel.objects.applicable_shipping_methods(
+        price=order.get_subtotal().gross.amount,
+        weight=order.get_total_weight(),
+        country_code=order.shipping_address.country.code,
+    )
+    valid_methods = valid_methods.values_list("id", flat=True)
     if method.pk not in valid_methods:
         errors.append(
             Error(
-                field='shippingMethod',
-                message='Shipping method cannot be used with this order.'))
+                field="shippingMethod",
+                message="Shipping method cannot be used with this order.",
+            )
+        )
     return errors
 
 
 def clean_order_cancel(order, errors):
     if order and not order.can_cancel():
-        errors.append(
-            Error(
-                field='order',
-                message='This order can\'t be canceled.'))
+        errors.append(Error(field="order", message="This order can't be canceled."))
     return errors
 
 
@@ -58,14 +64,16 @@ def clean_order_capture(payment, amount, errors):
     if not payment:
         errors.append(
             Error(
-                field='payment',
-                message='There\'s no payment associated with the order.'))
+                field="payment", message="There's no payment associated with the order."
+            )
+        )
         return errors
     if not payment.is_active:
         errors.append(
             Error(
-                field='payment',
-                message='Only pre-authorized payments can be captured'))
+                field="payment", message="Only pre-authorized payments can be captured"
+            )
+        )
     return errors
 
 
@@ -73,41 +81,38 @@ def clean_void_payment(payment, errors):
     """Check for payment errors."""
     if not payment.is_active:
         errors.append(
-            Error(field='payment',
-                  message='Only pre-authorized payments can be voided'))
+            Error(field="payment", message="Only pre-authorized payments can be voided")
+        )
     try:
         gateway_void(payment)
     except (PaymentError, ValueError) as e:
-        errors.append(Error(field='payment', message=str(e)))
+        errors.append(Error(field="payment", message=str(e)))
     return errors
 
 
 def clean_refund_payment(payment, amount, errors):
     if payment.gateway == CustomPaymentChoices.MANUAL:
         errors.append(
-            Error(field='payment',
-                  message='Manual payments can not be refunded.'))
+            Error(field="payment", message="Manual payments can not be refunded.")
+        )
     return errors
 
 
 class OrderUpdateInput(graphene.InputObjectType):
-    billing_address = AddressInput(
-        description='Billing address of the customer.')
-    user_email = graphene.String(description='Email address of the customer.')
-    shipping_address = AddressInput(
-        description='Shipping address of the customer.')
+    billing_address = AddressInput(description="Billing address of the customer.")
+    user_email = graphene.String(description="Email address of the customer.")
+    shipping_address = AddressInput(description="Shipping address of the customer.")
 
 
 class OrderUpdate(DraftOrderUpdate):
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of an order to update.')
+        id = graphene.ID(required=True, description="ID of an order to update.")
         input = OrderUpdateInput(
-            required=True,
-            description='Fields required to update an order.')
+            required=True, description="Fields required to update an order."
+        )
 
     class Meta:
-        description = 'Updates an order.'
+        description = "Updates an order."
         model = models.Order
 
     @classmethod
@@ -121,52 +126,59 @@ class OrderUpdate(DraftOrderUpdate):
 
 class OrderUpdateShippingInput(graphene.InputObjectType):
     shipping_method = graphene.ID(
-        description='ID of the selected shipping method.',
-        name='shippingMethod')
+        description="ID of the selected shipping method.", name="shippingMethod"
+    )
 
 
 class OrderUpdateShipping(BaseMutation):
-    order = graphene.Field(
-        Order, description='Order with updated shipping method.')
+    order = graphene.Field(Order, description="Order with updated shipping method.")
 
     class Arguments:
         id = graphene.ID(
-            required=True, name='order',
-            description='ID of the order to update a shipping method.')
+            required=True,
+            name="order",
+            description="ID of the order to update a shipping method.",
+        )
         input = OrderUpdateShippingInput(
-            description='Fields required to change '
-                        'shipping method of the order.')
+            description="Fields required to change " "shipping method of the order."
+        )
 
     class Meta:
-        description = 'Updates a shipping method of the order.'
+        description = "Updates a shipping method of the order."
 
     @classmethod
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def mutate(cls, root, info, id, input):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, errors, "id", Order)
 
-        if not input['shipping_method']:
+        if not input["shipping_method"]:
             if not order.is_draft() and order.is_shipping_required():
                 cls.add_error(
-                    errors, 'shippingMethod',
-                    'Shipping method is required for this order.')
+                    errors,
+                    "shippingMethod",
+                    "Shipping method is required for this order.",
+                )
                 return OrderUpdateShipping(errors=errors)
             order.shipping_method = None
             order.shipping_price = ZERO_TAXED_MONEY
             order.shipping_method_name = None
             order.save(
                 update_fields=[
-                    'shipping_method', 'shipping_price_net',
-                    'shipping_price_gross', 'shipping_method_name'])
+                    "shipping_method",
+                    "shipping_price_net",
+                    "shipping_price_gross",
+                    "shipping_method_name",
+                ]
+            )
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
-            info, input['shipping_method'], errors,
-            'shipping_method', ShippingMethod)
+            info, input["shipping_method"], errors, "shipping_method", ShippingMethod
+        )
         clean_order_update_shipping(order, method, errors)
         if errors:
             return OrderUpdateShipping(errors=errors)
@@ -176,70 +188,75 @@ class OrderUpdateShipping(BaseMutation):
         order.shipping_method_name = method.name
         order.save(
             update_fields=[
-                'shipping_method', 'shipping_method_name',
-                'shipping_price_net', 'shipping_price_gross'])
+                "shipping_method",
+                "shipping_method_name",
+                "shipping_price_net",
+                "shipping_price_gross",
+            ]
+        )
         return OrderUpdateShipping(order=order)
 
 
 class OrderAddNoteInput(graphene.InputObjectType):
-    message = graphene.String(description='Note message.', name='message')
+    message = graphene.String(description="Note message.", name="message")
 
 
 class OrderAddNote(BaseMutation):
-    order = graphene.Field(Order, description='Order with the note added.')
-    event = graphene.Field(OrderEvent, description='Order note created.')
+    order = graphene.Field(Order, description="Order with the note added.")
+    event = graphene.Field(OrderEvent, description="Order note created.")
 
     class Arguments:
         id = graphene.ID(
             required=True,
-            description='ID of the order to add a note for.', name='order')
+            description="ID of the order to add a note for.",
+            name="order",
+        )
         input = OrderAddNoteInput(
-            required=True,
-            description='Fields required to create a note for the order.')
+            required=True, description="Fields required to create a note for the order."
+        )
 
     class Meta:
-        description = 'Adds note to the order.'
+        description = "Adds note to the order."
 
     @classmethod
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def mutate(cls, root, info, id, input):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, errors, "id", Order)
         if errors:
             return OrderAddNote(errors=errors)
 
         event = order.events.create(
             type=OrderEvents.NOTE_ADDED.value,
             user=info.context.user,
-            parameters={
-                'message': input['message']})
+            parameters={"message": input["message"]},
+        )
         return OrderAddNote(order=order, event=event)
 
 
 class OrderCancel(BaseMutation):
-    order = graphene.Field(Order, description='Canceled order.')
+    order = graphene.Field(Order, description="Canceled order.")
 
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of the order to cancel.')
+        id = graphene.ID(required=True, description="ID of the order to cancel.")
         restock = graphene.Boolean(
-            required=True,
-            description='Determine if lines will be restocked or not.')
+            required=True, description="Determine if lines will be restocked or not."
+        )
 
     class Meta:
-        description = 'Cancel an order.'
+        description = "Cancel an order."
 
     @classmethod
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def mutate(cls, root, info, id, restock):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, errors, "id", Order)
         clean_order_cancel(order, errors)
         if errors:
             return OrderCancel(errors=errors)
@@ -249,36 +266,35 @@ class OrderCancel(BaseMutation):
             order.events.create(
                 type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
                 user=info.context.user,
-                parameters={'quantity': order.get_total_quantity()})
+                parameters={"quantity": order.get_total_quantity()},
+            )
         else:
-            order.events.create(
-                type=OrderEvents.CANCELED.value, user=info.context.user)
+            order.events.create(type=OrderEvents.CANCELED.value, user=info.context.user)
         return OrderCancel(order=order)
 
 
 class OrderMarkAsPaid(BaseMutation):
-    order = graphene.Field(Order, description='Order marked as paid.')
+    order = graphene.Field(Order, description="Order marked as paid.")
 
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of the order to mark paid.')
+        id = graphene.ID(required=True, description="ID of the order to mark paid.")
 
     class Meta:
-        description = 'Mark order as manually paid.'
+        description = "Mark order as manually paid."
 
     @classmethod
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def mutate(cls, root, info, id):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, errors, "id", Order)
         if order is not None:
             try:
                 clean_mark_order_as_paid(order)
             except PaymentError as e:
-                errors.append(Error(field='payment', message=str(e)))
+                errors.append(Error(field="payment", message=str(e)))
         if errors:
             return OrderMarkAsPaid(errors=errors)
         mark_order_as_paid(order, info.context.user)
@@ -286,66 +302,63 @@ class OrderMarkAsPaid(BaseMutation):
 
 
 class OrderCapture(BaseMutation):
-    order = graphene.Field(Order, description='Captured order.')
+    order = graphene.Field(Order, description="Captured order.")
 
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of the order to capture.')
-        amount = Decimal(
-            required=True, description='Amount of money to capture.')
+        id = graphene.ID(required=True, description="ID of the order to capture.")
+        amount = Decimal(required=True, description="Amount of money to capture.")
 
     class Meta:
-        description = 'Capture an order.'
+        description = "Capture an order."
 
     @classmethod
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def mutate(cls, root, info, id, amount):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
         if amount <= 0:
-            cls.add_error(
-                errors, 'amount', 'Amount should be a positive number.')
+            cls.add_error(errors, "amount", "Amount should be a positive number.")
             return OrderCapture(errors=errors)
 
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, errors, "id", Order)
         payment = order.get_last_payment()
         clean_order_capture(payment, amount, errors)
 
         try:
             gateway_capture(payment, amount)
         except PaymentError as e:
-            errors.append(Error(field='payment', message=str(e)))
+            errors.append(Error(field="payment", message=str(e)))
 
         if errors:
             return OrderCapture(errors=errors)
 
         order.events.create(
-            parameters={'amount': amount},
+            parameters={"amount": amount},
             type=OrderEvents.PAYMENT_CAPTURED.value,
-            user=info.context.user)
+            user=info.context.user,
+        )
         return OrderCapture(order=order)
 
 
 class OrderVoid(BaseMutation):
-    order = graphene.Field(Order, description='A voided order.')
+    order = graphene.Field(Order, description="A voided order.")
 
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of the order to void.')
+        id = graphene.ID(required=True, description="ID of the order to void.")
 
     class Meta:
-        description = 'Void an order.'
+        description = "Void an order."
 
     @classmethod
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def mutate(cls, root, info, id):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, errors, "id", Order)
         if order:
             payment = order.get_last_payment()
             clean_void_payment(payment, errors)
@@ -353,43 +366,40 @@ class OrderVoid(BaseMutation):
         if errors:
             return OrderVoid(errors=errors)
         order.events.create(
-            type=OrderEvents.PAYMENT_VOIDED.value,
-            user=info.context.user)
+            type=OrderEvents.PAYMENT_VOIDED.value, user=info.context.user
+        )
         return OrderVoid(order=order)
 
 
 class OrderRefund(BaseMutation):
-    order = graphene.Field(Order, description='A refunded order.')
+    order = graphene.Field(Order, description="A refunded order.")
 
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of the order to refund.')
-        amount = Decimal(
-            required=True, description='Amount of money to refund.')
+        id = graphene.ID(required=True, description="ID of the order to refund.")
+        amount = Decimal(required=True, description="Amount of money to refund.")
 
     class Meta:
-        description = 'Refund an order.'
+        description = "Refund an order."
 
     @classmethod
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def mutate(cls, root, info, id, amount):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
         errors = []
         if amount <= 0:
-            cls.add_error(
-                errors, 'amount', 'Amount should be a positive number.')
+            cls.add_error(errors, "amount", "Amount should be a positive number.")
             return OrderRefund(errors=errors)
 
-        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        order = cls.get_node_or_error(info, id, errors, "id", Order)
         if order:
             payment = order.get_last_payment()
             clean_refund_payment(payment, amount, errors)
             try:
                 gateway_refund(payment, amount)
             except PaymentError as e:
-                errors.append(Error(field='payment', message=str(e)))
+                errors.append(Error(field="payment", message=str(e)))
 
         if errors:
             return OrderRefund(errors=errors)
@@ -397,5 +407,6 @@ class OrderRefund(BaseMutation):
         order.events.create(
             type=OrderEvents.PAYMENT_REFUNDED.value,
             user=info.context.user,
-            parameters={'amount': amount})
+            parameters={"amount": amount},
+        )
         return OrderRefund(order=order)

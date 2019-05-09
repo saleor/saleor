@@ -11,12 +11,16 @@ from .types import Page
 
 class PageQueries(graphene.ObjectType):
     page = graphene.Field(
-        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
-        description='Lookup a page by ID or by slug.')
+        Page,
+        id=graphene.Argument(graphene.ID),
+        slug=graphene.String(),
+        description="Lookup a page by ID or by slug.",
+    )
     pages = PrefetchingConnectionField(
-        Page, query=graphene.String(
-            description=DESCRIPTIONS['page']),
-        description='List of the shop\'s pages.')
+        Page,
+        query=graphene.String(description=DESCRIPTIONS["page"]),
+        description="List of the shop's pages.",
+    )
 
     def resolve_page(self, info, id=None, slug=None):
         return resolve_page(info, id, slug)

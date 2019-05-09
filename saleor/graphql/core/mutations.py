@@ -31,8 +31,8 @@ def get_output_fields(model, return_field_name):
     model_type = registry.get_type_for_model(model)
     if not model_type:
         raise ImproperlyConfigured(
-            'Unable to find type for model %s in graphene registry' %
-            model.__name__)
+            "Unable to find type for model %s in graphene registry" % model.__name__
+        )
     fields = {return_field_name: graphene.Field(model_type)}
     return fields
 
@@ -46,7 +46,8 @@ class ModelMutationOptions(MutationOptions):
 class BaseMutation(graphene.Mutation):
     errors = graphene.List(
         graphene.NonNull(Error),
-        description='List of errors that occurred executing the mutation.')
+        description="List of errors that occurred executing the mutation.",
+    )
 
     class Meta:
         abstract = True
@@ -54,7 +55,7 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def __init_subclass_with_meta__(cls, description=None, **options):
         if not description:
-            raise ImproperlyConfigured('No description provided in Meta')
+            raise ImproperlyConfigured("No description provided in Meta")
         description = dedent(description)
         super().__init_subclass_with_meta__(description=description, **options)
 
@@ -86,8 +87,7 @@ class BaseMutation(graphene.Mutation):
 
         node = None
         try:
-            node = graphene.Node.get_node_from_global_id(
-                info, global_id, only_type)
+            node = graphene.Node.get_node_from_global_id(info, global_id, only_type)
         except (AssertionError, GraphQLError) as e:
             cls.add_error(errors, field, str(e))
         else:
@@ -118,8 +118,7 @@ class BaseMutation(graphene.Mutation):
         except ValidationError as validation_errors:
             message_dict = validation_errors.message_dict
             for field in message_dict:
-                if hasattr(cls._meta,
-                           'exclude') and field in cls._meta.exclude:
+                if hasattr(cls._meta, "exclude") and field in cls._meta.exclude:
                     continue
                 for message in message_dict[field]:
                     field = snake_to_camel_case(field)
@@ -135,11 +134,17 @@ class BaseMutation(graphene.Mutation):
         fields, but not saved to the database.
         """
         from django.db import models
+
         opts = instance._meta
 
         for f in opts.fields:
-            if any([not f.editable, isinstance(f, models.AutoField),
-                    f.name not in cleaned_data]):
+            if any(
+                [
+                    not f.editable,
+                    isinstance(f, models.AutoField),
+                    f.name not in cleaned_data,
+                ]
+            ):
                 continue
             data = cleaned_data[f.name]
             if data is None:
@@ -161,15 +166,16 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls,
-            arguments=None,
-            model=None,
-            exclude=None,
-            return_field_name=None,
-            _meta=None,
-            **options):
+        cls,
+        arguments=None,
+        model=None,
+        exclude=None,
+        return_field_name=None,
+        _meta=None,
+        **options,
+    ):
         if not model:
-            raise ImproperlyConfigured('model is required for ModelMutation')
+            raise ImproperlyConfigured("model is required for ModelMutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
 
@@ -186,8 +192,7 @@ class ModelMutation(BaseMutation):
         _meta.return_field_name = return_field_name
         _meta.exclude = exclude
         super().__init_subclass_with_meta__(_meta=_meta, **options)
-        cls._update_mutation_arguments_and_fields(
-            arguments=arguments, fields=fields)
+        cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -206,20 +211,22 @@ class ModelMutation(BaseMutation):
         def is_list_of_ids(field):
             return (
                 isinstance(field.type, graphene.List)
-                and field.type.of_type == graphene.ID)
+                and field.type.of_type == graphene.ID
+            )
 
         def is_id_field(field):
             return (
                 field.type == graphene.ID
                 or isinstance(field.type, graphene.NonNull)
-                and field.type.of_type == graphene.ID)
+                and field.type.of_type == graphene.ID
+            )
 
         def is_upload_field(field):
-            if hasattr(field.type, 'of_type'):
+            if hasattr(field.type, "of_type"):
                 return field.type.of_type == Upload
             return field.type == Upload
 
-        InputCls = getattr(cls.Arguments, 'input')
+        InputCls = getattr(cls.Arguments, "input")
         cleaned_input = {}
 
         for field_name, field in InputCls._meta.fields.items():
@@ -228,15 +235,18 @@ class ModelMutation(BaseMutation):
 
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field):
-                    instances = cls.get_nodes_or_error(
-                        value, errors=errors,
-                        field=field_name) if value else []
+                    instances = (
+                        cls.get_nodes_or_error(value, errors=errors, field=field_name)
+                        if value
+                        else []
+                    )
                     cleaned_input[field_name] = instances
 
                 # handle ID field
                 elif value is not None and is_id_field(field):
                     instance = cls.get_node_or_error(
-                        info, value, errors=errors, field=field_name)
+                        info, value, errors=errors, field=field_name
+                    )
                     cleaned_input[field_name] = instance
 
                 # handle uploaded files
@@ -253,7 +263,7 @@ class ModelMutation(BaseMutation):
     def _save_m2m(cls, info, instance, cleaned_data):
         opts = instance._meta
         for f in chain(opts.many_to_many, opts.private_fields):
-            if not hasattr(f, 'save_form_data'):
+            if not hasattr(f, "save_form_data"):
                 continue
             if f.name in cleaned_data and cleaned_data[f.name] is not None:
                 f.save_form_data(instance, cleaned_data[f.name])
@@ -272,7 +282,7 @@ class ModelMutation(BaseMutation):
     @classmethod
     def success_response(cls, instance):
         """Return a success response."""
-        return cls(**{cls._meta.return_field_name: instance, 'errors': []})
+        return cls(**{cls._meta.return_field_name: instance, "errors": []})
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -294,8 +304,8 @@ class ModelMutation(BaseMutation):
         # if not cls.user_is_allowed(info.context.user, data):
         #     raise PermissionDenied()
 
-        id = data.get('id')
-        input = data.get('input')
+        id = data.get("id")
+        input = data.get("input")
 
         # Initialize the errors list.
         errors = []
@@ -303,8 +313,7 @@ class ModelMutation(BaseMutation):
         # Initialize model instance based on presence of `id` attribute.
         if id:
             model_type = registry.get_type_for_model(cls._meta.model)
-            instance = cls.get_node_or_error(
-                info, id, errors, 'id', model_type)
+            instance = cls.get_node_or_error(info, id, errors, "id", model_type)
         else:
             instance = cls._meta.model()
         if errors:
@@ -343,10 +352,9 @@ class ModelDeleteMutation(ModelMutation):
             raise PermissionDenied()
 
         errors = []
-        node_id = data.get('id')
+        node_id = data.get("id")
         model_type = registry.get_type_for_model(cls._meta.model)
-        instance = cls.get_node_or_error(
-            info, node_id, errors, 'id', model_type)
+        instance = cls.get_node_or_error(info, node_id, errors, "id", model_type)
 
         if instance:
             cls.clean_instance(info, instance, errors)
@@ -365,7 +373,8 @@ class ModelDeleteMutation(ModelMutation):
 
 class BaseBulkMutation(BaseMutation):
     count = graphene.Int(
-        required=True, description='Returns how many objects were affected.')
+        required=True, description="Returns how many objects were affected."
+    )
 
     class Meta:
         abstract = True
@@ -373,7 +382,7 @@ class BaseBulkMutation(BaseMutation):
     @classmethod
     def __init_subclass_with_meta__(cls, model=None, _meta=None, **kwargs):
         if not model:
-            raise ImproperlyConfigured('model is required for bulk mutation')
+            raise ImproperlyConfigured("model is required for bulk mutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
         _meta.model = model
@@ -412,7 +421,7 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
 
         count, errors = 0, []
         model_type = registry.get_type_for_model(cls._meta.model)
-        instances = cls.get_nodes_or_error(ids, errors, 'id', model_type)
+        instances = cls.get_nodes_or_error(ids, errors, "id", model_type)
         for instance in instances:
             instance_errors = []
             cls.clean_instance(info, instance, instance_errors)

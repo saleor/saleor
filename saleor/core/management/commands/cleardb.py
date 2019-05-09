@@ -20,39 +20,39 @@ from saleor.account.models import User
 
 
 class Command(BaseCommand):
-    help = 'Clear database preserving staff accounts and configuration'
+    help = "Clear database preserving staff accounts and configuration"
 
     def handle(self, *args, **kwargs):
         Cart.objects.all().delete()
-        self.stdout.write('Removed carts')
+        self.stdout.write("Removed carts")
 
         Transaction.objects.all().delete()
-        self.stdout.write('Removed transactions')
+        self.stdout.write("Removed transactions")
 
         Payment.objects.all().delete()
-        self.stdout.write('Removed payments')
+        self.stdout.write("Removed payments")
 
         Order.objects.all().delete()
-        self.stdout.write('Removed orders')
+        self.stdout.write("Removed orders")
 
         Product.objects.all().delete()
-        self.stdout.write('Removed products')
+        self.stdout.write("Removed products")
 
         Sale.objects.all().delete()
-        self.stdout.write('Removed sales')
+        self.stdout.write("Removed sales")
 
         ShippingMethod.objects.all().delete()
-        self.stdout.write('Removed shipping methods')
+        self.stdout.write("Removed shipping methods")
 
         Voucher.objects.all().delete()
-        self.stdout.write('Removed vouchers')
+        self.stdout.write("Removed vouchers")
 
         # Delete all users except for staff members.
         staff = User.objects.filter(is_staff=True)
         User.objects.exclude(pk__in=staff).delete()
-        self.stdout.write('Removed customers')
+        self.stdout.write("Removed customers")
 
         # Remove addresses of staff members.
         for user in staff:
             user.addresses.all().delete()
-        self.stdout.write('Removed staff addresses')
+        self.stdout.write("Removed staff addresses")

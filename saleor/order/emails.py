@@ -8,10 +8,10 @@ from ..core.utils import build_absolute_uri
 from ..seo.schema.email import get_order_confirmation_markup
 from .models import Fulfillment, Order
 
-CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
-CONFIRM_FULFILLMENT_TEMPLATE = 'order/confirm_fulfillment'
-UPDATE_FULFILLMENT_TEMPLATE = 'order/update_fulfillment'
-CONFIRM_PAYMENT_TEMPLATE = 'order/payment/confirm_payment'
+CONFIRM_ORDER_TEMPLATE = "order/confirm_order"
+CONFIRM_FULFILLMENT_TEMPLATE = "order/confirm_fulfillment"
+UPDATE_FULFILLMENT_TEMPLATE = "order/update_fulfillment"
+CONFIRM_PAYMENT_TEMPLATE = "order/payment/confirm_payment"
 
 
 def collect_data_for_email(order_pk, template):
@@ -24,18 +24,21 @@ def collect_data_for_email(order_pk, template):
     order = Order.objects.get(pk=order_pk)
     recipient_email = order.get_user_current_email()
     email_context = get_email_base_context()
-    email_context['order_details_url'] = build_absolute_uri(
-        reverse('order:details', kwargs={'token': order.token}))
+    email_context["order_details_url"] = build_absolute_uri(
+        reverse("order:details", kwargs={"token": order.token})
+    )
 
     # Order confirmation template requires additional information
     if template == CONFIRM_ORDER_TEMPLATE:
         email_markup = get_order_confirmation_markup(order)
-        email_context.update(
-            {'order': order, 'schema_markup': email_markup})
+        email_context.update({"order": order, "schema_markup": email_markup})
 
     return {
-        'recipient_list': [recipient_email], 'template_name': template,
-        'context': email_context, 'from_email': settings.ORDER_FROM_EMAIL}
+        "recipient_list": [recipient_email],
+        "template_name": template,
+        "context": email_context,
+        "from_email": settings.ORDER_FROM_EMAIL,
+    }
 
 
 def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
@@ -44,10 +47,14 @@ def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
     lines = fulfillment.lines.all()
     physical_lines = [line for line in lines if not line.order_line.is_digital]
     digital_lines = [line for line in lines if line.order_line.is_digital]
-    context = email_data['context']
+    context = email_data["context"]
     context.update(
-        {'fulfillment': fulfillment, 'physical_lines': physical_lines,
-         'digital_lines': digital_lines})
+        {
+            "fulfillment": fulfillment,
+            "physical_lines": physical_lines,
+            "digital_lines": digital_lines,
+        }
+    )
     return email_data
 
 
@@ -61,14 +68,16 @@ def send_order_confirmation(order_pk):
 @shared_task
 def send_fulfillment_confirmation(order_pk, fulfillment_pk):
     email_data = collect_data_for_fullfillment_email(
-        order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk)
+        order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk
+    )
     send_templated_mail(**email_data)
 
 
 @shared_task
 def send_fulfillment_update(order_pk, fulfillment_pk):
     email_data = collect_data_for_fullfillment_email(
-        order_pk, UPDATE_FULFILLMENT_TEMPLATE, fulfillment_pk)
+        order_pk, UPDATE_FULFILLMENT_TEMPLATE, fulfillment_pk
+    )
     send_templated_mail(**email_data)
 
 

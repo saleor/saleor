@@ -21,17 +21,23 @@ from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
-    get_products_voucher_discount, get_shipping_voucher_discount,
-    get_value_voucher_discount, increase_voucher_usage)
+    get_products_voucher_discount,
+    get_shipping_voucher_discount,
+    get_value_voucher_discount,
+    increase_voucher_usage,
+)
 from ..order.models import Order
 from ..shipping.models import ShippingMethod
 from . import AddressType, logger
 from .forms import (
-    AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
-    BillingAddressChoiceForm)
+    AddressChoiceForm,
+    AnonymousUserBillingForm,
+    AnonymousUserShippingForm,
+    BillingAddressChoiceForm,
+)
 from .models import Cart
 
-COOKIE_NAME = 'cart'
+COOKIE_NAME = "cart"
 
 
 def set_cart_cookie(simple_cart, response):
@@ -68,8 +74,7 @@ def remove_unavailable_variants(cart):
     """Remove any unavailable items from cart."""
     for line in cart:
         try:
-            add_variant_to_cart(
-                cart, line.variant, line.quantity, replace=True)
+            add_variant_to_cart(cart, line.variant, line.quantity, replace=True)
         except InsufficientStock as e:
             quantity = e.item.quantity_available
             add_variant_to_cart(cart, line.variant, quantity, replace=True)
@@ -77,10 +82,7 @@ def remove_unavailable_variants(cart):
 
 def get_variant_prices_from_lines(lines):
     """Get's price of each individual item within the lines."""
-    return [
-        line.variant.get_price()
-        for line in lines
-        for item in range(line.quantity)]
+    return [line.variant.get_price() for line in lines for item in range(line.quantity)]
 
 
 def get_prices_of_discounted_products(lines, discounted_products):
@@ -88,29 +90,28 @@ def get_prices_of_discounted_products(lines, discounted_products):
     # If there's no discounted_products,
     # it means that all products are discounted
     if discounted_products:
-        lines = (
-            line for line in lines
-            if line.variant.product in discounted_products)
+        lines = (line for line in lines if line.variant.product in discounted_products)
     return get_variant_prices_from_lines(lines)
 
 
-def get_prices_of_products_in_discounted_collections(
-        lines, discounted_collections):
+def get_prices_of_products_in_discounted_collections(lines, discounted_collections):
     """Get prices of variants belonging to the discounted collections."""
     # If there's no discounted collections,
     # it means that all of them are discounted
     if discounted_collections:
         discounted_collections = set(discounted_collections)
         lines = (
-            line for line in lines
-            if line.variant and
-            set(line.variant.product.collections.all()).intersection(
-                discounted_collections))
+            line
+            for line in lines
+            if line.variant
+            and set(line.variant.product.collections.all()).intersection(
+                discounted_collections
+            )
+        )
     return get_variant_prices_from_lines(lines)
 
 
-def get_prices_of_products_in_discounted_categories(
-        lines, discounted_categories):
+def get_prices_of_products_in_discounted_categories(lines, discounted_categories):
     """Get prices of variants belonging to the discounted categories.
 
     Product must be assigned directly to the discounted category, assigning
@@ -121,9 +122,10 @@ def get_prices_of_products_in_discounted_categories(
     if discounted_categories:
         discounted_categories = set(discounted_categories)
         lines = (
-            line for line in lines
-            if line.variant and
-            line.variant.product.category in discounted_categories)
+            line
+            for line in lines
+            if line.variant and line.variant.product.category in discounted_categories
+        )
     return get_variant_prices_from_lines(lines)
 
 
@@ -131,15 +133,17 @@ def check_product_availability_and_warn(request, cart):
     """Warn if cart contains any lines that cannot be fulfilled."""
     if contains_unavailable_variants(cart):
         msg = pgettext_lazy(
-            'Cart warning message',
-            'Sorry. We don\'t have that many items in stock. '
-            'Quantity was set to maximum available for now.')
+            "Cart warning message",
+            "Sorry. We don't have that many items in stock. "
+            "Quantity was set to maximum available for now.",
+        )
         messages.warning(request, msg)
         remove_unavailable_variants(cart)
 
 
 def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
     """Assign cart from cookie to request user."""
+
     def get_cart(view):
         @wraps(view)
         def func(request, *args, **kwargs):
@@ -147,8 +151,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
             token = request.get_signed_cookie(COOKIE_NAME, default=None)
             if not token_is_valid(token):
                 return response
-            cart = get_anonymous_cart_from_token(
-                token=token, cart_queryset=queryset)
+            cart = get_anonymous_cart_from_token(token=token, cart_queryset=queryset)
             if cart is None:
                 return response
             if request.user.is_authenticated:
@@ -161,21 +164,23 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
             return response
 
         return func
+
     return get_cart
 
 
-def get_or_create_anonymous_cart_from_token(
-        token, cart_queryset=Cart.objects.all()):
+def get_or_create_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
     """Return an open unassigned cart with given token or create a new one."""
     return cart_queryset.filter(token=token, user=None).get_or_create(
-        defaults={'user': None})[0]
+        defaults={"user": None}
+    )[0]
 
 
 def get_or_create_user_cart(user: User, cart_queryset=Cart.objects.all()):
     """Return an open cart for given user or create a new one."""
     defaults = {
-        'shipping_address': user.default_shipping_address,
-        'billing_address': user.default_billing_address}
+        "shipping_address": user.default_shipping_address,
+        "billing_address": user.default_billing_address,
+    }
 
     created = False
     cart = cart_queryset.filter(user=user).first()
@@ -233,7 +238,9 @@ def get_or_empty_db_cart(cart_queryset=Cart.objects.all()):
         def func(request, *args, **kwargs):
             cart = get_cart_from_request(request, cart_queryset)
             return view(request, cart, *args, **kwargs)
+
         return func
+
     return get_cart
 
 
@@ -248,19 +255,18 @@ def get_cart_data(cart, shipping_range, currency, discounts, taxes):
         cart_total = cart.get_subtotal(discounts, taxes)
         local_cart_total = to_local_currency(cart_total, currency)
         shipping_required = cart.is_shipping_required()
-        total_with_shipping = TaxedMoneyRange(
-            start=cart_total, stop=cart_total)
+        total_with_shipping = TaxedMoneyRange(start=cart_total, stop=cart_total)
         if shipping_required and shipping_range:
             total_with_shipping = shipping_range + cart_total
-        local_total_with_shipping = to_local_currency(
-            total_with_shipping, currency)
+        local_total_with_shipping = to_local_currency(total_with_shipping, currency)
 
     return {
-        'cart_total': cart_total,
-        'local_cart_total': local_cart_total,
-        'shipping_required': shipping_required,
-        'total_with_shipping': total_with_shipping,
-        'local_total_with_shipping': local_total_with_shipping}
+        "cart_total": cart_total,
+        "local_cart_total": local_cart_total,
+        "shipping_required": shipping_required,
+        "total_with_shipping": total_with_shipping,
+        "local_total_with_shipping": local_total_with_shipping,
+    }
 
 
 def find_open_cart_for_user(user):
@@ -268,7 +274,7 @@ def find_open_cart_for_user(user):
     carts = user.carts.all()
     open_cart = carts.first()
     if len(carts) > 1:
-        logger.warning('%s has more than one open basket', user)
+        logger.warning("%s has more than one open basket", user)
         carts.exclude(token=open_cart.token).delete()
     return open_cart
 
@@ -284,21 +290,19 @@ def change_cart_user(cart, user):
     cart.user = user
     cart.shipping_address = user.default_shipping_address
     cart.billing_address = user.default_billing_address
-    cart.save(update_fields=['user', 'shipping_address', 'billing_address'])
+    cart.save(update_fields=["user", "shipping_address", "billing_address"])
 
 
 def update_cart_quantity(cart):
     """Update the total quantity in cart."""
-    total_lines = cart.lines.aggregate(
-        total_quantity=Sum('quantity'))['total_quantity']
+    total_lines = cart.lines.aggregate(total_quantity=Sum("quantity"))["total_quantity"]
     if not total_lines:
         total_lines = 0
     cart.quantity = total_lines
-    cart.save(update_fields=['quantity'])
+    cart.save(update_fields=["quantity"])
 
 
-def add_variant_to_cart(
-        cart, variant, quantity=1, replace=False, check_quantity=True):
+def add_variant_to_cart(cart, variant, quantity=1, replace=False, check_quantity=True):
     """Add a product variant to cart.
 
     The `data` parameter may be used to differentiate between items with
@@ -308,12 +312,14 @@ def add_variant_to_cart(
     of added to.
     """
     line, _ = cart.lines.get_or_create(
-        variant=variant, defaults={'quantity': 0, 'data': {}})
+        variant=variant, defaults={"quantity": 0, "data": {}}
+    )
     new_quantity = quantity if replace else (quantity + line.quantity)
 
     if new_quantity < 0:
-        raise ValueError('%r is not a valid quantity (results in %r)' % (
-            quantity, new_quantity))
+        raise ValueError(
+            "%r is not a valid quantity (results in %r)" % (quantity, new_quantity)
+        )
 
     if new_quantity == 0:
         line.delete()
@@ -322,53 +328,51 @@ def add_variant_to_cart(
             variant.check_quantity(new_quantity)
 
         line.quantity = new_quantity
-        line.save(update_fields=['quantity'])
+        line.save(update_fields=["quantity"])
 
     update_cart_quantity(cart)
 
 
 def get_shipping_address_forms(cart, user_addresses, data, country):
     """Forms initialized with data depending on shipping address in cart."""
-    shipping_address = (
-        cart.shipping_address or cart.user.default_shipping_address)
+    shipping_address = cart.shipping_address or cart.user.default_shipping_address
 
     if shipping_address and shipping_address in user_addresses:
         address_form, preview = get_address_form(
-            data, country_code=country.code,
-            initial={'country': country})
+            data, country_code=country.code, initial={"country": country}
+        )
         addresses_form = AddressChoiceForm(
-            data, addresses=user_addresses,
-            initial={'address': shipping_address.id})
+            data, addresses=user_addresses, initial={"address": shipping_address.id}
+        )
     elif shipping_address:
         address_form, preview = get_address_form(
-            data, country_code=shipping_address.country.code,
-            instance=shipping_address)
-        addresses_form = AddressChoiceForm(
-            data, addresses=user_addresses)
+            data, country_code=shipping_address.country.code, instance=shipping_address
+        )
+        addresses_form = AddressChoiceForm(data, addresses=user_addresses)
     else:
         address_form, preview = get_address_form(
-            data, country_code=country.code,
-            initial={'country': country})
-        addresses_form = AddressChoiceForm(
-            data, addresses=user_addresses)
+            data, country_code=country.code, initial={"country": country}
+        )
+        addresses_form = AddressChoiceForm(data, addresses=user_addresses)
 
     return address_form, addresses_form, preview
 
 
 def update_shipping_address_in_cart(cart, user_addresses, data, country):
     """Return shipping address choice forms and if an address was updated."""
-    address_form, addresses_form, preview = (
-        get_shipping_address_forms(cart, user_addresses, data, country))
+    address_form, addresses_form, preview = get_shipping_address_forms(
+        cart, user_addresses, data, country
+    )
 
     updated = False
 
     if addresses_form.is_valid() and not preview:
         use_existing_address = (
-            addresses_form.cleaned_data['address'] !=
-            AddressChoiceForm.NEW_ADDRESS)
+            addresses_form.cleaned_data["address"] != AddressChoiceForm.NEW_ADDRESS
+        )
 
         if use_existing_address:
-            address_id = addresses_form.cleaned_data['address']
+            address_id = addresses_form.cleaned_data["address"]
             address = Address.objects.get(id=address_id)
             change_shipping_address_in_cart(cart, address)
             updated = True
@@ -384,12 +388,13 @@ def update_shipping_address_in_cart(cart, user_addresses, data, country):
 def update_shipping_address_in_anonymous_cart(cart, data, country):
     """Return shipping address choice forms and if an address was updated."""
     address_form, preview = get_address_form(
-        data, country_code=country.code,
-        autocomplete_type='shipping',
+        data,
+        country_code=country.code,
+        autocomplete_type="shipping",
         instance=cart.shipping_address,
-        initial={'country': country})
-    user_form = AnonymousUserShippingForm(
-        data if not preview else None, instance=cart)
+        initial={"country": country},
+    )
+    user_form = AnonymousUserShippingForm(data if not preview else None, instance=cart)
 
     updated = False
 
@@ -409,44 +414,54 @@ def get_billing_forms_with_shipping(cart, data, user_addresses, country):
 
     if not billing_address.id or billing_address == shipping_address:
         address_form, preview = get_address_form(
-            data, country_code=shipping_address.country.code,
-            autocomplete_type='billing',
-            initial={'country': shipping_address.country})
+            data,
+            country_code=shipping_address.country.code,
+            autocomplete_type="billing",
+            initial={"country": shipping_address.country},
+        )
         addresses_form = BillingAddressChoiceForm(
-            data, addresses=user_addresses, initial={
-                'address': BillingAddressChoiceForm.SHIPPING_ADDRESS})
+            data,
+            addresses=user_addresses,
+            initial={"address": BillingAddressChoiceForm.SHIPPING_ADDRESS},
+        )
     elif billing_address in user_addresses:
         address_form, preview = get_address_form(
-            data, country_code=billing_address.country.code,
-            autocomplete_type='billing',
-            initial={'country': billing_address.country})
+            data,
+            country_code=billing_address.country.code,
+            autocomplete_type="billing",
+            initial={"country": billing_address.country},
+        )
         addresses_form = BillingAddressChoiceForm(
-            data, addresses=user_addresses, initial={
-                'address': billing_address.id})
+            data, addresses=user_addresses, initial={"address": billing_address.id}
+        )
     else:
         address_form, preview = get_address_form(
-            data, country_code=billing_address.country.code,
-            autocomplete_type='billing',
-            initial={'country': billing_address.country},
-            instance=billing_address)
+            data,
+            country_code=billing_address.country.code,
+            autocomplete_type="billing",
+            initial={"country": billing_address.country},
+            instance=billing_address,
+        )
         addresses_form = BillingAddressChoiceForm(
-            data, addresses=user_addresses, initial={
-                'address': BillingAddressChoiceForm.NEW_ADDRESS})
+            data,
+            addresses=user_addresses,
+            initial={"address": BillingAddressChoiceForm.NEW_ADDRESS},
+        )
 
     return address_form, addresses_form, preview
 
 
-def update_billing_address_in_cart_with_shipping(
-        cart, user_addresses, data, country):
+def update_billing_address_in_cart_with_shipping(cart, user_addresses, data, country):
     """Return shipping address choice forms and if an address was updated."""
     address_form, addresses_form, preview = get_billing_forms_with_shipping(
-        cart, data, user_addresses, country)
+        cart, data, user_addresses, country
+    )
 
     updated = False
 
     if addresses_form.is_valid() and not preview:
         address = None
-        address_id = addresses_form.cleaned_data['address']
+        address_id = addresses_form.cleaned_data["address"]
 
         if address_id == BillingAddressChoiceForm.SHIPPING_ADDRESS:
             if cart.user and cart.shipping_address in user_addresses:
@@ -471,12 +486,18 @@ def get_anonymous_summary_without_shipping_forms(cart, data, country):
 
     if billing_address:
         address_form, preview = get_address_form(
-            data, country_code=billing_address.country.code,
-            autocomplete_type='billing', instance=billing_address)
+            data,
+            country_code=billing_address.country.code,
+            autocomplete_type="billing",
+            instance=billing_address,
+        )
     else:
         address_form, preview = get_address_form(
-            data, country_code=country.code,
-            autocomplete_type='billing', initial={'country': country})
+            data,
+            country_code=country.code,
+            autocomplete_type="billing",
+            initial={"country": country},
+        )
 
     return address_form, preview
 
@@ -484,7 +505,8 @@ def get_anonymous_summary_without_shipping_forms(cart, data, country):
 def update_billing_address_in_anonymous_cart(cart, data, country):
     """Return shipping address choice forms and if an address was updated."""
     address_form, preview = get_anonymous_summary_without_shipping_forms(
-        cart, data, country)
+        cart, data, country
+    )
     user_form = AnonymousUserBillingForm(data, instance=cart)
 
     updated = False
@@ -505,49 +527,53 @@ def get_summary_without_shipping_forms(cart, user_addresses, data, country):
     if billing_address and billing_address in user_addresses:
         address_form, preview = get_address_form(
             data,
-            autocomplete_type='billing',
+            autocomplete_type="billing",
             country_code=billing_address.country.code,
-            initial={'country': billing_address.country})
+            initial={"country": billing_address.country},
+        )
         initial_address = billing_address.id
     elif billing_address:
         address_form, preview = get_address_form(
             data,
-            autocomplete_type='billing',
+            autocomplete_type="billing",
             country_code=billing_address.country.code,
-            initial={'country': billing_address.country},
-            instance=billing_address)
+            initial={"country": billing_address.country},
+            instance=billing_address,
+        )
         initial_address = AddressChoiceForm.NEW_ADDRESS
     else:
         address_form, preview = get_address_form(
             data,
-            autocomplete_type='billing',
+            autocomplete_type="billing",
             country_code=country.code,
-            initial={'country': country})
+            initial={"country": country},
+        )
         if cart.user and cart.user.default_billing_address:
             initial_address = cart.user.default_billing_address.id
         else:
             initial_address = AddressChoiceForm.NEW_ADDRESS
 
     addresses_form = AddressChoiceForm(
-        data, addresses=user_addresses, initial={'address': initial_address})
+        data, addresses=user_addresses, initial={"address": initial_address}
+    )
     return address_form, addresses_form, preview
 
 
 def update_billing_address_in_cart(cart, user_addresses, data, country):
     """Return shipping address choice forms and if an address was updated."""
-    address_form, addresses_form, preview = (
-        get_summary_without_shipping_forms(
-            cart, user_addresses, data, country))
+    address_form, addresses_form, preview = get_summary_without_shipping_forms(
+        cart, user_addresses, data, country
+    )
 
     updated = False
 
     if addresses_form.is_valid():
         use_existing_address = (
-            addresses_form.cleaned_data['address'] !=
-            AddressChoiceForm.NEW_ADDRESS)
+            addresses_form.cleaned_data["address"] != AddressChoiceForm.NEW_ADDRESS
+        )
 
         if use_existing_address:
-            address_id = addresses_form.cleaned_data['address']
+            address_id = addresses_form.cleaned_data["address"]
             address = Address.objects.get(id=address_id)
             change_billing_address_in_cart(cart, address)
             updated = True
@@ -567,15 +593,19 @@ def _check_new_cart_address(cart, address, address_type):
     else:
         old_address = cart.shipping_address
 
-    has_address_changed = any([
-        not address and old_address,
-        address and not old_address,
-        address and old_address and address != old_address])
+    has_address_changed = any(
+        [
+            not address and old_address,
+            address and not old_address,
+            address and old_address and address != old_address,
+        ]
+    )
 
     remove_old_address = (
-        has_address_changed and
-        old_address is not None and
-        (not cart.user or old_address not in cart.user.addresses.all()))
+        has_address_changed
+        and old_address is not None
+        and (not cart.user or old_address not in cart.user.addresses.all())
+    )
 
     return has_address_changed, remove_old_address
 
@@ -585,13 +615,12 @@ def change_billing_address_in_cart(cart, address):
 
     Remove previously saved address if not connected to any user.
     """
-    changed, remove = _check_new_cart_address(
-        cart, address, AddressType.BILLING)
+    changed, remove = _check_new_cart_address(cart, address, AddressType.BILLING)
     if changed:
         if remove:
             cart.billing_address.delete()
         cart.billing_address = address
-        cart.save(update_fields=['billing_address'])
+        cart.save(update_fields=["billing_address"])
 
 
 def change_shipping_address_in_cart(cart, address):
@@ -599,13 +628,12 @@ def change_shipping_address_in_cart(cart, address):
 
     Remove previously saved address if not connected to any user.
     """
-    changed, remove = _check_new_cart_address(
-        cart, address, AddressType.SHIPPING)
+    changed, remove = _check_new_cart_address(cart, address, AddressType.SHIPPING)
     if changed:
         if remove:
             cart.shipping_address.delete()
         cart.shipping_address = address
-        cart.save(update_fields=['shipping_address'])
+        cart.save(update_fields=["shipping_address"])
 
 
 def get_cart_data_for_checkout(cart, discounts, taxes):
@@ -615,38 +643,40 @@ def get_cart_data_for_checkout(cart, discounts, taxes):
     total = cart.get_total(discounts, taxes)
     shipping_price = cart.get_shipping_price(taxes)
     return {
-        'cart': cart,
-        'cart_are_taxes_handled': bool(taxes),
-        'cart_lines': lines,
-        'cart_shipping_price': shipping_price,
-        'cart_subtotal': subtotal,
-        'cart_total': total}
+        "cart": cart,
+        "cart_are_taxes_handled": bool(taxes),
+        "cart_lines": lines,
+        "cart_shipping_price": shipping_price,
+        "cart_subtotal": subtotal,
+        "cart_total": total,
+    }
 
 
 def _get_shipping_voucher_discount_for_cart(voucher, cart):
     """Calculate discount value for a voucher of shipping type."""
     if not cart.is_shipping_required():
         msg = pgettext(
-            'Voucher not applicable',
-            'Your order does not require shipping.')
+            "Voucher not applicable", "Your order does not require shipping."
+        )
         raise NotApplicable(msg)
     shipping_method = cart.shipping_method
     if not shipping_method:
         msg = pgettext(
-            'Voucher not applicable',
-            'Please select a shipping method first.')
+            "Voucher not applicable", "Please select a shipping method first."
+        )
         raise NotApplicable(msg)
 
     # check if voucher is limited to specified countries
     shipping_country = cart.shipping_address.country
     if voucher.countries and shipping_country.code not in voucher.countries:
         msg = pgettext(
-            'Voucher not applicable',
-            'This offer is not valid in your country.')
+            "Voucher not applicable", "This offer is not valid in your country."
+        )
         raise NotApplicable(msg)
 
     return get_shipping_voucher_discount(
-        voucher, cart.get_subtotal(), shipping_method.get_total())
+        voucher, cart.get_subtotal(), shipping_method.get_total()
+    )
 
 
 def _get_products_voucher_discount(order_or_cart, voucher):
@@ -654,17 +684,20 @@ def _get_products_voucher_discount(order_or_cart, voucher):
     """
     if voucher.type == VoucherType.PRODUCT:
         prices = get_prices_of_discounted_products(
-            order_or_cart.lines.all(), voucher.products.all())
+            order_or_cart.lines.all(), voucher.products.all()
+        )
     elif voucher.type == VoucherType.COLLECTION:
         prices = get_prices_of_products_in_discounted_collections(
-            order_or_cart.lines.all(), voucher.collections.all())
+            order_or_cart.lines.all(), voucher.collections.all()
+        )
     elif voucher.type == VoucherType.CATEGORY:
         prices = get_prices_of_products_in_discounted_categories(
-            order_or_cart.lines.all(), voucher.categories.all())
+            order_or_cart.lines.all(), voucher.categories.all()
+        )
     if not prices:
         msg = pgettext(
-            'Voucher not applicable',
-            'This offer is only valid for selected items.')
+            "Voucher not applicable", "This offer is only valid for selected items."
+        )
         raise NotApplicable(msg)
     return get_products_voucher_discount(voucher, prices)
 
@@ -679,9 +712,12 @@ def get_voucher_discount_for_cart(voucher, cart):
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_cart(voucher, cart)
     if voucher.type in (
-            VoucherType.PRODUCT, VoucherType.COLLECTION, VoucherType.CATEGORY):
+        VoucherType.PRODUCT,
+        VoucherType.COLLECTION,
+        VoucherType.CATEGORY,
+    ):
         return _get_products_voucher_discount(cart, voucher)
-    raise NotImplementedError('Unknown discount type')
+    raise NotImplementedError("Unknown discount type")
 
 
 def get_voucher_for_cart(cart, vouchers=None):
@@ -714,11 +750,16 @@ def recalculate_cart_discount(cart, discounts, taxes):
             cart.discount_name = str(voucher)
             cart.translated_discount_name = (
                 voucher.translated.name
-                if voucher.translated.name != voucher.name else '')
+                if voucher.translated.name != voucher.name
+                else ""
+            )
             cart.save(
                 update_fields=[
-                    'translated_discount_name',
-                    'discount_amount', 'discount_name'])
+                    "translated_discount_name",
+                    "discount_amount",
+                    "discount_name",
+                ]
+            )
     else:
         remove_voucher_from_cart(cart)
 
@@ -731,13 +772,17 @@ def add_voucher_to_cart(voucher, cart):
     cart.voucher_code = voucher.code
     cart.discount_name = voucher.name
     cart.translated_discount_name = (
-        voucher.translated.name
-        if voucher.translated.name != voucher.name else '')
+        voucher.translated.name if voucher.translated.name != voucher.name else ""
+    )
     cart.discount_amount = discount_amount
     cart.save(
         update_fields=[
-            'voucher_code', 'discount_name', 'translated_discount_name',
-            'discount_amount'])
+            "voucher_code",
+            "discount_name",
+            "translated_discount_name",
+            "discount_amount",
+        ]
+    )
 
 
 def remove_voucher_from_cart(cart):
@@ -748,8 +793,12 @@ def remove_voucher_from_cart(cart):
     cart.discount_amount = ZERO_MONEY
     cart.save(
         update_fields=[
-            'voucher_code', 'discount_name', 'translated_discount_name',
-            'discount_amount'])
+            "voucher_code",
+            "discount_name",
+            "translated_discount_name",
+            "discount_amount",
+        ]
+    )
 
 
 def get_taxes_for_cart(cart, default_taxes):
@@ -771,7 +820,8 @@ def is_valid_shipping_method(cart, taxes, discounts):
     valid_methods = ShippingMethod.objects.applicable_shipping_methods(
         price=cart.get_subtotal(discounts, taxes).gross,
         weight=cart.get_total_weight(),
-        country_code=cart.shipping_address.country.code)
+        country_code=cart.shipping_address.country.code,
+    )
     if cart.shipping_method not in valid_methods:
         clear_shipping_method(cart)
         return False
@@ -780,7 +830,7 @@ def is_valid_shipping_method(cart, taxes, discounts):
 
 def clear_shipping_method(cart):
     cart.shipping_method = None
-    cart.save(update_fields=['shipping_method'])
+    cart.save(update_fields=["shipping_method"])
 
 
 def _process_voucher_data_for_order(cart):
@@ -790,8 +840,9 @@ def _process_voucher_data_for_order(cart):
 
     if cart.voucher_code and not voucher:
         msg = pgettext(
-            'Voucher not applicable',
-            'Voucher expired in meantime. Order placement aborted.')
+            "Voucher not applicable",
+            "Voucher expired in meantime. Order placement aborted.",
+        )
         raise NotApplicable(msg)
 
     if not voucher:
@@ -799,10 +850,11 @@ def _process_voucher_data_for_order(cart):
 
     increase_voucher_usage(voucher)
     return {
-        'voucher': voucher,
-        'discount_amount': cart.discount_amount,
-        'discount_name': cart.discount_name,
-        'translated_discount_name': cart.translated_discount_name}
+        "voucher": voucher,
+        "discount_amount": cart.discount_amount,
+        "discount_name": cart.discount_name,
+        "translated_discount_name": cart.translated_discount_name,
+    }
 
 
 def _process_shipping_data_for_order(cart, taxes):
@@ -818,11 +870,12 @@ def _process_shipping_data_for_order(cart, taxes):
             shipping_address = shipping_address.get_copy()
 
     return {
-        'shipping_address': shipping_address,
-        'shipping_method': cart.shipping_method,
-        'shipping_method_name': smart_text(cart.shipping_method),
-        'shipping_price': cart.get_shipping_price(taxes),
-        'weight': cart.get_total_weight()}
+        "shipping_address": shipping_address,
+        "shipping_method": cart.shipping_method,
+        "shipping_method_name": smart_text(cart.shipping_method),
+        "shipping_price": cart.get_shipping_price(taxes),
+        "weight": cart.get_total_weight(),
+    }
 
 
 def _process_user_data_for_order(cart):
@@ -835,10 +888,11 @@ def _process_user_data_for_order(cart):
             billing_address = billing_address.get_copy()
 
     return {
-        'user': cart.user,
-        'user_email': cart.user.email if cart.user else cart.email,
-        'billing_address': billing_address,
-        'customer_note': cart.note}
+        "user": cart.user,
+        "user_email": cart.user.email if cart.user else cart.email,
+        "billing_address": billing_address,
+        "customer_note": cart.note,
+    }
 
 
 @transaction.atomic
@@ -864,10 +918,13 @@ def create_order(cart: Cart, tracking_code: str, discounts, taxes):
     order_data.update(_process_voucher_data_for_order(cart))
     order_data.update(_process_shipping_data_for_order(cart, taxes))
     order_data.update(_process_user_data_for_order(cart))
-    order_data.update({
-        'language_code': get_language(),
-        'tracking_client_id': tracking_code,
-        'total': cart.get_total(discounts, taxes)})
+    order_data.update(
+        {
+            "language_code": get_language(),
+            "tracking_client_id": tracking_code,
+            "total": cart.get_total(discounts, taxes),
+        }
+    )
 
     order = Order.objects.create(**order_data, checkout_token=cart.token)
 
@@ -877,8 +934,7 @@ def create_order(cart: Cart, tracking_code: str, discounts, taxes):
 
     # create order lines from cart lines
     for line in cart:
-        add_variant_to_order(
-            order, line.variant, line.quantity, discounts, taxes)
+        add_variant_to_order(order, line.variant, line.quantity, discounts, taxes)
 
     # assign cart payments to the order
     cart.payments.update(order=order)
@@ -888,8 +944,7 @@ def create_order(cart: Cart, tracking_code: str, discounts, taxes):
 def is_fully_paid(cart: Cart, taxes, discounts):
     """Check if provided payment methods cover the checkout's total amount.
     Note that these payments may not be captured or charged at all."""
-    payments = [
-        payment for payment in cart.payments.all() if payment.is_active]
+    payments = [payment for payment in cart.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
     cart_total = cart.get_total(discounts=discounts, taxes=taxes).gross.amount
     return total_paid >= cart_total
@@ -899,21 +954,37 @@ def ready_to_place_order(cart: Cart, taxes, discounts):
     """Check if checkout can be completed."""
     if cart.is_shipping_required():
         if not cart.shipping_method:
-            return False, pgettext_lazy(
-                'order placement_error', 'Shipping method is not set')
+            return (
+                False,
+                pgettext_lazy("order placement_error", "Shipping method is not set"),
+            )
         if not cart.shipping_address:
-            return False, pgettext_lazy(
-                'order placement error', 'Shipping address is not set')
+            return (
+                False,
+                pgettext_lazy("order placement error", "Shipping address is not set"),
+            )
         if not is_valid_shipping_method(cart, taxes, discounts):
-            return False, pgettext_lazy(
-                'order placement error',
-                'Shipping method is not valid for your shipping address')
+            return (
+                False,
+                pgettext_lazy(
+                    "order placement error",
+                    "Shipping method is not valid for your shipping address",
+                ),
+            )
     if not cart.billing_address:
-        return False, pgettext_lazy(
-            'order placement_error', 'Billing address is not set')
+        return (
+            False,
+            pgettext_lazy("order placement_error", "Billing address is not set"),
+        )
     if not is_fully_paid(cart, taxes, discounts):
-        return False, pgettext_lazy(
-            'order placement error', (
-                'Provided payment methods can not '
-                'cover the checkout\'s total amount'))
+        return (
+            False,
+            pgettext_lazy(
+                "order placement error",
+                (
+                    "Provided payment methods can not "
+                    "cover the checkout's total amount"
+                ),
+            ),
+        )
     return True, None

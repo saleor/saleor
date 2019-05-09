@@ -13,7 +13,10 @@ def permission_required(permissions):
             user = info.context.user
             if not user.has_perm(permissions):
                 raise PermissionDenied(
-                    'You have no permission to use %s' % info.field_name)
+                    "You have no permission to use %s" % info.field_name
+                )
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

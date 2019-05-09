@@ -6,7 +6,7 @@ class AttributeScalar(Scalar):
     @staticmethod
     def parse_literal(node):
         if isinstance(node, ast.StringValue):
-            split = node.value.split(':')
+            split = node.value.split(":")
             if len(split) == 2:
                 return tuple(split)
         return None
@@ -14,7 +14,7 @@ class AttributeScalar(Scalar):
     @staticmethod
     def parse_value(value):
         if isinstance(value, str):
-            split = value.split(':')
+            split = value.split(":")
             if len(split) == 2:
                 return tuple(split)
         return None
@@ -22,5 +22,5 @@ class AttributeScalar(Scalar):
     @staticmethod
     def serialize(value):
         if isinstance(value, tuple) and len(value) == 2:
-            return ':'.join(value)
+            return ":".join(value)
         return None

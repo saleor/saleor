@@ -9,15 +9,16 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
         ids = graphene.List(
             graphene.ID,
             required=True,
-            description='List of shipping zone IDs to delete.')
+            description="List of shipping zone IDs to delete.",
+        )
 
     class Meta:
-        description = 'Deletes shipping zones.'
+        description = "Deletes shipping zones."
         model = models.ShippingZone
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        return user.has_perm("shipping.manage_shipping")
 
 
 class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
@@ -25,12 +26,13 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         ids = graphene.List(
             graphene.ID,
             required=True,
-            description='List of shipping price IDs to delete.')
+            description="List of shipping price IDs to delete.",
+        )
 
     class Meta:
-        description = 'Deletes shipping prices.'
+        description = "Deletes shipping prices."
         model = models.ShippingMethod
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        return user.has_perm("shipping.manage_shipping")

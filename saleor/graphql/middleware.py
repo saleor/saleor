@@ -18,7 +18,7 @@ def jwt_middleware(get_response):
     graphene_settings.MIDDLEWARE.remove(JSONWebTokenMiddleware)
 
     def middleware(request):
-        if request.path == reverse('api'):
+        if request.path == reverse("api"):
             # clear user authenticated by AuthenticationMiddleware
             request._cached_user = AnonymousUser()
             request.user = AnonymousUser()

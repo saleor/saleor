@@ -10,53 +10,86 @@ from ..descriptions import DESCRIPTIONS
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete
 from .enums import OrderStatusFilter
 from .mutations.draft_orders import (
-    DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
-    DraftOrderLineDelete, DraftOrderLinesCreate, DraftOrderLineUpdate,
-    DraftOrderUpdate)
+    DraftOrderComplete,
+    DraftOrderCreate,
+    DraftOrderDelete,
+    DraftOrderLineDelete,
+    DraftOrderLinesCreate,
+    DraftOrderLineUpdate,
+    DraftOrderUpdate,
+)
 from .mutations.fulfillments import (
-    FulfillmentCancel, FulfillmentCreate, FulfillmentUpdateTracking)
+    FulfillmentCancel,
+    FulfillmentCreate,
+    FulfillmentUpdateTracking,
+)
 from .mutations.orders import (
-    OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
-    OrderUpdate, OrderUpdateShipping, OrderVoid)
+    OrderAddNote,
+    OrderCancel,
+    OrderCapture,
+    OrderMarkAsPaid,
+    OrderRefund,
+    OrderUpdate,
+    OrderUpdateShipping,
+    OrderVoid,
+)
 from .resolvers import (
-    resolve_draft_orders, resolve_homepage_events, resolve_order,
-    resolve_order_by_token, resolve_orders, resolve_orders_total)
+    resolve_draft_orders,
+    resolve_homepage_events,
+    resolve_order,
+    resolve_order_by_token,
+    resolve_orders,
+    resolve_orders_total,
+)
 from .types import Order, OrderEvent
 
 
 class OrderQueries(graphene.ObjectType):
     homepage_events = PrefetchingConnectionField(
-        OrderEvent, description=dedent('''List of activity events to display on
-        homepage (at the moment it only contains order-events).'''))
+        OrderEvent,
+        description=dedent(
+            """List of activity events to display on
+        homepage (at the moment it only contains order-events)."""
+        ),
+    )
     order = graphene.Field(
-        Order, description='Lookup an order by ID.',
-        id=graphene.Argument(graphene.ID, required=True))
+        Order,
+        description="Lookup an order by ID.",
+        id=graphene.Argument(graphene.ID, required=True),
+    )
     orders = PrefetchingConnectionField(
         Order,
-        query=graphene.String(description=DESCRIPTIONS['order']),
+        query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
-            ReportingPeriod,
-            description='Filter orders from a selected timespan.'),
+            ReportingPeriod, description="Filter orders from a selected timespan."
+        ),
         status=graphene.Argument(
-            OrderStatusFilter, description='Filter order by status'),
-        description='List of the shop\'s orders.')
+            OrderStatusFilter, description="Filter order by status"
+        ),
+        description="List of the shop's orders.",
+    )
     draft_orders = PrefetchingConnectionField(
         Order,
-        query=graphene.String(description=DESCRIPTIONS['order']),
+        query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
-            ReportingPeriod,
-            description='Filter draft orders from a selected timespan.'),
-        description='List of the shop\'s draft orders.')
+            ReportingPeriod, description="Filter draft orders from a selected timespan."
+        ),
+        description="List of the shop's draft orders.",
+    )
     orders_total = graphene.Field(
-        TaxedMoney, description='Total sales.',
+        TaxedMoney,
+        description="Total sales.",
         period=graphene.Argument(
-            ReportingPeriod,
-            description='Get total sales for selected span of time.'))
+            ReportingPeriod, description="Get total sales for selected span of time."
+        ),
+    )
     order_by_token = graphene.Field(
-        Order, description='Lookup an order by token.',
-        token=graphene.Argument(graphene.String, required=True))
+        Order,
+        description="Lookup an order by token.",
+        token=graphene.Argument(graphene.String, required=True),
+    )
 
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def resolve_homepage_events(self, info, **kwargs):
         return resolve_homepage_events(info)
 
@@ -64,16 +97,15 @@ class OrderQueries(graphene.ObjectType):
     def resolve_order(self, info, id):
         return resolve_order(info, id)
 
-    @permission_required('order.manage_orders')
-    def resolve_orders(
-            self, info, created=None, status=None, query=None, **kwargs):
+    @permission_required("order.manage_orders")
+    def resolve_orders(self, info, created=None, status=None, query=None, **kwargs):
         return resolve_orders(info, created, status, query)
 
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def resolve_draft_orders(self, info, created=None, query=None, **kwargs):
         return resolve_draft_orders(info, created, query)
 
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def resolve_orders_total(self, info, period, **kwargs):
         return resolve_orders_total(info, period)
 

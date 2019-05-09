@@ -1,4 +1,3 @@
-
 from graphene_django.fields import DjangoConnectionField
 
 

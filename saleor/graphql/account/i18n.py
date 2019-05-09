@@ -9,7 +9,7 @@ def get_field_name(field_name, parent_field_name):
         return None
     if not parent_field_name:
         return field_name
-    return '%s:%s' % (parent_field_name, field_name)
+    return "%s:%s" % (parent_field_name, field_name)
 
 
 class I18nMixin:
@@ -19,15 +19,14 @@ class I18nMixin:
 
     @classmethod
     def validate_address(
-            cls, address_data, errors, parent_field_name=None,
-            instance=None):
-        country_code = address_data.get('country')
+        cls, address_data, errors, parent_field_name=None, instance=None
+    ):
+        country_code = address_data.get("country")
         if country_code in countries.countries.keys():
-            address_form, _ = get_address_form(
-                address_data, address_data['country'])
+            address_form, _ = get_address_form(address_data, address_data["country"])
         else:
-            error_msg = 'Invalid country code.'
-            cls.add_error(errors, 'country', error_msg)
+            error_msg = "Invalid country code."
+            cls.add_error(errors, "country", error_msg)
             return None, errors
         if not address_form.is_valid():
             for field_name, field_errors in address_form.errors.items():

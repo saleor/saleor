@@ -10,15 +10,15 @@ from .types import Payment
 
 class PaymentQueries(graphene.ObjectType):
     payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
-    payments = PrefetchingConnectionField(
-        Payment, description='List of payments')
+    payments = PrefetchingConnectionField(Payment, description="List of payments")
     payment_client_token = graphene.Field(
-        graphene.String, args={'gateway': PaymentGatewayEnum()})
+        graphene.String, args={"gateway": PaymentGatewayEnum()}
+    )
 
     def resolve_payment(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Payment)
 
-    @permission_required('order.manage_orders')
+    @permission_required("order.manage_orders")
     def resolve_payments(self, info, query=None, **kwargs):
         return resolve_payments(info, query)
 

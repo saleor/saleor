@@ -16,7 +16,7 @@ def get_database_id(info, node_id, only_type):
     _type, _id = graphene.relay.Node.from_global_id(node_id)
     graphene_type = info.schema.get_type(_type).graphene_type
     if graphene_type != only_type:
-        raise AssertionError('Must receive a %s id.' % only_type._meta.name)
+        raise AssertionError("Must receive a %s id." % only_type._meta.name)
     return _id
 
 
@@ -41,19 +41,18 @@ def get_nodes(ids, graphene_type=None):
             else:
                 if graphene_type:
                     assert str(graphene_type) == _type, (
-                        'Must receive an {} id.').format(
-                            graphene_type._meta.name)
+                        "Must receive an {} id."
+                    ).format(graphene_type._meta.name)
                 pks.append(_id)
                 types.append(_type)
     if invalid_ids:
-        raise GraphQLError(
-            error_msg % invalid_ids)
+        raise GraphQLError(error_msg % invalid_ids)
 
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
     # types.
     if types and not graphene_type:
-        assert len(set(types)) == 1, 'Received IDs of more than one type.'
+        assert len(set(types)) == 1, "Received IDs of more than one type."
         # get type by name
         type_name = types[0]
         for model, _type in registry._registry.items():
@@ -64,12 +63,12 @@ def get_nodes(ids, graphene_type=None):
     nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
     nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
     if not nodes:
-        raise GraphQLError(
-            error_msg % ids)
+        raise GraphQLError(error_msg % ids)
     nodes_pk_list = [str(node.pk) for node in nodes]
     for pk in pks:
-        assert pk in nodes_pk_list, (
-            'There is no node of type {} with pk {}'.format(_type, pk))
+        assert pk in nodes_pk_list, "There is no node of type {} with pk {}".format(
+            _type, pk
+        )
     return nodes
 
 
@@ -83,8 +82,8 @@ def filter_by_query_param(queryset, query, search_fields):
     """
     if query:
         query_by = {
-            '{0}__{1}'.format(
-                field, 'icontains'): query for field in search_fields}
+            "{0}__{1}".format(field, "icontains"): query for field in search_fields
+        }
         query_objects = Q()
         for q in query_by:
             query_objects |= Q(**{q: query_by[q]})
@@ -95,26 +94,24 @@ def filter_by_query_param(queryset, query, search_fields):
 def reporting_period_to_date(period):
     now = timezone.now()
     if period == ReportingPeriod.TODAY:
-        start_date = now.replace(
-            hour=0, minute=0, second=0, microsecond=0)
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
     elif period == ReportingPeriod.THIS_MONTH:
-        start_date = now.replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     else:
-        raise ValueError('Unknown period: %s' % period)
+        raise ValueError("Unknown period: %s" % period)
     return start_date
 
 
 def filter_by_period(queryset, period, field_name):
     start_date = reporting_period_to_date(period)
-    return queryset.filter(**{'%s__gte' % field_name: start_date})
+    return queryset.filter(**{"%s__gte" % field_name: start_date})
 
 
 def generate_query_argument_description(search_fields):
-    header = 'Supported filter parameters:\n'
-    supported_list = ''
+    header = "Supported filter parameters:\n"
+    supported_list = ""
     for field in search_fields:
-        supported_list += '* {0}\n'.format(field)
+        supported_list += "* {0}\n".format(field)
     return header + supported_list
 
 
@@ -126,10 +123,8 @@ def format_permissions_for_display(permissions):
     """
     formatted_permissions = []
     for permission in permissions:
-        codename = '.'.join(
-            [permission.content_type.app_label, permission.codename])
+        codename = ".".join([permission.content_type.app_label, permission.codename])
         formatted_permissions.append(
-            PermissionDisplay(
-                code=PermissionEnum.get(codename),
-                name=permission.name))
+            PermissionDisplay(code=PermissionEnum.get(codename), name=permission.name)
+        )
     return formatted_permissions
