@@ -3,7 +3,7 @@ import { TreeItem } from "react-sortable-tree";
 
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
 
-export interface TreePermutation {
+export interface TreeOperation {
   id: string;
   operation: "move" | "remove";
   parentId?: string;
@@ -34,11 +34,11 @@ function treeToMap(tree: TreeNode[], parent: string): Record<string, string[]> {
 export function getDiff(
   originalTree: TreeNode[],
   newTree: TreeNode[]
-): TreePermutation {
+): TreeOperation {
   const originalMap = treeToMap(originalTree, "root");
   const newMap = treeToMap(newTree, "root");
 
-  const diff: TreePermutation[] = Object.keys(newMap).map(key => {
+  const diff: TreeOperation[] = Object.keys(newMap).map(key => {
     const originalNode = originalMap[key];
     const newNode = newMap[key];
 
@@ -62,7 +62,7 @@ export function getDiff(
 
 export function getNodeData(
   item: MenuDetails_menu_items,
-  onChange: (operation: TreePermutation) => void
+  onChange: (operation: TreeOperation) => void
 ): TreeNode {
   return {
     children: item.children.map(child => getNodeData(child, onChange)),

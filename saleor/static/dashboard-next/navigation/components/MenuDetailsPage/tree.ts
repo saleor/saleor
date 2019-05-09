@@ -1,5 +1,5 @@
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
-import { TreePermutation } from "../MenuItems";
+import { TreeOperation } from "../MenuItems";
 
 function findNode(tree: MenuDetails_menu_items[], id: string): number[] {
   const foundNodeIndex = tree.findIndex(node => node.id === id);
@@ -68,7 +68,7 @@ function insertNode(
 
 function removeNodeAndChildren(
   tree: MenuDetails_menu_items[],
-  operation: TreePermutation
+  operation: TreeOperation
 ): MenuDetails_menu_items[] {
   const sourcePath = findNode(tree, operation.id);
   const node = getNode(tree, sourcePath);
@@ -91,7 +91,7 @@ function removeNodeAndChildren(
 
 function permuteNode(
   tree: MenuDetails_menu_items[],
-  permutation: TreePermutation
+  permutation: TreeOperation
 ): MenuDetails_menu_items[] {
   const sourcePath = findNode(tree, permutation.id);
   const node = getNode(tree, sourcePath);
@@ -114,7 +114,7 @@ function permuteNode(
 
 function executeOperation(
   tree: MenuDetails_menu_items[],
-  operation: TreePermutation
+  operation: TreeOperation
 ): MenuDetails_menu_items[] {
   return operation.operation === "move"
     ? permuteNode(tree, operation)
@@ -123,7 +123,7 @@ function executeOperation(
 
 export function computeTree(
   tree: MenuDetails_menu_items[],
-  operations: TreePermutation[]
+  operations: TreeOperation[]
 ) {
   const newTree = operations.reduce(
     (acc, operation) => executeOperation(acc, operation),
