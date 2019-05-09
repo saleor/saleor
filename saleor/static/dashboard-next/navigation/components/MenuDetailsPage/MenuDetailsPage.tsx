@@ -1,5 +1,6 @@
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
+import { FetchResult } from "react-apollo";
 
 import AppHeader from "../../../components/AppHeader";
 import CardSpacer from "../../../components/CardSpacer";
@@ -30,7 +31,7 @@ export interface MenuDetailsPageProps {
   onBack: () => void;
   onDelete: () => void;
   onItemAdd: () => void;
-  onSubmit: (data: MenuDetailsSubmitData) => void;
+  onSubmit: (data: MenuDetailsSubmitData) => Promise<boolean>;
 }
 
 const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
@@ -50,11 +51,15 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
     []
   );
 
-  const handleSubmit = (data: MenuDetailsFormData) => {
-    onSubmit({
-      name: data.name,
-      operations: treeOperations
-    });
+  const handleSubmit = async (data: MenuDetailsFormData) => {
+    if (
+      await onSubmit({
+        name: data.name,
+        operations: treeOperations
+      })
+    ) {
+      setTreeOperations([]);
+    }
   };
 
   const handleChange = (operation: TreePermutation) => {

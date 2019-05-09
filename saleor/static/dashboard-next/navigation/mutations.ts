@@ -1,6 +1,6 @@
 import gql from "graphql-tag";
 import { TypedMutation } from "../mutations";
-import { menuDetailsFragment, menuItemNestedFragment } from "./queries";
+import { menuItemNestedFragment } from "./queries";
 import {
   MenuBulkDelete,
   MenuBulkDeleteVariables
@@ -86,7 +86,6 @@ export const MenuItemCreateMutation = TypedMutation<
 >(menuItemCreate);
 
 const menuUpdate = gql`
-  ${menuDetailsFragment}
   mutation MenuUpdate(
     $id: ID!
     $name: String!
@@ -98,18 +97,12 @@ const menuUpdate = gql`
         field
         message
       }
-      menu {
-        ...MenuDetailsFragment
-      }
     }
 
     menuItemMove(menu: $id, moves: $moves) {
       errors {
         field
         message
-      }
-      menu {
-        ...MenuDetailsFragment
       }
     }
 
