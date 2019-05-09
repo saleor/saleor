@@ -126,7 +126,7 @@ def voucher_list():
 
 
 def test_delete_attributes(
-        staff_api_client, attribute_list, permission_manage_products
+    staff_api_client, attribute_list, permission_manage_products
 ):
     query = """
     mutation attributeBulkDelete($ids: [ID]!) {
@@ -138,8 +138,7 @@ def test_delete_attributes(
 
     variables = {
         "ids": [
-            graphene.Node.to_global_id("Attribute", attr.id) for attr in
-            attribute_list
+            graphene.Node.to_global_id("Attribute", attr.id) for attr in attribute_list
         ]
     }
     response = staff_api_client.post_graphql(
@@ -154,7 +153,7 @@ def test_delete_attributes(
 
 
 def test_delete_attribute_values(
-        staff_api_client, attribute_value_list, permission_manage_products
+    staff_api_client, attribute_value_list, permission_manage_products
 ):
     query = """
     mutation attributeValueBulkDelete($ids: [ID]!) {
@@ -181,8 +180,7 @@ def test_delete_attribute_values(
     ).exists()
 
 
-def test_delete_categories(staff_api_client, category_list,
-                           permission_manage_products):
+def test_delete_categories(staff_api_client, category_list, permission_manage_products):
     query = """
     mutation categoryBulkDelete($ids: [ID]!) {
         categoryBulkDelete(ids: $ids) {
@@ -209,7 +207,7 @@ def test_delete_categories(staff_api_client, category_list,
 
 
 def test_delete_collections(
-        staff_api_client, collection_list, permission_manage_products
+    staff_api_client, collection_list, permission_manage_products
 ):
     query = """
     mutation collectionBulkDelete($ids: [ID]!) {
@@ -236,8 +234,7 @@ def test_delete_collections(
     ).exists()
 
 
-def test_delete_customers(staff_api_client, user_list,
-                          permission_manage_users):
+def test_delete_customers(staff_api_client, user_list, permission_manage_users):
     user_1, user_2, *users = user_list
 
     query = """
@@ -249,8 +246,7 @@ def test_delete_customers(staff_api_client, user_list,
     """
 
     variables = {
-        "ids": [graphene.Node.to_global_id("User", user.id) for user in
-                user_list]
+        "ids": [graphene.Node.to_global_id("User", user.id) for user in user_list]
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
@@ -261,12 +257,10 @@ def test_delete_customers(staff_api_client, user_list,
     assert not User.objects.filter(
         id__in=[user.id for user in [user_1, user_2]]
     ).exists()
-    assert User.objects.filter(
-        id__in=[user.id for user in users]).count() == len(users)
+    assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
 
 
-def test_delete_draft_orders(staff_api_client, order_list,
-                             permission_manage_orders):
+def test_delete_draft_orders(staff_api_client, order_list, permission_manage_orders):
     order_1, order_2, *orders = order_list
     order_1.status = OrderStatus.DRAFT
     order_2.status = OrderStatus.DRAFT
@@ -282,8 +276,7 @@ def test_delete_draft_orders(staff_api_client, order_list,
     """
 
     variables = {
-        "ids": [graphene.Node.to_global_id("Order", order.id) for order in
-                order_list]
+        "ids": [graphene.Node.to_global_id("Order", order.id) for order in order_list]
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -300,7 +293,7 @@ def test_delete_draft_orders(staff_api_client, order_list,
 
 
 def test_fail_to_delete_non_draft_order_lines(
-        staff_api_client, order_with_lines, permission_manage_orders
+    staff_api_client, order_with_lines, permission_manage_orders
 ):
     order = order_with_lines
     order_lines = [line for line in order]
@@ -315,8 +308,7 @@ def test_fail_to_delete_non_draft_order_lines(
         ]
     }
     response = staff_api_client.post_graphql(
-        MUTATION_DELETE_ORDER_LINES, variables,
-        permissions=[permission_manage_orders]
+        MUTATION_DELETE_ORDER_LINES, variables, permissions=[permission_manage_orders]
     )
 
     content = get_graphql_content(response)
@@ -325,7 +317,7 @@ def test_fail_to_delete_non_draft_order_lines(
 
 
 def test_delete_draft_order_lines(
-        staff_api_client, order_with_lines, permission_manage_orders
+    staff_api_client, order_with_lines, permission_manage_orders
 ):
     order = order_with_lines
     order_lines = [line for line in order]
@@ -341,8 +333,7 @@ def test_delete_draft_order_lines(
     }
 
     response = staff_api_client.post_graphql(
-        MUTATION_DELETE_ORDER_LINES, variables,
-        permissions=[permission_manage_orders]
+        MUTATION_DELETE_ORDER_LINES, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
 
@@ -373,12 +364,10 @@ def test_delete_menus(staff_api_client, menu_list, permission_manage_menus):
     content = get_graphql_content(response)
 
     assert content["data"]["menuBulkDelete"]["count"] == 3
-    assert not Menu.objects.filter(
-        id__in=[menu.id for menu in menu_list]).exists()
+    assert not Menu.objects.filter(id__in=[menu.id for menu in menu_list]).exists()
 
 
-def test_delete_menu_items(staff_api_client, menu_item_list,
-                           permission_manage_menus):
+def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_menus):
     query = """
     mutation menuItemBulkDelete($ids: [ID]!) {
         menuItemBulkDelete(ids: $ids) {
@@ -397,8 +386,7 @@ def test_delete_menu_items(staff_api_client, menu_item_list,
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["menuItemBulkDelete"]["count"] == len(
-        menu_item_list)
+    assert content["data"]["menuItemBulkDelete"]["count"] == len(menu_item_list)
     assert not MenuItem.objects.filter(
         id__in=[menu_item.id for menu_item in menu_item_list]
     ).exists()
@@ -424,8 +412,7 @@ def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["menuItemBulkDelete"]["count"] == len(
-        menu_item_list)
+    assert content["data"]["menuItemBulkDelete"]["count"] == len(menu_item_list)
 
 
 def test_delete_pages(staff_api_client, page_list, permission_manage_pages):
@@ -438,8 +425,7 @@ def test_delete_pages(staff_api_client, page_list, permission_manage_pages):
     """
 
     variables = {
-        "ids": [graphene.Node.to_global_id("Page", page.id) for page in
-                page_list]
+        "ids": [graphene.Node.to_global_id("Page", page.id) for page in page_list]
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages]
@@ -447,12 +433,10 @@ def test_delete_pages(staff_api_client, page_list, permission_manage_pages):
     content = get_graphql_content(response)
 
     assert content["data"]["pageBulkDelete"]["count"] == len(page_list)
-    assert not Page.objects.filter(
-        id__in=[page.id for page in page_list]).exists()
+    assert not Page.objects.filter(id__in=[page.id for page in page_list]).exists()
 
 
-def test_delete_products(staff_api_client, product_list,
-                         permission_manage_products):
+def test_delete_products(staff_api_client, product_list, permission_manage_products):
     query = """
     mutation productBulkDelete($ids: [ID]!) {
         productBulkDelete(ids: $ids) {
@@ -479,7 +463,7 @@ def test_delete_products(staff_api_client, product_list,
 
 
 def test_delete_product_images(
-        staff_api_client, product_with_images, permission_manage_products
+    staff_api_client, product_with_images, permission_manage_products
 ):
     images = product_with_images.images.all()
 
@@ -493,8 +477,7 @@ def test_delete_product_images(
 
     variables = {
         "ids": [
-            graphene.Node.to_global_id("ProductImage", image.id) for image in
-            images
+            graphene.Node.to_global_id("ProductImage", image.id) for image in images
         ]
     }
     response = staff_api_client.post_graphql(
@@ -509,7 +492,7 @@ def test_delete_product_images(
 
 
 def test_delete_product_types(
-        staff_api_client, product_type_list, permission_manage_products
+    staff_api_client, product_type_list, permission_manage_products
 ):
     query = """
     mutation productTypeBulkDelete($ids: [ID]!) {
@@ -537,7 +520,7 @@ def test_delete_product_types(
 
 
 def test_delete_product_variants(
-        staff_api_client, product_variant_list, permission_manage_products
+    staff_api_client, product_variant_list, permission_manage_products
 ):
     query = """
     mutation productVariantBulkDelete($ids: [ID]!) {
@@ -564,8 +547,7 @@ def test_delete_product_variants(
     ).exists()
 
 
-def test_delete_sales(staff_api_client, sale_list,
-                      permission_manage_discounts):
+def test_delete_sales(staff_api_client, sale_list, permission_manage_discounts):
     query = """
     mutation saleBulkDelete($ids: [ID]!) {
         saleBulkDelete(ids: $ids) {
@@ -575,8 +557,7 @@ def test_delete_sales(staff_api_client, sale_list,
     """
 
     variables = {
-        "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in
-                sale_list]
+        "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
@@ -584,12 +565,11 @@ def test_delete_sales(staff_api_client, sale_list,
     content = get_graphql_content(response)
 
     assert content["data"]["saleBulkDelete"]["count"] == 3
-    assert not Sale.objects.filter(
-        id__in=[sale.id for sale in sale_list]).exists()
+    assert not Sale.objects.filter(id__in=[sale.id for sale in sale_list]).exists()
 
 
 def test_delete_shipping_methods(
-        staff_api_client, shipping_method_list, permission_manage_shipping
+    staff_api_client, shipping_method_list, permission_manage_shipping
 ):
     query = """
     mutation shippingPriceBulkDelete($ids: [ID]!) {
@@ -617,7 +597,7 @@ def test_delete_shipping_methods(
 
 
 def test_delete_shipping_zones(
-        staff_api_client, shipping_zone_list, permission_manage_shipping
+    staff_api_client, shipping_zone_list, permission_manage_shipping
 ):
     query = """
     mutation shippingZoneBulkDelete($ids: [ID]!) {
@@ -645,7 +625,7 @@ def test_delete_shipping_zones(
 
 
 def test_delete_staff_members(
-        staff_api_client, user_list, permission_manage_staff, superuser
+    staff_api_client, user_list, permission_manage_staff, superuser
 ):
     *users, staff_1, staff_2 = user_list
     users.append(superuser)
@@ -659,8 +639,7 @@ def test_delete_staff_members(
     """
 
     variables = {
-        "ids": [graphene.Node.to_global_id("User", user.id) for user in
-                user_list]
+        "ids": [graphene.Node.to_global_id("User", user.id) for user in user_list]
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
@@ -671,12 +650,10 @@ def test_delete_staff_members(
     assert not User.objects.filter(
         id__in=[user.id for user in [staff_1, staff_2]]
     ).exists()
-    assert User.objects.filter(
-        id__in=[user.id for user in users]).count() == len(users)
+    assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
 
 
-def test_delete_vouchers(staff_api_client, voucher_list,
-                         permission_manage_discounts):
+def test_delete_vouchers(staff_api_client, voucher_list, permission_manage_discounts):
     query = """
     mutation voucherBulkDelete($ids: [ID]!) {
         voucherBulkDelete(ids: $ids) {
