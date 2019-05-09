@@ -28,12 +28,12 @@ export interface MenuCreateDialogProps {
 const initialForm: MenuCreateDialogFormData = {
   name: ""
 };
-const styles = {
+const styles = createStyles({
   root: {
     maxWidth: "100%",
     width: 400
   }
-};
+});
 
 const MenuCreateDialog = withStyles(styles, {
   name: "MenuCreateDialog"
