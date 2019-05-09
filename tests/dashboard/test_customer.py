@@ -17,6 +17,8 @@ from saleor.dashboard.customer.forms import (
 )
 from saleor.settings import DEFAULT_FROM_EMAIL
 
+from ..checks import events as events_checks
+
 
 def test_ajax_users_list(admin_client, admin_user, customer_user):
     users = sorted([admin_user, customer_user], key=lambda user: user.email)
@@ -108,9 +110,25 @@ def test_view_delete_customer(admin_client, admin_user, customer_user):
     assert response.status_code == 302
 
 
+def test_deleting_a_customer_generates_an_event(
+    admin_client, admin_user, customer_user
+):
+    """Deleting a customer as a staff admin should generate an event
+    and this event should remain anonymous as a customer point of view (GDPR)."""
+
+    url = reverse("dashboard:customer-delete", args=[customer_user.pk])
+    response = admin_client.post(url, data={"csrf": "exampledata"})
+    assert response.status_code == 302
+
+    # Ensure the customer was properly deleted
+    # and any related event was properly triggered
+    events_checks.was_customer_properly_deleted(admin_user, customer_user)
+
+
 def test_form_delete_customer(
     staff_user, customer_user, admin_user, permission_manage_staff
 ):
+    # Deleting a customer with valid data should be valid
     data = {"csrf": "example-data"}
     form = CustomerDeleteForm(data, instance=customer_user, user=staff_user)
     assert form.is_valid()
@@ -123,11 +141,12 @@ def test_form_delete_customer(
     form = CustomerDeleteForm(data, instance=admin_user, user=staff_user)
     assert not form.is_valid()
 
-    # Deleting another staff is not allowed without relevant permission
+    # Deleting another staff is not allowed without relevant permissions
     another_staff_user = User.objects.create(is_staff=True, email="exa@mp.le")
     form = CustomerDeleteForm(data, instance=another_staff_user, user=staff_user)
     assert not form.is_valid()
 
+    # Deleting another staff user is allowed with relevant permissions
     staff_user.user_permissions.add(permission_manage_staff)
     staff_user = User.objects.get(pk=staff_user.pk)
     form = CustomerDeleteForm({}, instance=another_staff_user, user=staff_user)

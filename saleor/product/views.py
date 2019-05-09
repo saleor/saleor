@@ -130,7 +130,9 @@ def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotF
     content_url.save(update_fields=["download_num"])
 
     if user is not None:
-        customer_events.customer_downloaded_a_digital_link(user=user, order_line=line)
+        customer_events.customer_downloaded_a_digital_link_event(
+            user=user, order_line=line
+        )
 
     return response
 

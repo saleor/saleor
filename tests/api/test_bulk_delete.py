@@ -18,6 +18,7 @@ from saleor.product.models import (
 )
 from saleor.shipping.models import ShippingMethod, ShippingZone
 
+from ..checks import events as events_checks
 from .utils import get_graphql_content
 
 MUTATION_DELETE_ORDER_LINES = """
@@ -234,7 +235,9 @@ def test_delete_collections(
     ).exists()
 
 
-def test_delete_customers(staff_api_client, user_list, permission_manage_users):
+def test_delete_customers(
+    staff_api_client, staff_user, user_list, permission_manage_users
+):
     user_1, user_2, *users = user_list
 
     query = """
@@ -254,10 +257,10 @@ def test_delete_customers(staff_api_client, user_list, permission_manage_users):
     content = get_graphql_content(response)
 
     assert content["data"]["customerBulkDelete"]["count"] == 2
-    assert not User.objects.filter(
-        id__in=[user.id for user in [user_1, user_2]]
-    ).exists()
-    assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
+
+    # Ensure the customer was properly deleted
+    # and any related event was properly triggered
+    events_checks.were_customers_properly_deleted(staff_user, [user_1, user_2], users)
 
 
 def test_delete_draft_orders(staff_api_client, order_list, permission_manage_orders):
