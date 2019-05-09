@@ -26,7 +26,7 @@ import {
   getNodeData,
   getNodeQuantity,
   TreeNode,
-  TreePermutation
+  TreeOperation
 } from "./tree";
 
 const NODE_HEIGHT = 56;
@@ -35,7 +35,7 @@ const NODE_MARGIN = 40;
 export interface MenuItemsProps {
   canUndo: boolean;
   items: MenuDetails_menu_items[];
-  onChange: (operation: TreePermutation) => void;
+  onChange: (operation: TreeOperation) => void;
   onItemAdd: () => void;
   onUndo: () => void;
 }

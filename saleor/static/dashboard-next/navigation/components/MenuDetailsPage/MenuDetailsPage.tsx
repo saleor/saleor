@@ -11,7 +11,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { MenuDetails_menu } from "../../types/MenuDetails";
-import MenuItems, { TreePermutation } from "../MenuItems";
+import MenuItems, { TreeOperation } from "../MenuItems";
 import MenuProperties from "../MenuProperties";
 import { computeTree } from "./tree";
 
@@ -20,7 +20,7 @@ export interface MenuDetailsFormData {
 }
 
 export interface MenuDetailsSubmitData extends MenuDetailsFormData {
-  operations: TreePermutation[];
+  operations: TreeOperation[];
 }
 
 export interface MenuDetailsPageProps {
@@ -46,7 +46,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
     name: maybe(() => menu.name, "")
   };
 
-  const [treeOperations, setTreeOperations] = React.useState<TreePermutation[]>(
+  const [treeOperations, setTreeOperations] = React.useState<TreeOperation[]>(
     []
   );
 
@@ -61,7 +61,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
     }
   };
 
-  const handleChange = (operation: TreePermutation) => {
+  const handleChange = (operation: TreeOperation) => {
     if (!!operation) {
       setTreeOperations([...treeOperations, operation]);
     }

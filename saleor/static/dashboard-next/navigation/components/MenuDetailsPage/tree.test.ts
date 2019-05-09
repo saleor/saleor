@@ -1,6 +1,6 @@
 import { menu } from "../../fixtures";
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
-import { TreePermutation } from "../MenuItems";
+import { TreeOperation } from "../MenuItems";
 import { computeTree } from "./tree";
 
 // Readability FTW
@@ -23,7 +23,7 @@ function treeToString(tree: MenuDetails_menu_items[]): string {
 }
 
 describe("Properly computes trees", () => {
-  const testTable: TreePermutation[][] = [
+  const testTable: TreeOperation[][] = [
     [],
     [
       { id: "1glasses", parentId: "0jewelry", sortOrder: 0, operation: "move" },
