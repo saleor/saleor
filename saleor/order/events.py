@@ -1,16 +1,14 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
 
-from django.contrib.auth.base_user import AbstractBaseUser
-
-from ..account.events import customer_placed_order_event
-from ..account.models import Address
+from ..account import events as customer_events
+from ..account.models import Address, User
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
 from . import OrderEvents, OrderEventsEmails
 from .models import OrderEvent
 
-UserType = AbstractBaseUser
+UserType = User
 
 
 def _lines_per_quantity_to_line_object_list(quantities_per_order_line):
@@ -94,7 +92,7 @@ def order_created_event(*, order: Order, user: UserType, from_draft=False):
         event_type = OrderEvents.PLACED_FROM_DRAFT
     else:
         event_type = OrderEvents.PLACED
-        customer_placed_order_event(user=user, order=order)
+        customer_events.customer_placed_order_event(user=user, order=order)
 
     if user.is_anonymous:
         user = None
@@ -218,6 +216,11 @@ def fulfillment_tracking_updated_event(
 
 
 def order_note_added_event(*, order: Order, user: UserType, message: str):
+    if not user.is_staff:
+        customer_events.customer_added_to_note_order_event(
+            user=user, order=order, message=message
+        )
+
     return _new_event(
         order=order,
         type=OrderEvents.NOTE_ADDED,
