@@ -5,14 +5,13 @@ from django_filters.fields import MultipleChoiceField
 
 
 class DefaultMultipleChoiceField(MultipleChoiceField):
-    default_error_messages = {
-        "invalid_choice": _("One of the specified IDs was invalid (%(value)s)."),
-        "invalid_list": _("Enter a list of values."),
-    }
+    default_error_messages = {"invalid_list": _("Enter a list of values.")}
 
     def to_python(self, value):
         if not value:
             return []
+        if not isinstance(value, list):
+            value = [value]
         return value
 
     def validate(self, value):
