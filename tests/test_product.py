@@ -33,6 +33,7 @@ from saleor.product.utils.attributes import get_product_attributes_data
 from saleor.product.utils.availability import get_product_availability_status
 from saleor.product.utils.variants_picker import get_variant_picker_data
 
+from .checks import events as events_checks
 from .utils import filter_products_by_attribute
 
 
@@ -800,10 +801,28 @@ def test_digital_product_view(client, digital_content_url, should_user_be_delete
     download_event = customer_events.CustomerEvent.objects.get()
 
     # Check that the event contains all the expected and valid data
-    assert download_event.type == customer_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED
-    assert download_event.user == expected_user
-    assert download_event.order == digital_content_url.line.order
-    assert download_event.parameters == {"order_line_pk": digital_content_url.line.pk}
+    events_checks.was_digital_good_download_event_properly_generated(
+        download_event,
+        expected_order_line=digital_content_url.line,
+        expected_user=expected_user,
+    )
+
+
+def test_digital_product_view_without_order_line(client, digital_content_url):
+    """Ensure downloading a digital good is possible without it
+    being associated to an order."""
+
+    digital_content_url.line = None
+    digital_content_url.save(update_fields=["line"])
+
+    url = digital_content_url.get_absolute_url()
+    response = client.get(url)
+
+    assert response.status_code == 200
+
+    # Ensure an event was not generated from downloading a digital good
+    # as no user could be found
+    assert not customer_events.CustomerEvent.objects.exists()
 
 
 def test_digital_product_view_url_downloaded_max_times(client, digital_content):

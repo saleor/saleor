@@ -113,7 +113,7 @@ def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotF
         return HttpResponseNotFound("Url is not valid anymore")
 
     line = content_url.line  # type: OrderLine
-    user = line.order.user
+    user = line.order.user if line else None
     digital_content = content_url.content
     digital_content.content_file.open()
     opened_file = digital_content.content_file.file
