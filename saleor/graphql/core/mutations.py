@@ -427,6 +427,9 @@ class BaseBulkMutation(BaseMutation):
     def perform_mutation(cls, _root, info, ids, **data):
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids, errors = [], {}
+        # Allow to pass empty list for dummy mutation
+        if not ids:
+            return 0, errors
         instance_model = cls._meta.model
         model_type = registry.get_type_for_model(instance_model)
         instances = cls.get_nodes_or_error(ids, "id", model_type)

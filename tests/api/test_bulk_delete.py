@@ -375,7 +375,6 @@ def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_m
         }
     }
     """
-
     variables = {
         "ids": [
             graphene.Node.to_global_id("MenuItem", menu_item.id)
@@ -387,10 +386,28 @@ def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_m
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["menuItemBulkDelete"]["count"] == 3
+    assert content["data"]["menuItemBulkDelete"]["count"] == len(menu_item_list)
     assert not MenuItem.objects.filter(
         id__in=[menu_item.id for menu_item in menu_item_list]
     ).exists()
+
+
+def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):
+    query = """
+    mutation menuItemBulkDelete($ids: [ID]!) {
+        menuItemBulkDelete(ids: $ids) {
+            count
+        }
+    }
+    """
+    menu_item_list = []
+    variables = {"ids": menu_item_list}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["menuItemBulkDelete"]["count"] == len(menu_item_list)
 
 
 def test_delete_pages(staff_api_client, page_list, permission_manage_pages):
