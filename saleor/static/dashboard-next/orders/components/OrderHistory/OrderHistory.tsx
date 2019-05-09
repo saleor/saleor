@@ -17,7 +17,7 @@ import {
   TimelineNote
 } from "../../../components/Timeline";
 import i18n from "../../../i18n";
-import { OrderEventsEnum, OrderEventsEmailsEnum } from "../../../types/globalTypes";
+import { OrderEventsEmailsEnum, OrderEventsEnum } from "../../../types/globalTypes";
 import { OrderDetails_order_events } from "../../types/OrderDetails";
 
 export interface FormData {
@@ -30,22 +30,42 @@ const getEventMessage = (event: OrderDetails_order_events) => {
       return i18n.t("Order has been cancelled", {
         context: "order history message"
       });
+    case OrderEventsEnum.DRAFT_ADDED_PRODUCTS:
+      return i18n.t("Products have been added to draft order", {
+        context: "order history message"
+      });
+    case OrderEventsEnum.DRAFT_CREATED:
+      return i18n.t("Draft order has been created", {
+        context: "order history message"
+      });
+    case OrderEventsEnum.DRAFT_REMOVED_PRODUCTS:
+      return i18n.t("Products have been removed from draft order", {
+        context: "order history message"
+      });
     case OrderEventsEnum.EMAIL_SENT:
       switch (event.emailType) {
-        case OrderEventsEmailsEnum.FULFILLMENT:
+        case OrderEventsEmailsEnum.DIGITAL_LINKS:
+          return i18n.t("Links to the order's digital goods have been sent", {
+            context: "order history message"
+          });
+        case OrderEventsEmailsEnum.FULFILLMENT_CONFIRMATION:
           return i18n.t("Fulfillment confirmation has been sent to customer", {
             context: "order history message"
           });
-        case OrderEventsEmailsEnum.ORDER:
+        case OrderEventsEmailsEnum.ORDER_CONFIRMATION:
           return i18n.t("Order confirmation has been sent to customer", {
             context: "order history message"
           });
-        case OrderEventsEmailsEnum.PAYMENT:
+        case OrderEventsEmailsEnum.PAYMENT_CONFIRMATION:
           return i18n.t("Payment confirmation has been sent to customer", {
             context: "order history message"
           });
-        case OrderEventsEmailsEnum.SHIPPING:
+        case OrderEventsEmailsEnum.SHIPPING_CONFIRMATION:
           return i18n.t("Shipping details has been sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmailsEnum.TRACKING_UPDATED:
+          return i18n.t("Shipping tracking number has been sent to customer", {
             context: "order history message"
           });
       }
@@ -62,6 +82,10 @@ const getEventMessage = (event: OrderDetails_order_events) => {
       return i18n.t("Restocked {{ quantity }} items", {
         context: "order history message",
         quantity: event.quantity
+      });
+    case OrderEventsEnum.NOTE_ADDED:
+      return i18n.t("Note has been added to the order", {
+        context: "order history message"
       });
     case OrderEventsEnum.ORDER_FULLY_PAID:
       return i18n.t("Order has been fully paid", {
@@ -80,6 +104,10 @@ const getEventMessage = (event: OrderDetails_order_events) => {
       });
     case OrderEventsEnum.PAYMENT_CAPTURED:
       return i18n.t("Payment has been captured", {
+        context: "order history message"
+      });
+    case OrderEventsEnum.PAYMENT_FAILED:
+      return i18n.t("Payment has been failed", {
         context: "order history message"
       });
     case OrderEventsEnum.PAYMENT_REFUNDED:
@@ -102,8 +130,8 @@ const getEventMessage = (event: OrderDetails_order_events) => {
       return i18n.t("Updated fulfillment group's tracking number", {
         context: "order history message"
       });
-    case OrderEventsEnum.UPDATED:
-      return i18n.t("Order has been updated", {
+    case OrderEventsEnum.UPDATED_ADDRESS:
+      return i18n.t("Order address has been updated", {
         context: "order history message"
       });
   }
