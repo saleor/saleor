@@ -15,7 +15,7 @@ from prices import TaxedMoneyRange
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
-from ..core.demo_obfuscators import obfuscate_cart, obfuscate_order
+from ..core.demo_obfuscators import obfuscate_checkout, obfuscate_order
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
@@ -948,7 +948,7 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user:
     order = Order.objects.create(**order_data, checkout_token=checkout.token)
 
     # DEMO: anonymize order and cart data
-    obfuscate_cart(cart)
+    obfuscate_checkout(checkout)
     obfuscate_order(order)
 
     # create order lines from checkout lines

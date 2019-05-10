@@ -63,13 +63,13 @@ def obfuscate_string(value):
     return "%s..." % string_rep[:3]
 
 
-def obfuscate_cart(cart):
-    cart.email = obfuscate_email(cart.email)
-    if cart.shipping_address:
-        cart.shipping_address = obfuscate_address(cart.shipping_address)
-    if cart.billing_address:
-        cart.billing_address = obfuscate_address(cart.billing_address)
-    cart.save()
+def obfuscate_checkout(checkout):
+    checkout.email = obfuscate_email(checkout.email)
+    if checkout.shipping_address:
+        checkout.shipping_address = obfuscate_address(checkout.shipping_address)
+    if checkout.billing_address:
+        checkout.billing_address = obfuscate_address(checkout.billing_address)
+    checkout.save()
 
 
 def obfuscate_order(order):
