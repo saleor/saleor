@@ -183,6 +183,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 add_variant_to_checkout(instance, variant, quantity)
 
     @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         user = info.context.user
 
@@ -223,6 +228,11 @@ class CheckoutLinesAdd(BaseMutation):
         description = "Adds a checkout line to the existing checkout."
 
     @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
@@ -260,6 +270,11 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         description = "Updates CheckoutLine in the existing Checkout."
 
     @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
+
+    @classmethod
     def perform_mutation(cls, root, info, checkout_id, lines):
         return super().perform_mutation(root, info, checkout_id, lines, replace=True)
 
@@ -273,6 +288,11 @@ class CheckoutLineDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a CheckoutLine."
+
+    @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, line_id):
@@ -312,6 +332,11 @@ class CheckoutCustomerAttach(BaseMutation):
         description = "Sets the customer as the owner of the Checkout."
 
     @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, customer_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
@@ -332,6 +357,11 @@ class CheckoutCustomerDetach(BaseMutation):
 
     class Meta:
         description = "Removes the user assigned as the owner of the checkout."
+
+    @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id):
@@ -355,6 +385,11 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     class Meta:
         description = "Update shipping address in the existing Checkout."
+
+    @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
@@ -396,6 +431,11 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         description = "Update billing address in the existing Checkout."
 
     @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, billing_address):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
@@ -421,6 +461,11 @@ class CheckoutEmailUpdate(BaseMutation):
         description = "Updates email address in the existing Checkout object."
 
     @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, email):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
@@ -441,6 +486,11 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     class Meta:
         description = "Updates the shipping address of the checkout."
+
+    @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
@@ -488,6 +538,13 @@ class CheckoutComplete(BaseMutation):
         )
 
     @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        if cls._meta.permissions:
+            return user.has_perms(cls._meta.permissions)
+        return True
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
@@ -526,6 +583,11 @@ class CheckoutUpdateVoucher(BaseMutation):
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID", required=True)
         voucher_code = graphene.String(description="Voucher code")
+
+    @classmethod
+    def check_permissions(cls, user):
+        # DEMO: override this function to reenable this mutation
+        return True
 
     class Meta:
         description = (

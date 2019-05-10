@@ -194,15 +194,15 @@ class BaseMutation(graphene.Mutation):
 
         The `user` parameter is the User instance associated with the request.
         """
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         if cls._meta.permissions:
             return user.has_perms(cls._meta.permissions)
         return True
 
     @classmethod
     def mutate(cls, root, info, **data):
-        # DEMO: disable mutations
-        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
-
         if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
