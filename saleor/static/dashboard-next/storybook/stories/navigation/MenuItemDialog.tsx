@@ -1,12 +1,12 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import MenuCreateItemDialog, {
-  MenuCreateItemDialogProps
-} from "../../../navigation/components/MenuCreateItemDialog";
+import MenuItemDialog, {
+  MenuItemDialogProps
+} from "../../../navigation/components/MenuItemDialog";
 import Decorator from "../../Decorator";
 
-const props: MenuCreateItemDialogProps = {
+const props: MenuItemDialogProps = {
   categories: [
     {
       __typename: "Category",
@@ -31,4 +31,4 @@ const props: MenuCreateItemDialogProps = {
 
 storiesOf("Navigation / Menu item create", module)
   .addDecorator(Decorator)
-  .add("default", () => <MenuCreateItemDialog {...props} />);
+  .add("default", () => <MenuItemDialog {...props} />);

@@ -13,6 +13,8 @@ const props: MenuDetailsPageProps = {
   onBack: () => undefined,
   onDelete: () => undefined,
   onItemAdd: () => undefined,
+  onItemClick: () => undefined,
+  onItemEdit: () => undefined,
   onSubmit: () => undefined,
   saveButtonState: "default"
 };

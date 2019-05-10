@@ -22,7 +22,7 @@ import useTheme from "../../../hooks/useTheme";
 import i18n from "../../../i18n";
 import Draggable from "../../../icons/Draggable";
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
-import { MenuItemType } from "../MenuCreateItemDialog";
+import { MenuItemType } from "../MenuItemDialog";
 import { getDiff, getNodeData, getNodeQuantity, TreeOperation } from "./tree";
 
 const NODE_HEIGHT = 56;
@@ -186,7 +186,7 @@ const Node = withStyles(styles, {
             onClick={() =>
               node.onChange({
                 id: node.id as any,
-                operation: "remove"
+                type: "remove"
               })
             }
           >
