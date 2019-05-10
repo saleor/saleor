@@ -216,7 +216,7 @@ def fulfillment_tracking_updated_event(
 
 
 def order_note_added_event(*, order: Order, user: UserType, message: str):
-    if not user.is_staff:
+    if order.user.pk == user.pk:
         customer_events.customer_added_to_note_order_event(
             user=user, order=order, message=message
         )

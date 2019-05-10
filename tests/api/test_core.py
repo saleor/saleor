@@ -12,7 +12,12 @@ from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.core.filters import EnumFilter
 from saleor.graphql.core.mutations import BaseMutation
 from saleor.graphql.core.types import FilterInputObjectType
-from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
+from saleor.graphql.core.utils import (
+    clean_seo_fields,
+    lazy_resolve,
+    snake_to_camel_case,
+)
+from saleor.graphql.order import types as order_types
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id, reporting_period_to_date
 from saleor.product.models import Product
@@ -301,3 +306,7 @@ def test_verify_token_incorrect_token(api_client):
     response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
     content = get_graphql_content(response)
     assert not content["data"]["tokenVerify"]
+
+
+def test_lazy_object_resolver():
+    assert lazy_resolve("order.types:OrderLine")() is order_types.OrderLine

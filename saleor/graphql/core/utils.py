@@ -1,3 +1,6 @@
+import importlib
+from typing import Callable
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -36,3 +39,18 @@ def from_global_id_strict_type(info, global_id, only_type, field="id"):
     if graphene_type != only_type:
         raise ValidationError({field: "Couldn't resolve to a node: %s" % global_id})
     return _id
+
+
+def lazy_resolve(name) -> Callable:
+    """Lazy import a graphql object when facing circular imports issues.
+
+    >>> # Request the saleor.graphql.order.types.OrderLine object
+    >>> OrderLine = lazy_resolve('order.types:OrderLine')()"""
+
+    import_name, object_name = name.split(":")
+
+    def _lazy_resolve():
+        imported_module = importlib.import_module(f"...{import_name}", package=__name__)
+        return getattr(imported_module, object_name)
+
+    return _lazy_resolve
