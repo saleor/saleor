@@ -107,6 +107,7 @@ const TextFieldWithChoice = withStyles(styles, {
                                 {ChoiceProps.values.map(choice => (
                                   <MenuItem
                                     onClick={() => handleSelect(choice.value)}
+                                    key={choice.value}
                                   >
                                     {choice.label}
                                   </MenuItem>

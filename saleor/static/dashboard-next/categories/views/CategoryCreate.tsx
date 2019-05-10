@@ -29,10 +29,15 @@ export const CategoryCreateView: React.StatelessComponent<
   return (
     <TypedCategoryCreateMutation onCompleted={handleSuccess}>
       {(createCategory, createCategoryResult) => {
+        const errors = maybe(
+          () => createCategoryResult.data.categoryCreate.errors,
+          []
+        );
+
         const formTransitionState = getMutationState(
           createCategoryResult.called,
           createCategoryResult.loading,
-          maybe(() => createCategoryResult.data.categoryCreate.errors)
+          errors
         );
 
         return (
@@ -40,10 +45,7 @@ export const CategoryCreateView: React.StatelessComponent<
             <WindowTitle title={i18n.t("Create category")} />
             <CategoryCreatePage
               saveButtonBarState={formTransitionState}
-              errors={maybe(
-                () => createCategoryResult.data.categoryCreate.errors,
-                []
-              )}
+              errors={errors}
               disabled={createCategoryResult.loading}
               onBack={() =>
                 navigate(parentId ? categoryUrl(parentId) : categoryListUrl())
