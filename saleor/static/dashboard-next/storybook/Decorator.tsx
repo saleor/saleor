@@ -24,7 +24,7 @@ const DecoratorComponent: React.FC<{ story: any }> = ({ story }) => {
                     padding: 24
                   }}
                 >
-                  {story}
+                  <div style={{ flexGrow: 1 }}>{story}</div>
                 </div>
                 <div
                   style={{
