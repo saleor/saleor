@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0062_sortable_models'),
-    ]
+    dependencies = [("product", "0062_sortable_models")]
 
     operations = [
         migrations.AlterField(
-            model_name='attributechoicevalue',
-            name='sort_order',
+            model_name="attributechoicevalue",
+            name="sort_order",
             field=models.PositiveIntegerField(db_index=True, editable=False),
-        ),
+        )
     ]

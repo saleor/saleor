@@ -1,12 +1,11 @@
 import graphene
 
 from ...checkout import AddressType
+from ...graphql.core.enums import to_enum
 
-AddressTypeEnum = graphene.Enum(
-    'AddressTypeEnum',
-    [(code.upper(), code) for code, name in AddressType.CHOICES])
+AddressTypeEnum = to_enum(AddressType, type_name="AddressTypeEnum")
 
 
 class StaffMemberStatus(graphene.Enum):
-    ACTIVE = 'active'
-    DEACTIVATED = 'deactivated'
+    ACTIVE = "active"
+    DEACTIVATED = "deactivated"

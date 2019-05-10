@@ -1258,7 +1258,7 @@ type Mutations {
   tokenCreate(email: String!, password: String!): CreateToken
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
-  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID): CheckoutBillingAddressUpdate
+  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
@@ -1268,7 +1268,7 @@ type Mutations {
   checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
-  checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
+  checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   passwordReset(email: String!): PasswordReset
@@ -1410,16 +1410,20 @@ input OrderDraftFilterInput {
 type OrderEvent implements Node {
   id: ID!
   date: DateTime
-  type: OrderEvents
+  type: OrderEventsEnum
   user(id: ID): User
   message: String
   email: String
-  emailType: OrderEventsEmails
+  emailType: OrderEventsEmailsEnum
   amount: Float
+  paymentId: String
+  paymentGateway: String
   quantity: Int
   composedId: String
   orderNumber: String
   oversoldItems: [String]
+  lines: [OrderEventLineObject]
+  fulfilledItems: [OrderEventLineObject]
 }
 
 type OrderEventCountableConnection {
@@ -1433,18 +1437,36 @@ type OrderEventCountableEdge {
   cursor: String!
 }
 
-enum OrderEvents {
+type OrderEventLineObject {
+  quantity: Int
+  item: String
+}
+
+enum OrderEventsEmailsEnum {
+  PAYMENT_CONFIRMATION
+  SHIPPING_CONFIRMATION
+  TRACKING_UPDATED
+  ORDER_CONFIRMATION
+  FULFILLMENT_CONFIRMATION
+  DIGITAL_LINKS
+}
+
+enum OrderEventsEnum {
+  DRAFT_CREATED
+  DRAFT_ADDED_PRODUCTS
+  DRAFT_REMOVED_PRODUCTS
   PLACED
   PLACED_FROM_DRAFT
   OVERSOLD_ITEMS
-  ORDER_MARKED_AS_PAID
   CANCELED
+  ORDER_MARKED_AS_PAID
   ORDER_FULLY_PAID
-  UPDATED
+  UPDATED_ADDRESS
   EMAIL_SENT
   PAYMENT_CAPTURED
   PAYMENT_REFUNDED
   PAYMENT_VOIDED
+  PAYMENT_FAILED
   FULFILLMENT_CANCELED
   FULFILLMENT_RESTOCKED_ITEMS
   FULFILLMENT_FULFILLED_ITEMS
@@ -1453,16 +1475,9 @@ enum OrderEvents {
   OTHER
 }
 
-enum OrderEventsEmails {
-  PAYMENT
-  SHIPPING
-  ORDER
-  FULFILLMENT
-}
-
 input OrderFilterInput {
-  paymentStatus: PaymentChargeStatusEnum
-  status: OrderStatusFilter
+  paymentStatus: [PaymentChargeStatusEnum]
+  status: [OrderStatusFilter]
   customer: String
   created: DateRangeInput
 }
@@ -2198,7 +2213,7 @@ type SaleDelete {
 }
 
 input SaleFilterInput {
-  status: DiscountStatusEnum
+  status: [DiscountStatusEnum]
   saleType: DiscountValueTypeEnum
   started: DateRangeInput
   search: String
@@ -2770,9 +2785,9 @@ enum VoucherDiscountValueType {
 }
 
 input VoucherFilterInput {
-  status: DiscountStatusEnum
+  status: [DiscountStatusEnum]
   timesUsed: IntRangeInput
-  discountType: VoucherDiscountType
+  discountType: [VoucherDiscountType]
   started: DateRangeInput
   search: String
 }

@@ -1,4 +1,4 @@
-import { OrderEvents } from "../types/globalTypes";
+import { OrderEventsEnum } from "../types/globalTypes";
 import { Home } from "./types/Home";
 
 export const shop: (placeholderImage: string) => Home = (
@@ -21,7 +21,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED_FROM_DRAFT,
+          type: OrderEventsEnum.PLACED_FROM_DRAFT,
           user: {
             __typename: "User",
             email: "admin@example.com",
@@ -43,7 +43,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED,
+          type: OrderEventsEnum.PLACED,
           user: null
         }
       },
@@ -61,7 +61,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.ORDER_FULLY_PAID,
+          type: OrderEventsEnum.ORDER_FULLY_PAID,
           user: null
         }
       },
@@ -79,7 +79,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED_FROM_DRAFT,
+          type: OrderEventsEnum.PLACED_FROM_DRAFT,
           user: {
             __typename: "User",
             email: "admin@example.com",
@@ -101,7 +101,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED_FROM_DRAFT,
+          type: OrderEventsEnum.PLACED_FROM_DRAFT,
           user: {
             __typename: "User",
             email: "admin@example.com",
@@ -123,7 +123,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED_FROM_DRAFT,
+          type: OrderEventsEnum.PLACED_FROM_DRAFT,
           user: {
             __typename: "User",
             email: "admin@example.com",
@@ -145,7 +145,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED_FROM_DRAFT,
+          type: OrderEventsEnum.PLACED_FROM_DRAFT,
           user: {
             __typename: "User",
             email: "admin@example.com",
@@ -167,7 +167,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED,
+          type: OrderEventsEnum.PLACED,
           user: null
         }
       },
@@ -185,7 +185,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED_FROM_DRAFT,
+          type: OrderEventsEnum.PLACED_FROM_DRAFT,
           user: {
             __typename: "User",
             email: "admin@example.com",
@@ -207,7 +207,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED,
+          type: OrderEventsEnum.PLACED,
           user: null
         }
       },
@@ -225,7 +225,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.PLACED,
+          type: OrderEventsEnum.PLACED,
           user: null
         }
       },
@@ -243,7 +243,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.ORDER_FULLY_PAID,
+          type: OrderEventsEnum.ORDER_FULLY_PAID,
           user: null
         }
       },
@@ -261,7 +261,7 @@ export const shop: (placeholderImage: string) => Home = (
           orderNumber: "15",
           oversoldItems: null,
           quantity: null,
-          type: OrderEvents.ORDER_FULLY_PAID,
+          type: OrderEventsEnum.ORDER_FULLY_PAID,
           user: null
         }
       }

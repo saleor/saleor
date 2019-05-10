@@ -7,13 +7,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0015_transfer_locations'),
-    ]
+    dependencies = [("product", "0015_transfer_locations")]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='stock',
-            unique_together=set([('variant', 'location_link')]),
-        ),
+            name="stock", unique_together=set([("variant", "location_link")])
+        )
     ]

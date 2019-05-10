@@ -5,13 +5,17 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('account', '0022_auto_20180718_0956'),
-    ]
+    dependencies = [("account", "0022_auto_20180718_0956")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='user',
-            options={'permissions': (('manage_users', 'Manage customers.'), ('manage_staff', 'Manage staff.'), ('impersonate_users', 'Impersonate customers.'))},
-        ),
+            name="user",
+            options={
+                "permissions": (
+                    ("manage_users", "Manage customers."),
+                    ("manage_staff", "Manage staff."),
+                    ("impersonate_users", "Impersonate customers."),
+                )
+            },
+        )
     ]
