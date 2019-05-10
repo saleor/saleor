@@ -17,24 +17,52 @@ import MenuCreateItemDialog, {
 import MenuDetailsPage, {
   MenuDetailsSubmitData
 } from "../components/MenuDetailsPage";
-import { unknownTypeError } from "../components/MenuItems";
+import { findNode, getNode } from "../components/MenuDetailsPage/tree";
+import {
+  getItemId,
+  getItemType,
+  unknownTypeError
+} from "../components/MenuItems";
 import {
   MenuDeleteMutation,
   MenuItemCreateMutation,
+  MenuItemUpdateMutation,
   MenuUpdateMutation
 } from "../mutations";
 import { MenuDetailsQuery } from "../queries";
 import { MenuDelete } from "../types/MenuDelete";
+import { MenuDetails_menu_items } from "../types/MenuDetails";
 import {
   MenuItemCreate,
   MenuItemCreateVariables
 } from "../types/MenuItemCreate";
+import {
+  MenuItemUpdate,
+  MenuItemUpdateVariables
+} from "../types/MenuItemUpdate";
 import { MenuUpdate } from "../types/MenuUpdate";
 import { menuListUrl, menuUrl, MenuUrlQueryParams } from "../urls";
 
 interface MenuDetailsProps {
   id: string;
   params: MenuUrlQueryParams;
+}
+
+function getInitialDisplayValue(item: MenuDetails_menu_items): string {
+  if (!item) {
+    return "...";
+  }
+  if (item.category) {
+    return item.category.name;
+  } else if (item.collection) {
+    return item.collection.name;
+  } else if (item.page) {
+    return item.page.title;
+  } else if (item.url) {
+    return item.url;
+  } else {
+    throw unknownTypeError;
+  }
 }
 
 const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
@@ -59,6 +87,22 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
           context: "notification"
         })
       });
+    }
+  };
+
+  const handleItemUpdate = (data: MenuItemUpdate) => {
+    if (data.menuItemUpdate.errors.length === 0) {
+      notify({
+        text: i18n.t("Updated menu item", {
+          context: "notification"
+        })
+      });
+      navigate(
+        menuUrl(id, {
+          action: undefined,
+          id: undefined
+        })
+      );
     }
   };
 
@@ -183,6 +227,14 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                           )
                         }
                         onItemClick={handleItemClick}
+                        onItemEdit={itemId =>
+                          navigate(
+                            menuUrl(id, {
+                              action: "edit-item",
+                              id: itemId
+                            })
+                          )
+                        }
                         onSubmit={handleSubmit}
                         saveButtonState={updateState}
                       />
@@ -293,6 +345,113 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                           );
                         }}
                       </MenuItemCreateMutation>
+                      <MenuItemUpdateMutation onCompleted={handleItemUpdate}>
+                        {(menuItemUpdate, menuItemUpdateOpts) => {
+                          const handleSubmit = (
+                            data: MenuCreateItemDialogFormData
+                          ) => {
+                            const variables: MenuItemUpdateVariables = {
+                              id: params.id,
+                              input: {
+                                name: data.name
+                              }
+                            };
+                            switch (data.type) {
+                              case "category":
+                                variables.input.category = data.id;
+                                break;
+
+                              case "collection":
+                                variables.input.collection = data.id;
+                                break;
+
+                              case "link":
+                                variables.input.url = data.id;
+                                break;
+
+                              default:
+                                throw unknownTypeError;
+                                break;
+                            }
+                            menuItemUpdate({ variables });
+                          };
+
+                          const menuItem = maybe(() =>
+                            getNode(
+                              data.menu.items,
+                              findNode(data.menu.items, params.id)
+                            )
+                          );
+
+                          const formTransitionState = getMutationState(
+                            menuItemUpdateOpts.called,
+                            menuItemUpdateOpts.loading,
+                            maybe(
+                              () =>
+                                menuItemUpdateOpts.data.menuItemUpdate.errors
+                            )
+                          );
+
+                          const initialFormData: MenuCreateItemDialogFormData = {
+                            id: maybe(() => getItemId(menuItem)),
+                            name: maybe(() => menuItem.name, "..."),
+                            type: maybe<MenuItemType>(
+                              () => getItemType(menuItem),
+                              "category"
+                            )
+                          };
+
+                          return (
+                            <CategorySearchProvider>
+                              {categorySearch => (
+                                <CollectionSearchProvider>
+                                  {collectionSearch => {
+                                    const handleQueryChange = (
+                                      query: string
+                                    ) => {
+                                      categorySearch.search(query);
+                                      collectionSearch.search(query);
+                                    };
+
+                                    return (
+                                      <MenuCreateItemDialog
+                                        open={params.action === "edit-item"}
+                                        categories={maybe(
+                                          () =>
+                                            categorySearch.searchOpts.data.categories.edges.map(
+                                              edge => edge.node
+                                            ),
+                                          []
+                                        )}
+                                        collections={maybe(
+                                          () =>
+                                            collectionSearch.searchOpts.data.collections.edges.map(
+                                              edge => edge.node
+                                            ),
+                                          []
+                                        )}
+                                        initial={initialFormData}
+                                        initialDisplayValue={getInitialDisplayValue(
+                                          menuItem
+                                        )}
+                                        loading={
+                                          categorySearch.searchOpts.loading ||
+                                          collectionSearch.searchOpts.loading
+                                        }
+                                        confirmButtonState={formTransitionState}
+                                        disabled={menuItemUpdateOpts.loading}
+                                        onClose={closeModal}
+                                        onSubmit={handleSubmit}
+                                        onQueryChange={handleQueryChange}
+                                      />
+                                    );
+                                  }}
+                                </CollectionSearchProvider>
+                              )}
+                            </CategorySearchProvider>
+                          );
+                        }}
+                      </MenuItemUpdateMutation>
                     </>
                   );
                 }}
