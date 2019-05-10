@@ -27,6 +27,7 @@ coverage/
 dist/
 *\.egg*
 # data
+/saleor/settings.py
 /docs/_build/
 /media/
 /node_modules/
