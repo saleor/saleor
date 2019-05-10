@@ -161,7 +161,7 @@ class User(CountableDjangoObjectType):
     gift_cards = gql_optimizer.field(
         PrefetchingConnectionField(
             "saleor.graphql.giftcard.types.GiftCard",
-            description="List of user's gift cards.",
+            description="List of the user gift cards.",
         ),
         model_field="gift_cards",
     )
