@@ -26,7 +26,8 @@ const props: MenuItemDialogProps = {
   onClose: () => undefined,
   onQueryChange: () => undefined,
   onSubmit: () => undefined,
-  open: true
+  open: true,
+  pages: []
 };
 
 storiesOf("Navigation / Menu item create", module)
