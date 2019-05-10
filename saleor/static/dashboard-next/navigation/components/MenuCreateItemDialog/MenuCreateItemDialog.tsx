@@ -19,12 +19,7 @@ import { SearchCategories_categories_edges_node } from "../../../containers/Sear
 import { SearchCollections_collections_edges_node } from "../../../containers/SearchCollections/types/SearchCollections";
 import i18n from "../../../i18n";
 
-export type MenuItemType =
-  | "category"
-  | "collection"
-  | "link"
-  | "page"
-  | "product";
+export type MenuItemType = "category" | "collection" | "link" | "page";
 export interface MenuItemData {
   id: string;
   type: MenuItemType;
