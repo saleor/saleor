@@ -63,7 +63,7 @@ braintree = "==3.49.0"
 razorpay = ">=1.1.1"
 stripe = "*"
 "urllib3" = "*"
-"dataclasses" = {version = "*", markers="python_version < '3.7'"}
+dataclasses = {version = "*", markers = "python_version < '3.7'"}
 
 [dev-packages]
 pytest = "*"
@@ -85,3 +85,5 @@ yapf = "*"
 django-extensions = "*"
 pylint-plugin-utils = "*"
 transifex-client = "*"
+black = "==19.3b0"
+pre-commit = "*"

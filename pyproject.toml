@@ -1,0 +1,26 @@
+[tool.black]
+target_version = ['py35', 'py36', 'py37', 'py38']
+include = '\.pyi?$'
+exclude = '''
+/(\.git/
+  |\.eggs
+  |\.hg
+  |__pycache__
+  |\.cache
+  |\.ipynb_checkpoints
+  |\.mypy_cache
+  |\.pytest_cache
+  |\.tox
+  |\.venv
+  |node_modules
+  |_build
+  |buck-out
+  |build
+  |dist
+  |media
+  |infrastructure
+  |templates
+  |locale
+  |docs
+)/
+'''

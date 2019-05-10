@@ -7,11 +7,11 @@ from ...core.connection import CountableDjangoObjectType
 
 
 class DigitalContentUrl(CountableDjangoObjectType):
-    url = graphene.String(description='Url for digital content')
+    url = graphene.String(description="Url for digital content")
 
     class Meta:
         model = models.DigitalContentUrl
-        only_fields = ['content', 'created', 'download_num', 'token', 'url']
+        only_fields = ["content", "created", "download_num", "token", "url"]
         interfaces = (relay.Node,)
 
     def resolve_url(self, *_args):
@@ -22,15 +22,22 @@ class DigitalContent(CountableDjangoObjectType):
     urls = gql_optimizer.field(
         graphene.List(
             lambda: DigitalContentUrl,
-            description='List of urls for the digital variant'),
-        model_field='urls')
+            description="List of urls for the digital variant",
+        ),
+        model_field="urls",
+    )
 
     class Meta:
         model = models.DigitalContent
         only_fields = [
-            'automatic_fulfillment', 'content_file', 'max_downloads',
-            'product_variant', 'url_valid_days', 'urls',
-            'use_default_settings']
+            "automatic_fulfillment",
+            "content_file",
+            "max_downloads",
+            "product_variant",
+            "url_valid_days",
+            "urls",
+            "use_default_settings",
+        ]
         interfaces = (relay.Node,)
 
     def resolve_urls(self, info, **_kwargs):

@@ -1,15 +1,11 @@
-from celery import shared_task
-
+from ..celeryconf import app
 from ..core.utils import create_thumbnails
 from .models import User
 
 
-@shared_task
+@app.task
 def create_user_avatar_thumbnails(user_id):
     """Creates thumbnails for user avatar."""
     create_thumbnails(
-        pk=user_id,
-        model=User,
-        size_set='user_avatars',
-        image_attr='avatar',
+        pk=user_id, model=User, size_set="user_avatars", image_attr="avatar"
     )

@@ -5,8 +5,8 @@ autopep8==1.4.4
 babel==2.6.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.143
-botocore==1.12.143
+boto3==1.9.145
+botocore==1.12.145
 braintree==3.49.0
 cairocffi==1.0.2
 cairosvg==2.3.1
@@ -30,7 +30,7 @@ django-debug-toolbar==1.11
 django-elasticsearch-dsl==0.5.1
 django-filter==2.1.0
 django-graphql-jwt==0.2.1
-django-impersonate==1.4
+django-impersonate==1.4.1
 django-js-asset==1.2.2
 django-measurement==3.0.0
 django-mptt==0.10.0
@@ -40,7 +40,7 @@ django-prices-vatlayer==1.0.2
 django-prices==1.0.4
 django-recaptcha==1.5.0
 django-redis==4.10.0
-django-render-block==0.5
+django-render-block==0.6
 django-silk==2.0.0
 django-storages==1.7.1
 django-templated-email==2.3.0
@@ -50,7 +50,7 @@ django==2.2.1
 docutils==0.14
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
-faker==1.0.5
+faker==1.0.6
 freezegun==0.3.11
 google-i18n-address==2.3.4
 google-measurement-protocol==1.0.0
@@ -82,7 +82,7 @@ psycopg2-binary==2.8.2
 purl==1.5
 pycodestyle==2.5.0
 pycparser==2.19
-pygments==2.3.1
+pygments==2.4.0
 pyjwt==1.7.1
 pyphen==0.9.5
 python-dateutil==2.8.0 ; python_version >= '2.7'
