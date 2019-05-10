@@ -186,11 +186,9 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                               sortOrder: move.sortOrder
                             })),
                           name: data.name,
-                          removeIds:
-                            console.log(data.operations) ||
-                            data.operations
-                              .filter(operation => operation.type === "remove")
-                              .map(operation => operation.id)
+                          removeIds: data.operations
+                            .filter(operation => operation.type === "remove")
+                            .map(operation => operation.id)
                         }
                       });
                       if (result) {
