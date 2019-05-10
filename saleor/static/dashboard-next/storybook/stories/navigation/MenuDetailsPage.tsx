@@ -22,4 +22,13 @@ storiesOf("Views / Navigation / Menu details", module)
   .add("default", () => <MenuDetailsPage {...props} />)
   .add("loading", () => (
     <MenuDetailsPage {...props} disabled={true} menu={undefined} />
+  ))
+  .add("no data", () => (
+    <MenuDetailsPage
+      {...props}
+      menu={{
+        ...props.menu,
+        items: []
+      }}
+    />
   ));
