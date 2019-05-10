@@ -60,6 +60,7 @@ export interface OrderDetailsPageProps extends WithStyles<typeof styles> {
   onShippingAddressEdit();
   onOrderCancel();
   onNoteAdd(data: HistoryFormData);
+  onProfileView();
 }
 
 const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
@@ -77,7 +78,8 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
     onPaymentPaid,
     onPaymentRefund,
     onPaymentVoid,
-    onShippingAddressEdit
+    onShippingAddressEdit,
+    onProfileView
   }: OrderDetailsPageProps) => {
     const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
     const canEditAddresses = maybe(() => order.status) !== OrderStatus.CANCELED;
@@ -162,6 +164,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
               order={order}
               onBillingAddressEdit={onBillingAddressEdit}
               onShippingAddressEdit={onShippingAddressEdit}
+              onProfileView={onProfileView}
             />
             <CardSpacer />
             <OrderCustomerNote note={maybe(() => order.customerNote)} />

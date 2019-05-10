@@ -227,12 +227,12 @@ const AppLayout = withStyles(styles, {
 
       return (
         <AppProgressProvider>
-          {({ value: isProgressVisible }) => (
+          {({ isProgress }) => (
             <AppHeaderContext.Provider value={appHeaderAnchor}>
               <AppActionContext.Provider value={appActionAnchor}>
                 <LinearProgress
                   className={classNames(classes.appLoader, {
-                    [classes.hide]: !isProgressVisible
+                    [classes.hide]: !isProgress
                   })}
                   color="primary"
                 />

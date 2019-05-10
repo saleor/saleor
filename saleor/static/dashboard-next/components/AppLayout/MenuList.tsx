@@ -8,14 +8,13 @@ import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
 import * as React from "react";
 import { matchPath } from "react-router";
-import * as urlJoin from "url-join";
 
-import { appMountPoint } from "../..";
 import { User } from "../../auth/types/User";
 import { configurationMenu, configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
+import { createHref } from "../../misc";
 import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
-import Toggle from "../Toggle";
+import MenuNested from "./MenuNested";
 import { IMenuItem } from "./menuStructure";
 
 const styles = (theme: Theme) =>
@@ -122,37 +121,17 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             (acc, child) => acc || isActive(child),
             false
           );
+
           return (
-            <Toggle key={menuItem.label} initial={isAnyChildActive}>
-              {(openedMenu, { toggle: toggleMenu }) => (
-                <>
-                  <div
-                    onClick={toggleMenu}
-                    className={classNames(classes.menuListItem, {
-                      [classes.menuListItemActive]: isAnyChildActive
-                    })}
-                  >
-                    <Typography
-                      aria-label={menuItem.ariaLabel}
-                      className={classes.menuListItemText}
-                    >
-                      {menuItem.label}
-                    </Typography>
-                    {openedMenu && (
-                      <div className={classes.menuListNested}>
-                        <MenuList
-                          menuItems={menuItem.children}
-                          location={location}
-                          user={user}
-                          renderConfigure={false}
-                          onMenuItemClick={onMenuItemClick}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </Toggle>
+            <MenuNested
+              classes={classes}
+              isAnyChildActive={isAnyChildActive}
+              location={location}
+              menuItem={menuItem}
+              onMenuItemClick={onMenuItemClick}
+              user={user}
+              key={menuItem.label}
+            />
           );
         }
 
@@ -161,7 +140,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             className={classNames(classes.menuListItem, {
               [classes.menuListItemActive]: isActive(menuItem)
             })}
-            href={urlJoin(appMountPoint, menuItem.url)}
+            href={createHref(menuItem.url)}
             onClick={event => onMenuItemClick(menuItem.url, event)}
             key={menuItem.label}
           >
@@ -180,7 +159,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
         ).length > 0 && (
           <a
             className={classes.menuListItem}
-            href={urlJoin(appMountPoint, configurationMenuUrl)}
+            href={createHref(configurationMenuUrl)}
             onClick={event => onMenuItemClick(configurationMenuUrl, event)}
           >
             <Typography
