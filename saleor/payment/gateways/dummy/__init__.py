@@ -1,14 +1,10 @@
 import uuid
-from typing import Dict
 
 from ... import ChargeStatus, TransactionKind
-from ...interface import GatewayResponse, PaymentData
+from ...interface import ConfigData, GatewayResponse, PaymentData
 from .forms import DummyPaymentForm
 
-TEMPLATE_PATH = 'order/payment/dummy.html'
-
-# The gateway does not support payment authorization
-SUPPORTS_AUTHORIZATION = False
+TEMPLATE_PATH = "order/payment/dummy.html"
 
 
 def dummy_success():
@@ -23,51 +19,43 @@ def create_form(data, payment_information, connection_params):
     return DummyPaymentForm(data=data)
 
 
-def authorize(
-        payment_information: PaymentData, connection_params) -> GatewayResponse:
+def authorize(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
     success = dummy_success()
     error = None
     if not success:
-        error = 'Unable to authorize transaction'
+        error = "Unable to authorize transaction"
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.AUTH,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token,
-        error=error
+        error=error,
     )
 
 
-def void(
-        payment_information: PaymentData, connection_params) -> GatewayResponse:
+def void(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
     error = None
     success = dummy_success()
     if not success:
-        error = 'Unable to void the transaction.'
+        error = "Unable to void the transaction."
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.VOID,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token,
-        error=error
+        error=error,
     )
 
 
-def capture(
-        payment_information: PaymentData, connection_params
-) -> GatewayResponse:
-    """Performs Authorize and Capture transactions in a single run."""
-    if not SUPPORTS_AUTHORIZATION:
-        auth_resp = authorize(payment_information, connection_params)
-        if not auth_resp.is_success:
-            return auth_resp
+def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+    """Perform capture transaction."""
 
     error = None
     success = dummy_success()
     if not success:
-        error = 'Unable to process capture'
+        error = "Unable to process capture"
 
     return GatewayResponse(
         is_success=success,
@@ -75,45 +63,43 @@ def capture(
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token,
-        error=error
+        error=error,
     )
 
 
-def refund(
-        payment_information: PaymentData, connection_params: Dict
-) -> GatewayResponse:
+def refund(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
     error = None
     success = dummy_success()
     if not success:
-        error = 'Unable to process refund'
+        error = "Unable to process refund"
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.REFUND,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token,
-        error=error
+        error=error,
     )
 
 
 def process_payment(
-        payment_information: PaymentData, connection_params
+    payment_information: PaymentData, config: ConfigData
 ) -> GatewayResponse:
     """Process the payment."""
     token = payment_information.token
 
     # Process payment normally if payment token is valid
     if token not in dict(ChargeStatus.CHOICES):
-        return capture(payment_information, connection_params)
+        return capture(payment_information, config)
 
     # Process payment by charge status which is selected in the payment form
     # Note that is for testing by dummy gateway only
     charge_status = token
-    authorize_response = authorize(payment_information, connection_params)
+    authorize_response = authorize(payment_information, config)
     if charge_status == ChargeStatus.NOT_CHARGED:
         return authorize_response
 
-    capture_response = capture(payment_information, connection_params)
+    capture_response = capture(payment_information, config)
     if charge_status == ChargeStatus.FULLY_REFUNDED:
-        return refund(payment_information, connection_params)
+        return refund(payment_information, config)
     return capture_response
