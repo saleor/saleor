@@ -1,8 +1,8 @@
 import * as React from "react";
-import Navigator from "../components/Navigator";
 
-import { UserContext } from "../auth";
 import { WindowTitle } from "../components/WindowTitle";
+import useNavigator from "../hooks/useNavigator";
+import useUser from "../hooks/useUser";
 import i18n from "../i18n";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
@@ -11,6 +11,7 @@ import ShippingMethods from "../icons/ShippingMethods";
 import SiteSettings from "../icons/SiteSettings";
 import StaffMembers from "../icons/StaffMembers";
 import Taxes from "../icons/Taxes";
+import { maybe } from "../misc";
 import { pageListUrl } from "../pages/urls";
 import { productTypeListUrl } from "../productTypes/urls";
 import { shippingZonesListUrl } from "../shipping/urls";
@@ -73,22 +74,19 @@ export const configurationMenu: MenuItem[] = [
 
 export const configurationMenuUrl = "/configuration/";
 
-export const ConfigurationSection: React.StatelessComponent = () => (
-  <UserContext.Consumer>
-    {({ user }) => (
-      <Navigator>
-        {navigate => (
-          <>
-            <WindowTitle title={i18n.t("Configuration")} />
-            <ConfigurationPage
-              menu={configurationMenu}
-              user={user}
-              onSectionClick={navigate}
-            />
-          </>
-        )}
-      </Navigator>
-    )}
-  </UserContext.Consumer>
-);
+export const ConfigurationSection: React.StatelessComponent = () => {
+  const navigate = useNavigator();
+  const user = useUser();
+
+  return (
+    <>
+      <WindowTitle title={i18n.t("Configuration")} />
+      <ConfigurationPage
+        menu={configurationMenu}
+        user={maybe(() => user.user)}
+        onSectionClick={navigate}
+      />
+    </>
+  );
+};
 export default ConfigurationSection;

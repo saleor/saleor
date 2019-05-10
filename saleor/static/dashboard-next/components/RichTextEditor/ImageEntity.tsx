@@ -15,8 +15,6 @@ import { ContentState } from "draft-js";
 import * as React from "react";
 
 import i18n from "../../i18n";
-import Anchor from "../Anchor";
-import Toggle from "../Toggle";
 
 interface ImageEntityProps {
   children: React.ReactNode;
@@ -56,63 +54,60 @@ const ImageEntity = withStyles(styles, {
     entityKey,
     onEdit,
     onRemove
-  }: ImageEntityProps & WithStyles<typeof styles>) => (
-    <Toggle>
-      {(isOpened, { disable, toggle }) => (
-        <>
-          <Anchor>
-            {anchor => (
-              <div className={classes.anchor} ref={anchor}>
-                <Popper
-                  open={isOpened}
-                  anchorEl={anchor.current}
-                  transition
-                  disablePortal
-                  placement="bottom"
-                >
-                  {({ TransitionProps, placement }) => (
-                    <Grow
-                      {...TransitionProps}
-                      style={{
-                        transformOrigin: placement
-                      }}
-                    >
-                      <Paper className={classes.root}>
-                        <ClickAwayListener
-                          onClickAway={disable}
-                          mouseEvent="onClick"
-                        >
-                          <div className={classes.container}>
-                            <Button
-                              onClick={() => {
-                                disable();
-                                onEdit(entityKey);
-                              }}
-                              color="primary"
-                              variant="flat"
-                            >
-                              {i18n.t("Replace")}
-                            </Button>
-                            <IconButton onClick={() => onRemove(entityKey)}>
-                              <DeleteIcon color="primary" />
-                            </IconButton>
-                          </div>
-                        </ClickAwayListener>
-                      </Paper>
-                    </Grow>
-                  )}
-                </Popper>
-              </div>
+  }: ImageEntityProps & WithStyles<typeof styles>) => {
+    const [isOpened, setOpenStatus] = React.useState(false);
+    const anchor = React.useRef<HTMLDivElement>();
+
+    const disable = () => setOpenStatus(false);
+    const toggle = () => setOpenStatus(!isOpened);
+
+    return (
+      <>
+        <div className={classes.anchor} ref={anchor}>
+          <Popper
+            open={isOpened}
+            anchorEl={anchor.current}
+            transition
+            disablePortal
+            placement="bottom"
+          >
+            {({ TransitionProps, placement }) => (
+              <Grow
+                {...TransitionProps}
+                style={{
+                  transformOrigin: placement
+                }}
+              >
+                <Paper className={classes.root}>
+                  <ClickAwayListener onClickAway={disable} mouseEvent="onClick">
+                    <div className={classes.container}>
+                      <Button
+                        onClick={() => {
+                          disable();
+                          onEdit(entityKey);
+                        }}
+                        color="primary"
+                        variant="flat"
+                      >
+                        {i18n.t("Replace")}
+                      </Button>
+                      <IconButton onClick={() => onRemove(entityKey)}>
+                        <DeleteIcon color="primary" />
+                      </IconButton>
+                    </div>
+                  </ClickAwayListener>
+                </Paper>
+              </Grow>
             )}
-          </Anchor>
-          <img
-            className={classes.image}
-            src={contentState.getEntity(entityKey).getData().href}
-            onClick={toggle}
-          />
-        </>
-      )}
-    </Toggle>
-  )
+          </Popper>
+        </div>
+        <img
+          className={classes.image}
+          src={contentState.getEntity(entityKey).getData().href}
+          onClick={toggle}
+        />
+      </>
+    );
+  }
 );
 export default ImageEntity;

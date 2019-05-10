@@ -16,6 +16,7 @@ const props: Omit<OrderCustomerProps, "classes"> = {
   fetchUsers: () => undefined,
   onBillingAddressEdit: undefined,
   onCustomerEdit: undefined,
+  onProfileView: () => undefined,
   onShippingAddressEdit: undefined,
   order,
   users: clients
