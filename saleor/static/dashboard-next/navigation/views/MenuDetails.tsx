@@ -10,14 +10,14 @@ import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { CategorySearchProvider } from "../../products/containers/CategorySearch";
 import { CollectionSearchProvider } from "../../products/containers/CollectionSearch";
-import MenuCreateItemDialog, {
-  MenuCreateItemDialogFormData,
-  MenuItemType
-} from "../components/MenuCreateItemDialog";
 import MenuDetailsPage, {
   MenuDetailsSubmitData
 } from "../components/MenuDetailsPage";
 import { findNode, getNode } from "../components/MenuDetailsPage/tree";
+import MenuItemDialog, {
+  MenuItemDialogFormData,
+  MenuItemType
+} from "../components/MenuItemDialog";
 import {
   getItemId,
   getItemType,
@@ -186,9 +186,11 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                               sortOrder: move.sortOrder
                             })),
                           name: data.name,
-                          removeIds: data.operations
-                            .filter(operation => operation.type === "remove")
-                            .map(operation => operation.id)
+                          removeIds:
+                            console.log(data.operations) ||
+                            data.operations
+                              .filter(operation => operation.type === "remove")
+                              .map(operation => operation.id)
                         }
                       });
                       if (result) {
@@ -261,7 +263,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                       <MenuItemCreateMutation onCompleted={handleItemCreate}>
                         {(menuItemCreate, menuItemCreateOpts) => {
                           const handleSubmit = (
-                            data: MenuCreateItemDialogFormData
+                            data: MenuItemDialogFormData
                           ) => {
                             const variables: MenuItemCreateVariables = {
                               input: {
@@ -311,7 +313,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                                     };
 
                                     return (
-                                      <MenuCreateItemDialog
+                                      <MenuItemDialog
                                         open={params.action === "add-item"}
                                         categories={maybe(
                                           () =>
@@ -348,7 +350,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                       <MenuItemUpdateMutation onCompleted={handleItemUpdate}>
                         {(menuItemUpdate, menuItemUpdateOpts) => {
                           const handleSubmit = (
-                            data: MenuCreateItemDialogFormData
+                            data: MenuItemDialogFormData
                           ) => {
                             const variables: MenuItemUpdateVariables = {
                               id: params.id,
@@ -392,7 +394,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                             )
                           );
 
-                          const initialFormData: MenuCreateItemDialogFormData = {
+                          const initialFormData: MenuItemDialogFormData = {
                             id: maybe(() => getItemId(menuItem)),
                             name: maybe(() => menuItem.name, "..."),
                             type: maybe<MenuItemType>(
@@ -414,7 +416,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                                     };
 
                                     return (
-                                      <MenuCreateItemDialog
+                                      <MenuItemDialog
                                         open={params.action === "edit-item"}
                                         categories={maybe(
                                           () =>

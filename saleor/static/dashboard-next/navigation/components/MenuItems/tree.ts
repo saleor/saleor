@@ -2,7 +2,7 @@ import { getPatch } from "fast-array-diff";
 import { TreeItem } from "react-sortable-tree";
 
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
-import { MenuItemType } from "../MenuCreateItemDialog";
+import { MenuItemType } from "../MenuItemDialog";
 
 export type TreeOperationType = "move" | "remove";
 export interface TreeOperation {

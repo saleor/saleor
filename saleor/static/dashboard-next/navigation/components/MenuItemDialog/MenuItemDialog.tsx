@@ -25,25 +25,25 @@ export interface MenuItemData {
   type: MenuItemType;
 }
 
-export interface MenuCreateItemDialogFormData extends MenuItemData {
+export interface MenuItemDialogFormData extends MenuItemData {
   name: string;
 }
 
-export interface MenuCreateItemDialogProps {
+export interface MenuItemDialogProps {
   confirmButtonState: ConfirmButtonTransitionState;
   disabled: boolean;
-  initial?: MenuCreateItemDialogFormData;
+  initial?: MenuItemDialogFormData;
   initialDisplayValue?: string;
   loading: boolean;
   open: boolean;
   collections: SearchCollections_collections_edges_node[];
   categories: SearchCategories_categories_edges_node[];
   onClose: () => void;
-  onSubmit: (data: MenuCreateItemDialogFormData) => void;
+  onSubmit: (data: MenuItemDialogFormData) => void;
   onQueryChange: (query: string) => void;
 }
 
-const defaultInitial: MenuCreateItemDialogFormData = {
+const defaultInitial: MenuItemDialogFormData = {
   id: "",
   name: "",
   type: "category"
@@ -76,9 +76,7 @@ function getDisplayValue(menu: SelectMenuItem[], value: string): string {
   return findMenuItem(menu, value).label.toString();
 }
 
-const MenuCreateItemDialog: React.StatelessComponent<
-  MenuCreateItemDialogProps
-> = ({
+const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
   confirmButtonState,
   disabled,
   initial,
@@ -209,14 +207,14 @@ const MenuCreateItemDialog: React.StatelessComponent<
                   fullWidth
                   value={data.name}
                   onChange={change}
-                  name={"name" as keyof MenuCreateItemDialogFormData}
+                  name={"name" as keyof MenuItemDialogFormData}
                   helperText=""
                 />
                 <FormSpacer />
                 <AutocompleteSelectMenu
                   disabled={disabled}
                   onChange={handleSelectChange}
-                  name={"id" as keyof MenuCreateItemDialogFormData}
+                  name={"id" as keyof MenuItemDialogFormData}
                   helperText=""
                   label={i18n.t("Link")}
                   displayValue={displayValue}
@@ -247,5 +245,5 @@ const MenuCreateItemDialog: React.StatelessComponent<
     </Dialog>
   );
 };
-MenuCreateItemDialog.displayName = "MenuCreateItemDialog";
-export default MenuCreateItemDialog;
+MenuItemDialog.displayName = "MenuItemDialog";
+export default MenuItemDialog;
