@@ -17,6 +17,7 @@ import Form from "../../../components/Form";
 import FormSpacer from "../../../components/FormSpacer";
 import { SearchCategories_categories_edges_node } from "../../../containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "../../../containers/SearchCollections/types/SearchCollections";
+import { SearchPages_pages_edges_node } from "../../../containers/SearchPages/types/SearchPages";
 import i18n from "../../../i18n";
 
 export type MenuItemType = "category" | "collection" | "link" | "page";
@@ -38,6 +39,7 @@ export interface MenuItemDialogProps {
   open: boolean;
   collections: SearchCollections_collections_edges_node[];
   categories: SearchCategories_categories_edges_node[];
+  pages: SearchPages_pages_edges_node[];
   onClose: () => void;
   onSubmit: (data: MenuItemDialogFormData) => void;
   onQueryChange: (query: string) => void;
@@ -87,7 +89,8 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
   onQueryChange,
   open,
   categories,
-  collections
+  collections,
+  pages
 }) => {
   const [displayValue, setDisplayValue] = React.useState(
     initialDisplayValue || ""
@@ -109,9 +112,7 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
           label: category.name,
           value: "category:" + category.id
         })),
-        label: i18n.t("Categories ({{ number }})", {
-          number: categories.length
-        })
+        label: i18n.t("Categories")
       }
     ];
   }
@@ -124,9 +125,20 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
           label: collection.name,
           value: "collection:" + collection.id
         })),
-        label: i18n.t("Collections ({{ number }})", {
-          number: collections.length
-        })
+        label: i18n.t("Collections")
+      }
+    ];
+  }
+
+  if (pages.length > 0) {
+    options = [
+      ...options,
+      {
+        children: pages.map(page => ({
+          label: page.title,
+          value: "page:" + page.id
+        })),
+        label: i18n.t("Pages")
       }
     ];
   }
@@ -137,7 +149,6 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
         label: (
           <div
             dangerouslySetInnerHTML={{
-              // FIXME: Improve label
               __html: i18n.t("link to: <strong>{{ url }}</strong>", {
                 context: "add link to navigation",
                 url
