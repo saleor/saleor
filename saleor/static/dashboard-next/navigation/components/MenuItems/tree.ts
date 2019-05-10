@@ -2,6 +2,7 @@ import { getPatch } from "fast-array-diff";
 import { TreeItem } from "react-sortable-tree";
 
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
+import { MenuItemType } from "../MenuCreateItemDialog";
 
 export type TreeOperationType = "move" | "remove";
 export interface TreeOperation {
@@ -11,13 +12,13 @@ export interface TreeOperation {
   sortOrder?: number;
 }
 
-export type TreeNode = TreeItem & { id: string };
+export const unknownTypeError = Error("Unknown type");
 
-function treeToMap(tree: TreeNode[], parent: string): Record<string, string[]> {
+function treeToMap(tree: TreeItem[], parent: string): Record<string, string[]> {
   const childrenList = tree.map(node => node.id);
   const childrenMaps = tree.map(node => ({
     id: node.id,
-    mappedNodes: treeToMap(node.children as TreeNode[], node.id)
+    mappedNodes: treeToMap(node.children as TreeItem[], node.id)
   }));
 
   return {
@@ -32,9 +33,37 @@ function treeToMap(tree: TreeNode[], parent: string): Record<string, string[]> {
   };
 }
 
+function getItemType(item: MenuDetails_menu_items): MenuItemType {
+  if (item.category) {
+    return "category";
+  } else if (item.collection) {
+    return "collection";
+  } else if (item.page) {
+    return "page";
+  } else if (item.url) {
+    return "link";
+  } else {
+    throw unknownTypeError;
+  }
+}
+
+function getItemId(item: MenuDetails_menu_items): string {
+  if (item.category) {
+    return item.category.id;
+  } else if (item.collection) {
+    return item.collection.id;
+  } else if (item.page) {
+    return item.page.id;
+  } else if (item.url) {
+    return item.url;
+  } else {
+    throw unknownTypeError;
+  }
+}
+
 export function getDiff(
-  originalTree: TreeNode[],
-  newTree: TreeNode[]
+  originalTree: TreeItem[],
+  newTree: TreeItem[]
 ): TreeOperation {
   const originalMap = treeToMap(originalTree, "root");
   const newMap = treeToMap(newTree, "root");
@@ -63,13 +92,15 @@ export function getDiff(
 
 export function getNodeData(
   item: MenuDetails_menu_items,
-  onChange: (operation: TreeOperation) => void
-): TreeNode {
+  onChange: (operation: TreeOperation) => void,
+  onClick: (id: string, type: MenuItemType) => void
+): TreeItem {
   return {
-    children: item.children.map(child => getNodeData(child, onChange)),
+    children: item.children.map(child => getNodeData(child, onChange, onClick)),
     expanded: true,
     id: item.id,
     onChange,
+    onClick: () => onClick(getItemId(item), getItemType(item)),
     title: item.name
   };
 }

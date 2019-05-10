@@ -11,6 +11,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { MenuDetails_menu } from "../../types/MenuDetails";
+import { MenuItemType } from "../MenuCreateItemDialog";
 import MenuItems, { TreeOperation } from "../MenuItems";
 import MenuProperties from "../MenuProperties";
 import { computeTree } from "./tree";
@@ -30,6 +31,7 @@ export interface MenuDetailsPageProps {
   onBack: () => void;
   onDelete: () => void;
   onItemAdd: () => void;
+  onItemClick: (id: string, type: MenuItemType) => void;
   onSubmit: (data: MenuDetailsSubmitData) => Promise<boolean>;
 }
 
@@ -40,6 +42,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
   onBack,
   onDelete,
   onItemAdd,
+  onItemClick,
   onSubmit
 }) => {
   const initialForm: MenuDetailsFormData = {
@@ -96,6 +99,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
                 )}
                 onChange={handleChange}
                 onItemAdd={onItemAdd}
+                onItemClick={onItemClick}
                 onUndo={() =>
                   setTreeOperations(
                     treeOperations.slice(0, treeOperations.length - 1)

@@ -11,9 +11,10 @@ import {
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
+import EditIcon from "@material-ui/icons/Edit";
 import classNames from "classnames";
 import * as React from "react";
-import SortableTree, { NodeRendererProps } from "react-sortable-tree";
+import SortableTree, { NodeRendererProps, TreeItem } from "react-sortable-tree";
 
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
@@ -21,13 +22,8 @@ import useTheme from "../../../hooks/useTheme";
 import i18n from "../../../i18n";
 import Draggable from "../../../icons/Draggable";
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
-import {
-  getDiff,
-  getNodeData,
-  getNodeQuantity,
-  TreeNode,
-  TreeOperation
-} from "./tree";
+import { MenuItemType } from "../MenuCreateItemDialog";
+import { getDiff, getNodeData, getNodeQuantity, TreeOperation } from "./tree";
 
 const NODE_HEIGHT = 56;
 const NODE_MARGIN = 40;
@@ -37,6 +33,7 @@ export interface MenuItemsProps {
   items: MenuDetails_menu_items[];
   onChange: (operation: TreeOperation) => void;
   onItemAdd: () => void;
+  onItemClick: (id: string, type: MenuItemType) => void;
   onUndo: () => void;
 }
 
@@ -58,6 +55,7 @@ const styles = (theme: Theme) =>
       cursor: "grab"
     },
     nodeTitle: {
+      cursor: "pointer",
       marginLeft: theme.spacing.unit * 7
     },
     root: {
@@ -171,8 +169,16 @@ const Node = withStyles(styles, {
               <Draggable className={classes.dragIcon} />
             </div>
           )}
-          <Typography className={classes.nodeTitle}>{node.title}</Typography>
+          <Typography className={classes.nodeTitle} onClick={node.onEdit}>
+            {node.title}
+          </Typography>
           <div className={classes.spacer} />
+          <Button color="primary" onClick={node.onClick}>
+            {i18n.t("Show")}
+          </Button>
+          <IconButton color="primary" onClick={node.onEdit}>
+            <EditIcon />
+          </IconButton>
           <IconButton
             className={classes.deleteButton}
             color="primary"
@@ -198,6 +204,7 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
     items,
     onChange,
     onItemAdd,
+    onItemClick,
     onUndo
   }: MenuItemsProps & WithStyles<typeof styles>) => {
     const { isDark } = useTheme();
@@ -235,15 +242,17 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
               })}
               isVirtualized={false}
               rowHeight={NODE_HEIGHT}
-              treeData={items.map(item => getNodeData(item, onChange))}
+              treeData={items.map(item =>
+                getNodeData(item, onChange, onItemClick)
+              )}
               theme={{
                 nodeContentRenderer: Node as any
               }}
               onChange={newTree =>
                 onChange(
                   getDiff(
-                    items.map(item => getNodeData(item, onChange)),
-                    newTree as TreeNode[]
+                    items.map(item => getNodeData(item, onChange, onItemClick)),
+                    newTree as TreeItem[]
                   )
                 )
               }

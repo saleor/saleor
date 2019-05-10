@@ -1,6 +1,8 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
+import { categoryUrl } from "../../categories/urls";
+import { collectionUrl } from "../../collections/urls";
 import ActionDialog from "../../components/ActionDialog";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
@@ -9,11 +11,13 @@ import { getMutationState, maybe } from "../../misc";
 import { CategorySearchProvider } from "../../products/containers/CategorySearch";
 import { CollectionSearchProvider } from "../../products/containers/CollectionSearch";
 import MenuCreateItemDialog, {
-  MenuCreateItemDialogFormData
+  MenuCreateItemDialogFormData,
+  MenuItemType
 } from "../components/MenuCreateItemDialog";
 import MenuDetailsPage, {
   MenuDetailsSubmitData
 } from "../components/MenuDetailsPage";
+import { unknownTypeError } from "../components/MenuItems";
 import {
   MenuDeleteMutation,
   MenuItemCreateMutation,
@@ -55,6 +59,26 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
           context: "notification"
         })
       });
+    }
+  };
+
+  const handleItemClick = (id: string, type: MenuItemType) => {
+    switch (type) {
+      case "category":
+        navigate(categoryUrl(id));
+        break;
+
+      case "collection":
+        navigate(collectionUrl(id));
+        break;
+
+      case "link":
+        window.open(id, "blank");
+        break;
+
+      default:
+        throw unknownTypeError;
+        break;
     }
   };
 
@@ -158,6 +182,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                             })
                           )
                         }
+                        onItemClick={handleItemClick}
                         onSubmit={handleSubmit}
                         saveButtonState={updateState}
                       />
@@ -206,7 +231,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                                 break;
 
                               default:
-                                throw new Error("Unknown type");
+                                throw unknownTypeError;
                                 break;
                             }
                             menuItemCreate({ variables });
