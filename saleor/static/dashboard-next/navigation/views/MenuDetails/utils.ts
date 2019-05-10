@@ -19,6 +19,10 @@ export function getMenuItemInputData(
       variables.collection = data.id;
       break;
 
+    case "page":
+      variables.page = data.id;
+      break;
+
     case "link":
       variables.url = data.id;
       break;
