@@ -876,6 +876,24 @@ type CustomerDelete {
   user: User
 }
 
+type CustomerEvent implements Node {
+  id: ID!
+  date: DateTime
+  type: CustomerEventsEnum
+  user(id: ID): User
+  message: String
+  count: Int
+  order: Order
+  orderLine: OrderLine
+}
+
+enum CustomerEventsEnum {
+  PLACED_ORDER
+  NOTE_ADDED_TO_ORDER
+  DIGITAL_LINK_DOWNLOADED
+  CUSTOMER_DELETED
+}
+
 input CustomerFilterInput {
   dateJoined: DateRangeInput
   moneySpent: PriceRangeInput
@@ -2898,6 +2916,7 @@ type User implements Node {
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [PermissionDisplay]
   avatar(size: Int): Image
+  events: [CustomerEvent]
 }
 
 input UserAddressInput {

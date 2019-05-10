@@ -7,11 +7,15 @@ from graphql_jwt.decorators import permission_required
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.permissions import get_permissions
+from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import CountryDisplay, Image, PermissionDisplay
+from ..core.utils import lazy_resolve
+from ..shop.types import get_node_optimized
 from ..utils import format_permissions_for_display
+from .enums import CustomerEventsEnum
 
 
 class AddressInput(graphene.InputObjectType):
@@ -96,6 +100,54 @@ class Address(CountableDjangoObjectType):
         return False
 
 
+class CustomerEvent(CountableDjangoObjectType):
+    date = graphene.types.datetime.DateTime(
+        description="Date when event happened at in ISO 8601 format."
+    )
+    type = CustomerEventsEnum(description="Customer event type")
+    user = graphene.Field(
+        lambda: User,
+        id=graphene.Argument(graphene.ID),
+        description="User who performed the action.",
+    )
+    message = graphene.String(description="Content of the event.")
+    count = graphene.Int(description="Number of objects concerned by the event.")
+    order = gql_optimizer.field(
+        graphene.Field(
+            lazy_resolve("order.types:Order"), description="The concerned order."
+        ),
+        model_field="order",
+    )
+    order_line = graphene.Field(
+        lazy_resolve("order.types:OrderLine"), description="The concerned order line."
+    )
+
+    class Meta:
+        description = "History log of the order."
+        model = models.CustomerEvent
+        interfaces = [relay.Node]
+        only_fields = ["id"]
+
+    @staticmethod
+    def resolve_message(node, _info):
+        return node.parameters.get("message", None)
+
+    @staticmethod
+    def resolve_count(node, _info):
+        return node.parameters.get("count", None)
+
+    @staticmethod
+    def resolve_order_line(node, info):
+        if "order_line_pk" in node.parameters:
+            try:
+                qs = order_models.OrderLine.objects
+                order_line_pk = node.parameters["order_line_pk"]
+                return get_node_optimized(qs, {"pk": order_line_pk}, info)
+            except order_models.OrderLine.DoesNotExist:
+                pass
+        return None
+
+
 class User(CountableDjangoObjectType):
     addresses = gql_optimizer.field(
         graphene.List(Address, description="List of all user's addresses."),
@@ -107,7 +159,7 @@ class User(CountableDjangoObjectType):
     note = graphene.String(description="A note about the customer")
     orders = gql_optimizer.field(
         PrefetchingConnectionField(
-            "saleor.graphql.order.types.Order", description="List of user's orders."
+            lazy_resolve("order.types:Order"), description="List of user's orders."
         ),
         model_field="orders",
     )
@@ -115,6 +167,12 @@ class User(CountableDjangoObjectType):
         PermissionDisplay, description="List of user's permissions."
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
+    events = gql_optimizer.field(
+        graphene.List(
+            CustomerEvent, description="List of events associated with the user."
+        ),
+        model_field="events",
+    )
 
     class Meta:
         description = "Represents user data."
@@ -153,6 +211,10 @@ class User(CountableDjangoObjectType):
     @permission_required("account.manage_users")
     def resolve_note(self, _info):
         return self.note
+
+    @permission_required("account.manage_users")
+    def resolve_events(self, _info):
+        return self.events.all()
 
     def resolve_orders(self, info, **_kwargs):
         viewer = info.context.user
