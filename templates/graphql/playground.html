@@ -44,6 +44,9 @@
   </div>
   <script>window.addEventListener('load', function (event) {
       GraphQLPlayground.init(document.getElementById('root'), {
+        settings: {
+          'schema.polling.enable': false
+        },
         tabs: [{
           endpoint: '{{ api_url }}',
           query: `{{ query|safe }}`
