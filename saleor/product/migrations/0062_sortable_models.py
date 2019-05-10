@@ -4,8 +4,8 @@ from django.db import migrations, models
 
 
 def assign_sort_order_to_product_images(apps, schema_editor):
-    ProductAttribute = apps.get_model('product', 'ProductAttribute')
-    for attribute in ProductAttribute.objects.prefetch_related('values'):
+    ProductAttribute = apps.get_model("product", "ProductAttribute")
+    for attribute in ProductAttribute.objects.prefetch_related("values"):
         for order, value in enumerate(attribute.values.all()):
             value.sort_order = order
             value.save()
@@ -13,37 +13,30 @@ def assign_sort_order_to_product_images(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0061_product_taxes'),
-    ]
+    dependencies = [("product", "0061_product_taxes")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='attributechoicevalue',
-            options={'ordering': ('sort_order',)},
+            name="attributechoicevalue", options={"ordering": ("sort_order",)}
         ),
         migrations.AddField(
-            model_name='attributechoicevalue',
-            name='sort_order',
+            model_name="attributechoicevalue",
+            name="sort_order",
             field=models.PositiveIntegerField(db_index=True, editable=False, null=True),
         ),
         migrations.AlterModelOptions(
-            name='productimage',
-            options={'ordering': ('sort_order',)},
+            name="productimage", options={"ordering": ("sort_order",)}
         ),
         migrations.RenameField(
-            model_name='productimage',
-            old_name='order',
-            new_name='sort_order',
+            model_name="productimage", old_name="order", new_name="sort_order"
         ),
         migrations.AlterField(
-            model_name='productimage',
-            name='sort_order',
+            model_name="productimage",
+            name="sort_order",
             field=models.PositiveIntegerField(db_index=True, editable=False),
         ),
-        migrations.RemoveField(
-            model_name='attributechoicevalue',
-            name='color',
+        migrations.RemoveField(model_name="attributechoicevalue", name="color"),
+        migrations.RunPython(
+            assign_sort_order_to_product_images, migrations.RunPython.noop
         ),
-        migrations.RunPython(assign_sort_order_to_product_images, migrations.RunPython.noop)
     ]

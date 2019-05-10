@@ -51,7 +51,6 @@ def void(payment_information: PaymentData, config: ConfigData) -> GatewayRespons
 
 def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
     """Perform capture transaction."""
-
     error = None
     success = dummy_success()
     if not success:

@@ -12,7 +12,7 @@ from django.utils.translation import pgettext_lazy
 from ..account.models import Address, User
 from ..checkout.models import Checkout
 from ..core import analytics
-from ..order import OrderEvents, OrderEventsEmails, utils as order_utils
+from ..order import events, utils as order_utils
 from ..order.emails import send_payment_confirmation
 from ..order.models import Order
 from . import (
@@ -84,16 +84,13 @@ def create_payment_information(
 
 
 def handle_fully_paid_order(order):
-    order.events.create(type=OrderEvents.ORDER_FULLY_PAID.value)
+    events.order_fully_paid_event(order=order)
+
     if order.get_user_current_email():
-        send_payment_confirmation.delay(order.pk)
-        order.events.create(
-            type=OrderEvents.EMAIL_SENT.value,
-            parameters={
-                "email": order.get_user_current_email(),
-                "email_type": OrderEventsEmails.PAYMENT.value,
-            },
+        events.email_sent_event(
+            order=order, user=None, email_type=events.OrderEventsEmails.PAYMENT
         )
+        send_payment_confirmation.delay(order.pk)
 
         if order_utils.order_needs_automatic_fullfilment(order):
             order_utils.automatically_fulfill_digital_lines(order)
@@ -191,7 +188,7 @@ def mark_order_as_paid(order: Order, request_user: User):
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=["captured_amount", "charge_status"])
-    order.events.create(type=OrderEvents.ORDER_MARKED_AS_PAID.value, user=request_user)
+    events.order_manually_marked_as_paid_event(order=order, user=request_user)
 
 
 def create_transaction(
@@ -350,6 +347,7 @@ def validate_gateway_response(response: GatewayResponse):
         raise GatewayError("Gateway response needs to be json serializable")
 
 
+@transaction.atomic
 def _gateway_postprocess(transaction, payment):
     transaction_kind = transaction.kind
 

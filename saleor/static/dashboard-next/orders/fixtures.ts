@@ -2,7 +2,7 @@ import { transformOrderStatus, transformPaymentStatus } from "../misc";
 import {
   FulfillmentStatus,
   OrderAction,
-  OrderEvents,
+  OrderEventsEnum,
   OrderStatus,
   PaymentChargeStatusEnum
 } from "../types/globalTypes";
@@ -808,7 +808,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
       id: "T3JkZXJFdmVudDoyMQ==",
       message: null,
       quantity: 1,
-      type: OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
+      type: OrderEventsEnum.FULFILLMENT_FULFILLED_ITEMS,
       user: {
         __typename: "User",
         email: "admin@example.com",

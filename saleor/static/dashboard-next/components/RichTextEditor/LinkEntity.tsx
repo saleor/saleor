@@ -16,9 +16,7 @@ import { ContentState } from "draft-js";
 import * as React from "react";
 
 import i18n from "../../i18n";
-import Anchor from "../Anchor";
 import Link from "../Link";
-import Toggle from "../Toggle";
 
 interface LinkEntityProps {
   children: React.ReactNode;
@@ -67,71 +65,65 @@ const LinkEntity = withStyles(styles, {
     entityKey,
     onEdit,
     onRemove
-  }: LinkEntityProps & WithStyles<typeof styles>) => (
-    <Toggle>
-      {(isOpened, { disable, toggle }) => (
-        <>
-          <Anchor>
-            {anchor => (
-              <div className={classes.anchor} ref={anchor}>
-                <Popper
-                  open={isOpened}
-                  anchorEl={anchor.current}
-                  transition
-                  disablePortal
-                  placement="bottom"
-                >
-                  {({ TransitionProps, placement }) => (
-                    <Grow
-                      {...TransitionProps}
-                      style={{
-                        transformOrigin: placement
-                      }}
-                    >
-                      <Paper className={classes.root}>
-                        <ClickAwayListener
-                          onClickAway={disable}
-                          mouseEvent="onClick"
-                        >
-                          <div className={classes.container}>
-                            <Typography
-                              className={classes.inline}
-                              variant="body1"
-                            >
-                              {contentState.getEntity(entityKey).getData().href}
-                            </Typography>
-                            <span className={classes.separator} />
-                            <Button
-                              onClick={() => {
-                                disable();
-                                onEdit(entityKey);
-                              }}
-                              color="primary"
-                              variant="flat"
-                            >
-                              {i18n.t("Edit")}
-                            </Button>
-                            <IconButton onClick={() => onRemove(entityKey)}>
-                              <DeleteIcon color="primary" />
-                            </IconButton>
-                          </div>
-                        </ClickAwayListener>
-                      </Paper>
-                    </Grow>
-                  )}
-                </Popper>
-              </div>
-            )}
-          </Anchor>
-          <Link
-            href={contentState.getEntity(entityKey).getData().href}
-            onClick={toggle}
+  }: LinkEntityProps & WithStyles<typeof styles>) => {
+    const [isOpened, setOpenStatus] = React.useState(false);
+    const anchor = React.useRef<HTMLDivElement>();
+
+    const disable = () => setOpenStatus(false);
+    const toggle = () => setOpenStatus(!isOpened);
+
+    return (
+      <>
+        <div className={classes.anchor} ref={anchor}>
+          <Popper
+            open={isOpened}
+            anchorEl={anchor.current}
+            transition
+            disablePortal
+            placement="bottom"
           >
-            {children}
-          </Link>
-        </>
-      )}
-    </Toggle>
-  )
+            {({ TransitionProps, placement }) => (
+              <Grow
+                {...TransitionProps}
+                style={{
+                  transformOrigin: placement
+                }}
+              >
+                <Paper className={classes.root}>
+                  <ClickAwayListener onClickAway={disable} mouseEvent="onClick">
+                    <div className={classes.container}>
+                      <Typography className={classes.inline} variant="body1">
+                        {contentState.getEntity(entityKey).getData().href}
+                      </Typography>
+                      <span className={classes.separator} />
+                      <Button
+                        onClick={() => {
+                          disable();
+                          onEdit(entityKey);
+                        }}
+                        color="primary"
+                        variant="flat"
+                      >
+                        {i18n.t("Edit")}
+                      </Button>
+                      <IconButton onClick={() => onRemove(entityKey)}>
+                        <DeleteIcon color="primary" />
+                      </IconButton>
+                    </div>
+                  </ClickAwayListener>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
+        </div>
+        <Link
+          href={contentState.getEntity(entityKey).getData().href}
+          onClick={toggle}
+        >
+          {children}
+        </Link>
+      </>
+    );
+  }
 );
 export default LinkEntity;

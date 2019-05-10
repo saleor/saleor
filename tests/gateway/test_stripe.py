@@ -216,7 +216,6 @@ def test_widget_with_additional_attr(stripe_payment, gateway_config):
 def test_widget_with_prefill_option(stripe_payment, gateway_config):
     payment_info = create_payment_information(stripe_payment)
     connection_params = gateway_config.connection_params
-
     connection_params["prefill"] = True
     widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-email="test@example.com"' in widget.render()

@@ -5,18 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0049_auto_20180719_0520'),
-    ]
+    dependencies = [("order", "0049_auto_20180719_0520")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='ordernote',
-            name='is_public',
-        ),
+        migrations.RemoveField(model_name="ordernote", name="is_public"),
         migrations.AddField(
-            model_name='order',
-            name='customer_note',
-            field=models.TextField(blank=True, default=''),
+            model_name="order",
+            name="customer_note",
+            field=models.TextField(blank=True, default=""),
         ),
     ]

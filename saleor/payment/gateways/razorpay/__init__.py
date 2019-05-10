@@ -90,7 +90,6 @@ def get_client_token(**_):
 
 def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
     """Capture a authorized payment using the razorpay client.
-
     But it first check if the given payment instance is supported
     by the gateway.
 
@@ -161,7 +160,4 @@ def refund(payment_information: PaymentData, config: ConfigData) -> GatewayRespo
 def process_payment(
     payment_information: PaymentData, config: ConfigData
 ) -> GatewayResponse:
-    return capture(
-        payment_information=payment_information,
-        connection_params=config.connection_params,
-    )
+    return capture(payment_information=payment_information, config=config)

@@ -7,23 +7,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('account', '0004_auto_20160114_0419'),
-    ]
+    dependencies = [("account", "0004_auto_20160114_0419")]
 
-    replaces = [
-        ('userprofile', '0005_auto_20160205_0651'),
-    ]
+    replaces = [("userprofile", "0005_auto_20160205_0651")]
 
     operations = [
         migrations.AlterField(
-            model_name='address',
-            name='city',
-            field=models.CharField(blank=True, max_length=256, verbose_name='city'),
+            model_name="address",
+            name="city",
+            field=models.CharField(blank=True, max_length=256, verbose_name="city"),
         ),
         migrations.AlterField(
-            model_name='address',
-            name='street_address_1',
-            field=models.CharField(blank=True, max_length=256, verbose_name='address'),
+            model_name="address",
+            name="street_address_1",
+            field=models.CharField(blank=True, max_length=256, verbose_name="address"),
         ),
     ]

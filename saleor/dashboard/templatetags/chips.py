@@ -3,14 +3,17 @@ from urllib.parse import urlencode
 from django.template.defaultfilters import yesno
 from django.utils.translation import pgettext_lazy
 
-CHIPS_PATTERN = '%s: %s'
+CHIPS_PATTERN = "%s: %s"
 
 
 def handle_default(field, request_get):
     """Build a list of chips using raw field's value."""
-    return [{
-        'content': CHIPS_PATTERN % (field.label, field.value()),
-        'link': get_cancel_url(request_get, field.name)}]
+    return [
+        {
+            "content": CHIPS_PATTERN % (field.label, field.value()),
+            "link": get_cancel_url(request_get, field.name),
+        }
+    ]
 
 
 def handle_single_choice(field, request_get):
@@ -18,8 +21,9 @@ def handle_single_choice(field, request_get):
     for choice_value, choice_label in field.field.choices:
         if choice_value == field.value():
             item = {
-                'content': CHIPS_PATTERN % (field.label, choice_label),
-                'link': get_cancel_url(request_get, field.name)}
+                "content": CHIPS_PATTERN % (field.label, choice_label),
+                "link": get_cancel_url(request_get, field.name),
+            }
             return [item]
     return []
 
@@ -30,9 +34,12 @@ def handle_multiple_choice(field, request_get):
     for value in field.value():
         for choice_value, choice_label in field.field.choices:
             if choice_value == value:
-                items.append({
-                    'content': CHIPS_PATTERN % (field.label, choice_label),
-                    'link': get_cancel_url(request_get, field.name, value)})
+                items.append(
+                    {
+                        "content": CHIPS_PATTERN % (field.label, choice_label),
+                        "link": get_cancel_url(request_get, field.name, value),
+                    }
+                )
     return items
 
 
@@ -40,9 +47,12 @@ def handle_single_model_choice(field, request_get):
     """Build a list of chips for ModelChoiceField field."""
     for obj in field.field.queryset:
         if str(obj.pk) == str(field.value()):
-            return [{
-                'content': CHIPS_PATTERN % (field.label, str(obj)),
-                'link': get_cancel_url(request_get, field.name)}]
+            return [
+                {
+                    "content": CHIPS_PATTERN % (field.label, str(obj)),
+                    "link": get_cancel_url(request_get, field.name),
+                }
+            ]
     return []
 
 
@@ -53,38 +63,46 @@ def handle_multiple_model_choice(field, request_get):
         # iterate over field's queryset to match the selected object
         for obj in field.field.queryset:
             if str(obj.pk) == str(pk):
-                items.append({
-                    'content': CHIPS_PATTERN % (field.label, str(obj)),
-                    'link': get_cancel_url(request_get, field.name, pk)})
+                items.append(
+                    {
+                        "content": CHIPS_PATTERN % (field.label, str(obj)),
+                        "link": get_cancel_url(request_get, field.name, pk),
+                    }
+                )
     return items
 
 
 def handle_nullboolean(field, request_get):
     """Build a list of chips for NullBooleanField field."""
     value = yesno(
-        field.value(),
-        pgettext_lazy('Possible values of boolean filter', 'yes,no,all'))
-    return [{
-        'content': CHIPS_PATTERN % (field.label, value),
-        'link': get_cancel_url(request_get, field.name)}]
+        field.value(), pgettext_lazy("Possible values of boolean filter", "yes,no,all")
+    )
+    return [
+        {
+            "content": CHIPS_PATTERN % (field.label, value),
+            "link": get_cancel_url(request_get, field.name),
+        }
+    ]
 
 
 def handle_range(field, request_get):
     """Build a list of chips for RangeField field."""
     items = []
     values = [f if f else None for f in field.value()]
-    range_edges = ['min', 'max']
+    range_edges = ["min", "max"]
     range_labels = [
-        pgettext_lazy(
-            'Label of first value in range filter', 'From %(value)s'),
-        pgettext_lazy('Label of second value in range filter', 'To %(value)s')]
+        pgettext_lazy("Label of first value in range filter", "From %(value)s"),
+        pgettext_lazy("Label of second value in range filter", "To %(value)s"),
+    ]
     for value, edge, label in zip(values, range_edges, range_labels):
         if value:
-            param_name = '%s_%s' % (field.name, edge)
-            items.append({
-                'content': CHIPS_PATTERN % (
-                    field.label, label % {'value': value}),
-                'link': get_cancel_url(request_get, param_name)})
+            param_name = "%s_%s" % (field.name, edge)
+            items.append(
+                {
+                    "content": CHIPS_PATTERN % (field.label, label % {"value": value}),
+                    "link": get_cancel_url(request_get, param_name),
+                }
+            )
     return items
 
 
@@ -97,10 +115,11 @@ def get_cancel_url(request_get, param_name, param_value=None):
     has multiple values)
     """
     new_request_get = {
-        k: request_get.getlist(k) for k in request_get if k != param_name}
+        k: request_get.getlist(k) for k in request_get if k != param_name
+    }
     param_values_list = request_get.getlist(param_name)
     if len(param_values_list) > 1 and param_value is not None:
         new_param_values = [v for v in param_values_list if v != param_value]
         new_request_get[param_name] = new_param_values
-    cancel_url = '?' + urlencode(new_request_get, True)
+    cancel_url = "?" + urlencode(new_request_get, True)
     return cancel_url

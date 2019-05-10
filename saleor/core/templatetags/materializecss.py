@@ -2,8 +2,7 @@ from django import forms, template
 from django.template.loader import get_template
 from django_filters.widgets import RangeWidget
 
-from ...dashboard.widgets import (
-    CharsLeftWidget, DateRangeWidget, MoneyRangeWidget)
+from ...dashboard.widgets import CharsLeftWidget, DateRangeWidget, MoneyRangeWidget
 
 register = template.Library()
 
@@ -11,43 +10,49 @@ register = template.Library()
 @register.filter
 def materializecss(element, label_cols=None):
     if not label_cols:
-        label_cols = 's12'
+        label_cols = "s12"
 
-    markup_classes = {'label': label_cols, 'value': '', 'single_value': ''}
+    markup_classes = {"label": label_cols, "value": "", "single_value": ""}
     return render(element, markup_classes)
 
 
 def add_input_classes(field):
-    if not any([is_checkbox(field), is_checkbox_select_multiple(field),
-                is_radio(field), is_file(field)]):
-        field_classes = field.field.widget.attrs.get('class', '')
+    if not any(
+        [
+            is_checkbox(field),
+            is_checkbox_select_multiple(field),
+            is_radio(field),
+            is_file(field),
+        ]
+    ):
+        field_classes = field.field.widget.attrs.get("class", "")
         if field.errors:
-            field_classes = ' '.join([field_classes, 'invalid'])
-        field.field.widget.attrs['class'] = field_classes
+            field_classes = " ".join([field_classes, "invalid"])
+        field.field.widget.attrs["class"] = field_classes
 
 
 def render(element, markup_classes):
     element_type = element.__class__.__name__.lower()
 
-    if element_type == 'boundfield':
+    if element_type == "boundfield":
         add_input_classes(element)
         template = get_template("materializecssform/field.html")
-        context = {'field': element, 'classes': markup_classes}
+        context = {"field": element, "classes": markup_classes}
     else:
-        has_management = getattr(element, 'management_form', None)
+        has_management = getattr(element, "management_form", None)
         if has_management:
             for form in element.forms:
                 for field in form.visible_fields():
                     add_input_classes(field)
 
             template = get_template("materializecssform/formset.html")
-            context = {'formset': element, 'classes': markup_classes}
+            context = {"formset": element, "classes": markup_classes}
         else:
             for field in element.visible_fields():
                 add_input_classes(field)
 
             template = get_template("materializecssform/form.html")
-            context = {'form': element, 'classes': markup_classes}
+            context = {"form": element, "classes": markup_classes}
 
     return template.render(context)
 
