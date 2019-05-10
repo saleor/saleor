@@ -32,6 +32,7 @@ export interface MenuDetailsPageProps {
   onDelete: () => void;
   onItemAdd: () => void;
   onItemClick: (id: string, type: MenuItemType) => void;
+  onItemEdit: (id: string) => void;
   onSubmit: (data: MenuDetailsSubmitData) => Promise<boolean>;
 }
 
@@ -43,6 +44,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
   onDelete,
   onItemAdd,
   onItemClick,
+  onItemEdit,
   onSubmit
 }) => {
   const initialForm: MenuDetailsFormData = {
@@ -100,6 +102,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
                 onChange={handleChange}
                 onItemAdd={onItemAdd}
                 onItemClick={onItemClick}
+                onItemEdit={onItemEdit}
                 onUndo={() =>
                   setTreeOperations(
                     treeOperations.slice(0, treeOperations.length - 1)

@@ -33,6 +33,7 @@ export interface MenuCreateItemDialogProps {
   confirmButtonState: ConfirmButtonTransitionState;
   disabled: boolean;
   initial?: MenuCreateItemDialogFormData;
+  initialDisplayValue?: string;
   loading: boolean;
   open: boolean;
   collections: SearchCollections_collections_edges_node[];
@@ -81,6 +82,7 @@ const MenuCreateItemDialog: React.StatelessComponent<
   confirmButtonState,
   disabled,
   initial,
+  initialDisplayValue,
   loading,
   onClose,
   onSubmit,
@@ -89,8 +91,15 @@ const MenuCreateItemDialog: React.StatelessComponent<
   categories,
   collections
 }) => {
-  const [displayValue, setDisplayValue] = React.useState("");
+  const [displayValue, setDisplayValue] = React.useState(
+    initialDisplayValue || ""
+  );
   const [url, setUrl] = React.useState<string>(undefined);
+
+  // Refresh initial display value if changed
+  React.useEffect(() => setDisplayValue(initialDisplayValue), [
+    initialDisplayValue
+  ]);
 
   let options: SelectMenuItem[] = [];
 

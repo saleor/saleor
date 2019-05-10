@@ -33,7 +33,7 @@ function treeToMap(tree: TreeItem[], parent: string): Record<string, string[]> {
   };
 }
 
-function getItemType(item: MenuDetails_menu_items): MenuItemType {
+export function getItemType(item: MenuDetails_menu_items): MenuItemType {
   if (item.category) {
     return "category";
   } else if (item.collection) {
@@ -47,7 +47,7 @@ function getItemType(item: MenuDetails_menu_items): MenuItemType {
   }
 }
 
-function getItemId(item: MenuDetails_menu_items): string {
+export function getItemId(item: MenuDetails_menu_items): string {
   if (item.category) {
     return item.category.id;
   } else if (item.collection) {
@@ -93,14 +93,18 @@ export function getDiff(
 export function getNodeData(
   item: MenuDetails_menu_items,
   onChange: (operation: TreeOperation) => void,
-  onClick: (id: string, type: MenuItemType) => void
+  onClick: (id: string, type: MenuItemType) => void,
+  onEdit: (id: string) => void
 ): TreeItem {
   return {
-    children: item.children.map(child => getNodeData(child, onChange, onClick)),
+    children: item.children.map(child =>
+      getNodeData(child, onChange, onClick, onEdit)
+    ),
     expanded: true,
     id: item.id,
     onChange,
     onClick: () => onClick(getItemId(item), getItemType(item)),
+    onEdit: () => onEdit(item.id),
     title: item.name
   };
 }

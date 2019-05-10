@@ -1,7 +1,7 @@
 import { MenuDetails_menu_items } from "../../types/MenuDetails";
 import { TreeOperation } from "../MenuItems";
 
-function findNode(tree: MenuDetails_menu_items[], id: string): number[] {
+export function findNode(tree: MenuDetails_menu_items[], id: string): number[] {
   const foundNodeIndex = tree.findIndex(node => node.id === id);
   if (tree.length === 0) {
     return [null];
@@ -16,7 +16,7 @@ function findNode(tree: MenuDetails_menu_items[], id: string): number[] {
   return nodeMap.find(path => path[path.length - 1] !== null) || [null];
 }
 
-function getNode(
+export function getNode(
   tree: MenuDetails_menu_items[],
   path: number[]
 ): MenuDetails_menu_items {

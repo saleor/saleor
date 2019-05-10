@@ -34,6 +34,7 @@ export interface MenuItemsProps {
   onChange: (operation: TreeOperation) => void;
   onItemAdd: () => void;
   onItemClick: (id: string, type: MenuItemType) => void;
+  onItemEdit: (id: string) => void;
   onUndo: () => void;
 }
 
@@ -205,6 +206,7 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
     onChange,
     onItemAdd,
     onItemClick,
+    onItemEdit,
     onUndo
   }: MenuItemsProps & WithStyles<typeof styles>) => {
     const { isDark } = useTheme();
@@ -243,7 +245,7 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
               isVirtualized={false}
               rowHeight={NODE_HEIGHT}
               treeData={items.map(item =>
-                getNodeData(item, onChange, onItemClick)
+                getNodeData(item, onChange, onItemClick, onItemEdit)
               )}
               theme={{
                 nodeContentRenderer: Node as any
@@ -251,7 +253,9 @@ const MenuItems = withStyles(styles, { name: "MenuItems" })(
               onChange={newTree =>
                 onChange(
                   getDiff(
-                    items.map(item => getNodeData(item, onChange, onItemClick)),
+                    items.map(item =>
+                      getNodeData(item, onChange, onItemClick, onItemEdit)
+                    ),
                     newTree as TreeItem[]
                   )
                 )
