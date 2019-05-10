@@ -16,7 +16,8 @@ class CustomerEvents:
         (
             PLACED_ORDER,
             pgettext_lazy(
-                "Event from a customer that placed an order", "An order was placed"
+                "Event from a customer that placed an order",
+                "An order was placed",  # noqa
             ),
         ),
         (

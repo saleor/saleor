@@ -6,6 +6,48 @@ Events
     when certain actions are completed, such us creating the order,
     cancelling fulfillment or completing a payment.
 
+
+Events Design
+-------------
+
+Each package representing an entity (order, account, etc.) that generate events
+define both a model and a ``events.py`` file containing a set of functions
+having ``_event`` for suffix.
+
+Those functions are taking care of any logic and required fields for
+creating given events.
+
+
+Creating Events
+---------------
+
+To send an event, simply do the following:
+
+.. code-block:: python
+
+  from saleor.order import events
+
+  # returns an OrderEvent
+  events.note_added_event(
+      order=order, user=user, message='hello world!')
+
+If now you want to send a 'sent email' event you would do the following:
+
+.. code-block:: python
+
+  from saleor.order import events
+
+  events.email_sent_event(
+      order=order, user=user,
+      email_type=events.OrderEventsEmails.TRACKING_UPDATED)
+
+Notice how we are providing the email type.
+
+.. note::
+
+  The methods are using a ``model_action_event`` naming pattern.
+
+
 Order Events
 ------------
 
@@ -51,6 +93,7 @@ Order Events
 | ``other``                  | ``OTHER``                  | Status used during reimporting of the legacy events.                | None.                                                                                                         |
 +----------------------------+----------------------------+---------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
 
+
 Email Event Types
 -----------------
 
@@ -67,6 +110,22 @@ Email Event Types
 +------------------------------+----------------------+----------------------------------------------------------------------------------+
 | ``digital_links``            | ``DIGITAL_LINKS``    | The links to the order's digital goods have been sent.                           |
 +------------------------------+----------------------+----------------------------------------------------------------------------------+
+
+
+Customer Related Events
+-----------------------
+
++-----------------------------+-----------------------------+------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------+
+| Code                        | GraphQL API value           | Description                                                                  | Additional Parameters (GraphQL)                                                                 |
++-----------------------------+-----------------------------+------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------+
+| ``placed_order``            | ``PLACED_ORDER``            | The customer placed an order.                                                | None.                                                                                           |
++-----------------------------+-----------------------------+------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------+
+| ``note_added_to_order``     | ``NOTE_ADDED_TO_ORDER``     | The customer added a note to one of their orders.                            | ``message`` (string) the message that the customer put as a note.                               |
++-----------------------------+-----------------------------+------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------+
+| ``digital_link_downloaded`` | ``DIGITAL_LINK_DOWNLOADED`` | The customer or another user (anonymous) downloaded an ordered digital good. | ``order_line`` (OrderLine) the fulfilled digital order line that the user downloaded.           |
++-----------------------------+-----------------------------+------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------+
+| ``customer_deleted``        | ``CUSTOMER_DELETED``        | The staff user deleted one or many customers (anonymous).                    | ``count`` (int) the amount of customers deleted by the user.                                    |
++-----------------------------+-----------------------------+------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------+
 
 
 Events Design
