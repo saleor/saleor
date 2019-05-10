@@ -5,6 +5,7 @@ Object {
   "id": "1glasses",
   "parentId": "0jewelry",
   "sortOrder": 0,
+  "type": "move",
 }
 `;
 
@@ -13,6 +14,7 @@ Object {
   "id": "1glasses",
   "parentId": "2accessories",
   "sortOrder": 0,
+  "type": "move",
 }
 `;
 
@@ -21,5 +23,6 @@ Object {
   "id": "2accessories",
   "parentId": "4apparel",
   "sortOrder": 0,
+  "type": "move",
 }
 `;
