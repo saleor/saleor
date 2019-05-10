@@ -63,12 +63,15 @@ We will use ``ProductTranslation``  to store our translated properties, it requi
    class ProductTranslation(models.Model):
        language_code = models.CharField(max_length=10)
        product = models.ForeignKey(
-           Product, related_name='translations', on_delete=models.CASCADE)
+           Product,
+           related_name="translations",
+           on_delete=models.CASCADE,
+       )
        name = models.CharField(max_length=128)
        description = models.CharField(max_length=256)
 
        class Meta:
-           unique_together = ('product', 'language_code')
+           unique_together = ("product", "language_code")
 
 .. note:: Don't forget to set ``unique_together`` on the ``product`` and ``language_code``, there should be only one translation per product per language.
 
