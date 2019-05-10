@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
@@ -29,15 +27,21 @@ class ShippingMethod(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = dedent(
-            """
+        description = """
             Shipping method are the methods you'll use to get
             customer's orders to them.
             They are directly exposed to the customers."""
-        )
         model = models.ShippingMethod
         interfaces = [relay.Node]
-        exclude_fields = ["carts", "shipping_zone", "orders", "translations"]
+        only_fields = [
+            "id",
+            "maximum_order_price",
+            "maximum_order_weight",
+            "minimum_order_price",
+            "minimum_order_weight",
+            "name",
+            "price",
+        ]
 
 
 class ShippingZone(CountableDjangoObjectType):
@@ -59,23 +63,22 @@ class ShippingZone(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = dedent(
-            """
+        description = """
             Represents a shipping zone in the shop. Zones are the concept
             used only for grouping shipping methods in the dashboard,
             and are never exposed to the customers directly."""
-        )
         model = models.ShippingZone
         interfaces = [relay.Node]
+        only_fields = ["default", "id", "name"]
 
-    def resolve_price_range(self, info):
+    def resolve_price_range(self, *_args):
         return self.price_range
 
-    def resolve_countries(self, info):
+    def resolve_countries(self, *_args):
         return [
             CountryDisplay(code=country.code, country=country.name)
             for country in self.countries
         ]
 
-    def resolve_shipping_methods(self, info):
+    def resolve_shipping_methods(self, *_args):
         return self.shipping_methods.all()

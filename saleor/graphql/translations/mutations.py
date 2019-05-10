@@ -1,6 +1,4 @@
 import graphene
-from graphql_jwt.decorators import permission_required
-from graphql_jwt.exceptions import PermissionDenied
 
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -8,11 +6,11 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..core.mutations import BaseMutation, ModelMutation, registry
-
-# discount types need to be imported to get Voucher in the graphene registry
-from ..discount import types  # noqa # pylint: disable=unused-import
 from ..shop.types import Shop
 from .enums import LanguageCodeEnum
+
+# discount types need to be imported to get Voucher in the graphene registry
+from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
 
 
 class BaseTranslateMutation(ModelMutation):
@@ -20,22 +18,17 @@ class BaseTranslateMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    @permission_required("site.manage_translations")
-    def mutate(cls, root, info, **data):
-        # DEMO: disable mutations
-        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+    def check_permissions(cls, user):
+        return user.has_perm("site.manage_translations")
 
-        errors = []
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
         model_type = registry.get_type_for_model(cls._meta.model)
-        instance = cls.get_node_or_error(info, data["id"], errors, "id", model_type)
-
-        if errors or not instance:
-            return cls(errors=errors)
-
+        instance = cls.get_node_or_error(info, data["id"], only_type=model_type)
         instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
-        return cls(**{cls._meta.return_field_name: instance, "errors": errors})
+        return cls(**{cls._meta.return_field_name: instance})
 
 
 class NameTranslationInput(graphene.InputObjectType):
@@ -220,15 +213,12 @@ class ShopSettingsTranslate(BaseMutation):
 
     class Meta:
         description = "Creates/Updates translations for Shop Settings."
+        permissions = ("site.manage_translations",)
 
     @classmethod
-    @permission_required("site.manage_translations")
-    def mutate(cls, root, info, language_code, input):
-        # DEMO: disable mutations
-        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
-
+    def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
         instance.translations.update_or_create(
-            language_code=language_code, defaults=input
+            language_code=language_code, defaults=data.get("input")
         )
-        return ShopSettingsTranslate(shop=Shop(), errors=[])
+        return ShopSettingsTranslate(shop=Shop())

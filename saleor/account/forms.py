@@ -44,6 +44,11 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
         address_form = address_form_class(
             not preview and data or None, initial=initial_address, **kwargs
         )
+
+    if hasattr(address_form.fields["country_area"], "choices"):
+        choices = address_form.fields["country_area"].choices
+        choices = [(choice[1], choice[1]) for choice in choices]
+        address_form.fields["country_area"].choices = choices
     return address_form, preview
 
 

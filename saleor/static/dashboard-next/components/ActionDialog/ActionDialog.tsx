@@ -34,7 +34,7 @@ interface ActionDialogProps extends WithStyles<typeof styles> {
   confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   title: string;
-  variant?: string;
+  variant?: "default" | "delete";
   onClose?();
   onConfirm();
 }

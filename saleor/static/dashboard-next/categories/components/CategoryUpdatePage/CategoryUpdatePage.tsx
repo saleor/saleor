@@ -13,7 +13,7 @@ import { Tab } from "../../../components/Tab";
 import TabContainer from "../../../components/Tab/TabContainer";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { UserError } from "../../../types";
+import { TabListActions, UserError } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
 import {
@@ -37,7 +37,8 @@ export enum CategoryPageTab {
   products = "products"
 }
 
-export interface CategoryUpdatePageProps {
+export interface CategoryUpdatePageProps
+  extends TabListActions<"productListToolbar" | "subcategoryListToolbar"> {
   changeTab: (index: CategoryPageTab) => void;
   currentTab: CategoryPageTab;
   errors: UserError[];
@@ -88,7 +89,12 @@ export const CategoryUpdatePage: React.StatelessComponent<
   onProductClick,
   onSubmit,
   onImageDelete,
-  onImageUpload
+  onImageUpload,
+  isChecked,
+  productListToolbar,
+  selected,
+  subcategoryListToolbar,
+  toggle
 }: CategoryUpdatePageProps) => {
   const initialData: FormData = category
     ? {
@@ -170,6 +176,10 @@ export const CategoryUpdatePage: React.StatelessComponent<
               onNextPage={onNextPage}
               onPreviousPage={onPreviousPage}
               pageInfo={pageInfo}
+              toggle={toggle}
+              selected={selected}
+              isChecked={isChecked}
+              toolbar={subcategoryListToolbar}
             />
           )}
           {currentTab === CategoryPageTab.products && (
@@ -182,6 +192,10 @@ export const CategoryUpdatePage: React.StatelessComponent<
               onPreviousPage={onPreviousPage}
               onRowClick={onProductClick}
               onAdd={onAddProduct}
+              toggle={toggle}
+              selected={selected}
+              isChecked={isChecked}
+              toolbar={productListToolbar}
             />
           )}
           <SaveButtonBar

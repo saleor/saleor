@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
-from ..checkout.utils import set_cart_cookie
+from ..checkout.utils import set_checkout_cookie
 from ..core.utils import serialize_decimal
 from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
@@ -23,13 +23,13 @@ from .utils import (
     collections_visible_to_user,
     get_product_images,
     get_product_list_context,
-    handle_cart_form,
-    products_for_cart,
+    handle_checkout_form,
+    products_for_checkout,
     products_for_products_list,
     products_with_details,
 )
 from .utils.attributes import get_product_attributes_data
-from .utils.availability import get_availability
+from .utils.availability import get_product_availability
 from .utils.digital_products import digital_content_url_is_valid
 from .utils.variants_picker import get_variant_picker_data
 
@@ -47,7 +47,7 @@ def product_details(request, slug, product_id, form=None):
         admin is previewing a product before publishing).
 
     form:
-        The add-to-cart form.
+        The add-to-checkout form.
 
     price_range:
         The PriceRange for the product including all discounts.
@@ -71,8 +71,8 @@ def product_details(request, slug, product_id, form=None):
     today = datetime.date.today()
     is_visible = product.publication_date is None or product.publication_date <= today
     if form is None:
-        form = handle_cart_form(request, product, create_cart=False)[0]
-    availability = get_availability(
+        form = handle_checkout_form(request, product, create_checkout=False)[0]
+    availability = get_product_availability(
         product,
         discounts=request.discounts,
         taxes=request.taxes,
@@ -125,7 +125,7 @@ def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotF
     return response
 
 
-def product_add_to_cart(request, slug, product_id):
+def product_add_to_checkout(request, slug, product_id):
     # types: (int, str, dict) -> None
 
     if not request.method == "POST":
@@ -133,22 +133,22 @@ def product_add_to_cart(request, slug, product_id):
             reverse("product:details", kwargs={"product_id": product_id, "slug": slug})
         )
 
-    products = products_for_cart(user=request.user)
+    products = products_for_checkout(user=request.user)
     product = get_object_or_404(products, pk=product_id)
-    form, cart = handle_cart_form(request, product, create_cart=True)
+    form, checkout = handle_checkout_form(request, product, create_checkout=True)
     if form.is_valid():
         form.save()
         if request.is_ajax():
-            response = JsonResponse({"next": reverse("cart:index")}, status=200)
+            response = JsonResponse({"next": reverse("checkout:index")}, status=200)
         else:
-            response = redirect("cart:index")
+            response = redirect("checkout:index")
     else:
         if request.is_ajax():
             response = JsonResponse({"error": form.errors}, status=400)
         else:
             response = product_details(request, slug, product_id, form)
     if not request.user.is_authenticated:
-        set_cart_cookie(cart, response)
+        set_checkout_cookie(checkout, response)
     return response
 
 

@@ -7,7 +7,6 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm,
     PossiblePhoneNumberFormField,
-    clean_phone_for_country,
 )
 from ...account.models import User
 from ...checkout.forms import QuantityField
@@ -15,14 +14,13 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
-from ...order import OrderStatus
+from ...order import OrderStatus, events
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order,
     cancel_fulfillment,
     cancel_order,
     change_order_line_quantity,
-    delete_order_line,
     fulfill_order_line,
     recalculate_order,
 )
@@ -315,12 +313,18 @@ class BasePaymentForm(forms.Form):
             pgettext_lazy("Payment form error", "Payment gateway error: %s") % message,
         )
 
-    def try_payment_action(self, action):
-        amount = self.cleaned_data["amount"]
+    def try_payment_action(self, user, action, *args):
         try:
-            action(self.payment, amount)
+            action(self.payment, *args)
         except (PaymentError, ValueError) as e:
-            self.payment_error(str(e))
+            message = str(e)
+            self.payment_error(message)
+            events.payment_failed_event(
+                order=self.payment.order,
+                user=user,
+                message=message,
+                payment=self.payment,
+            )
             return False
         return True
 
@@ -335,8 +339,10 @@ class CapturePaymentForm(BasePaymentForm):
         if not self.payment.can_capture():
             raise forms.ValidationError(self.clean_error)
 
-    def capture(self):
-        return self.try_payment_action(gateway_capture)
+    def capture(self, user):
+        return self.try_payment_action(
+            user, gateway_capture, self.cleaned_data["amount"]
+        )
 
 
 class RefundPaymentForm(BasePaymentForm):
@@ -356,8 +362,10 @@ class RefundPaymentForm(BasePaymentForm):
                 )
             )
 
-    def refund(self):
-        return self.try_payment_action(gateway_refund)
+    def refund(self, user):
+        return self.try_payment_action(
+            user, gateway_refund, self.cleaned_data["amount"]
+        )
 
 
 class VoidPaymentForm(BasePaymentForm):
@@ -377,13 +385,8 @@ class VoidPaymentForm(BasePaymentForm):
         if not self.payment.can_void():
             raise forms.ValidationError(self.clean_error)
 
-    def void(self):
-        try:
-            gateway_void(self.payment)
-        except (PaymentError, ValueError) as e:
-            self.payment_error(str(e))
-            return False
-        return True
+    def void(self, user):
+        return self.try_payment_action(user, gateway_void)
 
 
 class OrderMarkAsPaidForm(forms.Form):
@@ -410,11 +413,11 @@ class CancelOrderLineForm(forms.Form):
         self.line = kwargs.pop("line")
         super().__init__(*args, **kwargs)
 
-    def cancel_line(self):
+    def cancel_line(self, user):
         if self.line.variant and self.line.variant.track_inventory:
             deallocate_stock(self.line.variant, self.line.quantity)
         order = self.line.order
-        delete_order_line(self.line)
+        change_order_line_quantity(user, self.line, self.line.quantity, 0)
         recalculate_order(order)
 
 
@@ -449,14 +452,14 @@ class ChangeQuantityForm(forms.ModelForm):
             )  # noqa
         return quantity
 
-    def save(self):
+    def save(self, user):
         quantity = self.cleaned_data["quantity"]
         variant = self.instance.variant
         if variant and variant.track_inventory:
             # update stock allocation
             delta = quantity - self.initial_quantity
             allocate_stock(variant, delta)
-        change_order_line_quantity(self.instance, quantity)
+        change_order_line_quantity(user, self.instance, self.initial_quantity, quantity)
         recalculate_order(self.instance.order)
         return self.instance
 
@@ -487,8 +490,8 @@ class CancelOrderForm(forms.Form):
             )
         return data
 
-    def cancel_order(self):
-        cancel_order(self.order, self.cleaned_data.get("restock"))
+    def cancel_order(self, user):
+        cancel_order(user, self.order, self.cleaned_data.get("restock"))
 
 
 class CancelFulfillmentForm(forms.Form):
@@ -520,8 +523,8 @@ class CancelFulfillmentForm(forms.Form):
             )
         return data
 
-    def cancel_fulfillment(self):
-        cancel_fulfillment(self.fulfillment, self.cleaned_data.get("restock"))
+    def cancel_fulfillment(self, user):
+        cancel_fulfillment(user, self.fulfillment, self.cleaned_data.get("restock"))
 
 
 class FulfillmentTrackingNumberForm(forms.ModelForm):
@@ -622,14 +625,19 @@ class AddVariantToOrderForm(forms.Form):
                 self.add_error("quantity", error)
         return cleaned_data
 
-    def save(self):
+    def save(self, user):
         """Add variant to order.
 
         Updates stocks and order.
         """
         variant = self.cleaned_data.get("variant")
         quantity = self.cleaned_data.get("quantity")
-        add_variant_to_order(self.order, variant, quantity, self.discounts, self.taxes)
+        line = add_variant_to_order(
+            self.order, variant, quantity, self.discounts, self.taxes
+        )
+        events.draft_order_added_products_event(
+            order=self.order, user=user, order_lines=[(line.quantity, line)]
+        )
         recalculate_order(self.order)
 
 
@@ -644,13 +652,6 @@ class AddressForm(StorefrontAddressForm):
 
     def clean(self):
         data = super().clean()
-        phone = data.get("phone")
-        country = data.get("country")
-        if phone:
-            try:
-                data["phone"] = clean_phone_for_country(phone, country)
-            except forms.ValidationError as error:
-                self.add_error("phone", error)
         return data
 
 

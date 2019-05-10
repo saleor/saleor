@@ -1,5 +1,4 @@
-from celery import shared_task
-
+from ..celeryconf import app
 from .models import Attribute, ProductType, ProductVariant
 from .utils.attributes import get_name_from_attributes
 
@@ -25,7 +24,7 @@ def _update_variants_names(instance, saved_attributes):
         variant.save(update_fields=["name"])
 
 
-@shared_task
+@app.task
 def update_variants_names(product_type_pk, saved_attributes_ids):
     instance = ProductType.objects.get(pk=product_type_pk)
     saved_attributes = Attribute.objects.filter(pk__in=saved_attributes_ids)

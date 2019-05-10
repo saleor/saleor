@@ -5,7 +5,7 @@ from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import amount
 
-from ..checkout.forms import AddToCartForm
+from ..checkout.forms import AddToCheckoutForm
 from ..core.utils.taxes import display_gross_prices
 
 
@@ -40,7 +40,7 @@ class VariantChoiceField(forms.ModelChoiceField):
             self.widget = forms.HiddenInput({"value": variants.all()[0].pk})
 
 
-class ProductForm(AddToCartForm):
+class ProductForm(AddToCheckoutForm):
     variant = VariantChoiceField(queryset=None)
 
     def __init__(self, *args, **kwargs):

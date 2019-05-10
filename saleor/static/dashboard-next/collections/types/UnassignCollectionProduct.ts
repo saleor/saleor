@@ -64,7 +64,7 @@ export interface UnassignCollectionProduct {
 
 export interface UnassignCollectionProductVariables {
   collectionId: string;
-  productId: string;
+  productIds: (string | null)[];
   first?: number | null;
   after?: string | null;
   last?: number | null;

@@ -6,7 +6,7 @@
 {% load static %}
 {% load translate_url from urls %}
 
-<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:summary' %}">
+<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'checkout:shipping-options' %}" data-checkout-summary-url="{% url 'checkout:dropdown' %}">
 <head>
   <title>{% block title %}{{ site.name }}{% endblock %}</title>
   {% block meta %}
@@ -148,24 +148,24 @@
             {% endif %}
           </div>
           <div class="col-2 col-md-3">
-            <div class="navbar__brand__cart float-right">
-              <a rel="nofollow" class="cart__icon" href="{% url "cart:index" %}">
-                <span class="cart-label d-none d-md-inline-block">
-                  {% trans "Your Cart" context "Main navigation item" %}
+            <div class="navbar__brand__checkout float-right">
+              <a rel="nofollow" class="checkout__icon" href="{% url "checkout:index" %}">
+                <span class="checkout-label d-none d-md-inline-block">
+                  {% trans "Your Checkout" context "Main navigation item" %}
                 </span>
-                <div class="navbar__brand__cart__icon">
-                  <svg data-src="{% static "images/cart.svg" %}" width="24" height="24"/>
+                <div class="navbar__brand__checkout__icon">
+                  <svg data-src="{% static "images/checkout.svg" %}" width="24" height="24"/>
                 </div>
-                <span class="badge {% if not cart_counter %}empty{% endif %}">
-                  {% if cart_counter %}
-                    {{ cart_counter }}
+                <span class="badge {% if not checkout_counter %}empty{% endif %}">
+                  {% if checkout_counter %}
+                    {{ checkout_counter }}
                   {% else %}
                     0
                   {% endif %}
                 </span>
               </a>
-              <div class="cart-dropdown d-none">
-                {% include 'cart_dropdown.html' %}
+              <div class="checkout-preview-dropdown d-none">
+                {% include 'checkout_dropdown.html' %}
               </div>
             </div>
           </div>
@@ -210,8 +210,8 @@
             </a>
             <hr />
             <li>
-              <a rel="nofollow" href="{% url "cart:index" %}">
-                {% trans "Your Cart" context "Main navigation item" %}
+              <a rel="nofollow" href="{% url "checkout:index" %}">
+                {% trans "Your Checkout" context "Main navigation item" %}
               </a>
             </li>
             {% if user.is_authenticated %}

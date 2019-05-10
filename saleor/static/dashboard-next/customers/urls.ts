@@ -1,48 +1,35 @@
+import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
+
+import { BulkAction, Dialog, Pagination, SingleAction } from "../types";
 
 export const customerSection = "/customers/";
 
 export const customerListPath = customerSection;
-export const customerListUrl = customerListPath;
+export type CustomerListUrlDialog = "remove";
+export type CustomerListUrlQueryParams = BulkAction &
+  Dialog<CustomerListUrlDialog> &
+  Pagination;
+export const customerListUrl = (params?: CustomerListUrlQueryParams) =>
+  customerListPath + "?" + stringifyQs(params);
 
 export const customerPath = (id: string) => urlJoin(customerSection, id);
-export const customerUrl = (id: string) => customerPath(encodeURIComponent(id));
+export type CustomerUrlDialog = "remove";
+export type CustomerUrlQueryParams = Dialog<CustomerUrlDialog>;
+export const customerUrl = (id: string, params?: CustomerUrlQueryParams) =>
+  customerPath(encodeURIComponent(id)) + "?" + stringifyQs(params);
 
 export const customerAddPath = urlJoin(customerSection, "add");
 export const customerAddUrl = customerAddPath;
 
-export const customerRemovePath = (id: string) =>
-  urlJoin(customerPath(id), "remove");
-export const customerRemoveUrl = (id: string) =>
-  customerRemovePath(encodeURIComponent(id));
-
 export const customerAddressesPath = (id: string) =>
   urlJoin(customerPath(id), "addresses");
-export const customerAddressesUrl = (id: string) =>
-  customerAddressesPath(encodeURIComponent(id));
-
-export const customerAddressPath = (customerId: string, addressId: string) =>
-  urlJoin(customerAddressesPath(customerId), addressId);
-export const customerAddressUrl = (customerId: string, addressId: string) =>
-  customerAddressPath(
-    encodeURIComponent(customerId),
-    encodeURIComponent(addressId)
-  );
-
-export const customerAddressAddPath = (customerId: string) =>
-  urlJoin(customerAddressesPath(customerId), "add");
-export const customerAddressAddUrl = (customerId: string) =>
-  customerAddressAddPath(encodeURIComponent(customerId));
-
-export const customerAddressRemovePath = (
-  customerId: string,
-  addressId: string
-) => urlJoin(customerAddressPath(customerId, addressId), "remove");
-export const customerAddressRemoveUrl = (
-  customerId: string,
-  addressId: string
-) =>
-  customerAddressRemovePath(
-    encodeURIComponent(customerId),
-    encodeURIComponent(addressId)
-  );
+export type CustomerAddressesUrlDialog = "add" | "edit" | "remove";
+export type CustomerAddressesUrlQueryParams = Dialog<
+  CustomerAddressesUrlDialog
+> &
+  SingleAction;
+export const customerAddressesUrl = (
+  id: string,
+  params?: CustomerAddressesUrlQueryParams
+) => customerAddressesPath(encodeURIComponent(id)) + "?" + stringifyQs(params);

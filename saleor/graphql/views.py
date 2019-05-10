@@ -8,7 +8,7 @@ from django.shortcuts import render_to_response, reverse
 from django.views.generic import View
 from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
-from graphql import get_default_backend
+from graphql import GraphQLDocument, get_default_backend
 from graphql.error import (
     GraphQLError,
     GraphQLSyntaxError,
@@ -100,7 +100,7 @@ class GraphQLView(View):
         ] = "Origin, Content-Type, Accept, Authorization"
         return response
 
-    def handle_query(self, request: HttpRequest, *args, **kwargs):
+    def handle_query(self, request: HttpRequest):
         try:
             data = self.parse_body(request)
         except ValueError:
@@ -118,11 +118,7 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def get_response(self, request: HttpRequest, data: dict):
-        query, variables, operation_name = self.get_graphql_params(request, data)
-
-        execution_result = self.execute_graphql_request(
-            request, query, variables, operation_name
-        )
+        execution_result = self.execute_graphql_request(request, data)
         status_code = 200
         if execution_result:
             response = {}
@@ -139,20 +135,37 @@ class GraphQLView(View):
             result = None
         return result, status_code
 
-    def get_root_value(self, request: HttpRequest):
+    def get_root_value(self):
         return self.root_value
 
-    def execute_graphql_request(
-        self, request: HttpRequest, query: str, variables: dict, operation_name: str
-    ):
+    def parse_query(self, query: str) -> (GraphQLDocument, ExecutionResult):
+        """Attempt to parse a query (mandatory) to a gql document object.
+
+        If no query was given, it returns an error.
+        If the query is invalid, it returns an error as well.
+        Otherwise, it returns the parsed gql document.
+        """
         if not query:
-            return ExecutionResult(
-                errors=[ValueError("Must provide a query string.")], invalid=True
+            return (
+                None,
+                ExecutionResult(
+                    errors=[ValueError("Must provide a query string.")], invalid=True
+                ),
             )
+
+        # Attempt to parse the query, if it fails, return the error
         try:
-            document = self.backend.document_from_string(self.schema, query)
+            return self.backend.document_from_string(self.schema, query), None
         except (ValueError, GraphQLSyntaxError) as e:
-            return ExecutionResult(errors=[e], invalid=True)
+            return None, ExecutionResult(errors=[e], invalid=True)
+
+    def execute_graphql_request(self, request: HttpRequest, data: dict):
+        query, variables, operation_name = self.get_graphql_params(request, data)
+
+        document, error = self.parse_query(query)
+        if error:
+            return error
+
         extra_options = {}
         if self.executor:
             # We only include it optionally since
@@ -160,7 +173,7 @@ class GraphQLView(View):
             extra_options["executor"] = self.executor
         try:
             return document.execute(
-                root=self.get_root_value(request),
+                root=self.get_root_value(),
                 variables=variables,
                 operation_name=operation_name,
                 context=request,

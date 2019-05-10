@@ -9,7 +9,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import pgettext, ugettext_lazy as _
 from django.views.decorators.http import require_POST
 
-from ..checkout.utils import find_and_assign_anonymous_cart
+from ..checkout.utils import find_and_assign_anonymous_checkout
 from ..core.utils import get_paginator_items
 from .emails import send_account_delete_confirmation_email
 from .forms import (
@@ -23,7 +23,7 @@ from .forms import (
 )
 
 
-@find_and_assign_anonymous_cart()
+@find_and_assign_anonymous_checkout()
 def login(request):
     kwargs = {"template_name": "account/login.html", "authentication_form": LoginForm}
     return django_views.LoginView.as_view(**kwargs)(request, **kwargs)

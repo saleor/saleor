@@ -5,11 +5,11 @@ from django_prices.templatetags import prices_i18n
 from ...core.utils import to_local_currency
 from ...core.utils.taxes import display_gross_prices, get_tax_rate_by_name
 from ...seo.schema.product import variant_json_ld
-from .availability import get_availability
+from .availability import get_product_availability
 
 
 def get_variant_picker_data(product, discounts=None, taxes=None, local_currency=None):
-    availability = get_availability(product, discounts, taxes, local_currency)
+    availability = get_product_availability(product, discounts, taxes, local_currency)
     variants = product.variants.all()
     data = {"variantAttributes": [], "variants": []}
 
@@ -97,6 +97,6 @@ def price_range_as_dict(price_range):
     if not price_range:
         return None
     return {
-        "maxPrice": price_as_dict(price_range.start),
-        "minPrice": price_as_dict(price_range.stop),
+        "minPrice": price_as_dict(price_range.start),
+        "maxPrice": price_as_dict(price_range.stop),
     }

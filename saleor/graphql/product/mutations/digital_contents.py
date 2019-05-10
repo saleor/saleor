@@ -1,7 +1,5 @@
-from textwrap import dedent
-
-from django.core.exceptions import PermissionDenied
 import graphene
+from django.core.exceptions import ValidationError
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
@@ -54,65 +52,59 @@ class DigitalContentCreate(BaseMutation):
         )
 
     class Meta:
-        description = dedent(
-            """Create new digital content. This mutation must
+        description = """Create new digital content. This mutation must
         be sent as a `multipart` request. More detailed specs of the upload
         format can be found here:
         https://github.com/jaydenseric/graphql-multipart-request-spec"""
-        )
 
     @classmethod
     @permission_required("product.manage_products")
-    def clean_input(cls, info, input, instance, errors):
+    def clean_input(cls, info, data, instance):
         if hasattr(instance, "digital_content"):
             instance.digital_content.delete()
 
-        use_default_settings = input.get("use_default_settings")
+        use_default_settings = data.get("use_default_settings")
         if use_default_settings:
-            return input
+            return data
 
         required_fields = ["max_downloads", "url_valid_days", "automatic_fulfillment"]
 
-        if not all(field in input for field in required_fields):
+        if not all(field in data for field in required_fields):
             msg = (
-                "Use default settings is disabled. Provide all " "configuration fields"
+                "Use default settings is disabled. Provide all "
+                "missing configuration fields: "
             )
-            missing_field = set(required_fields).difference(set(input))
-            for field in missing_field:
-                cls.add_error(errors, field, msg)
+            missing_fields = set(required_fields).difference(set(data))
+            if missing_fields:
+                msg += "{}, " * len(missing_fields)
+                raise ValidationError(msg.format(*missing_fields))
 
-        return input
+        return data
 
     @classmethod
     @permission_required("product.manage_products")
-    def mutate(cls, root, info, variant_id, input):
-        # DEMO: disable mutations
-        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
-
-        errors = []
+    def perform_mutation(cls, _root, info, variant_id, **data):
         variant = cls.get_node_or_error(
-            info, variant_id, errors, "id", only_type=ProductVariant
+            info, variant_id, "id", only_type=ProductVariant
         )
 
-        input = cls.clean_input(info, input, variant, errors)
-        digital_content = None
+        clean_input = cls.clean_input(info, data.get("input"), variant)
 
-        if not errors:
-            content_data = info.context.FILES.get(input["content_file"])
-            digital_content = models.DigitalContent(content_file=content_data)
-            digital_content.use_default_settings = input.get(
-                "use_default_settings", False
-            )
+        content_data = info.context.FILES.get(clean_input["content_file"])
+        digital_content = models.DigitalContent(content_file=content_data)
+        digital_content.use_default_settings = clean_input.get(
+            "use_default_settings", False
+        )
 
-            digital_content.max_downloads = input.get("max_downloads")
-            digital_content.url_valid_days = input.get("url_valid_days")
-            digital_content.automatic_fulfillment = input.get(
-                "automatic_fulfillment", False
-            )
+        digital_content.max_downloads = clean_input.get("max_downloads")
+        digital_content.url_valid_days = clean_input.get("url_valid_days")
+        digital_content.automatic_fulfillment = clean_input.get(
+            "automatic_fulfillment", False
+        )
 
-            variant.digital_content = digital_content
-            variant.digital_content.save()
-        return DigitalContentCreate(content=digital_content, errors=errors)
+        variant.digital_content = digital_content
+        variant.digital_content.save()
+        return DigitalContentCreate(content=digital_content)
 
 
 class DigitalContentDelete(BaseMutation):
@@ -125,23 +117,19 @@ class DigitalContentDelete(BaseMutation):
         )
 
     class Meta:
-        description = dedent("Remove digital content assigned to given variant")
+        description = "Remove digital content assigned to given variant"
 
     @classmethod
     @permission_required("product.manage_products")
-    def mutate(cls, root, info, variant_id):
-        # DEMO: disable mutations
-        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
-
-        errors = []
+    def mutate(cls, _root, info, variant_id):
         variant = cls.get_node_or_error(
-            info, variant_id, errors, "id", only_type=ProductVariant
+            info, variant_id, "id", only_type=ProductVariant
         )
 
-        if hasattr(variant, "digital_content") and not errors:
+        if hasattr(variant, "digital_content"):
             variant.digital_content.delete()
 
-        return DigitalContentDelete(variant=variant, errors=errors)
+        return DigitalContentDelete(variant=variant)
 
 
 class DigitalContentUpdate(BaseMutation):
@@ -158,64 +146,58 @@ class DigitalContentUpdate(BaseMutation):
         )
 
     class Meta:
-        description = dedent("Update digital content")
+        description = "Update digital content"
 
     @classmethod
     @permission_required("product.manage_products")
-    def clean_input(cls, info, input, instance, errors):
-        use_default_settings = input.get("use_default_settings")
+    def clean_input(cls, info, data):
+        use_default_settings = data.get("use_default_settings")
         if use_default_settings:
             return {"use_default_settings": use_default_settings}
 
         required_fields = ["max_downloads", "url_valid_days", "automatic_fulfillment"]
 
-        if not all(field in input for field in required_fields):
+        if not all(field in data for field in required_fields):
             msg = (
-                "Use default settings is disabled. Provide all " "configuration fields"
+                "Use default settings is disabled. Provide all "
+                "missing configuration fields: "
             )
-            missing_fields = set(required_fields).difference(set(input))
-            for field in missing_fields:
-                cls.add_error(errors, field, msg)
+            missing_fields = set(required_fields).difference(set(data))
+            if missing_fields:
+                msg += "{}, " * len(missing_fields)
+                raise ValidationError(msg.format(*missing_fields))
 
-        return input
+        return data
 
     @classmethod
     @permission_required("product.manage_products")
-    def mutate(cls, root, info, variant_id, input):
-        # DEMO: disable mutations
-        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
-
-        errors = []
+    def perform_mutation(cls, _root, info, variant_id, **data):
         variant = cls.get_node_or_error(
-            info, variant_id, errors, "id", only_type=ProductVariant
+            info, variant_id, "id", only_type=ProductVariant
         )
 
         if not hasattr(variant, "digital_content"):
             msg = "Variant %s doesn't have any digital content" % variant.id
-            cls.add_error(errors, "variant_id", msg)
+            raise ValidationError({"variantId": msg})
 
-        input = cls.clean_input(info, input, variant, errors)
+        clean_input = cls.clean_input(info, data.get("input"))
 
-        digital_content = None
-        if not errors:
-            digital_content = variant.digital_content
+        digital_content = variant.digital_content
 
-            digital_content.use_default_settings = input.get(
-                "use_default_settings", False
-            )
-
-            digital_content.max_downloads = input.get("max_downloads")
-            digital_content.url_valid_days = input.get("url_valid_days")
-            digital_content.automatic_fulfillment = input.get(
-                "automatic_fulfillment", False
-            )
-
-            variant.digital_content = digital_content
-            variant.digital_content.save()
-
-        return DigitalContentUpdate(
-            content=digital_content, variant=variant, errors=errors
+        digital_content.use_default_settings = clean_input.get(
+            "use_default_settings", False
         )
+
+        digital_content.max_downloads = clean_input.get("max_downloads")
+        digital_content.url_valid_days = clean_input.get("url_valid_days")
+        digital_content.automatic_fulfillment = clean_input.get(
+            "automatic_fulfillment", False
+        )
+
+        variant.digital_content = digital_content
+        variant.digital_content.save()
+
+        return DigitalContentUpdate(content=digital_content, variant=variant)
 
 
 class DigitalContentUrlCreateInput(graphene.InputObjectType):

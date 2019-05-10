@@ -171,6 +171,11 @@ class ProductVoucherForm(CommonVoucherForm):
         model = Voucher
         fields = ["products", "apply_once_per_order"]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["products"].set_initial(self.instance.products.all())
+
 
 class CollectionVoucherForm(CommonVoucherForm):
     class Meta:

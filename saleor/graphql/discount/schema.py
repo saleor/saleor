@@ -1,9 +1,11 @@
 import graphene
 from graphql_jwt.decorators import permission_required
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
+from ..core.types import FilterInputObjectType
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
+from .filters import SaleFilter, VoucherFilter
 from .mutations import (
     SaleAddCatalogues,
     SaleCreate,
@@ -20,14 +22,25 @@ from .resolvers import resolve_sales, resolve_vouchers
 from .types import Sale, Voucher
 
 
+class VoucherFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = VoucherFilter
+
+
+class SaleFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = SaleFilter
+
+
 class DiscountQueries(graphene.ObjectType):
     sale = graphene.Field(
         Sale,
         id=graphene.Argument(graphene.ID, required=True),
         description="Lookup a sale by ID.",
     )
-    sales = PrefetchingConnectionField(
+    sales = FilterInputConnectionField(
         Sale,
+        filter=SaleFilterInput(),
         query=graphene.String(description="Search sales by name, value or type."),
         description="List of the shop's sales.",
     )
@@ -36,8 +49,9 @@ class DiscountQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, required=True),
         description="Lookup a voucher by ID.",
     )
-    vouchers = PrefetchingConnectionField(
+    vouchers = FilterInputConnectionField(
         Voucher,
+        filter=VoucherFilterInput(),
         query=graphene.String(description="Search vouchers by name or code."),
         description="List of the shop's vouchers.",
     )
@@ -47,7 +61,7 @@ class DiscountQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, Sale)
 
     @permission_required("discount.manage_discounts")
-    def resolve_sales(self, info, query=None, **kwargs):
+    def resolve_sales(self, info, query=None, **_kwargs):
         return resolve_sales(info, query)
 
     @permission_required("discount.manage_discounts")
@@ -55,7 +69,7 @@ class DiscountQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, Voucher)
 
     @permission_required("discount.manage_discounts")
-    def resolve_vouchers(self, info, query=None, **kwargs):
+    def resolve_vouchers(self, info, query=None, **_kwargs):
         return resolve_vouchers(info, query)
 
 

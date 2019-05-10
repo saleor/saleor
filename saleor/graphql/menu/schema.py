@@ -10,6 +10,7 @@ from .mutations import (
     MenuDelete,
     MenuItemCreate,
     MenuItemDelete,
+    MenuItemMove,
     MenuItemUpdate,
     MenuUpdate,
 )
@@ -40,16 +41,16 @@ class MenuQueries(graphene.ObjectType):
         description="List of the shop's menu items.",
     )
 
-    def resolve_menu(self, info, id=None, name=None):
-        return resolve_menu(info, id, name)
+    def resolve_menu(self, info, **data):
+        return resolve_menu(info, data.get("id"), data.get("name"))
 
-    def resolve_menus(self, info, query=None, **kwargs):
+    def resolve_menus(self, info, query=None, **_kwargs):
         return resolve_menus(info, query)
 
-    def resolve_menu_item(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, MenuItem)
+    def resolve_menu_item(self, info, **data):
+        return graphene.Node.get_node_from_global_id(info, data.get("id"), MenuItem)
 
-    def resolve_menu_items(self, info, query=None, **kwargs):
+    def resolve_menu_items(self, info, query=None, **_kwargs):
         return resolve_menu_items(info, query)
 
 
@@ -66,3 +67,4 @@ class MenuMutations(graphene.ObjectType):
     menu_item_bulk_delete = MenuItemBulkDelete.Field()
     menu_item_update = MenuItemUpdate.Field()
     menu_item_translate = MenuItemTranslate.Field()
+    menu_item_move = MenuItemMove.Field()

@@ -1,18 +1,25 @@
+import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
+
+import { BulkAction, Dialog, Pagination } from "../types";
 
 const staffSection = "/staff/";
 
 export const staffListPath = staffSection;
-export const staffListUrl = staffListPath;
-
-export const staffMemberAddPath = urlJoin(staffSection, "add");
-export const staffMemberAddUrl = staffMemberAddPath;
+export type StaffListUrlDialog = "add" | "remove";
+export type StaffListUrlQueryParams = BulkAction &
+  Dialog<StaffListUrlDialog> &
+  Pagination;
+export const staffListUrl = (params?: StaffListUrlQueryParams) =>
+  staffListPath + "?" + stringifyQs(params);
 
 export const staffMemberDetailsPath = (id: string) => urlJoin(staffSection, id);
-export const staffMemberDetailsUrl = (id: string) =>
-  staffMemberDetailsPath(encodeURIComponent(id));
+export type StaffMemberDetailsUrlDialog = "remove" | "remove-avatar";
+export type StaffMemberDetailsUrlQueryParams = Dialog<
+  StaffMemberDetailsUrlDialog
+>;
 
-export const staffMemberRemovePath = (id: string) =>
-  urlJoin(staffMemberDetailsPath(id), "remove");
-export const staffMemberRemoveUrl = (id: string) =>
-  staffMemberRemovePath(encodeURIComponent(id));
+export const staffMemberDetailsUrl = (
+  id: string,
+  params?: StaffMemberDetailsUrlQueryParams
+) => staffMemberDetailsPath(encodeURIComponent(id)) + "?" + stringifyQs(params);

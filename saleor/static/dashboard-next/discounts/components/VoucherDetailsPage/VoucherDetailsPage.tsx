@@ -14,7 +14,7 @@ import { Tab } from "../../../components/Tab";
 import TabContainer from "../../../components/Tab/TabContainer";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { ListProps, UserError } from "../../../types";
+import { ListProps, TabListActions, UserError } from "../../../types";
 import {
   VoucherDiscountValueType,
   VoucherType
@@ -54,7 +54,10 @@ export interface FormData {
 }
 
 export interface VoucherDetailsPageProps
-  extends Pick<ListProps, Exclude<keyof ListProps, "onRowClick">> {
+  extends Pick<ListProps, Exclude<keyof ListProps, "onRowClick">>,
+    TabListActions<
+      "categoryListToolbar" | "collectionListToolbar" | "productListToolbar"
+    > {
   activeTab: VoucherDetailsPageTab;
   defaultCurrency: string;
   errors: UserError[];
@@ -105,7 +108,13 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
   onProductUnassign,
   onTabClick,
   onRemove,
-  onSubmit
+  onSubmit,
+  toggle,
+  selected,
+  isChecked,
+  categoryListToolbar,
+  collectionListToolbar,
+  productListToolbar
 }) => {
   const initialForm: FormData = {
     applyOncePerOrder: maybe(() => voucher.applyOncePerOrder, false),
@@ -197,6 +206,10 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                       onRowClick={onCategoryClick}
                       pageInfo={pageInfo}
                       discount={voucher}
+                      isChecked={isChecked}
+                      selected={selected}
+                      toggle={toggle}
+                      toolbar={categoryListToolbar}
                     />
                   ) : activeTab === VoucherDetailsPageTab.collections ? (
                     <DiscountCollections
@@ -208,6 +221,10 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                       onRowClick={onCollectionClick}
                       pageInfo={pageInfo}
                       discount={voucher}
+                      isChecked={isChecked}
+                      selected={selected}
+                      toggle={toggle}
+                      toolbar={collectionListToolbar}
                     />
                   ) : (
                     <DiscountProducts
@@ -219,6 +236,10 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                       onRowClick={onProductClick}
                       pageInfo={pageInfo}
                       discount={voucher}
+                      isChecked={isChecked}
+                      selected={selected}
+                      toggle={toggle}
+                      toolbar={productListToolbar}
                     />
                   )}
                 </>

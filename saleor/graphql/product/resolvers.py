@@ -6,12 +6,12 @@ from ...order import OrderStatus
 from ...product import models
 from ...search.backends import picker
 from ..utils import filter_by_period, filter_by_query_param, get_database_id, get_nodes
-from .enums import StockAvailability
 from .filters import (
     filter_products_by_attributes,
     filter_products_by_categories,
     filter_products_by_collections,
     filter_products_by_price,
+    filter_products_by_stock_availability,
     sort_qs,
 )
 from .types import Category, Collection, ProductVariant
@@ -77,7 +77,7 @@ def resolve_collections(info, query):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_digital_contents(info, query):
+def resolve_digital_contents(info):
     qs = models.DigitalContent.objects.all()
     return gql_optimizer.query(qs, info)
 
@@ -92,7 +92,7 @@ def resolve_products(
     sort_by=None,
     stock_availability=None,
     query=None,
-    **kwargs,
+    **_kwargs,
 ):
 
     user = info.context.user
@@ -112,17 +112,13 @@ def resolve_products(
     if collections:
         collections = get_nodes(collections, Collection)
         qs = filter_products_by_collections(qs, collections)
-
     if stock_availability:
-        qs = qs.annotate(total_quantity=Sum("variants__quantity"))
-        if stock_availability == StockAvailability.IN_STOCK:
-            qs = qs.filter(total_quantity__gt=0)
-        elif stock_availability == StockAvailability.OUT_OF_STOCK:
-            qs = qs.filter(total_quantity__lte=0)
+        qs = filter_products_by_stock_availability(qs, stock_availability)
 
     qs = filter_products_by_price(qs, price_lte, price_gte)
     qs = sort_qs(qs, sort_by)
     qs = qs.distinct()
+
     return gql_optimizer.query(qs, info)
 
 
@@ -146,7 +142,7 @@ def resolve_product_variants(info, ids=None):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_report_product_sales(info, period):
+def resolve_report_product_sales(period):
     qs = models.ProductVariant.objects.prefetch_related(
         "product", "product__images", "order_lines__order"
     ).all()

@@ -1,11 +1,9 @@
 import decimal
 import logging
-import os
 from json import JSONEncoder
 from urllib.parse import urljoin
 
 from babel.numbers import get_territory_currencies
-from celery import shared_task
 from django import forms
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -24,6 +22,7 @@ from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
 from ...account.utils import get_random_avatar
+from ...celeryconf import app
 from ...core.i18n import COUNTRY_CODE_CHOICES
 
 georeader = geolite2.reader()
@@ -100,6 +99,8 @@ def format_money(money):
 
 
 def to_local_currency(price, currency):
+    if price is None:
+        return None
     if not settings.OPENEXCHANGERATES_API_KEY:
         return None
     if isinstance(price, MoneyRange):
@@ -114,7 +115,7 @@ def to_local_currency(price, currency):
     return None
 
 
-@shared_task
+@app.task
 def update_conversion_rates_from_openexchangerates():
     conversion_rates_queryset = update_conversion_rates()
     return serializers.serialize("json", conversion_rates_queryset)

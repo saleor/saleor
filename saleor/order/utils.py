@@ -22,6 +22,7 @@ from ..product.utils import (
     increase_stock,
 )
 from ..product.utils.digital_products import get_default_digital_content_settings
+from . import events
 
 
 def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
@@ -166,13 +167,19 @@ def update_order_prices(order, discounts):
     recalculate_order(order)
 
 
-def cancel_order(order, restock):
+def cancel_order(user, order, restock):
     """Cancel order and associated fulfillments.
 
     Return products to corresponding stocks if restock is set to True.
     """
+
+    events.order_canceled_event(order=order, user=user)
     if restock:
+        events.fulfillment_restocked_items_event(
+            order=order, user=user, fulfillment=order
+        )
         restock_order_lines(order)
+
     for fulfillment in order.fulfillments.all():
         fulfillment.status = FulfillmentStatus.CANCELED
         fulfillment.save(update_fields=["status"])
@@ -207,12 +214,18 @@ def update_order_status(order):
         order.save(update_fields=["status"])
 
 
-def cancel_fulfillment(fulfillment, restock):
+def cancel_fulfillment(user, fulfillment, restock):
     """Cancel fulfillment.
 
     Return products to corresponding stocks if restock is set to True.
     """
+    events.fulfillment_canceled_event(
+        order=fulfillment.order, user=user, fulfillment=fulfillment
+    )
     if restock:
+        events.fulfillment_restocked_items_event(
+            order=fulfillment.order, user=user, fulfillment=fulfillment
+        )
         restock_fulfillment_lines(fulfillment)
     for line in fulfillment:
         order_line = line.order_line
@@ -277,13 +290,25 @@ def add_variant_to_order(
     return line
 
 
-def change_order_line_quantity(line, new_quantity):
+def change_order_line_quantity(user, line, old_quantity, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
     else:
         delete_order_line(line)
+
+    quantity_diff = old_quantity - new_quantity
+
+    # Create the removal event
+    if quantity_diff > 0:
+        events.draft_order_removed_products_event(
+            order=line.order, user=user, order_lines=[(quantity_diff, line)]
+        )
+    elif quantity_diff < 0:
+        events.draft_order_added_products_event(
+            order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
+        )
 
 
 def delete_order_line(line):

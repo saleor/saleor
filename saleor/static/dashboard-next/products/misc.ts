@@ -1,10 +1,10 @@
 import { empty, only } from "../misc";
 import { StockAvailability } from "../types/globalTypes";
 import { ProductListFilterTabs } from "./components/ProductListFilter";
-import { ProductListQueryParams } from "./views/ProductList";
+import { ProductListUrlQueryParams } from "./urls";
 
 export const getTabName = (
-  qs: ProductListQueryParams
+  qs: ProductListUrlQueryParams
 ): ProductListFilterTabs => {
   const filters = {
     status: qs.status

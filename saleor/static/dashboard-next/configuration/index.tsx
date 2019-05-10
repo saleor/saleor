@@ -26,21 +26,21 @@ export const configurationMenu: MenuItem[] = [
     icon: <ProductTypes fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PRODUCTS,
     title: i18n.t("Product Types"),
-    url: productTypeListUrl
+    url: productTypeListUrl()
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
     icon: <StaffMembers fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_STAFF,
     title: i18n.t("Staff Members"),
-    url: staffListUrl
+    url: staffListUrl()
   },
   {
     description: i18n.t("Manage how you ship out orders."),
     icon: <ShippingMethods fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_SHIPPING,
     title: i18n.t("Shipping Methods"),
-    url: shippingZonesListUrl
+    url: shippingZonesListUrl()
   },
   {
     description: i18n.t("Manage how your store charges tax"),
@@ -60,14 +60,14 @@ export const configurationMenu: MenuItem[] = [
     icon: <SiteSettings fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_SETTINGS,
     title: i18n.t("Site Settings"),
-    url: siteSettingsUrl
+    url: siteSettingsUrl()
   },
   {
     description: i18n.t("Manage and add additional pages"),
     icon: <Pages fontSize="inherit" viewBox="0 0 44 44" />,
     permission: PermissionEnum.MANAGE_PAGES,
     title: i18n.t("Pages"),
-    url: pageListUrl
+    url: pageListUrl()
   }
 ];
 

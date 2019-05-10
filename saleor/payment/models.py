@@ -8,7 +8,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from prices import Money
 
-from ..checkout.models import Cart
+from ..checkout.models import Checkout
 from ..core.utils.taxes import zero_money
 from ..order.models import Order
 from . import ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind
@@ -50,7 +50,7 @@ class Payment(models.Model):
     currency = models.CharField(max_length=10)  # FIXME: add ISO4217 validator
 
     checkout = models.ForeignKey(
-        Cart, null=True, related_name="payments", on_delete=models.SET_NULL
+        Checkout, null=True, related_name="payments", on_delete=models.SET_NULL
     )
     order = models.ForeignKey(
         Order, null=True, related_name="payments", on_delete=models.PROTECT

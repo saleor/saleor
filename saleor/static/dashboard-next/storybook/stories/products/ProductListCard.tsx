@@ -4,7 +4,7 @@ import * as React from "react";
 import * as placeholderImage from "../../../../images/placeholder255x255.png";
 import { category as categoryFixture } from "../../../categories/fixtures";
 import { Filter } from "../../../components/TableFilter";
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import ProductListCard from "../../../products/components/ProductListCard";
 import Decorator from "../../Decorator";
 
@@ -34,6 +34,7 @@ storiesOf("Views / Products / Product list", module)
       filtersList={[]}
       currentTab="all"
       products={products}
+      {...listActionsProps}
       {...pageListProps.default}
       onAllProducts={() => undefined}
       onAvailable={() => undefined}
@@ -44,6 +45,7 @@ storiesOf("Views / Products / Product list", module)
   .add("with custom filters", () => (
     <ProductListCard
       products={products}
+      {...listActionsProps}
       {...pageListProps.default}
       filtersList={filtersList}
       currentTab="custom"
@@ -55,6 +57,7 @@ storiesOf("Views / Products / Product list", module)
   ))
   .add("loading", () => (
     <ProductListCard
+      {...listActionsProps}
       {...pageListProps.loading}
       products={undefined}
       filtersList={undefined}
@@ -68,6 +71,7 @@ storiesOf("Views / Products / Product list", module)
   .add("no data", () => (
     <ProductListCard
       products={[]}
+      {...listActionsProps}
       {...pageListProps.default}
       filtersList={[]}
       currentTab="all"

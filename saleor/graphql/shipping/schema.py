@@ -31,7 +31,7 @@ class ShippingQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
 
     @permission_required("shipping.manage_shipping")
-    def resolve_shipping_zones(self, info, **kwargs):
+    def resolve_shipping_zones(self, info, **_kwargs):
         return resolve_shipping_zones(info)
 
 

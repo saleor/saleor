@@ -36,6 +36,11 @@ class VoucherQueryset(models.QuerySet):
             start_date__lte=date,
         )
 
+    def expired(self, date):
+        return self.filter(
+            Q(used__gte=F("usage_limit")) | Q(end_date__lt=date), start_date__lt=date
+        )
+
 
 class Voucher(models.Model):
     type = models.CharField(
@@ -149,6 +154,9 @@ class SaleQueryset(models.QuerySet):
         return self.filter(
             Q(end_date__isnull=True) | Q(end_date__gte=date), start_date__lte=date
         )
+
+    def expired(self, date):
+        return self.filter(end_date__lt=date, start_date__lt=date)
 
 
 class VoucherTranslation(models.Model):

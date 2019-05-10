@@ -1,14 +1,14 @@
-from textwrap import dedent
-
 import graphene
 from graphql_jwt.decorators import login_required, permission_required
 
 from ..core.enums import ReportingPeriod
-from ..core.fields import PrefetchingConnectionField
-from ..core.types import TaxedMoney
+from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.types import FilterInputObjectType, TaxedMoney
 from ..descriptions import DESCRIPTIONS
-from .bulk_mutations.draft_orders import DraftOrderBulkDelete
+from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
+from .bulk_mutations.orders import OrderBulkCancel
 from .enums import OrderStatusFilter
+from .filters import DraftOrderFilter, OrderFilter
 from .mutations.draft_orders import (
     DraftOrderComplete,
     DraftOrderCreate,
@@ -44,21 +44,30 @@ from .resolvers import (
 from .types import Order, OrderEvent
 
 
+class OrderFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = OrderFilter
+
+
+class OrderDraftFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = DraftOrderFilter
+
+
 class OrderQueries(graphene.ObjectType):
     homepage_events = PrefetchingConnectionField(
         OrderEvent,
-        description=dedent(
-            """List of activity events to display on
-        homepage (at the moment it only contains order-events)."""
-        ),
+        description="""List of activity events to display on
+        homepage (at the moment it only contains order-events).""",
     )
     order = graphene.Field(
         Order,
         description="Lookup an order by ID.",
         id=graphene.Argument(graphene.ID, required=True),
     )
-    orders = PrefetchingConnectionField(
+    orders = FilterInputConnectionField(
         Order,
+        filter=OrderFilterInput(),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
             ReportingPeriod, description="Filter orders from a selected timespan."
@@ -68,8 +77,9 @@ class OrderQueries(graphene.ObjectType):
         ),
         description="List of the shop's orders.",
     )
-    draft_orders = PrefetchingConnectionField(
+    draft_orders = FilterInputConnectionField(
         Order,
+        filter=OrderDraftFilterInput(),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
             ReportingPeriod, description="Filter draft orders from a selected timespan."
@@ -90,27 +100,27 @@ class OrderQueries(graphene.ObjectType):
     )
 
     @permission_required("order.manage_orders")
-    def resolve_homepage_events(self, info, **kwargs):
-        return resolve_homepage_events(info)
+    def resolve_homepage_events(self, *_args, **_kwargs):
+        return resolve_homepage_events()
 
     @login_required
-    def resolve_order(self, info, id):
-        return resolve_order(info, id)
+    def resolve_order(self, info, **data):
+        return resolve_order(info, data.get("id"))
 
     @permission_required("order.manage_orders")
-    def resolve_orders(self, info, created=None, status=None, query=None, **kwargs):
+    def resolve_orders(self, info, created=None, status=None, query=None, **_kwargs):
         return resolve_orders(info, created, status, query)
 
     @permission_required("order.manage_orders")
-    def resolve_draft_orders(self, info, created=None, query=None, **kwargs):
+    def resolve_draft_orders(self, info, created=None, query=None, **_kwargs):
         return resolve_draft_orders(info, created, query)
 
     @permission_required("order.manage_orders")
-    def resolve_orders_total(self, info, period, **kwargs):
+    def resolve_orders_total(self, info, period, **_kwargs):
         return resolve_orders_total(info, period)
 
-    def resolve_order_by_token(self, info, token):
-        return resolve_order_by_token(info, token)
+    def resolve_order_by_token(self, _info, token):
+        return resolve_order_by_token(token)
 
 
 class OrderMutations(graphene.ObjectType):
@@ -118,6 +128,7 @@ class OrderMutations(graphene.ObjectType):
     draft_order_create = DraftOrderCreate.Field()
     draft_order_delete = DraftOrderDelete.Field()
     draft_order_bulk_delete = DraftOrderBulkDelete.Field()
+    draft_order_lines_bulk_delete = DraftOrderLinesBulkDelete.Field()
     draft_order_lines_create = DraftOrderLinesCreate.Field()
     draft_order_line_delete = DraftOrderLineDelete.Field()
     draft_order_line_update = DraftOrderLineUpdate.Field()
@@ -134,3 +145,5 @@ class OrderMutations(graphene.ObjectType):
     order_update = OrderUpdate.Field()
     order_update_shipping = OrderUpdateShipping.Field()
     order_void = OrderVoid.Field()
+
+    order_bulk_cancel = OrderBulkCancel.Field()

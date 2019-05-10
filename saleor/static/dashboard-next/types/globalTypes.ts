@@ -47,6 +47,7 @@ export enum LanguageCodeEnum {
   FR = "FR",
   HI = "HI",
   HU = "HU",
+  HY = "HY",
   ID = "ID",
   IT = "IT",
   JA = "JA",
@@ -55,6 +56,7 @@ export enum LanguageCodeEnum {
   NB = "NB",
   NL = "NL",
   PL = "PL",
+  PT = "PT",
   PT_BR = "PT_BR",
   RO = "RO",
   RU = "RU",
@@ -77,8 +79,20 @@ export enum OrderAction {
   VOID = "VOID",
 }
 
-export enum OrderEvents {
+export enum OrderEventsEmailsEnum {
+  DIGITAL_LINKS = "DIGITAL_LINKS",
+  FULFILLMENT_CONFIRMATION = "FULFILLMENT_CONFIRMATION",
+  ORDER_CONFIRMATION = "ORDER_CONFIRMATION",
+  PAYMENT_CONFIRMATION = "PAYMENT_CONFIRMATION",
+  SHIPPING_CONFIRMATION = "SHIPPING_CONFIRMATION",
+  TRACKING_UPDATED = "TRACKING_UPDATED",
+}
+
+export enum OrderEventsEnum {
   CANCELED = "CANCELED",
+  DRAFT_ADDED_PRODUCTS = "DRAFT_ADDED_PRODUCTS",
+  DRAFT_CREATED = "DRAFT_CREATED",
+  DRAFT_REMOVED_PRODUCTS = "DRAFT_REMOVED_PRODUCTS",
   EMAIL_SENT = "EMAIL_SENT",
   FULFILLMENT_CANCELED = "FULFILLMENT_CANCELED",
   FULFILLMENT_FULFILLED_ITEMS = "FULFILLMENT_FULFILLED_ITEMS",
@@ -89,19 +103,13 @@ export enum OrderEvents {
   OTHER = "OTHER",
   OVERSOLD_ITEMS = "OVERSOLD_ITEMS",
   PAYMENT_CAPTURED = "PAYMENT_CAPTURED",
+  PAYMENT_FAILED = "PAYMENT_FAILED",
   PAYMENT_REFUNDED = "PAYMENT_REFUNDED",
   PAYMENT_VOIDED = "PAYMENT_VOIDED",
   PLACED = "PLACED",
   PLACED_FROM_DRAFT = "PLACED_FROM_DRAFT",
   TRACKING_UPDATED = "TRACKING_UPDATED",
-  UPDATED = "UPDATED",
-}
-
-export enum OrderEventsEmails {
-  FULFILLMENT = "FULFILLMENT",
-  ORDER = "ORDER",
-  PAYMENT = "PAYMENT",
-  SHIPPING = "SHIPPING",
+  UPDATED_ADDRESS = "UPDATED_ADDRESS",
 }
 
 export enum OrderStatus {
@@ -113,8 +121,12 @@ export enum OrderStatus {
 }
 
 export enum OrderStatusFilter {
+  CANCELED = "CANCELED",
+  FULFILLED = "FULFILLED",
+  PARTIALLY_FULFILLED = "PARTIALLY_FULFILLED",
   READY_TO_CAPTURE = "READY_TO_CAPTURE",
   READY_TO_FULFILL = "READY_TO_FULFILL",
+  UNFULFILLED = "UNFULFILLED",
 }
 
 export enum PaymentChargeStatusEnum {
@@ -219,7 +231,7 @@ export interface AddressInput {
   city?: string | null;
   cityArea?: string | null;
   postalCode?: string | null;
-  country: string;
+  country?: string | null;
   countryArea?: string | null;
   phone?: string | null;
 }
@@ -382,6 +394,7 @@ export interface ProductTypeInput {
   productAttributes?: (string | null)[] | null;
   variantAttributes?: (string | null)[] | null;
   isShippingRequired?: boolean | null;
+  isDigital?: boolean | null;
   weight?: any | null;
   taxRate?: TaxRateType | null;
 }
@@ -437,6 +450,9 @@ export interface ShopSettingsInput {
   chargeTaxesOnShipping?: boolean | null;
   trackInventoryByDefault?: boolean | null;
   defaultWeightUnit?: WeightUnitsEnum | null;
+  automaticFulfillmentDigitalProducts?: boolean | null;
+  defaultDigitalMaxDownloads?: number | null;
+  defaultDigitalUrlValidDays?: number | null;
 }
 
 export interface SiteDomainInput {

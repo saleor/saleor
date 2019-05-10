@@ -5,24 +5,18 @@ import * as React from "react";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { SaleList_sales_edges_node } from "../../types/SaleList";
 import SaleList from "../SaleList";
 
-export interface SaleListPageProps extends PageListProps {
+export interface SaleListPageProps extends PageListProps, ListActions {
   defaultCurrency: string;
   sales: SaleList_sales_edges_node[];
 }
 
 const SaleListPage: React.StatelessComponent<SaleListPageProps> = ({
-  defaultCurrency,
-  disabled,
   onAdd,
-  onNextPage,
-  onPreviousPage,
-  onRowClick,
-  pageInfo,
-  sales
+  ...listProps
 }) => (
   <Container>
     <PageHeader title={i18n.t("Sales")}>
@@ -31,15 +25,7 @@ const SaleListPage: React.StatelessComponent<SaleListPageProps> = ({
         <AddIcon />
       </Button>
     </PageHeader>
-    <SaleList
-      defaultCurrency={defaultCurrency}
-      disabled={disabled}
-      onNextPage={onNextPage}
-      onPreviousPage={onPreviousPage}
-      onRowClick={onRowClick}
-      pageInfo={pageInfo}
-      sales={sales}
-    />
+    <SaleList {...listProps} />
   </Container>
 );
 SaleListPage.displayName = "SaleListPage";

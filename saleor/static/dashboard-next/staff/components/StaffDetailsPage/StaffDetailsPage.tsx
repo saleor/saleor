@@ -29,6 +29,7 @@ interface FormData {
 }
 
 export interface StaffDetailsPageProps {
+  canEditAvatar: boolean;
   canEditStatus: boolean;
   canRemove: boolean;
   disabled: boolean;
@@ -37,10 +38,13 @@ export interface StaffDetailsPageProps {
   staffMember: StaffMemberDetails_user;
   onBack: () => void;
   onDelete: () => void;
+  onImageDelete: () => void;
   onSubmit: (data: FormData) => void;
+  onImageUpload(file: File);
 }
 
 const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
+  canEditAvatar,
   canEditStatus,
   canRemove,
   disabled,
@@ -49,6 +53,8 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
   staffMember,
   onBack,
   onDelete,
+  onImageDelete,
+  onImageUpload,
   onSubmit
 }: StaffDetailsPageProps) => {
   const initialForm: FormData = {
@@ -79,8 +85,11 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
               <StaffProperties
                 data={data}
                 disabled={disabled}
+                canEditAvatar={canEditAvatar}
                 staffMember={staffMember}
                 onChange={change}
+                onImageUpload={onImageUpload}
+                onImageDelete={onImageDelete}
               />
             </div>
             {canEditStatus && (

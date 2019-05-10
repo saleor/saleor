@@ -5,12 +5,12 @@ from graphene import relay
 from graphql_jwt.decorators import permission_required
 
 from ...account import models
-from ...checkout.utils import get_user_cart
+from ...checkout.utils import get_user_checkout
 from ...core.permissions import get_permissions
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import Image, CountryDisplay, PermissionDisplay
+from ..core.types import CountryDisplay, Image, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 
@@ -23,7 +23,7 @@ class AddressInput(graphene.InputObjectType):
     city = graphene.String(description="City.")
     city_area = graphene.String(description="District.")
     postal_code = graphene.String(description="Postal code.")
-    country = graphene.String(required=True, description="Country.")
+    country = graphene.String(description="Country.")
     country_area = graphene.String(description="State or province.")
     phone = graphene.String(description="Phone number.")
 
@@ -40,15 +40,28 @@ class Address(CountableDjangoObjectType):
     )
 
     class Meta:
-        exclude_fields = ["user_set", "user_addresses"]
         description = "Represents user address data."
         interfaces = [relay.Node]
         model = models.Address
+        only_fields = [
+            "city",
+            "city_area",
+            "company_name",
+            "country",
+            "country_area",
+            "first_name",
+            "id",
+            "last_name",
+            "phone",
+            "postal_code",
+            "street_address_1",
+            "street_address_2",
+        ]
 
-    def resolve_country(self, info):
+    def resolve_country(self, _info):
         return CountryDisplay(code=self.country.code, country=self.country.name)
 
-    def resolve_is_default_shipping_address(self, info):
+    def resolve_is_default_shipping_address(self, _info):
         """
         This field is added through annotation when using the
         `resolve_addresses` resolver. It's invalid for
@@ -65,7 +78,7 @@ class Address(CountableDjangoObjectType):
             return True
         return False
 
-    def resolve_is_default_billing_address(self, info):
+    def resolve_is_default_billing_address(self, _info):
         """
         This field is added through annotation when using the
         `resolve_addresses` resolver. It's invalid for
@@ -104,18 +117,31 @@ class User(CountableDjangoObjectType):
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
 
     class Meta:
-        exclude_fields = ["carts", "password", "is_superuser", "OrderEvent_set"]
         description = "Represents user data."
         interfaces = [relay.Node]
         model = get_user_model()
+        only_fields = [
+            "date_joined",
+            "default_billing_address",
+            "default_shipping_address",
+            "email",
+            "first_name",
+            "id",
+            "is_active",
+            "is_staff",
+            "last_login",
+            "last_name",
+            "note",
+            "token",
+        ]
 
-    def resolve_addresses(self, info, **kwargs):
+    def resolve_addresses(self, _info, **_kwargs):
         return self.addresses.annotate_default(self).all()
 
-    def resolve_checkout(self, info, **kwargs):
-        return get_user_cart(self)
+    def resolve_checkout(self, _info, **_kwargs):
+        return get_user_checkout(self)
 
-    def resolve_permissions(self, info, **kwargs):
+    def resolve_permissions(self, _info, **_kwargs):
         if self.is_superuser:
             permissions = get_permissions()
         else:
@@ -125,16 +151,16 @@ class User(CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @permission_required("account.manage_users")
-    def resolve_note(self, info):
+    def resolve_note(self, _info):
         return self.note
 
-    def resolve_orders(self, info, **kwargs):
+    def resolve_orders(self, info, **_kwargs):
         viewer = info.context.user
         if viewer.has_perm("order.manage_orders"):
             return self.orders.all()
         return self.orders.confirmed()
 
-    def resolve_avatar(self, info, size=None, **kwargs):
+    def resolve_avatar(self, info, size=None, **_kwargs):
         if self.avatar:
             return Image.get_adjusted(
                 image=self.avatar,
