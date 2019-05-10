@@ -9,8 +9,12 @@ from django_prices.models import MoneyField
 class GiftCard(models.Model):
     code = models.CharField(max_length=16, unique=True, db_index=True)
     creator = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True,
-        on_delete=models.SET_NULL, related_name='gift_cards')
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="gift_cards",
+    )
     created = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=date.today)
     expiration_date = models.DateField(null=True, blank=True)
@@ -19,13 +23,18 @@ class GiftCard(models.Model):
     initial_balance = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
     current_balance = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
 
     class Meta:
-        permissions = ((
-            'manage_gift_card', pgettext_lazy(
-                'Permission description', 'Manage gift cards.')),)
+        permissions = (
+            (
+                "manage_gift_card",
+                pgettext_lazy("Permission description", "Manage gift cards."),
+            ),
+        )

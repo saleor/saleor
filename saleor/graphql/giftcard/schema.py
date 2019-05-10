@@ -10,15 +10,16 @@ from .types import GiftCard
 
 class GiftCardQueries(graphene.ObjectType):
     gift_card = graphene.Field(
-        GiftCard, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup a gift card by ID.')
-    gift_cards = PrefetchingConnectionField(
-        GiftCard, description='List of gift cards')
+        GiftCard,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup a gift card by ID.",
+    )
+    gift_cards = PrefetchingConnectionField(GiftCard, description="List of gift cards")
 
     def resolve_gift_card(self, info, **data):
-        return resolve_gift_card(info, data.get('id'))
+        return resolve_gift_card(info, data.get("id"))
 
-    @permission_required('giftcard.manage_gift_card')
+    @permission_required("giftcard.manage_gift_card")
     def resolve_gift_cards(self, info, **_kwargs):
         return models.GiftCard.objects.all()
 
