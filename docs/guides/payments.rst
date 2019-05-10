@@ -39,8 +39,8 @@ Example
 
 .. note::
 
-    All the below methods receive ``payment_information`` as a dataclass: ``PaymentData``. 
-    Methods should return a response as a dataclass: ``GatewayResponse``. 
+    All the below methods receive ``payment_information`` as a dataclass: ``PaymentData``.
+    Methods should return a response as a dataclass: ``GatewayResponse``.
     The description of the given structures can be found below.
 
 
@@ -57,7 +57,8 @@ Example
 
     def authorize(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            connection_params: Dict,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the auth request here
         response = gateway.authorize(token=payment_information.token)
@@ -86,7 +87,8 @@ Example
 
     def refund(
             payment_information: PaymentData,
-            **connection_params: Dict) -> GatewayResponse:
+            **connection_params: Dict,
+        ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the refund request here
         response = gateway.refund(token=payment_information.token)
@@ -115,7 +117,8 @@ Example
 
     def capture(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            connection_params: Dict,
+        ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the capture request here
         response = gateway.capture(token=payment_information.token)
@@ -144,7 +147,8 @@ Example
 
     def void(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            connection_params: Dict,
+        ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the void request here
         response = gateway.void(token=payment_information.token)
@@ -173,7 +177,8 @@ Example
 
     def charge(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            connection_params: Dict,
+        ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the charge request here
         response = gateway.charge(
@@ -206,7 +211,8 @@ Example
 
     def process_payment(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            connection_params: Dict,
+        ) -> GatewayResponse:
 
         # Authorize, update the token, then capture
         authorize_response = authorize(
@@ -348,7 +354,7 @@ Example
         payment_method_nonce = forms.CharField()
 
         def get_payment_token(self):
-            return self.cleaned_data['payment_method_nonce']
+            return self.cleaned_data["payment_method_nonce"]
 
 Implement create_form(data, payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -365,7 +371,10 @@ Example
 
         def create_form(data, payment_information, connection_params):
             return BraintreePaymentForm(
-                data, payment_information, connection_params)
+                data,
+                payment_information,
+                connection_params,
+            )
 
 
 Implement TEMPLATE_PATH
@@ -378,7 +387,7 @@ Example
 
     .. code-block:: python
 
-        TEMPLATE_PATH = 'order/payment/braintree.html'
+        TEMPLATE_PATH = "order/payment/braintree.html"
 
 Add template
 ^^^^^^^^^^^^
@@ -393,13 +402,13 @@ Adding new payment gateway to the settings
 .. code-block:: python
 
     PAYMENT_GATEWAYS = {
-        'braintree': {
-            'module': 'saleor.payment.gateways.braintree',
-            'connection_params': {
-                'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
-                'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
-                'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
-                'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
+        "braintree": {
+            "module": "saleor.payment.gateways.braintree",
+            "connection_params": {
+                "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
+                "merchant_id": os.environ.get("BRAINTREE_MERCHANT_ID"),
+                "public_key": os.environ.get("BRAINTREE_PUBLIC_KEY"),
+                "private_key": os.environ.get("BRAINTREE_PRIVATE_KEY"),
             }
         }
     }
@@ -440,4 +449,3 @@ Tips
   In such case, you might want to charge the customer 70 dollars, but due
   to gateway misconfiguration, he will be charged 70 euros.
   Such a situation should be handled, and adequate error should be thrown.
-
