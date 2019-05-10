@@ -7,11 +7,26 @@ from django_countries import countries
 # Since there is no public API in Stripe backend or helper function
 # in Stripe's Python library, this list is straight out of Stripe's docs
 # https://stripe.com/docs/currencies#zero-decimal
-from ...interface import PaymentData
+from ...interface import AddressData, PaymentData
 
 ZERO_DECIMAL_CURRENCIES = [
-    'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA',
-    'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF']
+    "BIF",
+    "CLP",
+    "DJF",
+    "GNF",
+    "JPY",
+    "KMF",
+    "KRW",
+    "MGA",
+    "PYG",
+    "RWF",
+    "UGX",
+    "VND",
+    "VUV",
+    "XAF",
+    "XOF",
+    "XPF",
+]
 
 
 def get_amount_for_stripe(amount, currency):
@@ -57,19 +72,20 @@ def get_currency_from_stripe(currency):
     return currency.upper()
 
 
-def get_payment_billing_fullname(
-        payment_information: PaymentData) -> str:
+def get_payment_billing_fullname(payment_information: PaymentData) -> str:
     # Get billing name from payment
-    return '%s %s' % (
+    return "%s %s" % (
         payment_information.billing.last_name,
-        payment_information.billing.first_name)
+        payment_information.billing.first_name,
+    )
 
 
-def shipping_to_stripe_dict(shipping: Dict):
+def shipping_to_stripe_dict(shipping: AddressData) -> Dict:
     return {
-        'line1': shipping.street_address_1,
-        'line2': shipping.street_address_2,
-        'city': shipping.city,
-        'state': shipping.country_area,
-        'postal_code': shipping.postal_code,
-        'country': dict(countries).get(shipping.country, '')}
+        "line1": shipping.street_address_1,
+        "line2": shipping.street_address_2,
+        "city": shipping.city,
+        "state": shipping.country_area,
+        "postal_code": shipping.postal_code,
+        "country": dict(countries).get(shipping.country, ""),
+    }
