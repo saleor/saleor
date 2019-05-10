@@ -10,24 +10,26 @@ from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 from ..core.filters import SortedFilterSet
 from .models import Attribute, Product
 
-SORT_BY_FIELDS = OrderedDict([
-    ('name', pgettext_lazy('Product list sorting option', 'name')),
-    ('price', pgettext_lazy('Product list sorting option', 'price')),
-    ('updated_at', pgettext_lazy(
-        'Product list sorting option', 'last updated'))])
+SORT_BY_FIELDS = OrderedDict(
+    [
+        ("name", pgettext_lazy("Product list sorting option", "name")),
+        ("price", pgettext_lazy("Product list sorting option", "price")),
+        ("updated_at", pgettext_lazy("Product list sorting option", "last updated")),
+    ]
+)
 
 
 def serialize_attribute(value):
     """Serialize attribute as a tuple to a string."""
     if isinstance(value, tuple) and len(value) == 2:
-        return ':'.join(value)
+        return ":".join(value)
     return None
 
 
 def parse_attribute(value):
     """Parse attribute as a string to a tuple."""
     if isinstance(value, str):
-        split = value.split(':')
+        split = value.split(":")
         if len(split) == 2:
             return tuple(split)
     return None
@@ -37,6 +39,7 @@ class MergedAttributes:
     """Merge attribute queryset into a dictionary by attribute slug.
     Note that the attribute values should be prefetched for
     optimizing performance."""
+
     def __init__(self, attributes):
         self._merged_attributes = self._get_merged_attributes(attributes)
 
@@ -82,27 +85,28 @@ class MergedAttributes:
         return choices
 
     def _product_attr_or_product_variant_attr_query(self, attr_k, attr_v):
-        product_attr_query = Q(**{'attributes__%s' % (attr_k, ): attr_v})
-        variant_attr_query = Q(
-            **{'variants__attributes__%s' % (attr_k, ): attr_v})
+        product_attr_query = Q(**{"attributes__%s" % (attr_k,): attr_v})
+        variant_attr_query = Q(**{"variants__attributes__%s" % (attr_k,): attr_v})
         return product_attr_query | variant_attr_query
 
     def get_query(self, attr_slug, value_slug):
         """Get query for attributes with same attribute slug and value slug."""
         # Validate attribute slug and value slug
         if attr_slug not in self.get_attributes():
-            raise ValueError('Unknown attribute slug: %r' % (attr_slug,))
+            raise ValueError("Unknown attribute slug: %r" % (attr_slug,))
         if value_slug not in self.get_values(attr_slug):
-            raise ValueError(
-                'Unknown attribute value slug: %r' % (value_slug,))
+            raise ValueError("Unknown attribute value slug: %r" % (value_slug,))
 
         # Combine filters of attributes
         # with same attribute slug and value slug using OR operator
         kvs = self.get_kvs(attr_slug, value_slug)
         query = functools.reduce(
             operator.or_,
-            [self._product_attr_or_product_variant_attr_query(
-                attr_pk, value_pk) for attr_pk, value_pk in kvs])
+            [
+                self._product_attr_or_product_variant_attr_query(attr_pk, value_pk)
+                for attr_pk, value_pk in kvs
+            ],
+        )
 
         return query
 
@@ -142,8 +146,7 @@ class AttributeMultipleChoiceFilter(MultipleChoiceFilter):
         # Parse attribute scalar
         attribute = parse_attribute(v)
         if attribute is None:
-            raise ValueError(
-                'Unknown attribute scalar: %r' % (attribute,))
+            raise ValueError("Unknown attribute scalar: %r" % (attribute,))
 
         attr_slug, value_slug = attribute
         return self._merged_attributes.get_query(attr_slug, value_slug)
@@ -151,11 +154,11 @@ class AttributeMultipleChoiceFilter(MultipleChoiceFilter):
 
 class ProductFilter(SortedFilterSet):
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product list sorting form', 'Sort by'),
+        label=pgettext_lazy("Product list sorting form", "Sort by"),
         fields=SORT_BY_FIELDS.keys(),
-        field_labels=SORT_BY_FIELDS)
-    price = RangeFilter(
-        label=pgettext_lazy('Currency amount', 'Price'))
+        field_labels=SORT_BY_FIELDS,
+    )
+    price = RangeFilter(label=pgettext_lazy("Currency amount", "Price"))
 
     class Meta:
         model = Product
@@ -172,9 +175,10 @@ class ProductFilter(SortedFilterSet):
         q_variant_attributes = self._get_variant_attributes_lookup()
         attributes = (
             Attribute.objects.all()
-            .prefetch_related('translations', 'values__translations')
+            .prefetch_related("translations", "values__translations")
             .filter(q_product_attributes | q_variant_attributes)
-            .distinct())
+            .distinct()
+        )
 
         merged_attributes = MergedAttributes(attributes)
         return merged_attributes
@@ -200,13 +204,14 @@ class ProductFilter(SortedFilterSet):
                 # attributes with same slug is used
                 label=attributes[attr_slug][0].translated.name,
                 widget=CheckboxSelectMultiple,
-                choices=choices)
+                choices=choices,
+            )
         return filters
 
 
 class ProductCategoryFilter(ProductFilter):
     def __init__(self, *args, **kwargs):
-        self.category = kwargs.pop('category')
+        self.category = kwargs.pop("category")
         super().__init__(*args, **kwargs)
 
     def _get_product_attributes_lookup(self):
@@ -220,7 +225,7 @@ class ProductCategoryFilter(ProductFilter):
 
 class ProductCollectionFilter(ProductFilter):
     def __init__(self, *args, **kwargs):
-        self.collection = kwargs.pop('collection')
+        self.collection = kwargs.pop("collection")
         super().__init__(*args, **kwargs)
 
     def _get_product_attributes_lookup(self):

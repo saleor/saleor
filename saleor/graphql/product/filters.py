@@ -13,13 +13,16 @@ from ..core.types.common import PriceRangeInput
 from ..utils import filter_by_query_param, get_nodes
 from . import types
 from .enums import (
-    CollectionPublished, ProductTypeConfigurable, ProductTypeEnum,
-    StockAvailability)
+    CollectionPublished,
+    ProductTypeConfigurable,
+    ProductTypeEnum,
+    StockAvailability,
+)
 from .types.attributes import AttributeInput
 
 
 def filter_products_by_attributes(qs, filter_value):
-    attributes = Attribute.objects.prefetch_related('values')
+    attributes = Attribute.objects.prefetch_related("values")
     merged_attributes = MergedAttributes(attributes)
 
     # Convert attribute:value pairs into a list of query
@@ -43,7 +46,8 @@ def filter_products_by_price(qs, price_lte=None, price_gte=None):
 
 def filter_products_by_categories(qs, categories):
     categories = [
-        category.get_descendants(include_self=True) for category in categories]
+        category.get_descendants(include_self=True) for category in categories
+    ]
     ids = {category.id for tree in categories for category in tree}
     return qs.filter(category__in=ids)
 
@@ -54,13 +58,14 @@ def filter_products_by_collections(qs, collections):
 
 def sort_qs(qs, sort_by_product_order):
     if sort_by_product_order:
-        qs = qs.order_by(sort_by_product_order['direction']
-                         + sort_by_product_order['field'])
+        qs = qs.order_by(
+            sort_by_product_order["direction"] + sort_by_product_order["field"]
+        )
     return qs
 
 
 def filter_products_by_stock_availability(qs, stock_availability):
-    qs = qs.annotate(total_quantity=Sum('variants__quantity'))
+    qs = qs.annotate(total_quantity=Sum("variants__quantity"))
     if stock_availability == StockAvailability.IN_STOCK:
         qs = qs.filter(total_quantity__gt=0)
     elif stock_availability == StockAvailability.OUT_OF_STOCK:
@@ -70,7 +75,7 @@ def filter_products_by_stock_availability(qs, stock_availability):
 
 def filter_attributes(qs, _, value):
     if value:
-        value = [(v['slug'], v['value']) for v in value]
+        value = [(v["slug"], v["value"]) for v in value]
         qs = filter_products_by_attributes(qs, value)
     return qs
 
@@ -91,7 +96,8 @@ def filter_collections(qs, _, value):
 
 def filter_price(qs, _, value):
     qs = filter_products_by_price(
-        qs, price_lte=value.get('lte'), price_gte=value.get('gte'))
+        qs, price_lte=value.get("lte"), price_gte=value.get("gte")
+    )
     return qs
 
 
@@ -117,7 +123,7 @@ def filter_collection_publish(qs, _, value):
 
 
 def filter_collection_search(qs, _, value):
-    search_fields = ('name', 'slug')
+    search_fields = ("name", "slug")
     if value:
         qs = filter_by_query_param(qs, value, search_fields)
     return qs
@@ -145,38 +151,46 @@ class ProductFilter(django_filters.FilterSet):
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_price)
     attributes = ListObjectTypeFilter(
-        input_class=AttributeInput, method=filter_attributes)
+        input_class=AttributeInput, method=filter_attributes
+    )
     stock_availability = EnumFilter(
-        input_class=StockAvailability, method=filter_stock_availability)
+        input_class=StockAvailability, method=filter_stock_availability
+    )
     product_type = GlobalIDFilter()
     search = django_filters.CharFilter(method=filter_search)
 
     class Meta:
         model = Product
         fields = [
-            'is_published', 'collections', 'categories', 'price', 'attributes',
-            'stock_availability', 'product_type', 'search'
+            "is_published",
+            "collections",
+            "categories",
+            "price",
+            "attributes",
+            "stock_availability",
+            "product_type",
+            "search",
         ]
 
 
 class CollectionFilter(django_filters.FilterSet):
     published = EnumFilter(
-        input_class=CollectionPublished, method=filter_collection_publish)
+        input_class=CollectionPublished, method=filter_collection_publish
+    )
     search = django_filters.CharFilter(method=filter_collection_search)
 
     class Meta:
         model = Collection
-        fields = ['published', 'search']
+        fields = ["published", "search"]
 
 
 class ProductTypeFilter(django_filters.FilterSet):
     configurable = EnumFilter(
-        input_class=ProductTypeConfigurable,
-        method=filter_product_type_configurable)
+        input_class=ProductTypeConfigurable, method=filter_product_type_configurable
+    )
 
-    product_type = EnumFilter(
-        input_class=ProductTypeEnum, method=filter_product_type)
+    product_type = EnumFilter(input_class=ProductTypeEnum, method=filter_product_type)
 
     class Meta:
         model = ProductType
-        fields = ['configurable', 'product_type']
+        fields = ["configurable", "product_type"]

@@ -1,38 +1,56 @@
 from collections import namedtuple
 from decimal import Decimal
-
 from typing import Union
 
 from prices import TaxedMoneyRange
 
 from saleor.graphql.core.types import MoneyRange
-from saleor.product.models import ProductVariant, Product
+from saleor.product.models import Product, ProductVariant
+
 from ...core.utils import to_local_currency
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 ProductAvailability = namedtuple(
-    'ProductAvailability', (
-        'available', 'on_sale', 'price_range', 'price_range_undiscounted',
-        'discount', 'price_range_local_currency', 'discount_local_currency'))
+    "ProductAvailability",
+    (
+        "available",
+        "on_sale",
+        "price_range",
+        "price_range_undiscounted",
+        "discount",
+        "price_range_local_currency",
+        "discount_local_currency",
+    ),
+)
 
 VariantAvailability = namedtuple(
-    'ProductAvailability', (
-        'available', 'on_sale', 'price', 'price_undiscounted',
-        'discount', 'price_local_currency', 'discount_local_currency'))
+    "ProductAvailability",
+    (
+        "available",
+        "on_sale",
+        "price",
+        "price_undiscounted",
+        "discount",
+        "price_local_currency",
+        "discount_local_currency",
+    ),
+)
 
 
 def products_with_availability(products, discounts, taxes, local_currency):
     for product in products:
-        yield (product, get_product_availability(
-            product, discounts, taxes, local_currency))
+        yield (
+            product,
+            get_product_availability(product, discounts, taxes, local_currency),
+        )
 
 
 def get_product_availability_status(product):
     is_visible = product.is_visible
     are_all_variants_in_stock = all(
-        variant.is_in_stock() for variant in product.variants.all())
-    is_in_stock = any(
-        variant.is_in_stock() for variant in product.variants.all())
+        variant.is_in_stock() for variant in product.variants.all()
+    )
+    is_in_stock = any(variant.is_in_stock() for variant in product.variants.all())
     requires_variants = product.product_type.has_variants
 
     if not product.is_published:
@@ -58,8 +76,9 @@ def get_variant_availability_status(variant):
 
 
 def _get_total_discount(
-        undiscounted: Union[MoneyRange, TaxedMoneyRange, Decimal],
-        discounted: Union[MoneyRange, TaxedMoneyRange, Decimal]):
+    undiscounted: Union[MoneyRange, TaxedMoneyRange, Decimal],
+    discounted: Union[MoneyRange, TaxedMoneyRange, Decimal],
+):
     """Subtracts two prices that are whether a price range or decimal prices
     and return their total discount, if any. Otherwise, it returns None."""
     if not isinstance(undiscounted, (MoneyRange, TaxedMoneyRange)):
@@ -71,27 +90,24 @@ def _get_total_discount(
 
 
 def _get_product_price_range(
-        discounted: Union[MoneyRange, TaxedMoneyRange],
-        undiscounted: Union[MoneyRange, TaxedMoneyRange], local_currency=None):
+    discounted: Union[MoneyRange, TaxedMoneyRange],
+    undiscounted: Union[MoneyRange, TaxedMoneyRange],
+    local_currency=None,
+):
     price_range_local = None
     discount_local_currency = None
 
     if local_currency:
-        price_range_local = to_local_currency(
-            discounted, local_currency)
-        undiscounted_local = to_local_currency(
-            undiscounted, local_currency)
-        if (undiscounted_local
-                and undiscounted_local.start > price_range_local.start):
-            discount_local_currency = (
-                undiscounted_local.start - price_range_local.start)
+        price_range_local = to_local_currency(discounted, local_currency)
+        undiscounted_local = to_local_currency(undiscounted, local_currency)
+        if undiscounted_local and undiscounted_local.start > price_range_local.start:
+            discount_local_currency = undiscounted_local.start - price_range_local.start
 
     return price_range_local, discount_local_currency
 
 
 def get_product_availability(
-        product: Product,
-        discounts=None, taxes=None, local_currency=None
+    product: Product, discounts=None, taxes=None, local_currency=None
 ) -> ProductAvailability:
 
     discounted = product.get_price_range(discounts=discounts, taxes=taxes)
@@ -99,7 +115,8 @@ def get_product_availability(
 
     discount = _get_total_discount(undiscounted, discounted)
     price_range_local, discount_local_currency = _get_product_price_range(
-        discounted, undiscounted, local_currency)
+        discounted, undiscounted, local_currency
+    )
 
     is_on_sale = product.is_visible and discount is not None
 
@@ -110,12 +127,12 @@ def get_product_availability(
         price_range_undiscounted=undiscounted,
         discount=discount,
         price_range_local_currency=price_range_local,
-        discount_local_currency=discount_local_currency)
+        discount_local_currency=discount_local_currency,
+    )
 
 
 def get_variant_availability(
-        variant: ProductVariant,
-        discounts=None, taxes=None, local_currency=None
+    variant: ProductVariant, discounts=None, taxes=None, local_currency=None
 ) -> VariantAvailability:
 
     discounted = variant.get_price(discounts=discounts, taxes=taxes)
@@ -139,4 +156,5 @@ def get_variant_availability(
         price_undiscounted=undiscounted,
         discount=discount,
         price_local_currency=price_local_currency,
-        discount_local_currency=discount_local_currency)
+        discount_local_currency=discount_local_currency,
+    )

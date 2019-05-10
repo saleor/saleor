@@ -5,27 +5,29 @@ from ...shipping import models as shipping_models
 
 def validate_total_quantity(order):
     if order.get_total_quantity() == 0:
-        raise ValidationError({
-            'lines': 'Could not create order without any products.'})
+        raise ValidationError({"lines": "Could not create order without any products."})
 
 
 def validate_shipping_method(order):
     method = order.shipping_method
     shipping_address = order.shipping_address
     shipping_not_valid = (
-        method and shipping_address and
-        shipping_address.country.code not in method.shipping_zone.countries)  # noqa
+        method
+        and shipping_address
+        and shipping_address.country.code not in method.shipping_zone.countries
+    )  # noqa
     if shipping_not_valid:
-        raise ValidationError({
-            'shipping':
-            'Shipping method is not valid for chosen shipping address'})
+        raise ValidationError(
+            {"shipping": "Shipping method is not valid for chosen shipping address"}
+        )
 
 
 def validate_order_lines(order):
     for line in order:
         if line.variant is None:
-            raise ValidationError({
-                'lines': 'Could not create orders with non-existing products.'})
+            raise ValidationError(
+                {"lines": "Could not create orders with non-existing products."}
+            )
 
 
 def validate_draft_order(order):
@@ -49,5 +51,7 @@ def applicable_shipping_methods(obj, price):
 
     qs = shipping_models.ShippingMethod.objects
     return qs.applicable_shipping_methods(
-        price=price, weight=obj.get_total_weight(),
-        country_code=obj.shipping_address.country.code)
+        price=price,
+        weight=obj.get_total_weight(),
+        country_code=obj.shipping_address.country.code,
+    )
