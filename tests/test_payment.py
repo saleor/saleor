@@ -6,7 +6,7 @@ from django.conf import settings as dj_settings
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import get_template
 
-from saleor.order import OrderEvents, OrderEventsEmails
+from saleor.order.events import OrderEvents, OrderEventsEmails
 from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
     ChargeStatus,
@@ -127,7 +127,7 @@ def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order)
 
     handle_fully_paid_order(order)
     event = order.events.get()
-    assert event.type == OrderEvents.ORDER_FULLY_PAID.value
+    assert event.type == OrderEvents.ORDER_FULLY_PAID
     assert not mock_send_payment_confirmation.called
 
 
@@ -135,12 +135,12 @@ def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order)
 def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
     handle_fully_paid_order(order)
     event_order_paid, event_email_sent = order.events.all()
-    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID.value
+    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
 
-    assert event_email_sent.type == OrderEvents.EMAIL_SENT.value
+    assert event_email_sent.type == OrderEvents.EMAIL_SENT
     assert event_email_sent.parameters == {
         "email": order.get_user_current_email(),
-        "email_type": OrderEventsEmails.PAYMENT.value,
+        "email_type": OrderEventsEmails.PAYMENT,
     }
 
     mock_send_payment_confirmation.assert_called_once_with(order.pk)
@@ -181,7 +181,7 @@ def test_mark_as_paid(admin_user, draft_order):
     payment = draft_order.payments.last()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == draft_order.total.gross.amount
-    assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID.value)
+    assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID)
 
 
 def test_clean_mark_order_as_paid(payment_txn_preauth):
@@ -534,7 +534,7 @@ def test_gateway_void(
     )
 
     payment.refresh_from_db()
-    assert payment.is_active == False
+    assert payment.is_active is False
 
 
 @patch("saleor.payment.utils.get_payment_gateway")

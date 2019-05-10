@@ -2,7 +2,8 @@ from saleor.product.filters import ProductCategoryFilter
 
 
 def test_product_category_filter_filters_from_child_category(
-        product_type, categories_tree):
+    product_type, categories_tree
+):
     product_filter = ProductCategoryFilter(data={}, category=categories_tree)
     (product_attributes, variant_attributes) = product_filter._get_attributes()
 

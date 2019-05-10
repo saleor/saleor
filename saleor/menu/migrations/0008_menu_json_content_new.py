@@ -6,9 +6,8 @@ import json
 
 
 class Migration(migrations.Migration):
-
     def populate_data(apps, schema_editor):
-        Menu = apps.get_model('menu', 'Menu')
+        Menu = apps.get_model("menu", "Menu")
         for menu in Menu.objects.all():
             if isinstance(menu.json_content, str):
                 json_str = menu.json_content
@@ -17,15 +16,15 @@ class Migration(migrations.Migration):
                 menu.json_content_new = json_str
                 menu.save()
 
-    dependencies = [
-        ('menu', '0007_auto_20180807_0547'),
-    ]
+    dependencies = [("menu", "0007_auto_20180807_0547")]
 
     operations = [
         migrations.AddField(
-            model_name='menu',
-            name='json_content_new',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="menu",
+            name="json_content_new",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
-        migrations.RunPython(populate_data)
+        migrations.RunPython(populate_data),
     ]

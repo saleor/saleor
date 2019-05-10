@@ -5,25 +5,23 @@ from django_filters.fields import MultipleChoiceField
 
 
 class DefaultMultipleChoiceField(MultipleChoiceField):
-    default_error_messages = {
-        "invalid_choice": _(
-            "One of the specified IDs was invalid (%(value)s)."),
-        "invalid_list": _("Enter a list of values."),
-    }
+    default_error_messages = {"invalid_list": _("Enter a list of values.")}
 
     def to_python(self, value):
         if not value:
             return []
+        if not isinstance(value, list):
+            value = [value]
         return value
 
     def validate(self, value):
         """Validate that the input is a list or tuple."""
         if self.required and not value:
-            raise ValidationError(
-                self.error_messages['required'], code='required')
+            raise ValidationError(self.error_messages["required"], code="required")
         if not isinstance(value, (list, tuple)):
             raise ValidationError(
-                self.error_messages['invalid_list'], code='invalid_list')
+                self.error_messages["invalid_list"], code="invalid_list"
+            )
         return True
 
 
@@ -32,8 +30,9 @@ class EnumFilter(django_filters.CharFilter):
     enum_class needs to be passed explicitly  as well as the method."""
 
     def __init__(self, input_class, *args, **kwargs):
-        assert kwargs.get('method'), (
-            'Providing exact filter method is required for EnumFilter')
+        assert kwargs.get(
+            "method"
+        ), "Providing exact filter method is required for EnumFilter"
         self.input_class = input_class
         super().__init__(*args, **kwargs)
 

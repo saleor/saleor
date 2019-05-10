@@ -7,10 +7,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0040_auto_20171205_0428'),
-    ]
+    dependencies = [("product", "0040_auto_20171205_0428")]
 
     operations = [
-        migrations.RenameField(model_name='category', old_name='hidden', new_name='is_hidden'),
+        migrations.RenameField(
+            model_name="category", old_name="hidden", new_name="is_hidden"
+        )
     ]

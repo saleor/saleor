@@ -10,10 +10,9 @@ def get_default_digital_content_settings():
     site = Site.objects.get_current()
     settings = site.settings
     return {
-        'automatic_fulfillment': (
-            settings.automatic_fulfillment_digital_products),
-        'max_downloads': settings.default_digital_max_downloads,
-        'url_valid_days': settings.default_digital_url_valid_days
+        "automatic_fulfillment": (settings.automatic_fulfillment_digital_products),
+        "max_downloads": settings.default_digital_max_downloads,
+        "url_valid_days": settings.default_digital_url_valid_days,
     }
 
 
@@ -22,8 +21,8 @@ def digital_content_url_is_valid(content_url: DigitalContentUrl) -> bool:
     settings or digital product's settings to check if url is still valid"""
     if content_url.content.use_default_settings:
         digital_content_settings = get_default_digital_content_settings()
-        url_valid_days = digital_content_settings['url_valid_days']
-        max_downloads = digital_content_settings['max_downloads']
+        url_valid_days = digital_content_settings["url_valid_days"]
+        max_downloads = digital_content_settings["max_downloads"]
     else:
         url_valid_days = content_url.content.url_valid_days
         max_downloads = content_url.content.max_downloads

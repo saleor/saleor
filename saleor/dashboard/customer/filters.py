@@ -8,39 +8,47 @@ from ...account.models import User
 from ...core.filters import SortedFilterSet
 
 SORT_BY_FIELDS = (
-    ('email', 'email'),
-    ('first_name', 'name'),
-    ('default_billing_address__city', 'location'))
+    ("email", "email"),
+    ("first_name", "name"),
+    ("default_billing_address__city", "location"),
+)
 
 SORT_BY_FIELDS_LABELS = {
-    'email': pgettext_lazy(
-        'Customer list sorting option', 'email'),
-    'default_billing_address__first_name': pgettext_lazy(
-        'Customer list sorting option', 'name'),
-    'default_billing_address__city': pgettext_lazy(
-        'Customer list sorting option', 'location')}
+    "email": pgettext_lazy("Customer list sorting option", "email"),
+    "default_billing_address__first_name": pgettext_lazy(
+        "Customer list sorting option", "name"
+    ),
+    "default_billing_address__city": pgettext_lazy(
+        "Customer list sorting option", "location"
+    ),
+}
 
 IS_ACTIVE_CHOICES = (
-    ('1', pgettext_lazy('Is active filter choice', 'Active')),
-    ('0', pgettext_lazy('Is active filter choice', 'Not active')))
+    ("1", pgettext_lazy("Is active filter choice", "Active")),
+    ("0", pgettext_lazy("Is active filter choice", "Not active")),
+)
 
 
 class UserFilter(SortedFilterSet):
     name_or_email = CharFilter(
-        label=pgettext_lazy('Customer name or email filter', 'Name or email'),
-        method='filter_by_customer')
+        label=pgettext_lazy("Customer name or email filter", "Name or email"),
+        method="filter_by_customer",
+    )
     location = CharFilter(
-        label=pgettext_lazy('Customer list filter label', 'Location'),
-        method='filter_by_location')
+        label=pgettext_lazy("Customer list filter label", "Location"),
+        method="filter_by_location",
+    )
     is_active = ChoiceFilter(
-        label=pgettext_lazy('Customer list filter label', 'Is active'),
+        label=pgettext_lazy("Customer list filter label", "Is active"),
         choices=IS_ACTIVE_CHOICES,
-        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
-        widget=forms.Select)
+        empty_label=pgettext_lazy("Filter empty choice label", "All"),
+        widget=forms.Select,
+    )
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Customer list filter label', 'Sort by'),
+        label=pgettext_lazy("Customer list filter label", "Sort by"),
         fields=SORT_BY_FIELDS,
-        field_labels=SORT_BY_FIELDS_LABELS)
+        field_labels=SORT_BY_FIELDS_LABELS,
+    )
 
     class Meta:
         model = User
@@ -48,11 +56,12 @@ class UserFilter(SortedFilterSet):
 
     def filter_by_customer(self, queryset, name, value):
         return queryset.filter(
-            Q(first_name__icontains=value) |
-            Q(last_name__icontains=value) |
-            Q(email__icontains=value) |
-            Q(default_billing_address__first_name__icontains=value) |
-            Q(default_billing_address__last_name__icontains=value))
+            Q(first_name__icontains=value)
+            | Q(last_name__icontains=value)
+            | Q(email__icontains=value)
+            | Q(default_billing_address__first_name__icontains=value)
+            | Q(default_billing_address__last_name__icontains=value)
+        )
 
     def filter_by_location(self, queryset, name, value):
         q = Q(default_billing_address__city__icontains=value)
@@ -72,7 +81,8 @@ class UserFilter(SortedFilterSet):
     def get_summary_message(self):
         counter = self.qs.count()
         return npgettext(
-            'Number of matching records in the dashboard customers list',
-            'Found %(counter)d matching customer',
-            'Found %(counter)d matching customers',
-            number=counter) % {'counter': counter}
+            "Number of matching records in the dashboard customers list",
+            "Found %(counter)d matching customer",
+            "Found %(counter)d matching customers",
+            number=counter,
+        ) % {"counter": counter}

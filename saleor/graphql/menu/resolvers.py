@@ -5,12 +5,12 @@ from ...menu import models
 from ..utils import filter_by_query_param
 from .types import Menu
 
-MENU_SEARCH_FIELDS = ('name',)
-MENU_ITEM_SEARCH_FIELDS = ('name',)
+MENU_SEARCH_FIELDS = ("name",)
+MENU_ITEM_SEARCH_FIELDS = ("name",)
 
 
 def resolve_menu(info, menu_id=None, name=None):
-    assert menu_id or name, 'No ID or name provided.'
+    assert menu_id or name, "No ID or name provided."
     if name is not None:
         qs = models.Menu.objects.filter(name=name)
         qs = gql_optimizer.query(qs, info)

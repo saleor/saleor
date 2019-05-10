@@ -7,13 +7,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0031_auto_20170206_0601'),
-    ]
+    dependencies = [("product", "0031_auto_20170206_0601")]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='attributechoicevalue',
-            unique_together=set([('display', 'attribute')]),
-        ),
+            name="attributechoicevalue", unique_together=set([("display", "attribute")])
+        )
     ]

@@ -77,7 +77,7 @@ def test_checkout_widget_render_without_prefill(razorpay_payment, gateway_config
     widget = RazorPayCheckoutWidget(
         payment_information=payment_info,
         attrs={"data-custom": "123"},
-        **gateway_config.connection_params
+        **gateway_config.connection_params,
     )
     assert widget.render() == (
         '<script data-amount="8000" data-buttontext="Pay now with Razorpay" '
