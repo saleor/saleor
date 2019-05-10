@@ -28,8 +28,7 @@ from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 
-from .utils import (
-    assert_no_permission, assert_read_only_mode, get_graphql_content)
+from .utils import assert_no_permission, assert_read_only_mode, get_graphql_content
 
 
 @pytest.fixture
@@ -489,7 +488,8 @@ def test_draft_order_create(
         "voucher": voucher_id,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -554,10 +554,11 @@ def test_draft_order_delete(
             }
         }
         """
-    order_id = graphene.Node.to_global_id('Order', order.id)
-    variables = {'id': order_id}
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -656,7 +657,8 @@ def test_draft_order_complete(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -679,7 +681,8 @@ def test_draft_order_complete_existing_user_email_updates_user_field(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -702,7 +705,8 @@ def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -729,7 +733,8 @@ def test_draft_order_complete_anonymous_user_no_email(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -766,7 +771,6 @@ def test_draft_order_lines_create(
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    old_quantity = line.quantity
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -791,7 +795,6 @@ def test_require_draft_order_when_creating_lines(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
-    content = get_graphql_content(response)
     assert_read_only_mode(response)
 
 
@@ -825,7 +828,6 @@ def test_draft_order_line_update(
     order = draft_order
     line = order.lines.first()
     new_quantity = 1
-    removed_quantity = 2
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"lineId": line_id, "quantity": new_quantity}
 
@@ -850,7 +852,8 @@ def test_require_draft_order_when_updating_lines(
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"lineId": line_id, "quantity": 1}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -882,7 +885,8 @@ def test_draft_order_line_remove(
     variables = {"id": line_id}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -895,7 +899,8 @@ def test_require_draft_order_when_removing_lines(
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"id": line_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -930,7 +935,8 @@ def test_order_update(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "email": email, "address": graphql_address_data}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -958,14 +964,11 @@ def test_order_update_anonymous_user_no_user_email(
                 }
             }
             """
-    first_name = "Test fname"
-    last_name = "Test lname"
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "address": graphql_address_data}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
-    content = get_graphql_content(response)
     assert_read_only_mode(response)
 
 
@@ -1000,7 +1003,8 @@ def test_order_update_user_email_existing_user(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "address": graphql_address_data, "email": email}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1032,7 +1036,8 @@ def test_order_add_note(
     message = "nuclear note"
     variables = {"id": order_id, "message": message}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1054,10 +1059,10 @@ def test_order_cancel_and_restock(
     query = CANCEL_ORDER_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     restock = True
-    quantity = order.get_total_quantity()
     variables = {"id": order_id, "restock": restock}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1068,7 +1073,8 @@ def test_order_cancel(staff_api_client, permission_manage_orders, order_with_lin
     restock = False
     variables = {"id": order_id, "restock": restock}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1094,7 +1100,8 @@ def test_order_capture(
     amount = float(payment_txn_preauth.total)
     variables = {"id": order_id, "amount": amount}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1118,7 +1125,8 @@ def test_paid_order_mark_as_paid(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1143,7 +1151,8 @@ def test_order_mark_as_paid(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1170,7 +1179,8 @@ def test_order_void(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        ORDER_VOID, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1212,7 +1222,8 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     amount = float(payment_txn_captured.total)
     variables = {"id": order_id, "amount": amount}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1330,7 +1341,8 @@ def test_order_update_shipping(
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1346,7 +1358,8 @@ def test_order_update_shipping_clear_shipping_method(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"order": order_id, "shippingMethod": None}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1358,7 +1371,8 @@ def test_order_update_shipping_shipping_required(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"order": order_id, "shippingMethod": None}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1377,7 +1391,8 @@ def test_order_update_shipping_no_shipping_address(
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1398,7 +1413,8 @@ def test_order_update_shipping_incorrect_shipping_method(
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 
@@ -1410,7 +1426,8 @@ def test_draft_order_clear_shipping_method(
     order_id = graphene.Node.to_global_id("Order", draft_order.id)
     variables = {"order": order_id, "shippingMethod": None}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders])
+        query, variables, permissions=[permission_manage_orders]
+    )
     assert_read_only_mode(response)
 
 

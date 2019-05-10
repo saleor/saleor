@@ -16,7 +16,11 @@ from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id, reporting_period_to_date
 from saleor.product.models import Product
-from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
+from tests.api.utils import (
+    _get_graphql_content_from_response,
+    assert_read_only_mode,
+    get_graphql_content,
+)
 
 
 def test_clean_seo_fields():
@@ -119,7 +123,8 @@ def test_mutation_decimal_input(staff_api_client, variant, permission_manage_pro
         "cost": 12.12,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 

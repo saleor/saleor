@@ -4,7 +4,7 @@ import graphene
 import pytest
 from django_countries import countries
 
-from saleor.discount import DiscountValueType, VoucherType
+from saleor.discount import DiscountValueType
 from saleor.discount.models import Sale, Voucher
 from saleor.graphql.discount.enums import DiscountValueTypeEnum, VoucherTypeEnum
 from tests.api.utils import assert_read_only_mode, get_graphql_content
@@ -181,12 +181,12 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     }
 
     response = staff_api_client.post_graphql(
-        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts])
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
-def test_create_voucher_with_empty_code(
-        staff_api_client, permission_manage_discounts):
+def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
     start_date = date(day=1, month=1, year=2018)
     end_date = date(day=1, month=1, year=2019)
     variables = {
@@ -201,9 +201,8 @@ def test_create_voucher_with_empty_code(
     }
 
     response = staff_api_client.post_graphql(
-        CREATE_VOUCHER_MUTATION,
-        variables,
-        permissions=[permission_manage_discounts])
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -235,7 +234,8 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -259,7 +259,8 @@ def test_voucher_delete_mutation(
     variables = {"id": graphene.Node.to_global_id("Voucher", voucher.id)}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -294,7 +295,8 @@ def test_voucher_add_catalogues(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -333,7 +335,8 @@ def test_voucher_remove_catalogues(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -355,7 +358,8 @@ def test_voucher_add_no_catalogues(
         "input": {"products": [], "collections": [], "categories": []},
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -386,7 +390,8 @@ def test_voucher_remove_no_catalogues(
         "input": {"products": [], "collections": [], "categories": []},
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -423,7 +428,8 @@ def test_create_sale(staff_api_client, permission_manage_discounts):
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -450,7 +456,8 @@ def test_update_sale(staff_api_client, sale, permission_manage_discounts):
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -472,7 +479,8 @@ def test_sale_delete_mutation(staff_api_client, sale, permission_manage_discount
     variables = {"id": graphene.Node.to_global_id("Sale", sale.id)}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -502,7 +510,8 @@ def test_sale_add_catalogues(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -536,7 +545,8 @@ def test_sale_remove_catalogues(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 
@@ -556,7 +566,8 @@ def test_sale_add_no_catalogues(staff_api_client, sale, permission_manage_discou
         "input": {"products": [], "collections": [], "categories": []},
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts])
+        query, variables, permissions=[permission_manage_discounts]
+    )
     assert_read_only_mode(response)
 
 

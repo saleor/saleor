@@ -4,7 +4,7 @@ import uuid
 from unittest.mock import MagicMock, Mock, patch
 
 import graphene
-from django.contrib.auth.tokens import default_token_generator
+import pytest
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.shortcuts import reverse
@@ -15,7 +15,6 @@ from saleor.account.models import User
 from saleor.checkout import AddressType
 from saleor.graphql.account.mutations import (
     CustomerDelete,
-    SetPassword,
     StaffDelete,
     StaffUpdate,
     UserDelete,
@@ -26,7 +25,8 @@ from tests.api.utils import get_graphql_content
 from tests.utils import create_image
 
 from .utils import (
-    assert_no_permission, assert_read_only_mode,
+    assert_no_permission,
+    assert_read_only_mode,
     convert_dict_keys_to_camel_case,
     get_multipart_request_body,
 )
@@ -572,16 +572,19 @@ def test_customer_create(staff_api_client, address, permission_manage_users):
     }
     """
     email = "api_user@example.com"
-    first_name = "api_first_name"
-    last_name = "api_last_name"
     note = "Test user"
     address_data = convert_dict_keys_to_camel_case(address.as_data())
 
     variables = {
-        'email': email, 'note': note, 'shipping': address_data,
-        'billing': address_data, 'send_mail': True}
+        "email": email,
+        "note": note,
+        "shipping": address_data,
+        "billing": address_data,
+        "send_mail": True,
+    }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+        query, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -626,8 +629,6 @@ def test_customer_update(
     # instances weren't created, but the existing ones got updated
     assert customer_user.default_billing_address
     assert customer_user.default_shipping_address
-    billing_address_pk = customer_user.default_billing_address.pk
-    shipping_address_pk = customer_user.default_shipping_address.pk
 
     id = graphene.Node.to_global_id("User", customer_user.id)
     first_name = "new_first_name"
@@ -639,17 +640,19 @@ def test_customer_update(
     address_data["streetAddress1"] = new_street_address
 
     variables = {
-        'id': id,
-        'firstName': first_name,
-        'lastName': last_name,
-        'isActive': False,
-        'note': note,
-        'billing': address_data,
-        'shipping': address_data}
+        "id": id,
+        "firstName": first_name,
+        "lastName": last_name,
+        "isActive": False,
+        "note": note,
+        "billing": address_data,
+        "shipping": address_data,
+    }
 
     # check unauthorized access
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+        query, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -688,17 +691,13 @@ def test_logged_customer_update(user_api_client, graphql_address_data):
     assert user.default_shipping_address
     assert user.default_billing_address.first_name != new_first_name
     assert user.default_shipping_address.first_name != new_first_name
-    variables = {
-        'billing': graphql_address_data,
-        'shipping': graphql_address_data}
-    response = user_api_client.post_graphql(
-        UPDATE_LOGGED_CUSTOMER_QUERY, variables)
+    variables = {"billing": graphql_address_data, "shipping": graphql_address_data}
+    response = user_api_client.post_graphql(UPDATE_LOGGED_CUSTOMER_QUERY, variables)
     assert_read_only_mode(response)
 
 
 def test_logged_customer_update_anonymus_user(api_client):
-    response = api_client.post_graphql(
-        UPDATE_LOGGED_CUSTOMER_QUERY, {})
+    response = api_client.post_graphql(UPDATE_LOGGED_CUSTOMER_QUERY, {})
     assert_read_only_mode(response)
 
 
@@ -719,7 +718,8 @@ def test_customer_delete(staff_api_client, customer_user, permission_manage_user
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
     variables = {"id": customer_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+        query, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -736,7 +736,8 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
 
 
 def test_staff_create(
-        staff_api_client, permission_manage_staff, permission_manage_products):
+    staff_api_client, permission_manage_staff, permission_manage_products
+):
     query = """
     mutation CreateStaff(
             $email: String, $permissions: [PermissionEnum],
@@ -771,7 +772,8 @@ def test_staff_create(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_staff])
+        query, variables, permissions=[permission_manage_staff]
+    )
     assert_read_only_mode(response)
 
 
@@ -800,7 +802,8 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     variables = {"id": id, "permissions": [], "is_active": False}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_staff])
+        query, variables, permissions=[permission_manage_staff]
+    )
     assert_read_only_mode(response)
 
 
@@ -823,7 +826,8 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     variables = {"id": user_id}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_staff])
+        query, variables, permissions=[permission_manage_staff]
+    )
     assert_read_only_mode(response)
 
 
@@ -887,7 +891,6 @@ def test_set_password(user_api_client, customer_user):
         }
     """
     id = graphene.Node.to_global_id("User", customer_user.id)
-    token = default_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
     # check invalid token
@@ -913,7 +916,8 @@ def test_password_reset_email(
     email = customer_user.email
     variables = {"email": email}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+        query, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -934,7 +938,8 @@ def test_password_reset_email_non_existing_user(
     email = "not_exists@example.com"
     variables = {"email": email}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+        query, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -964,7 +969,8 @@ def test_create_address_mutation(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"user": user_id, "city": "Dummy", "country": "PL"}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+        query, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -993,7 +999,8 @@ def test_address_update_mutation(
         "address": graphql_address_data,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+        query, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -1051,7 +1058,8 @@ def test_address_delete_mutation(
     address_obj = customer_user.addresses.first()
     variables = {"id": graphene.Node.to_global_id("Address", address_obj.id)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users])
+        query, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -1111,8 +1119,8 @@ def test_set_default_address(
     }
 
     response = staff_api_client.post_graphql(
-        SET_DEFAULT_ADDRESS_MUTATION, variables,
-        permissions=[permission_manage_users])
+        SET_DEFAULT_ADDRESS_MUTATION, variables, permissions=[permission_manage_users]
+    )
     assert_read_only_mode(response)
 
 
@@ -1242,9 +1250,6 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
 
 
 def test_customer_create_address(user_api_client, graphql_address_data):
-    user = user_api_client.user
-    nr_of_addresses = user.addresses.count()
-
     query = CUSTOMER_ADDRESS_CREATE_MUTATION
     variables = {"addressInput": graphql_address_data}
     response = user_api_client.post_graphql(query, variables)
@@ -1252,9 +1257,6 @@ def test_customer_create_address(user_api_client, graphql_address_data):
 
 
 def test_customer_create_default_address(user_api_client, graphql_address_data):
-    user = user_api_client.user
-    nr_of_addresses = user.addresses.count()
-
     query = CUSTOMER_ADDRESS_CREATE_MUTATION
     address_type = AddressType.SHIPPING.upper()
     variables = {"addressInput": graphql_address_data, "addressType": address_type}
@@ -1334,7 +1336,6 @@ def test_customer_change_default_address_invalid_address(
         "type": AddressType.SHIPPING.upper(),
     }
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
     assert_read_only_mode(response)
 
 
@@ -1365,8 +1366,6 @@ def test_user_avatar_update_mutation_permission(api_client):
 
 def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
     query = USER_AVATAR_UPDATE_MUTATION
-
-    user = staff_api_client.user
 
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
@@ -1419,7 +1418,6 @@ def test_user_avatar_delete_mutation_permission(api_client):
 
 def test_user_avatar_delete_mutation(staff_api_client):
     query = USER_AVATAR_DELETE_MUTATION
-    user = staff_api_client.user
     response = staff_api_client.post_graphql(query)
     assert_read_only_mode(response)
 
@@ -1750,7 +1748,6 @@ def test_change_active_status_for_superuser(
     staff_api_client, superuser, permission_manage_users
 ):
     users = [superuser]
-    superuser_id = graphene.Node.to_global_id("User", superuser.id)
     active_status = False
     variables = {
         "ids": [graphene.Node.to_global_id("User", user.id) for user in users],
@@ -1766,7 +1763,6 @@ def test_change_active_status_for_superuser(
 
 def test_change_active_status_for_himself(staff_api_client, permission_manage_users):
     users = [staff_api_client.user]
-    user_id = graphene.Node.to_global_id("User", staff_api_client.user.id)
     active_status = False
     variables = {
         "ids": [graphene.Node.to_global_id("User", user.id) for user in users],

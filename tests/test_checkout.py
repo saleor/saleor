@@ -8,7 +8,6 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.account.models import Address
-from saleor.core import demo_obfuscators
 from saleor.checkout import views
 from saleor.checkout.forms import CheckoutVoucherForm, CountryForm
 from saleor.checkout.utils import (
@@ -27,6 +26,7 @@ from saleor.checkout.utils import (
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
+from saleor.core import demo_obfuscators
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country
 from saleor.discount import DiscountValueType, VoucherType
@@ -274,13 +274,13 @@ def test_view_checkout_summary_anonymous_user(
 
     response = client.post(url, data, follow=True)
 
-    order = response.context['order']
+    order = response.context["order"]
 
     # DEMO: check email data obfuscation
-    assert order.user_email == demo_obfuscators.obfuscate_email('test@example.com')
+    assert order.user_email == demo_obfuscators.obfuscate_email("test@example.com")
 
-    redirect_url = reverse('order:payment', kwargs={'token': order.token})
-    assert response.request['PATH_INFO'] == redirect_url
+    redirect_url = reverse("order:payment", kwargs={"token": order.token})
+    assert response.request["PATH_INFO"] == redirect_url
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
     # checkout should be deleted after order is created
@@ -310,12 +310,12 @@ def test_view_checkout_summary_authorized_user(
 
     response = authorized_client.post(url, data, follow=True)
 
-    order = response.context['order']
+    order = response.context["order"]
     # DEMO: check email was anonymized
     assert order.user_email == demo_obfuscators.obfuscate_email(customer_user.email)
 
-    redirect_url = reverse('order:payment', kwargs={'token': order.token})
-    assert response.request['PATH_INFO'] == redirect_url
+    redirect_url = reverse("order:payment", kwargs={"token": order.token})
+    assert response.request["PATH_INFO"] == redirect_url
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
@@ -353,7 +353,7 @@ def test_view_checkout_summary_save_language(
         url, data, follow=True, HTTP_ACCEPT_LANGUAGE=user_language
     )
 
-    order = response.context['order']
+    order = response.context["order"]
 
     # DEMO: check email was anonymized
     assert order.user_email == demo_obfuscators.obfuscate_email(customer_user.email)

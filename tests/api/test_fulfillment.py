@@ -241,4 +241,3 @@ def test_create_digital_fulfillment(
         query, variables, permissions=[permission_manage_orders]
     )
     assert_read_only_mode(response)
-

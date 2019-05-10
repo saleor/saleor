@@ -163,7 +163,8 @@ def test_create_attribute_and_attribute_values(
         "values": [{"name": name, "value": "#1231"}],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -194,7 +195,8 @@ def test_create_attribute_and_attribute_values_errors(
         ],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -214,7 +216,8 @@ def test_create_variant_attribute(
         "values": [],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -229,7 +232,8 @@ def test_create_attribute_incorrect_product_type_id(
         "values": [],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -272,7 +276,8 @@ def test_update_attribute_name(
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {"name": name, "id": node_id, "addValues": [], "removeValues": []}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -293,7 +298,8 @@ def test_update_attribute_remove_and_add_values(
         "removeValues": [value_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -312,7 +318,8 @@ def test_update_empty_attribute_and_add_values(
         "removeValues": [],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -341,7 +348,8 @@ def test_update_attribute_and_add_attribute_values_errors(
         "addValues": [{"name": name_1, "value": "#1"}, {"name": name_2, "value": "#2"}],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -361,7 +369,8 @@ def test_update_attribute_and_remove_others_attribute_value(
         "removeValues": [attr_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -388,7 +397,8 @@ def test_delete_attribute(
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -427,7 +437,8 @@ def test_create_attribute_value(
     value = "test-string"
     variables = {"name": name, "value": value, "attributeId": attribute_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -444,7 +455,8 @@ def test_create_attribute_value_not_unique_name(
         "attributeId": attribute_id,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -481,7 +493,8 @@ def test_update_attribute_value(
     name = "Crimson name"
     variables = {"name": name, "value": "#RED", "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -495,7 +508,8 @@ def test_update_attribute_value_name_not_unique(
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     variables = {"name": pink_attribute_value.name, "value": "#RED", "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -508,7 +522,8 @@ def test_update_same_attribute_value(
     attr_value = "#BLUE"
     variables = {"name": value.name, "value": attr_value, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -526,10 +541,11 @@ def test_delete_attribute_value(
         }
     }
     """
-    id = graphene.Node.to_global_id('AttributeValue', value.id)
-    variables = {'id': id}
+    id = graphene.Node.to_global_id("AttributeValue", value.id)
+    variables = {"id": id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 

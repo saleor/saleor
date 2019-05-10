@@ -3,15 +3,15 @@ from datetime import date
 from unittest.mock import Mock
 
 import graphene
-import pytest
-from django.utils.text import slugify
 from graphql_relay import to_global_id
 
-from saleor.product.models import Collection
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import (
-    assert_read_only_mode, get_graphql_content, get_multipart_request_body)
+    assert_read_only_mode,
+    get_graphql_content,
+    get_multipart_request_body,
+)
 
 
 def test_collections_query(
@@ -126,7 +126,8 @@ def test_create_collection(
     }
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products])
+        body, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -159,7 +160,8 @@ def test_create_collection_without_background_image(
 
     variables = {"name": "test-name", "slug": "test-slug", "isPublished": True}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -207,7 +209,8 @@ def test_update_collection(
         "publicationDate": publication_date,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -268,7 +271,8 @@ def test_update_collection_with_background_image(
         image_name,
     )
     response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products])
+        body, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -292,7 +296,8 @@ def test_update_collection_invalid_background_image(
         image_name,
     )
     response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products])
+        body, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -309,7 +314,8 @@ def test_delete_collection(staff_api_client, collection, permission_manage_produ
     collection_id = to_global_id("Collection", collection.id)
     variables = {"id": collection_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -331,7 +337,8 @@ def test_auto_create_slug_on_collection(
     name = "test name123"
     variables = {"name": name, "isPublished": True}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -352,10 +359,10 @@ def test_add_products_to_collection(
     """
     collection_id = to_global_id("Collection", collection.id)
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
-    no_products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -377,10 +384,10 @@ def test_remove_products_from_collection(
     collection.products.add(*product_list)
     collection_id = to_global_id("Collection", collection.id)
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
-    no_products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -399,7 +406,7 @@ FETCH_COLLECTION_QUERY = """
 
 def test_collection_image_query(user_api_client, collection, media_root):
     alt_text = "Alt text for an image."
-    image_file, image_name = create_image()
+    image_file, _ = create_image()
     collection.background_image = image_file
     collection.background_image_alt = alt_text
     collection.save()
@@ -451,7 +458,8 @@ def test_update_collection_mutation_remove_background_image(
         "backgroundImage": None,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 

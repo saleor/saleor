@@ -1,4 +1,3 @@
-import json
 from unittest.mock import Mock
 
 import graphene
@@ -8,6 +7,7 @@ from graphql_relay import to_global_id
 from saleor.product.models import Category
 from tests.api.utils import get_graphql_content, get_multipart_request_body
 from tests.utils import create_image, create_pdf_file_with_image_ext
+
 from .utils import assert_read_only_mode
 
 
@@ -99,16 +99,16 @@ def test_category_create_mutation(
     category_name = "Test category"
     category_slug = slugify(category_name)
     category_description = "Test description"
-    category_description_json = json.dumps({"content": "description"})
-    image_file, image_name = create_image()
-    image_alt = "Alt text for an image."
 
     # test creating root category
     variables = {
-        'name': category_name, 'description': category_description,
-        'slug': category_slug}
+        "name": category_name,
+        "description": category_description,
+        "slug": category_slug,
+    }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -150,7 +150,8 @@ def test_category_create_mutation_without_background_image(
         "slug": slugify(category_name),
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -224,7 +225,8 @@ def test_category_update_mutation(
         MUTATION_CATEGORY_UPDATE_MUTATION, variables, image_file, image_name
     )
     response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products])
+        body, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -245,7 +247,8 @@ def test_category_update_mutation_invalid_background_image(
         MUTATION_CATEGORY_UPDATE_MUTATION, variables, image_file, image_name
     )
     response = staff_api_client.post_multipart(
-        body, permissions=[permission_manage_products])
+        body, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -289,7 +292,8 @@ def test_category_update_mutation_without_background_image(
         "slug": slugify(category_name),
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -311,7 +315,8 @@ def test_category_delete_mutation(
     """
     variables = {"id": graphene.Node.to_global_id("Category", category.id)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
 
 
@@ -420,5 +425,6 @@ def test_update_category_mutation_remove_background_image(
         "backgroundImage": None,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        query, variables, permissions=[permission_manage_products]
+    )
     assert_read_only_mode(response)
