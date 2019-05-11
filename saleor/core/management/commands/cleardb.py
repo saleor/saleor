@@ -10,21 +10,21 @@ from __future__ import unicode_literals
 
 from django.core.management.base import BaseCommand
 
-from saleor.checkout.models import Cart
+from saleor.account.models import User
+from saleor.checkout.models import Checkout
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
-from saleor.payment.models import Transaction, Payment
+from saleor.payment.models import Payment, Transaction
 from saleor.product.models import Product
 from saleor.shipping.models import ShippingMethod
-from saleor.account.models import User
 
 
 class Command(BaseCommand):
     help = "Clear database preserving staff accounts and configuration"
 
     def handle(self, *args, **kwargs):
-        Cart.objects.all().delete()
-        self.stdout.write("Removed carts")
+        Checkout.objects.all().delete()
+        self.stdout.write("Removed checkouts")
 
         Transaction.objects.all().delete()
         self.stdout.write("Removed transactions")
