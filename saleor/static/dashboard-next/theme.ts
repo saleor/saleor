@@ -108,16 +108,6 @@ export default (colors: IThemeColors): Theme =>
           opacity: [["1"], "!important"] as any,
           width: 48
         },
-        checked: {
-          transform: "translateX(24px)"
-        },
-        disabled: {
-          "&$switchBase": {
-            "& + $bar": {
-              backgroundColor: colors.gray.disabled
-            }
-          }
-        },
         icon: {
           backgroundColor: colors.background.paper,
           boxShadow: "none",
@@ -126,6 +116,18 @@ export default (colors: IThemeColors): Theme =>
         iconChecked: {
           backgroundColor: colors.background.paper,
           boxShadow: "none"
+        },
+        root: {
+          "& $checked": {
+            transform: "translateX(24px)"
+          },
+          "&$disabled": {
+            "&$switchBase": {
+              "& + $bar": {
+                backgroundColor: colors.gray.disabled
+              }
+            }
+          }
         }
       },
       MuiTable: {
