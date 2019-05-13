@@ -11,8 +11,8 @@ import * as queryString from 'query-string';
 
 export default observer(class VariantPicker extends Component {
   static propTypes = {
-    onAddToCartError: PropTypes.func.isRequired,
-    onAddToCartSuccess: PropTypes.func.isRequired,
+    onAddToCheckoutError: PropTypes.func.isRequired,
+    onAddToCheckoutSuccess: PropTypes.func.isRequired,
     store: PropTypes.object.isRequired,
     url: PropTypes.string.isRequired,
     variantAttributes: PropTypes.array.isRequired,
@@ -57,8 +57,8 @@ export default observer(class VariantPicker extends Component {
     return store.variant.availability;
   };
 
-  handleAddToCart = () => {
-    const { onAddToCartSuccess, onAddToCartError, store } = this.props;
+  handleAddToCheckout = () => {
+    const { onAddToCheckoutSuccess, onAddToCheckoutError, store } = this.props;
     const { quantity } = this.state;
     if (quantity > 0 && !store.isEmpty) {
       $.ajax({
@@ -69,10 +69,10 @@ export default observer(class VariantPicker extends Component {
           variant: store.variant.id
         },
         success: () => {
-          onAddToCartSuccess();
+          onAddToCheckoutSuccess();
         },
         error: (response) => {
-          onAddToCartError(response);
+          onAddToCheckoutError(response);
         }
       });
     }
@@ -136,11 +136,11 @@ export default observer(class VariantPicker extends Component {
   render () {
     const { store, variantAttributes } = this.props;
     const { errors, selection, quantity } = this.state;
-    const disableAddToCart = store.isEmpty || !this.checkVariantAvailability();
+    const disableAddToCheckout = store.isEmpty || !this.checkVariantAvailability();
 
-    const addToCartBtnClasses = classNames({
+    const addToCheckoutBtnClasses = classNames({
       'btn btn-primary': true,
-      'disabled': disableAddToCart
+      'disabled': disableAddToCheckout
     });
 
     return (
@@ -161,10 +161,10 @@ export default observer(class VariantPicker extends Component {
           />
           <div className="form-group product__info__button">
             <button
-              className={addToCartBtnClasses}
-              onClick={this.handleAddToCart}
-              disabled={disableAddToCart}>
-              {pgettext('Product details primary action', 'Add to cart')}
+              className={addToCheckoutBtnClasses}
+              onClick={this.handleAddToCheckout}
+              disabled={disableAddToCheckout}>
+              {pgettext('Product details primary action', 'Add to checkout')}
             </button>
           </div>
         </div>

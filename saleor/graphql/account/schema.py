@@ -1,52 +1,86 @@
 import graphene
 from graphql_jwt.decorators import login_required, permission_required
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
+from ..core.types import FilterInputObjectType
 from ..descriptions import DESCRIPTIONS
-from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete
+from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
+from .filters import CustomerFilter, StaffUserFilter
 from .mutations import (
-    AddressCreate, AddressDelete, AddressSetDefault, AddressUpdate,
-    CustomerAddressCreate, CustomerCreate, CustomerDelete,
-    CustomerPasswordReset, CustomerRegister, CustomerSetDefaultAddress,
-    CustomerUpdate, LoggedUserUpdate, PasswordReset, SetPassword, StaffCreate,
-    StaffDelete, StaffUpdate, UserAvatarDelete, UserAvatarUpdate)
-from .resolvers import (
-    resolve_address_validator, resolve_customers, resolve_staff_users)
+    AddressCreate,
+    AddressDelete,
+    AddressSetDefault,
+    AddressUpdate,
+    CustomerAddressCreate,
+    CustomerCreate,
+    CustomerDelete,
+    CustomerPasswordReset,
+    CustomerRegister,
+    CustomerSetDefaultAddress,
+    CustomerUpdate,
+    LoggedUserUpdate,
+    PasswordReset,
+    SetPassword,
+    StaffCreate,
+    StaffDelete,
+    StaffUpdate,
+    UserAvatarDelete,
+    UserAvatarUpdate,
+)
+from .resolvers import resolve_address_validator, resolve_customers, resolve_staff_users
 from .types import AddressValidationData, AddressValidationInput, User
+
+
+class CustomerFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = CustomerFilter
+
+
+class StaffUserInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = StaffUserFilter
 
 
 class AccountQueries(graphene.ObjectType):
     address_validator = graphene.Field(
         AddressValidationData,
-        input=graphene.Argument(AddressValidationInput, required=True))
-    customers = PrefetchingConnectionField(
-        User, description='List of the shop\'s customers.',
-        query=graphene.String(description=DESCRIPTIONS['user']))
-    me = graphene.Field(
-        User, description='Logged in user data.')
-    staff_users = PrefetchingConnectionField(
-        User, description='List of the shop\'s staff users.',
-        query=graphene.String(description=DESCRIPTIONS['user']))
+        input=graphene.Argument(AddressValidationInput, required=True),
+    )
+    customers = FilterInputConnectionField(
+        User,
+        filter=CustomerFilterInput(),
+        description="List of the shop's customers.",
+        query=graphene.String(description=DESCRIPTIONS["user"]),
+    )
+    me = graphene.Field(User, description="Logged in user data.")
+    staff_users = FilterInputConnectionField(
+        User,
+        filter=StaffUserInput(),
+        description="List of the shop's staff users.",
+        query=graphene.String(description=DESCRIPTIONS["user"]),
+    )
     user = graphene.Field(
-        User, id=graphene.Argument(graphene.ID, required=True),
-        description='Lookup an user by ID.')
+        User,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup an user by ID.",
+    )
 
     def resolve_address_validator(self, info, input):
         return resolve_address_validator(info, input)
 
-    @permission_required('account.manage_users')
-    def resolve_customers(self, info, query=None, **kwargs):
+    @permission_required("account.manage_users")
+    def resolve_customers(self, info, query=None, **_kwargs):
         return resolve_customers(info, query=query)
 
     @login_required
     def resolve_me(self, info):
         return info.context.user
 
-    @permission_required('account.manage_staff')
-    def resolve_staff_users(self, info, query=None, **kwargs):
+    @permission_required("account.manage_staff")
+    def resolve_staff_users(self, info, query=None, **_kwargs):
         return resolve_staff_users(info, query=query)
 
-    @permission_required('account.manage_users')
+    @permission_required("account.manage_users")
     def resolve_user(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, User)
 
@@ -78,3 +112,4 @@ class AccountMutations(graphene.ObjectType):
 
     user_avatar_update = UserAvatarUpdate.Field()
     user_avatar_delete = UserAvatarDelete.Field()
+    user_bulk_set_active = UserBulkSetActive.Field()

@@ -1,4 +1,4 @@
-import { PageListProps } from "./types";
+import { ListActions, PageListProps } from "./types";
 
 const pageInfo = {
   hasNextPage: true,
@@ -21,6 +21,12 @@ export const pageListProps: { [key: string]: PageListProps } = {
     onRowClick: () => undefined,
     pageInfo
   }
+};
+export const listActionsProps: ListActions = {
+  isChecked: () => undefined,
+  selected: 0,
+  toggle: () => undefined,
+  toolbar: null
 };
 
 export const countries = [

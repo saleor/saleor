@@ -1,14 +1,14 @@
-import React from 'react';
-import * as PropTypes from 'prop-types';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
+import React from "react";
+import * as PropTypes from "prop-types";
+import { graphql } from "react-apollo";
+import gql from "graphql-tag";
 
-import Loading from '../Loading';
-import CategoryPage from './CategoryPage';
-import ProductFilters from './ProductFilters';
-import ProductList from './ProductList';
+import Loading from "../Loading";
+import CategoryPage from "./CategoryPage";
+import ProductFilters from "./ProductFilters";
+import ProductList from "./ProductList";
 
-import { convertSortByFromString } from './utils';
+import { convertSortByFromString } from "./utils";
 
 class App extends React.Component {
   static propTypes = {
@@ -17,29 +17,34 @@ class App extends React.Component {
 
   render() {
     if (this.props.data.loading && !this.props.data.category) {
-      return <Loading/>;
+      return <Loading />;
     } else {
-      return <div><CategoryPage {...this.props} /></div>;
+      return (
+        <div>
+          <CategoryPage {...this.props} />
+        </div>
+      );
     }
   }
 }
 
 const rootQuery = gql`
   query Root(
-    $categoryId: ID!,
-    $sortBy: ProductOrder,
-    $first: Int,
-    $attributesFilter: [AttributeScalar],
-    $minPrice: Float,
+    $categoryId: ID!
+    $sortBy: ProductOrder
+    $first: Int
+    $attributesFilter: [AttributeScalar]
+    $minPrice: Float
     $maxPrice: Float
   ) {
     products(
       first: $first
-      attributes: $attributesFilter,
-      categories: [$categoryId],
-      priceGte: $minPrice,
-      priceLte: $maxPrice,
-      sortBy: $sortBy,
+      attributes: $attributesFilter
+      filter: {
+        categories: [$categoryId]
+        price: { gte: $minPrice, lte: $maxPrice }
+      }
+      sortBy: $sortBy
     ) {
       ...ProductListFragmentQuery
     }
@@ -60,7 +65,14 @@ const rootQuery = gql`
 `;
 
 export default graphql(rootQuery, {
-  options: ({categoryId, sortBy, PAGINATE_BY, attributesFilter, minPrice, maxPrice}) => ({
+  options: ({
+    categoryId,
+    sortBy,
+    PAGINATE_BY,
+    attributesFilter,
+    minPrice,
+    maxPrice
+  }) => ({
     variables: {
       categoryId,
       sortBy: convertSortByFromString(sortBy),
@@ -69,6 +81,6 @@ export default graphql(rootQuery, {
       minPrice: minPrice,
       maxPrice: maxPrice
     },
-    fetchPolicy: 'cache-and-network'
+    fetchPolicy: "cache-and-network"
   })
 })(App);

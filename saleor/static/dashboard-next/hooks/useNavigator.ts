@@ -6,7 +6,7 @@ function useNavigator() {
     history
   } = useRouter();
 
-  return (url, replace = false, preserveQs = false) => {
+  return (url: string, replace = false, preserveQs = false) => {
     const targetUrl = preserveQs ? url + search : url;
     replace ? history.replace(targetUrl) : history.push(targetUrl);
     window.scrollTo({ top: 0, behavior: "smooth" });

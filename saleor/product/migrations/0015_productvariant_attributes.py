@@ -8,14 +8,14 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0014_remove_productvariant_attributes'),
-    ]
+    dependencies = [("product", "0014_remove_productvariant_attributes")]
 
     operations = [
         migrations.AddField(
-            model_name='productvariant',
-            name='attributes',
-            field=django.contrib.postgres.fields.hstore.HStoreField(default='', verbose_name='attributes'),
-        ),
+            model_name="productvariant",
+            name="attributes",
+            field=django.contrib.postgres.fields.hstore.HStoreField(
+                default="", verbose_name="attributes"
+            ),
+        )
     ]

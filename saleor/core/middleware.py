@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 def google_analytics(get_response):
     """Report a page view to Google Analytics."""
+
     def middleware(request):
         client_id = analytics.get_client_id(request)
         path = request.path
@@ -24,18 +25,22 @@ def google_analytics(get_response):
         headers = request.META
         try:
             analytics.report_view(
-                client_id, path=path, language=language, headers=headers)
+                client_id, path=path, language=language, headers=headers
+            )
         except Exception:
-            logger.exception('Unable to update analytics')
+            logger.exception("Unable to update analytics")
         return get_response(request)
+
     return middleware
 
 
 def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
+
     def middleware(request):
         discounts = Sale.objects.active(date.today()).prefetch_related(
-            'products', 'categories', 'collections')
+            "products", "categories", "collections"
+        )
         request.discounts = discounts
         return get_response(request)
 
@@ -44,6 +49,7 @@ def discounts(get_response):
 
 def country(get_response):
     """Detect the user's country and assign it to `request.country`."""
+
     def middleware(request):
         client_ip = get_client_ip(request)
         if client_ip:
@@ -57,8 +63,9 @@ def country(get_response):
 
 def currency(get_response):
     """Take a country and assign a matching currency to `request.currency`."""
+
     def middleware(request):
-        if hasattr(request, 'country') and request.country is not None:
+        if hasattr(request, "country") and request.country is not None:
             request.currency = get_currency_for_country(request.country)
         else:
             request.currency = settings.DEFAULT_CURRENCY
@@ -75,6 +82,7 @@ def site(get_response):
     required to restart all application servers in order to invalidate
     the cache. Using this middleware solves this problem.
     """
+
     def middleware(request):
         Site.objects.clear_cache()
         request.site = Site.objects.get_current()
@@ -85,10 +93,12 @@ def site(get_response):
 
 def taxes(get_response):
     """Assign tax rates for default country to `request.taxes`."""
+
     def middleware(request):
         if settings.VATLAYER_ACCESS_KEY:
-            request.taxes = SimpleLazyObject(lambda: get_taxes_for_country(
-                request.country))
+            request.taxes = SimpleLazyObject(
+                lambda: get_taxes_for_country(request.country)
+            )
         else:
             request.taxes = None
         return get_response(request)

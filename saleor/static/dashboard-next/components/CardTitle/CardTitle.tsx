@@ -25,7 +25,7 @@ const styles = (theme: Theme) =>
     root: theme.mixins.gutters({
       alignItems: "center",
       display: "flex",
-      minHeight: theme.spacing.unit * 6
+      minHeight: 56
     }),
     title: {
       flex: 1,

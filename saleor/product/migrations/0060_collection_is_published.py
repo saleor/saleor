@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0059_generate_variant_name_from_attrs'),
-    ]
+    dependencies = [("product", "0059_generate_variant_name_from_attrs")]
 
     operations = [
         migrations.AddField(
-            model_name='collection',
-            name='is_published',
+            model_name="collection",
+            name="is_published",
             field=models.BooleanField(default=False),
-        ),
+        )
     ]

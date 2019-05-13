@@ -10,6 +10,14 @@ import {
   CollectionAssignProductVariables
 } from "./types/CollectionAssignProduct";
 import {
+  CollectionBulkDelete,
+  CollectionBulkDeleteVariables
+} from "./types/CollectionBulkDelete";
+import {
+  CollectionBulkPublish,
+  CollectionBulkPublishVariables
+} from "./types/CollectionBulkPublish";
+import {
   CollectionUpdate,
   CollectionUpdateVariables
 } from "./types/CollectionUpdate";
@@ -159,7 +167,7 @@ export const TypedCollectionRemoveMutation = TypedMutation<
 const unassignCollectionProduct = gql`
   mutation UnassignCollectionProduct(
     $collectionId: ID!
-    $productId: ID!
+    $productIds: [ID]!
     $first: Int
     $after: String
     $last: Int
@@ -167,7 +175,7 @@ const unassignCollectionProduct = gql`
   ) {
     collectionRemoveProducts(
       collectionId: $collectionId
-      products: [$productId]
+      products: $productIds
     ) {
       errors {
         field
@@ -203,3 +211,33 @@ export const TypedUnassignCollectionProductMutation = TypedMutation<
   UnassignCollectionProduct,
   UnassignCollectionProductVariables
 >(unassignCollectionProduct);
+
+const collectionBulkDelete = gql`
+  mutation CollectionBulkDelete($ids: [ID]!) {
+    collectionBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedCollectionBulkDelete = TypedMutation<
+  CollectionBulkDelete,
+  CollectionBulkDeleteVariables
+>(collectionBulkDelete);
+
+const collectionBulkPublish = gql`
+  mutation CollectionBulkPublish($ids: [ID]!, $isPublished: Boolean!) {
+    collectionBulkPublish(ids: $ids, isPublished: $isPublished) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedCollectionBulkPublish = TypedMutation<
+  CollectionBulkPublish,
+  CollectionBulkPublishVariables
+>(collectionBulkPublish);

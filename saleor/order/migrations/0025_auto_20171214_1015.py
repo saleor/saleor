@@ -7,19 +7,34 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0024_remove_order_status'),
-    ]
+    dependencies = [("order", "0024_remove_order_status")]
 
     operations = [
         migrations.AlterField(
-            model_name='deliverygroup',
-            name='status',
-            field=models.CharField(choices=[('new', 'Processing'), ('cancelled', 'Cancelled'), ('shipped', 'Shipped')], default='new', max_length=32, verbose_name='shipment status'),
+            model_name="deliverygroup",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("new", "Processing"),
+                    ("cancelled", "Cancelled"),
+                    ("shipped", "Shipped"),
+                ],
+                default="new",
+                max_length=32,
+                verbose_name="shipment status",
+            ),
         ),
         migrations.AlterField(
-            model_name='orderhistoryentry',
-            name='status',
-            field=models.CharField(choices=[('new', 'Processing'), ('cancelled', 'Cancelled'), ('shipped', 'Shipped')], max_length=32, verbose_name='order status'),
+            model_name="orderhistoryentry",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("new", "Processing"),
+                    ("cancelled", "Cancelled"),
+                    ("shipped", "Shipped"),
+                ],
+                max_length=32,
+                verbose_name="order status",
+            ),
         ),
     ]

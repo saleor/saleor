@@ -4,12 +4,12 @@
 {% load price from taxed_prices %}
 {% load static %}
 
-{% block title %}{% trans "Your cart" context "Cart page title" %} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Your checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="{% url 'home' %}">{% trans "Home" context "Main navigation item" %}</a></li>
-    <li><a rel="nofollow" href="{% url 'cart:index' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
+    <li><a rel="nofollow" href="{% url 'checkout:index' %}">{% trans "Checkout" context "Checkout breadcrumb" %}</a></li>
   </ul>
 {% endblock breadcrumb %}
 
@@ -19,28 +19,28 @@
 
 {% block content %}
   <div class="alert alert-success remove-product-alert d-none">
-    {% trans "Product has been removed from cart" context "Cart message" %}
+    {% trans "Product has been removed from checkout" context "Checkout message" %}
     <button type="button" class="close close-msg" aria-hidden="true">&times;</button>
   </div>
-  <div class="cart">
-    {% if cart_lines %}
+  <div class="checkout-preview">
+    {% if checkout_lines %}
       <div class="table__header d-none d-md-block">
         <div class="row">
           <div class="col-md-7">
-            <small>{% trans "Product" context "Cart table header" %}</small>
+            <small>{% trans "Product" context "Checkout table header" %}</small>
           </div>
           <div class="col-md-3">
-            <small>{% trans "Quantity" context "Cart table header" %}</small>
+            <small>{% trans "Quantity" context "Checkout table header" %}</small>
           </div>
           <div class="col-md-2 text-right">
-            <small>{% trans "Price" context "Cart table header" %}</small>
+            <small>{% trans "Price" context "Checkout table header" %}</small>
           </div>
         </div>
       </div>
-      {% for line in cart_lines %}
-        <div class="cart__line{% if forloop.last %} last{% endif %} table__row">
+      {% for line in checkout_lines %}
+        <div class="checkout-preview__line{% if forloop.last %} last{% endif %} table__row">
           <div class="row">
-            <div class="col-7 cart__line__product">
+            <div class="col-7 checkout-preview__line__product">
               <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
                 <img class="lazyload lazypreload" data-src="{% get_product_image_thumbnail line.variant.get_first_image method="thumbnail" size=60 %}"
                      data-srcset="{% get_product_image_thumbnail line.variant.get_first_image method="thumbnail" size=60 %} 1x, {% get_product_image_thumbnail line.variant.get_first_image method="thumbnail" size=120 %} 2x"
@@ -50,19 +50,19 @@
             </div>
             <div class="col-5">
               <div class="row">
-                <div class="cart__line__quantity col-md-7 col-12">
-                  <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart">
+                <div class="checkout-preview__line__quantity col-md-7 col-12">
+                  <form role="form" action="{% url "checkout:update-line" variant_id=line.variant.pk %}" method="post" class="form-checkout">
                     <div class="{% if form.quantity.errors %} has-error{% endif %}" tabindex="-1">
                       {{ line.form.quantity }}
                     </div>
                     {% csrf_token %}
                   </form>
-                  <span class="cart-item-delete">
+                  <span class="checkout-preview-item-delete">
                     <svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" />
                   </span>
-                  <small class="cart__line__quantity-error text-danger"></small>
+                  <small class="checkout-preview__line__quantity-error text-danger"></small>
                 </div>
-                <div class="cart-item-price col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
+                <div class="checkout-preview-item-price col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
                   <p class="text-right">
                     {% price line.get_total %}
                   </p>
@@ -72,24 +72,24 @@
           </div>
         </div>
       {% endfor %}
-      <div class="cart__subtotal">
+      <div class="checkout__subtotal">
         {% include 'checkout/_subtotal_table.html' %}
       </div>
       <div class="row">
         <div class="col-md-12">
-            <a href="{% url "checkout:login" %}" class="btn btn-primary float-right cart__submit">
-            {% trans "Checkout" context "Cart primary action" %}
+            <a href="{% url "checkout:login" %}" class="btn btn-primary float-right checkout-preview__submit">
+            {% trans "Checkout" context "Checkout primary action" %}
           </a>
-            <button class="btn secondary float-right cart__clear" data-action="{% url 'cart:clear-cart' %}">
-            {% trans "Clear cart" context "cart page: secondary action, empty the cart" %}
+            <button class="btn secondary float-right checkout__clear" data-action="{% url 'checkout:clear' %}">
+            {% trans "Clear checkout" context "checkout page: secondary action, empty the checkout" %}
           </button>
         </div>
       </div>
     {% else %}
-      <div class="cart__empty">
-        <img class="lazyload lazypreload" data-src="{% static 'images/empty-cart-bg.png' %}" data-srcset="{% static 'images/empty-cart-bg.png' %} 1x, {% static 'images/empty-cart-bg2x.png' %} 2x">
-        <h2>{% trans "There are no products in your shopping cart." context "Empty cart message" %}</h2>
-        <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Check out our sales" context "Empty cart link" %}</a>
+      <div class="checkout-preview__empty">
+        <img class="lazyload lazypreload" data-src="{% static 'images/empty-checkout-bg.png' %}" data-srcset="{% static 'images/empty-checkout-bg.png' %} 1x, {% static 'images/empty-checkout-bg2x.png' %} 2x">
+        <h2>{% trans "There are no products in your shopping checkout." context "Empty checkout message" %}</h2>
+        <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Check out our sales" context "Empty checkout link" %}</a>
       </div>
     {% endif %}
   </div>

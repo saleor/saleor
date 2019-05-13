@@ -1,15 +1,17 @@
+from django.core.exceptions import ValidationError
+
 
 class UserDeleteMixin:
     class Meta:
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
+    def clean_instance(cls, info, instance):
         user = info.context.user
         if instance == user:
-            cls.add_error(errors, 'id', 'You cannot delete your own account.')
+            raise ValidationError({"id": "You cannot delete your own account."})
         elif instance.is_superuser:
-            cls.add_error(errors, 'id', 'Cannot delete this account.')
+            raise ValidationError({"id": "Cannot delete this account."})
 
 
 class CustomerDeleteMixin(UserDeleteMixin):
@@ -17,10 +19,10 @@ class CustomerDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
-        super().clean_instance(info, instance, errors)
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
         if instance.is_staff:
-            cls.add_error(errors, 'id', 'Cannot delete a staff account.')
+            raise ValidationError({"id": "Cannot delete a staff account."})
 
 
 class StaffDeleteMixin(UserDeleteMixin):
@@ -28,7 +30,7 @@ class StaffDeleteMixin(UserDeleteMixin):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, info, instance, errors):
-        super().clean_instance(info, instance, errors)
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
         if not instance.is_staff:
-            cls.add_error(errors, 'id', 'Cannot delete a non-staff user.')
+            raise ValidationError({"id": "Cannot delete a non-staff user."})

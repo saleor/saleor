@@ -160,6 +160,7 @@ export const ProductCreatePage: React.StatelessComponent<
                       disabled={disabled}
                       product={undefined}
                       onChange={change}
+                      errors={errors}
                     />
                     <CardSpacer />
                   </>
@@ -178,6 +179,7 @@ export const ProductCreatePage: React.StatelessComponent<
               </div>
               <div>
                 <ProductOrganization
+                  canChangeType={true}
                   categories={maybe(
                     () =>
                       categories.map(category => ({
