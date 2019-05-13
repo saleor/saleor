@@ -222,3 +222,65 @@ def test_create_gift_card_without_premissions(staff_api_client):
     }
     response = staff_api_client.post_graphql(CREATE_GIFT_CARD_MUTATION, variables)
     assert_no_permission(response)
+
+
+UPDATE_GIFT_CARD_MUTATION = """
+mutation giftCardUpdate(
+    $id: ID!, $code: String, $startDate: Date, $expirationDate: Date,
+    $balance: Decimal) {
+        giftCardUpdate(id: $id, input: {
+                code: $code, startDate: $startDate,
+                expirationDate: $expirationDate,
+                balance: $balance}) {
+            errors {
+                field
+                message
+            }
+            giftCard {
+                code
+                lastUsedOn
+                currentBalance {
+                    amount
+                }
+            }
+        }
+    }
+"""
+
+
+def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_card):
+    gift_card.last_used_on = date(day=1, month=1, year=2018)
+    gift_card.save()
+    new_code = "new_test_code"
+    balance = 150
+    assert gift_card.code != new_code
+    assert gift_card.current_balance != balance
+    assert gift_card.last_used_on != date.today()
+    variables = {
+        "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+        "code": new_code,
+        "balance": balance,
+    }
+
+    response = staff_api_client.post_graphql(
+        UPDATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardUpdate"]["giftCard"]
+    assert data["code"] == new_code
+    assert data["currentBalance"]["amount"] == balance
+    assert data["lastUsedOn"] == date.today().isoformat()
+
+
+def test_update_gift_card_without_premissions(staff_api_client, gift_card):
+    new_code = "new_test_code"
+    balance = 150
+    assert gift_card.code != new_code
+    assert gift_card.current_balance != balance
+    variables = {
+        "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+        "balance": balance,
+    }
+
+    response = staff_api_client.post_graphql(UPDATE_GIFT_CARD_MUTATION, variables)
+    assert_no_permission(response)
