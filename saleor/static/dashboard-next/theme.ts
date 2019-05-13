@@ -1,5 +1,6 @@
 import { createMuiTheme, Theme } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
+import TextField from "@material-ui/core/TextField";
 
 const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
   [
@@ -19,6 +20,8 @@ export type IThemeColors = Record<
   font: Record<"default" | "gray", string>;
 } & {
   gray: Record<"default" | "disabled", string>;
+} & {
+  input: Record<"default" | "focused" | "disabled", string>;
 };
 
 const fontFamily = '"Inter", "roboto", "sans-serif"';
@@ -54,6 +57,41 @@ export default (colors: IThemeColors): Theme =>
           flexDirection: "row-reverse" as "row-reverse"
         }
       },
+      MuiFilledInput: {
+        root: {
+          "&$disabled": {
+            backgroundColor: colors.input.disabled
+          },
+          "&$focused": {
+            backgroundColor: colors.input.focused
+          },
+          "&:hover": {
+            backgroundColor: colors.input.default
+          },
+          backgroundColor: colors.input.default
+        },
+        underline: {
+          "&$focused": {
+            "&:after": {
+              borderBottomColor: colors.primary
+            }
+          },
+          "&:before": {
+            borderBottomColor: "rgba(0, 0, 0, 0)"
+          },
+          "&:hover": {
+            "&:not($disabled)": {
+              "&:not($focused)": {
+                "&:not($error)": {
+                  "&:before": {
+                    borderBottomColor: colors.primary
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       MuiInput: {
         input: {
           "&:-webkit-autofill": {
@@ -78,6 +116,9 @@ export default (colors: IThemeColors): Theme =>
         }
       },
       MuiInputLabel: {
+        filled: {
+          transform: "translate(12px, 10px) scale(0.75)"
+        },
         formControl: {
           transform: "translate(0, 1.5px) scale(0.75)",
           transformOrigin: "top left" as "top left",
@@ -251,3 +292,8 @@ export default (colors: IThemeColors): Theme =>
       useNextVariants: true
     }
   });
+
+TextField.defaultProps = {
+  ...TextField.defaultProps,
+  variant: "filled"
+};
