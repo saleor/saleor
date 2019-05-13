@@ -234,17 +234,18 @@ export default (colors: IThemeColors): Theme =>
         fontFamily
       },
       body1: {
-        fontSize: "1rem"
-      },
-      body2: {
         fontSize: "0.75rem",
         fontWeight: 600 as 600
       },
-      display1: {
+      body2: {
+        fontSize: "1rem"
+      },
+      h4: {
         color: colors.font.default
       },
-      headline: {
+      h5: {
         fontSize: "1.3125rem"
-      }
+      },
+      useNextVariants: true
     }
   });

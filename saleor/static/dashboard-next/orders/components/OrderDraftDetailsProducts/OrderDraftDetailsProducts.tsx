@@ -96,7 +96,7 @@ const OrderDraftDetailsProducts = withStyles(styles, {
               <TableCell>
                 {maybe(() => line.productName && line.productSku) ? (
                   <>
-                    <Typography variant="body1">{line.productName}</Typography>
+                    <Typography variant="body2">{line.productName}</Typography>
                     <Typography variant="caption">{line.productSku}</Typography>
                   </>
                 ) : (

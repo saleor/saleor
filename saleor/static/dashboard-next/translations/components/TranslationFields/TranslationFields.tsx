@@ -136,10 +136,10 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
         {expanded ? (
           <CardContent className={classes.cardContent}>
             <Grid className={classes.grid} variant="uniform">
-              <Typography className={classes.columnHeader} variant="body1">
+              <Typography className={classes.columnHeader} variant="body2">
                 {i18n.t("Original String")}
               </Typography>
-              <Typography className={classes.columnHeader} variant="body1">
+              <Typography className={classes.columnHeader} variant="body2">
                 {i18n.t("Translation", {
                   context: "translation to language"
                 })}
@@ -147,7 +147,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
               {fields.map(field => (
                 <React.Fragment key={field.name}>
                   <Hr className={classes.hr} />
-                  <Typography className={classes.fieldName} variant="body1">
+                  <Typography className={classes.fieldName} variant="body2">
                     {field.displayName}
                   </Typography>
                   <div className={classes.editButtonContainer}>

@@ -102,7 +102,7 @@ const styles = (theme: Theme) =>
           position: "relative"
         },
         "&-root": {
-          ...theme.typography.body1
+          ...theme.typography.body2
         }
       },
       "& .Draftail": {
@@ -151,7 +151,7 @@ const styles = (theme: Theme) =>
             borderRight: `1px ${
               theme.overrides.MuiCard.root.borderColor
             } solid`,
-            color: theme.typography.body1.color,
+            color: theme.typography.body2.color,
             cursor: "pointer",
             display: "inline-flex",
             height: 36,
