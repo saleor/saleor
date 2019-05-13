@@ -24,10 +24,6 @@ from saleor.payment.gateways.stripe import (
     refund,
     void,
 )
-from saleor.payment.gateways.stripe.errors import (
-    ORDER_NOT_AUTHORIZED,
-    ORDER_NOT_CHARGED,
-)
 from saleor.payment.gateways.stripe.forms import (
     StripeCheckoutWidget,
     StripePaymentModalForm,
