@@ -115,7 +115,7 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                 </DialogContent>
                 <Hr />
                 <DialogContent className={classes.container}>
-                  <Typography className={classes.heading} variant="subheading">
+                  <Typography className={classes.heading} variant="subtitle1">
                     {i18n.t("Countries A to Z", {
                       context: "country selection"
                     })}

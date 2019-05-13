@@ -26,7 +26,7 @@ const styles = (theme: Theme) =>
     },
     root: {
       "&:hover": {
-        color: theme.typography.body1.color
+        color: theme.typography.body2.color
       },
       alignItems: "center",
       color: theme.palette.grey[500],

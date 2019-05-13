@@ -66,14 +66,14 @@ const SiteSettingsPage: React.StatelessComponent<SiteSettingsPageProps> = ({
             })}
           />
           <Grid variant="inverted">
-            <Typography variant="title">{i18n.t("Site Settings")}</Typography>
+            <Typography variant="h6">{i18n.t("Site Settings")}</Typography>
             <SiteSettingsDetails
               data={data}
               errors={formErrors}
               disabled={disabled}
               onChange={change}
             />
-            <Typography variant="title">
+            <Typography variant="h6">
               {i18n.t("Authentication keys")}
             </Typography>
             <SiteSettingsKeys
