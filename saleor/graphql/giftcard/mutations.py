@@ -15,7 +15,7 @@ class GiftCardInput(graphene.InputObjectType):
     expiration_date = graphene.types.datetime.Date(
         description="End date of the gift card in ISO 8601 format."
     )
-    initial_balance = Decimal(description="Value of the gift card.")
+    balance = Decimal(description="Value of the gift card.")
 
 
 class GiftCardCreate(ModelMutation):
@@ -35,9 +35,10 @@ class GiftCardCreate(ModelMutation):
         if code == "":
             data["code"] = generate_gift_card_code()
         cleaned_input = super().clean_input(info, instance, data)
-        initial_balance = cleaned_input.get("initial_balance", None)
-        if initial_balance:
-            cleaned_input["current_balance"] = initial_balance
+        balance = cleaned_input.get("balance", None)
+        if balance:
+            cleaned_input["current_balance"] = balance
+            cleaned_input["initial_balance"] = balance
         return cleaned_input
 
     @classmethod
