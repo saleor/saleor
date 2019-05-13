@@ -39,13 +39,13 @@ Example
 
 .. note::
 
-    All the below methods receive ``payment_information`` as a dataclass: ``PaymentData``. 
-    Methods should return a response as a dataclass: ``GatewayResponse``. 
+    All the below functions receive ``payment_information`` as a dataclass: ``PaymentData`` and ``config`` as a dataclass: ``ConfigData``. 
+    Functions should return a response as a dataclass: ``GatewayResponse``. 
     The description of the given structures can be found below.
 
 
-authorize(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+authorize(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A process of reserving the amount of money against the customer's funding
 source. Money does not change hands until the authorization is captured.
@@ -57,7 +57,7 @@ Example
 
     def authorize(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            config: ConfigData) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the auth request here
         response = gateway.authorize(token=payment_information.token)
@@ -74,8 +74,8 @@ Example
             raw_response=get_payment_gateway_response(response),
         )
 
-refund(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+refund(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Full or partial return of captured funds to the customer.
 
@@ -86,7 +86,7 @@ Example
 
     def refund(
             payment_information: PaymentData,
-            **connection_params: Dict) -> GatewayResponse:
+            config: ConfigData) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the refund request here
         response = gateway.refund(token=payment_information.token)
@@ -103,8 +103,8 @@ Example
             raw_response=get_payment_gateway_response(response),
         )
 
-capture(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+capture(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A transfer of the money that was reserved during the authorization stage.
 
@@ -115,7 +115,7 @@ Example
 
     def capture(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            config: ConfigData) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the capture request here
         response = gateway.capture(token=payment_information.token)
@@ -132,8 +132,8 @@ Example
             raw_response=get_payment_gateway_response(response),
         )
 
-void(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+void(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A cancellation of a pending authorization or capture.
 
@@ -144,7 +144,7 @@ Example
 
     def void(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            config: ConfigData) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the void request here
         response = gateway.void(token=payment_information.token)
@@ -161,8 +161,8 @@ Example
             raw_response=get_payment_gateway_response(response),
         )
 
-charge(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+charge(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Authorization and capture in a single step.
 
@@ -173,7 +173,7 @@ Example
 
     def charge(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            config: ConfigData) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the charge request here
         response = gateway.charge(
@@ -192,8 +192,8 @@ Example
             raw_response=get_payment_gateway_response(response),
         )
 
-process_payment(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+process_payment(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Used for the checkout process, it should perform all the necessary
 steps to process a payment. It should use already defined functions,
@@ -206,15 +206,15 @@ Example
 
     def process_payment(
             payment_information: PaymentData,
-            connection_params: Dict) -> GatewayResponse:
+            config: ConfigData) -> GatewayResponse:
 
         # Authorize, update the token, then capture
         authorize_response = authorize(
-            payment_information, connection_params)
+            payment_information, config)
         payment_information.token = authorize_response.transaction_id
 
         capture_response = capture(
-            payment_information, connection_params)
+            payment_information, config)
 
         return capture_response
 
@@ -226,7 +226,7 @@ Parameters
 +-------------------------+-----------------+-----------------------------------------------------------------------------+
 | ``payment_information`` | ``PaymentData`` | Payment information, containing the token, amount, currency and billing.    |
 +-------------------------+-----------------+-----------------------------------------------------------------------------+
-| ``connection_params``   | ``dict``        | List of parameters used for connecting to the payment's gateway.            |
+| ``config``              | ``ConfigData``  | Configuration of the payment gateway.                                               |
 +-------------------------+-----------------+-----------------------------------------------------------------------------+
 
 PaymentData
@@ -279,6 +279,19 @@ AddressData
 +------------------+---------+
 | phone            | ``str`` |
 +------------------+---------+
+
+ConfigData
+""""""""""
+
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
+| name                | type      | description                                                                                             |
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
+| auto_capture        | ``bool``  | Define if gateway should also capture funds from the card. If false, payment should be only authorized  |
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
+| template_path       | ``str``   | Should specify a path to a template that will be rendered for the checkout.                             |
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
+| connection_params   | ``Dict``  | List of parameters used for connecting to the payment’s gateway.                                        |
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
 
 
 Returns
@@ -368,17 +381,24 @@ Example
                 data, payment_information, connection_params)
 
 
-Implement TEMPLATE_PATH
+Implement template_path
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Should specify a path to a template that will be rendered for the checkout.
 
-Example
-"""""""
+.. code-block:: python
 
-    .. code-block:: python
+    PAYMENT_GATEWAYS = {
+        DUMMY: {
+            "module": "saleor.payment.gateways.dummy",
+            "config": {
+                "auto_capture": True,
+                "connection_params": {},
+                "template_path": "order/payment/dummy.html",
+            },
+        },
+    }
 
-        TEMPLATE_PATH = 'order/payment/braintree.html'
 
 Add template
 ^^^^^^^^^^^^
@@ -394,14 +414,18 @@ Adding new payment gateway to the settings
 
     PAYMENT_GATEWAYS = {
         'braintree': {
-            'module': 'saleor.payment.gateways.braintree',
-            'connection_params': {
-                'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
-                'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
-                'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
-                'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
-            }
-        }
+            "module": "saleor.payment.gateways.braintree",
+            "config": {
+                "auto_capture": True,
+                "template_path": "order/payment/braintree.html",
+                "connection_params": {
+                    "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
+                    "merchant_id": os.environ.get("BRAINTREE_MERCHANT_ID"),
+                    "public_key": os.environ.get("BRAINTREE_PUBLIC_KEY"),
+                    "private_key": os.environ.get("BRAINTREE_PRIVATE_KEY"),
+                },
+            },
+        },
     }
 
 Please take a moment to consider the example settings above.
@@ -418,6 +442,9 @@ Please take a moment to consider the example settings above.
 
 - ``connection_params``
     List of parameters used for connecting to the payment's gateway.
+
+- ``auto_capture``
+    Define if the gateway should also capture funds from the card. When auto_capture is set to False, funds will be blocked but manual capture will be required.
 
 .. note::
 
