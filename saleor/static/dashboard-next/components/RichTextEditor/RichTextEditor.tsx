@@ -65,9 +65,22 @@ const styles = (theme: Theme) =>
     helperText: {
       marginTop: theme.spacing.unit * 0.75
     },
+    input: {
+      "&:hover": {
+        borderBottomColor: theme.palette.primary.main
+      },
+      backgroundColor: theme.overrides.MuiFilledInput.root.backgroundColor,
+      borderBottom: `1px rgba(0, 0, 0, 0) solid`,
+      borderTopLeftRadius: 4,
+      borderTopRightRadius: 4,
+      padding: "27px 12px 10px",
+      position: "relative",
+      transition: theme.transitions.duration.shortest + "ms"
+    },
     label: {
       fontSize: theme.typography.caption.fontSize,
-      marginBottom: theme.spacing.unit * 2
+      marginBottom: theme.spacing.unit * 2,
+      marginTop: -21
     },
     root: {
       "& .DraftEditor": {
@@ -84,21 +97,15 @@ const styles = (theme: Theme) =>
             background: theme.palette.getContrastText(
               theme.palette.background.default
             ),
-            bottom: -1,
+            bottom: -11,
             content: "''",
             display: "block",
             height: 2,
+            left: -12,
             position: "absolute",
             transform: "scaleX(0) scaleY(0)",
-            width: "100%"
+            width: "calc(100% + 24px)"
           },
-          "&:hover": {
-            "&:after": {
-              animationName: "hover"
-            }
-          },
-          borderBottom: `1px ${theme.palette.grey[500]} solid`,
-          paddingBottom: theme.spacing.unit / 2,
           position: "relative"
         },
         "&-root": {
@@ -183,7 +190,6 @@ const styles = (theme: Theme) =>
           }
         }
       },
-
       "&$error": {
         "& .Draftail": {
           "&-Editor": {
@@ -237,60 +243,67 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
         [classes.scroll]: scroll
       })}
     >
-      <Typography className={classes.label} variant="caption" color="primary">
-        {label}
-      </Typography>
-      <DraftailEditor
-        key={JSON.stringify(initial)}
-        rawContentState={
-          initial && Object.keys(initial).length > 0 ? initial : null
-        }
-        onSave={value =>
-          onChange({
-            target: {
-              name,
-              value
-            }
-          } as any)
-        }
-        blockTypes={[
-          { icon: <HeaderTwo />, type: BLOCK_TYPE.HEADER_TWO },
-          { icon: <HeaderThree />, type: BLOCK_TYPE.HEADER_THREE },
-          { icon: <QuotationIcon />, type: BLOCK_TYPE.BLOCKQUOTE },
-          { icon: <UnorderedListIcon />, type: BLOCK_TYPE.UNORDERED_LIST_ITEM },
-          { icon: <OrderedListIcon />, type: BLOCK_TYPE.ORDERED_LIST_ITEM }
-        ]}
-        inlineStyles={[
-          { icon: <BoldIcon />, type: INLINE_STYLE.BOLD },
-          { icon: <ItalicIcon />, type: INLINE_STYLE.ITALIC }
-        ]}
-        enableLineBreak
-        entityTypes={[
-          {
-            attributes: ["href"],
-            decorator: LinkEntity,
-            icon: <LinkIcon />,
-            source: LinkSource,
-            type: ENTITY_TYPE.LINK
+      <div className={classes.input}>
+        <Typography className={classes.label} variant="caption" color="primary">
+          {label}
+        </Typography>
+        <DraftailEditor
+          key={JSON.stringify(initial)}
+          rawContentState={
+            initial && Object.keys(initial).length > 0 ? initial : null
           }
-          // {
-          //   attributes: ["href"],
-          //   decorator: ImageEntity,
-          //   icon: <ImageIcon />,
-          //   source: ImageSource,
-          //   type: ENTITY_TYPE.IMAGE
-          // }
-        ]}
-      />
-      <Typography
-        className={classNames({
-          [classes.error]: error,
-          [classes.helperText]: true
-        })}
-        variant="caption"
-      >
-        {helperText}
-      </Typography>
+          onSave={value =>
+            onChange({
+              target: {
+                name,
+                value
+              }
+            } as any)
+          }
+          blockTypes={[
+            { icon: <HeaderTwo />, type: BLOCK_TYPE.HEADER_TWO },
+            { icon: <HeaderThree />, type: BLOCK_TYPE.HEADER_THREE },
+            { icon: <QuotationIcon />, type: BLOCK_TYPE.BLOCKQUOTE },
+            {
+              icon: <UnorderedListIcon />,
+              type: BLOCK_TYPE.UNORDERED_LIST_ITEM
+            },
+            { icon: <OrderedListIcon />, type: BLOCK_TYPE.ORDERED_LIST_ITEM }
+          ]}
+          inlineStyles={[
+            { icon: <BoldIcon />, type: INLINE_STYLE.BOLD },
+            { icon: <ItalicIcon />, type: INLINE_STYLE.ITALIC }
+          ]}
+          enableLineBreak
+          entityTypes={[
+            {
+              attributes: ["href"],
+              decorator: LinkEntity,
+              icon: <LinkIcon />,
+              source: LinkSource,
+              type: ENTITY_TYPE.LINK
+            }
+            // {
+            //   attributes: ["href"],
+            //   decorator: ImageEntity,
+            //   icon: <ImageIcon />,
+            //   source: ImageSource,
+            //   type: ENTITY_TYPE.IMAGE
+            // }
+          ]}
+        />
+      </div>
+      {helperText && (
+        <Typography
+          className={classNames({
+            [classes.error]: error,
+            [classes.helperText]: true
+          })}
+          variant="caption"
+        >
+          {helperText}
+        </Typography>
+      )}
     </div>
   )
 );
