@@ -132,11 +132,11 @@ def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_s
 CREATE_GIFT_CARD_MUTATION = """
 mutation giftCardCreate(
     $code: String, $startDate: Date, $expirationDate: Date,
-    $initialBalance: Decimal) {
+    $balance: Decimal) {
         giftCardCreate(input: {
                 code: $code, startDate: $startDate,
                 expirationDate: $expirationDate,
-                initialBalance: $initialBalance}) {
+                balance: $balance}) {
             errors {
                 field
                 message
@@ -172,7 +172,7 @@ def test_create_gift_card(staff_api_client, permission_manage_gift_card):
         "code": code,
         "startDate": start_date.isoformat(),
         "expirationDate": expiration_date.isoformat(),
-        "initialBalance": initial_balance,
+        "balance": initial_balance,
     }
     response = staff_api_client.post_graphql(
         CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
@@ -199,7 +199,7 @@ def test_create_gift_card_with_empty_code(
         "code": "",
         "startDate": start_date.isoformat(),
         "expirationDate": expiration_date.isoformat(),
-        "initialBalance": initial_balance,
+        "balance": initial_balance,
     }
     response = staff_api_client.post_graphql(
         CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
@@ -218,7 +218,7 @@ def test_create_gift_card_without_premissions(staff_api_client):
         "code": code,
         "startDate": start_date.isoformat(),
         "expirationDate": expiration_date.isoformat(),
-        "initialBalance": initial_balance,
+        "balance": initial_balance,
     }
     response = staff_api_client.post_graphql(CREATE_GIFT_CARD_MUTATION, variables)
     assert_no_permission(response)
