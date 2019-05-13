@@ -1198,10 +1198,7 @@ def test_order_void_payment_error(
         response = staff_api_client.post_graphql(
             ORDER_VOID, variables, permissions=[permission_manage_orders]
         )
-        content = get_graphql_content(response)
-        errors = content["data"]["orderVoid"]["errors"]
-        assert errors[0]["field"] == "payment"
-        assert errors[0]["message"] == msg
+        assert_read_only_mode(response)
 
 
 def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
@@ -1489,7 +1486,6 @@ def test_order_bulk_cancel_with_restock(
 ):
     assert order_with_lines.can_cancel()
     orders.append(order_with_lines)
-    expected_count = sum(order.can_cancel() for order in orders)
     variables = {
         "ids": [graphene.Node.to_global_id("Order", order.id) for order in orders],
         "restock": True,
@@ -1497,13 +1493,7 @@ def test_order_bulk_cancel_with_restock(
     response = staff_api_client.post_graphql(
         MUTATION_CANCEL_ORDERS, variables, permissions=[permission_manage_orders]
     )
-    order_with_lines.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["orderBulkCancel"]
-    assert data["count"] == expected_count
-    event = order_with_lines.events.all()[1]
-    assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
-    assert event.user == staff_api_client.user
+    assert_read_only_mode(response)
 
 
 @pytest.mark.parametrize(

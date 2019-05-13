@@ -195,7 +195,8 @@ class LoggedUserUpdate(CustomerCreate):
 
     @classmethod
     def check_permissions(cls, user):
-        return user.is_authenticated
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -298,6 +299,9 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         if not cls.check_permissions(info.context.user):
             raise PermissionDenied()
 
@@ -445,6 +449,10 @@ class AddressUpdate(ModelMutation):
     def clean_input(cls, info, instance, data):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
+
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         if not can_edit_address(info.context.user, instance):
             raise PermissionDenied()
         return super().clean_input(info, instance, data)
@@ -566,7 +574,8 @@ class CustomerAddressCreate(ModelMutation):
 
     @classmethod
     def check_permissions(cls, user):
-        return user.is_authenticated
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -600,7 +609,8 @@ class CustomerSetDefaultAddress(BaseMutation):
 
     @classmethod
     def check_permissions(cls, user):
-        return user.is_authenticated
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

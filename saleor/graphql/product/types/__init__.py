@@ -9,4 +9,5 @@ from .products import (
     ProductOrder,
     ProductType,
     ProductVariant,
+    resolve_attribute_list,
 )

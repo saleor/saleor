@@ -1,16 +1,14 @@
-import json
 from random import shuffle
 from typing import Dict, List
 
 import graphene
-import pytest
 from graphql_relay import from_global_id
 
 from saleor.graphql.menu.mutations import NavigationType
 from saleor.menu.models import Menu, MenuItem
 from tests.api.utils import get_graphql_content
 
-from .utils import assert_read_only_mode, assert_no_permission
+from .utils import assert_read_only_mode
 
 
 def test_menu_query(user_api_client, menu):
@@ -451,13 +449,9 @@ def test_menu_reorder(staff_api_client, permission_manage_menus, menu_item_list)
         for pos, item in enumerate(menu_item_list)
     ]
 
-    response = get_graphql_content(
-        staff_api_client.post_graphql(
-            QUERY_REORDER_MENU,
-            {"moves": moves, "menu": menu_id},
-            [permission_manage_menus],
-        )
-    )["data"]["menuItemMove"]
+    response = staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {"moves": moves, "menu": menu_id}, [permission_manage_menus]
+    )
     assert_read_only_mode(response)
 
 
@@ -478,13 +472,9 @@ def test_menu_reorder_assign_parent(
         for item in menu_item_list[1:]
     ]
 
-    response = get_graphql_content(
-        staff_api_client.post_graphql(
-            QUERY_REORDER_MENU,
-            {"moves": moves, "menu": menu_id},
-            [permission_manage_menus],
-        )
-    )["data"]["menuItemMove"]
+    response = staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {"moves": moves, "menu": menu_id}, [permission_manage_menus]
+    )
     assert_read_only_mode(response)
 
 
@@ -506,13 +496,9 @@ def test_menu_reorder_assign_parent_to_top_level(
 
     moves = [{"itemId": root_node_id, "parentId": None, "sortOrder": None}]
 
-    response = get_graphql_content(
-        staff_api_client.post_graphql(
-            QUERY_REORDER_MENU,
-            {"moves": moves, "menu": menu_id},
-            [permission_manage_menus],
-        )
-    )["data"]["menuItemMove"]
+    response = staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {"moves": moves, "menu": menu_id}, [permission_manage_menus]
+    )
     assert_read_only_mode(response)
 
 
@@ -542,13 +528,9 @@ def test_menu_reorder_cannot_assign_to_ancestor(
 
     moves = [{"itemId": root_node_id, "parentId": child_node_id, "sortOrder": None}]
 
-    response = get_graphql_content(
-        staff_api_client.post_graphql(
-            QUERY_REORDER_MENU,
-            {"moves": moves, "menu": menu_id},
-            [permission_manage_menus],
-        )
-    )["data"]["menuItemMove"]
+    response = staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {"moves": moves, "menu": menu_id}, [permission_manage_menus]
+    )
     assert_read_only_mode(response)
 
 
@@ -560,13 +542,9 @@ def test_menu_reorder_cannot_assign_to_itself(
     node_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
     moves = [{"itemId": node_id, "parentId": node_id, "sortOrder": None}]
 
-    response = get_graphql_content(
-        staff_api_client.post_graphql(
-            QUERY_REORDER_MENU,
-            {"moves": moves, "menu": menu_id},
-            [permission_manage_menus],
-        )
-    )["data"]["menuItemMove"]
+    response = staff_api_client.post_graphql(
+        QUERY_REORDER_MENU, {"moves": moves, "menu": menu_id}, [permission_manage_menus]
+    )
     assert_read_only_mode(response)
 
 

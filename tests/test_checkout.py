@@ -281,7 +281,7 @@ def test_view_checkout_summary_anonymous_user(
 
     redirect_url = reverse("order:payment", kwargs={"token": order.token})
     assert response.request["PATH_INFO"] == redirect_url
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+    mock_send_confirmation.delay.assert_called_once_with(order.pk, None)
 
     # checkout should be deleted after order is created
     assert request_checkout_with_item.pk is None
@@ -316,7 +316,7 @@ def test_view_checkout_summary_authorized_user(
 
     redirect_url = reverse("order:payment", kwargs={"token": order.token})
     assert response.request["PATH_INFO"] == redirect_url
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+    mock_send_confirmation.delay.assert_called_once_with(order.pk, customer_user.pk)
 
 
 @patch("saleor.checkout.utils.send_order_confirmation")

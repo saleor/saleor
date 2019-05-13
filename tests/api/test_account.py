@@ -1361,7 +1361,7 @@ def test_user_avatar_update_mutation_permission(api_client):
     variables = {"image": image_name}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = api_client.post_multipart(body)
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
 
 def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
@@ -1413,7 +1413,7 @@ def test_user_avatar_delete_mutation_permission(api_client):
     """ Should raise error if user is not staff. """
     query = USER_AVATAR_DELETE_MUTATION
     response = api_client.post_graphql(query)
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
 
 def test_user_avatar_delete_mutation(staff_api_client):

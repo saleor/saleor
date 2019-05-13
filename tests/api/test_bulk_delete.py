@@ -1,24 +1,19 @@
 import graphene
 import pytest
 
-from saleor.account.models import User
 from saleor.discount.models import Sale, Voucher
-from saleor.menu.models import Menu, MenuItem
-from saleor.order import OrderStatus, models as order_models
-from saleor.page.models import Page
+from saleor.menu.models import Menu
+from saleor.order import OrderStatus
 from saleor.product.models import (
     Attribute,
     AttributeValue,
     Category,
-    Collection,
-    Product,
-    ProductImage,
     ProductType,
     ProductVariant,
 )
 from saleor.shipping.models import ShippingMethod, ShippingZone
 
-from .utils import get_graphql_content
+from .utils import assert_read_only_mode
 
 MUTATION_DELETE_ORDER_LINES = """
     mutation draftOrderLinesBulkDelete($ids: [ID]!) {
@@ -144,12 +139,7 @@ def test_delete_attributes(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["attributeBulkDelete"]["count"] == 3
-    assert not Attribute.objects.filter(
-        id__in=[attr.id for attr in attribute_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_attribute_values(
@@ -172,12 +162,7 @@ def test_delete_attribute_values(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["attributeValueBulkDelete"]["count"] == 3
-    assert not AttributeValue.objects.filter(
-        id__in=[val.id for val in attribute_value_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_categories(staff_api_client, category_list, permission_manage_products):
@@ -198,12 +183,7 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["categoryBulkDelete"]["count"] == 3
-    assert not Category.objects.filter(
-        id__in=[category.id for category in category_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_collections(
@@ -226,12 +206,7 @@ def test_delete_collections(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["collectionBulkDelete"]["count"] == 3
-    assert not Collection.objects.filter(
-        id__in=[collection.id for collection in collection_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_customers(staff_api_client, user_list, permission_manage_users):
@@ -251,13 +226,7 @@ def test_delete_customers(staff_api_client, user_list, permission_manage_users):
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["customerBulkDelete"]["count"] == 2
-    assert not User.objects.filter(
-        id__in=[user.id for user in [user_1, user_2]]
-    ).exists()
-    assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
+    assert_read_only_mode(response)
 
 
 def test_delete_draft_orders(staff_api_client, order_list, permission_manage_orders):
@@ -281,15 +250,7 @@ def test_delete_draft_orders(staff_api_client, order_list, permission_manage_ord
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["draftOrderBulkDelete"]["count"] == 2
-    assert not order_models.Order.objects.filter(
-        id__in=[order_1.id, order_2.id]
-    ).exists()
-    assert order_models.Order.objects.filter(
-        id__in=[order.id for order in orders]
-    ).count() == len(orders)
+    assert_read_only_mode(response)
 
 
 def test_fail_to_delete_non_draft_order_lines(
@@ -310,10 +271,7 @@ def test_fail_to_delete_non_draft_order_lines(
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_ORDER_LINES, variables, permissions=[permission_manage_orders]
     )
-
-    content = get_graphql_content(response)
-    assert "errors" in content["data"]["draftOrderLinesBulkDelete"]
-    assert content["data"]["draftOrderLinesBulkDelete"]["count"] == 0
+    assert_read_only_mode(response)
 
 
 def test_delete_draft_order_lines(
@@ -335,12 +293,7 @@ def test_delete_draft_order_lines(
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_ORDER_LINES, variables, permissions=[permission_manage_orders]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["draftOrderLinesBulkDelete"]["count"] == 2
-    assert not order_models.OrderLine.objects.filter(
-        id__in=[order_line.pk for order_line in order_lines]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_menus(staff_api_client, menu_list, permission_manage_menus):
@@ -361,10 +314,7 @@ def test_delete_menus(staff_api_client, menu_list, permission_manage_menus):
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["menuBulkDelete"]["count"] == 3
-    assert not Menu.objects.filter(id__in=[menu.id for menu in menu_list]).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_menus):
@@ -384,12 +334,7 @@ def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_m
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["menuItemBulkDelete"]["count"] == len(menu_item_list)
-    assert not MenuItem.objects.filter(
-        id__in=[menu_item.id for menu_item in menu_item_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):
@@ -405,9 +350,7 @@ def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["menuItemBulkDelete"]["count"] == len(menu_item_list)
+    assert_read_only_mode(response)
 
 
 def test_delete_pages(staff_api_client, page_list, permission_manage_pages):
@@ -425,10 +368,7 @@ def test_delete_pages(staff_api_client, page_list, permission_manage_pages):
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["pageBulkDelete"]["count"] == len(page_list)
-    assert not Page.objects.filter(id__in=[page.id for page in page_list]).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_products(staff_api_client, product_list, permission_manage_products):
@@ -449,12 +389,7 @@ def test_delete_products(staff_api_client, product_list, permission_manage_produ
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["productBulkDelete"]["count"] == 3
-    assert not Product.objects.filter(
-        id__in=[product.id for product in product_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_product_images(
@@ -478,12 +413,7 @@ def test_delete_product_images(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["productImageBulkDelete"]["count"] == 2
-    assert not ProductImage.objects.filter(
-        id__in=[image.id for image in images]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_product_types(
@@ -506,12 +436,7 @@ def test_delete_product_types(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["productTypeBulkDelete"]["count"] == 3
-    assert not ProductType.objects.filter(
-        id__in=[type.id for type in product_type_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_product_variants(
@@ -534,12 +459,7 @@ def test_delete_product_variants(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["productVariantBulkDelete"]["count"] == 3
-    assert not ProductVariant.objects.filter(
-        id__in=[variant.id for variant in product_variant_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_sales(staff_api_client, sale_list, permission_manage_discounts):
@@ -557,10 +477,7 @@ def test_delete_sales(staff_api_client, sale_list, permission_manage_discounts):
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["saleBulkDelete"]["count"] == 3
-    assert not Sale.objects.filter(id__in=[sale.id for sale in sale_list]).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_shipping_methods(
@@ -583,12 +500,7 @@ def test_delete_shipping_methods(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["shippingPriceBulkDelete"]["count"] == 3
-    assert not ShippingMethod.objects.filter(
-        id__in=[method.id for method in shipping_method_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_shipping_zones(
@@ -611,12 +523,7 @@ def test_delete_shipping_zones(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["shippingZoneBulkDelete"]["count"] == 3
-    assert not ShippingZone.objects.filter(
-        id__in=[zone.id for zone in shipping_zone_list]
-    ).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_staff_members(
@@ -639,13 +546,7 @@ def test_delete_staff_members(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["staffBulkDelete"]["count"] == 2
-    assert not User.objects.filter(
-        id__in=[user.id for user in [staff_1, staff_2]]
-    ).exists()
-    assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
+    assert_read_only_mode(response)
 
 
 def test_delete_vouchers(staff_api_client, voucher_list, permission_manage_discounts):
@@ -666,9 +567,4 @@ def test_delete_vouchers(staff_api_client, voucher_list, permission_manage_disco
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
-    content = get_graphql_content(response)
-
-    assert content["data"]["voucherBulkDelete"]["count"] == 3
-    assert not Voucher.objects.filter(
-        id__in=[voucher.id for voucher in voucher_list]
-    ).exists()
+    assert_read_only_mode(response)

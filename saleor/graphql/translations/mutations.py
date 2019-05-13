@@ -1,4 +1,5 @@
 import graphene
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -19,6 +20,8 @@ class BaseTranslateMutation(ModelMutation):
 
     @classmethod
     def check_permissions(cls, user):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
         return user.has_perm("site.manage_translations")
 
     @classmethod

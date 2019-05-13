@@ -59,8 +59,9 @@ def test_resolve_id(product, schema_context):
     """
     variables = {"productId": product_id}
     result = schema.execute(query, variables=variables, context_value=schema_context)
-    assert not result.errors
-    assert result.data["test"]["name"] == product.name
+    assert (
+        result.errors[0].message == "Be aware admin pirate! API runs in read only mode!"
+    )
 
 
 def test_user_error_nonexistent_id(schema_context):
@@ -77,11 +78,9 @@ def test_user_error_nonexistent_id(schema_context):
     """
     variables = {"productId": "not-really"}
     result = schema.execute(query, variables=variables, context_value=schema_context)
-    assert not result.errors
-    user_errors = result.data["test"]["errors"]
-    assert user_errors
-    assert user_errors[0]["field"] == "productId"
-    assert "Couldn't resolve to a node" in user_errors[0]["message"]
+    assert (
+        result.errors[0].message == "Be aware admin pirate! API runs in read only mode!"
+    )
 
 
 def test_user_error_id_of_different_type(product, schema_context):
@@ -105,11 +104,9 @@ def test_user_error_id_of_different_type(product, schema_context):
 
     variables = {"productId": variant_id}
     result = schema.execute(query, variables=variables, context_value=schema_context)
-    assert not result.errors
-    user_errors = result.data["test"]["errors"]
-    assert user_errors
-    assert user_errors[0]["field"] == "productId"
-    assert user_errors[0]["message"] == "Must receive a Product id."
+    assert (
+        result.errors[0].message == "Be aware admin pirate! API runs in read only mode!"
+    )
 
 
 def test_get_node_or_error_returns_null_for_empty_id():

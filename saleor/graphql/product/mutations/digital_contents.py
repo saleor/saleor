@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ....product import models
 from ...core.mutations import BaseMutation, ModelMutation
@@ -122,6 +123,9 @@ class DigitalContentDelete(BaseMutation):
     @classmethod
     @permission_required("product.manage_products")
     def mutate(cls, _root, info, variant_id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         variant = cls.get_node_or_error(
             info, variant_id, "id", only_type=ProductVariant
         )
