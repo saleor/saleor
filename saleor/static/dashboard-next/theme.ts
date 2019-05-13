@@ -92,6 +92,13 @@ export default (colors: IThemeColors): Theme =>
           }
         }
       },
+      MuiIconButton: {
+        root: {
+          "&:hover": {
+            backgroundColor: fade(colors.primary, 0.12)
+          }
+        }
+      },
       MuiInput: {
         input: {
           "&:-webkit-autofill": {
@@ -132,11 +139,34 @@ export default (colors: IThemeColors): Theme =>
           width: "133%"
         }
       },
+      MuiList: {
+        root: {
+          display: "grid",
+          gridRowGap: 8 + "px",
+          padding: "8px !important"
+        }
+      },
+      MuiListItem: {
+        button: {
+          "&:focus": {
+            backgroundColor: colors.input.default
+          }
+        }
+      },
       MuiMenu: {
         paper: {
           borderRadius: 8
         }
       },
+      MuiMenuItem: {
+        root: {
+          "&:hover, &$selected, &$selected:focus": {
+            backgroundColor: colors.input.default
+          },
+          borderRadius: 4
+        }
+      },
+
       MuiSwitch: {
         bar: {
           "$colorPrimary$checked + &": {
@@ -223,6 +253,16 @@ export default (colors: IThemeColors): Theme =>
             backgroundColor: fade(colors.primary, 0.05)
           }
         }
+      },
+      MuiTouchRipple: {
+        childLeaving: {
+          backgroundColor: fade(colors.primary, 0.2)
+        },
+        ripple: {
+          "&$rippleVisible": {
+            backgroundColor: fade(colors.primary, 0.2)
+          }
+        }
       }
     },
     palette: {
@@ -243,6 +283,11 @@ export default (colors: IThemeColors): Theme =>
         hint: colors.font.gray,
         primary: colors.font.default,
         secondary: colors.font.gray
+      }
+    },
+    props: {
+      MuiFormControl: {
+        variant: "filled"
       }
     },
     shadows: [
