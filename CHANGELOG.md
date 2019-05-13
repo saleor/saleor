@@ -47,7 +47,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Resort imports and remove unused imports - #4069 by @jxltom
 - Fix typo in CheckoutBillingAddressUpdate - #4073 by @jxltom
 - Required checkout ID for updating checkout's shipping and billing address - #4074 by @jxltom
-- Implement order events - #4018 by @NyanKiyosho 
+- Implement order events - #4018 by @NyanKiyosho
   - Implemented new events: `DRAFT_CREATED`, `DRAFT_ADDED_PRODUCTS`, `DRAFT_REMOVED_PRODUCTS`, and `PAYMENT_FAILED`;
   - Implemented new mail events: `TRACKING_UPDATED`, `DIGITAL_LINKS`;
   - Refactored logic of events, it's now easier than ever to add and send events.
@@ -57,6 +57,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Migrated code style to Black. Saleor now includes configurations and tools related to use black. - #3852 by krzysztofwolski and NyanKiyoshi
 - Allow filtering by lists of enums for fields: ``Voucher.filter.status``, ``Voucher.filter.discount_type``, ``Sale.filter.status``, ``Order.filter.payment_status``, ``Order.filter.status``, ``Order.filter.custom_status`` - #4078 by @korycins
 - Code cleanup by replacing render props with react hooks - #4010 by @dominik-zeglen
+- New translations:
+  - Albanian
+  - Colombian Spanish
+  - Lithuanian
 
 
 ## 2.5.0

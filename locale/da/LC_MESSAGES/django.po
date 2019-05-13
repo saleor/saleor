@@ -4,16 +4,16 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Mikkel Scheike, 2019
+# Mikkel, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-04-08 06:18-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Mikkel Scheike, 2019\n"
+"Last-Translator: Mikkel, 2019\n"
 "Language-Team: Danish (https://www.transifex.com/mirumee/teams/34782/da/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -51,102 +51,102 @@ msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr "Efternavn"
 
-#: saleor/account/i18n.py:18
+#: saleor/account/i18n.py:19
 msgctxt "Address field"
 msgid "Area"
 msgstr "Område"
 
-#: saleor/account/i18n.py:19
+#: saleor/account/i18n.py:20
 msgctxt "Address field"
 msgid "County"
 msgstr "Land"
 
-#: saleor/account/i18n.py:20
+#: saleor/account/i18n.py:21
 msgctxt "Address field"
 msgid "Department"
 msgstr "Afdeling"
 
-#: saleor/account/i18n.py:21
+#: saleor/account/i18n.py:22
 msgctxt "Address field"
 msgid "District"
 msgstr "Distrikt"
 
-#: saleor/account/i18n.py:22
+#: saleor/account/i18n.py:23
 msgctxt "Address field"
 msgid "Do/si"
 msgstr "Do/si"
 
-#: saleor/account/i18n.py:23
+#: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Eircode"
 msgstr "Eirkode"
 
-#: saleor/account/i18n.py:24
+#: saleor/account/i18n.py:25
 msgctxt "Address field"
 msgid "Emirate"
 msgstr "Emirat"
 
-#: saleor/account/i18n.py:25
+#: saleor/account/i18n.py:26
 msgctxt "Address field"
 msgid "Island"
 msgstr "Island"
 
-#: saleor/account/i18n.py:26
+#: saleor/account/i18n.py:27
 msgctxt "Address field"
 msgid "Neighborhood"
 msgstr "Nabolag"
 
-#: saleor/account/i18n.py:27
+#: saleor/account/i18n.py:28
 msgctxt "Address field"
 msgid "Oblast"
 msgstr "Oblast"
 
-#: saleor/account/i18n.py:28
+#: saleor/account/i18n.py:29
 msgctxt "Address field"
 msgid "Parish"
 msgstr "Sogn"
 
-#: saleor/account/i18n.py:29
+#: saleor/account/i18n.py:30
 msgctxt "Address field"
 msgid "PIN"
 msgstr "PIN"
 
-#: saleor/account/i18n.py:30
+#: saleor/account/i18n.py:31
 msgctxt "Address field"
 msgid "Postal code"
 msgstr "Postnummer"
 
-#: saleor/account/i18n.py:31
+#: saleor/account/i18n.py:32
 msgctxt "Address field"
 msgid "Prefecture"
 msgstr "Præfekturet"
 
-#: saleor/account/i18n.py:32
+#: saleor/account/i18n.py:33
 msgctxt "Address field"
 msgid "Province"
 msgstr "Provins"
 
-#: saleor/account/i18n.py:33
+#: saleor/account/i18n.py:34
 msgctxt "Address field"
 msgid "State"
 msgstr "Stat"
 
-#: saleor/account/i18n.py:34
+#: saleor/account/i18n.py:35
 msgctxt "Address field"
 msgid "Suburb"
 msgstr "Forstad"
 
-#: saleor/account/i18n.py:35
+#: saleor/account/i18n.py:36
 msgctxt "Address field"
 msgid "Townland"
 msgstr "Opland"
 
-#: saleor/account/i18n.py:36
+#: saleor/account/i18n.py:37
 msgctxt "Address field"
 msgid "Village/township"
 msgstr "By"
 
-#: saleor/account/i18n.py:37
+#: saleor/account/i18n.py:38
 msgctxt "Address field"
 msgid "ZIP code"
 msgstr "Postnummer"
@@ -211,7 +211,11 @@ msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
 msgstr "Lejlighed, suite, bygning, etage osv"
 
-#: saleor/account/i18n.py:170
+#: saleor/account/i18n.py:155 saleor/account/validators.py:11
+msgid "The phone number entered is not valid."
+msgstr "Det indtastede telefonummer er ugyldigt."
+
+#: saleor/account/i18n.py:195
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Værdien er ugyldig for det valgte land"
@@ -246,10 +250,6 @@ msgid ""
 msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
-
-#: saleor/account/validators.py:11
-msgid "The phone number entered is not valid."
-msgstr "Det indtastede telefonummer er ugyldigt."
 
 #: saleor/account/views.py:31
 msgid "You have been successfully logged out."
@@ -433,7 +433,7 @@ msgstr "Forsendelsesmetode er ikke gyldig for din forsendelsesadresse"
 #: saleor/checkout/utils.py:908
 msgctxt "order placement_error"
 msgid "Billing address is not set"
-msgstr ""
+msgstr "Faktureringsadresse er ikke angivet"
 
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
@@ -588,22 +588,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "Du er nu logget ind som {}"
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr "kg"
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr "lb"
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr "oz"
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr "g"
@@ -679,7 +679,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr "Dette tilbud er kun tilgængeligt for ordre over %(amount)s."
 
-#: saleor/discount/models.py:180
+#: saleor/discount/models.py:181
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "Administrer salg og kuponer."
@@ -697,7 +697,7 @@ msgid_plural "Only %(quantity)d items remaining to fulfill."
 msgstr[0] "Kun %(quantity)d vare tilbage at pakke."
 msgstr[1] "Kun %(quantity)d varer tilbage til forsendelse."
 
-#: saleor/graphql/order/mutations/fulfillments.py:216
+#: saleor/graphql/order/mutations/fulfillments.py:218
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr "Denne ordrehandling kan ikke annulleres"
@@ -908,7 +908,7 @@ msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "Administrer ordrer."
 
-#: saleor/order/models.py:344
+#: saleor/order/models.py:368
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -971,17 +971,17 @@ msgstr "Ikke betalt"
 #: saleor/payment/__init__.py:101
 msgctxt "payment status"
 msgid "Partially charged"
-msgstr ""
+msgstr "Delvist betalt"
 
 #: saleor/payment/__init__.py:102
 msgctxt "payment status"
 msgid "Fully charged"
-msgstr ""
+msgstr "Fuldt betalt"
 
 #: saleor/payment/__init__.py:104
 msgctxt "payment status"
 msgid "Partially refunded"
-msgstr ""
+msgstr "Delvist refunderet"
 
 #: saleor/payment/__init__.py:105
 msgctxt "payment status"
@@ -1004,6 +1004,8 @@ msgid ""
 "Setting charge status to {} directly is not supported. Please use the "
 "dashboard to refund partially."
 msgstr ""
+"Indstilling af afgiftstatus til {} direkte understøttes ikke. Brug "
+"dashboardet til at refundere delvist."
 
 #: saleor/payment/gateways/razorpay/errors.py:5
 msgctxt "Razorpay payment error"
@@ -1051,10 +1053,10 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr "Samlet betaling"
 
-#: saleor/payment/utils.py:236
+#: saleor/payment/utils.py:239
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
-msgstr ""
+msgstr "Ordrer med betalinger kan ikke manuelt markeres som betalt."
 
 #: saleor/product/__init__.py:15
 msgctxt "Product status"
@@ -1127,10 +1129,15 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:129
+#: saleor/product/models.py:131
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "Administrer produkter."
+
+#: saleor/product/models.py:316
+msgctxt "File as a digital product"
+msgid "digital_product"
+msgstr "digitalt_produkt"
 
 #: saleor/search/forms.py:9
 msgctxt "Search form label"
@@ -1179,7 +1186,7 @@ msgstr "Spansk"
 
 #: saleor/settings.py:71
 msgid "Estonian"
-msgstr ""
+msgstr "Estland"
 
 #: saleor/settings.py:72
 msgid "Persian"
@@ -1199,7 +1206,7 @@ msgstr "Ungarnsk"
 
 #: saleor/settings.py:76
 msgid "Indonesian"
-msgstr ""
+msgstr "Indonesien"
 
 #: saleor/settings.py:77
 msgid "Italian"
@@ -1250,35 +1257,43 @@ msgid "Serbian"
 msgstr "Serbisk"
 
 #: saleor/settings.py:89
+msgid "Swahili"
+msgstr "Swahili"
+
+#: saleor/settings.py:90
 msgid "Swedish"
 msgstr "Svensk"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:91
+msgid "Thai"
+msgstr "Thai"
+
+#: saleor/settings.py:92
 msgid "Turkish"
 msgstr "Tyrkisk"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:93
 msgid "Ukrainian"
 msgstr "Ukranisk"
 
-#: saleor/settings.py:92
+#: saleor/settings.py:94
 msgid "Vietnamese"
 msgstr "Vietnamesisk"
 
-#: saleor/settings.py:93
+#: saleor/settings.py:95
 msgid "Simplified Chinese"
 msgstr "Forenklet kinesisk"
 
-#: saleor/settings.py:94
+#: saleor/settings.py:96
 msgid "Traditional Chinese"
 msgstr "Traditionelt kinesisk"
 
-#: saleor/settings.py:330
+#: saleor/settings.py:332
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "Den Europæiske Union"
 
-#: saleor/settings.py:567
+#: saleor/settings.py:573
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr "Dummy gateway"
@@ -1328,15 +1343,15 @@ msgctxt "Applies to orders of total weight within this range"
 msgid "%(min_weight)s to %(max_weight)s"
 msgstr "%(min_weight)s til %(max_weight)s"
 
-#: saleor/site/models.py:40
+#: saleor/site/models.py:42
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr "Administrer indstillinger."
 
-#: saleor/site/models.py:42
+#: saleor/site/models.py:44
 msgctxt "Permission description"
 msgid "Manage translations."
-msgstr ""
+msgstr "Administrer oversættelser"
 
 #: templates/404.html:6
 msgctxt "Eror page not found"
@@ -6253,6 +6268,11 @@ msgid ""
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
+"\n"
+"Du modtager denne e-mail, fordi du eller en anden har anmodet om sletning af din brugerkonto hos %(domain)s.\n"
+"Klik på linket herunder for at slette din konto.\n"
+"\n"
+"Bemærk, at denne handling er permanent og ikke kan fortrydes.\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
@@ -6267,6 +6287,9 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Du modtager denne e-mail, fordi du eller en anden har anmodet om et kodeord til din brugerkonto hos %(domain)s.\n"
+"Det kan sikkert ignoreres, hvis du ikke anmodede om en nulstilling af adgangskode. Klik på linket herunder for at nulstille dit kodeord.\n"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
@@ -6282,6 +6305,9 @@ msgid ""
 "You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Du modtager denne e-mail, fordi du skal angive en adgangskode til din kundekonto hos %(domain)s.\n"
+"<klik på linket nedenfor, for at nulstille dit kodeord.\n"
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:2
 #, python-format
@@ -6295,6 +6321,8 @@ msgid ""
 "\n"
 "You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
 msgstr ""
+"\n"
+"Du modtager denne e-mail, fordi du er blevet forfremmet til medarbejder hos %(domain)s."
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
@@ -6310,19 +6338,24 @@ msgid ""
 "You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Du modtager denne e-mail, fordi du skal angive en adgangskode til din medarbejderkonto hos %(domain)s.\n"
+"Klik på linket for at nulstille dit kodeord.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
-msgid "A shipment from order %(order)s is on the way"
-msgstr "En forsendelse fra ordre %(order)s er på vej"
+msgid "Your order %(order)s has been fulfilled"
+msgstr "Din ordre %(order)s er blevet pakket"
 
 #: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
 msgid ""
 "\n"
-"Thank you for your order. Below is the list of shipped products.\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
 msgstr ""
+"\n"
+"Tak for din ordre. Nedenfor kan du se en liste over pakkede produkter.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
 #: templates/templated_email/source/confirm_fulfillment.mjml:20
@@ -6344,6 +6377,9 @@ msgid ""
 "Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
 "%(order_details_url)s"
 msgstr ""
+"\n"
+"Tak for din ordre. Nedenfor er listen over bestilte produkter. For at se dine betalingsoplysninger, besøg venligst:\n"
+"%(order_details_url)s"
 
 #: templates/templated_email/order/confirm_order.email:17
 msgctxt "Order confirmation e-mail table header"
@@ -6411,6 +6447,9 @@ msgid ""
 "Thank you for your payment. To see your payment details please visit:\n"
 "%(order_details_url)s\n"
 msgstr ""
+"\n"
+"Tak for din betaling. For at se dine betalingsoplysninger, besøg venligst:\n"
+"%(order_details_url)s\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
@@ -6424,19 +6463,21 @@ msgid ""
 "\n"
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
+"\n"
+"Din fragtstatus er opdateret. Nedenfor er listen over bestilte produkter, der er blevet opdateret med nyt sporingsnummer.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:15
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid ""
 "You can track your shipment with the following code: %(tracking_number)s."
-msgstr ""
+msgstr "Du kan spore din forsendelse med følgende kode: %(tracking_number)s."
 
 #: templates/templated_email/shared/_footer.email:2
 #: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
-msgstr ""
+msgstr "Dette er en automatisk genereret e-mail, skal du ikke svare."
 
 #: templates/templated_email/shared/_footer.email:5
 #: templates/templated_email/source/shared/footer.mjml:13
@@ -6474,8 +6515,15 @@ msgstr ""
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
-msgid "Thank you for your order. Below is the list of shipped products."
-msgstr "Tak for din ordre. Nedenfor er listen over afsendte produkter."
+msgid "Thank you for your order. Below is the list of fulfilled products."
+msgstr "Tak for din ordre. Nedenfor er listen over opfyldte produkter."
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
+msgctxt "Fulfillment digital products email text"
+msgid ""
+"You can download your digital products by clicking in download link(s)."
+msgstr ""
+"Du kan downloade dine digitale produkter ved at klikke på download link(s)."
 
 #: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
@@ -6583,6 +6631,9 @@ msgid ""
 "customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
+"Du modtager denne e-mail, fordi du skal angive adgangskode til din "
+"kundekonto hos %(domain)s. <br/> Klik på linket nedenfor for at oprette dit "
+"kodeord."
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
