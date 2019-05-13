@@ -14,8 +14,6 @@ from .utils import (
     shipping_to_stripe_dict,
 )
 
-TEMPLATE_PATH = "order/payment/stripe.html"
-
 
 def get_client_token(**_):
     """Not implemented for stripe gateway currently. The client token can be

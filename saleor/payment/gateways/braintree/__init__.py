@@ -12,7 +12,6 @@ from .forms import BraintreePaymentForm
 
 logger = logging.getLogger(__name__)
 
-TEMPLATE_PATH = "order/payment/braintree.html"
 
 # FIXME: Move to SiteSettings
 
