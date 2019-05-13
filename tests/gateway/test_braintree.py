@@ -90,6 +90,7 @@ def braintree_not_found_error():
 @pytest.fixture
 def gateway_config():
     return ConfigData(
+        template_path="template.html",
         auto_capture=False,
         connection_params={
             "sandbox_mode": False,

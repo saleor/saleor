@@ -31,6 +31,7 @@ TRANSACTION_AMOUNT = Decimal("61.33")
 def gateway_config():
     return ConfigData(
         auto_capture=False,
+        template_path="template.html",
         connection_params={
             "public_key": "public",
             "secret_key": "secret",

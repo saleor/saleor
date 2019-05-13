@@ -578,12 +578,17 @@ CHECKOUT_PAYMENT_GATEWAYS = {
 PAYMENT_GATEWAYS = {
     DUMMY: {
         "module": "saleor.payment.gateways.dummy",
-        "config": {"auto_capture": True, "connection_params": {}},
+        "config": {
+            "auto_capture": True,
+            "connection_params": {},
+            "template_path": "order/payment/dummy.html",
+        },
     },
     BRAINTREE: {
         "module": "saleor.payment.gateways.braintree",
         "config": {
             "auto_capture": True,
+            "template_path": "order/payment/braintree.html",
             "connection_params": {
                 "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
                 "merchant_id": os.environ.get("BRAINTREE_MERCHANT_ID"),
@@ -595,7 +600,8 @@ PAYMENT_GATEWAYS = {
     RAZORPAY: {
         "module": "saleor.payment.gateways.razorpay",
         "config": {
-            "auto_capture": True,
+            "auto_capture": None,
+            "template_path": "order/payment/razorpay.html",
             "connection_params": {
                 "public_key": os.environ.get("RAZORPAY_PUBLIC_KEY"),
                 "secret_key": os.environ.get("RAZORPAY_SECRET_KEY"),
@@ -609,6 +615,7 @@ PAYMENT_GATEWAYS = {
         "module": "saleor.payment.gateways.stripe",
         "config": {
             "auto_capture": True,
+            "template_path": "order/payment/stripe.html",
             "connection_params": {
                 "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
                 "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
