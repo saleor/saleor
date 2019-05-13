@@ -1,9 +1,6 @@
 import i18naddress
 from django import template
 from django.utils.translation import pgettext
-import i18naddress
-
-from ...account.models import Address
 
 register = template.Library()
 

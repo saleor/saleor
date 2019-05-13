@@ -10,8 +10,6 @@ from graphql_jwt.shortcuts import get_token
 
 from saleor.account.models import User
 
-from .utils import assert_no_permission
-
 API_PATH = reverse("api")
 
 

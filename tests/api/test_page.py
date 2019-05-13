@@ -1,8 +1,6 @@
 import json
 
 import graphene
-import pytest
-from django.utils.text import slugify
 
 from saleor.page.models import Page
 from tests.api.utils import assert_read_only_mode, get_graphql_content

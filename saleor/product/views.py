@@ -17,7 +17,7 @@ from django.urls import reverse
 from ..checkout.utils import set_checkout_cookie
 from ..core.utils import serialize_decimal
 from ..seo.schema.product import product_json_ld
-from .filters import ProductCategoryFilter, ProductCollectionFilter
+from .filters import ProductCollectionFilter
 from .models import Category, DigitalContentUrl
 from .utils import (
     collections_visible_to_user,
