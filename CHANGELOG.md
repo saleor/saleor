@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Merge authorize with capture - #4098 by @korycins, @NyanKiyoshi
 - Fix GATEWAYS_ENUM to always contain all implemented payment gateways - #4108 by @koradon
 - Fix translation discard button - #4109 by @benekex2
+- Separated the legacy middleware from the GQL API middleware - #4102 by @NyanKiyoshi
 
 ## 2.6.0
 
