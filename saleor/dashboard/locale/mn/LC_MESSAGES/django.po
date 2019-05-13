@@ -5,15 +5,16 @@
 # 
 # Translators:
 # Tsolmon Batjargal <tsolmon.batjargal64@gmail.com>, 2018
+# Lkhagva-Ochir Narmandakh <lkhagva.w8@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-04-08 06:19-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Tsolmon Batjargal <tsolmon.batjargal64@gmail.com>, 2018\n"
+"Last-Translator: Lkhagva-Ochir Narmandakh <lkhagva.w8@gmail.com>, 2019\n"
 "Language-Team: Mongolian (https://www.transifex.com/mirumee/teams/34782/mn/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,7 +30,7 @@ msgstr "нэр"
 #: saleor/dashboard/category/filters.py:10
 msgctxt "Category list sorting option"
 msgid "description"
-msgstr "холбоос"
+msgstr "тайлбар"
 
 #: saleor/dashboard/category/filters.py:15
 msgctxt "Category list filter label"
@@ -39,7 +40,7 @@ msgstr "Нэр"
 #: saleor/dashboard/category/filters.py:18
 msgctxt "Category list sorting filter label"
 msgid "Sort by"
-msgstr "Эрэмбэлэхээр"
+msgstr "Эрэмбэлэх"
 
 #: saleor/dashboard/category/filters.py:30
 #, python-format
@@ -52,17 +53,17 @@ msgstr[1] ""
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
 #: saleor/dashboard/discount/forms.py:94 saleor/dashboard/product/forms.py:96
-#: saleor/dashboard/product/forms.py:250 saleor/dashboard/product/forms.py:458
+#: saleor/dashboard/product/forms.py:250 saleor/dashboard/product/forms.py:459
 #: saleor/dashboard/sites/forms.py:52
 msgctxt "Item name"
 msgid "Name"
 msgstr "Нэр"
 
 #: saleor/dashboard/category/forms.py:26 saleor/dashboard/product/forms.py:235
-#: saleor/dashboard/product/forms.py:407 saleor/dashboard/sites/forms.py:29
+#: saleor/dashboard/product/forms.py:408 saleor/dashboard/sites/forms.py:29
 msgctxt "Description"
 msgid "Description"
-msgstr "Холбоос"
+msgstr "Тайлбар"
 
 #: saleor/dashboard/category/forms.py:29
 msgctxt "Category form"
@@ -72,7 +73,7 @@ msgstr "Хойд талын зураг"
 #: saleor/dashboard/category/forms.py:31
 msgctxt "Description of a category image"
 msgid "Image description"
-msgstr ""
+msgstr "Зургийн тайлбар"
 
 #: saleor/dashboard/category/views.py:47
 #, python-format
@@ -84,13 +85,13 @@ msgstr "Төрөл нэмэгдсэн %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated category %s"
-msgstr ""
+msgstr "%s засав"
 
 #: saleor/dashboard/category/views.py:112
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed category %s"
-msgstr ""
+msgstr "%s-г устгалав."
 
 #: saleor/dashboard/collection/filters.py:9
 msgctxt "Collection list sorting option"
@@ -101,13 +102,13 @@ msgstr "нэр"
 #: saleor/dashboard/product/filters.py:22
 msgctxt "Is publish filter choice"
 msgid "Published"
-msgstr ""
+msgstr "Нийтлэгдсэн"
 
 #: saleor/dashboard/collection/filters.py:13
 #: saleor/dashboard/product/filters.py:23
 msgctxt "Is publish filter choice"
 msgid "Not published"
-msgstr ""
+msgstr "Нийтлэгдээгүй"
 
 #: saleor/dashboard/collection/filters.py:18
 msgctxt "Collection list name filter label"
@@ -117,7 +118,7 @@ msgstr "Нэр"
 #: saleor/dashboard/collection/filters.py:21
 msgctxt "Collection list filter label"
 msgid "Is published"
-msgstr ""
+msgstr "Нийтлэгдсэн үү"
 
 #: saleor/dashboard/collection/filters.py:23
 #: saleor/dashboard/customer/filters.py:38
@@ -127,7 +128,7 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:45 saleor/dashboard/taxes/filters.py:25
 msgctxt "Filter empty choice label"
 msgid "All"
-msgstr ""
+msgstr "Бүгд"
 
 #: saleor/dashboard/collection/filters.py:26
 msgctxt "Collection list sorting filter label"
@@ -145,60 +146,60 @@ msgstr[1] ""
 #: saleor/dashboard/collection/forms.py:18
 msgctxt "Products selection"
 msgid "Products"
-msgstr ""
+msgstr "Бараа"
 
 #: saleor/dashboard/collection/forms.py:27
 msgctxt "Background image of a collection"
 msgid "Background image"
-msgstr ""
+msgstr "Дэвсгэр зураг"
 
 #: saleor/dashboard/collection/forms.py:29
 msgctxt "Description of a collection image"
 msgid "Image description"
-msgstr ""
+msgstr "Зургийн тайлбар"
 
 #: saleor/dashboard/collection/forms.py:32
 msgctxt "Collection published toggle"
 msgid "Published"
-msgstr ""
+msgstr "Нийтлэгдсэн"
 
 #: saleor/dashboard/collection/forms.py:36
 msgctxt ""
 "The publication date field, can be a posterior date for a planned "
 "publication."
 msgid "Publication date"
-msgstr ""
+msgstr "Нийтлэгдсэн огноо"
 
 #: saleor/dashboard/collection/forms.py:39
 msgctxt "Description field of a collection"
 msgid "Description"
-msgstr "Холбоос"
+msgstr "Тайлбар"
 
 #: saleor/dashboard/collection/views.py:28
 msgctxt "Dashboard message"
 msgid "Updated homepage collection"
-msgstr ""
+msgstr "Нүүр хуудасны коллекшн солигдлоо"
 
 #: saleor/dashboard/collection/views.py:52
 msgctxt "Collection message"
 msgid "Added collection"
-msgstr ""
+msgstr "Коллекшн нэмэгдлээ"
 
 #: saleor/dashboard/collection/views.py:67
 msgctxt "Collection message"
 msgid "Updated collection"
-msgstr ""
+msgstr "Коллекшн засагдлаа"
 
 #: saleor/dashboard/collection/views.py:88
 msgctxt "Collection message"
 msgid "Deleted collection"
-msgstr ""
+msgstr "Коллекшн устгагдлаа"
 
 #: saleor/dashboard/customer/filters.py:17
 #: saleor/dashboard/staff/filters.py:16
 msgctxt "Customer list sorting option"
 msgid "email"
-msgstr ""
+msgstr "и-мэйл"
 
 #: saleor/dashboard/customer/filters.py:19
 #: saleor/dashboard/staff/filters.py:18
@@ -210,32 +211,32 @@ msgstr "нэр"
 #: saleor/dashboard/staff/filters.py:20
 msgctxt "Customer list sorting option"
 msgid "location"
-msgstr ""
+msgstr "байршил"
 
 #: saleor/dashboard/customer/filters.py:24
 msgctxt "Is active filter choice"
 msgid "Active"
-msgstr ""
+msgstr "Идэвхтэй"
 
 #: saleor/dashboard/customer/filters.py:25
 msgctxt "Is active filter choice"
 msgid "Not active"
-msgstr ""
+msgstr "Идэвхгүй"
 
 #: saleor/dashboard/customer/filters.py:30
 msgctxt "Customer name or email filter"
 msgid "Name or email"
-msgstr ""
+msgstr "Нэр эсвэл и-мэйл"
 
 #: saleor/dashboard/customer/filters.py:33
 msgctxt "Customer list filter label"
 msgid "Location"
-msgstr ""
+msgstr "Байршил"
 
 #: saleor/dashboard/customer/filters.py:36
 msgctxt "Customer list filter label"
 msgid "Is active"
-msgstr ""
+msgstr "Идэвхтэй юу"
 
 #: saleor/dashboard/customer/filters.py:41
 msgctxt "Customer list filter label"
@@ -262,74 +263,76 @@ msgid ""
 "You can't delete your own account via dashboard, please try from the "
 "storefront."
 msgstr ""
+"Та дашбоардоос өөрийн аккаунтаа устгах боломжгүй, та storefront хэсгээс "
+"оролдож үзнэ үү"
 
 #: saleor/dashboard/customer/forms.py:34
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
-msgstr ""
+msgstr "Зөвхөн суперадмин өөрийн аккаунтаа устгаж чадна"
 
 #: saleor/dashboard/customer/forms.py:39
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
-msgstr ""
+msgstr "Таньд ажилчидын мэдээлэл засах эрх байхгүй байна"
 
-#: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
+#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:23
 msgctxt "Customer form: Given name field"
 msgid "Given name"
-msgstr ""
+msgstr "Нэр"
 
-#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:25
+#: saleor/dashboard/customer/forms.py:71 saleor/dashboard/staff/forms.py:25
 msgctxt "Customer form: Family name field"
 msgid "Family name"
-msgstr ""
-
-#: saleor/dashboard/customer/forms.py:71
-msgctxt "Customer form: email address field"
-msgid "Email"
-msgstr ""
+msgstr "Овог"
 
 #: saleor/dashboard/customer/forms.py:73
-msgctxt "Customer form: is active toggle"
-msgid "User is active"
-msgstr ""
+msgctxt "Customer form: email address field"
+msgid "Email"
+msgstr "И-мэйл"
 
 #: saleor/dashboard/customer/forms.py:75
 msgctxt "Customer form: customer note field"
 msgid "Notes"
-msgstr ""
+msgstr "Тэмдэглэлүүд"
 
-#: saleor/dashboard/customer/forms.py:85
+#: saleor/dashboard/customer/forms.py:77
+msgctxt "Customer form: is active toggle"
+msgid "User is active"
+msgstr "Хэрэглэгч идэвхтэй байна"
+
+#: saleor/dashboard/customer/forms.py:87
 msgctxt "Customer note"
 msgid "Note"
-msgstr ""
+msgstr "Тэмдэглэл"
 
-#: saleor/dashboard/customer/forms.py:88
+#: saleor/dashboard/customer/forms.py:90
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
-msgstr ""
+msgstr "Үйлчлүүлэгч энэ тэмдэглэлийг харж чадна"
 
-#: saleor/dashboard/customer/views.py:63
+#: saleor/dashboard/customer/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
-msgstr ""
+msgstr "%s хэрэглэгч нэмэгдлээ"
 
-#: saleor/dashboard/customer/views.py:79
+#: saleor/dashboard/customer/views.py:81
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
-msgstr ""
+msgstr "%s хэрэглэгчийн мэдээлэл засаглаа"
 
-#: saleor/dashboard/customer/views.py:112
+#: saleor/dashboard/customer/views.py:114
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
-msgstr ""
+msgstr "Тэмдэглэл бүртгэгдлээ"
 
-#: saleor/dashboard/customer/views.py:133
+#: saleor/dashboard/customer/views.py:135
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(customer_name)s successfully removed"
-msgstr ""
+msgstr "%(customer_name)s мэдээлэл устгагдлаа"
 
 #: saleor/dashboard/discount/filters.py:14
 msgctxt "Sale list sorting option"
@@ -339,17 +342,17 @@ msgstr "нэр"
 #: saleor/dashboard/discount/filters.py:15
 msgctxt "Sale list sorting option"
 msgid "value"
-msgstr ""
+msgstr "утга"
 
 #: saleor/dashboard/discount/filters.py:16
 msgctxt "Sale list sorting option"
 msgid "start_date"
-msgstr ""
+msgstr "Эхлэх огноо"
 
 #: saleor/dashboard/discount/filters.py:17
 msgctxt "Sale list sorting option"
 msgid "end_date"
-msgstr ""
+msgstr "Дуусах огноо"
 
 #: saleor/dashboard/discount/filters.py:20
 msgctxt "Voucher list sorting option"
@@ -369,12 +372,12 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:24
 msgctxt "Voucher list sorting option"
 msgid "start_date"
-msgstr ""
+msgstr "Эхлэх"
 
 #: saleor/dashboard/discount/filters.py:25
 msgctxt "Voucher list sorting option"
 msgid "end_date"
-msgstr ""
+msgstr "Дуусах огноо"
 
 #: saleor/dashboard/discount/filters.py:26
 msgctxt "Voucher list sorting option"
@@ -583,7 +586,7 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:170
 msgctxt "Product"
 msgid "Products"
-msgstr ""
+msgstr "Бараа"
 
 #: saleor/dashboard/discount/forms.py:184
 msgctxt "Collections"
@@ -795,7 +798,7 @@ msgstr ""
 #: saleor/dashboard/order/filters.py:25
 msgctxt "Order list sorting option"
 msgid "email"
-msgstr ""
+msgstr "и-майл"
 
 #: saleor/dashboard/order/filters.py:26 saleor/dashboard/order/filters.py:27
 msgctxt "Order list sorting option"
@@ -873,7 +876,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:111
 msgctxt "Order customer email"
 msgid "Email"
-msgstr ""
+msgstr "И-мэйл"
 
 #: saleor/dashboard/order/forms.py:126
 msgctxt "Edit customer details in order form error"
@@ -899,7 +902,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:251
 msgctxt "Order note"
 msgid "Note"
-msgstr ""
+msgstr "Тэмдэглэл"
 
 #: saleor/dashboard/order/forms.py:258
 msgctxt "Payment management form (capture, refund, void)"
@@ -994,7 +997,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:526
 msgctxt "Payment status field value"
 msgid "All"
-msgstr ""
+msgstr "Бүгд"
 
 #: saleor/dashboard/order/forms.py:543
 msgctxt "Order form: subform to add variant to order form: variant field"
@@ -1017,17 +1020,17 @@ msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:599
+#: saleor/dashboard/order/forms.py:610
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:607
+#: saleor/dashboard/order/forms.py:618
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:644
+#: saleor/dashboard/order/forms.py:655
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -1053,7 +1056,7 @@ msgstr ""
 #: saleor/dashboard/order/views.py:145
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
-msgstr ""
+msgstr "Тэмдэглэл бүртгэгдлээ"
 
 #: saleor/dashboard/order/views.py:168
 #, python-format
@@ -1246,7 +1249,7 @@ msgstr ""
 #: saleor/dashboard/page/forms.py:27
 msgctxt "Page form: publication status indicator"
 msgid "Is published"
-msgstr ""
+msgstr "Нийтлэгдсэн үү"
 
 #: saleor/dashboard/page/forms.py:31
 msgctxt "Form field help text"
@@ -1317,7 +1320,7 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:43
 msgctxt "Product list filter label"
 msgid "Is published"
-msgstr ""
+msgstr "Нийтлэгдсэн үү"
 
 #: saleor/dashboard/product/filters.py:48
 msgctxt "Product list filter label"
@@ -1476,96 +1479,96 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:255
 msgctxt "Product published toggle"
 msgid "Published"
-msgstr ""
+msgstr "Нийтлэгдсэн"
 
 #: saleor/dashboard/product/forms.py:257
 msgctxt "Charge taxes on product"
 msgid "Charge taxes on this product"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:277
+#: saleor/dashboard/product/forms.py:278
 msgctxt "Currency gross amount"
 msgid "Gross price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:280
+#: saleor/dashboard/product/forms.py:281
 msgctxt "Currency net amount"
 msgid "Net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:308
+#: saleor/dashboard/product/forms.py:309
 msgctxt "ProductVariant weight"
 msgid "Weight"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:311
+#: saleor/dashboard/product/forms.py:312
 msgctxt "ProductVariant weight help text"
 msgid ""
 "Weight will be used to calculate shipping price. If empty, weight from "
 "Product or ProductType will be used."
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:320
+#: saleor/dashboard/product/forms.py:321
 msgctxt "SKU"
 msgid "SKU"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:322
+#: saleor/dashboard/product/forms.py:323
 msgctxt "Override price"
 msgid "Selling price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:323
+#: saleor/dashboard/product/forms.py:324
 msgctxt "Integer number"
 msgid "Number in stock"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:324
+#: saleor/dashboard/product/forms.py:325
 msgctxt "Currency amount"
 msgid "Cost price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:326
+#: saleor/dashboard/product/forms.py:327
 msgctxt "Track inventory field"
 msgid "Track inventory"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:330
+#: saleor/dashboard/product/forms.py:331
 msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:345
+#: saleor/dashboard/product/forms.py:346
 msgctxt "Override price"
 msgid "Selling gross price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:347
+#: saleor/dashboard/product/forms.py:348
 msgctxt "Currency amount"
 msgid "Cost gross price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:350
+#: saleor/dashboard/product/forms.py:351
 msgctxt "Override price"
 msgid "Selling net price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:352
+#: saleor/dashboard/product/forms.py:353
 msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:405 saleor/dashboard/product/forms.py:510
+#: saleor/dashboard/product/forms.py:406 saleor/dashboard/product/forms.py:511
 msgctxt "Product image"
 msgid "Image"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:446
+#: saleor/dashboard/product/forms.py:447
 msgctxt "Product display name"
 msgid "Display name"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:448
+#: saleor/dashboard/product/forms.py:449
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr ""
@@ -1961,11 +1964,16 @@ msgstr ""
 #: saleor/dashboard/staff/forms.py:27
 msgctxt "Email"
 msgid "Email"
-msgstr ""
+msgstr "И-мэйл"
 
 #: saleor/dashboard/staff/forms.py:29
 msgctxt "User active toggle"
 msgid "User is active"
+msgstr "Хэрэглэгч идэвхтэй байна"
+
+#: saleor/dashboard/staff/forms.py:31
+msgctxt "User staff toggle"
+msgid "User is staff"
 msgstr ""
 
 #: saleor/dashboard/staff/views.py:43
@@ -1974,13 +1982,13 @@ msgctxt "Dashboard message"
 msgid "Updated staff member %s"
 msgstr ""
 
-#: saleor/dashboard/staff/views.py:63
+#: saleor/dashboard/staff/views.py:65
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
 msgstr ""
 
-#: saleor/dashboard/staff/views.py:82
+#: saleor/dashboard/staff/views.py:84
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed staff member %s"
