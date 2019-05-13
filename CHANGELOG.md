@@ -56,6 +56,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update order events and order email events names in typescripts - #4089 by @jxltom
 - Migrated code style to Black. Saleor now includes configurations and tools related to use black. - #3852 by krzysztofwolski and NyanKiyoshi
 - Allow filtering by lists of enums for fields: ``Voucher.filter.status``, ``Voucher.filter.discount_type``, ``Sale.filter.status``, ``Order.filter.payment_status``, ``Order.filter.status``, ``Order.filter.custom_status`` - #4078 by @korycins
+- Code cleanup by replacing render props with react hooks - #4010 by @dominik-zeglen
 
 
 ## 2.5.0
