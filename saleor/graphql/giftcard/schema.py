@@ -3,7 +3,7 @@ from graphql_jwt.decorators import permission_required
 
 from ...giftcard import models
 from ..core.fields import PrefetchingConnectionField
-from .mutations import GiftCardCreate
+from .mutations import GiftCardCreate, GiftCardUpdate
 from .resolvers import resolve_gift_card
 from .types import GiftCard
 
@@ -26,3 +26,4 @@ class GiftCardQueries(graphene.ObjectType):
 
 class GiftCardMutations(graphene.ObjectType):
     gift_card_create = GiftCardCreate.Field()
+    gift_card_update = GiftCardUpdate.Field()

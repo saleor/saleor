@@ -1,3 +1,5 @@
+from datetime import date
+
 import graphene
 
 from ...giftcard import models
@@ -44,4 +46,22 @@ class GiftCardCreate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.creator = info.context.user
+        super().save(info, instance, cleaned_input)
+
+
+class GiftCardUpdate(GiftCardCreate):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a gift card to update.")
+        input = GiftCardInput(
+            required=True, description="Fields required to update a gift card."
+        )
+
+    class Meta:
+        description = "Update a gift card."
+        model = models.GiftCard
+        permissions = ("giftcard.manage_gift_card",)
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.last_used_on = date.today()
         super().save(info, instance, cleaned_input)
