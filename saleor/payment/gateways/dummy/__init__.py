@@ -4,8 +4,6 @@ from ... import ChargeStatus, TransactionKind
 from ...interface import ConfigData, GatewayResponse, PaymentData
 from .forms import DummyPaymentForm
 
-TEMPLATE_PATH = "order/payment/dummy.html"
-
 
 def dummy_success():
     return True

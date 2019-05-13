@@ -12,8 +12,6 @@ from . import errors
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
 
-TEMPLATE_PATH = "order/payment/razorpay.html"
-
 # The list of currencies supported by razorpay
 SUPPORTED_CURRENCIES = ("INR",)
 
