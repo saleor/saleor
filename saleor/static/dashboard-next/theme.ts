@@ -151,6 +151,14 @@ export default (colors: IThemeColors): Theme =>
           "&:focus": {
             backgroundColor: colors.input.default
           }
+        },
+        root: {
+          "&$selected": {
+            "&:hover": {
+              backgroundColor: colors.input.default
+            },
+            backgroundColor: colors.input.default
+          }
         }
       },
       MuiMenu: {
@@ -255,6 +263,9 @@ export default (colors: IThemeColors): Theme =>
         }
       },
       MuiTouchRipple: {
+        child: {
+          backgroundColor: fade(colors.primary, 0.2)
+        },
         childLeaving: {
           backgroundColor: fade(colors.primary, 0.2)
         },
