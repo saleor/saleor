@@ -24,15 +24,17 @@ const styles = (theme: Theme) =>
       position: "relative"
     },
     paper: {
+      borderRadius: 4,
       left: 0,
       marginTop: theme.spacing.unit,
+      padding: 8,
       position: "absolute",
       right: 0,
       zIndex: 1
     }
   });
 
-interface SingleAutocompleteSelectFieldProps extends WithStyles<typeof styles> {
+export interface SingleAutocompleteSelectFieldProps {
   error?: boolean;
   name: string;
   choices: Array<{
@@ -83,7 +85,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
     InputProps,
     fetchChoices,
     onChange
-  }: SingleAutocompleteSelectFieldProps) => {
+  }: SingleAutocompleteSelectFieldProps & WithStyles<typeof styles>) => {
     const handleChange = item => onChange({ target: { name, value: item } });
 
     return (
