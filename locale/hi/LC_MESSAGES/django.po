@@ -5,15 +5,16 @@
 # 
 # Translators:
 # Sundeep Singh <sundeepdev@gmail.com>, 2019
+# Hari Nadar <nadarhari18@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-04-08 06:18-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Sundeep Singh <sundeepdev@gmail.com>, 2019\n"
+"Last-Translator: Hari Nadar <nadarhari18@gmail.com>, 2019\n"
 "Language-Team: Hindi (https://www.transifex.com/mirumee/teams/34782/hi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -51,102 +52,102 @@ msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr ""
 
-#: saleor/account/i18n.py:18
+#: saleor/account/i18n.py:19
 msgctxt "Address field"
 msgid "Area"
 msgstr ""
 
-#: saleor/account/i18n.py:19
+#: saleor/account/i18n.py:20
 msgctxt "Address field"
 msgid "County"
 msgstr ""
 
-#: saleor/account/i18n.py:20
+#: saleor/account/i18n.py:21
 msgctxt "Address field"
 msgid "Department"
 msgstr "विभाग"
 
-#: saleor/account/i18n.py:21
+#: saleor/account/i18n.py:22
 msgctxt "Address field"
 msgid "District"
 msgstr "जिला"
 
-#: saleor/account/i18n.py:22
+#: saleor/account/i18n.py:23
 msgctxt "Address field"
 msgid "Do/si"
 msgstr ""
 
-#: saleor/account/i18n.py:23
+#: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Eircode"
 msgstr ""
 
-#: saleor/account/i18n.py:24
+#: saleor/account/i18n.py:25
 msgctxt "Address field"
 msgid "Emirate"
 msgstr ""
 
-#: saleor/account/i18n.py:25
+#: saleor/account/i18n.py:26
 msgctxt "Address field"
 msgid "Island"
 msgstr "द्वीप"
 
-#: saleor/account/i18n.py:26
+#: saleor/account/i18n.py:27
 msgctxt "Address field"
 msgid "Neighborhood"
 msgstr "आस - पड़ोस"
 
-#: saleor/account/i18n.py:27
+#: saleor/account/i18n.py:28
 msgctxt "Address field"
 msgid "Oblast"
 msgstr ""
 
-#: saleor/account/i18n.py:28
+#: saleor/account/i18n.py:29
 msgctxt "Address field"
 msgid "Parish"
 msgstr ""
 
-#: saleor/account/i18n.py:29
+#: saleor/account/i18n.py:30
 msgctxt "Address field"
 msgid "PIN"
 msgstr "पिन"
 
-#: saleor/account/i18n.py:30
+#: saleor/account/i18n.py:31
 msgctxt "Address field"
 msgid "Postal code"
 msgstr "पिन कोड"
 
-#: saleor/account/i18n.py:31
+#: saleor/account/i18n.py:32
 msgctxt "Address field"
 msgid "Prefecture"
 msgstr ""
 
-#: saleor/account/i18n.py:32
+#: saleor/account/i18n.py:33
 msgctxt "Address field"
 msgid "Province"
 msgstr ""
 
-#: saleor/account/i18n.py:33
+#: saleor/account/i18n.py:34
 msgctxt "Address field"
 msgid "State"
 msgstr "प्रदेश"
 
-#: saleor/account/i18n.py:34
+#: saleor/account/i18n.py:35
 msgctxt "Address field"
 msgid "Suburb"
 msgstr ""
 
-#: saleor/account/i18n.py:35
+#: saleor/account/i18n.py:36
 msgctxt "Address field"
 msgid "Townland"
 msgstr ""
 
-#: saleor/account/i18n.py:36
+#: saleor/account/i18n.py:37
 msgctxt "Address field"
 msgid "Village/township"
 msgstr "ग्राम"
 
-#: saleor/account/i18n.py:37
+#: saleor/account/i18n.py:38
 msgctxt "Address field"
 msgid "ZIP code"
 msgstr "पिन कोड"
@@ -211,7 +212,11 @@ msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
 msgstr ""
 
-#: saleor/account/i18n.py:170
+#: saleor/account/i18n.py:155 saleor/account/validators.py:11
+msgid "The phone number entered is not valid."
+msgstr ""
+
+#: saleor/account/i18n.py:195
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr ""
@@ -243,10 +248,6 @@ msgctxt "Address data"
 msgid ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
-msgstr ""
-
-#: saleor/account/validators.py:11
-msgid "The phone number entered is not valid."
 msgstr ""
 
 #: saleor/account/views.py:31
@@ -302,7 +303,7 @@ msgstr ""
 #: saleor/checkout/forms.py:39
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "मात्रा"
 
 #: saleor/checkout/forms.py:43
 msgctxt "Add to cart form error"
@@ -582,22 +583,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr ""
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr ""
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr ""
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr ""
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr ""
@@ -673,7 +674,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr ""
 
-#: saleor/discount/models.py:180
+#: saleor/discount/models.py:181
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr ""
@@ -691,7 +692,7 @@ msgid_plural "Only %(quantity)d items remaining to fulfill."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:216
+#: saleor/graphql/order/mutations/fulfillments.py:218
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr ""
@@ -900,7 +901,7 @@ msgctxt "Permission description"
 msgid "Manage orders."
 msgstr ""
 
-#: saleor/order/models.py:344
+#: saleor/order/models.py:368
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -1041,7 +1042,7 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr ""
 
-#: saleor/payment/utils.py:236
+#: saleor/payment/utils.py:239
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
@@ -1089,7 +1090,7 @@ msgstr ""
 #: saleor/product/filters.py:12
 msgctxt "Product list sorting option"
 msgid "name"
-msgstr ""
+msgstr "नाम"
 
 #: saleor/product/filters.py:13
 msgctxt "Product list sorting option"
@@ -1104,7 +1105,7 @@ msgstr ""
 #: saleor/product/filters.py:20
 msgctxt "Product list sorting form"
 msgid "Sort by"
-msgstr ""
+msgstr "छँटाई"
 
 #: saleor/product/filters.py:24
 msgctxt "Currency amount"
@@ -1117,9 +1118,14 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:129
+#: saleor/product/models.py:131
 msgctxt "Permission description"
 msgid "Manage products."
+msgstr ""
+
+#: saleor/product/models.py:316
+msgctxt "File as a digital product"
+msgid "digital_product"
 msgstr ""
 
 #: saleor/search/forms.py:9
@@ -1240,35 +1246,43 @@ msgid "Serbian"
 msgstr ""
 
 #: saleor/settings.py:89
-msgid "Swedish"
+msgid "Swahili"
 msgstr ""
 
 #: saleor/settings.py:90
-msgid "Turkish"
+msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:91
-msgid "Ukrainian"
+msgid "Thai"
 msgstr ""
 
 #: saleor/settings.py:92
-msgid "Vietnamese"
+msgid "Turkish"
 msgstr ""
 
 #: saleor/settings.py:93
-msgid "Simplified Chinese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:94
+msgid "Vietnamese"
+msgstr ""
+
+#: saleor/settings.py:95
+msgid "Simplified Chinese"
+msgstr ""
+
+#: saleor/settings.py:96
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:330
+#: saleor/settings.py:332
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:567
+#: saleor/settings.py:573
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1318,12 +1332,12 @@ msgctxt "Applies to orders of total weight within this range"
 msgid "%(min_weight)s to %(max_weight)s"
 msgstr ""
 
-#: saleor/site/models.py:40
+#: saleor/site/models.py:42
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr ""
 
-#: saleor/site/models.py:42
+#: saleor/site/models.py:44
 msgctxt "Permission description"
 msgid "Manage translations."
 msgstr ""
@@ -1906,7 +1920,7 @@ msgstr ""
 #: templates/checkout/index.html:33
 msgctxt "Cart table header"
 msgid "Quantity"
-msgstr ""
+msgstr "मात्रा"
 
 #: templates/checkout/index.html:36
 msgctxt "Cart table header"
@@ -2130,12 +2144,12 @@ msgstr ""
 #: templates/dashboard/category/list.html:32
 msgctxt "Dashboard categories list"
 msgid "Categories"
-msgstr ""
+msgstr "वर्ग"
 
 #: templates/dashboard/base.html:117
 msgctxt "Dashboard side navigation link"
 msgid "Collections"
-msgstr ""
+msgstr "संग्रह"
 
 #: templates/dashboard/base.html:126
 msgctxt "Dashboard discounts list"
@@ -2287,12 +2301,12 @@ msgstr ""
 #: templates/dashboard/category/list.html:9
 msgctxt "Category list page title"
 msgid "Categories"
-msgstr ""
+msgstr "वर्ग"
 
 #: templates/dashboard/category/detail.html:83
 msgctxt "Category field"
 msgid "Description"
-msgstr ""
+msgstr "वर्णन"
 
 #: templates/dashboard/category/detail.html:94
 msgctxt "Category detail view action"
@@ -2322,13 +2336,13 @@ msgstr ""
 #: templates/dashboard/category/list.html:49
 msgctxt "Category list table header name"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/category/detail.html:119
 #: templates/dashboard/category/list.html:52
 msgctxt "Category list table header description"
 msgid "Description"
-msgstr ""
+msgstr "वर्णन"
 
 #: templates/dashboard/category/detail.html:140
 msgctxt "Category edit action"
@@ -2501,7 +2515,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:18
 #: templates/dashboard/collection/list.html:19
 msgid "Collections"
-msgstr ""
+msgstr "संग्रह"
 
 #: templates/dashboard/collection/detail.html:32
 msgctxt "Collection action"
@@ -2551,7 +2565,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:10
 msgctxt "Collections list page title "
 msgid "Collections"
-msgstr ""
+msgstr "संग्रह"
 
 #: templates/dashboard/collection/list.html:25
 msgctxt "Collections list add button text"
@@ -2561,7 +2575,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:40
 msgctxt "Collections list table header name"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/collection/list.html:43
 msgctxt "Voucher table header"
@@ -2612,7 +2626,7 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:68
 msgctxt "Customer field"
 msgid "Note"
-msgstr ""
+msgstr "टिप्पणी"
 
 #: templates/dashboard/customer/detail.html:79
 msgctxt "Customer action"
@@ -2729,7 +2743,7 @@ msgstr ""
 #: templates/dashboard/customer/list.html:40
 msgctxt "Customers table header"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/customer/list.html:43
 msgctxt "Customers table header"
@@ -2739,7 +2753,7 @@ msgstr "ईमेल"
 #: templates/dashboard/customer/list.html:46
 msgctxt "Customers table header"
 msgid "Location"
-msgstr ""
+msgstr "स्थान"
 
 #: templates/dashboard/customer/list.html:86
 msgctxt "Empty customers table message"
@@ -2835,7 +2849,7 @@ msgstr ""
 #: templates/dashboard/discount/sale/list.html:42
 msgctxt "Sale (discount) table header"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/discount/sale/list.html:45
 msgctxt "Sale (discount) table header"
@@ -2904,7 +2918,7 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:43
 msgctxt "Voucher table header"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/discount/voucher/list.html:46
 msgctxt "Voucher table header"
@@ -3008,7 +3022,7 @@ msgstr ""
 #: templates/dashboard/includes/_menu_items.html:23
 msgctxt "Menu items list table header name"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/includes/_menu_items.html:26
 msgctxt "Menu items list table header points to"
@@ -3493,7 +3507,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "मात्रा"
 
 #: templates/dashboard/order/detail.html:289
 msgctxt "Order table header"
@@ -3744,7 +3758,7 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:34
 msgctxt "Modal remove order line table header"
 msgid "Quantity"
-msgstr ""
+msgstr "मात्रा"
 
 #: templates/dashboard/order/fulfillment.html:105
 #, python-format
@@ -4132,7 +4146,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:67
 msgctxt "Shipment order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "मात्रा"
 
 #: templates/dashboard/order/pdf/invoice.html:70
 msgctxt "Shipment order table header"
@@ -4421,7 +4435,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/list.html:42
 msgctxt "Dashboard attributes list table header name"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/product/attribute/list.html:44
 msgctxt "Name of product type related to the attribute"
@@ -4516,7 +4530,7 @@ msgstr ""
 
 #: templates/dashboard/product/detail.html:90
 msgid "Variant"
-msgstr ""
+msgstr "प्रकार"
 
 #: templates/dashboard/product/detail.html:99
 msgid "SKU"
@@ -4524,7 +4538,7 @@ msgstr ""
 
 #: templates/dashboard/product/detail.html:100
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/product/detail.html:101
 msgid "Status"
@@ -4686,7 +4700,7 @@ msgstr ""
 #: templates/dashboard/product/list.html:61
 msgctxt "Products list table header"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/product/list.html:64
 msgctxt "Products list table header"
@@ -4830,7 +4844,7 @@ msgstr ""
 #: templates/dashboard/product/product_type/list.html:44
 msgctxt "Dashboard product types list table header name"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/product/product_type/list.html:48
 msgctxt "Product type item list text"
@@ -5149,7 +5163,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:21
 msgctxt "Header of the shipping methods list"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:24
 msgctxt "Header of the shipping methods list"
@@ -5288,7 +5302,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
-msgstr ""
+msgstr "वर्णन"
 
 #: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
@@ -5303,7 +5317,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:87
 msgctxt "Header of authorization keys list"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
@@ -5398,7 +5412,7 @@ msgstr ""
 #: templates/dashboard/staff/list.html:42
 msgctxt "Staff members table header"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/staff/list.html:45
 msgctxt "Staff members table header"
@@ -5408,7 +5422,7 @@ msgstr "ईमेल"
 #: templates/dashboard/staff/list.html:48
 msgctxt "Staff members table header"
 msgid "Location"
-msgstr ""
+msgstr "स्थान"
 
 #: templates/dashboard/staff/list.html:88
 msgctxt "Empty staff table message"
@@ -5453,7 +5467,7 @@ msgstr ""
 #: templates/dashboard/taxes/details.html:50
 msgctxt "Country tax rates list header"
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 #: templates/dashboard/taxes/details.html:53
 msgctxt "Country tax rates list header"
@@ -5717,7 +5731,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:188
 msgctxt "Order details column title"
 msgid "Quantity"
-msgstr ""
+msgstr "मात्रा"
 
 #: templates/order/_ordered_items_table.html:48
 msgctxt "Order details column title"
@@ -6040,7 +6054,7 @@ msgstr ""
 #: templates/product/details.html:194
 msgctxt "Product details title"
 msgid "Description"
-msgstr ""
+msgstr "वर्णन"
 
 #: templates/product/product_list_base.html:83
 msgctxt "Filter heading title"
@@ -6058,7 +6072,7 @@ msgstr ""
 #: templates/product/product_list_base.html:114
 msgctxt "Product list filters"
 msgid "Sort by"
-msgstr ""
+msgstr "छँटाई"
 
 #: templates/product/product_list_base.html:120
 msgctxt "sort by option"
@@ -6162,14 +6176,14 @@ msgstr ""
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
-msgid "A shipment from order %(order)s is on the way"
+msgid "Your order %(order)s has been fulfilled"
 msgstr ""
 
 #: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
 msgid ""
 "\n"
-"Thank you for your order. Below is the list of shipped products.\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
 msgstr ""
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
@@ -6319,7 +6333,13 @@ msgstr ""
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
-msgid "Thank you for your order. Below is the list of shipped products."
+msgid "Thank you for your order. Below is the list of fulfilled products."
+msgstr ""
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
+msgctxt "Fulfillment digital products email text"
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
 #: templates/templated_email/source/confirm_order.mjml:17
@@ -6377,7 +6397,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Quantity ordered of a product"
 msgid "Quantity"
-msgstr ""
+msgstr "मात्रा"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:60
 msgctxt "Unit price of a product"
