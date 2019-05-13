@@ -5,6 +5,7 @@ import braintree as braintree_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
+from ... import TransactionKind
 from ...interface import ConfigData, GatewayResponse, PaymentData
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
@@ -29,14 +30,6 @@ ERROR_CODES_WHITELIST = {
         Please try again later. Settlement time might vary depending
         on the issuers bank."""
 }
-
-
-class TransactionKind:
-    AUTH = "auth"
-    CAPTURE = "capture"
-    CHARGE = "charge"
-    REFUND = "refund"
-    VOID = "void"
 
 
 def get_customer_data(payment_information: PaymentData) -> Dict:

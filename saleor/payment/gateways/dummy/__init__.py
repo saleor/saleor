@@ -98,6 +98,9 @@ def process_payment(
     if charge_status == ChargeStatus.NOT_CHARGED:
         return authorize_response
 
+    if not config.auto_capture:
+        return authorize_response
+
     capture_response = capture(payment_information, config)
     if charge_status == ChargeStatus.FULLY_REFUNDED:
         return refund(payment_information, config)

@@ -121,7 +121,7 @@ def process_payment(
     payment_information: PaymentData, config: ConfigData
 ) -> GatewayResponse:
     # Stripe supports capture during authorize process. No need to run other steps.
-    # If 'auto_capture is True', it will also capture funds from the card.
+    # If 'config.auto_capture is True', it will also capture funds from the card.
     return authorize(payment_information, config)
 
 
