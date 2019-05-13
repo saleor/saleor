@@ -75,6 +75,7 @@ def transaction_data(payment_dummy, gateway_response):
 def gateway_config():
     return ConfigData(
         auto_capture=True,
+        template_path="template.html",
         connection_params={"secret-key": "nobodylikesspanishinqusition"},
     )
 

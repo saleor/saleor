@@ -138,7 +138,7 @@ def start_payment(request, order, gateway):
         "client_token": client_token,
         "order": order,
     }
-    return TemplateResponse(request, payment_gateway.TEMPLATE_PATH, ctx)
+    return TemplateResponse(request, gateway_config.template_path, ctx)
 
 
 @check_order_status
