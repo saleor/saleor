@@ -361,7 +361,7 @@ Example
         payment_method_nonce = forms.CharField()
 
         def get_payment_token(self):
-            return self.cleaned_data['payment_method_nonce']
+            return self.cleaned_data["payment_method_nonce"]
 
 Implement create_form(data, payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -378,7 +378,10 @@ Example
 
         def create_form(data, payment_information, connection_params):
             return BraintreePaymentForm(
-                data, payment_information, connection_params)
+                data,
+                payment_information,
+                connection_params,
+            )
 
 
 Implement template_path
@@ -468,4 +471,3 @@ Tips
   In such case, you might want to charge the customer 70 dollars, but due
   to gateway misconfiguration, he will be charged 70 euros.
   Such a situation should be handled, and adequate error should be thrown.
-

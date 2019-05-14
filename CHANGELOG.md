@@ -4,60 +4,62 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Dropped Python 3.5 support - #4028 by @korycins
-- Refactor error handling in mutations #3891 by @maarcingebala @akjanik
-- Use only_fields instead of exclude_fields in gql api - #3940 by @michaljelonek
-- Add mutation for bulk delete order lines - #3935 by @akjanik
-- Fix dashboard 1.0 missing logo and missing back arrow on collections - #3958 by @NyanKiyoshi
-- Add mutations for publishing and unpublishing multiple pages - #3954 by @akjanik
+...
+
+## 2.6.0
+
+### API
+
+- Add unified filtering interface in resolvers - #3952, #4078 by @korycins
+- Add mutations for bulk actions - #3935, #3954, #3967, #3969, #3970 by @akjanik
+- Add mutation for reordering menu items - #3958 by @NyanKiyoshi
+- Optimize queries for single nodes - #3968 @NyanKiyoshi
+- Refactor error handling in mutations #3891 by @maarcingebala & @akjanik
+- Specify mutation permissions through Meta classes - #3980 by @NyanKiyoshi
+- Unify pricing access in products and variants - #3948 by @NyanKiyoshi
+- Use only_fields instead of exclude_fields in type definitions - #3940 by @michaljelonek
 - Prefetch collections when getting sales of a bunch of products - #3961 by @NyanKiyoshi
-- Move dialog windows to querystring rather than router paths - #3953 by @dominik-zeglen
-- Add mutation for bulk cancel orders - #3967 by @akjanik
-- Hide errors in TokenVerify mutation - #3981 by @fowczarek
-- Use newest GraphQL Playground - #3971 by @salwator
-- Fix country area choices - #4008 by @fowczarek
-- Cleanup and maintenance of the GraphQL API code - #3942 by @NyanKiyoshi
-- Removed the dead `children` field from the `Menu` type - #3973 by @NyanKiyoshi
-- Add mutations for bulk publishing and unpublishing products - #3969 by akjanik
-- Add mutation for bulk publishing and unpublishing collections - #3970 by @akjanik
-- Unittests use none as media root - #3975 by @korycins
-- Rename Cart to Checkout - #3963 by @michaljelonek
-- Implement menus items reordering into the GraphQL API - #3958 by @NyanKiyoshi
-- Simplify permission management in API through the meta classes - #3980 by @NyanKiyoshi
-- Add settings to enable Django Debug Toolbar - #3983 by @koradon
-- Implement variant availability, introducing discounts in variants - #3948 by @NyanKiyoshi
-- Add bulk actions - #3955 by @dominik-zeglen
-- Update file field styles with materializecss template filter - #3998 by @zodiacfireworks
-- Add filtering interface for graphQL API - #3952 by @korycins
-- Restrict single payment resolving - #4009 @NyanKiyoshi
-- Add mandatory fields errors in new product form - #4024 by @benekex2
-- Add navigation drawer support - #3839 by @benekex2
-- Set up explicit __hash__ function - #3979 by @akjanik
-- Update node-sass to latest version to fix node-js 12 compatibility - #4033 @NyanKiyoshi
-- Ensure adding to quantities in checkout is respecting the limits set both in storefront 1.0 and in the API - #4005 by @NyanKiyoshi
-- Fix price_range_as_dict function - #3999 by @zodiacfireworks
-- Remove unused decorator - #4036 by @maarcingebala
-- Overall improvement of the GraphQL performances, especially on single nodes - #3968 @NyanKiyoshi
 - Remove unnecessary dedents from GraphQL schema so new Playground can work - #4045 by @salwator
+- Restrict resolving payment by ID - #4009 @NyanKiyoshi
+- Require `checkoutId` for updating checkout's shipping and billing address - #4074 by @jxltom
+- Handle errors in `TokenVerify` mutation - #3981 by @fowczarek
+- Unify argument names in types and resolvers - #3942 by @NyanKiyoshi
+
+### Core
+
+- Use Black as the default code formatting tool - #3852 by @krzysztofwolski and @NyanKiyoshi
+- Dropped Python 3.5 support - #4028 by @korycins
+- Rename Cart to Checkout - #3963 by @michaljelonek
+- Use data classes to exchange data with payment gateways - #4028 by @korycins
+- Refactor order events - #4018 by @NyanKiyoshi
+
+### Dashboard 2.0
+
+- Add bulk actions - #3955 by @dominik-zeglen
 - Add user avatar management - #4030 by @benekex2
-- Use dataclasses as a structure for payment's gateways - #4028 by @korycins
-- Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
-- Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
-- Update test function names since ready_to_place_order is renamed to clean_checkout- #4070 by @jxltom
-- Resort imports and remove unused imports - #4069 by @jxltom
-- Fix typo in CheckoutBillingAddressUpdate - #4073 by @jxltom
-- Required checkout ID for updating checkout's shipping and billing address - #4074 by @jxltom
-- Implement order events - #4018 by @NyanKiyosho 
-  - Implemented new events: `DRAFT_CREATED`, `DRAFT_ADDED_PRODUCTS`, `DRAFT_REMOVED_PRODUCTS`, and `PAYMENT_FAILED`;
-  - Implemented new mail events: `TRACKING_UPDATED`, `DIGITAL_LINKS`;
-  - Refactored logic of events, it's now easier than ever to add and send events.
-- Reduce the time of tests execution by using dummy password hasher - #4083 by @korycins
-- Add migrations since unnecessary indexes are removed in mptt model in [django-mptt/django-mptt#578](https://github.com/django-mptt/django-mptt/pull/578) - #4071 by @jxltom
-- Update order events and order email events names in typescripts - #4089 by @jxltom
-- Migrated code style to Black. Saleor now includes configurations and tools related to use black. - #3852 by krzysztofwolski and NyanKiyoshi
-- Allow filtering by lists of enums for fields: ``Voucher.filter.status``, ``Voucher.filter.discount_type``, ``Sale.filter.status``, ``Order.filter.payment_status``, ``Order.filter.status``, ``Order.filter.custom_status`` - #4078 by @korycins
+- Add navigation drawer support on mobile devices - #3839 by @benekex2
+- Fix rendering validation errors in product form - #4024 by @benekex2
+- Move dialog windows to query string rather than router paths - #3953 by @dominik-zeglen
+- Update order events types - #4089 by @jxltom
 - Code cleanup by replacing render props with react hooks - #4010 by @dominik-zeglen
 
+### Other notable changes
+
+- Add setting to enable Django Debug Toolbar - #3983 by @koradon
+- Use newest GraphQL Playground - #3971 by @salwator
+- Ensure adding to quantities in the checkout is respecting the limits - #4005 by @NyanKiyoshi
+- Fix country area choices - #4008 by @fowczarek
+- Fix price_range_as_dict function - #3999 by @zodiacfireworks
+- Fix the product listing not showing in the voucher when there were products selected - #4062 by @NyanKiyoshi
+- Fix crash in Dashboard 1.0 when updating an order address's phone number - #4061 by @NyanKiyoshi
+- Reduce the time of tests execution by using dummy password hasher - #4083 by @korycins
+- Set up explicit **hash** function - #3979 by @akjanik
+- Unit tests use none as media root - #3975 by @korycins
+- Update file field styles with materializecss template filter - #3998 by @zodiacfireworks
+- New translations:
+  - Albanian
+  - Colombian Spanish
+  - Lithuanian
 
 ## 2.5.0
 
