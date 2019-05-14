@@ -39,8 +39,8 @@ Example
 
 .. note::
 
-    All the below functions receive ``payment_information`` as a dataclass: ``PaymentData`` and ``config`` as a dataclass: ``GatewayConfig``. 
-    Those functions should return a response as a dataclass: ``GatewayResponse``. 
+    All the below functions receive ``payment_information`` as a dataclass: ``PaymentData`` and ``config`` as a dataclass: ``GatewayConfig``.
+    Those functions should return a response as a dataclass: ``GatewayResponse``.
     The description of the given structures can be found below.
 
 
@@ -57,7 +57,8 @@ Example
 
     def authorize(
             payment_information: PaymentData,
-            config: GatewayConfig) -> GatewayResponse:
+            config: GatewayConfig,
+        ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the auth request here
         response = gateway.authorize(token=payment_information.token)
@@ -85,8 +86,9 @@ Example
 .. code-block:: python
 
     def refund(
-            payment_information: PaymentData,
-            config: GatewayConfig) -> GatewayResponse:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the refund request here
         response = gateway.refund(token=payment_information.token)
@@ -114,8 +116,9 @@ Example
 .. code-block:: python
 
     def capture(
-            payment_information: PaymentData,
-            config: GatewayConfig) -> GatewayResponse:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the capture request here
         response = gateway.capture(token=payment_information.token)
@@ -143,8 +146,9 @@ Example
 .. code-block:: python
 
     def void(
-            payment_information: PaymentData,
-            config: GatewayConfig) -> GatewayResponse:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the void request here
         response = gateway.void(token=payment_information.token)
@@ -172,13 +176,15 @@ Example
 .. code-block:: python
 
     def charge(
-            payment_information: PaymentData,
-            config: GatewayConfig) -> GatewayResponse:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the charge request here
         response = gateway.charge(
             token=payment_information.token,
-            amount=payment_information.amount)
+            amount=payment_information.amount,
+        )
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
@@ -205,29 +211,28 @@ Example
 .. code-block:: python
 
     def process_payment(
-            payment_information: PaymentData,
-            config: GatewayConfig) -> GatewayResponse:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Authorize, update the token, then capture
-        authorize_response = authorize(
-            payment_information, config)
+        authorize_response = authorize(payment_information, config)
         payment_information.token = authorize_response.transaction_id
 
-        capture_response = capture(
-            payment_information, config)
+        capture_response = capture(payment_information, config)
 
         return capture_response
 
 Parameters
 ^^^^^^^^^^
 
-+-------------------------+-----------------+---------------------------------------------------------------------------+
-| name                    | type            | description                                                               |
-+-------------------------+-----------------+---------------------------------------------------------------------------+
-| ``payment_information`` | ``PaymentData`` | Payment information, containing the token, amount, currency and billing.  |
-+-------------------------+-----------------+---------------------------------------------------------------------------+
-| ``config``              | ``GatewayConfig``  | Configuration of the payment gateway.                                  |
-+-------------------------+-----------------+---------------------------------------------------------------------------+
++-------------------------+--------------------+---------------------------------------------------------------------------+
+| name                    | type               | description                                                               |
++-------------------------+--------------------+---------------------------------------------------------------------------+
+| ``payment_information`` | ``PaymentData``    | Payment information, containing the token, amount, currency and billing.  |
++-------------------------+--------------------+---------------------------------------------------------------------------+
+| ``config``              | ``GatewayConfig``  | Configuration of the payment gateway.                                     |
++-------------------------+--------------------+---------------------------------------------------------------------------+
 
 PaymentData
 """""""""""
@@ -288,7 +293,7 @@ GatewayConfig
 +---------------------+-----------+---------------------------------------------------------------------------------------------------------+
 | auto_capture        | ``bool``  | Define if gateway should also capture funds from the card. If false, payment should be only authorized  |
 +---------------------+-----------+---------------------------------------------------------------------------------------------------------+
-| template_path       | ``str``   | Path to a template that will be rendered for the checkout.                                         tests/gateway/test_braintree.py     |
+| template_path       | ``str``   | Path to a template that will be rendered for the checkout.                                              |
 +---------------------+-----------+---------------------------------------------------------------------------------------------------------+
 | connection_params   | ``Dict``  | List of parameters used for connecting to the payment’s gateway.                                        |
 +---------------------+-----------+---------------------------------------------------------------------------------------------------------+
