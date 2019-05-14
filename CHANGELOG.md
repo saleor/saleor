@@ -3,8 +3,8 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-
 - Cleanup code for updated function names, unused argument, etc. - #4090 by @jxltom
+- Merge authorize with capture - #4098 by @korycins, @NyanKiyoshi
 
 
 ## 2.6.0
