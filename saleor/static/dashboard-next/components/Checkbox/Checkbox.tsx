@@ -24,6 +24,9 @@ const styles = (theme: Theme) =>
         },
         borderColor: theme.palette.primary.main
       },
+      "&$disabled": {
+        borderColor: theme.palette.grey[200]
+      },
       "&$indeterminate": {
         "&:before": {
           background: theme.palette.primary.main,
@@ -54,6 +57,7 @@ const styles = (theme: Theme) =>
       width: 14
     },
     checked: {},
+    disabled: {},
     indeterminate: {},
     root: {
       alignItems: "center",
@@ -70,6 +74,7 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
     checked,
     className,
     classes,
+    disabled,
     indeterminate,
     onChange,
     onClick,
@@ -91,13 +96,16 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
         {...props}
         centerRipple
         className={classNames(classes.root, className)}
+        disabled={disabled}
         onClick={handleClick}
       >
         <input
           className={classNames(classes.box, {
             [classes.checked]: checked,
+            [classes.disabled]: disabled,
             [classes.indeterminate]: indeterminate
           })}
+          disabled={disabled}
           type="checkbox"
           name={name}
           value={checked.toString()}

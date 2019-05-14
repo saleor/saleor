@@ -17,6 +17,7 @@ storiesOf("Generics / Checkbox", module)
   .add("checked", () => <Checkbox {...props} checked={true} />)
   .add("unchecked", () => <Checkbox {...props} />)
   .add("undeterminate", () => <Checkbox {...props} indeterminate={true} />)
+  .add("disabled", () => <Checkbox {...props} disabled={true} />)
   .add("interactive", () => (
     <Form initial={{ data: false }}>
       {({ change, data }) => (
