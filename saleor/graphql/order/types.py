@@ -369,7 +369,6 @@ class Order(CountableDjangoObjectType):
     def resolve_status_display(self, _info):
         return self.get_status_display()
 
-    @staticmethod
     def resolve_can_finalize(self, _info):
         try:
             validate_draft_order(self)
