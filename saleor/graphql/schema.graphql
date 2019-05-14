@@ -1476,8 +1476,8 @@ enum OrderEventsEnum {
 }
 
 input OrderFilterInput {
-  paymentStatus: PaymentChargeStatusEnum
-  status: OrderStatusFilter
+  paymentStatus: [PaymentChargeStatusEnum]
+  status: [OrderStatusFilter]
   customer: String
   created: DateRangeInput
 }
@@ -2213,7 +2213,7 @@ type SaleDelete {
 }
 
 input SaleFilterInput {
-  status: DiscountStatusEnum
+  status: [DiscountStatusEnum]
   saleType: DiscountValueTypeEnum
   started: DateRangeInput
   search: String
@@ -2785,9 +2785,9 @@ enum VoucherDiscountValueType {
 }
 
 input VoucherFilterInput {
-  status: DiscountStatusEnum
+  status: [DiscountStatusEnum]
   timesUsed: IntRangeInput
-  discountType: VoucherDiscountType
+  discountType: [VoucherDiscountType]
   started: DateRangeInput
   search: String
 }

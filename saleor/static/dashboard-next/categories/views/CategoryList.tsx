@@ -4,10 +4,9 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../components/ActionDialog";
-import { createPaginationState } from "../../components/Paginator";
 import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
-import usePaginator from "../../hooks/usePaginator";
+import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { CategoryListPage } from "../components/CategoryListPage/CategoryListPage";

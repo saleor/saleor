@@ -28,6 +28,7 @@ import { MessageManager } from "./components/messages";
 import { ShopProvider } from "./components/Shop";
 import ThemeProvider from "./components/Theme";
 import { WindowTitle } from "./components/WindowTitle";
+import { API_URI, APP_MOUNT_URI } from "./config";
 import ConfigurationSection, { configurationMenu } from "./configuration";
 import { CustomerSection } from "./customers";
 import DiscountSection from "./discounts";
@@ -76,7 +77,7 @@ const linkOptions = {
   headers: {
     "X-CSRFToken": cookies.get("csrftoken")
   },
-  uri: "/graphql/"
+  uri: API_URI
 };
 const uploadLink = createUploadLink(linkOptions);
 const batchLink = new BatchHttpLink(linkOptions);
@@ -101,15 +102,13 @@ const apolloClient = new ApolloClient({
   link: invalidTokenLink.concat(authLink.concat(link))
 });
 
-export const appMountPoint = "/dashboard/next/";
-
 const App: React.FC = () => {
   const isDark = localStorage.getItem("theme") === "true";
 
   return (
     <FormProvider>
       <ApolloProvider client={apolloClient}>
-        <BrowserRouter basename={appMountPoint}>
+        <BrowserRouter basename={APP_MOUNT_URI}>
           <ThemeProvider isDefaultDark={isDark}>
             <DateProvider>
               <LocaleProvider>

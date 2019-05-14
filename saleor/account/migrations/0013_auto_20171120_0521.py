@@ -14,8 +14,8 @@ def convert_phone_number_to_phonenumberfield(apps, schema_editor):
         if address.phone:
             try:
                 phone_number = phonenumbers.parse(
-                    address.phone.raw_input,
-                    address.country.code)
+                    address.phone.raw_input, address.country.code
+                )
                 address.phone = phone_number
                 address.save()
             except NumberParseException:
@@ -24,21 +24,19 @@ def convert_phone_number_to_phonenumberfield(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('account', '0012_auto_20171117_0846'),
-    ]
+    dependencies = [("account", "0012_auto_20171117_0846")]
 
-    replaces = [
-        ('userprofile', '0013_auto_20171120_0521'),
-    ]
+    replaces = [("userprofile", "0013_auto_20171120_0521")]
 
     operations = [
         migrations.AlterField(
-            model_name='address',
-            name='phone',
-            field=phonenumber_field.modelfields.PhoneNumberField(blank=True, default='', max_length=128, verbose_name='phone number'),
+            model_name="address",
+            name="phone",
+            field=phonenumber_field.modelfields.PhoneNumberField(
+                blank=True, default="", max_length=128, verbose_name="phone number"
+            ),
         ),
         migrations.RunPython(
-            convert_phone_number_to_phonenumberfield,
-            migrations.RunPython.noop),
+            convert_phone_number_to_phonenumberfield, migrations.RunPython.noop
+        ),
     ]

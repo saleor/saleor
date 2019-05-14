@@ -5,14 +5,12 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0086_product_publication_date'),
-    ]
+    dependencies = [("product", "0086_product_publication_date")]
 
     operations = [
         migrations.RenameField(
-            model_name='collection',
-            old_name='published_date',
-            new_name='publication_date',
-        ),
+            model_name="collection",
+            old_name="published_date",
+            new_name="publication_date",
+        )
     ]

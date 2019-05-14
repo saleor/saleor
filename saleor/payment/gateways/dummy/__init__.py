@@ -5,15 +5,15 @@ from ... import ChargeStatus
 from ...interface import GatewayResponse, PaymentData
 from .forms import DummyPaymentForm
 
-TEMPLATE_PATH = 'order/payment/dummy.html'
+TEMPLATE_PATH = "order/payment/dummy.html"
 
 
 class TransactionKind:
-    AUTH = 'auth'
-    CAPTURE = 'capture'
-    CHARGE = 'charge'
-    REFUND = 'refund'
-    VOID = 'void'
+    AUTH = "auth"
+    CAPTURE = "capture"
+    CHARGE = "charge"
+    REFUND = "refund"
+    VOID = "void"
 
 
 def dummy_success():
@@ -28,45 +28,43 @@ def create_form(data, payment_information, connection_params):
     return DummyPaymentForm(data=data)
 
 
-def authorize(
-        payment_information: PaymentData, connection_params) -> GatewayResponse:
+def authorize(payment_information: PaymentData, connection_params) -> GatewayResponse:
     success = dummy_success()
     error = None
     if not success:
-        error = 'Unable to authorize transaction'
+        error = "Unable to authorize transaction"
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.AUTH,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token,
-        error=error
+        error=error,
     )
 
 
-def void(
-        payment_information: PaymentData, connection_params) -> GatewayResponse:
+def void(payment_information: PaymentData, connection_params) -> GatewayResponse:
     error = None
     success = dummy_success()
     if not success:
-        error = 'Unable to void the transaction.'
+        error = "Unable to void the transaction."
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.VOID,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token,
-        error=error
+        error=error,
     )
 
 
 def capture(
-        payment_information: PaymentData, connection_params: Dict
+    payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     error = None
     success = dummy_success()
     if not success:
-        error = 'Unable to process capture'
+        error = "Unable to process capture"
 
     return GatewayResponse(
         is_success=success,
@@ -74,30 +72,28 @@ def capture(
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token,
-        error=error
+        error=error,
     )
 
 
 def refund(
-        payment_information: PaymentData, connection_params: Dict
+    payment_information: PaymentData, connection_params: Dict
 ) -> GatewayResponse:
     error = None
     success = dummy_success()
     if not success:
-        error = 'Unable to process refund'
+        error = "Unable to process refund"
     return GatewayResponse(
         is_success=success,
         kind=TransactionKind.REFUND,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token,
-        error=error
+        error=error,
     )
 
 
-def charge(
-        payment_information: PaymentData, connection_params
-) -> GatewayResponse:
+def charge(payment_information: PaymentData, connection_params) -> GatewayResponse:
     """Performs Authorize and Capture transactions in a single run."""
     auth_resp = authorize(payment_information, connection_params)
     if not auth_resp.is_success:
@@ -106,7 +102,7 @@ def charge(
 
 
 def process_payment(
-        payment_information: PaymentData, connection_params
+    payment_information: PaymentData, connection_params
 ) -> GatewayResponse:
     """Process the payment."""
     token = payment_information.token

@@ -7,21 +7,38 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0034_product_is_published'),
-    ]
+    dependencies = [("product", "0034_product_is_published")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='category',
-            options={'permissions': (('view_category', 'Can view categories'), ('edit_category', 'Can edit categories')), 'verbose_name': 'category', 'verbose_name_plural': 'categories'},
+            name="category",
+            options={
+                "permissions": (
+                    ("view_category", "Can view categories"),
+                    ("edit_category", "Can edit categories"),
+                ),
+                "verbose_name": "category",
+                "verbose_name_plural": "categories",
+            },
         ),
         migrations.AlterModelOptions(
-            name='product',
-            options={'permissions': (('view_product', 'Can view products'), ('edit_product', 'Can edit products')), 'verbose_name': 'product', 'verbose_name_plural': 'products'},
+            name="product",
+            options={
+                "permissions": (
+                    ("view_product", "Can view products"),
+                    ("edit_product", "Can edit products"),
+                ),
+                "verbose_name": "product",
+                "verbose_name_plural": "products",
+            },
         ),
         migrations.AlterModelOptions(
-            name='stocklocation',
-            options={'permissions': (('view_stock_location', 'Can view stock location'), ('edit_stock_location', 'Can edit stock location'))},
+            name="stocklocation",
+            options={
+                "permissions": (
+                    ("view_stock_location", "Can view stock location"),
+                    ("edit_stock_location", "Can edit stock location"),
+                )
+            },
         ),
     ]

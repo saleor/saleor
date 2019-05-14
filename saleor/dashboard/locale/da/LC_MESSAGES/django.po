@@ -4,16 +4,16 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Mikkel Scheike, 2019
+# Mikkel, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-04-08 06:19-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Mikkel Scheike, 2019\n"
+"Last-Translator: Mikkel, 2019\n"
 "Language-Team: Danish (https://www.transifex.com/mirumee/teams/34782/da/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -52,14 +52,14 @@ msgstr[1] "Fandt %(counter)d matchende kategori"
 #: saleor/dashboard/category/forms.py:25
 #: saleor/dashboard/collection/forms.py:24
 #: saleor/dashboard/discount/forms.py:94 saleor/dashboard/product/forms.py:96
-#: saleor/dashboard/product/forms.py:250 saleor/dashboard/product/forms.py:458
+#: saleor/dashboard/product/forms.py:250 saleor/dashboard/product/forms.py:459
 #: saleor/dashboard/sites/forms.py:52
 msgctxt "Item name"
 msgid "Name"
 msgstr "Navn"
 
 #: saleor/dashboard/category/forms.py:26 saleor/dashboard/product/forms.py:235
-#: saleor/dashboard/product/forms.py:407 saleor/dashboard/sites/forms.py:29
+#: saleor/dashboard/product/forms.py:408 saleor/dashboard/sites/forms.py:29
 msgctxt "Description"
 msgid "Description"
 msgstr "Beskrivelse"
@@ -167,7 +167,7 @@ msgctxt ""
 "The publication date field, can be a posterior date for a planned "
 "publication."
 msgid "Publication date"
-msgstr ""
+msgstr "Udgivelsesdato"
 
 #: saleor/dashboard/collection/forms.py:39
 msgctxt "Description field of a collection"
@@ -275,59 +275,59 @@ msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
 msgstr "Du har ikke tilladelse til at ændre på personale brugere."
 
-#: saleor/dashboard/customer/forms.py:67 saleor/dashboard/staff/forms.py:23
+#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:23
 msgctxt "Customer form: Given name field"
 msgid "Given name"
 msgstr "Fornavn"
 
-#: saleor/dashboard/customer/forms.py:69 saleor/dashboard/staff/forms.py:25
+#: saleor/dashboard/customer/forms.py:71 saleor/dashboard/staff/forms.py:25
 msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr "Efternavn"
 
-#: saleor/dashboard/customer/forms.py:71
+#: saleor/dashboard/customer/forms.py:73
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "Email"
-
-#: saleor/dashboard/customer/forms.py:73
-msgctxt "Customer form: is active toggle"
-msgid "User is active"
-msgstr "Brugeren er aktiv"
 
 #: saleor/dashboard/customer/forms.py:75
 msgctxt "Customer form: customer note field"
 msgid "Notes"
 msgstr "Noter"
 
-#: saleor/dashboard/customer/forms.py:85
+#: saleor/dashboard/customer/forms.py:77
+msgctxt "Customer form: is active toggle"
+msgid "User is active"
+msgstr "Brugeren er aktiv"
+
+#: saleor/dashboard/customer/forms.py:87
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Note"
 
-#: saleor/dashboard/customer/forms.py:88
+#: saleor/dashboard/customer/forms.py:90
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "Kunder kan se denne note"
 
-#: saleor/dashboard/customer/views.py:63
+#: saleor/dashboard/customer/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
 msgstr "Tilføjede kunde %s"
 
-#: saleor/dashboard/customer/views.py:79
+#: saleor/dashboard/customer/views.py:81
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
 msgstr "Opdaterede kunde %s"
 
-#: saleor/dashboard/customer/views.py:112
+#: saleor/dashboard/customer/views.py:114
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
 msgstr "Tilføjede note"
 
-#: saleor/dashboard/customer/views.py:133
+#: saleor/dashboard/customer/views.py:135
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(customer_name)s successfully removed"
@@ -918,7 +918,7 @@ msgstr "Beløb"
 #: saleor/dashboard/order/forms.py:264
 msgctxt "Payment form error"
 msgid "This payment action can not be performed."
-msgstr ""
+msgstr "Denne betalingshandling kan ikke udføres."
 
 #: saleor/dashboard/order/forms.py:273
 #, python-format
@@ -1026,17 +1026,17 @@ msgctxt "Order form: address subform - phone number input field"
 msgid "Phone number"
 msgstr "Telefonnummer"
 
-#: saleor/dashboard/order/forms.py:599
+#: saleor/dashboard/order/forms.py:610
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr "Send forsendelsesoplysninger til din kunde nu"
 
-#: saleor/dashboard/order/forms.py:607
+#: saleor/dashboard/order/forms.py:618
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr "Tracking nummer"
 
-#: saleor/dashboard/order/forms.py:644
+#: saleor/dashboard/order/forms.py:655
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -1498,22 +1498,22 @@ msgctxt "Charge taxes on product"
 msgid "Charge taxes on this product"
 msgstr "Opkræv skat på dette produkt"
 
-#: saleor/dashboard/product/forms.py:277
+#: saleor/dashboard/product/forms.py:278
 msgctxt "Currency gross amount"
 msgid "Gross price"
 msgstr "Engros pris"
 
-#: saleor/dashboard/product/forms.py:280
+#: saleor/dashboard/product/forms.py:281
 msgctxt "Currency net amount"
 msgid "Net price"
 msgstr "Netto pris"
 
-#: saleor/dashboard/product/forms.py:308
+#: saleor/dashboard/product/forms.py:309
 msgctxt "ProductVariant weight"
 msgid "Weight"
 msgstr "Vægt"
 
-#: saleor/dashboard/product/forms.py:311
+#: saleor/dashboard/product/forms.py:312
 msgctxt "ProductVariant weight help text"
 msgid ""
 "Weight will be used to calculate shipping price. If empty, weight from "
@@ -1522,67 +1522,67 @@ msgstr ""
 "Vægt vil blive brugt til at beregne forsendelsesprisen. Hvis tomt, vil "
 "vægten fra Product eller ProductType blive brugt."
 
-#: saleor/dashboard/product/forms.py:320
+#: saleor/dashboard/product/forms.py:321
 msgctxt "SKU"
 msgid "SKU"
 msgstr "SKU"
 
-#: saleor/dashboard/product/forms.py:322
+#: saleor/dashboard/product/forms.py:323
 msgctxt "Override price"
 msgid "Selling price override"
 msgstr "Salgspris tilsidesættelse"
 
-#: saleor/dashboard/product/forms.py:323
+#: saleor/dashboard/product/forms.py:324
 msgctxt "Integer number"
 msgid "Number in stock"
 msgstr "Antal på lager"
 
-#: saleor/dashboard/product/forms.py:324
+#: saleor/dashboard/product/forms.py:325
 msgctxt "Currency amount"
 msgid "Cost price"
 msgstr "Kostpris"
 
-#: saleor/dashboard/product/forms.py:326
+#: saleor/dashboard/product/forms.py:327
 msgctxt "Track inventory field"
 msgid "Track inventory"
 msgstr "Track opgørelse"
 
-#: saleor/dashboard/product/forms.py:330
+#: saleor/dashboard/product/forms.py:331
 msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
 msgstr "Spor automatisk dette produkts beholdning"
 
-#: saleor/dashboard/product/forms.py:345
+#: saleor/dashboard/product/forms.py:346
 msgctxt "Override price"
 msgid "Selling gross price override"
 msgstr "Brutto salgspris' tilsidesættelse"
 
-#: saleor/dashboard/product/forms.py:347
+#: saleor/dashboard/product/forms.py:348
 msgctxt "Currency amount"
 msgid "Cost gross price"
 msgstr " Bruttopris omkostning"
 
-#: saleor/dashboard/product/forms.py:350
+#: saleor/dashboard/product/forms.py:351
 msgctxt "Override price"
 msgid "Selling net price override"
 msgstr "Salgs nettopris tilsidesættelse"
 
-#: saleor/dashboard/product/forms.py:352
+#: saleor/dashboard/product/forms.py:353
 msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr "Omkostninger nettopris"
 
-#: saleor/dashboard/product/forms.py:405 saleor/dashboard/product/forms.py:510
+#: saleor/dashboard/product/forms.py:406 saleor/dashboard/product/forms.py:511
 msgctxt "Product image"
 msgid "Image"
 msgstr "Billede"
 
-#: saleor/dashboard/product/forms.py:446
+#: saleor/dashboard/product/forms.py:447
 msgctxt "Product display name"
 msgid "Display name"
 msgstr "Visningsnavn"
 
-#: saleor/dashboard/product/forms.py:448
+#: saleor/dashboard/product/forms.py:449
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr "Internt navn"
@@ -1994,19 +1994,24 @@ msgctxt "User active toggle"
 msgid "User is active"
 msgstr "Brugeren er aktiv"
 
+#: saleor/dashboard/staff/forms.py:31
+msgctxt "User staff toggle"
+msgid "User is staff"
+msgstr "Bruger er personale"
+
 #: saleor/dashboard/staff/views.py:43
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
 msgstr "Opdateret medarbejder %s"
 
-#: saleor/dashboard/staff/views.py:63
+#: saleor/dashboard/staff/views.py:65
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
 msgstr "Tilføjede medarbejder %s"
 
-#: saleor/dashboard/staff/views.py:82
+#: saleor/dashboard/staff/views.py:84
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed staff member %s"

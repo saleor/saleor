@@ -9,26 +9,22 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sites', '0002_alter_domain_unique'),
-        ('site', '0007_auto_20171027_0856'),
+        ("sites", "0002_alter_domain_unique"),
+        ("site", "0007_auto_20171027_0856"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sitesettings',
-            name='site',
-            field=models.OneToOneField(null=False,
-                                       on_delete=django.db.models.deletion.CASCADE,
-                                       related_name='settings',
-                                       to='sites.Site'),
+            model_name="sitesettings",
+            name="site",
+            field=models.OneToOneField(
+                null=False,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="settings",
+                to="sites.Site",
+            ),
             preserve_default=False,
         ),
-        migrations.RemoveField(
-            model_name='sitesettings',
-            name='domain',
-        ),
-        migrations.RemoveField(
-            model_name='sitesettings',
-            name='name',
-        ),
+        migrations.RemoveField(model_name="sitesettings", name="domain"),
+        migrations.RemoveField(model_name="sitesettings", name="name"),
     ]

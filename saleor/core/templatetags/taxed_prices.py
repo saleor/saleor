@@ -6,10 +6,10 @@ from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
 register = template.Library()
 
 
-@register.inclusion_tag('product/_price_range.html', takes_context=True)
+@register.inclusion_tag("product/_price_range.html", takes_context=True)
 def price_range(context, price_range):
-    display_gross = context['site'].settings.display_gross_prices
-    return {'display_gross': display_gross, 'price_range': price_range}
+    display_gross = context["site"].settings.display_gross_prices
+    return {"display_gross": display_gross, "price_range": price_range}
 
 
 @register.simple_tag
@@ -19,14 +19,14 @@ def tax_rate(taxes, rate_name):
         return 0
 
     tax = taxes.get(rate_name) or taxes.get(DEFAULT_TAX_RATE_NAME)
-    return tax['value']
+    return tax["value"]
 
 
-@register.inclusion_tag('price.html', takes_context=True)
+@register.inclusion_tag("price.html", takes_context=True)
 def price(context, base, display_gross=None, html=True):
     if isinstance(base, (TaxedMoney, TaxedMoneyRange)):
         if display_gross is None:
-            display_gross = context['site'].settings.display_gross_prices
+            display_gross = context["site"].settings.display_gross_prices
 
         if isinstance(base, TaxedMoneyRange):
             if display_gross:
@@ -38,4 +38,4 @@ def price(context, base, display_gross=None, html=True):
             base = base.gross if display_gross else base.net
 
     is_range = isinstance(base, MoneyRange)
-    return {'price': base, 'is_range': is_range, 'html': html}
+    return {"price": base, "is_range": is_range, "html": html}

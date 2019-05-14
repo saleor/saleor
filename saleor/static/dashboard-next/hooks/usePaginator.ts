@@ -1,8 +1,40 @@
 import { stringify as stringifyQs } from "qs";
 
-import { PageInfo, PaginationState } from "../components/Paginator";
 import { Pagination } from "../types";
 import useNavigator from "./useNavigator";
+
+export interface PageInfo {
+  endCursor: string;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string;
+}
+
+export interface PaginationState {
+  after?: string;
+  before?: string;
+  first?: number;
+  last?: number;
+}
+
+export function createPaginationState(
+  paginateBy: number,
+  queryString: Pagination
+): PaginationState {
+  return queryString && (queryString.before || queryString.after)
+    ? queryString.after
+      ? {
+          after: queryString.after,
+          first: paginateBy
+        }
+      : {
+          before: queryString.before,
+          last: paginateBy
+        }
+    : {
+        first: paginateBy
+      };
+}
 
 function usePaginator() {
   const navigate = useNavigator();
