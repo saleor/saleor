@@ -1,10 +1,9 @@
 import * as React from "react";
 
-import { createPaginationState } from "../../components/Paginator";
 import { configurationMenuUrl } from "../../configuration";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
-import usePaginator from "../../hooks/usePaginator";
+import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import StaffAddMemberDialog, {

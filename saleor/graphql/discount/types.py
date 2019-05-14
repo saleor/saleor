@@ -15,28 +15,32 @@ from ..translations.types import SaleTranslation, VoucherTranslation
 class Sale(CountableDjangoObjectType):
     categories = gql_optimizer.field(
         PrefetchingConnectionField(
-            Category,
-            description='List of categories this sale applies to.'),
-        model_field='categories')
+            Category, description="List of categories this sale applies to."
+        ),
+        model_field="categories",
+    )
     collections = gql_optimizer.field(
         PrefetchingConnectionField(
-            Collection,
-            description='List of collections this sale applies to.'),
-        model_field='collections')
+            Collection, description="List of collections this sale applies to."
+        ),
+        model_field="collections",
+    )
     products = gql_optimizer.field(
         PrefetchingConnectionField(
-            Product,
-            description='List of products this sale applies to.'),
-        model_field='products')
+            Product, description="List of products this sale applies to."
+        ),
+        model_field="products",
+    )
     translation = graphene.Field(
         SaleTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description='A language code to return the translation for.',
-            required=True),
-        description=(
-            'Returns translated sale fields for the given language code.'),
-        resolver=resolve_translation)
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=("Returns translated sale fields for the given language code."),
+        resolver=resolve_translation,
+    )
 
     class Meta:
         description = """
@@ -44,7 +48,7 @@ class Sale(CountableDjangoObjectType):
         products and are visible to all the customers."""
         interfaces = [relay.Node]
         model = models.Sale
-        only_fields = ['end_date', 'id', 'name', 'start_date', 'type', 'value']
+        only_fields = ["end_date", "id", "name", "start_date", "type", "value"]
 
     def resolve_categories(self, *_args, **_kwargs):
         return self.categories.all()
@@ -59,31 +63,36 @@ class Sale(CountableDjangoObjectType):
 class Voucher(CountableDjangoObjectType):
     categories = gql_optimizer.field(
         PrefetchingConnectionField(
-            Category,
-            description='List of categories this voucher applies to.'),
-        model_field='categories')
+            Category, description="List of categories this voucher applies to."
+        ),
+        model_field="categories",
+    )
     collections = gql_optimizer.field(
         PrefetchingConnectionField(
-            Collection,
-            description='List of collections this voucher applies to.'),
-        model_field='collections')
+            Collection, description="List of collections this voucher applies to."
+        ),
+        model_field="collections",
+    )
     products = gql_optimizer.field(
         PrefetchingConnectionField(
-            Product,
-            description='List of products this voucher applies to.'),
-        model_field='products')
+            Product, description="List of products this voucher applies to."
+        ),
+        model_field="products",
+    )
     countries = graphene.List(
         CountryDisplay,
-        description='List of countries available for the shipping voucher.')
+        description="List of countries available for the shipping voucher.",
+    )
     translation = graphene.Field(
         VoucherTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description='A language code to return the translation for.',
-            required=True),
-        description=(
-            'Returns translated Voucher fields for the given language code.'),
-        resolver=resolve_translation)
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=("Returns translated Voucher fields for the given language code."),
+        resolver=resolve_translation,
+    )
 
     class Meta:
         description = """
@@ -91,9 +100,19 @@ class Voucher(CountableDjangoObjectType):
         collections or specific products. They can be used during checkout by
         providing valid voucher codes."""
         only_fields = [
-            'apply_once_per_order', 'code', 'discount_value',
-            'discount_value_type', 'end_date', 'id', 'min_amount_spent',
-            'name', 'start_date', 'type', 'usage_limit', 'used']
+            "apply_once_per_order",
+            "code",
+            "discount_value",
+            "discount_value_type",
+            "end_date",
+            "id",
+            "min_amount_spent",
+            "name",
+            "start_date",
+            "type",
+            "usage_limit",
+            "used",
+        ]
         interfaces = [relay.Node]
         model = models.Voucher
 
@@ -109,4 +128,5 @@ class Voucher(CountableDjangoObjectType):
     def resolve_countries(self, *_args, **_kwargs):
         return [
             CountryDisplay(code=country.code, country=country.name)
-            for country in self.countries]
+            for country in self.countries
+        ]

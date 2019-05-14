@@ -63,6 +63,7 @@ export interface OrderDraftPageProps extends WithStyles<typeof styles> {
   onProductClick: (id: string) => void;
   onShippingAddressEdit: () => void;
   onShippingMethodEdit: () => void;
+  onProfileView: () => void;
 }
 
 const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
@@ -82,6 +83,7 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
     onOrderLineRemove,
     onShippingAddressEdit,
     onShippingMethodEdit,
+    onProfileView,
     order,
     users,
     usersLoading
@@ -135,6 +137,7 @@ const OrderDraftPage = withStyles(styles, { name: "OrderDraftPage" })(
             onBillingAddressEdit={onBillingAddressEdit}
             onCustomerEdit={onCustomerEdit}
             onShippingAddressEdit={onShippingAddressEdit}
+            onProfileView={onProfileView}
           />
         </div>
       </Grid>

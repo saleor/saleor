@@ -5,11 +5,9 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
-from . import events
 from ..account.utils import store_user_address
 from ..checkout import AddressType
-from ..core.utils.taxes import (
-    ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
+from ..core.utils.taxes import ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
@@ -18,16 +16,19 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment import ChargeStatus
 from ..payment.utils import gateway_refund, gateway_void
 from ..product.utils import (
-    allocate_stock, deallocate_stock, decrease_stock, increase_stock)
-from ..product.utils.digital_products import (
-    get_default_digital_content_settings)
+    allocate_stock,
+    deallocate_stock,
+    decrease_stock,
+    increase_stock,
+)
+from ..product.utils.digital_products import get_default_digital_content_settings
+from . import events
 
 
 def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     """Check if given line is digital and should be automatically fulfilled"""
     digital_content_settings = get_default_digital_content_settings()
-    default_automatic_fulfillment = (
-        digital_content_settings['automatic_fulfillment'])
+    default_automatic_fulfillment = digital_content_settings["automatic_fulfillment"]
     content = line.variant.digital_content
     if default_automatic_fulfillment and content.use_default_settings:
         return True
@@ -50,15 +51,16 @@ def fulfill_order_line(order_line, quantity):
     if order_line.variant and order_line.variant.track_inventory:
         decrease_stock(order_line.variant, quantity)
     order_line.quantity_fulfilled += quantity
-    order_line.save(update_fields=['quantity_fulfilled'])
+    order_line.save(update_fields=["quantity_fulfilled"])
 
 
 def automatically_fulfill_digital_lines(order: Order):
     """Fulfill all digital lines which have enabled automatic fulfillment
     setting and send confirmation email."""
     digital_lines = order.lines.filter(
-        is_shipping_required=False, variant__digital_content__isnull=False)
-    digital_lines = digital_lines.prefetch_related('variant__digital_content')
+        is_shipping_required=False, variant__digital_content__isnull=False
+    )
+    digital_lines = digital_lines.prefetch_related("variant__digital_content")
 
     if not digital_lines:
         return
@@ -70,8 +72,8 @@ def automatically_fulfill_digital_lines(order: Order):
         digital_content.urls.create(line=line)
         quantity = line.quantity
         FulfillmentLine.objects.create(
-            fulfillment=fulfillment, order_line=line,
-            quantity=quantity)
+            fulfillment=fulfillment, order_line=line, quantity=quantity
+        )
         fulfill_order_line(order_line=line, quantity=quantity)
     emails.send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
 
@@ -88,11 +90,11 @@ def check_order_status(func):
 
     @wraps(func)
     def decorator(*args, **kwargs):
-        token = kwargs.pop('token')
+        token = kwargs.pop("token")
         order = get_object_or_404(Order.objects.confirmed(), token=token)
         if not order.billing_address or order.is_fully_paid():
-            return redirect('order:details', token=order.token)
-        kwargs['order'] = order
+            return redirect("order:details", token=order.token)
+        kwargs["order"] = order
         return func(*args, **kwargs)
 
     return decorator
@@ -103,7 +105,7 @@ def update_voucher_discount(func):
 
     @wraps(func)
     def decorator(*args, **kwargs):
-        if kwargs.pop('update_voucher_discount', True):
+        if kwargs.pop("update_voucher_discount", True):
             order = args[0]
             try:
                 discount_amount = get_voucher_discount_for_order(order)
@@ -145,7 +147,7 @@ def recalculate_order_weight(order):
         if line.variant:
             weight += line.variant.get_weight() * line.quantity
     order.weight = weight
-    order.save(update_fields=['weight'])
+    order.save(update_fields=["weight"])
 
 
 def update_order_prices(order, discounts):
@@ -155,8 +157,7 @@ def update_order_prices(order, discounts):
     for line in order:
         if line.variant:
             line.unit_price = line.variant.get_price(discounts, taxes)
-            line.tax_rate = get_tax_rate_by_name(
-                line.variant.product.tax_rate, taxes)
+            line.tax_rate = get_tax_rate_by_name(line.variant.product.tax_rate, taxes)
             line.save()
 
     if order.shipping_method:
@@ -175,17 +176,19 @@ def cancel_order(user, order, restock):
     events.order_canceled_event(order=order, user=user)
     if restock:
         events.fulfillment_restocked_items_event(
-            order=order, user=user, fulfillment=order)
+            order=order, user=user, fulfillment=order
+        )
         restock_order_lines(order)
 
     for fulfillment in order.fulfillments.all():
         fulfillment.status = FulfillmentStatus.CANCELED
-        fulfillment.save(update_fields=['status'])
+        fulfillment.save(update_fields=["status"])
     order.status = OrderStatus.CANCELED
-    order.save(update_fields=['status'])
+    order.save(update_fields=["status"])
 
     payments = order.payments.filter(is_active=True).exclude(
-        charge_status=ChargeStatus.FULLY_REFUNDED)
+        charge_status=ChargeStatus.FULLY_REFUNDED
+    )
 
     for payment in payments:
         if payment.can_refund():
@@ -208,7 +211,7 @@ def update_order_status(order):
 
     if status != order.status:
         order.status = status
-        order.save(update_fields=['status'])
+        order.save(update_fields=["status"])
 
 
 def cancel_fulfillment(user, fulfillment, restock):
@@ -217,17 +220,19 @@ def cancel_fulfillment(user, fulfillment, restock):
     Return products to corresponding stocks if restock is set to True.
     """
     events.fulfillment_canceled_event(
-        order=fulfillment.order, user=user, fulfillment=fulfillment)
+        order=fulfillment.order, user=user, fulfillment=fulfillment
+    )
     if restock:
         events.fulfillment_restocked_items_event(
-            order=fulfillment.order, user=user, fulfillment=fulfillment)
+            order=fulfillment.order, user=user, fulfillment=fulfillment
+        )
         restock_fulfillment_lines(fulfillment)
     for line in fulfillment:
         order_line = line.order_line
         order_line.quantity_fulfilled -= line.quantity
-        order_line.save(update_fields=['quantity_fulfilled'])
+        order_line.save(update_fields=["quantity_fulfilled"])
     fulfillment.status = FulfillmentStatus.CANCELED
-    fulfillment.save(update_fields=['status'])
+    fulfillment.save(update_fields=["status"])
     update_order_status(fulfillment.order)
 
 
@@ -237,18 +242,19 @@ def attach_order_to_user(order, user):
     store_user_address(user, order.billing_address, AddressType.BILLING)
     if order.shipping_address:
         store_user_address(user, order.shipping_address, AddressType.SHIPPING)
-    order.save(update_fields=['user'])
+    order.save(update_fields=["user"])
 
 
 @transaction.atomic
 def add_variant_to_order(
-        order,
-        variant,
-        quantity,
-        discounts=None,
-        taxes=None,
-        allow_overselling=False,
-        track_inventory=True):
+    order,
+    variant,
+    quantity,
+    discounts=None,
+    taxes=None,
+    allow_overselling=False,
+    track_inventory=True,
+):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
@@ -262,12 +268,12 @@ def add_variant_to_order(
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
-        line.save(update_fields=['quantity'])
+        line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
         product_name = variant.display_product()
         translated_product_name = variant.display_product(translated=True)
         if translated_product_name == product_name:
-            translated_product_name = ''
+            translated_product_name = ""
         line = order.lines.create(
             product_name=product_name,
             translated_product_name=translated_product_name,
@@ -276,7 +282,8 @@ def add_variant_to_order(
             quantity=quantity,
             variant=variant,
             unit_price=variant.get_price(discounts, taxes),
-            tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
+            tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes),
+        )
 
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
@@ -287,7 +294,7 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
         line.quantity = new_quantity
-        line.save(update_fields=['quantity'])
+        line.save(update_fields=["quantity"])
     else:
         delete_order_line(line)
 
@@ -296,12 +303,12 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
     # Create the removal event
     if quantity_diff > 0:
         events.draft_order_removed_products_event(
-            order=line.order, user=user,
-            order_lines=[(quantity_diff, line)])
+            order=line.order, user=user, order_lines=[(quantity_diff, line)]
+        )
     elif quantity_diff < 0:
         events.draft_order_added_products_event(
-            order=line.order, user=user,
-            order_lines=[(quantity_diff * -1, line)])
+            order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
+        )
 
 
 def delete_order_line(line):
@@ -320,15 +327,14 @@ def restock_order_lines(order):
 
         if line.quantity_fulfilled > 0:
             line.quantity_fulfilled = 0
-            line.save(update_fields=['quantity_fulfilled'])
+            line.save(update_fields=["quantity_fulfilled"])
 
 
 def restock_fulfillment_lines(fulfillment):
     """Return fulfilled products to corresponding stocks."""
     for line in fulfillment:
         if line.order_line.variant and line.order_line.variant.track_inventory:
-            increase_stock(
-                line.order_line.variant, line.quantity, allocate=True)
+            increase_stock(line.order_line.variant, line.quantity, allocate=True)
 
 
 def sum_order_totals(qs):

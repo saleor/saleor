@@ -22,7 +22,7 @@ django-graphql-jwt = ">=0.1.13"
 django-impersonate = ">=1.3"
 django-measurement = "==3.0.0"
 django-mptt = ">=0.7.1"
-django-phonenumber-field = ">=1.3.0"
+django-phonenumber-field = ">=1.3.0,<2.4.0"
 django-prices = ">=1.0.2"
 django-prices-openexchangerates = ">=1.0.0"
 django-prices-vatlayer = ">=1.0.2"
@@ -47,7 +47,7 @@ graphene-django = ">=2.2"
 Markdown = ">=2.4"
 maxminddb = "*"
 "maxminddb-geolite2" = "*"
-phonenumberslite = ">=8.9.1"
+phonenumberslite = ">=8.9.1,<8.10.10"
 prices = ">=1.0.0"
 "psycopg2-binary" = ">=2.7"
 purl = ">=0.4.1"
@@ -55,8 +55,8 @@ raven = "==6.9.0"
 requests = ">=1.2.0"
 social-auth-app-django = ">=2.0.0"
 text-unidecode = "*"
-uwsgi = {version = ">=2.0.0", platform_system = "!= 'Windows'"}
-celery = {version = ">=4.3", extras = ["redis"]}
+uwsgi = {version = ">=2.0.0",platform_system = "!= 'Windows'"}
+celery = {version = ">=4.3",extras = ["redis"]}
 redis = "<4.0"
 kombu = "<5.0.0"
 weasyprint = ">=0.42.2"
@@ -65,7 +65,7 @@ braintree = "==3.49.0"
 razorpay = ">=1.1.1"
 stripe = "*"
 "urllib3" = "*"
-"dataclasses" = {version = "*", markers="python_version < '3.7'"}
+dataclasses = {version = "*",markers = "python_version < '3.7'"}
 
 [dev-packages]
 pytest = "*"
@@ -87,3 +87,5 @@ yapf = "*"
 django-extensions = "*"
 pylint-plugin-utils = "*"
 transifex-client = "*"
+black = "==19.3b0"
+pre-commit = "*"

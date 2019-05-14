@@ -9,27 +9,30 @@ import django_prices.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0025_auto_20171214_1015'),
-    ]
+    dependencies = [("order", "0025_auto_20171214_1015")]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='orderline',
-            options={},
-        ),
-        migrations.RemoveField(
-            model_name='deliverygroup',
-            name='shipping_price',
-        ),
+        migrations.AlterModelOptions(name="orderline", options={}),
+        migrations.RemoveField(model_name="deliverygroup", name="shipping_price"),
         migrations.AddField(
-            model_name='order',
-            name='shipping_price',
-            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=4, default=0, editable=False, max_digits=12, verbose_name='shipping price'),
+            model_name="order",
+            name="shipping_price",
+            field=django_prices.models.MoneyField(
+                currency=settings.DEFAULT_CURRENCY,
+                decimal_places=4,
+                default=0,
+                editable=False,
+                max_digits=12,
+                verbose_name="shipping price",
+            ),
         ),
         migrations.AlterField(
-            model_name='orderhistoryentry',
-            name='status',
-            field=models.CharField(choices=[('open', 'Open'), ('closed', 'Closed')], max_length=32, verbose_name='order status'),
+            model_name="orderhistoryentry",
+            name="status",
+            field=models.CharField(
+                choices=[("open", "Open"), ("closed", "Closed")],
+                max_length=32,
+                verbose_name="order status",
+            ),
         ),
     ]

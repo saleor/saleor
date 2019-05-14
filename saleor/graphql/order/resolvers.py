@@ -9,8 +9,7 @@ from ..utils import filter_by_period, filter_by_query_param
 from .enums import OrderStatusFilter
 from .types import Order
 
-ORDER_SEARCH_FIELDS = (
-    'id', 'discount_name', 'token', 'user_email', 'user__email')
+ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
 
 def filter_orders(qs, info, created, status, query):
@@ -25,7 +24,7 @@ def filter_orders(qs, info, created, status, query):
 
     # filter orders by creation date
     if created is not None:
-        qs = filter_by_period(qs, created, 'created')
+        qs = filter_by_period(qs, created, "created")
 
     return gql_optimizer.query(qs, info)
 
@@ -42,7 +41,7 @@ def resolve_draft_orders(info, created, query):
 
 def resolve_orders_total(_info, period):
     qs = models.Order.objects.confirmed().exclude(status=OrderStatus.CANCELED)
-    qs = filter_by_period(qs, period, 'created')
+    qs = filter_by_period(qs, period, "created")
     return sum_order_totals(qs)
 
 
@@ -50,7 +49,7 @@ def resolve_order(info, order_id):
     """Return order only for user assigned to it or proper staff user."""
     user = info.context.user
     order = graphene.Node.get_node_from_global_id(info, order_id, Order)
-    if user.has_perm('order.manage_orders') or order.user == user:
+    if user.has_perm("order.manage_orders") or order.user == user:
         return order
     return None
 
@@ -58,8 +57,10 @@ def resolve_order(info, order_id):
 def resolve_homepage_events():
     # Filter only selected events to be displayed on homepage.
     types = [
-        OrderEvents.PLACED, OrderEvents.PLACED_FROM_DRAFT,
-        OrderEvents.ORDER_FULLY_PAID]
+        OrderEvents.PLACED,
+        OrderEvents.PLACED_FROM_DRAFT,
+        OrderEvents.ORDER_FULLY_PAID,
+    ]
     return OrderEvent.objects.filter(type__in=types)
 
 
