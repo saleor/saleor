@@ -55,21 +55,6 @@ def were_customers_properly_deleted(
     )
 
 
-def was_digital_good_download_event_properly_generated(
-    download_event: customer_events.CustomerEvent,
-    expected_order_line: Optional[customer_events.OrderLine],
-    expected_user: Optional[customer_events.UserType],
-):
-    """Ensure a digital good download event was properly generated
-    during a given test case."""
-
-    # Check that the event contains all the expected and valid data
-    assert download_event.type == customer_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED
-    assert download_event.user == expected_user
-    assert download_event.order == expected_order_line.order
-    assert download_event.parameters == {"order_line_pk": expected_order_line.pk}
-
-
 def assert_is_proper_customer_event_node(
     received_node: Dict, event: customer_events.CustomerEvent
 ):
