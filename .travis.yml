@@ -9,15 +9,22 @@ cache:
   pip: true
   directories:
     - node_modules
+    - $HOME/.cache/pip
 install:
   - pip install -U pip setuptools wheel
   - pip install tox-travis
-  - nvm install 10
-  - npm i
-  - npm run build-assets --production
-  - npm run build-emails
+  - >
+    if [ ! -z "$DJANGO" ]; then
+      nvm install 10 \
+        && npm i \
+        && npm run build-assets --production \
+        && npm run build-emails
+    fi
 script:
-  - npm run test
+  - >
+    if [ ! -z "$DJANGO" ]; then
+      npm run test
+    fi
   - tox
 env:
   global:
@@ -28,6 +35,11 @@ env:
   - DJANGO="master"
 matrix:
   fast_finish: true
+  include:
+    - env: TOXENV=black
+      python: "3.6"
+    - env: TOXENV=flake8
+      python: "3.6"
   allow_failures:
     - python: "3.6"
       env: DJANGO="master"
