@@ -17,12 +17,12 @@ class VoucherTypeEnum(graphene.Enum):
 
 
 class DiscountStatusEnum(graphene.Enum):
-    ACTIVE = 'active'
-    EXPIRED = 'expired'
-    SCHEDULED = 'scheduled'
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    SCHEDULED = "scheduled"
 
 
 class VoucherDiscountType(graphene.Enum):
-    FIXED = 'fixed'
-    PERCENTAGE = 'percentage'
-    SHIPPING = 'shipping'
+    FIXED = "fixed"
+    PERCENTAGE = "percentage"
+    SHIPPING = "shipping"

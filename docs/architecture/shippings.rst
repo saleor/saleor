@@ -25,7 +25,7 @@ Each ``ShippmentMethod`` could be one of the two types:
 - ``PRICE_BASED``
     Those methods can be used only when the order price is within the certain range, eg. from 0 to 50$, 50$ and up etc.
 
-- ``WEGHT_BASED``
+- ``WEIGHT_BASED``
     Same as the ``PRICE_BASED``, but with the total order's weight in mind.
 
 These methods allow you to cover most of the basic use cases, eg.

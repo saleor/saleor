@@ -1,10 +1,8 @@
 import * as React from "react";
 
-import Toggle, { ToggleFuncs } from "../Toggle";
-
 interface IAppProgressContext {
-  value: boolean;
-  funcs: ToggleFuncs;
+  isProgress: boolean;
+  setProgressState: (isOpened: boolean) => void;
 }
 
 export const AppProgressContext = React.createContext<IAppProgressContext>(
@@ -13,20 +11,20 @@ export const AppProgressContext = React.createContext<IAppProgressContext>(
 
 export const AppProgressProvider: React.StatelessComponent<{}> = ({
   children
-}) => (
-  <Toggle>
-    {(value, funcs) => (
-      <AppProgressContext.Provider
-        value={{
-          funcs,
-          value
-        }}
-      >
-        {children}
-      </AppProgressContext.Provider>
-    )}
-  </Toggle>
-);
+}) => {
+  const [isProgress, setProgressState] = React.useState(false);
+
+  return (
+    <AppProgressContext.Provider
+      value={{
+        isProgress,
+        setProgressState
+      }}
+    >
+      {children}
+    </AppProgressContext.Provider>
+  );
+};
 
 export const AppProgress = AppProgressContext.Consumer;
 export default AppProgress;

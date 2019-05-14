@@ -7,14 +7,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0013_auto_20160906_0741'),
-    ]
+    dependencies = [("order", "0013_auto_20160906_0741")]
 
     operations = [
         migrations.RenameField(
-            model_name='order',
-            old_name='anonymous_user_email',
-            new_name='user_email',
-        ),
+            model_name="order", old_name="anonymous_user_email", new_name="user_email"
+        )
     ]

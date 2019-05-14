@@ -4,7 +4,7 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Mikkel Scheike, 2019
+# Mikkel, 2019
 # Haris Kljajic <haris@virtualathlete.it>, 2019
 # André Karlsson <andre@sess.se>, 2019
 # 
@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-18 07:39-0500\n"
+"POT-Creation-Date: 2019-04-08 06:18-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: André Karlsson <andre@sess.se>, 2019\n"
 "Language-Team: Swedish (https://www.transifex.com/mirumee/teams/34782/sv/)\n"
@@ -53,102 +53,102 @@ msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr "Efternamn"
 
-#: saleor/account/i18n.py:18
+#: saleor/account/i18n.py:19
 msgctxt "Address field"
 msgid "Area"
 msgstr "Område"
 
-#: saleor/account/i18n.py:19
+#: saleor/account/i18n.py:20
 msgctxt "Address field"
 msgid "County"
 msgstr "Land"
 
-#: saleor/account/i18n.py:20
+#: saleor/account/i18n.py:21
 msgctxt "Address field"
 msgid "Department"
 msgstr "Avdelning"
 
-#: saleor/account/i18n.py:21
+#: saleor/account/i18n.py:22
 msgctxt "Address field"
 msgid "District"
 msgstr "Distrikt"
 
-#: saleor/account/i18n.py:22
+#: saleor/account/i18n.py:23
 msgctxt "Address field"
 msgid "Do/si"
 msgstr "Do/si"
 
-#: saleor/account/i18n.py:23
+#: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Eircode"
 msgstr "ELI kod"
 
-#: saleor/account/i18n.py:24
+#: saleor/account/i18n.py:25
 msgctxt "Address field"
 msgid "Emirate"
 msgstr "Emirate"
 
-#: saleor/account/i18n.py:25
+#: saleor/account/i18n.py:26
 msgctxt "Address field"
 msgid "Island"
 msgstr "Island"
 
-#: saleor/account/i18n.py:26
+#: saleor/account/i18n.py:27
 msgctxt "Address field"
 msgid "Neighborhood"
 msgstr "Grannskap"
 
-#: saleor/account/i18n.py:27
+#: saleor/account/i18n.py:28
 msgctxt "Address field"
 msgid "Oblast"
 msgstr "Område"
 
-#: saleor/account/i18n.py:28
+#: saleor/account/i18n.py:29
 msgctxt "Address field"
 msgid "Parish"
 msgstr "Socken"
 
-#: saleor/account/i18n.py:29
+#: saleor/account/i18n.py:30
 msgctxt "Address field"
 msgid "PIN"
 msgstr "PIN"
 
-#: saleor/account/i18n.py:30
+#: saleor/account/i18n.py:31
 msgctxt "Address field"
 msgid "Postal code"
 msgstr "Postnummer"
 
-#: saleor/account/i18n.py:31
+#: saleor/account/i18n.py:32
 msgctxt "Address field"
 msgid "Prefecture"
 msgstr "Prefektur"
 
-#: saleor/account/i18n.py:32
+#: saleor/account/i18n.py:33
 msgctxt "Address field"
 msgid "Province"
 msgstr "Provins"
 
-#: saleor/account/i18n.py:33
+#: saleor/account/i18n.py:34
 msgctxt "Address field"
 msgid "State"
 msgstr "Län"
 
-#: saleor/account/i18n.py:34
+#: saleor/account/i18n.py:35
 msgctxt "Address field"
 msgid "Suburb"
 msgstr "Förort"
 
-#: saleor/account/i18n.py:35
+#: saleor/account/i18n.py:36
 msgctxt "Address field"
 msgid "Townland"
 msgstr "Samhälle"
 
-#: saleor/account/i18n.py:36
+#: saleor/account/i18n.py:37
 msgctxt "Address field"
 msgid "Village/township"
 msgstr "Samhälle"
 
-#: saleor/account/i18n.py:37
+#: saleor/account/i18n.py:38
 msgctxt "Address field"
 msgid "ZIP code"
 msgstr "Postnummer"
@@ -213,7 +213,11 @@ msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
 msgstr "Lägenhetsnummer våning etc."
 
-#: saleor/account/i18n.py:170
+#: saleor/account/i18n.py:155 saleor/account/validators.py:11
+msgid "The phone number entered is not valid."
+msgstr "Felaktigt telefonnummer"
+
+#: saleor/account/i18n.py:195
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Felaktigt värde för valt land"
@@ -248,10 +252,6 @@ msgid ""
 msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
-
-#: saleor/account/validators.py:11
-msgid "The phone number entered is not valid."
-msgstr "Felaktigt telefonnummer"
 
 #: saleor/account/views.py:31
 msgid "You have been successfully logged out."
@@ -590,22 +590,22 @@ msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "Du är nu inloggad som {}"
 
-#: saleor/core/weight.py:33
+#: saleor/core/weight.py:32
 msgctxt "Kilogram weight unit symbol"
 msgid "kg"
 msgstr "kg"
 
-#: saleor/core/weight.py:34
+#: saleor/core/weight.py:33
 msgctxt "Pound weight unit symbol"
 msgid "lb"
 msgstr "lb"
 
-#: saleor/core/weight.py:35
+#: saleor/core/weight.py:34
 msgctxt "Ounce weight unit symbol"
 msgid "oz"
 msgstr "oz"
 
-#: saleor/core/weight.py:36
+#: saleor/core/weight.py:35
 msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr "g"
@@ -681,7 +681,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr "Detta erbjudande gäller bara på beställningar över %(amount)s"
 
-#: saleor/discount/models.py:180
+#: saleor/discount/models.py:181
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "Hantera försäljning och kuponger"
@@ -699,7 +699,7 @@ msgid_plural "Only %(quantity)d items remaining to fulfill."
 msgstr[0] "Endas t %(quantity)d vara kvar för att uppfylla "
 msgstr[1] "Endast %(quantity)d varor kvar för att uppfylla "
 
-#: saleor/graphql/order/mutations/fulfillments.py:216
+#: saleor/graphql/order/mutations/fulfillments.py:218
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr "Denna uppfyllelse kan inte avbrytas"
@@ -910,7 +910,7 @@ msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "Hantera ordrar"
 
-#: saleor/order/models.py:344
+#: saleor/order/models.py:368
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -1053,7 +1053,7 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr "Total betalning"
 
-#: saleor/payment/utils.py:236
+#: saleor/payment/utils.py:239
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
@@ -1129,10 +1129,15 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:129
+#: saleor/product/models.py:131
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "Hantera produkter"
+
+#: saleor/product/models.py:316
+msgctxt "File as a digital product"
+msgid "digital_product"
+msgstr ""
 
 #: saleor/search/forms.py:9
 msgctxt "Search form label"
@@ -1252,35 +1257,43 @@ msgid "Serbian"
 msgstr ""
 
 #: saleor/settings.py:89
+msgid "Swahili"
+msgstr ""
+
+#: saleor/settings.py:90
 msgid "Swedish"
 msgstr "Svenska"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:91
+msgid "Thai"
+msgstr ""
+
+#: saleor/settings.py:92
 msgid "Turkish"
 msgstr "Turkisk"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:93
 msgid "Ukrainian"
 msgstr "Ukrainsk"
 
-#: saleor/settings.py:92
+#: saleor/settings.py:94
 msgid "Vietnamese"
 msgstr "Vietnamesisk"
 
-#: saleor/settings.py:93
+#: saleor/settings.py:95
 msgid "Simplified Chinese"
 msgstr "Förenklad kinesiska"
 
-#: saleor/settings.py:94
+#: saleor/settings.py:96
 msgid "Traditional Chinese"
 msgstr "Traditionell kinesiska"
 
-#: saleor/settings.py:330
+#: saleor/settings.py:332
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "europeiska unionen"
 
-#: saleor/settings.py:567
+#: saleor/settings.py:573
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr "Dummy gateway"
@@ -1330,12 +1343,12 @@ msgctxt "Applies to orders of total weight within this range"
 msgid "%(min_weight)s to %(max_weight)s"
 msgstr "%(min_weight)s till %(max_weight)s"
 
-#: saleor/site/models.py:40
+#: saleor/site/models.py:42
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr "Hantera inställningar"
 
-#: saleor/site/models.py:42
+#: saleor/site/models.py:44
 msgctxt "Permission description"
 msgid "Manage translations."
 msgstr ""
@@ -6305,14 +6318,14 @@ msgstr ""
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
-msgid "A shipment from order %(order)s is on the way"
-msgstr "En leverans för order %(order)s är på väg"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
 
 #: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
 msgid ""
 "\n"
-"Thank you for your order. Below is the list of shipped products.\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
 msgstr ""
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
@@ -6466,8 +6479,14 @@ msgstr ""
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
-msgid "Thank you for your order. Below is the list of shipped products."
-msgstr "Tack för din order. Nedan följer en lista på levererade produkter."
+msgid "Thank you for your order. Below is the list of fulfilled products."
+msgstr ""
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
+msgctxt "Fulfillment digital products email text"
+msgid ""
+"You can download your digital products by clicking in download link(s)."
+msgstr ""
 
 #: templates/templated_email/source/confirm_order.mjml:17
 #, python-format

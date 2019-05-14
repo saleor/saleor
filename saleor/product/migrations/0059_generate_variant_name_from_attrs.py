@@ -7,16 +7,17 @@ from saleor.product.utils.attributes import get_attributes_display_map
 def get_name_from_attributes(variant):
     attributes = variant.product.product_type.variant_attributes.all()
     values = get_attributes_display_map(variant, attributes)
-    return ' / '.join(
+    return " / ".join(
         attributechoice.name
-        for attribute_pk, attributechoice in sorted(
-            values.items(), key=lambda x: x[0]))
+        for attribute_pk, attributechoice in sorted(values.items(), key=lambda x: x[0])
+    )
 
 
 def create_variant_name_based_on_attributes(apps, schema_editor):
-    ProductVariant = apps.get_model('product', 'ProductVariant')
+    ProductVariant = apps.get_model("product", "ProductVariant")
     for variant in ProductVariant.objects.prefetch_related(
-            'product__product_type__variant_attributes__values'):
+        "product__product_type__variant_attributes__values"
+    ):
         new_name = get_name_from_attributes(variant)
         if variant.name != new_name:
             variant.name = new_name
@@ -25,10 +26,10 @@ def create_variant_name_based_on_attributes(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0058_auto_20180329_0142'),
-    ]
+    dependencies = [("product", "0058_auto_20180329_0142")]
 
     operations = [
-        migrations.RunPython(create_variant_name_based_on_attributes, migrations.RunPython.noop)
+        migrations.RunPython(
+            create_variant_name_based_on_attributes, migrations.RunPython.noop
+        )
     ]

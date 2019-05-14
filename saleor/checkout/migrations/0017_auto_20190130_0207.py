@@ -5,14 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('checkout', '0016_auto_20190112_0506'),
-    ]
+    dependencies = [("checkout", "0016_auto_20190112_0506")]
 
     operations = [
         migrations.AlterField(
-            model_name='cart',
-            name='email',
-            field=models.EmailField(max_length=254),
-        ),
+            model_name="cart", name="email", field=models.EmailField(max_length=254)
+        )
     ]

@@ -8,14 +8,17 @@ import saleor.core
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('checkout', '0014_auto_20180921_0751'),
-    ]
+    dependencies = [("checkout", "0014_auto_20180921_0751")]
 
     operations = [
         migrations.AlterField(
-            model_name='cart',
-            name='discount_amount',
-            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=2, default=saleor.core.utils.taxes.zero_money, max_digits=12),
-        ),
+            model_name="cart",
+            name="discount_amount",
+            field=django_prices.models.MoneyField(
+                currency=settings.DEFAULT_CURRENCY,
+                decimal_places=2,
+                default=saleor.core.utils.taxes.zero_money,
+                max_digits=12,
+            ),
+        )
     ]

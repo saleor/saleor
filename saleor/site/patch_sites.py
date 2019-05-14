@@ -17,11 +17,12 @@ with lock:
 
 def new_get_current(self, request=None):
     from django.conf import settings
-    if getattr(settings, 'SITE_ID', ''):
+
+    if getattr(settings, "SITE_ID", ""):
         site_id = settings.SITE_ID
         if site_id not in THREADED_SITE_CACHE:
             with lock:
-                site = self.prefetch_related('settings').filter(pk=site_id)[0]
+                site = self.prefetch_related("settings").filter(pk=site_id)[0]
                 THREADED_SITE_CACHE[site_id] = site
         return THREADED_SITE_CACHE[site_id]
     elif request:
@@ -30,8 +31,9 @@ def new_get_current(self, request=None):
             # First attempt to look up the site by host with or without port.
             if host not in THREADED_SITE_CACHE:
                 with lock:
-                    site = self.prefetch_related('settings').filter(
-                        domain__iexact=host)[0]
+                    site = self.prefetch_related("settings").filter(
+                        domain__iexact=host
+                    )[0]
                     THREADED_SITE_CACHE[host] = site
             return THREADED_SITE_CACHE[host]
         except Site.DoesNotExist:
@@ -39,8 +41,9 @@ def new_get_current(self, request=None):
             domain, dummy_port = split_domain_port(host)
             if domain not in THREADED_SITE_CACHE:
                 with lock:
-                    site = self.prefetch_related('settings').filter(
-                        domain__iexact=domain)[0]
+                    site = self.prefetch_related("settings").filter(
+                        domain__iexact=domain
+                    )[0]
                     THREADED_SITE_CACHE[domain] = site
         return THREADED_SITE_CACHE[domain]
 
@@ -48,7 +51,8 @@ def new_get_current(self, request=None):
         "You're using the Django sites framework without having"
         " set the SITE_ID setting. Create a site in your database and"
         " set the SITE_ID setting or pass a request to"
-        " Site.objects.get_current() to fix this error.")
+        " Site.objects.get_current() to fix this error."
+    )
 
 
 def new_clear_cache(self):
@@ -58,7 +62,7 @@ def new_clear_cache(self):
 
 
 def new_get_by_natural_key(self, domain):
-    return self.prefetch_related('settings').filter(domain__iexact=domain)[0]
+    return self.prefetch_related("settings").filter(domain__iexact=domain)[0]
 
 
 def patch_contrib_sites():

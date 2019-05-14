@@ -25,6 +25,7 @@ const props: Omit<OrderDraftPageProps, "classes"> = {
   onOrderLineChange: () => undefined,
   onOrderLineRemove: () => () => undefined,
   onProductClick: undefined,
+  onProfileView: () => undefined,
   onShippingAddressEdit: undefined,
   onShippingMethodEdit: undefined,
   order,
