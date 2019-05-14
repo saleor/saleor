@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -15,6 +14,7 @@ import * as React from "react";
 
 import { SearchCollections_collections_edges_node } from "../../containers/SearchCollections/types/SearchCollections";
 import i18n from "../../i18n";
+import Checkbox from "../Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "../ConfirmButton/ConfirmButton";
