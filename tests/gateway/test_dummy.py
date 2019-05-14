@@ -151,7 +151,10 @@ def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "initial_captured_amount, refund_amount, final_captured_amount, final_charge_status, active_after",
+    (
+        "initial_captured_amount, refund_amount, final_captured_amount, "
+        "final_charge_status, active_after"
+    ),
     [
         (80, 80, 0, ChargeStatus.FULLY_REFUNDED, False),
         (80, 10, 70, ChargeStatus.PARTIALLY_REFUNDED, True),

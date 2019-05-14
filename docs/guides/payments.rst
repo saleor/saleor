@@ -40,7 +40,7 @@ Example
 .. note::
 
     All the below functions receive ``payment_information`` as a dataclass: ``PaymentData`` and ``config`` as a dataclass: ``ConfigData``. 
-    Functions should return a response as a dataclass: ``GatewayResponse``. 
+    Those functions should return a response as a dataclass: ``GatewayResponse``. 
     The description of the given structures can be found below.
 
 
@@ -444,7 +444,8 @@ Please take a moment to consider the example settings above.
     List of parameters used for connecting to the payment's gateway.
 
 - ``auto_capture``
-    Define if the gateway should also capture funds from the card. When auto_capture is set to False, funds will be blocked but manual capture will be required.
+    Define if the gateway should also capture funds from the card. When ``auto_capture`` is set to ``False``, funds will be blocked by the customer's bank for a 7-days period, a manual capture will be required.
+
 
 .. note::
 
