@@ -910,6 +910,9 @@ input FulfillmentUpdateTrackingInput {
 
 enum GatewaysEnum {
   DUMMY
+  BRAINTREE
+  RAZORPAY
+  STRIPE
 }
 
 scalar GenericScalar
@@ -946,6 +949,7 @@ enum LanguageCodeEnum {
   DE
   EN
   ES
+  ES_CO
   ET
   FA
   FR
@@ -956,6 +960,7 @@ enum LanguageCodeEnum {
   IT
   JA
   KO
+  LT
   MN
   NB
   NL
@@ -965,6 +970,7 @@ enum LanguageCodeEnum {
   RO
   RU
   SK
+  SQ
   SR
   SW
   SV
