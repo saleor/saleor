@@ -1,6 +1,7 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
-from mock import patch
 
 from saleor.account.models import User
 from saleor.discount.models import Sale, Voucher
