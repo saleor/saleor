@@ -19,9 +19,8 @@ export const ControlledCheckbox: React.StatelessComponent<
     control={
       <Checkbox
         checked={checked}
-        color="primary"
         name={name}
-        onChange={() => onChange({ target: { name, value: !checked } })}
+        onClick={() => onChange({ target: { name, value: !checked } })}
       />
     }
     label={label}
