@@ -4,6 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Fix translation discard btn - #4109 by @benekex2
+
 ...
 
 ## 2.6.0
