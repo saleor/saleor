@@ -6,6 +6,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from mock import patch
 from templated_email import send_templated_mail
 
 from saleor.account.models import CustomerNote, User
@@ -16,8 +17,6 @@ from saleor.dashboard.customer.forms import (
     CustomerNoteForm,
 )
 from saleor.settings import DEFAULT_FROM_EMAIL
-
-from ..checks import customers as customer_checks
 
 
 def test_ajax_users_list(admin_client, admin_user, customer_user):
@@ -110,8 +109,12 @@ def test_view_delete_customer(admin_client, admin_user, customer_user):
     assert response.status_code == 302
 
 
+@patch(
+    "saleor.dashboard.customer.views.customer_events"
+    ".staff_user_deleted_a_customer_event"
+)
 def test_deleting_a_customer_generates_an_event(
-    admin_client, admin_user, customer_user
+    mocked_deletion_event, admin_client, admin_user, customer_user
 ):
     """Deleting a customer as a staff admin should generate an event
     and this event should remain anonymous as a customer point of view (GDPR)."""
@@ -122,7 +125,7 @@ def test_deleting_a_customer_generates_an_event(
 
     # Ensure the customer was properly deleted
     # and any related event was properly triggered
-    customer_checks.was_customer_properly_deleted(admin_user, customer_user)
+    mocked_deletion_event.assert_called_once_with(staff_user=admin_user)
 
 
 def test_form_delete_customer(
