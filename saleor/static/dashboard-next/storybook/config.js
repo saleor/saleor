@@ -7,6 +7,7 @@ function loadStories() {
   require("./stories/components/AddressEdit");
   require("./stories/components/AddressFormatter");
   require("./stories/components/CardMenu");
+  require("./stories/components/Checkbox");
   require("./stories/components/Date");
   require("./stories/components/DateTime");
   require("./stories/components/EditableTableCell");
