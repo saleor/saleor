@@ -4,7 +4,7 @@ import graphene
 
 from ...giftcard import models
 from ...giftcard.utils import generate_gift_card_code
-from ..core.mutations import ModelMutation
+from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import Decimal
 from .types import GiftCard
 
@@ -65,3 +65,24 @@ class GiftCardUpdate(GiftCardCreate):
     def save(cls, info, instance, cleaned_input):
         instance.last_used_on = date.today()
         super().save(info, instance, cleaned_input)
+
+
+class GiftCardDeactivate(BaseMutation):
+    gift_card = graphene.Field(GiftCard, description="A gift card to deactivate.")
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a gift card to deactivate.")
+
+    class Meta:
+        description = "Deactivate a gift card."
+        permissions = ("giftcard.manage_gift_card",)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id):
+        gift_card = cls.get_node_or_error(
+            info, id, field="gift_card_id", only_type=GiftCard
+        )
+        gift_card.is_active = False
+        gift_card.last_used_on = date.today()
+        gift_card.save()
+        return GiftCardDeactivate(gift_card=gift_card)
