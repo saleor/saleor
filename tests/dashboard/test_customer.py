@@ -17,7 +17,7 @@ from saleor.dashboard.customer.forms import (
 )
 from saleor.settings import DEFAULT_FROM_EMAIL
 
-from ..checks import events as events_checks
+from ..checks import customers as customer_checks
 
 
 def test_ajax_users_list(admin_client, admin_user, customer_user):
@@ -122,7 +122,7 @@ def test_deleting_a_customer_generates_an_event(
 
     # Ensure the customer was properly deleted
     # and any related event was properly triggered
-    events_checks.was_customer_properly_deleted(admin_user, customer_user)
+    customer_checks.was_customer_properly_deleted(admin_user, customer_user)
 
 
 def test_form_delete_customer(
