@@ -27,7 +27,7 @@ from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
 
-from ..checks import events as events_checks
+from ..checks import customers as customer_checks
 from .utils import (
     assert_no_permission,
     convert_dict_keys_to_camel_case,
@@ -813,7 +813,7 @@ def test_customer_delete(
 
     # Ensure the customer was properly deleted
     # and any related event was properly triggered
-    events_checks.was_customer_properly_deleted(staff_user, customer_user)
+    customer_checks.was_customer_properly_deleted(staff_user, customer_user)
 
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):

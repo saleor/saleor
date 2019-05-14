@@ -1,8 +1,12 @@
+from dataclasses import dataclass
+from typing import Optional
+
 import graphene
+import pytest
+from django.db import models
 
 from saleor.account import events as account_events
 
-from ..checks import events as events_checks
 from .utils import get_graphql_content
 
 QUERY_CUSTOMER_EVENTS = """
@@ -11,8 +15,6 @@ query customerEvents($customerId: ID!) {
     id
     events {
       id
-      type
-      date
       type
       user {
         id
@@ -53,111 +55,130 @@ def test_account_events_are_properly_restricted(
     assert content["events"] == []
 
 
+@dataclass
+class _ExpectedCustomerEventData:
+    id: str
+    user: str
+    count: Optional[int]
+    message: Optional[str]
+    order: Optional[str]
+    orderLine: Optional[str]  # noqa
+    type: str
+
+    def __setattr__(self, key, value):
+        """Converts a model object value to a gql node id"""
+        if isinstance(value, models.Model):
+            value = graphene.Node.to_global_id(value.__class__.__name__, value.pk)
+        elif isinstance(value, dict) and len(value) == 1:
+            _, value = value.popitem()
+        return super().__setattr__(key, value)
+
+
+@pytest.mark.parametrize(
+    "_test_name, event, expected_event_data",
+    [
+        (
+            "customer_placed_order_event",
+            lambda **kwargs: account_events.customer_placed_order_event(
+                user=kwargs["customer_user"], order=kwargs["order"]
+            ),
+            lambda **kwargs: _ExpectedCustomerEventData(
+                id=kwargs["event"],
+                user=kwargs["customer_user"],
+                count=None,
+                message=None,
+                order=kwargs["order"],
+                orderLine=None,
+                type=account_events.CustomerEvents.PLACED_ORDER.upper(),
+            ),
+        ),
+        (
+            "customer_added_to_note_order_event",
+            lambda **kwargs: account_events.customer_added_to_note_order_event(
+                user=kwargs["customer_user"],
+                order=kwargs["order"],
+                message="418 - I'm a teapot.",
+            ),
+            lambda **kwargs: _ExpectedCustomerEventData(
+                id=kwargs["event"],
+                user=kwargs["customer_user"],
+                count=None,
+                message="418 - I'm a teapot.",
+                order=kwargs["order"],
+                orderLine=None,
+                type=account_events.CustomerEvents.NOTE_ADDED_TO_ORDER.upper(),
+            ),
+        ),
+        (
+            "customer_downloaded_a_digital_link_event",
+            lambda **kwargs: account_events.customer_downloaded_a_digital_link_event(
+                user=kwargs["customer_user"], order_line=kwargs["order_line"]
+            ),
+            lambda **kwargs: _ExpectedCustomerEventData(
+                id=kwargs["event"],
+                user=kwargs["customer_user"],
+                count=None,
+                message=None,
+                order=kwargs["order"],
+                orderLine=kwargs["order_line"],
+                type=account_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED.upper(),
+            ),
+        ),
+        (
+            "staff_user_deleted_a_customer_event",
+            lambda **kwargs: account_events.staff_user_deleted_a_customer_event(
+                staff_user=kwargs["staff_user"], deleted_count=123
+            ),
+            lambda **kwargs: _ExpectedCustomerEventData(
+                id=kwargs["event"],
+                user=kwargs["staff_user"],
+                count=123,
+                message=None,
+                order=None,
+                orderLine=None,
+                type=account_events.CustomerEvents.CUSTOMER_DELETED.upper(),
+            ),
+        ),
+    ],
+)
 def test_account_events_resolve_properly(
-    staff_api_client, staff_user, customer_user, order_line, permission_manage_users
+    staff_api_client,
+    staff_user,
+    customer_user,
+    order_line,
+    permission_manage_users,
+    _test_name,
+    event,
+    expected_event_data,
 ):
     """Create every possible event and attempt to resolve them and
     check if they properly returned all the expected data."""
 
     # Prepare test
+    order = order_line.order
     staff_api_client.user.user_permissions.add(permission_manage_users)
-    expected_event_count = len(account_events.CustomerEvents.CHOICES)
-
-    # Create every event
-    placed_order_event = account_events.customer_placed_order_event(
-        user=customer_user, order=order_line.order
-    )
-    note_added_event = account_events.customer_added_to_note_order_event(
-        user=customer_user, order=order_line.order, message="418 - I'm a teapot."
-    )
-    download_event = account_events.customer_downloaded_a_digital_link_event(
-        user=customer_user, order_line=order_line
-    )
-    customer_deleted_event = account_events.staff_user_deleted_a_customer_event(
-        staff_user=staff_user, deleted_count=123
-    )
-
-    # Test data
-    customer_events = [placed_order_event, note_added_event, download_event]
-    staff_events = [customer_deleted_event]
-
-    # Ensure all events were created and *will* be tested properly by the maintainers
-    assert account_events.CustomerEvent.objects.count() == expected_event_count, (
-        "Not all events were created or were improperly created. "
-        "Please ensure you test them all."
-    )
+    event = event(**locals())  # type: account_events.CustomerEvent
+    expected_event_data = expected_event_data(
+        **locals()
+    )  # type: _ExpectedCustomerEventData
 
     # Retrieve the events
-    received_customer_events = get_graphql_content(
+    event_associated_user = event.user
+
+    received_events = get_graphql_content(
         staff_api_client.post_graphql(
             QUERY_CUSTOMER_EVENTS,
             variables={
-                "customerId": graphene.Node.to_global_id("User", customer_user.id)
+                "customerId": graphene.Node.to_global_id(
+                    "User", event_associated_user.id
+                )
             },
-        )
-    )["data"]["user"]["events"]
-    received_staff_events = get_graphql_content(
-        staff_api_client.post_graphql(
-            QUERY_CUSTOMER_EVENTS,
-            variables={"customerId": graphene.Node.to_global_id("User", staff_user.id)},
         )
     )["data"]["user"]["events"]
 
     # Ensure the correct count of events was returned
-    assert len(received_customer_events) == len(
-        customer_events
-    ), "Not all expected customer events were returned"
-    assert len(received_staff_events) == len(
-        staff_events
-    ), "Not all expected staff events were returned"
-
-    # Ensure the events have the expected base customer event data
-    for event_node, db_event_object in zip(received_customer_events, customer_events):
-        events_checks.assert_is_proper_customer_event_node(event_node, db_event_object)
-
-    # Prepare the events to check them individually
-    received_customer_events = iter(received_customer_events)
-    received_staff_events = iter(received_staff_events)
-
-    # Test the order placement event
-    placed_order_event = next(received_customer_events)
-    events_checks.assert_additional_customer_event_node(
-        placed_order_event,
-        expected_count=None,
-        expected_message=None,
-        expected_order_line=None,
-    )
-
-    # Test the order note added event
-    note_added_event = next(received_customer_events)
-    events_checks.assert_additional_customer_event_node(
-        note_added_event,
-        expected_count=None,
-        expected_message="418 - I'm a teapot.",
-        expected_order_line=None,
-    )
-
-    # Test the a digital good was downloaded event
-    download_event = next(received_customer_events)
-    events_checks.assert_additional_customer_event_node(
-        download_event,
-        expected_count=None,
-        expected_message=None,
-        expected_order_line=order_line,
-    )
-
-    # Process the staff event: customers were deleted
-    customer_deleted_event = next(received_staff_events)
-    events_checks.assert_additional_customer_event_node(
-        customer_deleted_event,
-        expected_count=123,
-        expected_message=None,
-        expected_order_line=None,
-    )
-
-    # Ensure all events were tested
-    assert next(received_customer_events, None) is None
-    assert next(received_staff_events, None) is None
+    assert len(received_events) == 1, "The expected event was not returned"
+    assert _ExpectedCustomerEventData(**received_events[0]) == expected_event_data
 
 
 def test_account_invalid_or_deleted_order_line_return_null(
