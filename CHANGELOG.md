@@ -3,7 +3,7 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-- Merge authorize with capture - #4098 by @korycins
+- Merge authorize with capture - #4098 by @korycins, @NyanKiyoshi
 
 ## 2.6.0
 
