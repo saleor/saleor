@@ -6,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
 from ... import TransactionKind
-from ...interface import ConfigData, GatewayResponse, PaymentData
+from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
@@ -115,7 +115,9 @@ def get_client_token(connection_params: Dict[str, Any]) -> str:
     return client_token
 
 
-def authorize(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def authorize(
+    payment_information: PaymentData, config: GatewayConfig
+) -> GatewayResponse:
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
@@ -149,7 +151,7 @@ def authorize(payment_information: PaymentData, config: ConfigData) -> GatewayRe
     )
 
 
-def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
@@ -176,7 +178,7 @@ def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResp
     )
 
 
-def void(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
@@ -200,7 +202,7 @@ def void(payment_information: PaymentData, config: ConfigData) -> GatewayRespons
     )
 
 
-def refund(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
@@ -228,7 +230,7 @@ def refund(payment_information: PaymentData, config: ConfigData) -> GatewayRespo
 
 
 def process_payment(
-    payment_information: PaymentData, config: ConfigData
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
     auth_resp = authorize(payment_information, config)
     return auth_resp

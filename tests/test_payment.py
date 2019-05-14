@@ -16,7 +16,7 @@ from saleor.payment import (
     TransactionKind,
     get_payment_gateway,
 )
-from saleor.payment.interface import ConfigData, GatewayResponse
+from saleor.payment.interface import GatewayConfig, GatewayResponse
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS,
@@ -73,7 +73,7 @@ def transaction_data(payment_dummy, gateway_response):
 
 @pytest.fixture
 def gateway_config():
-    return ConfigData(
+    return GatewayConfig(
         auto_capture=True,
         template_path="template.html",
         connection_params={"secret-key": "nobodylikesspanishinqusition"},
@@ -497,8 +497,7 @@ def test_gateway_charge_failed(
 
 def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
     payment = payment_dummy
-    settings.PAYMENT_GATEWAYS = {payment.gateway: {"config": {"auto_capture": False}}}
-
+    gateway_authorize(payment, transaction_token)
     with pytest.raises(PaymentError) as exc:
         gateway_capture(payment, Decimal("0"))
     assert exc.value.message == "Amount should be a positive number."
@@ -655,27 +654,6 @@ def test_gateway_refund_errors(payment_txn_captured):
     with pytest.raises(PaymentError) as exc:
         gateway_refund(payment, Decimal("1"))
     assert exc.value.message == "This payment cannot be refunded."
-
-
-@pytest.mark.parametrize("gateway_name", dj_settings.PAYMENT_GATEWAYS.keys())
-def test_payment_gateway_templates_exists(gateway_name):
-    """Test if for each payment gateway there's a corresponding
-    template for the old checkout.
-    """
-    template = PAYMENT_TEMPLATE % gateway_name
-    get_template(template)
-
-
-@pytest.mark.parametrize("gateway_name", dj_settings.PAYMENT_GATEWAYS.keys())
-def test_payment_gateway_form_exists(gateway_name, payment_dummy):
-    """Test if for each payment gateway there's a corresponding
-    form for the old checkout.
-
-    An error will be raised if it's missing.
-    """
-    payment_gateway, gateway_config = get_payment_gateway(gateway_name)
-    payment_info = create_payment_information(payment_dummy)
-    payment_gateway.create_form(None, payment_info, gateway_config.connection_params)
 
 
 def test_clean_authorize():

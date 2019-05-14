@@ -21,7 +21,7 @@ from saleor.payment.gateways.razorpay.forms import (
     RazorPayCheckoutWidget,
     RazorPaymentForm,
 )
-from saleor.payment.interface import ConfigData
+from saleor.payment.interface import GatewayConfig
 from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal("61.33")
@@ -29,7 +29,7 @@ TRANSACTION_AMOUNT = Decimal("61.33")
 
 @pytest.fixture
 def gateway_config():
-    return ConfigData(
+    return GatewayConfig(
         auto_capture=False,
         template_path="template.html",
         connection_params={

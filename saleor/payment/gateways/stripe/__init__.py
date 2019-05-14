@@ -3,7 +3,7 @@ from typing import Dict
 import stripe
 
 from ... import TransactionKind
-from ...interface import ConfigData, GatewayResponse, PaymentData
+from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from .forms import StripePaymentModalForm
 from .utils import (
     get_amount_for_stripe,
@@ -22,7 +22,9 @@ def get_client_token(**_):
     return
 
 
-def authorize(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def authorize(
+    payment_information: PaymentData, config: GatewayConfig
+) -> GatewayResponse:
     client, error = _get_client(**config.connection_params), None
 
     try:
@@ -47,7 +49,7 @@ def authorize(payment_information: PaymentData, config: ConfigData) -> GatewayRe
     )
 
 
-def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     client, error = _get_client(**config.connection_params), None
 
     # Get amount from argument or payment, and convert to stripe's amount
@@ -71,7 +73,7 @@ def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResp
     )
 
 
-def refund(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     client, error = _get_client(**config.connection_params), None
 
     # Get amount from payment, and convert to stripe's amount
@@ -95,7 +97,7 @@ def refund(payment_information: PaymentData, config: ConfigData) -> GatewayRespo
     )
 
 
-def void(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     client, error = _get_client(**config.connection_params), None
 
     try:
@@ -116,7 +118,7 @@ def void(payment_information: PaymentData, config: ConfigData) -> GatewayRespons
 
 
 def process_payment(
-    payment_information: PaymentData, config: ConfigData
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
     # Stripe supports capture during authorize process. No need to run other steps.
     # If 'config.auto_capture is True', it will also capture funds from the card.

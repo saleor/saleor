@@ -7,7 +7,7 @@ import razorpay
 import razorpay.errors
 
 from ... import TransactionKind
-from ...interface import ConfigData, GatewayResponse, PaymentData
+from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import errors
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
@@ -86,7 +86,7 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Capture a authorized payment using the razorpay client.
     But it first check if the given payment instance is supported
     by the gateway.
@@ -122,7 +122,7 @@ def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResp
     )
 
 
-def refund(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Refund a payment using the razorpay client.
 
     But it first check if the given payment instance is supported
@@ -156,6 +156,6 @@ def refund(payment_information: PaymentData, config: ConfigData) -> GatewayRespo
 
 
 def process_payment(
-    payment_information: PaymentData, config: ConfigData
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
     return capture(payment_information=payment_information, config=config)
