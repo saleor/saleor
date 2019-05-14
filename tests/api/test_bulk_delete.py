@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from mock import patch
 
 from saleor.account.models import User
 from saleor.discount.models import Sale, Voucher
@@ -18,7 +19,6 @@ from saleor.product.models import (
 )
 from saleor.shipping.models import ShippingMethod, ShippingZone
 
-from ..checks import events as events_checks
 from .utils import get_graphql_content
 
 MUTATION_DELETE_ORDER_LINES = """
@@ -235,8 +235,15 @@ def test_delete_collections(
     ).exists()
 
 
+@patch(
+    "saleor.graphql.account.utils.customer_events.staff_user_deleted_a_customer_event"
+)
 def test_delete_customers(
-    staff_api_client, staff_user, user_list, permission_manage_users
+    mocked_deletion_event,
+    staff_api_client,
+    staff_user,
+    user_list,
+    permission_manage_users,
 ):
     user_1, user_2, *users = user_list
 
@@ -258,9 +265,23 @@ def test_delete_customers(
 
     assert content["data"]["customerBulkDelete"]["count"] == 2
 
-    # Ensure the customer was properly deleted
+    deleted_customers = [user_1, user_2]
+    saved_customers = users
+
+    # Ensure given customers were properly deleted and others properly saved
     # and any related event was properly triggered
-    events_checks.were_customers_properly_deleted(staff_user, [user_1, user_2], users)
+
+    # Ensure the customers were properly deleted and others were preserved
+    assert not User.objects.filter(
+        id__in=[user.id for user in deleted_customers]
+    ).exists()
+    assert User.objects.filter(
+        id__in=[user.id for user in saved_customers]
+    ).count() == len(saved_customers)
+
+    mocked_deletion_event.assert_called_once_with(
+        staff_user=staff_user, deleted_count=len(deleted_customers)
+    )
 
 
 def test_delete_draft_orders(staff_api_client, order_list, permission_manage_orders):
