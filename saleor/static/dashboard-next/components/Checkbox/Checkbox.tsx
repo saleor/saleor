@@ -84,21 +84,13 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
     ...props
   }: CheckboxProps & WithStyles<typeof styles>) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
-    const handleClick = (event: React.FormEvent<HTMLElement>) =>
-      onChange(
-        {
-          ...event,
-          target: inputRef.current
-        } as any,
-        !checked
-      );
     return (
       <ButtonBase
         {...props}
         centerRipple
         className={classNames(classes.root, className)}
         disabled={disabled}
-        onClick={handleClick}
+        onClick={onClick}
       >
         <input
           className={classNames(classes.box, {
@@ -111,6 +103,7 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
           name={name}
           value={checked.toString()}
           ref={inputRef}
+          onChange={onChange}
         />
       </ButtonBase>
     );

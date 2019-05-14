@@ -1,5 +1,4 @@
 import Card from "@material-ui/core/Card";
-import Checkbox from "@material-ui/core/Checkbox";
 import {
   createStyles,
   Theme,
@@ -13,6 +12,7 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
+import Checkbox from "../../../components/Checkbox";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TableHead from "../../../components/TableHead";

@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -19,6 +18,7 @@ import Typography from "@material-ui/core/Typography";
 import { filter } from "fuzzaldrin";
 import * as React from "react";
 
+import Checkbox from "../../../components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "../../../components/ConfirmButton/ConfirmButton";
