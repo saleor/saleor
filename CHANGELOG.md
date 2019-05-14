@@ -4,7 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-...
+- Cleanup code for updated function names, unused argument, etc. - #4090 by @jxltom
+
 
 ## 2.6.0
 
