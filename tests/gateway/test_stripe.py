@@ -32,7 +32,7 @@ from saleor.payment.gateways.stripe.utils import (
     get_payment_billing_fullname,
     shipping_to_stripe_dict,
 )
-from saleor.payment.interface import AddressData, ConfigData
+from saleor.payment.interface import AddressData, GatewayConfig
 from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal(42.42)
@@ -45,7 +45,7 @@ ERROR_MESSAGE = "error-message"
 
 @pytest.fixture()
 def gateway_config():
-    return ConfigData(
+    return GatewayConfig(
         auto_capture=False,
         template_path="template.html",
         connection_params={

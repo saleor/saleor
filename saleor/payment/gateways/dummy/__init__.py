@@ -1,7 +1,7 @@
 import uuid
 
 from ... import ChargeStatus, TransactionKind
-from ...interface import ConfigData, GatewayResponse, PaymentData
+from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from .forms import DummyPaymentForm
 
 
@@ -17,7 +17,9 @@ def create_form(data, payment_information, connection_params):
     return DummyPaymentForm(data=data)
 
 
-def authorize(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def authorize(
+    payment_information: PaymentData, config: GatewayConfig
+) -> GatewayResponse:
     success = dummy_success()
     error = None
     if not success:
@@ -32,7 +34,7 @@ def authorize(payment_information: PaymentData, config: ConfigData) -> GatewayRe
     )
 
 
-def void(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     error = None
     success = dummy_success()
     if not success:
@@ -47,7 +49,7 @@ def void(payment_information: PaymentData, config: ConfigData) -> GatewayRespons
     )
 
 
-def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform capture transaction."""
     error = None
     success = dummy_success()
@@ -64,7 +66,7 @@ def capture(payment_information: PaymentData, config: ConfigData) -> GatewayResp
     )
 
 
-def refund(payment_information: PaymentData, config: ConfigData) -> GatewayResponse:
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     error = None
     success = dummy_success()
     if not success:
@@ -80,7 +82,7 @@ def refund(payment_information: PaymentData, config: ConfigData) -> GatewayRespo
 
 
 def process_payment(
-    payment_information: PaymentData, config: ConfigData
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
     """Process the payment."""
     token = payment_information.token

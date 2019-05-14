@@ -50,7 +50,7 @@ class PaymentData:
 
 
 @dataclass
-class ConfigData:
+class GatewayConfig:
     """Dataclass for storing gateway config data. Used for unifying the
     representation of config data. It is required to communicate between
     Saleor and given payment gateway."""

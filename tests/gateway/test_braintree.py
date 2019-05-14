@@ -29,7 +29,7 @@ from saleor.payment.gateways.braintree.errors import (
     BraintreeException,
 )
 from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
-from saleor.payment.interface import ConfigData
+from saleor.payment.interface import GatewayConfig
 from saleor.payment.utils import create_payment_information
 
 INCORRECT_TOKEN_ERROR = (
@@ -89,7 +89,7 @@ def braintree_not_found_error():
 
 @pytest.fixture
 def gateway_config():
-    return ConfigData(
+    return GatewayConfig(
         template_path="template.html",
         auto_capture=False,
         connection_params={
