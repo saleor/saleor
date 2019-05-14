@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
@@ -6,7 +7,6 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from mock import patch
 from templated_email import send_templated_mail
 
 from saleor.account.models import CustomerNote, User
