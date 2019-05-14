@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Fix GATEWAYS_ENUM to always contain all implemented payment gateways - #4108 by @koradon
 ...
 
 ## 2.6.0
