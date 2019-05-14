@@ -2,12 +2,9 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from django.conf import settings as dj_settings
 from django.core.exceptions import ImproperlyConfigured
-from django.template.loader import get_template
 
 from saleor.order.events import OrderEvents, OrderEventsEmails
-from saleor.order.views import PAYMENT_TEMPLATE
 from saleor.payment import (
     ChargeStatus,
     GatewayError,
