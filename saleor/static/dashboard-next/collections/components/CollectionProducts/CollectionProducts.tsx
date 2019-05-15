@@ -128,7 +128,6 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

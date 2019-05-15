@@ -120,7 +120,6 @@ const DiscountCollections = withStyles(styles, {
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

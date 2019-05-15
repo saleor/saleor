@@ -110,7 +110,6 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

@@ -122,7 +122,6 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

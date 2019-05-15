@@ -1,10 +1,10 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
+import Form from "../../../components/Form";
 import MultiSelectField from "../../../components/MultiSelectField";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
-import Form from "../../../components/Form";
 
 const choices = [
   { value: "1", label: "Apparel" },
