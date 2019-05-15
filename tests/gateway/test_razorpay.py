@@ -4,10 +4,9 @@ from unittest.mock import patch
 import pytest
 from razorpay.errors import BadRequestError, ServerError
 
-from saleor.payment import ChargeStatus
+from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.gateways.razorpay import (
-    TransactionKind,
-    charge,
+    capture,
     check_payment_supported,
     clean_razorpay_response,
     create_form,
@@ -22,20 +21,25 @@ from saleor.payment.gateways.razorpay.forms import (
     RazorPayCheckoutWidget,
     RazorPaymentForm,
 )
+from saleor.payment.interface import GatewayConfig
 from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal("61.33")
 
 
-@pytest.fixture()
-def gateway_params():
-    return {
-        "public_key": "public",
-        "secret_key": "secret",
-        "prefill": True,
-        "store_name": "Saleor",
-        "store_image": "image.png",
-    }
+@pytest.fixture
+def gateway_config():
+    return GatewayConfig(
+        auto_capture=False,
+        template_path="template.html",
+        connection_params={
+            "public_key": "public",
+            "secret_key": "secret",
+            "prefill": True,
+            "store_name": "Saleor",
+            "store_image": "image.png",
+        },
+    )
 
 
 @pytest.fixture()
@@ -61,18 +65,20 @@ def charged_payment(razorpay_payment):
 
     razorpay_payment.transactions.create(
         amount=razorpay_payment.total,
-        kind=TransactionKind.CHARGE,
+        kind=TransactionKind.CAPTURE,
         gateway_response={},
         is_success=True,
     )
     return razorpay_payment
 
 
-def test_checkout_widget_render_without_prefill(razorpay_payment, gateway_params):
-    gateway_params["prefill"] = False
+def test_checkout_widget_render_without_prefill(razorpay_payment, gateway_config):
+    gateway_config.connection_params["prefill"] = False
     payment_info = create_payment_information(razorpay_payment)
     widget = RazorPayCheckoutWidget(
-        payment_information=payment_info, attrs={"data-custom": "123"}, **gateway_params
+        payment_information=payment_info,
+        attrs={"data-custom": "123"},
+        **gateway_config.connection_params,
     )
     assert widget.render() == (
         '<script data-amount="8000" data-buttontext="Pay now with Razorpay" '
@@ -83,9 +89,11 @@ def test_checkout_widget_render_without_prefill(razorpay_payment, gateway_params
     )
 
 
-def test_checkout_widget_render_with_prefill(razorpay_payment, gateway_params):
+def test_checkout_widget_render_with_prefill(razorpay_payment, gateway_config):
     payment_info = create_payment_information(razorpay_payment)
-    widget = RazorPayCheckoutWidget(payment_information=payment_info, **gateway_params)
+    widget = RazorPayCheckoutWidget(
+        payment_information=payment_info, **gateway_config.connection_params
+    )
     assert widget.render() == (
         '<script data-amount="8000" data-buttontext="Pay now with Razorpay" '
         'data-currency="INR" data-description="Total payment" '
@@ -96,12 +104,12 @@ def test_checkout_widget_render_with_prefill(razorpay_payment, gateway_params):
     )
 
 
-def test_checkout_form(razorpay_payment, gateway_params):
+def test_checkout_form(razorpay_payment, gateway_config):
     payment_info = create_payment_information(razorpay_payment)
     form = create_form(
         data={"razorpay_payment_id": "123"},
         payment_information=payment_info,
-        connection_params=gateway_params,
+        connection_params=gateway_config.connection_params,
     )
 
     assert isinstance(form, RazorPaymentForm)
@@ -132,8 +140,8 @@ def test_clean_razorpay_response():
 
 
 @patch("razorpay.Client")
-def test_get_client(mocked_gateway, gateway_params):
-    get_client(**gateway_params)
+def test_get_client(mocked_gateway, gateway_config):
+    get_client(**gateway_config.connection_params)
     mocked_gateway.assert_called_once_with(auth=("public", "secret"))
 
 
@@ -144,7 +152,7 @@ def test_get_client_token():
 @pytest.mark.integration
 @patch("razorpay.Client")
 def test_charge(
-    mocked_gateway, razorpay_payment, razorpay_success_response, gateway_params
+    mocked_gateway, razorpay_payment, razorpay_success_response, gateway_config
 ):
 
     # Data to be passed
@@ -158,13 +166,13 @@ def test_charge(
     )
 
     # Attempt charging
-    response = charge(payment_info, gateway_params)
+    response = capture(payment_info, gateway_config)
 
     # Ensure the was no error returned
     assert not response.error
     assert response.is_success
 
-    assert response.kind == TransactionKind.CHARGE
+    assert response.kind == TransactionKind.CAPTURE
     assert response.amount == TRANSACTION_AMOUNT
     assert response.currency == razorpay_success_response["currency"]
     assert response.raw_response == razorpay_success_response
@@ -172,7 +180,7 @@ def test_charge(
 
 
 @pytest.mark.integration
-def test_charge_unsupported_currency(razorpay_payment, gateway_params):
+def test_charge_unsupported_currency(razorpay_payment, gateway_config):
     # Set the payment currency to an unsupported currency
     razorpay_payment.currency = "USD"
 
@@ -184,27 +192,27 @@ def test_charge_unsupported_currency(razorpay_payment, gateway_params):
     )
 
     # Attempt charging
-    response = charge(payment_info, gateway_params)
+    response = capture(payment_info, gateway_config)
 
     # Ensure a error was returned
     assert response.error == (errors.UNSUPPORTED_CURRENCY % {"currency": "USD"})
     assert not response.is_success
 
     # Ensure the response is correctly set
-    assert response.kind == TransactionKind.CHARGE
+    assert response.kind == TransactionKind.CAPTURE
     assert response.transaction_id == payment_token
 
 
 @patch.object(logger, "exception")
 @patch("razorpay.Client")
 def test_charge_invalid_request(
-    mocked_gateway, mocked_logger, razorpay_payment, gateway_params
+    mocked_gateway, mocked_logger, razorpay_payment, gateway_config
 ):
 
     # Data to be passed
     payment_token = "123"
 
-    # Assign the side effect to the gateway's `charge()` method,
+    # Assign the side effect to the gateway's `capture()` method,
     # that should trigger the expected error.
     mocked_gateway.return_value.payment.capture.side_effect = BadRequestError()
 
@@ -213,14 +221,14 @@ def test_charge_invalid_request(
     )
 
     # Attempt charging
-    response = charge(payment_info, gateway_params)
+    response = capture(payment_info, gateway_config)
 
     # Ensure an error was returned
     assert response.error == errors.INVALID_REQUEST
     assert not response.is_success
 
     # Ensure the response is correctly set
-    assert response.kind == TransactionKind.CHARGE
+    assert response.kind == TransactionKind.CAPTURE
     assert response.transaction_id == payment_token
 
     # Ensure the HTTP error was logged
@@ -230,7 +238,7 @@ def test_charge_invalid_request(
 @pytest.mark.integration
 @patch("razorpay.Client")
 def test_refund(
-    mocked_gateway, charged_payment, razorpay_success_response, gateway_params
+    mocked_gateway, charged_payment, razorpay_success_response, gateway_config
 ):
 
     # Mock the gateway response to a success response
@@ -241,7 +249,7 @@ def test_refund(
     )
 
     # Attempt charging
-    response = refund(payment_info, gateway_params)
+    response = refund(payment_info, gateway_config)
 
     # Ensure the was no error returned
     assert not response.error
@@ -255,7 +263,7 @@ def test_refund(
 
 
 @pytest.mark.integration
-def test_refund_unsupported_currency(razorpay_payment, charged_payment, gateway_params):
+def test_refund_unsupported_currency(razorpay_payment, charged_payment, gateway_config):
     # Set the payment currency to an unsupported currency
     razorpay_payment.currency = "USD"
 
@@ -264,7 +272,7 @@ def test_refund_unsupported_currency(razorpay_payment, charged_payment, gateway_
     )
 
     # Attempt charging
-    response = refund(payment_info, gateway_params)
+    response = refund(payment_info, gateway_config)
 
     # Ensure a error was returned
     assert response.error == (errors.UNSUPPORTED_CURRENCY % {"currency": "USD"})
@@ -282,7 +290,7 @@ def test_refund_invalid_data(
     mocked_logger,
     charged_payment,
     razorpay_success_response,
-    gateway_params,
+    gateway_config,
 ):
 
     # Assign the side effect to the gateway's `refund()` method,
@@ -293,7 +301,7 @@ def test_refund_invalid_data(
     payment_info = create_payment_information(
         charged_payment, amount=TRANSACTION_AMOUNT
     )
-    response = refund(payment_info, gateway_params)
+    response = refund(payment_info, gateway_config)
 
     # Ensure a error was returned
     assert response.error == errors.SERVER_ERROR

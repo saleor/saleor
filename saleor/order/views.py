@@ -92,7 +92,8 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, gateway):
-    payment_gateway, connection_params = get_payment_gateway(gateway)
+    payment_gateway, gateway_config = get_payment_gateway(gateway)
+    connection_params = gateway_config.connection_params
     extra_data = {"customer_user_agent": request.META.get("HTTP_USER_AGENT")}
     with transaction.atomic():
         payment = create_payment(
@@ -137,7 +138,7 @@ def start_payment(request, order, gateway):
         "client_token": client_token,
         "order": order,
     }
-    return TemplateResponse(request, payment_gateway.TEMPLATE_PATH, ctx)
+    return TemplateResponse(request, gateway_config.template_path, ctx)
 
 
 @check_order_status
