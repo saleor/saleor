@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Cleanup code for updated function names, unused argument, etc. - #4090 by @jxltom
 - Merge authorize with capture - #4098 by @korycins, @NyanKiyoshi
 - Fix GATEWAYS_ENUM to always contain all implemented payment gateways - #4108 by @koradon
+- Fix translation discard button - #4109 by @benekex2
 
 ## 2.6.0
 
