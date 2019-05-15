@@ -127,10 +127,7 @@ def customer_delete(request, pk):
     )
     status = 200
     if request.method == "POST" and form.is_valid():
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )  # noqa
-        customer_events.staff_user_deleted_a_customer_event(staff_user=user)
+        customer_events.staff_user_deleted_a_customer_event(staff_user=request.user)
         customer.delete()
         msg = pgettext_lazy(
             "Dashboard message", "%(customer_name)s successfully removed"
