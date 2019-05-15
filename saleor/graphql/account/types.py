@@ -122,7 +122,7 @@ class CustomerEvent(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = "History log of the order."
+        description = "History log of the customer."
         model = models.CustomerEvent
         interfaces = [relay.Node]
         only_fields = ["id"]

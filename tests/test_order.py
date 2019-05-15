@@ -535,7 +535,7 @@ def test_add_order_note_view(order, authorized_client, customer_user):
     order.refresh_from_db()
     assert order.customer_note == customer_note
 
-    # Ensure a order event was triggered
+    # Ensure an order event was triggered
     note_event = order_events.OrderEvent.objects.get()  # type: order_events.OrderEvent
     assert note_event.type == order_events.OrderEvents.NOTE_ADDED
     assert note_event.user == customer_user
