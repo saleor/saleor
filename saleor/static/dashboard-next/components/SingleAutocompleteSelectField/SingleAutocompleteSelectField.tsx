@@ -30,7 +30,7 @@ const styles = (theme: Theme) =>
       padding: 8,
       position: "absolute",
       right: 0,
-      zIndex: 1
+      zIndex: 2
     }
   });
 
