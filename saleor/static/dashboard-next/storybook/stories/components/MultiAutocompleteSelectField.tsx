@@ -39,6 +39,7 @@ const Choices: React.FC<MultiAutocompleteSelectFieldChildrenFunc> = ({
           display: "flex",
           justifyContent: "space-between"
         }}
+        key={item.value}
       >
         <Typography>{item.label}</Typography>
         <div

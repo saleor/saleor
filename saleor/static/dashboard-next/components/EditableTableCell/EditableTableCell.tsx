@@ -16,6 +16,9 @@ import Form from "../../components/Form";
 
 const styles = (theme: Theme) =>
   createStyles({
+    card: {
+      border: `1px solid ${theme.overrides.MuiCard.root.borderColor}`
+    },
     container: {
       position: "relative"
     },
@@ -87,7 +90,7 @@ export const EditableTableCell = withStyles(styles, {
               </Typography>
               {opened && (
                 <div className={classes.root}>
-                  <Card>
+                  <Card className={classes.card}>
                     <CardContent>
                       <TextField
                         name="value"
@@ -95,6 +98,7 @@ export const EditableTableCell = withStyles(styles, {
                         fullWidth
                         onChange={change}
                         value={data.value}
+                        variant="standard"
                         {...InputProps}
                       />
                     </CardContent>

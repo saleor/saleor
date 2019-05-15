@@ -2,8 +2,12 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import PriceField from "../../../components/PriceField";
+import CardDecorator from "../../CardDecorator";
+import Decorator from "../../Decorator";
 
 storiesOf("Generics / Price input", module)
+  .addDecorator(CardDecorator)
+  .addDecorator(Decorator)
   .add("with no value", () => <PriceField onChange={undefined} />)
   .add("with value", () => <PriceField value={"30"} onChange={undefined} />)
   .add("with label", () => (
