@@ -4,18 +4,17 @@ from typing import Dict, List, Optional, Tuple, Union
 from django.contrib.auth.base_user import AbstractBaseUser
 
 from ..account.models import Address
-from ..order.models import Fulfillment, Order, OrderLine
+from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
-from ..product.models import ProductVariant
 from . import OrderEvents, OrderEventsEmails
 from .models import OrderEvent
 
 UserType = AbstractBaseUser
 
 
-def _lines_per_quantity_to_str_line_list(quantities_per_order_line):
+def _lines_per_quantity_to_line_object_list(quantities_per_order_line):
     return [
-        {"quantity": quantity, "item": str(line)}
+        {"quantity": quantity, "line_pk": line.pk, "item": str(line)}
         for quantity, line in quantities_per_order_line
     ]
 
@@ -66,26 +65,26 @@ def draft_order_created_event(*, order: Order, user: UserType):
 
 
 def draft_order_added_products_event(
-    *, order: Order, user: UserType, order_lines: List[Tuple[int, ProductVariant]]
+    *, order: Order, user: UserType, order_lines: List[Tuple[int, OrderLine]]
 ):
 
     return _new_event(
         order=order,
         type=OrderEvents.DRAFT_ADDED_PRODUCTS,
         user=user,
-        parameters={"lines": _lines_per_quantity_to_str_line_list(order_lines)},
+        parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
     )
 
 
 def draft_order_removed_products_event(
-    *, order: Order, user: UserType, order_lines: List[Tuple[int, ProductVariant]]
+    *, order: Order, user: UserType, order_lines: List[Tuple[int, OrderLine]]
 ):
 
     return _new_event(
         order=order,
         type=OrderEvents.DRAFT_REMOVED_PRODUCTS,
         user=user,
-        parameters={"lines": _lines_per_quantity_to_str_line_list(order_lines)},
+        parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
     )
 
 
@@ -189,15 +188,13 @@ def fulfillment_restocked_items_event(
 
 
 def fulfillment_fulfilled_items_event(
-    *, order: Order, user: UserType, quantities: List[int], order_lines: List[OrderLine]
+    *, order: Order, user: UserType, fulfillment_lines: List[FulfillmentLine]
 ):
     return _new_event(
         order=order,
         type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
         user=user,
-        parameters={
-            "lines": _lines_per_quantity_to_str_line_list(zip(quantities, order_lines))
-        },
+        parameters={"fulfilled_items": [line.pk for line in fulfillment_lines]},
     )
 
 
