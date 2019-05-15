@@ -6,12 +6,11 @@ from typing import Dict
 import razorpay
 import razorpay.errors
 
-from ...interface import GatewayResponse, PaymentData
+from ... import TransactionKind
+from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import errors
 from .forms import RazorPaymentForm
 from .utils import get_amount_for_razorpay, get_error_response
-
-TEMPLATE_PATH = "order/payment/razorpay.html"
 
 # The list of currencies supported by razorpay
 SUPPORTED_CURRENCIES = ("INR",)
@@ -27,14 +26,6 @@ RAZORPAY_EXCEPTIONS = (
 # Get the logger for this file, it will allow us to log
 # error responses from razorpay.
 logger = logging.getLogger(__name__)
-
-
-class TransactionKind:
-    AUTH = "auth"
-    CAPTURE = "capture"
-    CHARGE = "charge"
-    REFUND = "refund"
-    VOID = "void"
 
 
 def _generate_response(
@@ -95,11 +86,8 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def charge(
-    payment_information: PaymentData, connection_params: Dict
-) -> GatewayResponse:
-    """Charge a authorized payment using the razorpay client.
-
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    """Capture a authorized payment using the razorpay client.
     But it first check if the given payment instance is supported
     by the gateway.
 
@@ -108,7 +96,7 @@ def charge(
     a short user friendly description of the error
     after logging the error to stderr."""
     error = check_payment_supported(payment_information=payment_information)
-    razorpay_client = get_client(**connection_params)
+    razorpay_client = get_client(**config.connection_params)
     razorpay_amount = get_amount_for_razorpay(payment_information.amount)
 
     if not error:
@@ -129,12 +117,12 @@ def charge(
 
     return _generate_response(
         payment_information=payment_information,
-        kind=TransactionKind.CHARGE,
+        kind=TransactionKind.CAPTURE,
         data=response,
     )
 
 
-def refund(payment_information: PaymentData, connection_params) -> GatewayResponse:
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Refund a payment using the razorpay client.
 
     But it first check if the given payment instance is supported
@@ -149,7 +137,7 @@ def refund(payment_information: PaymentData, connection_params) -> GatewayRespon
     if error:
         response = get_error_response(payment_information.amount, error=error)
     else:
-        razorpay_client = get_client(**connection_params)
+        razorpay_client = get_client(**config.connection_params)
         razorpay_amount = get_amount_for_razorpay(payment_information.amount)
         try:
             response = razorpay_client.payment.refund(
@@ -168,8 +156,6 @@ def refund(payment_information: PaymentData, connection_params) -> GatewayRespon
 
 
 def process_payment(
-    payment_information: PaymentData, connection_params
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    return charge(
-        payment_information=payment_information, connection_params=connection_params
-    )
+    return capture(payment_information=payment_information, config=config)

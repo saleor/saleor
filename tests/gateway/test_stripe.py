@@ -15,7 +15,6 @@ from saleor.payment.gateways.stripe import (
     _get_stripe_charge_payload,
     authorize,
     capture,
-    charge,
     create_form,
     get_amount_for_stripe,
     get_amount_from_stripe,
@@ -33,7 +32,7 @@ from saleor.payment.gateways.stripe.utils import (
     get_payment_billing_fullname,
     shipping_to_stripe_dict,
 )
-from saleor.payment.interface import AddressData
+from saleor.payment.interface import AddressData, GatewayConfig
 from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal(42.42)
@@ -45,18 +44,22 @@ ERROR_MESSAGE = "error-message"
 
 
 @pytest.fixture()
-def gateway_params():
-    return {
-        "public_key": "public",
-        "secret_key": "secret",
-        "store_name": "Saleor",
-        "store_image": "image.gif",
-        "prefill": True,
-        "remember_me": True,
-        "locale": "auto",
-        "enable_billing_address": False,
-        "enable_shipping_address": False,
-    }
+def gateway_config():
+    return GatewayConfig(
+        auto_capture=False,
+        template_path="template.html",
+        connection_params={
+            "public_key": "public",
+            "secret_key": "secret",
+            "store_name": "Saleor",
+            "store_image": "image.gif",
+            "prefill": True,
+            "remember_me": True,
+            "locale": "auto",
+            "enable_billing_address": False,
+            "enable_shipping_address": False,
+        },
+    )
 
 
 @pytest.fixture()
@@ -84,19 +87,9 @@ def stripe_captured_payment(stripe_payment):
     stripe_payment.captured_amount = stripe_payment.total
     stripe_payment.charge_status = ChargeStatus.FULLY_CHARGED
     stripe_payment.save(update_fields=["captured_amount", "charge_status"])
-
-    return stripe_payment
-
-
-@pytest.fixture()
-def stripe_charged_payment(stripe_payment):
-    stripe_payment.captured_amount = stripe_payment.total
-    stripe_payment.charge_status = ChargeStatus.FULLY_CHARGED
-    stripe_payment.save(update_fields=["captured_amount", "charge_status"])
-
     stripe_payment.transactions.create(
         amount=stripe_payment.total,
-        kind=TransactionKind.CHARGE,
+        kind=TransactionKind.CAPTURE,
         gateway_response={},
         is_success=True,
     )
@@ -192,9 +185,9 @@ def test_shipping_address_to_stripe_dict(address):
     assert shipping_to_stripe_dict(address_data) == expected_address_dict
 
 
-def test_widget_with_default_options(stripe_payment, gateway_params):
+def test_widget_with_default_options(stripe_payment, gateway_config):
     payment_info = create_payment_information(stripe_payment)
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    widget = StripeCheckoutWidget(payment_info, gateway_config.connection_params)
     assert widget.render() == (
         '<script class="stripe-button" data-allow-remember-me="true" '
         'data-amount="4242" data-billing-address="false" data-currency="USD" '
@@ -206,69 +199,76 @@ def test_widget_with_default_options(stripe_payment, gateway_params):
     )
 
 
-def test_widget_with_additional_attr(stripe_payment, gateway_params):
+def test_widget_with_additional_attr(stripe_payment, gateway_config):
     payment_info = create_payment_information(stripe_payment)
 
     widget = StripeCheckoutWidget(
-        payment_info, gateway_params, attrs={"data-custom": "custom-data"}
+        payment_info,
+        gateway_config.connection_params,
+        attrs={"data-custom": "custom-data"},
     )
     assert 'data-custom="custom-data"' in widget.render()
 
 
-def test_widget_with_prefill_option(stripe_payment, gateway_params):
+def test_widget_with_prefill_option(stripe_payment, gateway_config):
     payment_info = create_payment_information(stripe_payment)
-
-    gateway_params["prefill"] = True
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    connection_params = gateway_config.connection_params
+    connection_params["prefill"] = True
+    widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-email="test@example.com"' in widget.render()
 
-    gateway_params["prefill"] = False
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    connection_params["prefill"] = False
+    widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-email="test@example.com"' not in widget.render()
 
 
-def test_widget_with_remember_me_option(stripe_payment, gateway_params):
+def test_widget_with_remember_me_option(stripe_payment, gateway_config):
     payment_info = create_payment_information(stripe_payment)
+    connection_params = gateway_config.connection_params
 
-    gateway_params["remember_me"] = True
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    connection_params["remember_me"] = True
+    widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-allow-remember-me="true"' in widget.render()
 
-    gateway_params["remember_me"] = False
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    connection_params["remember_me"] = False
+    widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-allow-remember-me="false"' in widget.render()
 
 
-def test_widget_with_enable_billing_address_option(stripe_payment, gateway_params):
+def test_widget_with_enable_billing_address_option(stripe_payment, gateway_config):
     payment_info = create_payment_information(stripe_payment, FAKE_TOKEN)
+    connection_params = gateway_config.connection_params
 
-    gateway_params["enable_billing_address"] = True
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    connection_params["enable_billing_address"] = True
+    widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-billing-address="true"' in widget.render()
     assert 'data-zip-code="true"' in widget.render()
 
-    gateway_params["enable_billing_address"] = False
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    connection_params["enable_billing_address"] = False
+    widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-billing-address="false"' in widget.render()
     assert 'data-zip-code="false"' in widget.render()
 
 
-def test_widget_with_enable_shipping_address_option(stripe_payment, gateway_params):
+def test_widget_with_enable_shipping_address_option(stripe_payment, gateway_config):
     payment_info = create_payment_information(stripe_payment, FAKE_TOKEN)
+    connection_params = gateway_config.connection_params
 
-    gateway_params["enable_shipping_address"] = True
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    connection_params["enable_shipping_address"] = True
+    widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-shipping-address="true"' in widget.render()
 
-    gateway_params["enable_shipping_address"] = False
-    widget = StripeCheckoutWidget(payment_info, gateway_params)
+    connection_params["enable_shipping_address"] = False
+    widget = StripeCheckoutWidget(payment_info, connection_params)
     assert 'data-shipping-address="false"' in widget.render()
 
 
-def test_stripe_payment_form(stripe_payment, gateway_params):
+def test_stripe_payment_form(stripe_payment, gateway_config):
     payment_info = create_payment_information(stripe_payment, FAKE_TOKEN)
     form = create_form(
-        None, payment_information=payment_info, connection_params=gateway_params
+        None,
+        payment_information=payment_info,
+        connection_params=gateway_config.connection_params,
     )
     assert isinstance(form, StripePaymentModalForm)
     assert not form.is_valid()
@@ -276,14 +276,14 @@ def test_stripe_payment_form(stripe_payment, gateway_params):
     form = create_form(
         data={"stripeToken": FAKE_TOKEN},
         payment_information=payment_info,
-        connection_params=gateway_params,
+        connection_params=gateway_config.connection_params,
     )
     assert isinstance(form, StripePaymentModalForm)
     assert form.is_valid()
 
 
-def test_get_client(gateway_params):
-    assert _get_client(**gateway_params).api_key == "secret"
+def test_get_client(gateway_config):
+    assert _get_client(**gateway_config.connection_params).api_key == "secret"
 
 
 def test_get_client_token():
@@ -412,14 +412,14 @@ def test_create_response_with_error_response(stripe_payment):
 @pytest.mark.integration
 @patch("stripe.Charge.create")
 def test_authorize(
-    mock_charge_create, stripe_payment, gateway_params, stripe_charge_success_response
+    mock_charge_create, stripe_payment, gateway_config, stripe_charge_success_response
 ):
     payment = stripe_payment
     payment_info = create_payment_information(payment, FAKE_TOKEN)
     response = stripe_charge_success_response
     mock_charge_create.return_value = response
 
-    response = authorize(payment_info, gateway_params)
+    response = authorize(payment_info, gateway_config)
 
     assert not response.error
     assert response.transaction_id == TRANSACTION_TOKEN
@@ -432,13 +432,13 @@ def test_authorize(
 
 @pytest.mark.integration
 @patch("stripe.Charge.create")
-def test_authorize_error_response(mock_charge_create, stripe_payment, gateway_params):
+def test_authorize_error_response(mock_charge_create, stripe_payment, gateway_config):
     payment = stripe_payment
     payment_info = create_payment_information(payment, FAKE_TOKEN)
     stripe_error = stripe.error.InvalidRequestError(message=ERROR_MESSAGE, param=None)
     mock_charge_create.side_effect = stripe_error
 
-    response = authorize(payment_info, gateway_params)
+    response = authorize(payment_info, gateway_config)
 
     assert response.error == ERROR_MESSAGE
     assert response.transaction_id == FAKE_TOKEN
@@ -454,7 +454,7 @@ def test_authorize_error_response(mock_charge_create, stripe_payment, gateway_pa
 def test_capture(
     mock_charge_retrieve,
     stripe_authorized_payment,
-    gateway_params,
+    gateway_config,
     stripe_charge_success_response,
 ):
     payment = stripe_authorized_payment
@@ -462,7 +462,7 @@ def test_capture(
     response = stripe_charge_success_response
     mock_charge_retrieve.return_value = Mock(capture=Mock(return_value=response))
 
-    response = capture(payment_info, gateway_params)
+    response = capture(payment_info, gateway_config)
 
     assert not response.error
     assert response.transaction_id == TRANSACTION_TOKEN
@@ -478,7 +478,7 @@ def test_capture(
 def test_partial_capture(
     mock_charge_retrieve,
     stripe_authorized_payment,
-    gateway_params,
+    gateway_config,
     stripe_partial_charge_success_response,
 ):
     payment = stripe_authorized_payment
@@ -486,7 +486,7 @@ def test_partial_capture(
     response = stripe_partial_charge_success_response
     mock_charge_retrieve.return_value = Mock(capture=Mock(return_value=response))
 
-    response = capture(payment_info, gateway_params)
+    response = capture(payment_info, gateway_config)
 
     assert not response.error
     assert response.transaction_id == TRANSACTION_TOKEN
@@ -500,7 +500,7 @@ def test_partial_capture(
 @pytest.mark.integration
 @patch("stripe.Charge.retrieve")
 def test_capture_error_response(
-    mock_charge_retrieve, stripe_authorized_payment, gateway_params
+    mock_charge_retrieve, stripe_authorized_payment, gateway_config
 ):
     payment = stripe_authorized_payment
     payment_info = create_payment_information(
@@ -509,51 +509,11 @@ def test_capture_error_response(
     stripe_error = stripe.error.InvalidRequestError(message=ERROR_MESSAGE, param=None)
     mock_charge_retrieve.side_effect = stripe_error
 
-    response = capture(payment_info, gateway_params)
+    response = capture(payment_info, gateway_config)
 
     assert response.error == ERROR_MESSAGE
     assert response.transaction_id == TRANSACTION_TOKEN
     assert response.kind == TransactionKind.CAPTURE
-    assert not response.is_success
-    assert response.amount == payment.total
-    assert response.currency == payment.currency
-    assert response.raw_response == _get_error_response_from_exc(stripe_error)
-
-
-@pytest.mark.integration
-@patch("stripe.Charge.create")
-def test_charge(
-    mock_charge_create, stripe_payment, gateway_params, stripe_charge_success_response
-):
-    payment = stripe_payment
-    payment_info = create_payment_information(payment, FAKE_TOKEN, TRANSACTION_AMOUNT)
-    response = stripe_charge_success_response
-    mock_charge_create.return_value = response
-
-    response = charge(payment_info, gateway_params)
-
-    assert not response.error
-    assert response.transaction_id == TRANSACTION_TOKEN
-    assert response.kind == TransactionKind.CHARGE
-    assert response.is_success
-    assert isclose(response.amount, TRANSACTION_AMOUNT)
-    assert response.currency == TRANSACTION_CURRENCY
-    assert response.raw_response == stripe_charge_success_response
-
-
-@pytest.mark.integration
-@patch("stripe.Charge.create")
-def test_charge_error_response(mock_charge_create, stripe_payment, gateway_params):
-    payment = stripe_payment
-    payment_info = create_payment_information(payment, FAKE_TOKEN, TRANSACTION_AMOUNT)
-    stripe_error = stripe.error.InvalidRequestError(message=ERROR_MESSAGE, param=None)
-    mock_charge_create.side_effect = stripe_error
-
-    response = charge(payment_info, gateway_params)
-
-    assert response.error == ERROR_MESSAGE
-    assert response.transaction_id == FAKE_TOKEN
-    assert response.kind == TransactionKind.CHARGE
     assert not response.is_success
     assert response.amount == payment.total
     assert response.currency == payment.currency
@@ -566,11 +526,11 @@ def test_charge_error_response(mock_charge_create, stripe_payment, gateway_param
 def test_refund_charged(
     mock_charge_retrieve,
     mock_refund_create,
-    stripe_charged_payment,
-    gateway_params,
+    stripe_captured_payment,
+    gateway_config,
     stripe_refund_success_response,
 ):
-    payment = stripe_charged_payment
+    payment = stripe_captured_payment
     payment_info = create_payment_information(
         payment, TRANSACTION_TOKEN, amount=TRANSACTION_AMOUNT
     )
@@ -578,7 +538,7 @@ def test_refund_charged(
     mock_charge_retrieve.return_value = Mock(id="")
     mock_refund_create.return_value = response
 
-    response = refund(payment_info, gateway_params)
+    response = refund(payment_info, gateway_config)
 
     assert not response.error
     assert response.transaction_id == TRANSACTION_TOKEN
@@ -596,7 +556,7 @@ def test_refund_captured(
     mock_charge_retrieve,
     mock_refund_create,
     stripe_captured_payment,
-    gateway_params,
+    gateway_config,
     stripe_refund_success_response,
 ):
     payment = stripe_captured_payment
@@ -605,7 +565,7 @@ def test_refund_captured(
     mock_charge_retrieve.return_value = Mock(id="")
     mock_refund_create.return_value = response
 
-    response = refund(payment_info, gateway_params)
+    response = refund(payment_info, gateway_config)
 
     assert not response.error
     assert response.transaction_id == TRANSACTION_TOKEN
@@ -620,9 +580,9 @@ def test_refund_captured(
 @patch("stripe.Refund.create")
 @patch("stripe.Charge.retrieve")
 def test_refund_error_response(
-    mock_charge_retrieve, mock_refund_create, stripe_charged_payment, gateway_params
+    mock_charge_retrieve, mock_refund_create, stripe_captured_payment, gateway_config
 ):
-    payment = stripe_charged_payment
+    payment = stripe_captured_payment
     payment_info = create_payment_information(
         payment, TRANSACTION_TOKEN, amount=TRANSACTION_AMOUNT
     )
@@ -630,7 +590,7 @@ def test_refund_error_response(
     stripe_error = stripe.error.InvalidRequestError(message=ERROR_MESSAGE, param=None)
     mock_refund_create.side_effect = stripe_error
 
-    response = refund(payment_info, gateway_params)
+    response = refund(payment_info, gateway_config)
 
     assert response.error == ERROR_MESSAGE
     assert response.transaction_id == TRANSACTION_TOKEN
@@ -648,7 +608,7 @@ def test_void(
     mock_charge_retrieve,
     mock_refund_create,
     stripe_authorized_payment,
-    gateway_params,
+    gateway_config,
     stripe_refund_success_response,
 ):
     payment = stripe_authorized_payment
@@ -657,7 +617,7 @@ def test_void(
     mock_charge_retrieve.return_value = Mock(id="")
     mock_refund_create.return_value = response
 
-    response = void(payment_info, gateway_params)
+    response = void(payment_info, gateway_config)
 
     assert not response.error
     assert response.transaction_id == TRANSACTION_TOKEN
@@ -672,7 +632,7 @@ def test_void(
 @patch("stripe.Refund.create")
 @patch("stripe.Charge.retrieve")
 def test_void_error_response(
-    mock_charge_retrieve, mock_refund_create, stripe_authorized_payment, gateway_params
+    mock_charge_retrieve, mock_refund_create, stripe_authorized_payment, gateway_config
 ):
     payment = stripe_authorized_payment
     payment_info = create_payment_information(payment, TRANSACTION_TOKEN)
@@ -680,7 +640,7 @@ def test_void_error_response(
     stripe_error = stripe.error.InvalidRequestError(message=ERROR_MESSAGE, param=None)
     mock_refund_create.side_effect = stripe_error
 
-    response = void(payment_info, gateway_params)
+    response = void(payment_info, gateway_config)
 
     assert response.error == ERROR_MESSAGE
     assert response.transaction_id == TRANSACTION_TOKEN

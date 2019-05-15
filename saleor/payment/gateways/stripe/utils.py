@@ -7,7 +7,7 @@ from django_countries import countries
 # Since there is no public API in Stripe backend or helper function
 # in Stripe's Python library, this list is straight out of Stripe's docs
 # https://stripe.com/docs/currencies#zero-decimal
-from ...interface import PaymentData
+from ...interface import AddressData, PaymentData
 
 ZERO_DECIMAL_CURRENCIES = [
     "BIF",
@@ -80,7 +80,7 @@ def get_payment_billing_fullname(payment_information: PaymentData) -> str:
     )
 
 
-def shipping_to_stripe_dict(shipping: Dict):
+def shipping_to_stripe_dict(shipping: AddressData) -> Dict:
     return {
         "line1": shipping.street_address_1,
         "line2": shipping.street_address_2,
