@@ -1,17 +1,17 @@
 import logging
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import braintree as braintree_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
-from ...interface import GatewayResponse, PaymentData
+from ... import TransactionKind
+from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
 logger = logging.getLogger(__name__)
 
-TEMPLATE_PATH = "order/payment/braintree.html"
 
 # FIXME: Move to SiteSettings
 
@@ -29,14 +29,6 @@ ERROR_CODES_WHITELIST = {
         Please try again later. Settlement time might vary depending
         on the issuers bank."""
 }
-
-
-class TransactionKind:
-    AUTH = "auth"
-    CAPTURE = "capture"
-    CHARGE = "charge"
-    REFUND = "refund"
-    VOID = "void"
 
 
 def get_customer_data(payment_information: PaymentData) -> Dict:
@@ -117,16 +109,16 @@ def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     return gateway
 
 
-def get_client_token(connection_params: Dict) -> str:
+def get_client_token(connection_params: Dict[str, Any]) -> str:
     gateway = get_braintree_gateway(**connection_params)
     client_token = gateway.client_token.generate()
     return client_token
 
 
 def authorize(
-    payment_information: PaymentData, connection_params: Dict
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    gateway = get_braintree_gateway(**connection_params)
+    gateway = get_braintree_gateway(**config.connection_params)
 
     try:
         result = gateway.transaction.sale(
@@ -134,7 +126,7 @@ def authorize(
                 "amount": str(payment_information.amount),
                 "payment_method_nonce": payment_information.token,
                 "options": {
-                    "submit_for_settlement": CONFIRM_MANUALLY,
+                    "submit_for_settlement": config.auto_capture,
                     "three_d_secure": {"required": THREE_D_SECURE_REQUIRED},
                 },
                 **get_customer_data(payment_information),
@@ -145,9 +137,10 @@ def authorize(
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response["errors"])
+    kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
     return GatewayResponse(
         is_success=result.is_success,
-        kind=TransactionKind.AUTH,
+        kind=kind,
         amount=gateway_response.get("amount", payment_information.amount),
         currency=gateway_response.get("currency", payment_information.currency),
         transaction_id=gateway_response.get(
@@ -158,10 +151,8 @@ def authorize(
     )
 
 
-def capture(
-    payment_information: PaymentData, connection_params: Dict
-) -> GatewayResponse:
-    gateway = get_braintree_gateway(**connection_params)
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    gateway = get_braintree_gateway(**config.connection_params)
 
     try:
         result = gateway.transaction.submit_for_settlement(
@@ -187,8 +178,8 @@ def capture(
     )
 
 
-def void(payment_information: PaymentData, connection_params: Dict) -> GatewayResponse:
-    gateway = get_braintree_gateway(**connection_params)
+def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    gateway = get_braintree_gateway(**config.connection_params)
 
     try:
         result = gateway.transaction.void(transaction_id=payment_information.token)
@@ -211,8 +202,8 @@ def void(payment_information: PaymentData, connection_params: Dict) -> GatewayRe
     )
 
 
-def refund(payment_information: Dict, connection_params: Dict) -> GatewayResponse:
-    gateway = get_braintree_gateway(**connection_params)
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    gateway = get_braintree_gateway(**config.connection_params)
 
     try:
         result = gateway.transaction.refund(
@@ -239,10 +230,7 @@ def refund(payment_information: Dict, connection_params: Dict) -> GatewayRespons
 
 
 def process_payment(
-    payment_information: PaymentData, connection_params: Dict
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    auth_resp = authorize(payment_information, connection_params)
-    if auth_resp.is_success:
-        payment_information.token = auth_resp.transaction_id
-        return capture(payment_information, connection_params)
+    auth_resp = authorize(payment_information, config)
     return auth_resp

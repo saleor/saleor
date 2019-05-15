@@ -272,7 +272,7 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    def perform_mutation(cls, root, info, menu, moves):
+    def perform_mutation(cls, _root, info, menu, moves):
         _type, menu_id = from_global_id(menu)  # type: str, int
         assert _type == "Menu", "Expected a menu of type Menu"
 

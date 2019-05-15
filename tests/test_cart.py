@@ -661,7 +661,7 @@ def test_update_view_must_be_ajax(customer_user, rf):
     assert result.status_code == 302
 
 
-def test_get_checkout_data(request_checkout_with_item, shipping_zone, vatlayer):
+def test_get_checkout_context(request_checkout_with_item, shipping_zone, vatlayer):
     checkout = request_checkout_with_item
     shipment_option = get_shipping_price_estimate(
         checkout.get_subtotal().gross, checkout.get_total_weight(), "PL", vatlayer
@@ -677,7 +677,7 @@ def test_get_checkout_data(request_checkout_with_item, shipping_zone, vatlayer):
     )
 
 
-def test_get_checkout_data_no_shipping(request_checkout_with_item, vatlayer):
+def test_get_checkout_context_no_shipping(request_checkout_with_item, vatlayer):
     checkout = request_checkout_with_item
     shipment_option = get_shipping_price_estimate(
         checkout.get_subtotal().gross, checkout.get_total_weight(), "PL", vatlayer
