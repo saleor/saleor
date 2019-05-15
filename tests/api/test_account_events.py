@@ -1,11 +1,8 @@
-from dataclasses import dataclass
-from typing import Optional
-
 import graphene
-import pytest
 from django.db import models
 
 from saleor.account import events as account_events
+from saleor.account.models import User
 
 from .utils import get_graphql_content
 
@@ -55,130 +52,118 @@ def test_account_events_are_properly_restricted(
     assert content["events"] == []
 
 
-@dataclass
-class _ExpectedCustomerEventData:
-    id: str
-    user: str
-    count: Optional[int]
-    message: Optional[str]
-    order: Optional[str]
-    orderLine: Optional[str]  # noqa
-    type: str
-
-    def __setattr__(self, key, value):
-        """Converts a model object value to a gql node id"""
-        if isinstance(value, models.Model):
-            value = graphene.Node.to_global_id(value.__class__.__name__, value.pk)
-        elif isinstance(value, dict) and len(value) == 1:
-            _, value = value.popitem()
-        return super().__setattr__(key, value)
+def _model_to_node_id(instance: models.Model) -> str:
+    return graphene.Node.to_global_id(instance.__class__.__name__, instance.pk)
 
 
-@pytest.mark.parametrize(
-    "_test_name, event, expected_event_data",
-    [
-        (
-            "customer_placed_order_event",
-            lambda **kwargs: account_events.customer_placed_order_event(
-                user=kwargs["customer_user"], order=kwargs["order"]
-            ),
-            lambda **kwargs: _ExpectedCustomerEventData(
-                id=kwargs["event"],
-                user=kwargs["customer_user"],
-                count=None,
-                message=None,
-                order=kwargs["order"],
-                orderLine=None,
-                type=account_events.CustomerEvents.PLACED_ORDER.upper(),
-            ),
-        ),
-        (
-            "customer_added_to_note_order_event",
-            lambda **kwargs: account_events.customer_added_to_note_order_event(
-                user=kwargs["customer_user"],
-                order=kwargs["order"],
-                message="418 - I'm a teapot.",
-            ),
-            lambda **kwargs: _ExpectedCustomerEventData(
-                id=kwargs["event"],
-                user=kwargs["customer_user"],
-                count=None,
-                message="418 - I'm a teapot.",
-                order=kwargs["order"],
-                orderLine=None,
-                type=account_events.CustomerEvents.NOTE_ADDED_TO_ORDER.upper(),
-            ),
-        ),
-        (
-            "customer_downloaded_a_digital_link_event",
-            lambda **kwargs: account_events.customer_downloaded_a_digital_link_event(
-                user=kwargs["customer_user"], order_line=kwargs["order_line"]
-            ),
-            lambda **kwargs: _ExpectedCustomerEventData(
-                id=kwargs["event"],
-                user=kwargs["customer_user"],
-                count=None,
-                message=None,
-                order=kwargs["order"],
-                orderLine=kwargs["order_line"],
-                type=account_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED.upper(),
-            ),
-        ),
-        (
-            "staff_user_deleted_a_customer_event",
-            lambda **kwargs: account_events.staff_user_deleted_a_customer_event(
-                staff_user=kwargs["staff_user"], deleted_count=123
-            ),
-            lambda **kwargs: _ExpectedCustomerEventData(
-                id=kwargs["event"],
-                user=kwargs["staff_user"],
-                count=123,
-                message=None,
-                order=None,
-                orderLine=None,
-                type=account_events.CustomerEvents.CUSTOMER_DELETED.upper(),
-            ),
-        ),
-    ],
-)
-def test_account_events_resolve_properly(
-    staff_api_client,
-    staff_user,
-    customer_user,
-    order_line,
-    permission_manage_users,
-    _test_name,
-    event,
-    expected_event_data,
-):
-    """Create every possible event and attempt to resolve them and
-    check if they properly returned all the expected data."""
+def _get_event_from_graphql(staff_api_client, requested_user: User, permission) -> dict:
 
-    # Prepare test
-    order = order_line.order
-    staff_api_client.user.user_permissions.add(permission_manage_users)
-    event = event(**locals())  # type: account_events.CustomerEvent
-    expected_event_data = expected_event_data(
-        **locals()
-    )  # type: _ExpectedCustomerEventData
-
-    # Retrieve the events
-    event_associated_user = event.user
-
+    staff_api_client.user.user_permissions.add(permission)
     received_events = get_graphql_content(
         staff_api_client.post_graphql(
             QUERY_CUSTOMER_EVENTS,
             variables={
-                "customerId": graphene.Node.to_global_id(
-                    "User", event_associated_user.id
-                )
+                "customerId": graphene.Node.to_global_id("User", requested_user.id)
             },
         )
     )["data"]["user"]["events"]
 
     # Ensure the correct count of events was returned
     assert len(received_events) == 1, "The expected event was not returned"
-    assert _ExpectedCustomerEventData(**received_events[0]) == expected_event_data
+    return received_events[0]
+
+
+def test_account_event_customer_placed_order_event_resolves_properly(
+    staff_api_client, customer_user, order_line, permission_manage_users
+):
+    order = order_line.order
+    event = account_events.customer_placed_order_event(user=customer_user, order=order)
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(customer_user)},
+        "count": None,
+        "message": None,
+        "order": {"id": _model_to_node_id(order)},
+        "orderLine": None,
+        "type": account_events.CustomerEvents.PLACED_ORDER.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, customer_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
+
+
+def test_account_event_customer_added_to_note_order_event_resolves_properly(
+    staff_api_client, customer_user, order_line, permission_manage_users
+):
+    order = order_line.order
+    event = account_events.customer_added_to_note_order_event(
+        user=customer_user, order=order, message="418 - I'm a teapot."
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(customer_user)},
+        "count": None,
+        "message": "418 - I'm a teapot.",
+        "order": {"id": _model_to_node_id(order)},
+        "orderLine": None,
+        "type": account_events.CustomerEvents.NOTE_ADDED_TO_ORDER.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, customer_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
+
+
+def test_account_event_customer_downloaded_a_digital_link_event_resolves_properly(
+    staff_api_client, customer_user, order_line, permission_manage_users
+):
+    order = order_line.order
+    event = account_events.customer_downloaded_a_digital_link_event(
+        user=customer_user, order_line=order_line
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(customer_user)},
+        "count": None,
+        "message": None,
+        "order": {"id": _model_to_node_id(order)},
+        "orderLine": {"id": _model_to_node_id(order_line)},
+        "type": account_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, customer_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
+
+
+def test_account_event_staff_user_deleted_a_customer_event_resolves_properly(
+    staff_api_client, staff_user, permission_manage_users
+):
+    event = account_events.staff_user_deleted_a_customer_event(
+        staff_user=staff_user, deleted_count=123
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(staff_user)},
+        "count": 123,
+        "message": None,
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.CUSTOMER_DELETED.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, staff_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
 
 
 def test_account_invalid_or_deleted_order_line_return_null(
