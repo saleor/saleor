@@ -19,7 +19,9 @@ from .utils import applicable_shipping_methods, validate_draft_order
 
 class OrderEventOrderLineObject(graphene.ObjectType):
     quantity = graphene.Int(description="The variant quantity.")
-    order_line = graphene.Field(lambda: OrderLine, description="The order line.")
+    order_line = gql_optimizer.field(
+        graphene.Field(lambda: OrderLine, description="The order line.")
+    )
     item_name = graphene.String(description="The variant name.")
 
 
@@ -48,8 +50,8 @@ class OrderEvent(CountableDjangoObjectType):
         graphene.String, description="List of oversold lines names."
     )
     lines = graphene.List(OrderEventOrderLineObject, description="The concerned lines.")
-    fulfilled_items = graphene.List(
-        lambda: FulfillmentLine, description="The lines fulfilled."
+    fulfilled_items = gql_optimizer.field(
+        graphene.List(lambda: FulfillmentLine, description="The lines fulfilled.")
     )
 
     class Meta:
