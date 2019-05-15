@@ -102,7 +102,6 @@ const LinkEntity = withStyles(styles, {
                           onEdit(entityKey);
                         }}
                         color="primary"
-                        variant="flat"
                       >
                         {i18n.t("Edit")}
                       </Button>
