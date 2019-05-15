@@ -2,7 +2,8 @@ from typing import Dict
 
 import stripe
 
-from ...interface import GatewayResponse, PaymentData
+from ... import TransactionKind
+from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from .forms import StripePaymentModalForm
 from .utils import (
     get_amount_for_stripe,
@@ -13,16 +14,6 @@ from .utils import (
     shipping_to_stripe_dict,
 )
 
-TEMPLATE_PATH = "order/payment/stripe.html"
-
-
-class TransactionKind:
-    AUTH = "auth"
-    CAPTURE = "capture"
-    CHARGE = "charge"
-    REFUND = "refund"
-    VOID = "void"
-
 
 def get_client_token(**_):
     """Not implemented for stripe gateway currently. The client token can be
@@ -32,32 +23,34 @@ def get_client_token(**_):
 
 
 def authorize(
-    payment_information: PaymentData, connection_params: Dict
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    client, error = _get_client(**connection_params), None
+    client, error = _get_client(**config.connection_params), None
 
     try:
-        # Authorize without capture
+        # Authorize with/without capture
         response = _create_stripe_charge(
-            client=client, payment_information=payment_information, should_capture=False
+            client=client,
+            payment_information=payment_information,
+            should_capture=config.auto_capture,
         )
     except stripe.error.StripeError as exc:
         response = _get_error_response_from_exc(exc)
         error = exc.user_message
 
+    kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
+
     # Create response
     return _create_response(
         payment_information=payment_information,
-        kind=TransactionKind.AUTH,
+        kind=kind,
         response=response,
         error=error,
     )
 
 
-def capture(
-    payment_information: PaymentData, connection_params: Dict
-) -> GatewayResponse:
-    client, error = _get_client(**connection_params), None
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    client, error = _get_client(**config.connection_params), None
 
     # Get amount from argument or payment, and convert to stripe's amount
     amount = payment_information.amount
@@ -80,33 +73,8 @@ def capture(
     )
 
 
-def charge(
-    payment_information: PaymentData, connection_params: Dict
-) -> GatewayResponse:
-    client, error = _get_client(**connection_params), None
-
-    try:
-        # Charge without pre-authorize
-        response = _create_stripe_charge(
-            client=client, payment_information=payment_information, should_capture=True
-        )
-    except stripe.error.StripeError as exc:
-        response = _get_error_response_from_exc(exc)
-        error = exc.user_message
-
-    # Create response
-    return _create_response(
-        payment_information=payment_information,
-        kind=TransactionKind.CHARGE,
-        response=response,
-        error=error,
-    )
-
-
-def refund(
-    payment_information: PaymentData, connection_params: Dict
-) -> GatewayResponse:
-    client, error = _get_client(**connection_params), None
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    client, error = _get_client(**config.connection_params), None
 
     # Get amount from payment, and convert to stripe's amount
     amount = payment_information.amount
@@ -129,8 +97,8 @@ def refund(
     )
 
 
-def void(payment_information: PaymentData, connection_params: Dict) -> GatewayResponse:
-    client, error = _get_client(**connection_params), None
+def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    client, error = _get_client(**config.connection_params), None
 
     try:
         # Retrieve stripe charge and refund all
@@ -150,9 +118,11 @@ def void(payment_information: PaymentData, connection_params: Dict) -> GatewayRe
 
 
 def process_payment(
-    payment_information: PaymentData, connection_params: Dict
+    payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    return charge(payment_information, connection_params)
+    # Stripe supports capture during authorize process. No need to run other steps.
+    # If 'config.auto_capture is True', it will also capture funds from the card.
+    return authorize(payment_information, config)
 
 
 def create_form(
