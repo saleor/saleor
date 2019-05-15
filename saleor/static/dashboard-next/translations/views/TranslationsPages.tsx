@@ -56,6 +56,9 @@ const TranslationsPages: React.FC<TranslationsPagesProps> = ({
       navigate("?", true);
     }
   };
+  const onDiscard = () => {
+    navigate("?", true);
+  };
 
   return (
     <TypedPageTranslationDetails variables={{ id, language: languageCode }}>
@@ -106,6 +109,7 @@ const TranslationsPages: React.FC<TranslationsPagesProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onDiscard={onDiscard}
                 onLanguageChange={lang =>
                   navigate(
                     languageEntityUrl(lang, TranslatableEntities.pages, id)

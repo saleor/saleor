@@ -34,6 +34,7 @@ const TranslationsProductsPage: React.StatelessComponent<
   product,
   saveButtonState,
   onBack,
+  onDiscard,
   onEdit,
   onLanguageChange,
   onSubmit
@@ -83,6 +84,7 @@ const TranslationsProductsPage: React.StatelessComponent<
       ]}
       saveButtonState={saveButtonState}
       onEdit={onEdit}
+      onDiscard={onDiscard}
       onSubmit={onSubmit}
     />
     <CardSpacer />
@@ -113,6 +115,7 @@ const TranslationsProductsPage: React.StatelessComponent<
       ]}
       saveButtonState={saveButtonState}
       onEdit={onEdit}
+      onDiscard={onDiscard}
       onSubmit={onSubmit}
     />
   </Container>
