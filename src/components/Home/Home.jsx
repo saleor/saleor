@@ -208,7 +208,7 @@ class Home extends Component {
               }
               <h1>A graphql-first ecommerce <span className="primaryColor">platform for perfectionists</span></h1>
               <div className="button-wrapper">
-                <a href="https://demo.getsaleor.com/pl/" target="_blank" rel="noopener" className="btn btn-primary">
+                <a href="https://demo.getsaleor.com/" target="_blank" rel="noopener" className="btn btn-primary">
                   <span>See demo</span>
                 </a>
                 <a href="https://mirumee.typeform.com/to/Xwfril" target="_blank" rel="noopener" className="btn btn-secondary">
