@@ -363,8 +363,8 @@
       width: 100%;
     }
   }
-  &__clear{
-    @media (max-width: 400px){
+  &__clear {
+    @media (max-width: 400px) {
       margin-top: $global-margin;
     }
     @media (min-width: 470px) {
@@ -373,6 +373,7 @@
     @media (max-width: 370px) {
       width: 100%;
     }
+    margin-right: $global-margin;
   }
   &-item-delete {
     cursor: pointer;
