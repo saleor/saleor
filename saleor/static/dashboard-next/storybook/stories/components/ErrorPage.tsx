@@ -9,6 +9,6 @@ const props: Omit<ErrorPageProps, "classes"> = {
   onBack: () => undefined
 };
 
-storiesOf("Components / ErrorPage", module)
+storiesOf("Views / Error page", module)
   .addDecorator(Decorator)
   .add("default", () => <ErrorPage {...props} />);

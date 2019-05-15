@@ -101,7 +101,7 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
           disabled={disabled}
           type="checkbox"
           name={name}
-          value={checked.toString()}
+          value={checked !== undefined && checked.toString()}
           ref={inputRef}
           onChange={event => onChange(event, !inputRef.current.checked)}
         />

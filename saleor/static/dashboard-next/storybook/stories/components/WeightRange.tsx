@@ -2,6 +2,7 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import WeightRange, { WeightRangeProps } from "../../../components/WeightRange";
+import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 
 const props: WeightRangeProps = {
@@ -16,6 +17,7 @@ const props: WeightRangeProps = {
 };
 
 storiesOf("Generics / Weight range", module)
+  .addDecorator(CardDecorator)
   .addDecorator(Decorator)
   .add("from", () => <WeightRange {...props} to={undefined} />)
   .add("to", () => <WeightRange {...props} from={undefined} />)
