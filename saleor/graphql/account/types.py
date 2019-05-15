@@ -12,7 +12,6 @@ from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import CountryDisplay, Image, PermissionDisplay
-from ..core.utils import lazy_resolve
 from ..shop.types import get_node_optimized
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum
@@ -114,12 +113,12 @@ class CustomerEvent(CountableDjangoObjectType):
     count = graphene.Int(description="Number of objects concerned by the event.")
     order = gql_optimizer.field(
         graphene.Field(
-            lazy_resolve("order.types:Order"), description="The concerned order."
+            "saleor.graphql.order.types.Order", description="The concerned order."
         ),
         model_field="order",
     )
     order_line = graphene.Field(
-        lazy_resolve("order.types:OrderLine"), description="The concerned order line."
+        "saleor.graphql.order.types.OrderLine", description="The concerned order line."
     )
 
     class Meta:
@@ -159,7 +158,7 @@ class User(CountableDjangoObjectType):
     note = graphene.String(description="A note about the customer")
     orders = gql_optimizer.field(
         PrefetchingConnectionField(
-            lazy_resolve("order.types:Order"), description="List of user's orders."
+            "saleor.graphql.order.types.Order", description="List of user's orders."
         ),
         model_field="orders",
     )
