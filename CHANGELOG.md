@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 - Cleanup code for updated function names, unused argument, etc. - #4090 by @jxltom
 - Merge authorize with capture - #4098 by @korycins, @NyanKiyoshi
+- Order Events containing order lines or fulfillment lines now return the line object in the GraphQL API - #4114 by @NyanKiyoshi
 
 
 ## 2.6.0
