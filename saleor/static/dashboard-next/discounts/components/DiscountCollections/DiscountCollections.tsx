@@ -74,7 +74,7 @@ const DiscountCollections = withStyles(styles, {
           saleName: maybe(() => sale.name)
         })}
         toolbar={
-          <Button variant="flat" color="primary" onClick={onCollectionAssign}>
+          <Button color="primary" onClick={onCollectionAssign}>
             {i18n.t("Assign collections")}
           </Button>
         }

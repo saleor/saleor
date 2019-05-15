@@ -82,7 +82,7 @@ const DiscountProducts = withStyles(styles, {
           saleName: maybe(() => sale.name)
         })}
         toolbar={
-          <Button variant="flat" color="primary" onClick={onProductAssign}>
+          <Button color="primary" onClick={onProductAssign}>
             {i18n.t("Assign products")}
           </Button>
         }
