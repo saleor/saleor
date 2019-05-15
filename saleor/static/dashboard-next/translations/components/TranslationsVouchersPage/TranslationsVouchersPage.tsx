@@ -30,6 +30,7 @@ const TranslationsVouchersPage: React.StatelessComponent<
   voucher,
   saveButtonState,
   onBack,
+  onDiscard,
   onEdit,
   onLanguageChange,
   onSubmit
@@ -70,6 +71,7 @@ const TranslationsVouchersPage: React.StatelessComponent<
       ]}
       saveButtonState={saveButtonState}
       onEdit={onEdit}
+      onDiscard={onDiscard}
       onSubmit={onSubmit}
     />
   </Container>

@@ -32,6 +32,7 @@ const TranslationsProductTypesPage: React.StatelessComponent<
   productType,
   saveButtonState,
   onBack,
+  onDiscard,
   onEdit,
   onLanguageChange,
   onSubmit
@@ -92,6 +93,7 @@ const TranslationsProductTypesPage: React.StatelessComponent<
             ]}
             saveButtonState={saveButtonState}
             onEdit={onEdit}
+            onDiscard={onDiscard}
             onSubmit={onSubmit}
           />
           {attributeIndex < productType.productAttributes.length - 1 && (
@@ -141,6 +143,7 @@ const TranslationsProductTypesPage: React.StatelessComponent<
                 ]}
                 saveButtonState={saveButtonState}
                 onEdit={onEdit}
+                onDiscard={onDiscard}
                 onSubmit={onSubmit}
               />
               {attributeIndex < productType.variantAttributes.length - 1 && (
