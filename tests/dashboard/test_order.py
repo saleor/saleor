@@ -326,7 +326,13 @@ def test_view_cancel_order_line(admin_client, draft_order, track_inventory, admi
     assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
     assert removed_items_event.user == admin_user
     assert removed_items_event.parameters == {
-        "lines": [{"quantity": line.quantity, "item": str(line)}]
+        "lines": [
+            {
+                "quantity": line.quantity,
+                "line_pk": None,  # the line was deleted
+                "item": str(line),
+            }
+        ]
     }
 
     url = reverse(
@@ -383,7 +389,7 @@ def test_view_change_order_line_quantity(
     assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
     assert removed_items_event.user == admin_user
     assert removed_items_event.parameters == {
-        "lines": [{"quantity": 1, "item": str(line)}]
+        "lines": [{"quantity": 1, "line_pk": line.pk, "item": str(line)}]
     }
 
     line.refresh_from_db()
@@ -531,7 +537,7 @@ def test_view_add_variant_to_order(admin_client, order_with_lines, admin_user):
     assert removed_items_event.type == OrderEvents.DRAFT_ADDED_PRODUCTS
     assert removed_items_event.user == admin_user
     assert removed_items_event.parameters == {
-        "lines": [{"quantity": line.quantity, "item": str(line)}]
+        "lines": [{"quantity": line.quantity, "line_pk": line.pk, "item": str(line)}]
     }
 
 
