@@ -128,7 +128,6 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

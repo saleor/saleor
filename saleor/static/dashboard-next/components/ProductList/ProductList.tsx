@@ -130,7 +130,6 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
               >
                 <TableCell padding="checkbox">
                   <Checkbox
-                    color="primary"
                     checked={isSelected}
                     disabled={disabled}
                     onClick={event => {

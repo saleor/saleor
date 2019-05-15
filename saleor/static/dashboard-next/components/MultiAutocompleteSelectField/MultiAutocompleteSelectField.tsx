@@ -113,7 +113,6 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
               getInputProps,
               getItemProps,
               isOpen,
-              inputValue,
               selectedItem,
               toggleMenu,
               closeMenu,

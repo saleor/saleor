@@ -103,7 +103,7 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
           name={name}
           value={checked.toString()}
           ref={inputRef}
-          onChange={onChange}
+          onChange={event => onChange(event, !inputRef.current.checked)}
         />
       </ButtonBase>
     );

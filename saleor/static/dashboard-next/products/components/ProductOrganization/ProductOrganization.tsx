@@ -11,6 +11,7 @@ import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
+import Chip from "../../../components/Chip";
 import { FormSpacer } from "../../../components/FormSpacer";
 import MultiAutocompleteSelectField from "../../../components/MultiAutocompleteSelectField";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
@@ -18,7 +19,6 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
-import Chip from "../../../components/Chip";
 
 interface ChoiceType {
   label: string;

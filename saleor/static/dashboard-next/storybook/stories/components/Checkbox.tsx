@@ -25,10 +25,10 @@ storiesOf("Generics / Checkbox", module)
           {...props}
           checked={data.data}
           // Omit second argument
-          onClick={event =>
+          onClick={() =>
             change({
               target: {
-                name: event.target.name,
+                name: "data",
                 value: !data.data
               }
             } as any)

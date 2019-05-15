@@ -108,7 +108,6 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {
