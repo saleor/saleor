@@ -103,6 +103,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                     const handleQueryChange = (query: string) => {
                       categorySearch.search(query);
                       collectionSearch.search(query);
+                      pageSearch.search(query);
                     };
 
                     const categories = maybe(

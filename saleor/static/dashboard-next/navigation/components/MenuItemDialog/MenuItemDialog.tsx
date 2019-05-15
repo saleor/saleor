@@ -149,7 +149,7 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
         label: (
           <div
             dangerouslySetInnerHTML={{
-              __html: i18n.t("link to: <strong>{{ url }}</strong>", {
+              __html: i18n.t("Link to: <strong>{{ url }}</strong>", {
                 context: "add link to navigation",
                 url
               })
@@ -164,6 +164,8 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
   const handleQueryChange = (query: string) => {
     if (isUrl(query)) {
       setUrl(query);
+    } else if (isUrl("http://" + query)) {
+      setUrl("http://" + query);
     } else if (url) {
       setUrl(undefined);
     }

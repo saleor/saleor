@@ -164,34 +164,48 @@ const AutocompleteSelectMenu = withStyles(styles, {
                   />
                   {isOpen && (
                     <Paper className={classes.paper} square>
-                      {menuPath.length > 0 && (
-                        <MenuItem
-                          component="div"
-                          {...getItemProps({
-                            item: null
-                          })}
-                          onClick={() =>
-                            setMenuPath(menuPath.slice(0, menuPath.length - 2))
-                          }
-                        >
-                          <ArrowBack className={classes.menuBack} />
-                          {i18n.t("Back")}
+                      {options.length ? (
+                        <>
+                          {menuPath.length > 0 && (
+                            <MenuItem
+                              component="div"
+                              {...getItemProps({
+                                item: null
+                              })}
+                              onClick={() =>
+                                setMenuPath(
+                                  menuPath.slice(0, menuPath.length - 2)
+                                )
+                              }
+                            >
+                              <ArrowBack className={classes.menuBack} />
+                              {i18n.t("Back")}
+                            </MenuItem>
+                          )}
+                          {getMenu(options, menuPath).map(
+                            (suggestion, index) => (
+                              <MenuItem
+                                key={
+                                  suggestion.label.toString() + suggestion.value
+                                }
+                                component="div"
+                                {...getItemProps({ item: suggestion })}
+                                onClick={() =>
+                                  suggestion.value
+                                    ? selectItem(suggestion.value)
+                                    : setMenuPath([...menuPath, index])
+                                }
+                              >
+                                {suggestion.label}
+                              </MenuItem>
+                            )
+                          )}
+                        </>
+                      ) : (
+                        <MenuItem disabled component="div">
+                          {i18n.t("No results")}
                         </MenuItem>
                       )}
-                      {getMenu(options, menuPath).map((suggestion, index) => (
-                        <MenuItem
-                          key={suggestion.label.toString() + suggestion.value}
-                          component="div"
-                          {...getItemProps({ item: suggestion })}
-                          onClick={() =>
-                            suggestion.value
-                              ? selectItem(suggestion.value)
-                              : setMenuPath([...menuPath, index])
-                          }
-                        >
-                          {suggestion.label}
-                        </MenuItem>
-                      ))}
                     </Paper>
                   )}
                 </div>
