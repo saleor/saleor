@@ -18,6 +18,7 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
+import Chip from "../../../components/Chip";
 
 interface ChoiceType {
   label: string;
@@ -214,7 +215,6 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
               }
               value={data.productType}
               onChange={handleProductTypeSelect}
-
             />
           ) : (
             <>
@@ -294,7 +294,22 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
             value={data.collections}
             onChange={onChange}
             fetchChoices={fetchCollections}
-          />
+          >
+            {({ deleteItem, items }) => (
+              <>
+                <FormSpacer />
+                <div>
+                  {items.map(item => (
+                    <Chip
+                      key={item.value}
+                      label={item.label}
+                      onClose={() => deleteItem(item)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </MultiAutocompleteSelectField>
         </CardContent>
       </Card>
     );
