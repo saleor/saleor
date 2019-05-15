@@ -620,12 +620,12 @@ def test_can_finalize_order_no_order_lines(
     assert content["data"]["order"]["canFinalize"] is False
 
 
-def test_can_finalize_draft_order(order_with_lines):
+def test_validate_draft_order(order_with_lines):
     # should not raise any errors
     validate_draft_order(order_with_lines)
 
 
-def test_can_finalize_draft_order_wrong_shipping(order_with_lines):
+def test_validate_draft_order_wrong_shipping(order_with_lines):
     order = order_with_lines
     shipping_zone = order.shipping_method.shipping_zone
     shipping_zone.countries = ["DE"]
@@ -637,14 +637,14 @@ def test_can_finalize_draft_order_wrong_shipping(order_with_lines):
     assert e.value.error_dict["shipping"][0].message == msg
 
 
-def test_can_finalize_draft_order_no_order_lines(order):
+def test_validate_draft_order_no_order_lines(order):
     with pytest.raises(ValidationError) as e:
         validate_draft_order(order)
     msg = "Could not create order without any products."
     assert e.value.error_dict["lines"][0].message == msg
 
 
-def test_can_finalize_draft_order_non_existing_variant(order_with_lines):
+def test_validate_draft_order_non_existing_variant(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
     variant = line.variant

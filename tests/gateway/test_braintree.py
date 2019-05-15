@@ -29,6 +29,7 @@ from saleor.payment.gateways.braintree.errors import (
     BraintreeException,
 )
 from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
+from saleor.payment.interface import GatewayConfig
 from saleor.payment.utils import create_payment_information
 
 INCORRECT_TOKEN_ERROR = (
@@ -88,12 +89,16 @@ def braintree_not_found_error():
 
 @pytest.fixture
 def gateway_config():
-    return {
-        "sandbox_mode": False,
-        "merchant_id": "123",
-        "public_key": "456",
-        "private_key": "789",
-    }
+    return GatewayConfig(
+        template_path="template.html",
+        auto_capture=False,
+        connection_params={
+            "sandbox_mode": False,
+            "merchant_id": "123",
+            "public_key": "456",
+            "private_key": "789",
+        },
+    )
 
 
 def success_gateway_response(gateway_response):
@@ -173,25 +178,26 @@ def test_extract_gateway_response_no_transaction(
 
 @pytest.mark.integration
 def test_get_braintree_gateway(gateway_config):
-    result = get_braintree_gateway(**gateway_config)
-    assert gateway_config["sandbox_mode"] is False
+    connection_params = gateway_config.connection_params
+    result = get_braintree_gateway(**gateway_config.connection_params)
+    assert connection_params["sandbox_mode"] is False
     assert result.config.environment == Environment.Production
-    assert result.config.merchant_id == gateway_config["merchant_id"]
-    assert result.config.public_key == gateway_config["public_key"]
-    assert result.config.private_key == gateway_config["private_key"]
+    assert result.config.merchant_id == connection_params["merchant_id"]
+    assert result.config.public_key == connection_params["public_key"]
+    assert result.config.private_key == connection_params["private_key"]
 
 
 @pytest.mark.integration
 def test_get_braintree_gateway_sandbox(gateway_config):
-    gateway_config["sandbox_mode"] = True
-    result = get_braintree_gateway(**gateway_config)
+    gateway_config.connection_params["sandbox_mode"] = True
+    result = get_braintree_gateway(**gateway_config.connection_params)
     assert result.config.environment == Environment.Sandbox
 
 
 def test_get_braintree_gateway_inproperly_configured(gateway_config):
     with pytest.raises(ImproperlyConfigured):
-        gateway_config["private_key"] = None
-        get_braintree_gateway(**gateway_config)
+        gateway_config.connection_params["private_key"] = None
+        get_braintree_gateway(**gateway_config.connection_params)
 
 
 @patch("saleor.payment.gateways.braintree.get_braintree_gateway")
@@ -199,8 +205,8 @@ def test_get_client_token(mock_gateway, gateway_config):
     client_token = "client-token"
     mock_generate = Mock(return_value="client-token")
     mock_gateway.return_value = Mock(client_token=Mock(generate=mock_generate))
-    result = get_client_token(gateway_config)
-    mock_gateway.assert_called_once_with(**gateway_config)
+    result = get_client_token(gateway_config.connection_params)
+    mock_gateway.assert_called_once_with(**gateway_config.connection_params)
     mock_generate.assert_called_once_with()
     assert result == client_token
 
@@ -219,6 +225,7 @@ def test_process_payment_error_response(
     response = process_payment(payment_info, gateway_config)
 
     assert response.kind == TransactionKind.AUTH
+    assert response.is_success is False
 
 
 @pytest.mark.integration
@@ -226,6 +233,7 @@ def test_process_payment_error_response(
 def test_process_payment(
     mock_gateway, payment_dummy, braintree_success_response, gateway_config
 ):
+    gateway_config.auto_capture = True
     payment = payment_dummy
     payment_token = "payment-token"
     mock_response = Mock(return_value=braintree_success_response)

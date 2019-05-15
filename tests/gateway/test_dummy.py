@@ -12,60 +12,10 @@ from saleor.payment.utils import (
     create_payment_information,
     gateway_authorize,
     gateway_capture,
-    gateway_charge,
     gateway_process_payment,
     gateway_refund,
     gateway_void,
 )
-
-
-def test_charge_success(payment_dummy):
-    gateway_charge(payment=payment_dummy, payment_token="fake-token")
-    capture_txn = payment_dummy.transactions.last()
-
-    assert capture_txn.is_success
-    assert capture_txn.kind == TransactionKind.CAPTURE
-    assert capture_txn.payment == payment_dummy
-    assert capture_txn.amount == payment_dummy.total
-
-    payment_dummy.refresh_from_db()
-    assert payment_dummy.charge_status == ChargeStatus.FULLY_CHARGED
-    assert payment_dummy.captured_amount == payment_dummy.total
-    assert payment_dummy.is_active
-
-
-def test_charge_gateway_error(payment_dummy, monkeypatch):
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
-    with pytest.raises(PaymentError):
-        txn = gateway_charge(
-            payment=payment_dummy, payment_token="Fake", amount=payment_dummy.total
-        )
-        assert txn.kind == TransactionKind.CHARGE
-        assert not txn.is_success
-        assert txn.payment == payment_dummy
-
-
-@pytest.mark.parametrize(
-    "is_active, charge_status",
-    [
-        (False, ChargeStatus.NOT_CHARGED),
-        (False, ChargeStatus.PARTIALLY_CHARGED),
-        (False, ChargeStatus.FULLY_CHARGED),
-        (False, ChargeStatus.PARTIALLY_REFUNDED),
-        (False, ChargeStatus.FULLY_REFUNDED),
-        (True, ChargeStatus.FULLY_CHARGED),
-        (True, ChargeStatus.PARTIALLY_REFUNDED),
-        (True, ChargeStatus.FULLY_REFUNDED),
-    ],
-)
-def test_charge_failed(is_active, charge_status, payment_dummy):
-    payment = payment_dummy
-    payment.is_active = is_active
-    payment.charge_status = charge_status
-    payment.save()
-    with pytest.raises(PaymentError):
-        txn = gateway_charge(payment=payment, payment_token="Fake")
-        assert txn is None
 
 
 def test_authorize_success(payment_dummy):
@@ -195,14 +145,16 @@ def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     with pytest.raises(PaymentError):
         txn = gateway_capture(payment=payment_txn_preauth, amount=80)
-        assert txn.kind == TransactionKind.CHARGE
+        assert txn.kind == TransactionKind.CAPTURE
         assert not txn.is_success
         assert txn.payment == payment_txn_preauth
 
 
 @pytest.mark.parametrize(
-    "initial_captured_amount, refund_amount, "
-    "final_captured_amount, final_charge_status, active_after",
+    (
+        "initial_captured_amount, refund_amount, final_captured_amount, "
+        "final_charge_status, active_after"
+    ),
     [
         (80, 80, 0, ChargeStatus.FULLY_REFUNDED, False),
         (80, 10, 70, ChargeStatus.PARTIALLY_REFUNDED, True),
@@ -280,11 +232,13 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
 def test_dummy_payment_form(kind, charge_status, payment_dummy):
     payment = payment_dummy
     data = {"charge_status": charge_status}
-    payment_gateway, gateway_params = get_payment_gateway(payment.gateway)
+    payment_gateway, gateway_config = get_payment_gateway(payment.gateway)
     payment_info = create_payment_information(payment)
 
     form = payment_gateway.create_form(
-        data=data, payment_information=payment_info, connection_params=gateway_params
+        data=data,
+        payment_information=payment_info,
+        connection_params=gateway_config.connection_params,
     )
     assert form.is_valid()
     gateway_process_payment(payment=payment, payment_token=form.get_payment_token())
