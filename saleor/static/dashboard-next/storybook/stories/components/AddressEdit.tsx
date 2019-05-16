@@ -1,3 +1,5 @@
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
@@ -10,17 +12,19 @@ import Decorator from "../../Decorator";
 storiesOf("Generics / AddressEdit", module)
   .addDecorator(Decorator)
   .add("default", () => (
-    <div
+    <Card
       style={{
         margin: "auto",
         width: 768
       }}
     >
-      <AddressEdit
-        errors={{}}
-        data={transformAddressToForm(customer.defaultBillingAddress)}
-        countries={countries}
-        onChange={undefined}
-      />
-    </div>
+      <CardContent>
+        <AddressEdit
+          errors={{}}
+          data={transformAddressToForm(customer.defaultBillingAddress)}
+          countries={countries}
+          onChange={undefined}
+        />
+      </CardContent>
+    </Card>
   ));

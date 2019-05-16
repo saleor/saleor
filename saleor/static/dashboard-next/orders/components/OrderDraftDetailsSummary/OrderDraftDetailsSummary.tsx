@@ -16,7 +16,7 @@ import { OrderDetails_order } from "../../types/OrderDetails";
 const styles = (theme: Theme) =>
   createStyles({
     root: {
-      ...theme.typography.body1,
+      ...theme.typography.body2,
       lineHeight: 1.9,
       width: "100%"
     },

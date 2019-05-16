@@ -37,8 +37,7 @@ const TranslationFieldsRich: React.FC<TranslationFieldsRichProps> = ({
             error={undefined}
             helperText={undefined}
             initial={JSON.parse(initial)}
-            // label={i18n.t("Translation")}
-            label={undefined}
+            label={i18n.t("Translation")}
             name="translation"
             onChange={change}
           />

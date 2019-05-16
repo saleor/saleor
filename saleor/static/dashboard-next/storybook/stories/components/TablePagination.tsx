@@ -3,8 +3,12 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import TablePagination from "../../../components/TablePagination";
+import CardDecorator from "../../CardDecorator";
+import Decorator from "../../Decorator";
 
 storiesOf("Generics / TablePagination", module)
+  .addDecorator(CardDecorator)
+  .addDecorator(Decorator)
   .add("no previous / next page", () => (
     <Table>
       <TablePagination

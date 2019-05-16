@@ -31,7 +31,7 @@ const HomeOrdersCard = withStyles(styles, { name: "HomeOrdersCard" })(
   ({ classes, userName }: HomeOrdersCardProps) => {
     return (
       <div className={classes.headerContainer}>
-        <Typography className={classes.pageHeader} variant="display1">
+        <Typography className={classes.pageHeader} variant="h4">
           {userName ? (
             i18n.t("Hello there, {{userName}}", { userName })
           ) : (

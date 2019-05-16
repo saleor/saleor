@@ -34,7 +34,7 @@ const TranslationFieldsShort: React.FC<TranslationFieldsShortProps> = ({
           <TextField
             disabled={disabled}
             fullWidth
-            // label={i18n.t("Translation")}
+            label={i18n.t("Translation")}
             name="translation"
             value={data.translation}
             onChange={change}
