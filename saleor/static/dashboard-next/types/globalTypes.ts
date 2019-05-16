@@ -343,6 +343,35 @@ export interface FulfillmentUpdateTrackingInput {
   notifyCustomer?: boolean | null;
 }
 
+export interface MenuCreateInput {
+  name?: string | null;
+  items?: (MenuItemInput | null)[] | null;
+}
+
+export interface MenuItemCreateInput {
+  name?: string | null;
+  url?: string | null;
+  category?: string | null;
+  collection?: string | null;
+  page?: string | null;
+  menu: string;
+  parent?: string | null;
+}
+
+export interface MenuItemInput {
+  name?: string | null;
+  url?: string | null;
+  category?: string | null;
+  collection?: string | null;
+  page?: string | null;
+}
+
+export interface MenuItemMoveInput {
+  itemId: string;
+  parentId?: string | null;
+  sortOrder?: number | null;
+}
+
 export interface NameTranslationInput {
   name?: string | null;
 }
