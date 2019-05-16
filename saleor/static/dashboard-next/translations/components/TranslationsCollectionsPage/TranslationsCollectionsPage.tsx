@@ -34,6 +34,7 @@ const TranslationsCollectionsPage: React.StatelessComponent<
   collection,
   saveButtonState,
   onBack,
+  onDiscard,
   onEdit,
   onLanguageChange,
   onSubmit
@@ -85,6 +86,7 @@ const TranslationsCollectionsPage: React.StatelessComponent<
       ]}
       saveButtonState={saveButtonState}
       onEdit={onEdit}
+      onDiscard={onDiscard}
       onSubmit={onSubmit}
     />
     <CardSpacer />
@@ -117,6 +119,7 @@ const TranslationsCollectionsPage: React.StatelessComponent<
       ]}
       saveButtonState={saveButtonState}
       onEdit={onEdit}
+      onDiscard={onDiscard}
       onSubmit={onSubmit}
     />
   </Container>

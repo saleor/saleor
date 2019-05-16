@@ -9,6 +9,7 @@ export interface TranslationsEntitiesPageProps {
   saveButtonState: ConfirmButtonTransitionState;
   onBack: () => void;
   onEdit: (field: string) => void;
+  onDiscard: () => void;
   onLanguageChange: (lang: string) => void;
   onSubmit: (field: string, data: string) => void;
 }

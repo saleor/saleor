@@ -34,6 +34,7 @@ const TranslationsPagesPage: React.StatelessComponent<
   page,
   saveButtonState,
   onBack,
+  onDiscard,
   onEdit,
   onLanguageChange,
   onSubmit
@@ -80,6 +81,7 @@ const TranslationsPagesPage: React.StatelessComponent<
       ]}
       saveButtonState={saveButtonState}
       onEdit={onEdit}
+      onDiscard={onDiscard}
       onSubmit={onSubmit}
     />
     <CardSpacer />
@@ -110,6 +112,7 @@ const TranslationsPagesPage: React.StatelessComponent<
       ]}
       saveButtonState={saveButtonState}
       onEdit={onEdit}
+      onDiscard={onDiscard}
       onSubmit={onSubmit}
     />
   </Container>

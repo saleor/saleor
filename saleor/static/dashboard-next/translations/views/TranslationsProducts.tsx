@@ -53,6 +53,9 @@ const TranslationsProducts: React.FC<TranslationsProductsProps> = ({
       navigate("?", true);
     }
   };
+  const onDiscard = () => {
+    navigate("?", true);
+  };
 
   return (
     <TypedProductTranslationDetails variables={{ id, language: languageCode }}>
@@ -106,6 +109,7 @@ const TranslationsProducts: React.FC<TranslationsProductsProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onDiscard={onDiscard}
                 onLanguageChange={lang =>
                   navigate(
                     languageEntityUrl(lang, TranslatableEntities.products, id)

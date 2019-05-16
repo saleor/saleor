@@ -53,6 +53,9 @@ const TranslationsCollections: React.FC<TranslationsCollectionsProps> = ({
       navigate("?", true);
     }
   };
+  const onDiscard = () => {
+    navigate("?", true);
+  };
 
   return (
     <TypedCollectionTranslationDetails
@@ -101,6 +104,7 @@ const TranslationsCollections: React.FC<TranslationsCollectionsProps> = ({
                 languages={maybe(() => shop.languages, [])}
                 saveButtonState={saveButtonState}
                 onEdit={onEdit}
+                onDiscard={onDiscard}
                 onBack={() =>
                   navigate(
                     languageEntitiesUrl(

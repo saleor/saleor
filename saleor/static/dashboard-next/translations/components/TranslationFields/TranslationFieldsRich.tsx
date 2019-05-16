@@ -13,6 +13,7 @@ interface TranslationFieldsRichProps {
   edit: boolean;
   initial: string;
   saveButtonState: ConfirmButtonTransitionState;
+  onDiscard: () => void;
   onSubmit: (data: string) => void;
 }
 
@@ -21,6 +22,7 @@ const TranslationFieldsRich: React.FC<TranslationFieldsRichProps> = ({
   edit,
   initial,
   saveButtonState,
+  onDiscard,
   onSubmit
 }) =>
   edit ? (
@@ -28,7 +30,7 @@ const TranslationFieldsRich: React.FC<TranslationFieldsRichProps> = ({
       initial={{ translation: initial }}
       onSubmit={data => onSubmit(data.translation)}
     >
-      {({ change, reset, submit }) => (
+      {({ change, submit }) => (
         <div>
           <RichTextEditor
             disabled={disabled}
@@ -42,7 +44,7 @@ const TranslationFieldsRich: React.FC<TranslationFieldsRichProps> = ({
           />
           <TranslationFieldsSave
             saveButtonState={saveButtonState}
-            onDiscard={reset}
+            onDiscard={onDiscard}
             onSave={submit}
           />
         </div>
