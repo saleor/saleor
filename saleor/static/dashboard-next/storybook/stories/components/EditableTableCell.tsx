@@ -7,9 +7,11 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import EditableTableCell from "../../../components/EditableTableCell";
+import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 
 storiesOf("Generics / EditableTableCell", module)
+  .addDecorator(CardDecorator)
   .addDecorator(Decorator)
   .add("default", () => (
     <Table>

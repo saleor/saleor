@@ -18,8 +18,8 @@ export const ProductTypes = createSvgIcon(
         y2="46.78"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#13BEBB" />
-        <stop offset="1" stop-color="#3EE7CD" />
+        <stop stopColor="#13BEBB" />
+        <stop offset="1" stopColor="#3EE7CD" />
       </linearGradient>
     </defs>
   </>

@@ -92,7 +92,7 @@ const LinkEntity = withStyles(styles, {
                 <Paper className={classes.root}>
                   <ClickAwayListener onClickAway={disable} mouseEvent="onClick">
                     <div className={classes.container}>
-                      <Typography className={classes.inline} variant="body1">
+                      <Typography className={classes.inline} variant="body2">
                         {contentState.getEntity(entityKey).getData().href}
                       </Typography>
                       <span className={classes.separator} />
@@ -102,7 +102,6 @@ const LinkEntity = withStyles(styles, {
                           onEdit(entityKey);
                         }}
                         color="primary"
-                        variant="flat"
                       >
                         {i18n.t("Edit")}
                       </Button>

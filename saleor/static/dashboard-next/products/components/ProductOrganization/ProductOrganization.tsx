@@ -11,6 +11,7 @@ import * as React from "react";
 
 import CardSpacer from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
+import Chip from "../../../components/Chip";
 import { FormSpacer } from "../../../components/FormSpacer";
 import MultiAutocompleteSelectField from "../../../components/MultiAutocompleteSelectField";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
@@ -214,7 +215,6 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
               }
               value={data.productType}
               onChange={handleProductTypeSelect}
-
             />
           ) : (
             <>
@@ -294,7 +294,22 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
             value={data.collections}
             onChange={onChange}
             fetchChoices={fetchCollections}
-          />
+          >
+            {({ deleteItem, items }) => (
+              <>
+                <FormSpacer />
+                <div>
+                  {items.map(item => (
+                    <Chip
+                      key={item.value}
+                      label={item.label}
+                      onClose={() => deleteItem(item)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </MultiAutocompleteSelectField>
         </CardContent>
       </Card>
     );
