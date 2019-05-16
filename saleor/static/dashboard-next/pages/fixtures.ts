@@ -6,28 +6,28 @@ export const pageList: PageList_pages_edges_node[] = [
   {
     __typename: "Page",
     id: "Jzx123sEt==",
-    isVisible: true,
+    isPublished: true,
     slug: "about",
     title: "About"
   },
   {
     __typename: "Page",
     id: "Jzx123sEx==",
-    isVisible: false,
+    isPublished: false,
     slug: "about",
     title: "About"
   },
   {
     __typename: "Page",
     id: "Jzx123sEu==",
-    isVisible: true,
+    isPublished: true,
     slug: "about",
     title: "About"
   },
   {
     __typename: "Page",
     id: "Jzx123sEm==",
-    isVisible: true,
+    isPublished: true,
     slug: "about",
     title: "About"
   }
@@ -36,7 +36,7 @@ export const page: PageDetails_page = {
   __typename: "Page",
   contentJson: JSON.stringify(content),
   id: "Kzx152sEm==",
-  isVisible: false,
+  isPublished: false,
   publicationDate: "",
   seoDescription: "About",
   seoTitle: "About",

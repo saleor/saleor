@@ -9,7 +9,7 @@ export const pageFragment = gql`
     id
     title
     slug
-    isVisible
+    isPublished
   }
 `;
 
