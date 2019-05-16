@@ -57,9 +57,9 @@ export default $(document).ready((e) => {
       }
     });
   });
-  $('.checkout__clear').click((e) => {
+  $('.checkout-preview__clear').click((e) => {
     $.ajax({
-      url: $('.checkout__clear').data('action'),
+      url: $('.checkout-preview__clear').data('action'),
       method: 'POST',
       data: {},
       success: (response) => {
