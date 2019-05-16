@@ -56,6 +56,9 @@ const TranslationsSales: React.FC<TranslationsSalesProps> = ({
       navigate("?", true);
     }
   };
+  const onDiscard = () => {
+    navigate("?", true);
+  };
 
   return (
     <TypedSaleTranslationDetails variables={{ id, language: languageCode }}>
@@ -100,6 +103,7 @@ const TranslationsSales: React.FC<TranslationsSalesProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onDiscard={onDiscard}
                 onSubmit={handleSubmit}
                 onLanguageChange={lang =>
                   navigate(
