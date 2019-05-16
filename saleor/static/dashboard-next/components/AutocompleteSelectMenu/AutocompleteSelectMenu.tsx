@@ -81,9 +81,10 @@ const styles = (theme: Theme) =>
     paper: {
       left: 0,
       marginTop: theme.spacing.unit,
+      padding: theme.spacing.unit,
       position: "absolute",
       right: 0,
-      zIndex: 1
+      zIndex: 2
     },
     root: {}
   });
@@ -185,9 +186,7 @@ const AutocompleteSelectMenu = withStyles(styles, {
                           {getMenu(options, menuPath).map(
                             (suggestion, index) => (
                               <MenuItem
-                                key={
-                                  suggestion.label.toString() + suggestion.value
-                                }
+                                key={suggestion.value}
                                 component="div"
                                 {...getItemProps({ item: suggestion })}
                                 onClick={() =>
