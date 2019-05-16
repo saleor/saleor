@@ -23,7 +23,7 @@ export interface PageCreate_pageCreate_page {
   contentJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
-  availableOn: any | null;
+  publicationDate: any | null;
 }
 
 export interface PageCreate_pageCreate {

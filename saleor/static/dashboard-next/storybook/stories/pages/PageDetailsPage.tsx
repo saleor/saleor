@@ -32,7 +32,7 @@ storiesOf("Views / Pages / Page details", module)
         "title",
         "slug",
         "content",
-        "availableOn",
+        "publicationDate",
         "isVisible",
         "seoDescription",
         "seoTitle"
