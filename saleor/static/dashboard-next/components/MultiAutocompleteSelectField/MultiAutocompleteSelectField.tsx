@@ -1,4 +1,4 @@
-import Chip from "@material-ui/core/Chip";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
 import {
@@ -34,12 +34,22 @@ const styles = (theme: Theme) =>
       marginTop: theme.spacing.unit,
       position: "absolute",
       right: 0,
-      zIndex: 1
+      zIndex: 2
     }
   });
 
-interface MultiAutocompleteSelectFieldProps extends WithStyles<typeof styles> {
+export interface MultiAutocompleteSelectFieldChildrenFunc {
+  deleteItem: (item: ChoiceType) => void;
+  items: ChoiceType[];
+}
+export type MultiAutocompleteSelectFieldChildren = (
+  props: MultiAutocompleteSelectFieldChildrenFunc
+) => React.ReactNode;
+
+export interface MultiAutocompleteSelectFieldProps
+  extends WithStyles<typeof styles> {
   name: string;
+  children: MultiAutocompleteSelectFieldChildren;
   choices: ChoiceType[];
   value?: ChoiceType[];
   loading?: boolean;
@@ -58,6 +68,7 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
   name: "MultiAutocompleteSelectField"
 })(
   ({
+    children,
     choices,
     classes,
     helperText,
@@ -76,30 +87,13 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
       reset({ inputValue: "" });
       onChange({ target: { name, value: [...value, item] } });
     };
-    const handleDelete = (item: ChoiceType) => () => {
+    const handleDelete = (item: ChoiceType) => {
       const newValue = value.slice();
       newValue.splice(
         value.findIndex(listItem => listItem.value === item.value),
         1
       );
       onChange({ target: { name, value: newValue } });
-    };
-    const handleKeyDown = (inputValue: string | null) => (
-      event: React.KeyboardEvent<any>
-    ) => {
-      switch (event.keyCode) {
-        // Backspace
-        case 8:
-          if (!inputValue) {
-            onChange({
-              target: {
-                name,
-                value: value.slice(0, value.length - 1)
-              }
-            });
-            break;
-          }
-      }
     };
 
     const filteredChoices = choices.filter(
@@ -119,7 +113,6 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
               getInputProps,
               getItemProps,
               isOpen,
-              inputValue,
               selectedItem,
               toggleMenu,
               closeMenu,
@@ -131,22 +124,20 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
                   <TextField
                     InputProps={{
                       ...getInputProps({
-                        onKeyDown: handleKeyDown(inputValue),
                         placeholder
                       }),
-                      endAdornment: <ArrowDropdownIcon onClick={toggleMenu} />,
+                      endAdornment: (
+                        <div>
+                          {loading ? (
+                            <CircularProgress size={20} />
+                          ) : (
+                            <ArrowDropdownIcon onClick={toggleMenu} />
+                          )}
+                        </div>
+                      ),
                       id: undefined,
                       onBlur: closeMenu,
-                      onFocus: openMenu,
-                      startAdornment: selectedItem.map(item => (
-                        <Chip
-                          key={item.value}
-                          tabIndex={-1}
-                          label={item.label}
-                          className={classes.chip}
-                          onDelete={handleDelete(item)}
-                        />
-                      ))
+                      onFocus: openMenu
                     }}
                     helperText={helperText}
                     label={label}
@@ -154,32 +145,28 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
                   />
                   {isOpen && (
                     <Paper className={classes.paper} square>
-                      {loading ? (
-                        <MenuItem disabled={true} component="div">
-                          {i18n.t("Loading...")}
-                        </MenuItem>
-                      ) : (
-                        <>
-                          {filteredChoices.length > 0
-                            ? filteredChoices.map((suggestion, index) => (
-                                <MenuItem
-                                  key={suggestion.value}
-                                  selected={highlightedIndex === index}
-                                  component="div"
-                                  {...getItemProps({ item: suggestion })}
-                                >
-                                  {suggestion.label}
-                                </MenuItem>
-                              ))
-                            : !loading && (
-                                <MenuItem disabled={true} component="div">
-                                  {i18n.t("No results found")}
-                                </MenuItem>
-                              )}
-                        </>
-                      )}
+                      {!loading && filteredChoices.length > 0
+                        ? filteredChoices.map((suggestion, index) => (
+                            <MenuItem
+                              key={suggestion.value}
+                              selected={highlightedIndex === index}
+                              component="div"
+                              {...getItemProps({ item: suggestion })}
+                            >
+                              {suggestion.label}
+                            </MenuItem>
+                          ))
+                        : !loading && (
+                            <MenuItem disabled={true} component="div">
+                              {i18n.t("No results found")}
+                            </MenuItem>
+                          )}
                     </Paper>
                   )}
+                  {children({
+                    deleteItem: handleDelete,
+                    items: selectedItem
+                  })}
                 </div>
               );
             }}

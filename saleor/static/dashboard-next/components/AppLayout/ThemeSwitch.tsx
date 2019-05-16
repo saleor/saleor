@@ -1,14 +1,11 @@
-import { Theme, withStyles, WithStyles } from "@material-ui/core/styles";
-import { CSSProperties } from "@material-ui/core/styles/withStyles";
-import Switch, { SwitchClassKey, SwitchProps } from "@material-ui/core/Switch";
+import { Theme, withStyles } from "@material-ui/core/styles";
+import Switch, { SwitchProps } from "@material-ui/core/Switch";
 import * as React from "react";
 
 import MoonIcon from "../../icons/Moon";
 import SunIcon from "../../icons/Sun";
 
-const switchStyles: (
-  theme: Theme
-) => Record<SwitchClassKey, CSSProperties> = theme => ({
+const switchStyles = (theme: Theme) => ({
   bar: {
     "$colorPrimary$checked + &": {
       backgroundColor: theme.palette.background.paper
@@ -22,11 +19,6 @@ const switchStyles: (
     }
   },
   colorPrimary: {},
-  colorSecondary: {},
-  disabled: {},
-  icon: {},
-  iconChecked: {},
-  input: {},
   root: {
     "& svg": {
       background: theme.palette.primary.main,
@@ -35,12 +27,11 @@ const switchStyles: (
       width: 20
     },
     width: 58
-  },
-  switchBase: {}
+  }
 });
 const ThemeSwitch = withStyles(switchStyles, {
   name: "ThemeSwitch"
-})((props: SwitchProps & WithStyles<typeof switchStyles>) => (
+})((props: SwitchProps) => (
   <Switch
     {...props}
     color="primary"

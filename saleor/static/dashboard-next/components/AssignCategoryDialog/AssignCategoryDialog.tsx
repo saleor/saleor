@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -21,6 +20,7 @@ import Form from "../../components/Form";
 import FormSpacer from "../../components/FormSpacer";
 import { SearchCategories_categories_edges_node } from "../../containers/SearchCategories/types/SearchCategories";
 import i18n from "../../i18n";
+import Checkbox from "../Checkbox";
 
 export interface FormData {
   categories: SearchCategories_categories_edges_node[];

@@ -1,4 +1,4 @@
-import Chip from "@material-ui/core/Chip";
+import FilledInput from "@material-ui/core/FilledInput";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -13,19 +13,20 @@ import {
 import * as React from "react";
 
 import i18n from "../../i18n";
+import Checkbox from "../Checkbox";
 
 const styles = (theme: Theme) =>
   createStyles({
-    chip: {
-      margin: theme.spacing.unit * 0.5
-    },
-    chipContainer: {
-      display: "flex",
-      "flex-wrap": "wrap",
-      marginLeft: -theme.spacing.unit * 0.5,
-      marginRight: -theme.spacing.unit * 0.5
+    checkbox: {
+      marginRight: -theme.spacing.unit * 2
     },
     formControl: {
+      width: "100%"
+    },
+    menuItem: {
+      alignItems: "center",
+      display: "flex",
+      justifyContent: "space-between",
       width: "100%"
     }
   });
@@ -77,28 +78,37 @@ export const MultiSelectField = withStyles(styles, {
         <Select
           multiple
           fullWidth
-          renderValue={choiceValues => (
-            <div className={classes.chipContainer}>
-              {(choiceValues as string[]).map(choiceValue => (
-                <Chip
-                  key={choiceValue}
-                  label={choicesByKey[choiceValue]}
-                  className={classes.chip}
-                />
-              ))}
-            </div>
-          )}
+          renderValue={choiceValues =>
+            (choiceValues as string[])
+              .map(choiceValue => choicesByKey[choiceValue])
+              .join(", ")
+          }
           value={value}
           name={name}
           onChange={onChange}
+          input={<FilledInput name={name} />}
           {...selectProps}
         >
           {choices.length > 0 ? (
-            choices.map(choice => (
-              <MenuItem value={choice.value} key={choice.value}>
-                {choice.label}
-              </MenuItem>
-            ))
+            choices.map(choice => {
+              const isSelected = !!value.find(
+                selectedChoice => selectedChoice === choice.value
+              );
+
+              return (
+                <MenuItem value={choice.value} key={choice.value}>
+                  <div className={classes.menuItem}>
+                    <span>{choice.label}</span>
+                    <Checkbox
+                      className={classes.checkbox}
+                      checked={isSelected}
+                      disableRipple={true}
+                      disableTouchRipple={true}
+                    />
+                  </div>
+                </MenuItem>
+              );
+            })
           ) : (
             <MenuItem disabled={true}>{i18n.t("No results found")}</MenuItem>
           )}

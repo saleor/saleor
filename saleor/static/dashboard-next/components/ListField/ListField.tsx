@@ -6,12 +6,10 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import { fade } from "@material-ui/core/styles/colorManipulator";
 import TextField, { StandardTextFieldProps } from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import CloseIcon from "@material-ui/icons/Close";
 import * as React from "react";
 import i18n from "../../i18n";
+import Chip from "../Chip";
 
 interface ListFieldState {
   newValueCounter: number;
@@ -21,21 +19,11 @@ interface ListFieldState {
 const styles = (theme: Theme) =>
   createStyles({
     chip: {
-      background: fade(theme.palette.primary.main, 0.2),
-      borderRadius: 8,
-      display: "inline-block",
-      marginRight: theme.spacing.unit * 2,
-      marginTop: theme.spacing.unit,
-      padding: "4px 8px"
+      marginBottom: theme.spacing.unit
     },
     chipContainer: {
       marginTop: theme.spacing.unit * 2,
       width: 552
-    },
-    closeIcon: {
-      cursor: "pointer",
-      fontSize: 16,
-      verticalAlign: "middle"
     }
   });
 
@@ -127,15 +115,12 @@ const ListField = withStyles(styles)(
           />
           <div className={classes.chipContainer}>
             {values.map((value, valueIndex) => (
-              <div className={classes.chip} key={valueIndex}>
-                <Typography variant="caption">
-                  {value.label}{" "}
-                  <CloseIcon
-                    className={classes.closeIcon}
-                    onClick={() => this.handleValueRemove(valueIndex)}
-                  />
-                </Typography>
-              </div>
+              <Chip
+                className={classes.chip}
+                key={valueIndex}
+                label={value.label}
+                onClose={() => this.handleValueRemove(valueIndex)}
+              />
             ))}
           </div>
         </div>

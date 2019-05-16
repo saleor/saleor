@@ -1,4 +1,3 @@
-import Checkbox from "@material-ui/core/Checkbox";
 import {
   createStyles,
   Theme,
@@ -17,6 +16,7 @@ import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
 import { maybe, renderCollection } from "../../misc";
 import { ListActions, ListProps } from "../../types";
+import Checkbox from "../Checkbox";
 import Money from "../Money";
 import Skeleton from "../Skeleton";
 import StatusLabel from "../StatusLabel";
@@ -130,12 +130,11 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
               >
                 <TableCell padding="checkbox">
                   <Checkbox
-                    color="primary"
                     checked={isSelected}
                     disabled={disabled}
                     onClick={event => {
-                      toggle(product.id);
                       event.stopPropagation();
+                      toggle(product.id);
                     }}
                   />
                 </TableCell>

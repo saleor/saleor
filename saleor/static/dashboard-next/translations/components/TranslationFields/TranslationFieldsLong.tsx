@@ -35,7 +35,7 @@ const TranslationFieldsLong: React.FC<TranslationFieldsLongProps> = ({
             disabled={disabled}
             fullWidth
             multiline
-            // label={i18n.t("Translation")}
+            label={i18n.t("Translation")}
             name="translation"
             value={data.translation}
             onChange={change}
