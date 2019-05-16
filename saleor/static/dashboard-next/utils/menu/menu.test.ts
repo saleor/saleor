@@ -1,8 +1,8 @@
-import { SelectMenuItem, validateOptions } from "./AutocompleteSelectMenu";
+import { IMenu, validateMenuOptions } from "./menu";
 
-describe("Validate Autocomplete Menu data structure", () => {
+describe("Validate menu data structure", () => {
   it("Properly catches same level duplicated value", () => {
-    const menu: SelectMenuItem[] = [
+    const menu: IMenu[] = [
       {
         label: "1",
         value: "1"
@@ -17,11 +17,11 @@ describe("Validate Autocomplete Menu data structure", () => {
       }
     ];
 
-    expect(validateOptions(menu)).toBeFalsy();
+    expect(validateMenuOptions(menu)).toBeFalsy();
   });
 
   it("Properly catches multi level duplicated value", () => {
-    const menu: SelectMenuItem[] = [
+    const menu: IMenu[] = [
       {
         label: "1",
         value: "1"
@@ -49,11 +49,11 @@ describe("Validate Autocomplete Menu data structure", () => {
       }
     ];
 
-    expect(validateOptions(menu)).toBeFalsy();
+    expect(validateMenuOptions(menu)).toBeFalsy();
   });
 
   it("Properly passes valid structure", () => {
-    const menu: SelectMenuItem[] = [
+    const menu: IMenu[] = [
       {
         label: "1",
         value: "1"
@@ -81,6 +81,6 @@ describe("Validate Autocomplete Menu data structure", () => {
       }
     ];
 
-    expect(validateOptions(menu)).toBeTruthy();
+    expect(validateMenuOptions(menu)).toBeTruthy();
   });
 });
