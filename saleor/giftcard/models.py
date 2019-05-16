@@ -8,12 +8,15 @@ from django_prices.models import MoneyField
 
 class GiftCard(models.Model):
     code = models.CharField(max_length=16, unique=True, db_index=True)
-    creator = models.ForeignKey(
+    buyer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
         related_name="gift_cards",
+    )
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL
     )
     created = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=date.today)

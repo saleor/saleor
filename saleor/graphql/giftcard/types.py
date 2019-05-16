@@ -16,6 +16,7 @@ class GiftCard(CountableDjangoObjectType):
         )
         only_fields = [
             "code",
+            "buyer",
             "creator",
             "created",
             "start_date",
