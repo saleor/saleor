@@ -56,6 +56,9 @@ const TranslationsVouchers: React.FC<TranslationsVouchersProps> = ({
       navigate("?", true);
     }
   };
+  const onDiscard = () => {
+    navigate("?", true);
+  };
 
   return (
     <TypedVoucherTranslationDetails variables={{ id, language: languageCode }}>
@@ -103,6 +106,7 @@ const TranslationsVouchers: React.FC<TranslationsVouchersProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onDiscard={onDiscard}
                 onLanguageChange={lang =>
                   navigate(
                     languageEntityUrl(lang, TranslatableEntities.vouchers, id)

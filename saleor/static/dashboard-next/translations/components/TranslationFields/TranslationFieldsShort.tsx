@@ -12,6 +12,7 @@ interface TranslationFieldsShortProps {
   edit: boolean;
   initial: string;
   saveButtonState: ConfirmButtonTransitionState;
+  onDiscard: () => void;
   onSubmit: (data: string) => void;
 }
 
@@ -20,6 +21,7 @@ const TranslationFieldsShort: React.FC<TranslationFieldsShortProps> = ({
   edit,
   initial,
   saveButtonState,
+  onDiscard,
   onSubmit
 }) =>
   edit ? (
@@ -27,7 +29,7 @@ const TranslationFieldsShort: React.FC<TranslationFieldsShortProps> = ({
       initial={{ translation: initial }}
       onSubmit={data => onSubmit(data.translation)}
     >
-      {({ change, data, reset, submit }) => (
+      {({ change, data, submit }) => (
         <div>
           <TextField
             disabled={disabled}
@@ -39,7 +41,7 @@ const TranslationFieldsShort: React.FC<TranslationFieldsShortProps> = ({
           />
           <TranslationFieldsSave
             saveButtonState={saveButtonState}
-            onDiscard={reset}
+            onDiscard={onDiscard}
             onSave={submit}
           />
         </div>
