@@ -20,7 +20,7 @@ export const pageDetailsFragment = gql`
     contentJson
     seoTitle
     seoDescription
-    availableOn
+    publicationDate
   }
 `;
 

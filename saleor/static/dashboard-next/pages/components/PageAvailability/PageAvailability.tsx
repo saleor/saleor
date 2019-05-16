@@ -15,13 +15,14 @@ import { FormData } from "../PageDetailsPage";
 export interface PageAvailabilityProps {
   data: FormData;
   disabled: boolean;
-  errors: Partial<Record<"availableOn", string>>;
+  errors: Partial<Record<"publicationDate", string>>;
   onChange: (event: React.ChangeEvent<any>, cb?: () => void) => void;
 }
 
 function isAvailable(data: FormData): boolean {
   return (
-    (data.availableOn === "" || data.availableOn === null) && data.isVisible
+    (data.publicationDate === "" || data.publicationDate === null) &&
+    data.isVisible
   );
 }
 
@@ -40,16 +41,16 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
             checked={isAvailable(data)}
             disabled={disabled}
             label={
-              data.isVisible && !data.availableOn ? (
+              data.isVisible && !data.publicationDate ? (
                 i18n.t("Published")
               ) : (
                 <>
                   {i18n.t("Hidden")}
-                  {data.availableOn && (
+                  {data.publicationDate && (
                     <Typography variant="caption">
                       {i18n.t("Will become visible on {{ date }}", {
                         context: "page",
-                        date: moment(data.availableOn)
+                        date: moment(data.publicationDate)
                           .locale(locale)
                           .format("ll")
                       })}
@@ -66,7 +67,7 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
                   event.target.value &&
                   onChange({
                     target: {
-                      name: "availableOn",
+                      name: "publicationDate",
                       value: ""
                     }
                   } as any)
@@ -78,13 +79,13 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
               <FormSpacer />
               <TextField
                 disabled={disabled}
-                error={!!errors.availableOn}
+                error={!!errors.publicationDate}
                 fullWidth
-                helperText={errors.availableOn}
+                helperText={errors.publicationDate}
                 label={i18n.t("Publish page on")}
-                name={"availableOn" as keyof FormData}
+                name={"publicationDate" as keyof FormData}
                 type="date"
-                value={data.availableOn}
+                value={data.publicationDate}
                 onChange={onChange}
               />
             </>
