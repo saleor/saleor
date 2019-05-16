@@ -53,6 +53,9 @@ const TranslationsCategories: React.FC<TranslationsCategoriesProps> = ({
       navigate("?", true);
     }
   };
+  const onDiscard = () => {
+    navigate("?", true);
+  };
 
   return (
     <TypedCategoryTranslationDetails variables={{ id, language: languageCode }}>
@@ -106,6 +109,7 @@ const TranslationsCategories: React.FC<TranslationsCategoriesProps> = ({
                   )
                 }
                 onEdit={onEdit}
+                onDiscard={onDiscard}
                 onLanguageChange={lang =>
                   navigate(
                     languageEntityUrl(lang, TranslatableEntities.categories, id)

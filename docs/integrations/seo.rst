@@ -40,4 +40,4 @@ Nofollow links
 
 Search engine crawlers can’t sign in or register as a member on your site, no reason to invite them to follow “register here” or “sign in” links, as there will be little to none valuable content.
 
-This will optimize time spent by the crawler on the website, giving it time it to index more content-related pages.
+This will optimize time spent by the crawler on the website, giving it time to index more content-related pages.
