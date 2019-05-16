@@ -1264,6 +1264,153 @@ exports[`Storyshots Generics / AddressFormatter when loading 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / Autocomplete Menu default 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    style="margin:auto;overflow:visible;width:400px"
+  >
+    <div
+      class="MuiCardContent-root-id"
+    >
+      <div
+        class="AutocompleteSelectMenu-container-id"
+      >
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+        >
+          <label
+            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+            data-shrink="true"
+          >
+            Autocomplete Menu
+          </label>
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id"
+              placeholder="Start typing to search ..."
+              type="text"
+              value="Item 1.2"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / Autocomplete Menu error 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    style="margin:auto;overflow:visible;width:400px"
+  >
+    <div
+      class="MuiCardContent-root-id"
+    >
+      <div
+        class="AutocompleteSelectMenu-container-id"
+      >
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+        >
+          <label
+            class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+            data-shrink="true"
+          >
+            Autocomplete Menu
+          </label>
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="true"
+              class="MuiInputBase-input-id MuiFilledInput-input-id"
+              placeholder="Start typing to search ..."
+              type="text"
+              value="Item 1.2"
+            />
+          </div>
+          <p
+            class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+          >
+            Generic form error
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / Autocomplete Menu loading 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    style="margin:auto;overflow:visible;width:400px"
+  >
+    <div
+      class="MuiCardContent-root-id"
+    >
+      <div
+        class="AutocompleteSelectMenu-container-id"
+      >
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+        >
+          <label
+            class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+            data-shrink="true"
+          >
+            Autocomplete Menu
+          </label>
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+              placeholder="Start typing to search ..."
+              type="text"
+              value="Item 1.2"
+            />
+            <div
+              class="MuiCircularProgress-root-id MuiCircularProgress-colorPrimary-id MuiCircularProgress-indeterminate-id"
+              role="progressbar"
+              style="width:16px;height:16px"
+            >
+              <svg
+                class="MuiCircularProgress-svg-id"
+                viewBox="22 22 44 44"
+              >
+                <circle
+                  class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                  cx="44"
+                  cy="44"
+                  fill="none"
+                  r="20.2"
+                  stroke-width="3.6"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Generics / Card menu default 1`] = `
 <div
   style="padding:24px"
@@ -5406,6 +5553,24 @@ exports[`Storyshots Generics / Weight range to 1`] = `
     </div>
   </div>
 </div>
+`;
+
+exports[`Storyshots Navigation / Menu create default 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
+exports[`Storyshots Navigation / Menu create loading 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
+exports[`Storyshots Navigation / Menu item create default 1`] = `
+<div
+  style="padding:24px"
+/>
 `;
 
 exports[`Storyshots Orders / OrderAddressEditDialog billing address 1`] = `
@@ -17638,7 +17803,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
         </div>
       </div>
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-cardDisabled-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-card-id"
       >
         <div
           class="MuiCardContent-root-id ConfigurationPage-cardContent-id"
@@ -17967,7 +18132,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
         </div>
       </div>
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-cardDisabled-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ConfigurationPage-card-id"
       >
         <div
           class="MuiCardContent-root-id ConfigurationPage-cardContent-id"
@@ -34755,6 +34920,1783 @@ exports[`Storyshots Views / HomePage no data 1`] = `
           </ul>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Navigation / Menu details default 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="Grid-root-id Grid-inverted-id"
+      >
+        <div>
+          <h5
+            class="MuiTypography-root-id MuiTypography-h5-id"
+          >
+            Navigation
+          </h5>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <p
+            class="MuiTypography-root-id MuiTypography-body2-id"
+          >
+            Creating structure of navigation is done via dragging and dropping. Simply create a new menu item and then dragging it into it’s destined place. Take note that you can move items inside one another to create a tree structure
+          </p>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                General Informations
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Menu Title
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="name"
+                    type="text"
+                    value="navbar"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Menu Items
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Undo
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MenuItems-container-id"
+              style="min-height:224px;padding:;padding-top:"
+            >
+              <div
+                class="rst__tree MenuItems-root-id"
+              >
+                <div
+                  class="rst__node"
+                  style="height:56px"
+                >
+                  <div
+                    class="rst__lineBlock rst__lineHalfHorizontalRight rst__lineHalfVerticalBottom"
+                    style="width:44px"
+                  />
+                  <div
+                    class="rst__nodeContent"
+                    style="left:44px"
+                  >
+                    <div
+                      class="Node-rowContainer-id"
+                      style="margin-left:0"
+                    >
+                      <div
+                        class="MuiPaper-root-id MuiPaper-elevation0-id MuiPaper-rounded-id Node-row-id"
+                      >
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id Node-dragIcon-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                              fill="url(#paint0_linear)"
+                              fill-rule="evenodd"
+                              style="transform:translate(7px, 4px)"
+                            />
+                            <defs>
+                              <linearGradient
+                                gradientUnits="userSpaceOnUse"
+                                id="paint0_linear"
+                                x1="0"
+                                x2="16.0896"
+                                y1="0"
+                                y2="10.4478"
+                              >
+                                <stop
+                                  stop-color="#13BEBB"
+                                />
+                                <stop
+                                  offset="1"
+                                  stop-color="#3EE7CD"
+                                />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                        </div>
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body2-id Node-nodeTitle-id"
+                        >
+                          Accessories
+                        </p>
+                        <div
+                          class="Node-spacer-id"
+                        />
+                        <button
+                          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label-id"
+                          >
+                            Show
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id Node-deleteButton-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="rst__node"
+                  style="height:56px"
+                >
+                  <div
+                    class="rst__lineBlock rst__lineFullVertical"
+                    style="width:44px"
+                  />
+                  <div
+                    class="rst__lineBlock rst__lineHalfHorizontalRight rst__lineFullVertical"
+                    style="width:44px"
+                  />
+                  <div
+                    class="rst__nodeContent"
+                    style="left:88px"
+                  >
+                    <div
+                      class="Node-rowContainer-id"
+                      style="margin-left:40px"
+                    >
+                      <div
+                        class="MuiPaper-root-id MuiPaper-elevation0-id MuiPaper-rounded-id Node-row-id"
+                      >
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id Node-dragIcon-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                              fill="url(#paint0_linear)"
+                              fill-rule="evenodd"
+                              style="transform:translate(7px, 4px)"
+                            />
+                            <defs>
+                              <linearGradient
+                                gradientUnits="userSpaceOnUse"
+                                id="paint0_linear"
+                                x1="0"
+                                x2="16.0896"
+                                y1="0"
+                                y2="10.4478"
+                              >
+                                <stop
+                                  stop-color="#13BEBB"
+                                />
+                                <stop
+                                  offset="1"
+                                  stop-color="#3EE7CD"
+                                />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                        </div>
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body2-id Node-nodeTitle-id"
+                        >
+                          Jewelry
+                        </p>
+                        <div
+                          class="Node-spacer-id"
+                        />
+                        <button
+                          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label-id"
+                          >
+                            Show
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id Node-deleteButton-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="rst__node"
+                  style="height:56px"
+                >
+                  <div
+                    class="rst__lineBlock rst__lineFullVertical"
+                    style="width:44px"
+                  />
+                  <div
+                    class="rst__lineBlock rst__lineHalfVerticalTop rst__lineHalfHorizontalRight"
+                    style="width:44px"
+                  />
+                  <div
+                    class="rst__nodeContent"
+                    style="left:88px"
+                  >
+                    <div
+                      class="Node-rowContainer-id"
+                      style="margin-left:40px"
+                    >
+                      <div
+                        class="MuiPaper-root-id MuiPaper-elevation0-id MuiPaper-rounded-id Node-row-id"
+                      >
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id Node-dragIcon-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                              fill="url(#paint0_linear)"
+                              fill-rule="evenodd"
+                              style="transform:translate(7px, 4px)"
+                            />
+                            <defs>
+                              <linearGradient
+                                gradientUnits="userSpaceOnUse"
+                                id="paint0_linear"
+                                x1="0"
+                                x2="16.0896"
+                                y1="0"
+                                y2="10.4478"
+                              >
+                                <stop
+                                  stop-color="#13BEBB"
+                                />
+                                <stop
+                                  offset="1"
+                                  stop-color="#3EE7CD"
+                                />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                        </div>
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body2-id Node-nodeTitle-id"
+                        >
+                          Glasses
+                        </p>
+                        <div
+                          class="Node-spacer-id"
+                        />
+                        <button
+                          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label-id"
+                          >
+                            Show
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id Node-deleteButton-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="rst__node"
+                  style="height:56px"
+                >
+                  <div
+                    class="rst__lineBlock rst__lineHalfHorizontalRight rst__lineFullVertical"
+                    style="width:44px"
+                  />
+                  <div
+                    class="rst__nodeContent"
+                    style="left:44px"
+                  >
+                    <div
+                      class="Node-rowContainer-id"
+                      style="margin-left:0"
+                    >
+                      <div
+                        class="MuiPaper-root-id MuiPaper-elevation0-id MuiPaper-rounded-id Node-row-id"
+                      >
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id Node-dragIcon-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                              fill="url(#paint0_linear)"
+                              fill-rule="evenodd"
+                              style="transform:translate(7px, 4px)"
+                            />
+                            <defs>
+                              <linearGradient
+                                gradientUnits="userSpaceOnUse"
+                                id="paint0_linear"
+                                x1="0"
+                                x2="16.0896"
+                                y1="0"
+                                y2="10.4478"
+                              >
+                                <stop
+                                  stop-color="#13BEBB"
+                                />
+                                <stop
+                                  offset="1"
+                                  stop-color="#3EE7CD"
+                                />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                        </div>
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body2-id Node-nodeTitle-id"
+                        >
+                          Groceries
+                        </p>
+                        <div
+                          class="Node-spacer-id"
+                        />
+                        <button
+                          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label-id"
+                          >
+                            Show
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id Node-deleteButton-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="rst__node"
+                  style="height:56px"
+                >
+                  <div
+                    class="rst__lineBlock rst__lineHalfVerticalTop rst__lineHalfHorizontalRight"
+                    style="width:44px"
+                  />
+                  <div
+                    class="rst__nodeContent"
+                    style="left:44px"
+                  >
+                    <div
+                      class="Node-rowContainer-id"
+                      style="margin-left:0"
+                    >
+                      <div
+                        class="MuiPaper-root-id MuiPaper-elevation0-id MuiPaper-rounded-id Node-row-id"
+                      >
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id Node-dragIcon-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              clip-rule="evenodd"
+                              d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                              fill="url(#paint0_linear)"
+                              fill-rule="evenodd"
+                              style="transform:translate(7px, 4px)"
+                            />
+                            <defs>
+                              <linearGradient
+                                gradientUnits="userSpaceOnUse"
+                                id="paint0_linear"
+                                x1="0"
+                                x2="16.0896"
+                                y1="0"
+                                y2="10.4478"
+                              >
+                                <stop
+                                  stop-color="#13BEBB"
+                                />
+                                <stop
+                                  offset="1"
+                                  stop-color="#3EE7CD"
+                                />
+                              </linearGradient>
+                            </defs>
+                          </svg>
+                        </div>
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body2-id Node-nodeTitle-id"
+                        >
+                          Apparel
+                        </p>
+                        <div
+                          class="Node-spacer-id"
+                        />
+                        <button
+                          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label-id"
+                          >
+                            Show
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id Node-deleteButton-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="MuiCardActions-root-id MenuItems-actions-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id MuiCardActions-action-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Add new item
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Navigation / Menu details loading 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="Grid-root-id Grid-inverted-id"
+      >
+        <div>
+          <h5
+            class="MuiTypography-root-id MuiTypography-h5-id"
+          >
+            Navigation
+          </h5>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <p
+            class="MuiTypography-root-id MuiTypography-body2-id"
+          >
+            Creating structure of navigation is done via dragging and dropping. Simply create a new menu item and then dragging it into it’s destined place. Take note that you can move items inside one another to create a tree structure
+          </p>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                General Informations
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  Menu Title
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Menu Items
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Undo
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MenuItems-container-id"
+              style="min-height:56px;padding:0 24px;padding-top:20px"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+            <div
+              class="MuiCardActions-root-id MenuItems-actions-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id MuiCardActions-action-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Add new item
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Navigation / Menu details no data 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="Grid-root-id Grid-inverted-id"
+      >
+        <div>
+          <h5
+            class="MuiTypography-root-id MuiTypography-h5-id"
+          >
+            Navigation
+          </h5>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <p
+            class="MuiTypography-root-id MuiTypography-body2-id"
+          >
+            Creating structure of navigation is done via dragging and dropping. Simply create a new menu item and then dragging it into it’s destined place. Take note that you can move items inside one another to create a tree structure
+          </p>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                General Informations
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Menu Title
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="name"
+                    type="text"
+                    value="navbar"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Menu Items
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Undo
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MenuItems-container-id"
+              style="min-height:-56px;padding:;padding-top:"
+            >
+              <div
+                class="rst__tree MenuItems-root-id"
+              >
+                <div>
+                  <div
+                    class="MuiPaper-root-id MuiPaper-elevation0-id MuiPaper-rounded-id Placeholder-row-id"
+                  >
+                    <p
+                      class="MuiTypography-root-id MuiTypography-body2-id"
+                    >
+                      Add new menu item to begin creating menu
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="MuiCardActions-root-id MenuItems-actions-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id MuiCardActions-action-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Add new item
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Navigation / Menu list default 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h5
+        class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
+      >
+        Navigation
+      </h5>
+      <div
+        class="ExtendedPageHeader-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add Menu 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
+              scope="col"
+            />
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colTitle-id"
+              scope="col"
+            >
+              Menu Title
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colItems-id"
+              scope="col"
+            >
+              Items
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            />
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="4"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M14 7l-5 5 5 5V7z"
+                        />
+                        <path
+                          d="M24 0v24H0V0h24z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id TablePaginationActions-iconButton-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M10 17l5-5-5-5v10z"
+                        />
+                        <path
+                          d="M0 24V0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id MenuList-row-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colTitle-id"
+            >
+              navbar
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colItems-id"
+            >
+              3
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                    />
+                    <path
+                      d="M0 0h24v24H0z"
+                      fill="none"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id MenuList-row-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colTitle-id"
+            >
+              footer
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colItems-id"
+            >
+              2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                    />
+                    <path
+                      d="M0 0h24v24H0z"
+                      fill="none"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Navigation / Menu list loading 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h5
+        class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
+      >
+        Navigation
+      </h5>
+      <div
+        class="ExtendedPageHeader-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add Menu 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
+              scope="col"
+            />
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colTitle-id"
+              scope="col"
+            >
+              Menu Title
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colItems-id"
+              scope="col"
+            >
+              Items
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            />
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="4"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M14 7l-5 5 5 5V7z"
+                        />
+                        <path
+                          d="M24 0v24H0V0h24z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M10 17l5-5-5-5v10z"
+                        />
+                        <path
+                          d="M0 24V0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MenuList-row-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colTitle-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colItems-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorPrimary-id MuiIconButton-disabled-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-id"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                    />
+                    <path
+                      d="M0 0h24v24H0z"
+                      fill="none"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Navigation / Menu list no data 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h5
+        class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
+      >
+        Navigation
+      </h5>
+      <div
+        class="ExtendedPageHeader-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add Menu 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
+              scope="col"
+            />
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colTitle-id"
+              scope="col"
+            >
+              Menu Title
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colItems-id"
+              scope="col"
+            >
+              Items
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id"
+              scope="col"
+            />
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-footer-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+              colspan="4"
+            >
+              <div
+                class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+              >
+                <div
+                  class="TablePagination-spacer-id"
+                />
+                <div
+                  class="TablePaginationActions-root-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M14 7l-5 5 5 5V7z"
+                        />
+                        <path
+                          d="M24 0v24H0V0h24z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id TablePaginationActions-iconButton-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M10 17l5-5-5-5v10z"
+                        />
+                        <path
+                          d="M0 24V0h24v24H0z"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+              colspan="4"
+            >
+              No menus found
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -72114,7 +74056,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
                     $48.11
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72143,7 +74085,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72191,7 +74133,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
                     $95.24
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72220,7 +74162,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72347,7 +74289,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
                     $45.93
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72376,7 +74318,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72424,7 +74366,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
                     $73.87
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72453,7 +74395,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details default 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72750,7 +74692,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
                     $48.11
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72779,7 +74721,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72827,7 +74769,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
                     $95.24
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72856,7 +74798,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -72983,7 +74925,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
                     $45.93
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -73012,7 +74954,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -73060,7 +75002,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
                     $73.87
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -73089,7 +75031,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details form errors 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorPrimary-id"
@@ -73398,7 +75340,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details loading 1`] = `
                     </span>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorPrimary-id MuiIconButton-disabled-id"
@@ -73428,7 +75370,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details loading 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorPrimary-id MuiIconButton-disabled-id"
@@ -73568,7 +75510,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details loading 1`] = `
                     </span>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorPrimary-id MuiIconButton-disabled-id"
@@ -73598,7 +75540,7 @@ exports[`Storyshots Views / Shipping / Shipping zone details loading 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ShippingZoneRates-alignRight-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id IconButtonTableCell-root-id"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-colorPrimary-id MuiIconButton-disabled-id"
