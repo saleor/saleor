@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 import graphene
 from tests.api.utils import get_graphql_content
@@ -288,16 +288,16 @@ def test_update_gift_card_without_premissions(staff_api_client, gift_card):
 
 DEACTIVATE_GIFT_CARD_MUTATION = """
 mutation giftCardDeactivate($id: ID!) {
-        giftCardDeactivate(id: $id) {
-            errors {
-                field
-                message
-            }
-            giftCard {
-                isActive
-            }
+    giftCardDeactivate(id: $id) {
+        errors {
+            field
+            message
+        }
+        giftCard {
+            isActive
         }
     }
+}
 """
 
 
@@ -322,3 +322,70 @@ def test_deactivate_gift_card_without_premissions(staff_api_client, gift_card):
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.id)}
     response = staff_api_client.post_graphql(DEACTIVATE_GIFT_CARD_MUTATION, variables)
     assert_no_permission(response)
+
+
+VERIFY_CODE_GIFT_CARD_MUTATION = """
+mutation giftCardVerify($code: String!) {
+    giftCardVerify(code: $code){
+        errors {
+            field
+            message
+        }
+        giftCard{
+            code
+            currentBalance {
+                amount
+            }
+        }
+    }
+}
+"""
+
+
+def test_verify_gift_card_code(user_api_client, gift_card):
+    variables = {"code": gift_card.code}
+    response = user_api_client.post_graphql(VERIFY_CODE_GIFT_CARD_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardVerify"]["giftCard"]
+    assert data["code"] == gift_card.code
+    assert data["currentBalance"]["amount"] == gift_card.current_balance
+
+
+def test_verify_gift_card_code_incorect_code(user_api_client):
+    variables = {"code": "incorect_code"}
+    response = user_api_client.post_graphql(VERIFY_CODE_GIFT_CARD_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["giftCardVerify"]["errors"]
+    errors = content["data"]["giftCardVerify"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "code"
+    assert errors[0]["message"] == "Incorrect gift card code."
+    assert not content["data"]["giftCardVerify"]["giftCard"]
+
+
+def test_verify_gift_card_code_inactive_code(user_api_client, gift_card):
+    gift_card.is_active = False
+    gift_card.save()
+    variables = {"code": gift_card.code}
+    response = user_api_client.post_graphql(VERIFY_CODE_GIFT_CARD_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["giftCardVerify"]["errors"]
+    errors = content["data"]["giftCardVerify"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "isActive"
+    assert errors[0]["message"] == "Gift card is inactive."
+    assert not content["data"]["giftCardVerify"]["giftCard"]
+
+
+def test_verify_gift_card_code_expired_code(user_api_client, gift_card):
+    gift_card.expiration_date = date.today() - timedelta(days=3)
+    gift_card.save()
+    variables = {"code": gift_card.code}
+    response = user_api_client.post_graphql(VERIFY_CODE_GIFT_CARD_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["giftCardVerify"]["errors"]
+    errors = content["data"]["giftCardVerify"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "expirationDate"
+    assert errors[0]["message"] == "Gift card expired."
+    assert not content["data"]["giftCardVerify"]["giftCard"]
