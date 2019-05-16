@@ -1,5 +1,4 @@
 import Card from "@material-ui/core/Card";
-import Checkbox from "@material-ui/core/Checkbox";
 import {
   createStyles,
   Theme,
@@ -14,6 +13,7 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
+import Checkbox from "../../../components/Checkbox";
 import IconButtonTableCell from "../../../components/IconButtonTableCell";
 import Skeleton from "../../../components/Skeleton";
 import TableHead from "../../../components/TableHead";
@@ -102,7 +102,6 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       disabled={disabled}
                       onClick={stopPropagation(() => toggle(menu.id))}
                     />
