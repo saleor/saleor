@@ -52,10 +52,10 @@ export const productFragment = gql`
     thumbnail {
       url
     }
-    availability {
+    pricing {
       available
     }
-    price {
+    basePrice {
       ...Money
     }
     productType {
@@ -81,7 +81,7 @@ export const productFragmentDetails = gql`
       id
       name
     }
-    price {
+    basePrice {
       ...Money
     }
     margin {
@@ -115,7 +115,7 @@ export const productFragmentDetails = gql`
         slug
       }
     }
-    availability {
+    pricing {
       available
       priceRange {
         start {

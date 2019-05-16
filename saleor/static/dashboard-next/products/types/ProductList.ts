@@ -13,7 +13,7 @@ export interface ProductList_products_edges_node_thumbnail {
   url: string;
 }
 
-export interface ProductList_products_edges_node_availability {
+export interface ProductList_products_edges_node_pricing {
   __typename: "ProductPricingInfo";
   available: boolean | null;
 }
@@ -35,8 +35,8 @@ export interface ProductList_products_edges_node {
   id: string;
   name: string;
   thumbnail: ProductList_products_edges_node_thumbnail | null;
-  availability: ProductList_products_edges_node_availability | null;
-  price: ProductList_products_edges_node_price | null;
+  pricing: ProductList_products_edges_node_pricing | null;
+  basePrice: ProductList_products_edges_node_price | null;
   productType: ProductList_products_edges_node_productType;
 }
 

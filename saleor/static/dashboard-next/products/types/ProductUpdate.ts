@@ -67,7 +67,9 @@ export interface ProductUpdate_productUpdate_product_attributes_attribute {
   id: string;
   slug: string | null;
   name: string | null;
-  values: (ProductUpdate_productUpdate_product_attributes_attribute_values | null)[] | null;
+  values:
+    | (ProductUpdate_productUpdate_product_attributes_attribute_values | null)[]
+    | null;
 }
 
 export interface ProductUpdate_productUpdate_product_attributes_value {
@@ -83,38 +85,38 @@ export interface ProductUpdate_productUpdate_product_attributes {
   value: ProductUpdate_productUpdate_product_attributes_value;
 }
 
-export interface ProductUpdate_productUpdate_product_availability_priceRange_start_net {
+export interface ProductUpdate_productUpdate_product_pricing_priceRange_start_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductUpdate_productUpdate_product_availability_priceRange_start {
+export interface ProductUpdate_productUpdate_product_pricing_priceRange_start {
   __typename: "TaxedMoney";
-  net: ProductUpdate_productUpdate_product_availability_priceRange_start_net;
+  net: ProductUpdate_productUpdate_product_pricing_priceRange_start_net;
 }
 
-export interface ProductUpdate_productUpdate_product_availability_priceRange_stop_net {
+export interface ProductUpdate_productUpdate_product_pricing_priceRange_stop_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductUpdate_productUpdate_product_availability_priceRange_stop {
+export interface ProductUpdate_productUpdate_product_pricing_priceRange_stop {
   __typename: "TaxedMoney";
-  net: ProductUpdate_productUpdate_product_availability_priceRange_stop_net;
+  net: ProductUpdate_productUpdate_product_pricing_priceRange_stop_net;
 }
 
-export interface ProductUpdate_productUpdate_product_availability_priceRange {
+export interface ProductUpdate_productUpdate_product_pricing_priceRange {
   __typename: "TaxedMoneyRange";
-  start: ProductUpdate_productUpdate_product_availability_priceRange_start | null;
-  stop: ProductUpdate_productUpdate_product_availability_priceRange_stop | null;
+  start: ProductUpdate_productUpdate_product_pricing_priceRange_start | null;
+  stop: ProductUpdate_productUpdate_product_pricing_priceRange_stop | null;
 }
 
-export interface ProductUpdate_productUpdate_product_availability {
+export interface ProductUpdate_productUpdate_product_pricing {
   __typename: "ProductPricingInfo";
   available: boolean | null;
-  priceRange: ProductUpdate_productUpdate_product_availability_priceRange | null;
+  priceRange: ProductUpdate_productUpdate_product_pricing_priceRange | null;
 }
 
 export interface ProductUpdate_productUpdate_product_images {
@@ -158,15 +160,17 @@ export interface ProductUpdate_productUpdate_product {
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductUpdate_productUpdate_product_category;
-  collections: (ProductUpdate_productUpdate_product_collections | null)[] | null;
-  price: ProductUpdate_productUpdate_product_price | null;
+  collections:
+    | (ProductUpdate_productUpdate_product_collections | null)[]
+    | null;
+  basePrice: ProductUpdate_productUpdate_product_price | null;
   margin: ProductUpdate_productUpdate_product_margin | null;
   purchaseCost: ProductUpdate_productUpdate_product_purchaseCost | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;
   attributes: ProductUpdate_productUpdate_product_attributes[];
-  availability: ProductUpdate_productUpdate_product_availability | null;
+  pricing: ProductUpdate_productUpdate_product_pricing | null;
   images: (ProductUpdate_productUpdate_product_images | null)[] | null;
   variants: (ProductUpdate_productUpdate_product_variants | null)[] | null;
   productType: ProductUpdate_productUpdate_product_productType;
@@ -193,5 +197,5 @@ export interface ProductUpdateVariables {
   descriptionJson?: any | null;
   isPublished: boolean;
   name?: string | null;
-  price?: any | null;
+  basePrice?: any | null;
 }

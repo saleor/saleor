@@ -11,7 +11,7 @@ export interface ProductFragment_thumbnail {
   url: string;
 }
 
-export interface ProductFragment_availability {
+export interface ProductFragment_pricing {
   __typename: "ProductPricingInfo";
   available: boolean | null;
 }
@@ -33,7 +33,7 @@ export interface ProductFragment {
   id: string;
   name: string;
   thumbnail: ProductFragment_thumbnail | null;
-  availability: ProductFragment_availability | null;
-  price: ProductFragment_price | null;
+  pricing: ProductFragment_pricing | null;
+  basePrice: ProductFragment_price | null;
   productType: ProductFragment_productType;
 }

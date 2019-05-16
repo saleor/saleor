@@ -41,7 +41,9 @@ interface ProductListProps extends WithStyles<typeof styles> {
     productType: {
       name: string;
     };
-    thumbnailUrl: string;
+    thumbnail: {
+      url: string;
+    };
   }>;
   onAddProduct?();
   onNextPage?();
@@ -95,7 +97,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
             products,
             product => (
               <TableRow key={product ? product.id : "skeleton"}>
-                <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
+                <TableCellAvatar thumbnail={product && product.thumbnail.url} />
                 <TableCell className={classes.textLeft}>
                   {product ? (
                     <span
