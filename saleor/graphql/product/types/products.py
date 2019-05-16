@@ -50,6 +50,16 @@ def prefetch_products(info, *_args, **_kwargs):
     )
 
 
+def prefetch_products_collection_sorted(info, *_args, **_kwargs):
+    user = info.context.user
+    qs = models.Product.objects.collection_sorted(user)
+    return Prefetch(
+        "products",
+        queryset=gql_optimizer.query(qs, info),
+        to_attr="prefetched_products",
+    )
+
+
 def resolve_attribute_list(attributes_hstore, attributes_qs):
     """Resolve attributes dict into a list of `SelectedAttribute`s.
     keys = list(attributes.keys())
@@ -588,7 +598,7 @@ class Collection(CountableDjangoObjectType):
         PrefetchingConnectionField(
             Product, description="List of products in this collection."
         ),
-        prefetch_related=prefetch_products,
+        prefetch_related=prefetch_products_collection_sorted,
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image")
@@ -762,3 +772,15 @@ class ProductImage(CountableDjangoObjectType):
         else:
             url = root.image.url
         return info.context.build_absolute_uri(url)
+
+
+class MoveProductInput(graphene.InputObjectType):
+    product_id = graphene.ID(
+        description="The ID of the product to move.", required=True
+    )
+    sort_order = graphene.Int(
+        description=(
+            "The relative sorting position of the product (from -inf to +inf) "
+            "starting from the first given product's actual position."
+        )
+    )

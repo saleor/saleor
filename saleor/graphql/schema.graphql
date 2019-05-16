@@ -563,6 +563,11 @@ type CollectionRemoveProducts {
   collection: Collection
 }
 
+type CollectionReorderProducts {
+  errors: [Error!]
+  collection: Collection
+}
+
 type CollectionTranslate {
   errors: [Error!]
   collection: Collection
@@ -1411,6 +1416,11 @@ type MoneyRange {
   stop: Money
 }
 
+input MoveProductInput {
+  productId: ID!
+  sortOrder: Int
+}
+
 type Mutations {
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
@@ -1446,6 +1456,7 @@ type Mutations {
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
+  collectionReorderProducts(collectionId: ID!, moves: [MoveProductInput]!): CollectionReorderProducts
   collectionBulkDelete(ids: [ID]!): CollectionBulkDelete
   collectionBulkPublish(ids: [ID]!, isPublished: Boolean!): CollectionBulkPublish
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts

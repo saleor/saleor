@@ -27,7 +27,11 @@ class Menu(models.Model):
         return self.name
 
 
-class MenuItem(MPTTModel, SortableModel):
+class _MenuItemMeta(type(MPTTModel), type(SortableModel)):
+    pass
+
+
+class MenuItem(MPTTModel, SortableModel, metaclass=_MenuItemMeta):
     menu = models.ForeignKey(Menu, related_name="items", on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     parent = models.ForeignKey(
