@@ -4,7 +4,6 @@ import * as React from "react";
 import Baseline from "../../Baseline";
 import createTheme, { IThemeColors } from "../../theme";
 
-// TODO: fix secondary buttons
 const dark: IThemeColors = {
   autofill: "#5D5881",
   background: {
