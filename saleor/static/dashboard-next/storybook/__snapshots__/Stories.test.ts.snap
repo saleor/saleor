@@ -36174,30 +36174,17 @@ exports[`Storyshots Views / Navigation / Menu list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
-              <span
-                class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
               >
-                <span
-                  class="MuiIconButton-label-id"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    role="presentation"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                    />
-                  </svg>
-                  <input
-                    class="MuiPrivateSwitchBase-input-id"
-                    data-indeterminate="false"
-                    type="checkbox"
-                  />
-                </span>
-              </span>
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colTitle-id"
@@ -36245,30 +36232,17 @@ exports[`Storyshots Views / Navigation / Menu list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
-              <span
-                class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
               >
-                <span
-                  class="MuiIconButton-label-id"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    role="presentation"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                    />
-                  </svg>
-                  <input
-                    class="MuiPrivateSwitchBase-input-id"
-                    data-indeterminate="false"
-                    type="checkbox"
-                  />
-                </span>
-              </span>
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colTitle-id"
@@ -36483,32 +36457,19 @@ exports[`Storyshots Views / Navigation / Menu list loading 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
-              <span
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiCheckbox-disabled-id"
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
                 tabindex="-1"
+                type="button"
               >
-                <span
-                  class="MuiIconButton-label-id"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    role="presentation"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                    />
-                  </svg>
-                  <input
-                    class="MuiPrivateSwitchBase-input-id"
-                    data-indeterminate="false"
-                    disabled=""
-                    type="checkbox"
-                  />
-                </span>
-              </span>
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MenuList-colTitle-id"
