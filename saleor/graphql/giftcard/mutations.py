@@ -1,8 +1,9 @@
 from datetime import date
 
 import graphene
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
+from ...account.models import User
 from ...giftcard import models
 from ...giftcard.utils import generate_gift_card_code
 from ..core.mutations import BaseMutation, ModelMutation
@@ -19,6 +20,9 @@ class GiftCardInput(graphene.InputObjectType):
         description="End date of the gift card in ISO 8601 format."
     )
     balance = Decimal(description="Value of the gift card.")
+    buyer_email = graphene.String(
+        required=False, description="The customer's email of the gift card buyer."
+    )
 
 
 class GiftCardCreate(ModelMutation):
@@ -42,6 +46,14 @@ class GiftCardCreate(ModelMutation):
         if balance:
             cleaned_input["current_balance"] = balance
             cleaned_input["initial_balance"] = balance
+        buyer_email = data.get("buyer_email", None)
+        if buyer_email:
+            try:
+                cleaned_input["buyer"] = User.objects.get(email=buyer_email)
+            except ObjectDoesNotExist:
+                raise ValidationError(
+                    {"email": "Customer with this email doesn't exist."}
+                )
         return cleaned_input
 
     @classmethod
@@ -79,9 +91,10 @@ class GiftCardDeactivate(BaseMutation):
         permissions = ("giftcard.manage_gift_card",)
 
     @classmethod
-    def perform_mutation(cls, _root, info, id):
+    def perform_mutation(cls, _root, info, **data):
+        gift_card_id = data.get("id")
         gift_card = cls.get_node_or_error(
-            info, id, field="gift_card_id", only_type=GiftCard
+            info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
         gift_card.is_active = False
         gift_card.last_used_on = date.today()
