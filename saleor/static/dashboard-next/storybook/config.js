@@ -16,6 +16,7 @@ function loadStories() {
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/ErrorPage");
   require("./stories/components/ExternalLink");
+  require("./stories/components/Filter");
   require("./stories/components/Money");
   require("./stories/components/MoneyRange");
   require("./stories/components/MultiAutocompleteSelectField");
