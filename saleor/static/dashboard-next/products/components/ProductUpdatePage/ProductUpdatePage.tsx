@@ -151,7 +151,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       : [],
     description: maybe(() => JSON.parse(product.descriptionJson)),
     name: maybe(() => product.name),
-    price: maybe(() => product.price.amount),
+    price: maybe(() => product.basePrice.amount),
     productType: maybe(() => ({
       label: product.productType.name,
       value: {
@@ -194,7 +194,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         }))
       : [];
   const currency =
-    product && product.price ? product.price.currency : undefined;
+    product && product.basePrice ? product.basePrice.currency : undefined;
   const hasVariants =
     product && product.productType && product.productType.hasVariants;
 
@@ -240,7 +240,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   <ProductVariants
                     disabled={disabled}
                     variants={variants}
-                    fallbackPrice={product ? product.price : undefined}
+                    fallbackPrice={product ? product.basePrice : undefined}
                     onAttributesEdit={onAttributesEdit}
                     onRowClick={onVariantShow}
                     onVariantAdd={onVariantAdd}

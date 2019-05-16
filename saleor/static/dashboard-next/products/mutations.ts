@@ -123,7 +123,7 @@ export const productUpdateMutation = gql`
     $descriptionJson: JSONString
     $isPublished: Boolean!
     $name: String
-    $price: Decimal
+    $basePrice: Decimal
   ) {
     productUpdate(
       id: $id
@@ -136,7 +136,7 @@ export const productUpdateMutation = gql`
         descriptionJson: $descriptionJson
         isPublished: $isPublished
         name: $name
-        price: $price
+        basePrice: $basePrice
       }
     ) {
       errors {

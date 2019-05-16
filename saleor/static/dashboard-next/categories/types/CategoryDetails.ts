@@ -53,7 +53,7 @@ export interface CategoryDetails_category_products_pageInfo {
   startCursor: string | null;
 }
 
-export interface CategoryDetails_category_products_edges_node_availability {
+export interface CategoryDetails_category_products_edges_node_pricing {
   __typename: "ProductPricingInfo";
   available: boolean | null;
 }
@@ -79,9 +79,9 @@ export interface CategoryDetails_category_products_edges_node {
   __typename: "Product";
   id: string;
   name: string;
-  availability: CategoryDetails_category_products_edges_node_availability | null;
+  pricing: CategoryDetails_category_products_edges_node_pricing | null;
   thumbnail: CategoryDetails_category_products_edges_node_thumbnail | null;
-  price: CategoryDetails_category_products_edges_node_price | null;
+  basePrice: CategoryDetails_category_products_edges_node_price | null;
   productType: CategoryDetails_category_products_edges_node_productType;
 }
 

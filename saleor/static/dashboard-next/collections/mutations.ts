@@ -193,7 +193,9 @@ const unassignCollectionProduct = gql`
                 id
                 name
               }
-              thumbnailUrl
+              thumbnail {
+                url
+              }
             }
           }
           pageInfo {
