@@ -33,7 +33,7 @@ storiesOf("Views / Pages / Page details", module)
         "slug",
         "content",
         "publicationDate",
-        "isVisible",
+        "isPublished",
         "seoDescription",
         "seoTitle"
       ] as Array<keyof FormData>).map(formError)}

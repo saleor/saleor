@@ -25,7 +25,7 @@ import PageSlug from "../PageSlug";
 
 export interface FormData {
   content: RawDraftContentState;
-  isVisible: boolean;
+  isPublished: boolean;
   publicationDate: string;
   seoDescription: string;
   seoTitle: string;
@@ -57,7 +57,7 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
       () => JSON.parse(page.contentJson),
       convertToRaw(ContentState.createFromText(""))
     ),
-    isVisible: maybe(() => page.isVisible, false),
+    isPublished: maybe(() => page.isPublished, false),
     publicationDate: maybe(() => page.publicationDate, ""),
     seoDescription: maybe(() => page.seoDescription || "", ""),
     seoTitle: maybe(() => page.seoTitle || "", ""),

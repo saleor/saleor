@@ -11,7 +11,7 @@ export interface PageDetails_page {
   id: string;
   title: string;
   slug: string;
-  isVisible: boolean | null;
+  isPublished: boolean;
   contentJson: any;
   seoTitle: string | null;
   seoDescription: string | null;

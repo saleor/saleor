@@ -22,7 +22,7 @@ export interface PageAvailabilityProps {
 function isAvailable(data: FormData): boolean {
   return (
     (data.publicationDate === "" || data.publicationDate === null) &&
-    data.isVisible
+    data.isPublished
   );
 }
 
@@ -41,7 +41,7 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
             checked={isAvailable(data)}
             disabled={disabled}
             label={
-              data.isVisible && !data.publicationDate ? (
+              data.isPublished && !data.publicationDate ? (
                 i18n.t("Published")
               ) : (
                 <>
@@ -59,7 +59,7 @@ const PageAvailability: React.StatelessComponent<PageAvailabilityProps> = ({
                 </>
               )
             }
-            name={"isVisible" as keyof FormData}
+            name={"isPublished" as keyof FormData}
             onChange={event =>
               onChange(
                 event,
