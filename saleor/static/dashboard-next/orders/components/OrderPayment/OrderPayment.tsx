@@ -23,7 +23,7 @@ import { OrderDetails_order } from "../../types/OrderDetails";
 const styles = (theme: Theme) =>
   createStyles({
     root: {
-      ...theme.typography.body1,
+      ...theme.typography.body2,
       lineHeight: 1.9,
       width: "100%"
     },
@@ -216,11 +216,7 @@ const OrderPayment = withStyles(styles, { name: "OrderPayment" })(
                   </Button>
                 )}
                 {canMarkAsPaid && (
-                  <Button
-                    color="primary"
-                    variant="text"
-                    onClick={onMarkAsPaid}
-                  >
+                  <Button color="primary" variant="text" onClick={onMarkAsPaid}>
                     {i18n.t("Mark as paid", { context: "button" })}
                   </Button>
                 )}

@@ -2,6 +2,8 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import SingleSelectField from "../../../components/SingleSelectField";
+import CardDecorator from "../../CardDecorator";
+import Decorator from "../../Decorator";
 
 const choices = [
   { value: "1", label: "Apparel" },
@@ -11,6 +13,8 @@ const choices = [
 ];
 
 storiesOf("Generics / SingleSelectField", module)
+  .addDecorator(CardDecorator)
+  .addDecorator(Decorator)
   .add("with no value", () => (
     <SingleSelectField choices={choices} onChange={undefined} />
   ))

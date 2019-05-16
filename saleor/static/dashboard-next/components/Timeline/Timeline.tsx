@@ -96,6 +96,7 @@ export const TimelineAddNote = withStyles(styles, { name: "TimelineAddNote" })(
               </Button>
             )
           }}
+          variant="standard"
         />
       </CardContent>
     </div>
