@@ -140,7 +140,7 @@ const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
                 key={maybe(() => line.id)}
               >
                 <TableCellAvatar
-                  thumbnail={maybe(() => line.orderLine.thumbnailUrl)}
+                  thumbnail={maybe(() => line.orderLine.thumbnail.url)}
                 />
                 <TableCell>
                   {maybe(() => line.orderLine.productName) || <Skeleton />}

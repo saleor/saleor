@@ -75,7 +75,7 @@ const OrderUnfulfilledItems = withStyles(styles, {
             hover={!!line}
             key={maybe(() => line.id)}
           >
-            <TableCellAvatar thumbnail={line.thumbnailUrl} />
+            <TableCellAvatar thumbnail={line.thumbnail.url} />
             <TableCell>
               {maybe(() => line.productName) || <Skeleton />}
             </TableCell>

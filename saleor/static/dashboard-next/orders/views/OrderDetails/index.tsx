@@ -112,7 +112,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                       orderMessages.handleShippingMethodUpdate
                     }
                     onOrderLineDelete={orderMessages.handleOrderLineDelete}
-                    onOrderLineAdd={orderMessages.handleOrderLineAdd}
+                    onOrderLinesAdd={orderMessages.handleOrderLinesAdd}
                     onOrderLineUpdate={orderMessages.handleOrderLineUpdate}
                     onOrderFulfillmentCancel={
                       orderMessages.handleOrderFulfillmentCancel
@@ -129,7 +129,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                       orderCancel,
                       orderCreateFulfillment,
                       orderDraftUpdate,
-                      orderLineAdd,
+                      orderLinesAdd,
                       orderLineDelete,
                       orderLineUpdate,
                       orderPaymentCapture,
@@ -544,11 +544,11 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   return (
                                     <OrderProductAddDialog
                                       confirmButtonState={getMutationState(
-                                        orderLineAdd.opts.called,
-                                        orderLineAdd.opts.loading,
+                                        orderLinesAdd.opts.called,
+                                        orderLinesAdd.opts.loading,
                                         maybe(
                                           () =>
-                                            orderLineAdd.opts.data
+                                            orderLinesAdd.opts.data
                                               .draftOrderLinesCreate.errors
                                         )
                                       )}
@@ -568,7 +568,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       onFetch={variantSearch}
                                       onFetchMore={fetchMore}
                                       onSubmit={formData =>
-                                        orderLineAdd.mutate({
+                                        orderLinesAdd.mutate({
                                           id,
                                           input: formData.variants.map(
                                             variant => ({

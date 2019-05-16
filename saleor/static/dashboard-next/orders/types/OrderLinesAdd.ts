@@ -73,6 +73,11 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_or
   net: OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
+export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
@@ -82,7 +87,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_or
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine_thumbnail | null;
 }
 
 export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines {
@@ -119,6 +124,11 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_lines_unitPrice {
   net: OrderLinesAdd_draftOrderLinesCreate_order_lines_unitPrice_net;
 }
 
+export interface OrderLinesAdd_draftOrderLinesCreate_order_lines_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderLinesAdd_draftOrderLinesCreate_order_lines {
   __typename: "OrderLine";
   id: string;
@@ -128,7 +138,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_lines {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderLinesAdd_draftOrderLinesCreate_order_lines_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderLinesAdd_draftOrderLinesCreate_order_lines_thumbnail | null;
 }
 
 export interface OrderLinesAdd_draftOrderLinesCreate_order_shippingAddress_country {
