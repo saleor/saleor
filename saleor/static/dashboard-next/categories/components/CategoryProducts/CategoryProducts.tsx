@@ -19,7 +19,7 @@ import Skeleton from "../../../components/Skeleton";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection, maybe } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 
 const styles = (theme: Theme) =>
   createStyles({
