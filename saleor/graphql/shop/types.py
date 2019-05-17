@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
@@ -13,7 +12,7 @@ from ...product import models as product_models
 from ...site import models as site_models
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
-from ..core.utils import str_to_enum
+from ..core.utils import str_to_enum, get_node_optimized
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..translations.enums import LanguageCodeEnum
@@ -280,8 +279,3 @@ class Shop(graphene.ObjectType):
     def resolve_default_digital_url_valid_days(_, info):
         return info.context.site.settings.default_digital_url_valid_days
 
-
-def get_node_optimized(qs, lookup, info):
-    qs = qs.filter(**lookup)
-    qs = gql_optimizer.query(qs, info)
-    return qs[0] if qs else None
