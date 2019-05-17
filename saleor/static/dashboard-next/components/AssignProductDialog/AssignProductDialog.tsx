@@ -22,6 +22,7 @@ import TableCellAvatar from "../../components/TableCellAvatar";
 import { SearchProducts_products_edges_node } from "../../containers/SearchProducts/types/SearchProducts";
 import i18n from "../../i18n";
 import Checkbox from "../Checkbox";
+import { maybe } from "../../misc";
 
 export interface FormData {
   products: SearchProducts_products_edges_node[];
@@ -119,7 +120,7 @@ const AssignProductDialog = withStyles(styles, {
                         <TableRow key={product.id}>
                           <TableCellAvatar
                             className={classes.avatar}
-                            thumbnail={product.thumbnail.url}
+                            thumbnail={maybe(() => product.thumbnail.url)}
                           />
                           <TableCell className={classes.wideCell}>
                             {product.name}
