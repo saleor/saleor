@@ -98,7 +98,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
             product => (
               <TableRow key={product ? product.id : "skeleton"}>
                 <TableCellAvatar
-                  thumbnail={product && maybe(() => product.thumbnail.url)}
+                  thumbnail={maybe(() => product.thumbnail.url)}
                 />
                 <TableCell className={classes.textLeft}>
                   {product ? (
