@@ -1,4 +1,5 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
 
 
@@ -36,3 +37,9 @@ def from_global_id_strict_type(info, global_id, only_type, field="id"):
     if graphene_type != only_type:
         raise ValidationError({field: "Couldn't resolve to a node: %s" % global_id})
     return _id
+
+
+def get_node_optimized(qs, lookup, info):
+    qs = qs.filter(**lookup)
+    qs = gql_optimizer.query(qs, info)
+    return qs[0] if qs else None
