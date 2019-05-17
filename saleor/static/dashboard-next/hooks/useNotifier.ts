@@ -1,8 +1,9 @@
 import { useContext } from "react";
 
-import { MessageContext } from "../components/messages";
+import { IMessageContext, MessageContext } from "../components/messages";
 
-function useNotifier() {
+export type UseNotifierResult = IMessageContext;
+function useNotifier(): UseNotifierResult {
   const notify = useContext(MessageContext);
   return notify;
 }

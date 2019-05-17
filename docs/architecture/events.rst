@@ -90,8 +90,7 @@ To send an event, simply do the following:
   from saleor.order import events
 
   # returns an OrderEvent
-  events.note_added_event(
-      order=order, user=user, message='hello world!')
+  events.note_added_event(order=order, user=user, message="hello world!")
 
 If now you want to send a 'sent email' event you would do the following:
 
@@ -100,8 +99,10 @@ If now you want to send a 'sent email' event you would do the following:
   from saleor.order import events
 
   events.email_sent_event(
-      order=order, user=user,
-      email_type=events.OrderEventsEmails.TRACKING_UPDATED)
+      order=order,
+      user=user,
+      email_type=events.OrderEventsEmails.TRACKING_UPDATED,
+  )
 
 Notice how we are providing the email type.
 

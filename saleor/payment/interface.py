@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -47,3 +47,16 @@ class PaymentData:
     order_id: int
     customer_ip_address: str
     customer_email: str
+
+
+@dataclass
+class GatewayConfig:
+    """Dataclass for storing gateway config data. Used for unifying the
+    representation of config data. It is required to communicate between
+    Saleor and given payment gateway."""
+
+    auto_capture: bool
+    template_path: str
+    # Each gateway has different connection data so we are not able to create
+    # a unified structure
+    connection_params: Dict[str, Any]

@@ -30,6 +30,7 @@ const TranslationsSalesPage: React.StatelessComponent<
   sale,
   saveButtonState,
   onBack,
+  onDiscard,
   onEdit,
   onLanguageChange,
   onSubmit
@@ -67,6 +68,7 @@ const TranslationsSalesPage: React.StatelessComponent<
       ]}
       saveButtonState={saveButtonState}
       onEdit={onEdit}
+      onDiscard={onDiscard}
       onSubmit={onSubmit}
     />
   </Container>
