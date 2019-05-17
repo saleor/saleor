@@ -19,7 +19,7 @@ import Skeleton from "../../../components/Skeleton";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { renderCollection, maybe } from "../../../misc";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -97,7 +97,9 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
             products,
             product => (
               <TableRow key={product ? product.id : "skeleton"}>
-                <TableCellAvatar thumbnail={product && product.thumbnail.url} />
+                <TableCellAvatar
+                  thumbnail={product && maybe(() => product.thumbnail.url)}
+                />
                 <TableCell className={classes.textLeft}>
                   {product ? (
                     <span
