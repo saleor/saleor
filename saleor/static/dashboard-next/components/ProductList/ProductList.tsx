@@ -168,8 +168,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
                   )}
                 </TableCell>
                 <TableCell className={classes.colPrice}>
-                  {product &&
-                  maybe(() => product.basePrice) &&
+                  {maybe(() => product.basePrice) &&
                   maybe(() => product.basePrice.amount) !== undefined &&
                   maybe(() => product.basePrice.currency) !== undefined ? (
                     <Money money={product.basePrice} />

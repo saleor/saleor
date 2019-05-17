@@ -136,7 +136,7 @@ export const productUpdateMutation = gql`
         descriptionJson: $descriptionJson
         isPublished: $isPublished
         name: $name
-        price: $basePrice
+        basePrice: $basePrice
       }
     ) {
       errors {
