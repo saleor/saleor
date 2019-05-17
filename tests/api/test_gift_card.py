@@ -310,7 +310,7 @@ mutation giftCardUpdate(
 
 def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_card):
     gift_card.last_used_on = date(day=1, month=1, year=2018)
-    gift_card.save()
+    gift_card.save(update_fields=["last_used_on"])
     new_code = "new_test_code"
     balance = 150
     assert gift_card.code != new_code
@@ -495,7 +495,7 @@ def test_verify_gift_card_code_incorect_code(user_api_client):
 
 def test_verify_gift_card_code_inactive_code(user_api_client, gift_card):
     gift_card.is_active = False
-    gift_card.save()
+    gift_card.save(update_fields=["is_active"])
     variables = {"code": gift_card.code}
     response = user_api_client.post_graphql(VERIFY_CODE_GIFT_CARD_MUTATION, variables)
     content = get_graphql_content(response)
@@ -509,7 +509,7 @@ def test_verify_gift_card_code_inactive_code(user_api_client, gift_card):
 
 def test_verify_gift_card_code_expired_code(user_api_client, gift_card):
     gift_card.expiration_date = date.today() - timedelta(days=3)
-    gift_card.save()
+    gift_card.save(update_fields=["expiration_date"])
     variables = {"code": gift_card.code}
     response = user_api_client.post_graphql(VERIFY_CODE_GIFT_CARD_MUTATION, variables)
     content = get_graphql_content(response)
