@@ -96,9 +96,31 @@ class GiftCardDeactivate(BaseMutation):
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
-        gift_card.is_active = False
-        gift_card.last_used_on = date.today()
-        gift_card.save()
+        if gift_card.is_active:
+            gift_card.is_active = False
+            gift_card.save(update_fields=["is_active"])
+        return GiftCardDeactivate(gift_card=gift_card)
+
+
+class GiftCardActivate(BaseMutation):
+    gift_card = graphene.Field(GiftCard, description="A gift card to activate.")
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a gift card to activate.")
+
+    class Meta:
+        description = "Activate a gift card."
+        permissions = ("giftcard.manage_gift_card",)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        gift_card_id = data.get("id")
+        gift_card = cls.get_node_or_error(
+            info, gift_card_id, field="gift_card_id", only_type=GiftCard
+        )
+        if not gift_card.is_active:
+            gift_card.is_active = True
+            gift_card.save(update_fields=["is_active"])
         return GiftCardDeactivate(gift_card=gift_card)
 
 
