@@ -2588,7 +2588,6 @@ enum TransactionError {
 
 enum TransactionKind {
   AUTH
-  CHARGE
   REFUND
   CAPTURE
   VOID
