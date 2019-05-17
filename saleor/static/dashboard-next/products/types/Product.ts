@@ -18,7 +18,7 @@ export interface Product_collections {
   name: string;
 }
 
-export interface Product_price {
+export interface Product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -105,7 +105,6 @@ export interface Product_pricing_priceRange {
 
 export interface Product_pricing {
   __typename: "ProductPricingInfo";
-  available: boolean | null;
   priceRange: Product_pricing_priceRange | null;
 }
 
@@ -151,9 +150,10 @@ export interface Product {
   seoDescription: string | null;
   category: Product_category;
   collections: (Product_collections | null)[] | null;
-  basePrice: Product_price | null;
+  basePrice: Product_basePrice | null;
   margin: Product_margin | null;
   purchaseCost: Product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;

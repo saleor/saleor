@@ -18,7 +18,7 @@ export interface ProductDetails_product_collections {
   name: string;
 }
 
-export interface ProductDetails_product_price {
+export interface ProductDetails_product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -105,7 +105,6 @@ export interface ProductDetails_product_pricing_priceRange {
 
 export interface ProductDetails_product_pricing {
   __typename: "ProductPricingInfo";
-  available: boolean | null;
   priceRange: ProductDetails_product_pricing_priceRange | null;
 }
 
@@ -151,9 +150,10 @@ export interface ProductDetails_product {
   seoDescription: string | null;
   category: ProductDetails_product_category;
   collections: (ProductDetails_product_collections | null)[] | null;
-  basePrice: ProductDetails_product_price | null;
+  basePrice: ProductDetails_product_basePrice | null;
   margin: ProductDetails_product_margin | null;
   purchaseCost: ProductDetails_product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;

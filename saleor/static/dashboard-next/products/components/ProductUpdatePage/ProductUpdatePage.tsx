@@ -74,12 +74,12 @@ export interface FormData {
     value: string;
   }>;
   available: boolean;
+  basePrice: number;
   category: ChoiceType | null;
   chargeTaxes: boolean;
   collections: ChoiceType[];
   description: RawDraftContentState;
   name: string;
-  price: number;
   productType: {
     label: string;
     value: {
@@ -138,6 +138,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       []
     ),
     available: maybe(() => product.isPublished, false),
+    basePrice: maybe(() => product.basePrice.amount),
     category: maybe(() => ({
       label: product.category.name,
       value: product.category.id
@@ -151,7 +152,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       : [],
     description: maybe(() => JSON.parse(product.descriptionJson)),
     name: maybe(() => product.name),
-    price: maybe(() => product.basePrice.amount),
     productType: maybe(() => ({
       label: product.productType.name,
       value: {

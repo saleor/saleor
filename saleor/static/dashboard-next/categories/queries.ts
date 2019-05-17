@@ -104,9 +104,7 @@ export const categoryDetails = gql`
               amount
               currency
             }
-            pricing {
-              available
-            }
+            isAvailable
             thumbnail {
               url
             }
