@@ -84,7 +84,7 @@ const SalePricing = withStyles(styles, {
       </CardContent>
       <Hr />
       <CardContent className={classes.root}>
-        <Typography className={classes.subheading} variant="subheading">
+        <Typography className={classes.subheading} variant="subtitle1">
           {i18n.t("Time Frame")}
         </Typography>
         <TextField

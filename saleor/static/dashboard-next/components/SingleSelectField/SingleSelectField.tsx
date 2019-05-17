@@ -1,3 +1,4 @@
+import FilledInput from "@material-ui/core/FilledInput";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -60,13 +61,14 @@ export const SingleSelectField = withStyles(styles, {
       >
         <InputLabel shrink={!!value}>{label}</InputLabel>
         <Select
+          variant="filled"
           fullWidth
           renderValue={choiceValue =>
             choiceValue ? choicesByKey[choiceValue.toString()] : ""
           }
           value={value || ""}
-          name={name}
           onChange={onChange}
+          input={<FilledInput name={name} />}
           {...selectProps}
         >
           {choices.length > 0 ? (

@@ -67,10 +67,10 @@ const ErrorPage = withStyles(styles, { name: "NotFoundPage" })(
       <div className={classes.container}>
         <div className={classes.innerContainer}>
           <div>
-            <Typography className={classes.upperHeader} variant="display1">
+            <Typography className={classes.upperHeader} variant="h4">
               {i18n.t("Ooops!...")}
             </Typography>
-            <Typography className={classes.bottomHeader} variant="display2">
+            <Typography className={classes.bottomHeader} variant="h3">
               {i18n.t("Error")}
             </Typography>
             <Typography>{i18n.t("We've encountered a problem...")}</Typography>

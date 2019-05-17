@@ -42,7 +42,8 @@ const styles = (theme: Theme) =>
     appAction: {
       bottom: 0,
       gridColumn: 2,
-      position: "sticky"
+      position: "sticky",
+      zIndex: 1
     },
     appLoader: {
       height: appLoaderHeight,

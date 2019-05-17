@@ -51,7 +51,7 @@
     <div class="row checkout-preview-dropdown__actions">
       <div class="col-md-1"></div>
       <div class="col-md-5">
-        <a href="{% url "checkout:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to checkout" context "Checkout dropdown secondary action" %}</a>
+        <a href="{% url "checkout:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to cart" context "Checkout dropdown secondary action" %}</a>
       </div>
       <div class="col-md-5">
         <a href="{% url "checkout:login" %}" class="btn btn-primary narrow float-md-right">{% trans "Checkout" context "Checkout dropdown primary action" %}</a>
@@ -59,7 +59,7 @@
     </div>
   {% else %}
     <div class="text-md-center checkout-preview-dropdown__empty">
-      <h3>{% trans "There are no products in your shopping checkout." context "Empty checkout message" %}</h3>
+      <h3>{% trans "There are no products in your shopping cart." context "Empty checkout message" %}</h3>
       <img data-src="{% static 'images/empty-checkout-bg.png' %}"
            data-srcset="{% static 'images/empty-checkout-bg.png' %} 1x, {% static 'images/empty-checkout-bg2x.png' %} 2x"
            src="{% placeholder size=255 %}"

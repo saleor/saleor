@@ -149,7 +149,7 @@ const ShippingZoneRateDialog = withStyles(styles, {
                     <>
                       <Typography
                         className={classes.subheading}
-                        variant="subheading"
+                        variant="subtitle1"
                       >
                         {variant === ShippingMethodTypeEnum.PRICE
                           ? i18n.t("Value range")
@@ -240,7 +240,7 @@ const ShippingZoneRateDialog = withStyles(styles, {
                 <DialogContent>
                   <Typography
                     className={classes.subheading}
-                    variant="subheading"
+                    variant="subtitle1"
                   >
                     {i18n.t("Rate")}
                   </Typography>

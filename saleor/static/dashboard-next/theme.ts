@@ -1,5 +1,6 @@
 import { createMuiTheme, Theme } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
+import TextField from "@material-ui/core/TextField";
 
 const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
   [
@@ -19,6 +20,8 @@ export type IThemeColors = Record<
   font: Record<"default" | "gray", string>;
 } & {
   gray: Record<"default" | "disabled", string>;
+} & {
+  input: Record<"default" | "focused" | "disabled", string>;
 };
 
 const fontFamily = '"Inter", "roboto", "sans-serif"';
@@ -54,6 +57,48 @@ export default (colors: IThemeColors): Theme =>
           flexDirection: "row-reverse" as "row-reverse"
         }
       },
+      MuiFilledInput: {
+        root: {
+          "&$disabled": {
+            backgroundColor: colors.input.disabled
+          },
+          "&$focused": {
+            backgroundColor: colors.input.focused
+          },
+          "&:hover": {
+            backgroundColor: colors.input.default
+          },
+          backgroundColor: colors.input.default
+        },
+        underline: {
+          "&$focused": {
+            "&:after": {
+              borderBottomColor: colors.primary
+            }
+          },
+          "&:before": {
+            borderBottomColor: "rgba(0, 0, 0, 0)"
+          },
+          "&:hover": {
+            "&:not($disabled)": {
+              "&:not($focused)": {
+                "&:not($error)": {
+                  "&:before": {
+                    borderBottomColor: colors.primary
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      MuiIconButton: {
+        root: {
+          "&:hover": {
+            backgroundColor: fade(colors.primary, 0.12)
+          }
+        }
+      },
       MuiInput: {
         input: {
           "&:-webkit-autofill": {
@@ -78,6 +123,9 @@ export default (colors: IThemeColors): Theme =>
         }
       },
       MuiInputLabel: {
+        filled: {
+          transform: "translate(12px, 10px) scale(0.75)"
+        },
         formControl: {
           transform: "translate(0, 1.5px) scale(0.75)",
           transformOrigin: "top left" as "top left",
@@ -91,11 +139,42 @@ export default (colors: IThemeColors): Theme =>
           width: "133%"
         }
       },
+      MuiList: {
+        root: {
+          display: "grid",
+          gridRowGap: 8 + "px",
+          padding: "8px !important"
+        }
+      },
+      MuiListItem: {
+        button: {
+          "&:focus": {
+            backgroundColor: colors.input.default
+          }
+        },
+        root: {
+          "&$selected": {
+            "&:hover": {
+              backgroundColor: colors.input.default
+            },
+            backgroundColor: colors.input.default
+          }
+        }
+      },
       MuiMenu: {
         paper: {
           borderRadius: 8
         }
       },
+      MuiMenuItem: {
+        root: {
+          "&:hover, &$selected, &$selected:focus": {
+            backgroundColor: colors.input.default
+          },
+          borderRadius: 4
+        }
+      },
+
       MuiSwitch: {
         bar: {
           "$colorPrimary$checked + &": {
@@ -108,16 +187,6 @@ export default (colors: IThemeColors): Theme =>
           opacity: [["1"], "!important"] as any,
           width: 48
         },
-        checked: {
-          transform: "translateX(24px)"
-        },
-        disabled: {
-          "&$switchBase": {
-            "& + $bar": {
-              backgroundColor: colors.gray.disabled
-            }
-          }
-        },
         icon: {
           backgroundColor: colors.background.paper,
           boxShadow: "none",
@@ -126,6 +195,18 @@ export default (colors: IThemeColors): Theme =>
         iconChecked: {
           backgroundColor: colors.background.paper,
           boxShadow: "none"
+        },
+        root: {
+          "& $checked": {
+            transform: "translateX(24px)"
+          },
+          "&$disabled": {
+            "&$switchBase": {
+              "& + $bar": {
+                backgroundColor: colors.gray.disabled
+              }
+            }
+          }
         }
       },
       MuiTable: {
@@ -180,6 +261,19 @@ export default (colors: IThemeColors): Theme =>
             backgroundColor: fade(colors.primary, 0.05)
           }
         }
+      },
+      MuiTouchRipple: {
+        child: {
+          backgroundColor: fade(colors.primary, 0.2)
+        },
+        childLeaving: {
+          backgroundColor: fade(colors.primary, 0.2)
+        },
+        ripple: {
+          "&$rippleVisible": {
+            backgroundColor: fade(colors.primary, 0.2)
+          }
+        }
       }
     },
     palette: {
@@ -200,6 +294,11 @@ export default (colors: IThemeColors): Theme =>
         hint: colors.font.gray,
         primary: colors.font.default,
         secondary: colors.font.gray
+      }
+    },
+    props: {
+      MuiFormControl: {
+        variant: "filled"
       }
     },
     shadows: [
@@ -234,17 +333,23 @@ export default (colors: IThemeColors): Theme =>
         fontFamily
       },
       body1: {
-        fontSize: "1rem"
-      },
-      body2: {
         fontSize: "0.75rem",
         fontWeight: 600 as 600
       },
-      display1: {
+      body2: {
+        fontSize: "1rem"
+      },
+      h4: {
         color: colors.font.default
       },
-      headline: {
+      h5: {
         fontSize: "1.3125rem"
-      }
+      },
+      useNextVariants: true
     }
   });
+
+TextField.defaultProps = {
+  ...TextField.defaultProps,
+  variant: "filled"
+};

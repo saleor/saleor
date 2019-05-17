@@ -2,6 +2,7 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import Money, { MoneyProps } from "../../../components/Money";
+import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 
 const props: MoneyProps = {
@@ -12,5 +13,6 @@ const props: MoneyProps = {
 };
 
 storiesOf("Generics / Money formatting", module)
+  .addDecorator(CardDecorator)
   .addDecorator(Decorator)
   .add("default", () => <Money {...props} />);

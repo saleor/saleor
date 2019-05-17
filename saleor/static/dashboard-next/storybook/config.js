@@ -6,7 +6,10 @@ function loadStories() {
   require("./stories/components/ActionDialog");
   require("./stories/components/AddressEdit");
   require("./stories/components/AddressFormatter");
+  require("./stories/components/AutocompleteSelectMenu");
   require("./stories/components/CardMenu");
+  require("./stories/components/Checkbox");
+  require("./stories/components/Chip");
   require("./stories/components/Date");
   require("./stories/components/DateTime");
   require("./stories/components/EditableTableCell");
@@ -70,6 +73,12 @@ function loadStories() {
 
   // Homepage
   require("./stories/home/HomePage");
+
+  // Navigation
+  require("./stories/navigation/MenuCreateDialog");
+  require("./stories/navigation/MenuDetailsPage");
+  require("./stories/navigation/MenuItemDialog");
+  require("./stories/navigation/MenuListPage");
 
   // Staff
   require("./stories/staff/StaffListPage");
