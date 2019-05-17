@@ -26,7 +26,7 @@ export interface ProductCreate_productCreate_product_collections {
   name: string;
 }
 
-export interface ProductCreate_productCreate_product_price {
+export interface ProductCreate_productCreate_product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -67,9 +67,7 @@ export interface ProductCreate_productCreate_product_attributes_attribute {
   id: string;
   slug: string | null;
   name: string | null;
-  values:
-    | (ProductCreate_productCreate_product_attributes_attribute_values | null)[]
-    | null;
+  values: (ProductCreate_productCreate_product_attributes_attribute_values | null)[] | null;
 }
 
 export interface ProductCreate_productCreate_product_attributes_value {
@@ -115,7 +113,6 @@ export interface ProductCreate_productCreate_product_pricing_priceRange {
 
 export interface ProductCreate_productCreate_product_pricing {
   __typename: "ProductPricingInfo";
-  available: boolean | null;
   priceRange: ProductCreate_productCreate_product_pricing_priceRange | null;
 }
 
@@ -160,12 +157,11 @@ export interface ProductCreate_productCreate_product {
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductCreate_productCreate_product_category;
-  collections:
-    | (ProductCreate_productCreate_product_collections | null)[]
-    | null;
-  basePrice: ProductCreate_productCreate_product_price | null;
+  collections: (ProductCreate_productCreate_product_collections | null)[] | null;
+  basePrice: ProductCreate_productCreate_product_basePrice | null;
   margin: ProductCreate_productCreate_product_margin | null;
   purchaseCost: ProductCreate_productCreate_product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;

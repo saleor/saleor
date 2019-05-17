@@ -97,11 +97,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyMQ==",
+          isAvailable: true,
           name: "Gardner-Schultz",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -121,11 +118,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyMg==",
+          isAvailable: true,
           name: "James, Martinez and Murray",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -145,11 +139,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyMw==",
+          isAvailable: true,
           name: "Curtis, Joyce and Turner",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -169,11 +160,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyNA==",
+          isAvailable: true,
           name: "Davis, Brown and Ray",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -193,11 +181,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyNQ==",
+          isAvailable: true,
           name: "Gallegos Ltd",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -217,11 +202,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyNg==",
+          isAvailable: true,
           name: "Franklin Inc",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -241,11 +223,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyNw==",
+          isAvailable: true,
           name: "Williams-Taylor",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -265,11 +244,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyOA==",
+          isAvailable: true,
           name: "Riddle, Evans and Hicks",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -289,11 +265,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDoyOQ==",
+          isAvailable: true,
           name: "Hebert-Sherman",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",
@@ -313,11 +286,8 @@ export const category: (
             currency: "USD"
           },
           id: "UHJvZHVjdDozMA==",
+          isAvailable: true,
           name: "Carter and Sons",
-          pricing: {
-            __typename: "ProductPricingInfo",
-            available: true
-          },
           productType: {
             __typename: "ProductType",
             id: "UHJvZHVjdFR5cGU6Mw==",

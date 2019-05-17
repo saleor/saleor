@@ -26,7 +26,7 @@ export interface ProductUpdate_productUpdate_product_collections {
   name: string;
 }
 
-export interface ProductUpdate_productUpdate_product_price {
+export interface ProductUpdate_productUpdate_product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -67,9 +67,7 @@ export interface ProductUpdate_productUpdate_product_attributes_attribute {
   id: string;
   slug: string | null;
   name: string | null;
-  values:
-    | (ProductUpdate_productUpdate_product_attributes_attribute_values | null)[]
-    | null;
+  values: (ProductUpdate_productUpdate_product_attributes_attribute_values | null)[] | null;
 }
 
 export interface ProductUpdate_productUpdate_product_attributes_value {
@@ -115,7 +113,6 @@ export interface ProductUpdate_productUpdate_product_pricing_priceRange {
 
 export interface ProductUpdate_productUpdate_product_pricing {
   __typename: "ProductPricingInfo";
-  available: boolean | null;
   priceRange: ProductUpdate_productUpdate_product_pricing_priceRange | null;
 }
 
@@ -160,12 +157,11 @@ export interface ProductUpdate_productUpdate_product {
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductUpdate_productUpdate_product_category;
-  collections:
-    | (ProductUpdate_productUpdate_product_collections | null)[]
-    | null;
-  basePrice: ProductUpdate_productUpdate_product_price | null;
+  collections: (ProductUpdate_productUpdate_product_collections | null)[] | null;
+  basePrice: ProductUpdate_productUpdate_product_basePrice | null;
   margin: ProductUpdate_productUpdate_product_margin | null;
   purchaseCost: ProductUpdate_productUpdate_product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;

@@ -144,13 +144,13 @@ export const product: (
       url: placeholderImage
     }
   ],
+  isAvailable: false,
   isFeatured: false,
   isPublished: true,
   margin: { __typename: "Margin", start: 2, stop: 7 },
   name: "Ergonomic Plastic Bacon",
   pricing: {
     __typename: "ProductPricingInfo",
-    available: false,
     priceRange: {
       __typename: "TaxedMoneyRange",
       start: {
@@ -426,11 +426,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: true,
     isFeatured: false,
     isPublished: false,
     margin: { start: 6, stop: 18 },
     name: "Gorgeous Frozen Chips",
-    pricing: { available: true },
     productType: {
       hasVariants: true,
       id: "pt41284",
@@ -587,11 +587,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: true,
     isFeatured: false,
     isPublished: true,
     margin: { start: 4, stop: 19 },
     name: "Handcrafted Wooden Towels",
-    pricing: { available: true },
     productType: { hasVariants: false, id: "pt29020", name: "Future" },
     publicationDate: null,
     purchaseCost: {
@@ -784,11 +784,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: true,
     margin: { start: 3, stop: 18 },
     name: "Handcrafted Metal Cheese",
-    pricing: { available: false },
     productType: { hasVariants: true, id: "pt23508", name: "SMS" },
     publicationDate: null,
     purchaseCost: {
@@ -992,11 +992,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: true,
     isPublished: true,
     margin: { start: 4, stop: 19 },
     name: "Refined Rubber Keyboard",
-    pricing: { available: false },
     productType: { hasVariants: false, id: "pt20625", name: "Virtual" },
     publicationDate: null,
     purchaseCost: {
@@ -1209,11 +1209,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: true,
     isFeatured: false,
     isPublished: false,
     margin: { start: 6, stop: 17 },
     name: "Gorgeous Metal Gloves",
-    pricing: { available: true },
     productType: { hasVariants: true, id: "pt91547", name: "Vermont" },
     publicationDate: null,
     purchaseCost: {
@@ -1465,11 +1465,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: false,
     margin: { start: 1, stop: 15 },
     name: "Small Cotton Shirt",
-    pricing: { available: false },
     productType: { hasVariants: false, id: "pt69941", name: "Gorgeous" },
     publicationDate: null,
     purchaseCost: {
@@ -1660,11 +1660,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: false,
     margin: { start: 0, stop: 4 },
     name: "Fantastic Cotton Tuna",
-    pricing: { available: false },
     productType: { hasVariants: true, id: "pt41677", name: "TCP" },
     publicationDate: null,
     purchaseCost: {
@@ -1769,11 +1769,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: true,
     margin: { start: 0, stop: 18 },
     name: "Tasty Steel Pants",
-    pricing: { available: false },
     productType: { hasVariants: true, id: "pt93233", name: "Buckinghamshire" },
     publicationDate: null,
     purchaseCost: {
@@ -1976,11 +1976,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: true,
     isFeatured: false,
     isPublished: true,
     margin: { start: 0, stop: 11 },
     name: "Ergonomic Cotton Shoes",
-    pricing: { available: true },
     productType: { hasVariants: true, id: "pt53386", name: "Jewelery" },
     publicationDate: null,
     purchaseCost: {
@@ -2108,11 +2108,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: true,
     margin: { start: 4, stop: 17 },
     name: "Unbranded Steel Tuna",
-    pricing: { available: false },
     productType: { hasVariants: true, id: "pt48315", name: "Agent" },
     publicationDate: null,
     purchaseCost: {

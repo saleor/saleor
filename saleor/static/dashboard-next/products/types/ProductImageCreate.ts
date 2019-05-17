@@ -24,7 +24,7 @@ export interface ProductImageCreate_productImageCreate_product_collections {
   name: string;
 }
 
-export interface ProductImageCreate_productImageCreate_product_price {
+export interface ProductImageCreate_productImageCreate_product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -65,9 +65,7 @@ export interface ProductImageCreate_productImageCreate_product_attributes_attrib
   id: string;
   slug: string | null;
   name: string | null;
-  values:
-    | (ProductImageCreate_productImageCreate_product_attributes_attribute_values | null)[]
-    | null;
+  values: (ProductImageCreate_productImageCreate_product_attributes_attribute_values | null)[] | null;
 }
 
 export interface ProductImageCreate_productImageCreate_product_attributes_value {
@@ -113,7 +111,6 @@ export interface ProductImageCreate_productImageCreate_product_pricing_priceRang
 
 export interface ProductImageCreate_productImageCreate_product_pricing {
   __typename: "ProductPricingInfo";
-  available: boolean | null;
   priceRange: ProductImageCreate_productImageCreate_product_pricing_priceRange | null;
 }
 
@@ -158,23 +155,18 @@ export interface ProductImageCreate_productImageCreate_product {
   seoTitle: string | null;
   seoDescription: string | null;
   category: ProductImageCreate_productImageCreate_product_category;
-  collections:
-    | (ProductImageCreate_productImageCreate_product_collections | null)[]
-    | null;
-  basePrice: ProductImageCreate_productImageCreate_product_price | null;
+  collections: (ProductImageCreate_productImageCreate_product_collections | null)[] | null;
+  basePrice: ProductImageCreate_productImageCreate_product_basePrice | null;
   margin: ProductImageCreate_productImageCreate_product_margin | null;
   purchaseCost: ProductImageCreate_productImageCreate_product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;
   attributes: ProductImageCreate_productImageCreate_product_attributes[];
   pricing: ProductImageCreate_productImageCreate_product_pricing | null;
-  images:
-    | (ProductImageCreate_productImageCreate_product_images | null)[]
-    | null;
-  variants:
-    | (ProductImageCreate_productImageCreate_product_variants | null)[]
-    | null;
+  images: (ProductImageCreate_productImageCreate_product_images | null)[] | null;
+  variants: (ProductImageCreate_productImageCreate_product_variants | null)[] | null;
   productType: ProductImageCreate_productImageCreate_product_productType;
   url: string;
 }
