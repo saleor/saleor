@@ -42,6 +42,7 @@ export enum LanguageCodeEnum {
   DE = "DE",
   EN = "EN",
   ES = "ES",
+  ES_CO = "ES_CO",
   ET = "ET",
   FA = "FA",
   FR = "FR",
@@ -52,6 +53,7 @@ export enum LanguageCodeEnum {
   IT = "IT",
   JA = "JA",
   KO = "KO",
+  LT = "LT",
   MN = "MN",
   NB = "NB",
   NL = "NL",
@@ -61,6 +63,7 @@ export enum LanguageCodeEnum {
   RO = "RO",
   RU = "RU",
   SK = "SK",
+  SQ = "SQ",
   SR = "SR",
   SV = "SV",
   SW = "SW",
@@ -341,6 +344,35 @@ export interface FulfillmentLineInput {
 export interface FulfillmentUpdateTrackingInput {
   trackingNumber?: string | null;
   notifyCustomer?: boolean | null;
+}
+
+export interface MenuCreateInput {
+  name?: string | null;
+  items?: (MenuItemInput | null)[] | null;
+}
+
+export interface MenuItemCreateInput {
+  name?: string | null;
+  url?: string | null;
+  category?: string | null;
+  collection?: string | null;
+  page?: string | null;
+  menu: string;
+  parent?: string | null;
+}
+
+export interface MenuItemInput {
+  name?: string | null;
+  url?: string | null;
+  category?: string | null;
+  collection?: string | null;
+  page?: string | null;
+}
+
+export interface MenuItemMoveInput {
+  itemId: string;
+  parentId?: string | null;
+  sortOrder?: number | null;
 }
 
 export interface NameTranslationInput {

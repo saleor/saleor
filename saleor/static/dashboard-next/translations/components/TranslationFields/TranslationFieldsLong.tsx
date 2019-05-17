@@ -12,6 +12,7 @@ interface TranslationFieldsLongProps {
   edit: boolean;
   initial: string;
   saveButtonState: ConfirmButtonTransitionState;
+  onDiscard: () => void;
   onSubmit: (data: string) => void;
 }
 
@@ -20,6 +21,7 @@ const TranslationFieldsLong: React.FC<TranslationFieldsLongProps> = ({
   edit,
   initial,
   saveButtonState,
+  onDiscard,
   onSubmit
 }) =>
   edit ? (
@@ -27,20 +29,20 @@ const TranslationFieldsLong: React.FC<TranslationFieldsLongProps> = ({
       initial={{ translation: initial }}
       onSubmit={data => onSubmit(data.translation)}
     >
-      {({ change, data, reset, submit }) => (
+      {({ change, data, submit }) => (
         <div>
           <TextField
             disabled={disabled}
             fullWidth
             multiline
-            // label={i18n.t("Translation")}
+            label={i18n.t("Translation")}
             name="translation"
             value={data.translation}
             onChange={change}
           />
           <TranslationFieldsSave
             saveButtonState={saveButtonState}
-            onDiscard={reset}
+            onDiscard={onDiscard}
             onSave={submit}
           />
         </div>
