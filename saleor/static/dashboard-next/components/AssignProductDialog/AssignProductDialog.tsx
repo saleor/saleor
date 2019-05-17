@@ -21,8 +21,8 @@ import FormSpacer from "../../components/FormSpacer";
 import TableCellAvatar from "../../components/TableCellAvatar";
 import { SearchProducts_products_edges_node } from "../../containers/SearchProducts/types/SearchProducts";
 import i18n from "../../i18n";
-import Checkbox from "../Checkbox";
 import { maybe } from "../../misc";
+import Checkbox from "../Checkbox";
 
 export interface FormData {
   products: SearchProducts_products_edges_node[];
