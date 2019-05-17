@@ -87,7 +87,6 @@ const ImageEntity = withStyles(styles, {
                           onEdit(entityKey);
                         }}
                         color="primary"
-                        variant="flat"
                       >
                         {i18n.t("Replace")}
                       </Button>

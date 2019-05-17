@@ -30,7 +30,7 @@ const PageHeader = withStyles(styles)(
     <ExtendedPageHeader
       className={className}
       title={
-        <Typography className={classes.title} variant="headline">
+        <Typography className={classes.title} variant="h5">
           {title !== undefined ? title : <Skeleton style={{ width: "10em" }} />}
         </Typography>
       }
