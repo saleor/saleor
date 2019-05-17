@@ -1,6 +1,5 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
   Theme,
@@ -17,6 +16,7 @@ import EditIcon from "@material-ui/icons/Edit";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import IconButtonTableCell from "../../../components/IconButtonTableCell";
 import Money from "../../../components/Money";
 import MoneyRange from "../../../components/MoneyRange";
 import Skeleton from "../../../components/Skeleton";
@@ -132,30 +132,18 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
                     <Skeleton />
                   )}
                 </TableCell>
-                <TableCell className={classes.alignRight}>
-                  <IconButton
-                    color="primary"
-                    disabled={disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onRateEdit(rate.id);
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </TableCell>
-                <TableCell className={classes.alignRight}>
-                  <IconButton
-                    color="primary"
-                    disabled={disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onRateRemove(rate.id);
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+                <IconButtonTableCell
+                  disabled={disabled}
+                  onClick={() => onRateEdit(rate.id)}
+                >
+                  <EditIcon />
+                </IconButtonTableCell>
+                <IconButtonTableCell
+                  disabled={disabled}
+                  onClick={() => onRateRemove(rate.id)}
+                >
+                  <DeleteIcon />
+                </IconButtonTableCell>
               </TableRow>
             ),
             () => (

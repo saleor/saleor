@@ -85,7 +85,7 @@ const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
                             .map(line => line.quantity)
                             .reduce((prev, curr) => prev + curr, 0)
                         })}
-                    <Typography className={classes.orderNumber} variant="body1">
+                    <Typography className={classes.orderNumber} variant="body2">
                       {maybe(
                         () => `#${orderNumber}-${fulfillment.fulfillmentOrder}`
                       )}

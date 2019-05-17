@@ -12,7 +12,6 @@ import Typography from "@material-ui/core/Typography";
 import ArrowIcon from "@material-ui/icons/ArrowDropDown";
 import classNames from "classnames";
 import * as React from "react";
-
 import CardTitle from "../../../components/CardTitle";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
 import Grid from "../../../components/Grid";
@@ -39,6 +38,7 @@ export interface TranslationFieldsProps {
   initialState: boolean;
   saveButtonState: ConfirmButtonTransitionState;
   onEdit: (field: string) => void;
+  onDiscard: () => void;
   onSubmit: (field: string, data: string) => void;
 }
 
@@ -115,6 +115,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
     title,
     saveButtonState,
     onEdit,
+    onDiscard,
     onSubmit
   }: TranslationFieldsProps & WithStyles<typeof styles>) => {
     const [expanded, setExpandedState] = React.useState(initialState);
@@ -136,10 +137,10 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
         {expanded ? (
           <CardContent className={classes.cardContent}>
             <Grid className={classes.grid} variant="uniform">
-              <Typography className={classes.columnHeader} variant="body1">
+              <Typography className={classes.columnHeader} variant="body2">
                 {i18n.t("Original String")}
               </Typography>
-              <Typography className={classes.columnHeader} variant="body1">
+              <Typography className={classes.columnHeader} variant="body2">
                 {i18n.t("Translation", {
                   context: "translation to language"
                 })}
@@ -147,7 +148,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
               {fields.map(field => (
                 <React.Fragment key={field.name}>
                   <Hr className={classes.hr} />
-                  <Typography className={classes.fieldName} variant="body1">
+                  <Typography className={classes.fieldName} variant="body2">
                     {field.displayName}
                   </Typography>
                   <div className={classes.editButtonContainer}>
@@ -163,6 +164,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           edit={false}
                           initial={field.value}
                           saveButtonState="default"
+                          onDiscard={onDiscard}
                           onSubmit={undefined}
                         />
                       ) : field.type === "long" ? (
@@ -171,6 +173,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           edit={false}
                           initial={field.value}
                           saveButtonState="default"
+                          onDiscard={onDiscard}
                           onSubmit={undefined}
                         />
                       ) : (
@@ -179,6 +182,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           edit={false}
                           initial={field.value}
                           saveButtonState="default"
+                          onDiscard={onDiscard}
                           onSubmit={undefined}
                         />
                       )
@@ -194,6 +198,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           edit={activeField === field.name}
                           initial={field.translation}
                           saveButtonState={saveButtonState}
+                          onDiscard={onDiscard}
                           onSubmit={data => onSubmit(field.name, data)}
                         />
                       ) : field.type === "long" ? (
@@ -202,6 +207,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           edit={activeField === field.name}
                           initial={field.translation}
                           saveButtonState={saveButtonState}
+                          onDiscard={onDiscard}
                           onSubmit={data => onSubmit(field.name, data)}
                         />
                       ) : (
@@ -210,6 +216,7 @@ const TranslationFields = withStyles(styles, { name: "TranslationFields" })(
                           edit={activeField === field.name}
                           initial={field.translation}
                           saveButtonState={saveButtonState}
+                          onDiscard={onDiscard}
                           onSubmit={data => onSubmit(field.name, data)}
                         />
                       )

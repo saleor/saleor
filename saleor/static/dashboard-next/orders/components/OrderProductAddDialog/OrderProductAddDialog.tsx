@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -19,6 +18,7 @@ import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 import * as InfiniteScroll from "react-infinite-scroller";
 
+import Checkbox from "../../../components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "../../../components/ConfirmButton";

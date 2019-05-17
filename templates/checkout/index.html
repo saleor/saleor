@@ -4,12 +4,12 @@
 {% load price from taxed_prices %}
 {% load static %}
 
-{% block title %}{% trans "Your checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Your cart" context "Checkout page title" %} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="{% url 'home' %}">{% trans "Home" context "Main navigation item" %}</a></li>
-    <li><a rel="nofollow" href="{% url 'checkout:index' %}">{% trans "Checkout" context "Checkout breadcrumb" %}</a></li>
+    <li><a rel="nofollow" href="{% url 'checkout:index' %}">{% trans "Cart" context "Checkout breadcrumb" %}</a></li>
   </ul>
 {% endblock breadcrumb %}
 
@@ -80,15 +80,15 @@
             <a href="{% url "checkout:login" %}" class="btn btn-primary float-right checkout-preview__submit">
             {% trans "Checkout" context "Checkout primary action" %}
           </a>
-            <button class="btn secondary float-right checkout__clear" data-action="{% url 'checkout:clear' %}">
-            {% trans "Clear checkout" context "checkout page: secondary action, empty the checkout" %}
+            <button class="btn secondary float-right checkout-preview__clear" data-action="{% url 'checkout:clear' %}">
+            {% trans "Clear cart" context "checkout page: secondary action, empty the checkout" %}
           </button>
         </div>
       </div>
     {% else %}
       <div class="checkout-preview__empty">
         <img class="lazyload lazypreload" data-src="{% static 'images/empty-checkout-bg.png' %}" data-srcset="{% static 'images/empty-checkout-bg.png' %} 1x, {% static 'images/empty-checkout-bg2x.png' %} 2x">
-        <h2>{% trans "There are no products in your shopping checkout." context "Empty checkout message" %}</h2>
+        <h2>{% trans "There are no products in your shopping cart." context "Empty checkout message" %}</h2>
         <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Check out our sales" context "Empty checkout link" %}</a>
       </div>
     {% endif %}

@@ -90,7 +90,7 @@ const CustomerAddressListPage = withStyles(styles, {
         )}
         {isEmpty ? (
           <div className={classes.empty}>
-            <Typography variant="headline">
+            <Typography variant="h5">
               {i18n.t("There is no address to show for this customer")}
             </Typography>
             <Typography className={classes.description}>

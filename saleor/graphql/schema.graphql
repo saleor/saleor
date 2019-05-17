@@ -910,6 +910,9 @@ input FulfillmentUpdateTrackingInput {
 
 enum GatewaysEnum {
   DUMMY
+  BRAINTREE
+  RAZORPAY
+  STRIPE
 }
 
 scalar GenericScalar

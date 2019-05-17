@@ -66,7 +66,7 @@ const CardTitle = withStyles(styles, { name: "CardTitle" })(
       >
         <Typography
           className={classes.title}
-          variant="headline"
+          variant="h5"
           onClick={onClick}
           component="span"
         >

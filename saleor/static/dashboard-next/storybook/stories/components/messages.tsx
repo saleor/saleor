@@ -3,6 +3,7 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import useNotifier from "../../../hooks/useNotifier";
+import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 
 interface StoryProps {
@@ -21,6 +22,7 @@ const Story: React.FC<StoryProps> = ({ undo }) => {
           text: "This is message"
         })
       }
+      style={{ display: "block", margin: "auto" }}
     >
       Push message
     </Button>
@@ -28,6 +30,7 @@ const Story: React.FC<StoryProps> = ({ undo }) => {
 };
 
 storiesOf("Generics / Global messages", module)
+  .addDecorator(CardDecorator)
   .addDecorator(Decorator)
   .add("default", () => <Story undo={false} />)
   .add("with undo action", () => <Story undo={true} />);

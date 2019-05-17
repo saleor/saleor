@@ -100,20 +100,10 @@ const CustomerAddress = withStyles(styles, { name: "CustomerAddress" })(
       </CardContent>
       <div className={classes.actionsContainer}>
         <CardActions className={classes.actions}>
-          <Button
-            color="primary"
-            disabled={disabled}
-            variant="flat"
-            onClick={onEdit}
-          >
+          <Button color="primary" disabled={disabled} onClick={onEdit}>
             {i18n.t("Edit")}
           </Button>
-          <Button
-            color="primary"
-            disabled={disabled}
-            variant="flat"
-            onClick={onRemove}
-          >
+          <Button color="primary" disabled={disabled} onClick={onRemove}>
             {i18n.t("Delete")}
           </Button>
         </CardActions>

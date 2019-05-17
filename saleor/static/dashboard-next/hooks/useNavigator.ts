@@ -1,6 +1,11 @@
 import useRouter from "use-react-router";
 
-function useNavigator() {
+export type UseNavigatorResult = (
+  url: string,
+  replace?: boolean,
+  preserveQs?: boolean
+) => void;
+function useNavigator(): UseNavigatorResult {
   const {
     location: { search },
     history

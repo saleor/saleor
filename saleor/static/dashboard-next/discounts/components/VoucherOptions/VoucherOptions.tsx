@@ -106,7 +106,7 @@ const VoucherOptions = withStyles(styles, {
       </CardContent>
       <Hr />
       <CardContent>
-        <Typography variant="subheading">
+        <Typography variant="subtitle1">
           {i18n.t("Discount Specific Information")}
         </Typography>
         <FormSpacer />
@@ -144,7 +144,7 @@ const VoucherOptions = withStyles(styles, {
       </CardContent>
       <Hr />
       <CardContent>
-        <Typography variant="subheading">{i18n.t("Time Frame")}</Typography>
+        <Typography variant="subtitle1">{i18n.t("Time Frame")}</Typography>
         <FormSpacer />
         <div className={classes.root}>
           <TextField

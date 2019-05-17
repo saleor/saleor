@@ -54,7 +54,7 @@ const styles = (theme: Theme) =>
       textAlign: "center"
     },
     uploadText: {
-      color: theme.typography.body1.color,
+      color: theme.typography.body2.color,
       textTransform: "uppercase"
     }
   });
@@ -94,7 +94,7 @@ export const ImageUpload = withStyles(styles, { name: "ImageUpload" })(
             >
               <input {...getInputProps()} className={classes.fileField} />
               <ImageIcon className={classes.photosIcon} />
-              <Typography className={classes.uploadText} variant="body2">
+              <Typography className={classes.uploadText} variant="body1">
                 {i18n.t("Drop here to upload", {
                   context: "image upload"
                 })}

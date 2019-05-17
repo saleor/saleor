@@ -1,7 +1,10 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
+import Form from "../../../components/Form";
 import MultiSelectField from "../../../components/MultiSelectField";
+import CardDecorator from "../../CardDecorator";
+import Decorator from "../../Decorator";
 
 const choices = [
   { value: "1", label: "Apparel" },
@@ -11,6 +14,8 @@ const choices = [
 ];
 
 storiesOf("Generics / MultiSelectField", module)
+  .addDecorator(CardDecorator)
+  .addDecorator(Decorator)
   .add("with no value", () => (
     <MultiSelectField choices={choices} onChange={undefined} />
   ))
@@ -59,4 +64,18 @@ storiesOf("Generics / MultiSelectField", module)
       hint="Lorem error"
       error={true}
     />
+  ))
+  .add("interactive", () => (
+    <Form initial={{ data: [choices[0].value] }}>
+      {({ change, data }) => (
+        <MultiSelectField
+          choices={choices}
+          onChange={change}
+          value={data.data}
+          label="Lorem"
+          hint="Ipsum"
+          name="data"
+        />
+      )}
+    </Form>
   ));
