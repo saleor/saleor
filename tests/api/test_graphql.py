@@ -29,7 +29,9 @@ def test_middleware_dont_generate_sql_requests(
     # Enables the Graphql playground
     settings.DEBUG = True
 
-    with django_assert_num_queries(0):
+    # DEMO: GraphQL explorer performs one DB query to get a product and form an example
+    # GraphQL query
+    with django_assert_num_queries(1):
         response = client.get(reverse("api"))
         assert response.status_code == 200
 
