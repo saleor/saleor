@@ -9,6 +9,22 @@ from .models import CustomerEvent
 UserType = AbstractBaseUser
 
 
+def customer_account_created_event(*, user: UserType) -> Optional[CustomerEvent]:
+    return CustomerEvent.objects.create(user=user, type=CustomerEvents.ACCOUNT_CREATED)
+
+
+def customer_password_reset_link_sent_event(
+    *, user_id: UserType
+) -> Optional[CustomerEvent]:
+    return CustomerEvent.objects.create(
+        user_id=user_id, type=CustomerEvents.PASSWORD_RESET_LINK_SENT
+    )
+
+
+def customer_password_reset_event(*, user: UserType) -> Optional[CustomerEvent]:
+    return CustomerEvent.objects.create(user=user, type=CustomerEvents.PASSWORD_RESET)
+
+
 def customer_placed_order_event(
     *, user: UserType, order: Order
 ) -> Optional[CustomerEvent]:
@@ -50,4 +66,37 @@ def staff_user_deleted_a_customer_event(
         order=None,
         type=CustomerEvents.CUSTOMER_DELETED,
         parameters={"count": deleted_count},
+    )
+
+
+def staff_user_assigned_email_to_a_customer_event(
+    *, staff_user: UserType, new_email: str
+) -> CustomerEvent:
+    return CustomerEvent.objects.create(
+        user=staff_user,
+        order=None,
+        type=CustomerEvents.EMAIL_ASSIGNED,
+        parameters={"message": new_email},
+    )
+
+
+def staff_user_added_note_to_a_customer_event(
+    *, staff_user: UserType, note: str
+) -> CustomerEvent:
+    return CustomerEvent.objects.create(
+        user=staff_user,
+        order=None,
+        type=CustomerEvents.NOTE_ADDED,
+        parameters={"message": note},
+    )
+
+
+def staff_user_assigned_name_to_a_customer_event(
+    *, staff_user: UserType, new_name: str
+) -> CustomerEvent:
+    return CustomerEvent.objects.create(
+        user=staff_user,
+        order=None,
+        type=CustomerEvents.NAME_ASSIGNED,
+        parameters={"message": new_name},
     )

@@ -8,7 +8,7 @@ from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from ...account import events as customer_events
+from ...account import events as account_events
 from ...account.models import CustomerNote, User
 from ...core.utils import get_paginator_items
 from ..emails import send_set_password_customer_email
@@ -127,7 +127,7 @@ def customer_delete(request, pk):
     )
     status = 200
     if request.method == "POST" and form.is_valid():
-        customer_events.staff_user_deleted_a_customer_event(staff_user=request.user)
+        account_events.staff_user_deleted_a_customer_event(staff_user=request.user)
         customer.delete()
         msg = pgettext_lazy(
             "Dashboard message", "%(customer_name)s successfully removed"

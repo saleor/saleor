@@ -1,3 +1,5 @@
+from copy import copy
+
 import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
@@ -7,7 +9,7 @@ from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.decorators import staff_member_required
 from graphql_jwt.exceptions import PermissionDenied
 
-from ...account import emails, models, utils
+from ...account import emails, events as account_events, models, utils
 from ...account.thumbnails import create_user_avatar_thumbnails
 from ...account.utils import get_random_avatar
 from ...checkout import AddressType
@@ -39,7 +41,7 @@ def send_user_password_reset_email(user, site):
         "domain": site.domain,
         "protocol": "https" if settings.ENABLE_SSL else "http",
     }
-    emails.send_password_reset_email.delay(context, user.email)
+    emails.send_password_reset_email.delay(context, user.email, user.pk)
 
 
 def can_edit_address(user, address):
@@ -77,6 +79,7 @@ class CustomerRegister(ModelMutation):
         password = cleaned_input["password"]
         user.set_password(password)
         user.save()
+        account_events.customer_account_created_event(user=user)
 
 
 class UserInput(graphene.InputObjectType):
@@ -163,7 +166,12 @@ class CustomerCreate(ModelMutation, I18nMixin):
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
 
+        is_creation = instance.pk is None
         super().save(info, instance, cleaned_input)
+
+        # The instance is a new object in db, create an event
+        if is_creation:
+            account_events.customer_account_created_event(user=instance)
 
         if cleaned_input.get("send_password_email"):
             send_set_password_customer_email.delay(instance.pk)
@@ -180,6 +188,54 @@ class CustomerUpdate(CustomerCreate):
         description = "Updates an existing customer."
         exclude = ["password"]
         model = models.User
+        permissions = ("account.manage_users",)
+
+    @classmethod
+    def generate_events(
+        cls, info, old_instance: models.User, new_instance: models.User
+    ):
+        # Retrieve the event base data
+        staff_user = info.context.user
+        new_email = new_instance.email
+        new_fullname = new_instance.get_full_name()
+
+        # Compare the data
+        has_new_name = old_instance.get_full_name() != new_fullname
+        has_new_email = old_instance.email != new_email
+
+        # Generate the events accordingly
+        if has_new_email:
+            account_events.staff_user_assigned_email_to_a_customer_event(
+                staff_user=staff_user, new_email=new_email
+            )
+        if has_new_name:
+            account_events.staff_user_assigned_name_to_a_customer_event(
+                staff_user=staff_user, new_name=new_fullname
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        """Override the base method `perform_mutation` of ModelMutation
+        to generate events by comparing the old instance with the new data."""
+
+        # Retrieve the data
+        original_instance = cls.get_instance(info, **data)
+        data = data.get("input")
+
+        # Clean the input and generate a new instance from the new data
+        cleaned_input = cls.clean_input(info, original_instance, data)
+        new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
+
+        # Save the new instance data
+        cls.clean_instance(new_instance)
+        cls.save(info, new_instance, cleaned_input)
+        cls._save_m2m(info, new_instance, cleaned_input)
+
+        # Generate events by comparing the instances
+        cls.generate_events(info, original_instance, new_instance)
+
+        # Return the response
+        return cls.success_response(new_instance)
 
 
 class LoggedUserUpdate(CustomerCreate):
@@ -353,6 +409,7 @@ class SetPassword(ModelMutation):
     def save(cls, info, instance, cleaned_input):
         instance.set_password(cleaned_input["password"])
         instance.save()
+        account_events.customer_password_reset_event(user=instance)
 
 
 class PasswordReset(BaseMutation):

@@ -13,7 +13,7 @@ from django.urls import reverse
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.account import events as customer_events
+from saleor.account import events as account_events
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
@@ -31,6 +31,7 @@ from saleor.product.utils import (
 )
 from saleor.product.utils.attributes import get_product_attributes_data
 from saleor.product.utils.availability import get_product_availability_status
+from saleor.product.utils.digital_products import increment_download_count
 from saleor.product.utils.variants_picker import get_variant_picker_data
 
 from .utils import filter_products_by_attribute
@@ -785,7 +786,7 @@ def test_digital_product_view(client, digital_content_url):
 
     # Ensure an event was generated from downloading a digital good.
     # The validity of this event is checked in test_digital_product_increment_download
-    assert customer_events.CustomerEvent.objects.exists()
+    assert account_events.CustomerEvent.objects.exists()
 
 
 @pytest.mark.parametrize(
@@ -813,17 +814,17 @@ def test_digital_product_increment_download(
         digital_content_url.line.save(update_fields=["user"])
 
     expected_new_download_count = digital_content_url.download_num + 1
-    digital_content_url.increment_download_count()
+    increment_download_count(digital_content_url)
     assert digital_content_url.download_num == expected_new_download_count
 
     if expected_user is None:
         # Ensure an event was not generated from downloading a digital good
         # as no user could be found
-        assert not customer_events.CustomerEvent.objects.exists()
+        assert not account_events.CustomerEvent.objects.exists()
         return
 
-    download_event = customer_events.CustomerEvent.objects.get()
-    assert download_event.type == customer_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED
+    download_event = account_events.CustomerEvent.objects.get()
+    assert download_event.type == account_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED
     assert download_event.user == expected_user
     assert download_event.order == digital_content_url.line.order
     assert download_event.parameters == {"order_line_pk": digital_content_url.line.pk}
