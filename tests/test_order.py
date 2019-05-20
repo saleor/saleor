@@ -6,7 +6,7 @@ from django.urls import reverse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from saleor.account import events as customer_events
+from saleor.account import events as account_events
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
 from saleor.core.exceptions import InsufficientStock
@@ -543,8 +543,8 @@ def test_add_order_note_view(order, authorized_client, customer_user):
     assert note_event.parameters == {"message": customer_note}
 
     # Ensure a customer event was triggered
-    note_event = customer_events.CustomerEvent.objects.get()
-    assert note_event.type == customer_events.CustomerEvents.NOTE_ADDED_TO_ORDER
+    note_event = account_events.CustomerEvent.objects.get()
+    assert note_event.type == account_events.CustomerEvents.NOTE_ADDED_TO_ORDER
     assert note_event.user == customer_user
     assert note_event.order == order
     assert note_event.parameters == {"message": customer_note}

@@ -21,7 +21,6 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from saleor.core.utils import build_absolute_uri
 
-from ..account import events as customer_events
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, SortableModel
@@ -399,18 +398,6 @@ class DigitalContentUrl(models.Model):
         if not self.token:
             self.token = str(uuid4()).replace("-", "")
         super().save(force_insert, force_update, using, update_fields)
-
-    def increment_download_count(self):
-        self.download_num += 1
-        self.save(update_fields=["download_num"])
-
-        line = self.line
-        user = line.order.user if line else None
-
-        if user is not None:
-            customer_events.customer_downloaded_a_digital_link_event(
-                user=user, order_line=line
-            )
 
     def get_absolute_url(self) -> str:
         url = reverse("product:digital-product", kwargs={"token": str(self.token)})

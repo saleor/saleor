@@ -9,6 +9,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
 
+from saleor.account import events as account_events
 from saleor.account.models import CustomerNote, User
 from saleor.core.utils import build_absolute_uri
 from saleor.dashboard.customer.forms import (
@@ -58,8 +59,12 @@ def test_add_customer_form(staff_user):
     user_count = User.objects.count()
     customer_form = CustomerForm({"email": "customer01@example.com"}, user=staff_user)
     customer_form.is_valid()
-    customer_form.save()
+    new_customer = customer_form.save()
     assert User.objects.count() == user_count + 1
+
+    event = account_events.CustomerEvent.objects.get()
+    assert event.type == account_events.CustomerEvents.ACCOUNT_CREATED
+    assert event.user == new_customer
 
 
 def test_edit_customer_form(customer_user, staff_user):
@@ -75,6 +80,49 @@ def test_edit_customer_form(customer_user, staff_user):
     assert customer.first_name == "Jan"
     assert customer.last_name == "Nowak"
 
+    event = account_events.CustomerEvent.objects.get()
+    assert event.type == account_events.CustomerEvents.NAME_ASSIGNED
+    assert event.user == staff_user
+    assert event.parameters == {"message": customer.get_full_name()}
+
+
+def test_edit_customer_form_new_email_generates_event(customer_user, staff_user):
+    customer = customer_user
+    customer_form = CustomerForm(
+        {
+            "first_name": customer.first_name,
+            "last_name": customer.last_name,
+            "email": "hello@example.com",
+        },
+        instance=customer,
+        user=staff_user,
+    )
+    customer_form.is_valid()
+    customer_form.save()
+    customer.refresh_from_db()
+    assert customer.email == "hello@example.com"
+
+    event = account_events.CustomerEvent.objects.get()
+    assert event.type == account_events.CustomerEvents.EMAIL_ASSIGNED
+    assert event.user == staff_user
+    assert event.parameters == {"message": customer.email}
+
+
+def test_edit_customer_form_no_changes_generates_no_event(customer_user, staff_user):
+    customer = customer_user
+    customer_form = CustomerForm(
+        {
+            "first_name": customer.first_name,
+            "last_name": customer.last_name,
+            "email": customer.email,
+        },
+        instance=customer,
+        user=staff_user,
+    )
+    customer_form.is_valid()
+    customer_form.save()
+    assert not account_events.CustomerEvent.objects.exists()
+
 
 def test_add_note_to_customer(admin_user, customer_user):
     customer = customer_user
@@ -83,6 +131,22 @@ def test_add_note_to_customer(admin_user, customer_user):
     note_form.is_valid()
     note_form.save()
     assert customer.notes.first().content == "test_note"
+    event = account_events.CustomerEvent.objects.get()
+    assert event.type == account_events.CustomerEvents.NOTE_ADDED
+    assert event.user == note.customer
+    assert event.parameters == {"message": "test_note"}
+
+
+def test_update_customer_note_generates_no_event(admin_user, customer_user):
+    note = CustomerNote(customer=customer_user, user=admin_user)
+    note.save()
+
+    note_form = CustomerNoteForm({"content": "hello world note"}, instance=note)
+    note_form.is_valid()
+    note_form.save()
+
+    assert customer_user.notes.first().content == "hello world note"
+    assert not account_events.CustomerEvent.objects.exists()
 
 
 def test_add_note_to_customer_from_url(admin_client, customer_user):
@@ -110,7 +174,7 @@ def test_view_delete_customer(admin_client, admin_user, customer_user):
 
 
 @patch(
-    "saleor.dashboard.customer.views.customer_events"
+    "saleor.dashboard.customer.views.account_events"
     ".staff_user_deleted_a_customer_event"
 )
 def test_deleting_a_customer_generates_an_event(
@@ -184,6 +248,18 @@ def test_add_customer_and_set_password(admin_client):
     assert response["Location"] == reverse("account:reset-password-complete")
     new_user = User.objects.get(email=data["email"])
     assert new_user.has_usable_password()
+
+    # Retrieve the events and ensure it was properly generated
+    account_creation_event, password_reset_email_sent_event = (
+        account_events.CustomerEvent.objects.all()
+    )
+    assert account_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
+    assert account_creation_event.user.pk == new_user.pk
+    assert (
+        password_reset_email_sent_event.type
+        == account_events.CustomerEvents.PASSWORD_RESET
+    )
+    assert password_reset_email_sent_event.user.pk == new_user.pk
 
 
 def test_send_set_password_customer_email(customer_user, site_settings):

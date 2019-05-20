@@ -73,6 +73,71 @@ def _get_event_from_graphql(staff_api_client, requested_user: User, permission) 
     return received_events[0]
 
 
+def test_account_event_customer_account_was_created(
+    staff_api_client, customer_user, permission_manage_users
+):
+    event = account_events.customer_account_created_event(user=customer_user)
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(customer_user)},
+        "count": None,
+        "message": None,
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.ACCOUNT_CREATED.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, customer_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
+
+
+def test_account_event_sent_password_reset_email_to_customer_event(
+    staff_api_client, customer_user, permission_manage_users
+):
+    event = account_events.customer_password_reset_link_sent_event(
+        user_id=customer_user.pk
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(customer_user)},
+        "count": None,
+        "message": None,
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.PASSWORD_RESET_LINK_SENT.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, customer_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
+
+
+def test_account_event_customer_reset_password_from_link_event(
+    staff_api_client, customer_user, permission_manage_users
+):
+    event = account_events.customer_password_reset_event(user=customer_user)
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(customer_user)},
+        "count": None,
+        "message": None,
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.PASSWORD_RESET.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, customer_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
+
+
 def test_account_event_customer_placed_order_event_resolves_properly(
     staff_api_client, customer_user, order_line, permission_manage_users
 ):
@@ -206,3 +271,72 @@ def test_account_invalid_or_deleted_order_line_return_null(
 
     # Ensure the data is valid
     assert received_customer_events == [{"orderLine": None}]
+
+
+def test_account_event_staff_user_assigned_new_name_to_customer_event_resolves_properly(
+    staff_api_client, staff_user, permission_manage_users
+):
+    event = account_events.staff_user_assigned_name_to_a_customer_event(
+        staff_user=staff_user, new_name="Hello World!"
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(staff_user)},
+        "count": None,
+        "message": "Hello World!",
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.NAME_ASSIGNED.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, staff_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
+
+
+def test_account_event_staff_user_assigned_email_to_customer_event_resolves_properly(
+    staff_api_client, staff_user, permission_manage_users
+):
+    event = account_events.staff_user_assigned_email_to_a_customer_event(
+        staff_user=staff_user, new_email="hello@example.com"
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(staff_user)},
+        "count": None,
+        "message": "hello@example.com",
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.EMAIL_ASSIGNED.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, staff_user, permission_manage_users
+    )
+
+    assert expected_data == received_data
+
+
+def test_account_event_staff_user_added_note_to_customer_event_resolves_properly(
+    staff_api_client, staff_user, permission_manage_users
+):
+    event = account_events.staff_user_added_note_to_a_customer_event(
+        staff_user=staff_user, note="New note's content!"
+    )
+    expected_data = {
+        "id": _model_to_node_id(event),
+        "user": {"id": _model_to_node_id(staff_user)},
+        "count": None,
+        "message": "New note's content!",
+        "order": None,
+        "orderLine": None,
+        "type": account_events.CustomerEvents.NOTE_ADDED.upper(),
+    }
+
+    received_data = _get_event_from_graphql(
+        staff_api_client, staff_user, permission_manage_users
+    )
+
+    assert expected_data == received_data

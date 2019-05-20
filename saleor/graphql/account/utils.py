@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-from ...account import events as customer_events
+from ...account import events as account_events
 
 
 class UserDeleteMixin:
@@ -28,7 +28,7 @@ class CustomerDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def post_process(cls, info, deleted_count=1):
-        customer_events.staff_user_deleted_a_customer_event(
+        account_events.staff_user_deleted_a_customer_event(
             staff_user=info.context.user, deleted_count=deleted_count
         )
 

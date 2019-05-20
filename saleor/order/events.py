@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
 
-from ..account import events as customer_events
+from ..account import events as account_events
 from ..account.models import Address, User
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
@@ -94,7 +94,7 @@ def order_created_event(
         event_type = OrderEvents.PLACED_FROM_DRAFT
     else:
         event_type = OrderEvents.PLACED
-        customer_events.customer_placed_order_event(user=user, order=order)
+        account_events.customer_placed_order_event(user=user, order=order)
 
     if user.is_anonymous:
         user = None
@@ -223,7 +223,7 @@ def fulfillment_tracking_updated_event(
 
 def order_note_added_event(*, order: Order, user: UserType, message: str) -> OrderEvent:
     if order.user.pk == user.pk:
-        customer_events.customer_added_to_note_order_event(
+        account_events.customer_added_to_note_order_event(
             user=user, order=order, message=message
         )
 

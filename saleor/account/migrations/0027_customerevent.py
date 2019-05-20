@@ -39,10 +39,16 @@ class Migration(migrations.Migration):
                     "type",
                     models.CharField(
                         choices=[
+                            ("ACCOUNT_CREATED", "account_created"),
+                            ("PASSWORD_RESET_LINK_SENT", "password_reset_link_sent"),
+                            ("PASSWORD_RESET", "password_reset"),
                             ("PLACED_ORDER", "placed_order"),
                             ("NOTE_ADDED_TO_ORDER", "note_added_to_order"),
                             ("DIGITAL_LINK_DOWNLOADED", "digital_link_downloaded"),
                             ("CUSTOMER_DELETED", "customer_deleted"),
+                            ("NAME_ASSIGNED", "name_assigned"),
+                            ("EMAIL_ASSIGNED", "email_assigned"),
+                            ("NOTE_ADDED", "note_added"),
                         ],
                         max_length=255,
                     ),

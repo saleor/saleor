@@ -13,8 +13,20 @@ All notable, unreleased changes to this project will be documented in this file.
 - Order Events containing order lines or fulfillment lines now return the line object in the GraphQL API - #4114 by @NyanKiyoshi
 
 - Implement events for customers in backend for the customers actions:
-  placing an order, adding a note to an order, downloading a digital good
-  and getting deleted by a staff user.- #4094 by @NyanKiyoshi
+    - placing an order,
+    - adding a note to an order,
+    - downloading a digital good,
+    - asking for password reset,
+    - resetting the password.
+
+  For staff actions over customers:
+    - deleting a customer,
+    - assigning a new name to a customer,
+    - assigning a new email to a customer,
+    - adding a note to a customer,
+    - deleting a customer.
+
+  -- #4094 by @NyanKiyoshi
 ...
 
 ## 2.6.0
