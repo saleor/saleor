@@ -1675,8 +1675,8 @@ type OrderEvent implements Node {
   composedId: String
   orderNumber: String
   oversoldItems: [String]
-  lines: [OrderEventLineObject]
-  fulfilledItems: [OrderEventLineObject]
+  lines: [OrderEventOrderLineObject]
+  fulfilledItems: [FulfillmentLine]
 }
 
 type OrderEventCountableConnection {
@@ -1690,9 +1690,10 @@ type OrderEventCountableEdge {
   cursor: String!
 }
 
-type OrderEventLineObject {
+type OrderEventOrderLineObject {
   quantity: Int
-  item: String
+  orderLine: OrderLine
+  itemName: String
 }
 
 enum OrderEventsEmailsEnum {
