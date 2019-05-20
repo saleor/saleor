@@ -283,10 +283,9 @@ def test_create_gift_card_without_premissions(staff_api_client):
 
 UPDATE_GIFT_CARD_MUTATION = """
 mutation giftCardUpdate(
-    $id: ID!, $code: String, $startDate: Date, $expirationDate: Date,
+    $id: ID!, $startDate: Date, $expirationDate: Date,
     $balance: Decimal, $buyerEmail: String!) {
-        giftCardUpdate(id: $id, input: {
-                code: $code, startDate: $startDate,
+        giftCardUpdate(id: $id, input: {startDate: $startDate,
                 expirationDate: $expirationDate,
                 balance: $balance, buyerEmail: $buyerEmail}) {
             errors {
@@ -295,7 +294,6 @@ mutation giftCardUpdate(
             }
             giftCard {
                 code
-                lastUsedOn
                 currentBalance {
                     amount
                 }
@@ -309,29 +307,21 @@ mutation giftCardUpdate(
 
 
 def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_card):
-    gift_card.last_used_on = date(day=1, month=1, year=2018)
-    gift_card.save(update_fields=["last_used_on"])
-    new_code = "new_test_code"
     balance = 150
-    assert gift_card.code != new_code
     assert gift_card.current_balance != balance
-    assert gift_card.last_used_on != date.today()
     assert gift_card.buyer != staff_api_client.user
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
-        "code": new_code,
         "balance": balance,
         "buyerEmail": staff_api_client.user.email,
     }
-
     response = staff_api_client.post_graphql(
         UPDATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
     )
     content = get_graphql_content(response)
     data = content["data"]["giftCardUpdate"]["giftCard"]
-    assert data["code"] == new_code
+    assert data["code"] == gift_card.code
     assert data["currentBalance"]["amount"] == balance
-    assert data["lastUsedOn"] == date.today().isoformat()
     assert data["buyer"]["email"] == staff_api_client.user.email
 
 
@@ -350,6 +340,44 @@ def test_update_gift_card_without_premissions(staff_api_client, gift_card):
     assert_no_permission(response)
 
 
+def test_update_gift_card_update_code_error(
+    staff_api_client, gift_card, permission_manage_gift_card
+):
+    query = """
+    mutation giftCardUpdate($id: ID!, $code: String!) {
+        giftCardUpdate(id: $id, input: { code: $code }) {
+            errors {
+                field
+                message
+            }
+            giftCard {
+                code
+                currentBalance {
+                    amount
+                }
+                buyer {
+                    email
+                }
+            }
+        }
+    }
+    """
+    variables = {
+        "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+        "code": "new_code",
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["giftCardUpdate"]["errors"]
+    errors = content["data"]["giftCardUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "code"
+    assert errors[0]["message"] == "Cannot update a gift card code."
+    assert not content["data"]["giftCardUpdate"]["giftCard"]
+
+
 DEACTIVATE_GIFT_CARD_MUTATION = """
 mutation giftCardDeactivate($id: ID!) {
     giftCardDeactivate(id: $id) {
@@ -359,7 +387,6 @@ mutation giftCardDeactivate($id: ID!) {
         }
         giftCard {
             isActive
-            lastUsedOn
         }
     }
 }
@@ -411,7 +438,6 @@ mutation giftCardActivate($id: ID!) {
         }
         giftCard {
             isActive
-            lastUsedOn
         }
     }
 }

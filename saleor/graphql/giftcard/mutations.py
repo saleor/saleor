@@ -12,7 +12,7 @@ from .types import GiftCard
 
 
 class GiftCardInput(graphene.InputObjectType):
-    code = graphene.String(decription="Code to use the gift card.")
+    code = graphene.String(required=False, decription="Code to use the gift card.")
     start_date = graphene.types.datetime.Date(
         description="Start date of the gift card in ISO 8601 format."
     )
@@ -75,9 +75,11 @@ class GiftCardUpdate(GiftCardCreate):
         permissions = ("giftcard.manage_gift_card",)
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
-        instance.last_used_on = date.today()
-        super().save(info, instance, cleaned_input)
+    def clean_input(cls, info, instance, data):
+        code = data.get("code", None)
+        if code:
+            raise ValidationError({"code": "Cannot update a gift card code."})
+        return super().clean_input(info, instance, data)
 
 
 class GiftCardDeactivate(BaseMutation):
