@@ -13,7 +13,11 @@ import Downshift from "downshift";
 import * as React from "react";
 
 import i18n from "../../i18n";
-import { getMenu, IMenu, validateMenuOptions } from "../../utils/menu";
+import {
+  getMenuItemByPath,
+  IMenu,
+  validateMenuOptions
+} from "../../utils/menu";
 import Debounce, { DebounceProps } from "../Debounce";
 
 export interface AutocompleteSelectMenuProps {
@@ -24,7 +28,7 @@ export interface AutocompleteSelectMenuProps {
   label: string;
   loading: boolean;
   name: string;
-  options: IMenu[];
+  options: IMenu;
   placeholder: string;
   onChange: (event: React.ChangeEvent<any>) => void;
   onInputChange?: (value: string) => void;
@@ -78,14 +82,13 @@ const AutocompleteSelectMenu = withStyles(styles, {
     const [inputValue, setInputValue] = React.useState(displayValue || "");
     const [menuPath, setMenuPath] = React.useState<number[]>([]);
 
-    const handleChange = (value: string) => {
+    const handleChange = (value: string) =>
       onChange({
         target: {
           name,
           value
         }
       } as any);
-    };
 
     // Validate if option values are duplicated
     React.useEffect(() => {
@@ -153,22 +156,23 @@ const AutocompleteSelectMenu = withStyles(styles, {
                               {i18n.t("Back")}
                             </MenuItem>
                           )}
-                          {getMenu(options, menuPath).map(
-                            (suggestion, index) => (
-                              <MenuItem
-                                key={suggestion.value}
-                                component="div"
-                                {...getItemProps({ item: suggestion })}
-                                onClick={() =>
-                                  suggestion.value
-                                    ? selectItem(suggestion.value)
-                                    : setMenuPath([...menuPath, index])
-                                }
-                              >
-                                {suggestion.label}
-                              </MenuItem>
-                            )
-                          )}
+                          {(menuPath.length
+                            ? getMenuItemByPath(options, menuPath).children
+                            : options
+                          ).map((suggestion, index) => (
+                            <MenuItem
+                              key={suggestion.value}
+                              component="div"
+                              {...getItemProps({ item: suggestion })}
+                              onClick={() =>
+                                suggestion.value
+                                  ? selectItem(suggestion.value)
+                                  : setMenuPath([...menuPath, index])
+                              }
+                            >
+                              {suggestion.label}
+                            </MenuItem>
+                          ))}
                         </>
                       ) : (
                         <MenuItem disabled component="div">
