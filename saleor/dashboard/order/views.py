@@ -646,8 +646,7 @@ def fulfill_order_lines(request, order_pk):
             events.fulfillment_fulfilled_items_event(
                 order=order,
                 user=request.user,
-                quantities=quantities,
-                order_lines=order_lines,
+                fulfillment_lines=fulfillment.lines.all(),
             )
 
             if form.cleaned_data.get("send_mail"):
