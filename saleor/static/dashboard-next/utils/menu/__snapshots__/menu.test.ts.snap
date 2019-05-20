@@ -74,7 +74,28 @@ Array [
     "label": "4",
     "value": "4",
   },
-  undefined,
-  undefined,
+  Object {
+    "children": Array [],
+    "data": null,
+    "label": "4.1",
+    "value": "4.1",
+  },
+]
+`;
+
+exports[`Walk through menu Properly returns all nodes on the path to root 1`] = `
+Array [
+  Object {
+    "children": Array [],
+    "data": null,
+    "label": "4.1",
+    "value": "4.1",
+  },
+  Object {
+    "children": Array [],
+    "data": null,
+    "label": "3",
+    "value": "3",
+  },
 ]
 `;

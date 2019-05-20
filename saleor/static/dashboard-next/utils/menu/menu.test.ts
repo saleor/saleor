@@ -5,7 +5,8 @@ import {
   IMenu,
   toFlat,
   validateMenuOptions,
-  walkToMenuItem
+  walkToMenuItem,
+  walkToRoot
 } from "./menu";
 
 const validMenu: IMenu = [
@@ -160,5 +161,11 @@ describe("Getting items", () => {
 describe("Walk through menu", () => {
   it("Properly returns all nodes on the path", () => {
     expect(walkToMenuItem(validMenu, [3, 0])).toMatchSnapshot();
+  });
+
+  it("Properly returns all nodes on the path to root", () => {
+    expect(
+      walkToRoot(validMenu, validMenu[3].children[0].value)
+    ).toMatchSnapshot();
   });
 });
