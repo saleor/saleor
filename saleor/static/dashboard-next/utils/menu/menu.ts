@@ -50,7 +50,7 @@ export function getMenuItemByValue<TMenuData = {}>(
     menuItem => menuItem.value === value
   );
 
-  return _fromFlat(flatMenu, flatMenuItem.id);
+  return _fromFlat(flatMenu, flatMenuItem);
 }
 
 function _walkToMenuItem<TMenuData = {}>(
@@ -72,6 +72,31 @@ export function walkToMenuItem<TMenuData = {}>(
 ): IMenu<TMenuData> {
   const walkByNode = menu[path[0]];
   return [walkByNode, ..._walkToMenuItem(walkByNode, path.slice(1))];
+}
+
+function _walkToRoot<TMenuData = {}>(
+  flatMenu: IFlatMenu<TMenuData>,
+  parent: string
+): IFlatMenu<TMenuData> {
+  const menuItem = flatMenu.find(menuItem => menuItem.id === parent);
+
+  if (menuItem.parent === null) {
+    return [menuItem];
+  }
+
+  return [menuItem, ..._walkToRoot(flatMenu, menuItem.parent)];
+}
+export function walkToRoot<TMenuData = {}>(
+  menu: IMenu<TMenuData>,
+  value: string
+): IMenu<TMenuData> {
+  const flatMenu = toFlat(menu);
+  const menuItem = flatMenu.find(menuItem => menuItem.value === value);
+
+  return (menuItem.parent === null
+    ? [menuItem]
+    : [menuItem, ..._walkToRoot(flatMenu, menuItem.parent)]
+  ).map(flatMenuItem => _fromFlat(flatMenu, flatMenuItem));
 }
 
 function _toFlat<TMenuData = {}>(
@@ -105,12 +130,11 @@ export function toFlat<TMenuData = {}>(
 
 function _fromFlat<TMenuData = {}>(
   menu: IFlatMenu<TMenuData>,
-  id: string
+  flatMenuItem: IFlatMenuItem<TMenuData>
 ): IMenuItem<TMenuData> {
-  const flatMenuItem = menu.find(menuItem => menuItem.id === id);
   const children: Array<IMenuItem<TMenuData>> = menu
     .filter(menuItem => menuItem.parent === flatMenuItem.id)
-    .map(menuItem => _fromFlat(menu, menuItem.id));
+    .map(menuItem => _fromFlat(menu, menuItem));
 
   return {
     children,
@@ -124,5 +148,11 @@ export function fromFlat<TMenuData = {}>(
 ): IMenu<TMenuData> {
   return menu
     .filter(menuItem => menuItem.parent === null)
-    .map(menuItem => _fromFlat(menu, menuItem.id));
+    .map(menuItem => _fromFlat(menu, menuItem));
+}
+
+export function isLeaf<TMenuData = {}>(
+  menuItem: IMenuItem<TMenuData>
+): boolean {
+  return menuItem.children.length === 0;
 }
