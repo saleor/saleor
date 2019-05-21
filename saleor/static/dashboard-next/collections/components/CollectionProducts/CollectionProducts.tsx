@@ -62,6 +62,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: CollectionProductsProps) => (
     <Card>

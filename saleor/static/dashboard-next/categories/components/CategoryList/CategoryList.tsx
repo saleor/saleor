@@ -35,7 +35,9 @@ const styles = (theme: Theme) =>
         width: 160
       }
     },
-    colName: {},
+    colName: {
+      paddingLeft: "0 !important"
+    },
     colProducts: {
       textAlign: "center"
     },
@@ -75,6 +77,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar,
     onAdd,
     onNextPage,
@@ -93,22 +96,28 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
         />
       )}
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Category Name", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colSubcategories}>
-              {i18n.t("Subcategories", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colProducts}>
-              {i18n
-                .t("No. Products", { context: "object" })
-                .replace(" ", "\xa0")}
-            </TableCell>
-          </TableRow>
-        </TableHead>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={categories}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell className={classes.colName}>
+                {i18n.t("Category Name", { context: "object" })}
+              </TableCell>
+              <TableCell className={classes.colSubcategories}>
+                {i18n.t("Subcategories", { context: "object" })}
+              </TableCell>
+              <TableCell className={classes.colProducts}>
+                {i18n
+                  .t("No. Products", { context: "object" })
+                  .replace(" ", "\xa0")}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

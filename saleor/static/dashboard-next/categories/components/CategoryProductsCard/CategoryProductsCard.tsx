@@ -27,6 +27,7 @@ export const CategoryProductsCard: React.StatelessComponent<
   isChecked,
   selected,
   toggle,
+  toggleAll,
   toolbar
 }) => (
   <Card>
@@ -48,6 +49,7 @@ export const CategoryProductsCard: React.StatelessComponent<
       selected={selected}
       isChecked={isChecked}
       toggle={toggle}
+      toggleAll={toggleAll}
       toolbar={toolbar}
     />
   </Card>

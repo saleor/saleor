@@ -58,25 +58,33 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
     onRowClick,
     toolbar,
     toggle,
+    toggleAll,
     selected,
     isChecked
   }: CustomerListProps) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Customer Name", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colEmail}>
-              {i18n.t("Customer e-mail", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colOrders}>
-              {i18n.t("Orders", { context: "table header" })}
-            </TableCell>
-          </TableRow>
-        </TableHead>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={products}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell />
+              <TableCell className={classes.colName}>
+                {i18n.t("Customer Name", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.colEmail}>
+                {i18n.t("Customer e-mail", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.colOrders}>
+                {i18n.t("Orders", { context: "table header" })}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination
