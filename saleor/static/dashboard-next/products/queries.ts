@@ -52,10 +52,8 @@ export const productFragment = gql`
     thumbnail {
       url
     }
-    availability {
-      available
-    }
-    price {
+    isAvailable
+    basePrice {
       ...Money
     }
     productType {
@@ -81,7 +79,7 @@ export const productFragmentDetails = gql`
       id
       name
     }
-    price {
+    basePrice {
       ...Money
     }
     margin {
@@ -96,6 +94,7 @@ export const productFragmentDetails = gql`
         ...Money
       }
     }
+    isAvailable
     isPublished
     chargeTaxes
     publicationDate
@@ -115,8 +114,7 @@ export const productFragmentDetails = gql`
         slug
       }
     }
-    availability {
-      available
+    pricing {
       priceRange {
         start {
           net {

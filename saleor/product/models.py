@@ -279,7 +279,11 @@ class ProductVariant(models.Model):
 
     @property
     def base_price(self):
-        return self.price_override or self.product.price
+        return (
+            self.price_override
+            if self.price_override is not None
+            else self.product.price
+        )
 
     def get_price(self, discounts=None, taxes=None):
         price = calculate_discounted_price(self.product, self.base_price, discounts)
