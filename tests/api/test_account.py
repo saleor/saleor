@@ -1303,8 +1303,12 @@ def test_set_default_address(
 
 def test_address_validator(user_api_client):
     query = """
-    query getValidator($input: AddressValidationInput!) {
-        addressValidator(input: $input) {
+    query getValidator(
+        $country_code: CountryCode, $country_area: String, $city_area: String) {
+        addressValidationRules(
+                countryCode: $country_code,
+                countryArea: $country_area,
+                cityArea: $city_area) {
             countryCode
             countryName
             addressFormat
@@ -1313,10 +1317,10 @@ def test_address_validator(user_api_client):
         }
     }
     """
-    variables = {"input": {"countryCode": "PL", "countryArea": None, "cityArea": None}}
+    variables = {"country_code": "PL", "country_area": None, "city_area": None}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["addressValidator"]
+    data = content["data"]["addressValidationRules"]
     assert data["countryCode"] == "PL"
     assert data["countryName"] == "POLAND"
     assert data["addressFormat"] is not None
@@ -1330,14 +1334,18 @@ def test_address_validator_uses_geip_when_country_code_missing(
     user_api_client, monkeypatch
 ):
     query = """
-    query getValidator($input: AddressValidationInput!) {
-        addressValidator(input: $input) {
+    query getValidator(
+        $country_code: CountryCode, $country_area: String, $city_area: String) {
+        addressValidationRules(
+                countryCode: $country_code,
+                countryArea: $country_area,
+                cityArea: $city_area) {
             countryCode,
             countryName
         }
     }
     """
-    variables = {"input": {"countryCode": None, "countryArea": None, "cityArea": None}}
+    variables = {"country_code": None, "country_area": None, "city_area": None}
     mock_country_by_ip = Mock(return_value=Mock(code="US"))
     monkeypatch.setattr(
         "saleor.graphql.account.resolvers.get_client_ip",
@@ -1349,15 +1357,19 @@ def test_address_validator_uses_geip_when_country_code_missing(
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert mock_country_by_ip.called
-    data = content["data"]["addressValidator"]
+    data = content["data"]["addressValidationRules"]
     assert data["countryCode"] == "US"
     assert data["countryName"] == "UNITED STATES"
 
 
 def test_address_validator_with_country_area(user_api_client):
     query = """
-    query getValidator($input: AddressValidationInput!) {
-        addressValidator(input: $input) {
+    query getValidator(
+        $country_code: CountryCode, $country_area: String, $city_area: String) {
+        addressValidationRules(
+                countryCode: $country_code,
+                countryArea: $country_area,
+                cityArea: $city_area) {
             countryCode
             countryName
             countryAreaType
@@ -1379,11 +1391,13 @@ def test_address_validator_with_country_area(user_api_client):
     }
     """
     variables = {
-        "input": {"countryCode": "CN", "countryArea": "Fujian Sheng", "cityArea": None}
+        "country_code": "CN",
+        "country_area": "Fujian Sheng",
+        "city_area": None,
     }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["addressValidator"]
+    data = content["data"]["addressValidationRules"]
     assert data["countryCode"] == "CN"
     assert data["countryName"] == "CHINA"
     assert data["countryAreaType"] == "province"
