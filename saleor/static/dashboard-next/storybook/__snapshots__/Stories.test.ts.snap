@@ -57674,7 +57674,7 @@ Ctrl + K"
                       />
                       <input
                         class="MuiPrivateSwitchBase-input-id"
-                        name="isVisible"
+                        name="isPublished"
                         type="checkbox"
                       />
                     </span>
@@ -57711,7 +57711,7 @@ Ctrl + K"
                   <input
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    name="availableOn"
+                    name="publicationDate"
                     type="date"
                     value=""
                   />
@@ -58431,7 +58431,7 @@ Ctrl + K"
                       />
                       <input
                         class="MuiPrivateSwitchBase-input-id"
-                        name="isVisible"
+                        name="isPublished"
                         type="checkbox"
                       />
                     </span>
@@ -58468,7 +58468,7 @@ Ctrl + K"
                   <input
                     aria-invalid="true"
                     class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    name="availableOn"
+                    name="publicationDate"
                     type="date"
                     value=""
                   />
@@ -59028,7 +59028,7 @@ Ctrl + K"
                       <input
                         class="MuiPrivateSwitchBase-input-id"
                         disabled=""
-                        name="isVisible"
+                        name="isPublished"
                         type="checkbox"
                       />
                     </span>
@@ -59066,7 +59066,7 @@ Ctrl + K"
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id"
                     disabled=""
-                    name="availableOn"
+                    name="publicationDate"
                     type="date"
                     value=""
                   />
@@ -62019,7 +62019,7 @@ Ctrl + K"
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       disabled=""
-                      name="price"
+                      name="basePrice"
                       type="number"
                       value="0"
                     />
@@ -62870,7 +62870,7 @@ Ctrl + K"
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      name="price"
+                      name="basePrice"
                       type="number"
                       value="0"
                     />
@@ -63720,7 +63720,7 @@ Ctrl + K"
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      name="price"
+                      name="basePrice"
                       type="number"
                       value="0"
                     />
@@ -66121,7 +66121,7 @@ Ctrl + K"
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      name="price"
+                      name="basePrice"
                       type="number"
                       value="339.39"
                     />
@@ -67261,7 +67261,7 @@ Ctrl + K"
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       disabled=""
-                      name="price"
+                      name="basePrice"
                       type="number"
                     />
                     <span />
@@ -68349,7 +68349,7 @@ Ctrl + K"
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      name="price"
+                      name="basePrice"
                       type="number"
                       value="339.39"
                     />
@@ -69774,7 +69774,7 @@ Ctrl + K"
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      name="price"
+                      name="basePrice"
                       type="number"
                       value="339.39"
                     />

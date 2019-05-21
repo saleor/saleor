@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.contrib.sites.models import Site
 from django.utils.timezone import now
 
+from ...account import events as account_events
 from ..models import DigitalContentUrl
 
 
@@ -36,3 +37,16 @@ def digital_content_url_is_valid(content_url: DigitalContentUrl) -> bool:
     if max_downloads is not None and max_downloads <= content_url.download_num:
         return False
     return True
+
+
+def increment_download_count(self: DigitalContentUrl):
+    self.download_num += 1
+    self.save(update_fields=["download_num"])
+
+    line = self.line
+    user = line.order.user if line else None
+
+    if user is not None:
+        account_events.customer_downloaded_a_digital_link_event(
+            user=user, order_line=line
+        )

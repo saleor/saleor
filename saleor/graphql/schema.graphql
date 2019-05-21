@@ -876,6 +876,30 @@ type CustomerDelete {
   user: User
 }
 
+type CustomerEvent implements Node {
+  id: ID!
+  date: DateTime
+  type: CustomerEventsEnum
+  user(id: ID): User
+  message: String
+  count: Int
+  order: Order
+  orderLine: OrderLine
+}
+
+enum CustomerEventsEnum {
+  ACCOUNT_CREATED
+  PASSWORD_RESET_LINK_SENT
+  PASSWORD_RESET
+  PLACED_ORDER
+  NOTE_ADDED_TO_ORDER
+  DIGITAL_LINK_DOWNLOADED
+  CUSTOMER_DELETED
+  NAME_ASSIGNED
+  EMAIL_ASSIGNED
+  NOTE_ADDED
+}
+
 input CustomerFilterInput {
   dateJoined: DateRangeInput
   moneySpent: PriceRangeInput
@@ -2068,6 +2092,7 @@ input ProductCreateInput {
   isPublished: Boolean
   name: String
   price: Decimal
+  basePrice: Decimal
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
@@ -2150,6 +2175,7 @@ input ProductInput {
   isPublished: Boolean
   name: String
   price: Decimal
+  basePrice: Decimal
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
@@ -2898,6 +2924,7 @@ type User implements Node {
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [PermissionDisplay]
   avatar(size: Int): Image
+  events: [CustomerEvent]
 }
 
 input UserAddressInput {
