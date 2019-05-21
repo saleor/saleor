@@ -62,26 +62,33 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: CollectionListProps) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Category Name", { context: "table cell" })}
-            </TableCell>
-            <TableCell className={classes.colProducts}>
-              {i18n
-                .t("No. Products", { context: "table cell" })
-                .replace(" ", "\xa0")}
-            </TableCell>
-            <TableCell className={classes.colAvailability}>
-              {i18n.t("Availability", { context: "table cell" })}
-            </TableCell>
-          </TableRow>
-        </TableHead>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={collections}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell className={classes.colName}>
+                {i18n.t("Category Name", { context: "table cell" })}
+              </TableCell>
+              <TableCell className={classes.colProducts}>
+                {i18n
+                  .t("No. Products", { context: "table cell" })
+                  .replace(" ", "\xa0")}
+              </TableCell>
+              <TableCell className={classes.colAvailability}>
+                {i18n.t("Availability", { context: "table cell" })}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

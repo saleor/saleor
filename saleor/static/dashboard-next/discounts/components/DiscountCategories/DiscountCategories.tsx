@@ -65,6 +65,7 @@ const DiscountCategories = withStyles(styles, {
     onNextPage,
     toolbar,
     toggle,
+    toggleAll,
     selected,
     isChecked
   }: DiscountCategoriesProps & WithStyles<typeof styles>) => (

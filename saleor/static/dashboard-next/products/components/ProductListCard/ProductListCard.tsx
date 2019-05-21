@@ -41,6 +41,7 @@ export const ProductListCard: React.StatelessComponent<
   isChecked,
   selected,
   toggle,
+  toggleAll,
   toolbar
 }) => (
   <Container>
@@ -63,6 +64,7 @@ export const ProductListCard: React.StatelessComponent<
         disabled={disabled}
         pageInfo={pageInfo}
         toolbar={toolbar}
+        toggleAll={toggleAll}
         selected={selected}
         isChecked={isChecked}
         toggle={toggle}

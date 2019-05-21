@@ -23,13 +23,27 @@ function useBulkActions(initial: string[] = []) {
     isSelected(id) ? remove(id) : add(id);
   }
 
+  function toggleAll(items, selected) {
+    const allItems = [];
+    items.map(item => {
+      allItems.push(item.id);
+    });
+    if (selected === allItems.length) {
+      reset();
+    } else {
+      reset();
+      setListElements(allItems);
+    }
+  }
+
   return {
     add,
     isSelected,
     listElements,
     remove,
     reset,
-    toggle
+    toggle,
+    toggleAll
   };
 }
 export default useBulkActions;

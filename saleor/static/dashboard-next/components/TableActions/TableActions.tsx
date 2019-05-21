@@ -49,21 +49,19 @@ const TableActions = withStyles(styles, { name: "TableActions" })(
     children,
     selected
   }: TableActionsProps & WithStyles<typeof styles>) => (
-    <TableRow className={classNames(classes.root, className)}>
-      <TableCell className={classes.cell} colSpan={9999}>
-        <div className={classes.container}>
-          {selected && (
-            <Typography>
-              {i18n.t("Selected {{ number }} items", {
-                number: selected
-              })}
-            </Typography>
-          )}
-          <div className={classes.spacer} />
-          <div className={classes.toolbar}>{children}</div>
-        </div>
-      </TableCell>
-    </TableRow>
+    <div className={classNames(classes.root, className)}>
+      <div className={classes.container}>
+        {selected && (
+          <Typography>
+            {i18n.t("Selected {{ number }} items", {
+              number: selected
+            })}
+          </Typography>
+        )}
+        <div className={classes.spacer} />
+        <div className={classes.toolbar}>{children}</div>
+      </div>
+    </div>
   )
 );
 TableActions.displayName = "TableActions";
