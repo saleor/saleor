@@ -23,7 +23,7 @@ function useBulkActions(initial: string[] = []) {
     isSelected(id) ? remove(id) : add(id);
   }
 
-  function toggleAll(items, selected) {
+  function toggleAll(items: any, selected: number) {
     const allItems = [];
     items.map(item => {
       allItems.push(item.id);
