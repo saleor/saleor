@@ -136,7 +136,7 @@ def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_s
 CREATE_GIFT_CARD_MUTATION = """
 mutation giftCardCreate(
     $code: String, $startDate: Date, $expirationDate: Date,
-    $balance: Decimal, $buyerEmail: String!) {
+    $balance: Decimal!, $buyerEmail: String) {
         giftCardCreate(input: {
                 code: $code, startDate: $startDate,
                 expirationDate: $expirationDate,
@@ -217,6 +217,56 @@ def test_create_gift_card_with_empty_code(
     content = get_graphql_content(response)
     data = content["data"]["giftCardCreate"]["giftCard"]
     assert data["code"] != ""
+
+
+def test_create_gift_card_without_code(staff_api_client, permission_manage_gift_card):
+    start_date = date(day=1, month=1, year=2018)
+    expiration_date = date(day=1, month=1, year=2019)
+    initial_balance = 123
+    variables = {
+        "startDate": start_date.isoformat(),
+        "expirationDate": expiration_date.isoformat(),
+        "balance": initial_balance,
+        "buyerEmail": staff_api_client.user.email,
+    }
+    response = staff_api_client.post_graphql(
+        CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardCreate"]["giftCard"]
+    assert data["code"] != ""
+
+
+def test_create_gift_card_with_existing_voucher_code(
+    staff_api_client, voucher, permission_manage_gift_card
+):
+    initial_balance = 123
+    variables = {"code": voucher.code, "balance": initial_balance}
+    response = staff_api_client.post_graphql(
+        CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["giftCardCreate"]["errors"]
+    errors = content["data"]["giftCardCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "code"
+    assert errors[0]["message"] == "Gift card with this code is not avaible."
+
+
+def test_create_gift_card_with_existing_gift_card_code(
+    staff_api_client, gift_card, permission_manage_gift_card
+):
+    initial_balance = 123
+    variables = {"code": gift_card.code, "balance": initial_balance}
+    response = staff_api_client.post_graphql(
+        CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["giftCardCreate"]["errors"]
+    errors = content["data"]["giftCardCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "code"
+    assert errors[0]["message"] == "Gift card with this code is not avaible."
 
 
 def test_create_gift_card_without_buyer(staff_api_client, permission_manage_gift_card):

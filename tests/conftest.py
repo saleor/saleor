@@ -619,7 +619,7 @@ def order_line(order, variant, vatlayer):
 @pytest.fixture
 def gift_card(customer_user, staff_user):
     return GiftCard.objects.create(
-        code='mirumee', buyer=customer_user, initial_balance=10,
+        code='mirumee_giftcard', buyer=customer_user, initial_balance=10,
         current_balance=10, creator=staff_user)
 
 
