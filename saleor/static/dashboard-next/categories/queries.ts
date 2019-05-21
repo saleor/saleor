@@ -100,15 +100,13 @@ export const categoryDetails = gql`
           node {
             id
             name
-            availability {
-              available
-            }
-            thumbnail {
-              url
-            }
-            price {
+            basePrice {
               amount
               currency
+            }
+            isAvailable
+            thumbnail {
+              url
             }
             productType {
               id

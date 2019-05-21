@@ -152,31 +152,26 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
                   )}
                 </TableCell>
                 <TableCell className={classes.colPublished}>
-                  {product &&
-                  product.availability &&
-                  product.availability.available !== undefined ? (
+                  {product && maybe(() => product.isAvailable !== undefined) ? (
                     <StatusLabel
                       label={
-                        product.availability.available
+                        product.isAvailable
                           ? i18n.t("Published", { context: "product status" })
                           : i18n.t("Not published", {
                               context: "product status"
                             })
                       }
-                      status={
-                        product.availability.available ? "success" : "error"
-                      }
+                      status={product.isAvailable ? "success" : "error"}
                     />
                   ) : (
                     <Skeleton />
                   )}
                 </TableCell>
                 <TableCell className={classes.colPrice}>
-                  {product &&
-                  product.price &&
-                  product.price.amount !== undefined &&
-                  product.price.currency !== undefined ? (
-                    <Money money={product.price} />
+                  {maybe(() => product.basePrice) &&
+                  maybe(() => product.basePrice.amount) !== undefined &&
+                  maybe(() => product.basePrice.currency) !== undefined ? (
+                    <Money money={product.basePrice} />
                   ) : (
                     <Skeleton />
                   )}

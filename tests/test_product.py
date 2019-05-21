@@ -640,11 +640,12 @@ def test_product_get_price_range_do_not_charge_taxes(
     assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
 
 
-def test_variant_base_price(product):
+@pytest.mark.parametrize("price_override", ["15.00", "0.00"])
+def test_variant_base_price(product, price_override):
     variant = product.variants.get()
     assert variant.base_price == product.price
 
-    variant.price_override = Money("15.00", "USD")
+    variant.price_override = Money(price_override, "USD")
     variant.save()
 
     assert variant.base_price == variant.price_override
