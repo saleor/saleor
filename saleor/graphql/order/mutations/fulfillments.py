@@ -106,7 +106,7 @@ class FulfillmentCreate(BaseMutation):
         fulfillment.lines.bulk_create(fulfillment_lines)
         update_order_status(order)
         events.fulfillment_fulfilled_items_event(
-            order=order, user=user, quantities=quantities, order_lines=order_lines
+            order=order, user=user, fulfillment_lines=fulfillment_lines
         )
 
         if cleaned_input.get("notify_customer", True):

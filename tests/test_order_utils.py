@@ -40,5 +40,7 @@ def test_change_quantity_generates_proper_event(
     assert new_event.type == expected_type
     assert new_event.user == staff_user
     assert new_event.parameters == {
-        "lines": [{"quantity": expected_quantity, "item": str(line)}]
+        "lines": [
+            {"quantity": expected_quantity, "line_pk": line.pk, "item": str(line)}
+        ]
     }
