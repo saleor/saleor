@@ -81,18 +81,25 @@ const DiscountCategories = withStyles(styles, {
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.wideColumn}>
-              {i18n.t("Category name")}
-            </TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Products")}
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={sale}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell />
+              <TableCell className={classes.wideColumn}>
+                {i18n.t("Category name")}
+              </TableCell>
+              <TableCell className={classes.textRight}>
+                {i18n.t("Products")}
+              </TableCell>
+              <TableCell />
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

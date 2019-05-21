@@ -38,6 +38,9 @@ const styles = (theme: Theme) =>
     colType: {},
     link: {
       cursor: "pointer"
+    },
+    relative: {
+      position: "relative"
     }
   });
 
@@ -60,24 +63,31 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: ProductTypeListProps) => (
     <Card>
-      <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Type Name", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colType}>
-              {i18n.t("Type", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colTax}>
-              {i18n.t("Tax", { context: "table header" })}
-            </TableCell>
-          </TableRow>
-        </TableHead>
+      <Table className={classes.relative}>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={productTypes}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell className={classes.colName}>
+                {i18n.t("Type Name", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.colType}>
+                {i18n.t("Type", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.colTax}>
+                {i18n.t("Tax", { context: "table header" })}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

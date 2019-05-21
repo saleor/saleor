@@ -35,6 +35,9 @@ const styles = (theme: Theme) =>
     colOrders: {
       textAlign: "center"
     },
+    relative: {
+      position: "relative"
+    },
     tableRow: {
       cursor: "pointer"
     }
@@ -63,16 +66,15 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
     isChecked
   }: CustomerListProps) => (
     <Card>
-      <Table>
+      <Table className={classes.relative}>
         <TableHead
           selected={selected}
           disabled={disabled}
-          items={products}
+          items={customers}
           toggleAll={toggleAll}
           toolbar={toolbar}
           tablebar={
             <>
-              <TableCell />
               <TableCell className={classes.colName}>
                 {i18n.t("Customer Name", { context: "table header" })}
               </TableCell>

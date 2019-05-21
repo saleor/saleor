@@ -42,7 +42,9 @@ const styles = (theme: Theme) =>
     root: {
       backgroundColor: fade(theme.palette.primary.main, 0.05),
       paddingLeft: 12,
-      paddingRight: 24
+      paddingRight: 24,
+      position: "absolute",
+      width: "calc(100% - 72px)"
     },
     spacer: {
       flex: 1

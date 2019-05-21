@@ -56,6 +56,9 @@ const styles = (theme: Theme) =>
     },
     link: {
       cursor: "pointer"
+    },
+    relative: {
+      position: "relative"
     }
   });
 
@@ -78,6 +81,7 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: OrderListProps) => {
     const orderList = orders
@@ -88,30 +92,36 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
         }))
       : undefined;
     return (
-      <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell padding="dense" className={classes.colNumber}>
-              {i18n.t("No. of Order", { context: "table header" })}
-            </TableCell>
-            <TableCell padding="dense" className={classes.colDate}>
-              {i18n.t("Date", { context: "table header" })}
-            </TableCell>
-            <TableCell padding="dense" className={classes.colCustomer}>
-              {i18n.t("Customer", { context: "table header" })}
-            </TableCell>
-            <TableCell padding="dense" className={classes.colPayment}>
-              {i18n.t("Payment", { context: "table header" })}
-            </TableCell>
-            <TableCell padding="dense" className={classes.colFulfillment}>
-              {i18n.t("Fulfillment status", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colTotal} padding="dense">
-              {i18n.t("Total", { context: "table header" })}
-            </TableCell>
-          </TableRow>
-        </TableHead>
+      <Table className={classes.relative}>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={orders}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell padding="dense" className={classes.colNumber}>
+                {i18n.t("No. of Order", { context: "table header" })}
+              </TableCell>
+              <TableCell padding="dense" className={classes.colDate}>
+                {i18n.t("Date", { context: "table header" })}
+              </TableCell>
+              <TableCell padding="dense" className={classes.colCustomer}>
+                {i18n.t("Customer", { context: "table header" })}
+              </TableCell>
+              <TableCell padding="dense" className={classes.colPayment}>
+                {i18n.t("Payment", { context: "table header" })}
+              </TableCell>
+              <TableCell padding="dense" className={classes.colFulfillment}>
+                {i18n.t("Fulfillment status", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.colTotal} padding="dense">
+                {i18n.t("Total", { context: "table header" })}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

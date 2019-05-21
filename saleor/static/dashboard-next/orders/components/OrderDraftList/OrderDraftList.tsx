@@ -71,6 +71,7 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: OrderDraftListProps) => {
     const orderDraftList = orders
@@ -82,23 +83,29 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
       : undefined;
     return (
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell padding="dense" className={classes.colNumber}>
-              {i18n.t("No. of Order", { context: "table header" })}
-            </TableCell>
-            <TableCell padding="dense" className={classes.colDate}>
-              {i18n.t("Date", { context: "table header" })}
-            </TableCell>
-            <TableCell padding="dense" className={classes.colCustomer}>
-              {i18n.t("Customer", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colTotal} padding="dense">
-              {i18n.t("Total", { context: "table header" })}
-            </TableCell>
-          </TableRow>
-        </TableHead>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={orders}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell padding="dense" className={classes.colNumber}>
+                {i18n.t("No. of Order", { context: "table header" })}
+              </TableCell>
+              <TableCell padding="dense" className={classes.colDate}>
+                {i18n.t("Date", { context: "table header" })}
+              </TableCell>
+              <TableCell padding="dense" className={classes.colCustomer}>
+                {i18n.t("Customer", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.colTotal} padding="dense">
+                {i18n.t("Total", { context: "table header" })}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

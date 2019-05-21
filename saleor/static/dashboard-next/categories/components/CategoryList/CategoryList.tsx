@@ -44,6 +44,9 @@ const styles = (theme: Theme) =>
     colSubcategories: {
       textAlign: "center"
     },
+    relative: {
+      position: "relative"
+    },
     tableRow: {
       cursor: "pointer"
     }
@@ -95,7 +98,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
           }
         />
       )}
-      <Table>
+      <Table className={classes.relative}>
         <TableHead
           selected={selected}
           disabled={disabled}

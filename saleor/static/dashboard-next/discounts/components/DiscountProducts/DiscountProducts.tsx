@@ -74,6 +74,7 @@ const DiscountProducts = withStyles(styles, {
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: SaleProductsProps & WithStyles<typeof styles>) => (
     <Card>
@@ -88,22 +89,29 @@ const DiscountProducts = withStyles(styles, {
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Product name")}
-            </TableCell>
-            <TableCell className={classes.colType}>
-              {i18n.t("Product Type")}
-            </TableCell>
-            <TableCell className={classes.colPublished}>
-              {i18n.t("Published")}
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={sale}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell />
+              <TableCell />
+              <TableCell className={classes.colName}>
+                {i18n.t("Product name")}
+              </TableCell>
+              <TableCell className={classes.colType}>
+                {i18n.t("Product Type")}
+              </TableCell>
+              <TableCell className={classes.colPublished}>
+                {i18n.t("Published")}
+              </TableCell>
+              <TableCell />
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

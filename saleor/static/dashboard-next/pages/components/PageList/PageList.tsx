@@ -42,6 +42,9 @@ const styles = (theme: Theme) =>
     colVisibility: {},
     link: {
       cursor: "pointer"
+    },
+    relative: {
+      position: "relative"
     }
   });
 const PageList = withStyles(styles, { name: "PageList" })(
@@ -56,24 +59,31 @@ const PageList = withStyles(styles, { name: "PageList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: PageListProps & WithStyles<typeof styles>) => (
     <Card>
-      <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colTitle} padding="dense">
-              {i18n.t("Title", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colSlug} padding="dense">
-              {i18n.t("Slug", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colVisibility} padding="dense">
-              {i18n.t("Visibility", { context: "table header" })}
-            </TableCell>
-          </TableRow>
-        </TableHead>
+      <Table className={classes.relative}>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={pages}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell className={classes.colTitle} padding="dense">
+                {i18n.t("Title", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.colSlug} padding="dense">
+                {i18n.t("Slug", { context: "table header" })}
+              </TableCell>
+              <TableCell className={classes.colVisibility} padding="dense">
+                {i18n.t("Visibility", { context: "table header" })}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

@@ -36,7 +36,7 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
   const notify = useNotifier();
   const paginate = usePaginator();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -95,6 +95,7 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
                     isChecked={isSelected}
                     selected={listElements.length}
                     toggle={toggle}
+                    toggleAll={toggleAll}
                     toolbar={
                       <IconButton
                         color="primary"

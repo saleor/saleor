@@ -68,6 +68,7 @@ export const ProductListCard: React.StatelessComponent<
         selected={selected}
         isChecked={isChecked}
         toggle={toggle}
+        toggleAll={toggleAll}
         onNextPage={onNextPage}
         onPreviousPage={onPreviousPage}
         onRowClick={onRowClick}

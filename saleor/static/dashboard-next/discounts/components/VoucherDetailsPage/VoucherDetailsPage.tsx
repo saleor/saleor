@@ -110,6 +110,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
   onRemove,
   onSubmit,
   toggle,
+  toggleAll,
   selected,
   isChecked,
   categoryListToolbar,
@@ -209,6 +210,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                       isChecked={isChecked}
                       selected={selected}
                       toggle={toggle}
+                      toggleAll={toggleAll}
                       toolbar={categoryListToolbar}
                     />
                   ) : activeTab === VoucherDetailsPageTab.collections ? (
@@ -224,6 +226,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                       isChecked={isChecked}
                       selected={selected}
                       toggle={toggle}
+                      toggleAll={toggleAll}
                       toolbar={collectionListToolbar}
                     />
                   ) : (
@@ -239,6 +242,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                       isChecked={isChecked}
                       selected={selected}
                       toggle={toggle}
+                      toggleAll={toggleAll}
                       toolbar={productListToolbar}
                     />
                   )}

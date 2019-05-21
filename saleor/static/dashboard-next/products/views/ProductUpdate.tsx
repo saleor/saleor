@@ -303,6 +303,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             isChecked={isSelected}
                             selected={listElements.length}
                             toggle={toggle}
+                            toggleAll={toggleAll}
                           />
                           <ActionDialog
                             open={params.action === "remove"}
