@@ -6,13 +6,6 @@ import {
 } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
-import BoldIcon from "@material-ui/icons/FormatBold";
-import ItalicIcon from "@material-ui/icons/FormatItalic";
-import UnorderedListIcon from "@material-ui/icons/FormatListBulleted";
-import OrderedListIcon from "@material-ui/icons/FormatListNumbered";
-import QuotationIcon from "@material-ui/icons/FormatQuote";
-// import ImageIcon from "@material-ui/icons/Image";
-import LinkIcon from "@material-ui/icons/Link";
 import * as classNames from "classnames";
 import { RawDraftContentState } from "draft-js";
 import {
@@ -23,8 +16,17 @@ import {
 } from "draftail";
 import * as React from "react";
 
+import BoldIcon from "../../icons/BoldIcon";
+import HeaderOne from "../../icons/HeaderOne";
 import HeaderThree from "../../icons/HeaderThree";
 import HeaderTwo from "../../icons/HeaderTwo";
+import ItalicIcon from "../../icons/ItalicIcon";
+import LinkIcon from "../../icons/LinkIcon";
+import OrderedListIcon from "../../icons/OrderedListIcon";
+import QuotationIcon from "../../icons/QuotationIcon";
+import StrikethroughIcon from "../../icons/StrikethroughIcon";
+import UnorderedListIcon from "../../icons/UnorderedListIcon";
+
 // import ImageEntity from "./ImageEntity";
 // import ImageSource from "./ImageSource";
 import LinkEntity from "./LinkEntity";
@@ -82,6 +84,9 @@ const styles = (theme: Theme) =>
       marginBottom: theme.spacing.unit * 2,
       marginTop: -21
     },
+    linkIcon: {
+      marginTop: 2
+    },
     root: {
       "& .DraftEditor": {
         "&-editorContainer": {
@@ -128,6 +133,9 @@ const styles = (theme: Theme) =>
         },
         "&-Toolbar": {
           "&Button": {
+            "& svg": {
+              padding: 2
+            },
             "&--active": {
               "&:hover": {
                 background: theme.palette.primary.main
@@ -163,7 +171,7 @@ const styles = (theme: Theme) =>
             display: "inline-flex",
             height: 36,
             justifyContent: "center",
-            padding: theme.spacing.unit - 1,
+            padding: theme.spacing.unit + 2,
             transition: theme.transitions.duration.short + "ms",
             width: 36
           },
@@ -223,6 +231,9 @@ const styles = (theme: Theme) =>
           }
         }
       }
+    },
+    smallIcon: {
+      marginLeft: 10
     }
   });
 const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
@@ -261,6 +272,10 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
             } as any)
           }
           blockTypes={[
+            {
+              icon: <HeaderOne />,
+              type: BLOCK_TYPE.HEADER_ONE
+            },
             { icon: <HeaderTwo />, type: BLOCK_TYPE.HEADER_TWO },
             { icon: <HeaderThree />, type: BLOCK_TYPE.HEADER_THREE },
             { icon: <QuotationIcon />, type: BLOCK_TYPE.BLOCKQUOTE },
@@ -271,15 +286,25 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
             { icon: <OrderedListIcon />, type: BLOCK_TYPE.ORDERED_LIST_ITEM }
           ]}
           inlineStyles={[
-            { icon: <BoldIcon />, type: INLINE_STYLE.BOLD },
-            { icon: <ItalicIcon />, type: INLINE_STYLE.ITALIC }
+            {
+              icon: <BoldIcon className={classes.smallIcon} />,
+              type: INLINE_STYLE.BOLD
+            },
+            {
+              icon: <ItalicIcon className={classes.smallIcon} />,
+              type: INLINE_STYLE.ITALIC
+            },
+            {
+              icon: <StrikethroughIcon />,
+              type: INLINE_STYLE.STRIKETHROUGH
+            }
           ]}
           enableLineBreak
           entityTypes={[
             {
               attributes: ["href"],
               decorator: LinkEntity,
-              icon: <LinkIcon />,
+              icon: <LinkIcon className={classes.linkIcon} />,
               source: LinkSource,
               type: ENTITY_TYPE.LINK
             }
