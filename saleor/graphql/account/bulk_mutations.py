@@ -22,6 +22,12 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
         model = models.User
         permissions = ("account.manage_users",)
 
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        count, errors = super().perform_mutation(root, info, **data)
+        cls.post_process(info, count)
+        return count, errors
+
 
 class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     class Meta:

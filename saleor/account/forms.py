@@ -5,6 +5,7 @@ from django.contrib.auth import forms as django_forms, update_session_auth_hash
 from django.utils.translation import pgettext, pgettext_lazy
 from phonenumbers.phonenumberutil import country_code_for_region
 
+from ..account import events as account_events
 from ..account.models import User
 from . import emails
 from .i18n import AddressMetaForm, get_address_form_class
@@ -107,6 +108,7 @@ class SignupForm(forms.ModelForm, FormWithReCaptcha):
         user.set_password(password)
         if commit:
             user.save()
+            account_events.customer_account_created_event(user=user)
         return user
 
 
@@ -132,8 +134,8 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         # Passing the user object to the Celery task throws an
         # error "'User' is not JSON serializable". Since it's not used in our
         # template, we remove it from the context.
-        del context["user"]
-        emails.send_password_reset_email.delay(context, to_email)
+        user = context.pop("user")
+        emails.send_password_reset_email.delay(context, to_email, user.pk)
 
 
 class NameForm(forms.ModelForm):
