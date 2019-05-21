@@ -43,7 +43,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
 }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -303,6 +303,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             isChecked={isSelected}
                             selected={listElements.length}
                             toggle={toggle}
+                            toggleAll={toggleAll}
                           />
                           <ActionDialog
                             open={params.action === "remove"}

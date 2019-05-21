@@ -62,6 +62,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: CollectionProductsProps) => (
     <Card>
@@ -89,17 +90,18 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell />
-            <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
-            <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
-            <TableCell>
-              {i18n.t("Published", { context: "table header" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => collection.products.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
+          <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
+          <TableCell>
+            {i18n.t("Published", { context: "table header" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

@@ -65,6 +65,7 @@ const DiscountCategories = withStyles(styles, {
     onNextPage,
     toolbar,
     toggle,
+    toggleAll,
     selected,
     isChecked
   }: DiscountCategoriesProps & WithStyles<typeof styles>) => (
@@ -80,8 +81,14 @@ const DiscountCategories = withStyles(styles, {
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => sale.categories.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <>
             <TableCell />
             <TableCell className={classes.wideColumn}>
               {i18n.t("Category name")}
@@ -90,7 +97,7 @@ const DiscountCategories = withStyles(styles, {
               {i18n.t("Products")}
             </TableCell>
             <TableCell />
-          </TableRow>
+          </>
         </TableHead>
         <TableFooter>
           <TableRow>

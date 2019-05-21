@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
   -- #4094 by @NyanKiyoshi
 - Fix draftail options and icons - #4132 by @benekex2
+- Add multiple select checkbox - #4133 by @benekex2
 
 ## 2.6.0
 

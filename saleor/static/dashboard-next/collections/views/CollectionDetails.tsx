@@ -42,7 +42,7 @@ export const CollectionDetails: React.StatelessComponent<
 > = ({ id, params }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
   const paginate = usePaginator();
@@ -276,6 +276,7 @@ export const CollectionDetails: React.StatelessComponent<
                     isChecked={isSelected}
                     selected={listElements.length}
                     toggle={toggle}
+                    toggleAll={toggleAll}
                   />
                   <SearchProductsProvider>
                     {(searchProducts, searchProductsOpts) => (
