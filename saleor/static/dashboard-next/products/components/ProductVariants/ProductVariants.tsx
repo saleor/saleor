@@ -115,23 +115,18 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
           items={variants}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell className={classes.colName}>
-                {i18n.t("Name")}
-              </TableCell>
-              <TableCell className={classes.colStatus}>
-                {i18n.t("Status")}
-              </TableCell>
-              <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
-              <Hidden smDown>
-                <TableCell className={classes.colPrice}>
-                  {i18n.t("Price")}
-                </TableCell>
-              </Hidden>
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
+          <TableCell className={classes.colStatus}>
+            {i18n.t("Status")}
+          </TableCell>
+          <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
+          <Hidden smDown>
+            <TableCell className={classes.colPrice}>
+              {i18n.t("Price")}
+            </TableCell>
+          </Hidden>
+        </TableHead>
         <TableBody>
           {renderCollection(
             variants,

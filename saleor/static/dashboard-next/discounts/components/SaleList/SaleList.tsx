@@ -54,7 +54,7 @@ const styles = (theme: Theme) =>
     colValue: {
       textAlign: "right"
     },
-    relative: {
+    table: {
       position: "relative"
     },
     tableRow: {
@@ -81,38 +81,35 @@ const SaleList = withStyles(styles, {
     toolbar
   }: SaleListProps & WithStyles<typeof styles>) => (
     <Card>
-      <Table className={classes.relative}>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
           items={sales}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell className={classes.colName}>
-                {i18n.t("Name", {
-                  context: "sale list table header"
-                })}
-              </TableCell>
-              <TableCell className={classes.colStart}>
-                {i18n.t("Starts", {
-                  context: "sale list table header"
-                })}
-              </TableCell>
-              <TableCell className={classes.colEnd}>
-                {i18n.t("Ends", {
-                  context: "sale list table header"
-                })}
-              </TableCell>
-              <TableCell className={classes.colValue}>
-                {i18n.t("Value", {
-                  context: "sale list table header"
-                })}
-              </TableCell>
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Name", {
+              context: "sale list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colStart}>
+            {i18n.t("Starts", {
+              context: "sale list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colEnd}>
+            {i18n.t("Ends", {
+              context: "sale list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colValue}>
+            {i18n.t("Value", {
+              context: "sale list table header"
+            })}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination

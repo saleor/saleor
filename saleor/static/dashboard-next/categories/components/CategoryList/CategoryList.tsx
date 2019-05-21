@@ -44,7 +44,7 @@ const styles = (theme: Theme) =>
     colSubcategories: {
       textAlign: "center"
     },
-    relative: {
+    table: {
       position: "relative"
     },
     tableRow: {
@@ -98,29 +98,24 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
           }
         />
       )}
-      <Table className={classes.relative}>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
           items={categories}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell className={classes.colName}>
-                {i18n.t("Category Name", { context: "object" })}
-              </TableCell>
-              <TableCell className={classes.colSubcategories}>
-                {i18n.t("Subcategories", { context: "object" })}
-              </TableCell>
-              <TableCell className={classes.colProducts}>
-                {i18n
-                  .t("No. Products", { context: "object" })
-                  .replace(" ", "\xa0")}
-              </TableCell>
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Category Name", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colSubcategories}>
+            {i18n.t("Subcategories", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colProducts}>
+            {i18n.t("No. Products", { context: "object" }).replace(" ", "\xa0")}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination

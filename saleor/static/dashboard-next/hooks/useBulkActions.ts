@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Node } from "../types";
 
 function useBulkActions(initial: string[] = []) {
   const [listElements, setListElements] = useState(initial);
@@ -23,15 +24,10 @@ function useBulkActions(initial: string[] = []) {
     isSelected(id) ? remove(id) : add(id);
   }
 
-  function toggleAll(items: any, selected: number) {
-    const allItems = [];
-    items.map(item => {
-      allItems.push(item.id);
-    });
-    if (selected === allItems.length) {
-      reset();
-    } else {
-      reset();
+  function toggleAll(items: Node[], selected: number) {
+    const allItems = items.map(item => item.id);
+    reset();
+    if (selected !== allItems.length) {
       setListElements(allItems);
     }
   }

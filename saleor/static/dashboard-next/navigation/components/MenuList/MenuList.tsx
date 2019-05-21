@@ -40,11 +40,11 @@ const styles = (theme: Theme) =>
       textAlign: "right"
     },
     colTitle: {},
-    relative: {
-      position: "relative"
-    },
     row: {
       cursor: "pointer"
+    },
+    table: {
+      position: "relative"
     }
   });
 const MenuList = withStyles(styles, { name: "MenuList" })(
@@ -64,24 +64,21 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     toolbar
   }: MenuListProps & WithStyles<typeof styles>) => (
     <Card>
-      <Table className={classes.relative}>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
           items={menus}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell className={classes.colTitle}>
-                {i18n.t("Menu Title", { context: "object" })}
-              </TableCell>
-              <TableCell className={classes.colItems}>
-                {i18n.t("Items", { context: "number of menu items" })}
-              </TableCell>
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.colTitle}>
+            {i18n.t("Menu Title", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colItems}>
+            {i18n.t("Items", { context: "number of menu items" })}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination

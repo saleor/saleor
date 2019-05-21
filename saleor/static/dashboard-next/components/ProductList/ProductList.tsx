@@ -53,7 +53,7 @@ const styles = (theme: Theme) =>
     link: {
       cursor: "pointer"
     },
-    relative: {
+    table: {
       position: "relative"
     },
     textLeft: {
@@ -86,31 +86,28 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
     onPreviousPage,
     onRowClick
   }: ProductListProps) => (
-    <Table className={classes.relative}>
+    <Table className={classes.table}>
       <TableHead
         selected={selected}
         disabled={disabled}
         items={products}
         toggleAll={toggleAll}
         toolbar={toolbar}
-        tablebar={
-          <>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Name", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colType}>
-              {i18n.t("Type", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colPublished}>
-              {i18n.t("Published", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colPrice}>
-              {i18n.t("Price", { context: "object" })}
-            </TableCell>
-          </>
-        }
-      />
+      >
+        <TableCell />
+        <TableCell className={classes.colName}>
+          {i18n.t("Name", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colType}>
+          {i18n.t("Type", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colPublished}>
+          {i18n.t("Published", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colPrice}>
+          {i18n.t("Price", { context: "object" })}
+        </TableCell>
+      </TableHead>
       <TableFooter>
         <TableRow>
           <TablePagination

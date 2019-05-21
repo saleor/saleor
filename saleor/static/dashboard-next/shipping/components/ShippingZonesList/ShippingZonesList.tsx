@@ -46,11 +46,11 @@ const styles = (theme: Theme) =>
     },
     colCountries: {},
     colName: {},
-    relative: {
-      position: "relative"
-    },
     row: {
       cursor: "pointer"
+    },
+    table: {
+      position: "relative"
     }
   });
 const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
@@ -82,24 +82,21 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
           </Button>
         }
       />
-      <Table className={classes.relative}>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
           items={shippingZones}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell className={classes.colName}>
-                {i18n.t("Name", { context: "object" })}
-              </TableCell>
-              <TableCell className={classes.colCountries}>
-                {i18n.t("Countries", { context: "object" })}
-              </TableCell>
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Name", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colCountries}>
+            {i18n.t("Countries", { context: "object" })}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination

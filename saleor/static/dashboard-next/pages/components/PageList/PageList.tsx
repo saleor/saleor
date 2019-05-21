@@ -43,7 +43,7 @@ const styles = (theme: Theme) =>
     link: {
       cursor: "pointer"
     },
-    relative: {
+    table: {
       position: "relative"
     }
   });
@@ -63,27 +63,24 @@ const PageList = withStyles(styles, { name: "PageList" })(
     toolbar
   }: PageListProps & WithStyles<typeof styles>) => (
     <Card>
-      <Table className={classes.relative}>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
           items={pages}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell className={classes.colTitle} padding="dense">
-                {i18n.t("Title", { context: "table header" })}
-              </TableCell>
-              <TableCell className={classes.colSlug} padding="dense">
-                {i18n.t("Slug", { context: "table header" })}
-              </TableCell>
-              <TableCell className={classes.colVisibility} padding="dense">
-                {i18n.t("Visibility", { context: "table header" })}
-              </TableCell>
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.colTitle} padding="dense">
+            {i18n.t("Title", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colSlug} padding="dense">
+            {i18n.t("Slug", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colVisibility} padding="dense">
+            {i18n.t("Visibility", { context: "table header" })}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
