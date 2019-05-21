@@ -35,6 +35,9 @@ const styles = (theme: Theme) =>
       },
       width: 48 + theme.spacing.unit / 2
     },
+    relative: {
+      position: "relative"
+    },
     tableRow: {
       cursor: "pointer"
     }
@@ -89,19 +92,27 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           </Button>
         }
       />
-      <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell />
-            <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
-            <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
-            <TableCell>
-              {i18n.t("Published", { context: "table header" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
+      <Table className={classes.relative}>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={collection}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell>
+                {i18n.t("Name", { context: "table header" })}
+              </TableCell>
+              <TableCell>
+                {i18n.t("Type", { context: "table header" })}
+              </TableCell>
+              <TableCell>
+                {i18n.t("Published", { context: "table header" })}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

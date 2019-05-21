@@ -4,23 +4,26 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import { fade } from "@material-ui/core/styles/colorManipulator";
+import TableCell from "@material-ui/core/TableCell";
 import MuiTableHead, {
   TableHeadProps as MuiTableHeadProps
 } from "@material-ui/core/TableHead";
-import * as React from "react";
-import { fade } from "@material-ui/core/styles/colorManipulator";
-import TableActions from "../TableActions";
-import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import * as classNames from "classnames";
+import * as React from "react";
 
-import Checkbox from "../Checkbox";
 import i18n from "../../i18n";
+import Checkbox from "../Checkbox";
 
 export interface TableHeadProps extends MuiTableHeadProps {
+  disabled: boolean;
+  items: React.ReactNode | React.ReactNodeArray;
   selected: number;
   toolbar: React.ReactNode | React.ReactNodeArray;
+  tablebar: React.ReactNode | React.ReactNodeArray;
+  toggleAll: (items: any, selected: any) => void;
 }
 
 const styles = (theme: Theme) =>

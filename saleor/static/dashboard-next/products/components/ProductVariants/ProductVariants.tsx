@@ -112,7 +112,7 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
         <TableHead
           selected={selected}
           disabled={disabled}
-          items={productTypes}
+          items={variants}
           toggleAll={toggleAll}
           toolbar={toolbar}
           tablebar={

@@ -48,7 +48,6 @@ const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
       selected={selected}
       toggle={toggle}
       toggleAll={toggleAll}
-      toggleAll={toggleAll}
       toolbar={toolbar}
     />
   </Container>

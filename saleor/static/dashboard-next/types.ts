@@ -17,7 +17,7 @@ export interface ListProps {
 }
 export interface ListActionsWithoutToolbar {
   toggle: (id: string) => void;
-  toggleAll: () => void;
+  toggleAll: (items: any, selected: number) => void;
   isChecked: (id: string) => boolean;
   selected: number;
 }
