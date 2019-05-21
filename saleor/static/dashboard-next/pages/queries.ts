@@ -9,7 +9,7 @@ export const pageFragment = gql`
     id
     title
     slug
-    isVisible
+    isPublished
   }
 `;
 
@@ -20,7 +20,7 @@ export const pageDetailsFragment = gql`
     contentJson
     seoTitle
     seoDescription
-    availableOn
+    publicationDate
   }
 `;
 

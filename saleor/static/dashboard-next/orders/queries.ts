@@ -67,7 +67,9 @@ export const fragmentOrderLine = gql`
         currency
       }
     }
-    thumbnailUrl
+    thumbnail {
+      url
+    }
   }
 `;
 

@@ -18,7 +18,7 @@ export interface Product_collections {
   name: string;
 }
 
-export interface Product_price {
+export interface Product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -75,38 +75,37 @@ export interface Product_attributes {
   value: Product_attributes_value;
 }
 
-export interface Product_availability_priceRange_start_net {
+export interface Product_pricing_priceRange_start_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface Product_availability_priceRange_start {
+export interface Product_pricing_priceRange_start {
   __typename: "TaxedMoney";
-  net: Product_availability_priceRange_start_net;
+  net: Product_pricing_priceRange_start_net;
 }
 
-export interface Product_availability_priceRange_stop_net {
+export interface Product_pricing_priceRange_stop_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface Product_availability_priceRange_stop {
+export interface Product_pricing_priceRange_stop {
   __typename: "TaxedMoney";
-  net: Product_availability_priceRange_stop_net;
+  net: Product_pricing_priceRange_stop_net;
 }
 
-export interface Product_availability_priceRange {
+export interface Product_pricing_priceRange {
   __typename: "TaxedMoneyRange";
-  start: Product_availability_priceRange_start | null;
-  stop: Product_availability_priceRange_stop | null;
+  start: Product_pricing_priceRange_start | null;
+  stop: Product_pricing_priceRange_stop | null;
 }
 
-export interface Product_availability {
+export interface Product_pricing {
   __typename: "ProductPricingInfo";
-  available: boolean | null;
-  priceRange: Product_availability_priceRange | null;
+  priceRange: Product_pricing_priceRange | null;
 }
 
 export interface Product_images {
@@ -151,14 +150,15 @@ export interface Product {
   seoDescription: string | null;
   category: Product_category;
   collections: (Product_collections | null)[] | null;
-  price: Product_price | null;
+  basePrice: Product_basePrice | null;
   margin: Product_margin | null;
   purchaseCost: Product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;
   attributes: Product_attributes[];
-  availability: Product_availability | null;
+  pricing: Product_pricing | null;
   images: (Product_images | null)[] | null;
   variants: (Product_variants | null)[] | null;
   productType: Product_productType;

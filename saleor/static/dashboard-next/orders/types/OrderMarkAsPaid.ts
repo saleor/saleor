@@ -73,6 +73,11 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderL
   net: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
@@ -82,7 +87,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderL
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines_orderLine_thumbnail | null;
 }
 
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_fulfillments_lines {
@@ -119,6 +124,11 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_lines_unitPrice {
   net: OrderMarkAsPaid_orderMarkAsPaid_order_lines_unitPrice_net;
 }
 
+export interface OrderMarkAsPaid_orderMarkAsPaid_order_lines_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_lines {
   __typename: "OrderLine";
   id: string;
@@ -128,7 +138,7 @@ export interface OrderMarkAsPaid_orderMarkAsPaid_order_lines {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderMarkAsPaid_orderMarkAsPaid_order_lines_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderMarkAsPaid_orderMarkAsPaid_order_lines_thumbnail | null;
 }
 
 export interface OrderMarkAsPaid_orderMarkAsPaid_order_shippingAddress_country {

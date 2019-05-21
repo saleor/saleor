@@ -30,7 +30,10 @@ from .utils import (
 )
 from .utils.attributes import get_product_attributes_data
 from .utils.availability import get_product_availability
-from .utils.digital_products import digital_content_url_is_valid
+from .utils.digital_products import (
+    digital_content_url_is_valid,
+    increment_download_count,
+)
 from .utils.variants_picker import get_variant_picker_data
 
 
@@ -105,9 +108,11 @@ def product_details(request, slug, product_id, form=None):
 def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
     """Returns direct download link to content if given token is still valid"""
 
-    content_url = get_object_or_404(DigitalContentUrl, token=token)
+    qs = DigitalContentUrl.objects.prefetch_related("line__order__user")
+    content_url = get_object_or_404(qs, token=token)  # type: DigitalContentUrl
     if not digital_content_url_is_valid(content_url):
         return HttpResponseNotFound("Url is not valid anymore")
+
     digital_content = content_url.content
     digital_content.content_file.open()
     opened_file = digital_content.content_file.file
@@ -120,8 +125,8 @@ def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotF
 
     response["Content-Type"] = content_type
     response["Content-Disposition"] = "attachment; {}".format(file_expr)
-    content_url.download_num += 1
-    content_url.save(update_fields=["download_num"])
+
+    increment_download_count(content_url)
     return response
 
 
