@@ -39,7 +39,7 @@ const styles = (theme: Theme) =>
     link: {
       cursor: "pointer"
     },
-    relative: {
+    table: {
       position: "relative"
     }
   });
@@ -67,27 +67,24 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
     toolbar
   }: ProductTypeListProps) => (
     <Card>
-      <Table className={classes.relative}>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
           items={productTypes}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell className={classes.colName}>
-                {i18n.t("Type Name", { context: "table header" })}
-              </TableCell>
-              <TableCell className={classes.colType}>
-                {i18n.t("Type", { context: "table header" })}
-              </TableCell>
-              <TableCell className={classes.colTax}>
-                {i18n.t("Tax", { context: "table header" })}
-              </TableCell>
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Type Name", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colType}>
+            {i18n.t("Type", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colTax}>
+            {i18n.t("Tax", { context: "table header" })}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination

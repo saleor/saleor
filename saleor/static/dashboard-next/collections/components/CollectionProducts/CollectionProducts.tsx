@@ -35,7 +35,7 @@ const styles = (theme: Theme) =>
       },
       width: 48 + theme.spacing.unit / 2
     },
-    relative: {
+    table: {
       position: "relative"
     },
     tableRow: {
@@ -92,27 +92,20 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           </Button>
         }
       />
-      <Table className={classes.relative}>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
-          items={collection}
+          items={maybe(() => collection.products.edges.map(edge => edge.node))}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell>
-                {i18n.t("Name", { context: "table header" })}
-              </TableCell>
-              <TableCell>
-                {i18n.t("Type", { context: "table header" })}
-              </TableCell>
-              <TableCell>
-                {i18n.t("Published", { context: "table header" })}
-              </TableCell>
-            </>
-          }
-        />
+        >
+          <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
+          <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
+          <TableCell>
+            {i18n.t("Published", { context: "table header" })}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination

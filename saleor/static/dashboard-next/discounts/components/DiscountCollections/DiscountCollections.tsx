@@ -84,22 +84,17 @@ const DiscountCollections = withStyles(styles, {
         <TableHead
           selected={selected}
           disabled={disabled}
-          items={sale}
+          items={maybe(() => sale.collections.edges.map(edge => edge.node))}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell />
-              <TableCell className={classes.wideColumn}>
-                {i18n.t("Collection name")}
-              </TableCell>
-              <TableCell className={classes.textRight}>
-                {i18n.t("Products")}
-              </TableCell>
-              <TableCell />
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.wideColumn}>
+            {i18n.t("Collection name")}
+          </TableCell>
+          <TableCell className={classes.textRight}>
+            {i18n.t("Products")}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination

@@ -14,22 +14,26 @@ import Typography from "@material-ui/core/Typography";
 import * as classNames from "classnames";
 import * as React from "react";
 
+import { Node } from "../../types";
+
 import i18n from "../../i18n";
 import Checkbox from "../Checkbox";
 
 export interface TableHeadProps extends MuiTableHeadProps {
   disabled: boolean;
-  items: React.ReactNode | React.ReactNodeArray;
   selected: number;
+  items: Node[];
   toolbar: React.ReactNode | React.ReactNodeArray;
-  tablebar: React.ReactNode | React.ReactNodeArray;
-  toggleAll: (items: any, selected: any) => void;
+  toggleAll: (items: Node[], selected: number) => void;
 }
 
 const styles = (theme: Theme) =>
   createStyles({
     cell: {
       padding: 0
+    },
+    checkboxSelected: {
+      backgroundColor: fade(theme.palette.primary.main, 0.05)
     },
     container: {
       alignItems: "center",
@@ -44,6 +48,7 @@ const styles = (theme: Theme) =>
     },
     root: {
       backgroundColor: fade(theme.palette.primary.main, 0.05),
+      borderBottom: "1px solid rgba(224, 224, 224, 1)",
       paddingLeft: 12,
       paddingRight: 24,
       position: "absolute",
@@ -63,12 +68,11 @@ const TableHead = withStyles(styles, {
   name: "TableHead"
 })(
   ({
-    children,
     classes,
+    children,
     disabled,
     items,
     selected,
-    tablebar,
     toggleAll,
     toolbar,
     ...muiTableHeadProps
@@ -77,7 +81,12 @@ const TableHead = withStyles(styles, {
     return (
       <MuiTableHead {...muiTableHeadProps}>
         <TableRow>
-          <TableCell padding="checkbox">
+          <TableCell
+            padding="checkbox"
+            className={classNames({
+              [classes.checkboxSelected]: selected
+            })}
+          >
             <Checkbox
               checked={isSelected}
               disabled={disabled}
@@ -105,7 +114,7 @@ const TableHead = withStyles(styles, {
               </div>
             </>
           ) : (
-            tablebar
+            children
           )}
         </TableRow>
       </MuiTableHead>

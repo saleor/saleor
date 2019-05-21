@@ -84,22 +84,21 @@ const DiscountCategories = withStyles(styles, {
         <TableHead
           selected={selected}
           disabled={disabled}
-          items={sale}
+          items={maybe(() => sale.categories.edges.map(edge => edge.node))}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell />
-              <TableCell className={classes.wideColumn}>
-                {i18n.t("Category name")}
-              </TableCell>
-              <TableCell className={classes.textRight}>
-                {i18n.t("Products")}
-              </TableCell>
-              <TableCell />
-            </>
-          }
-        />
+        >
+          <>
+            <TableCell />
+            <TableCell className={classes.wideColumn}>
+              {i18n.t("Category name")}
+            </TableCell>
+            <TableCell className={classes.textRight}>
+              {i18n.t("Products")}
+            </TableCell>
+            <TableCell />
+          </>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination

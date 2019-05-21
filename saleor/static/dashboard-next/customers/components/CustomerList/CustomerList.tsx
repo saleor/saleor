@@ -35,7 +35,7 @@ const styles = (theme: Theme) =>
     colOrders: {
       textAlign: "center"
     },
-    relative: {
+    table: {
       position: "relative"
     },
     tableRow: {
@@ -66,27 +66,24 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
     isChecked
   }: CustomerListProps) => (
     <Card>
-      <Table className={classes.relative}>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
           items={customers}
           toggleAll={toggleAll}
           toolbar={toolbar}
-          tablebar={
-            <>
-              <TableCell className={classes.colName}>
-                {i18n.t("Customer Name", { context: "table header" })}
-              </TableCell>
-              <TableCell className={classes.colEmail}>
-                {i18n.t("Customer e-mail", { context: "table header" })}
-              </TableCell>
-              <TableCell className={classes.colOrders}>
-                {i18n.t("Orders", { context: "table header" })}
-              </TableCell>
-            </>
-          }
-        />
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Customer Name", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colEmail}>
+            {i18n.t("Customer e-mail", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colOrders}>
+            {i18n.t("Orders", { context: "table header" })}
+          </TableCell>
+        </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
