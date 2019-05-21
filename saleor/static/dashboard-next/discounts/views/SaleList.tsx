@@ -36,7 +36,7 @@ export const SaleList: React.StatelessComponent<SaleListProps> = ({
   const notify = useNotifier();
   const paginate = usePaginator();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -94,6 +94,7 @@ export const SaleList: React.StatelessComponent<SaleListProps> = ({
                     isChecked={isSelected}
                     selected={listElements.length}
                     toggle={toggle}
+                    toggleAll={toggleAll}
                     toolbar={
                       <IconButton
                         color="primary"

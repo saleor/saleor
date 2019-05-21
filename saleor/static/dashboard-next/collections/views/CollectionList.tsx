@@ -39,7 +39,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -159,6 +159,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
                         isChecked={isSelected}
                         selected={listElements.length}
                         toggle={toggle}
+                        toggleAll={toggleAll}
                       />
                       <ActionDialog
                         open={params.action === "publish"}

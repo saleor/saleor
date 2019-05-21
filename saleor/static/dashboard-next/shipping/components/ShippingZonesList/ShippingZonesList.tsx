@@ -64,6 +64,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: ShippingZonesListProps & WithStyles<typeof styles>) => (
     <Card>
@@ -79,17 +80,19 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Name", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colCountries}>
-              {i18n.t("Countries", { context: "object" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={shippingZones}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Name", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colCountries}>
+            {i18n.t("Countries", { context: "object" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

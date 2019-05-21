@@ -89,44 +89,48 @@ const VoucherList = withStyles(styles, {
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: VoucherListProps & WithStyles<typeof styles>) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Name", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colMinSpent}>
-              {i18n.t("Min. Spent", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colStart}>
-              {i18n.t("Starts", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colEnd}>
-              {i18n.t("Ends", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colValue}>
-              {i18n.t("Value", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colUses}>
-              {i18n.t("Uses", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={vouchers}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Name", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colMinSpent}>
+            {i18n.t("Min. Spent", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colStart}>
+            {i18n.t("Starts", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colEnd}>
+            {i18n.t("Ends", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colValue}>
+            {i18n.t("Value", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colUses}>
+            {i18n.t("Uses", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

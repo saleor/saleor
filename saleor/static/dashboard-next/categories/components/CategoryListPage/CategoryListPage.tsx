@@ -32,6 +32,7 @@ export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
   isChecked,
   selected,
   toggle,
+  toggleAll,
   toolbar
 }) => (
   <Container>
@@ -52,6 +53,7 @@ export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
       isChecked={isChecked}
       selected={selected}
       toggle={toggle}
+      toggleAll={toggleAll}
       toolbar={toolbar}
     />
   </Container>

@@ -42,7 +42,7 @@ export const ShippingZonesList: React.StatelessComponent<
   const notify = useNotifier();
   const paginate = usePaginator();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -176,6 +176,7 @@ export const ShippingZonesList: React.StatelessComponent<
                             isChecked={isSelected}
                             selected={listElements.length}
                             toggle={toggle}
+                            toggleAll={toggleAll}
                             toolbar={
                               <IconButton
                                 color="primary"

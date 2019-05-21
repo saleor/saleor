@@ -77,29 +77,33 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
     products,
     selected,
     toggle,
+    toggleAll,
     toolbar,
     onNextPage,
     onPreviousPage,
     onRowClick
   }: ProductListProps) => (
     <Table>
-      <TableHead selected={selected} toolbar={toolbar}>
-        <TableRow>
-          <TableCell />
-          <TableCell />
-          <TableCell className={classes.colName}>
-            {i18n.t("Name", { context: "object" })}
-          </TableCell>
-          <TableCell className={classes.colType}>
-            {i18n.t("Type", { context: "object" })}
-          </TableCell>
-          <TableCell className={classes.colPublished}>
-            {i18n.t("Published", { context: "object" })}
-          </TableCell>
-          <TableCell className={classes.colPrice}>
-            {i18n.t("Price", { context: "object" })}
-          </TableCell>
-        </TableRow>
+      <TableHead
+        selected={selected}
+        disabled={disabled}
+        items={products}
+        toggleAll={toggleAll}
+        toolbar={toolbar}
+      >
+        <TableCell />
+        <TableCell className={classes.colName}>
+          {i18n.t("Name", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colType}>
+          {i18n.t("Type", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colPublished}>
+          {i18n.t("Published", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colPrice}>
+          {i18n.t("Price", { context: "object" })}
+        </TableCell>
       </TableHead>
       <TableFooter>
         <TableRow>

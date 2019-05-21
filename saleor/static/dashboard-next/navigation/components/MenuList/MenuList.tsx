@@ -57,21 +57,24 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     pageInfo,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: MenuListProps & WithStyles<typeof styles>) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell padding="checkbox" />
-            <TableCell className={classes.colTitle}>
-              {i18n.t("Menu Title", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colItems}>
-              {i18n.t("Items", { context: "number of menu items" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={menus}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colTitle}>
+            {i18n.t("Menu Title", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colItems}>
+            {i18n.t("Items", { context: "number of menu items" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

@@ -66,6 +66,7 @@ const DiscountCollections = withStyles(styles, {
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: DiscountCollectionsProps & WithStyles<typeof styles>) => (
     <Card>
@@ -80,17 +81,19 @@ const DiscountCollections = withStyles(styles, {
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.wideColumn}>
-              {i18n.t("Collection name")}
-            </TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Products")}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => sale.collections.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.wideColumn}>
+            {i18n.t("Collection name")}
+          </TableCell>
+          <TableCell className={classes.textRight}>
+            {i18n.t("Products")}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

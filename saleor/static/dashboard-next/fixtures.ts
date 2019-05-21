@@ -26,6 +26,7 @@ export const listActionsProps: ListActions = {
   isChecked: () => undefined,
   selected: 0,
   toggle: () => undefined,
+  toggleAll: () => undefined,
   toolbar: null
 };
 
