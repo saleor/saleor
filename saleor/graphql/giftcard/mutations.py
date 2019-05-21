@@ -4,8 +4,11 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from ...account.models import User
+from ...core.utils.promotional_code import (
+    generate_promotional_code,
+    is_avaible_promotional_code,
+)
 from ...giftcard import models
-from ...giftcard.utils import generate_gift_card_code
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import Decimal
 from .types import GiftCard
@@ -39,8 +42,10 @@ class GiftCardCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         code = data.get("code", None)
-        if code == "":
-            data["code"] = generate_gift_card_code()
+        if not code and not instance.pk:
+            data["code"] = generate_promotional_code(16)
+        elif not is_avaible_promotional_code(code):
+            raise ValidationError({"code": "Gift card with this code is not avaible."})
         cleaned_input = super().clean_input(info, instance, data)
         balance = cleaned_input.get("balance", None)
         if balance:

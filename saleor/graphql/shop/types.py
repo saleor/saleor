@@ -12,7 +12,7 @@ from ...product import models as product_models
 from ...site import models as site_models
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
-from ..core.utils import str_to_enum, get_node_optimized
+from ..core.utils import get_node_optimized, str_to_enum
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..translations.enums import LanguageCodeEnum
@@ -278,4 +278,3 @@ class Shop(graphene.ObjectType):
     @permission_required("site.manage_settings")
     def resolve_default_digital_url_valid_days(_, info):
         return info.context.site.settings.default_digital_url_valid_days
-
