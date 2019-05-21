@@ -38,9 +38,6 @@ const styles = (theme: Theme) =>
     colType: {},
     link: {
       cursor: "pointer"
-    },
-    table: {
-      position: "relative"
     }
   });
 
@@ -67,7 +64,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
     toolbar
   }: ProductTypeListProps) => (
     <Card>
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}

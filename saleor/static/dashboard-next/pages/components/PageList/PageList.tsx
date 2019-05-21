@@ -42,9 +42,6 @@ const styles = (theme: Theme) =>
     colVisibility: {},
     link: {
       cursor: "pointer"
-    },
-    table: {
-      position: "relative"
     }
   });
 const PageList = withStyles(styles, { name: "PageList" })(
@@ -63,7 +60,7 @@ const PageList = withStyles(styles, { name: "PageList" })(
     toolbar
   }: PageListProps & WithStyles<typeof styles>) => (
     <Card>
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}

@@ -56,9 +56,6 @@ const styles = (theme: Theme) =>
     },
     link: {
       cursor: "pointer"
-    },
-    table: {
-      position: "relative"
     }
   });
 
@@ -92,7 +89,7 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
         }))
       : undefined;
     return (
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}

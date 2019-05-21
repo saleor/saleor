@@ -38,7 +38,7 @@ const styles = (theme: Theme) =>
     container: {
       alignItems: "center",
       display: "flex",
-      height: 56,
+      height: 47,
       marginRight: -theme.spacing.unit * 2
     },
     padding: {
@@ -49,10 +49,8 @@ const styles = (theme: Theme) =>
     root: {
       backgroundColor: fade(theme.palette.primary.main, 0.05),
       borderBottom: "1px solid rgba(224, 224, 224, 1)",
-      paddingLeft: 12,
-      paddingRight: 24,
-      position: "absolute",
-      width: "calc(100% - 72px)"
+      paddingLeft: 0,
+      paddingRight: 24
     },
     spacer: {
       flex: 1
@@ -99,7 +97,7 @@ const TableHead = withStyles(styles, {
           </TableCell>
           {selected ? (
             <>
-              <div className={classNames(classes.root)}>
+              <TableCell className={classNames(classes.root)} colSpan={50}>
                 <div className={classes.container}>
                   {selected && (
                     <Typography>
@@ -111,7 +109,7 @@ const TableHead = withStyles(styles, {
                   <div className={classes.spacer} />
                   <div className={classes.toolbar}>{toolbar}</div>
                 </div>
-              </div>
+              </TableCell>
             </>
           ) : (
             children

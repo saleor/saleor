@@ -35,9 +35,6 @@ const styles = (theme: Theme) =>
       },
       width: 48 + theme.spacing.unit / 2
     },
-    table: {
-      position: "relative"
-    },
     tableRow: {
       cursor: "pointer"
     }
@@ -92,7 +89,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           </Button>
         }
       />
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}

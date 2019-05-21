@@ -35,9 +35,6 @@ const styles = (theme: Theme) =>
     colOrders: {
       textAlign: "center"
     },
-    table: {
-      position: "relative"
-    },
     tableRow: {
       cursor: "pointer"
     }
@@ -66,7 +63,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
     isChecked
   }: CustomerListProps) => (
     <Card>
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}

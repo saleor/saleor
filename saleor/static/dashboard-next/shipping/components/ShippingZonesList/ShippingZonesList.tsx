@@ -48,9 +48,6 @@ const styles = (theme: Theme) =>
     colName: {},
     row: {
       cursor: "pointer"
-    },
-    table: {
-      position: "relative"
     }
   });
 const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
@@ -82,7 +79,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
           </Button>
         }
       />
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}

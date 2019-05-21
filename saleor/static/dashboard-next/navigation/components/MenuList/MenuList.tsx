@@ -42,9 +42,6 @@ const styles = (theme: Theme) =>
     colTitle: {},
     row: {
       cursor: "pointer"
-    },
-    table: {
-      position: "relative"
     }
   });
 const MenuList = withStyles(styles, { name: "MenuList" })(
@@ -64,7 +61,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     toolbar
   }: MenuListProps & WithStyles<typeof styles>) => (
     <Card>
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}
