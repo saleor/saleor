@@ -2,12 +2,14 @@ import datetime
 from unittest.mock import Mock, patch
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.account.models import Address
+from saleor.account import CustomerEvents
+from saleor.account.models import Address, CustomerEvent
 from saleor.checkout import views
 from saleor.checkout.forms import CheckoutVoucherForm, CountryForm
 from saleor.checkout.utils import (
@@ -30,6 +32,8 @@ from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
+from saleor.order import OrderEvents, OrderEventsEmails
+from saleor.order.models import OrderEvent
 from saleor.product.models import Category
 from saleor.shipping.models import ShippingZone
 
@@ -549,6 +553,67 @@ def test_view_checkout_summary_remove_voucher(
     response = client.post(url, follow=True, HTTP_REFERER=remove_voucher_url)
 
     assert not response.context["checkout"].voucher_code
+
+
+@pytest.mark.parametrize("is_anonymous_user", (True, False))
+def test_create_order_creates_expected_events(
+    request_checkout_with_item, customer_user, shipping_method, is_anonymous_user
+):
+    checkout = request_checkout_with_item
+    checkout_user = None if is_anonymous_user else customer_user
+
+    # Ensure not events are existing prior
+    assert not OrderEvent.objects.exists()
+    assert not CustomerEvent.objects.exists()
+
+    # Prepare valid checkout
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+
+    # Place checkout
+    order = create_order(
+        checkout,
+        "tracking_code",
+        discounts=None,
+        taxes=None,
+        user=customer_user if not is_anonymous_user else AnonymousUser(),
+    )
+
+    # Ensure only two events were created, and retrieve them
+    placement_event, email_sent_event = order.events.all()  # type: OrderEvent
+
+    # Ensure the correct order event was created
+    assert placement_event.type == OrderEvents.PLACED  # is the event the expected type
+    assert placement_event.user == checkout_user  # is the user anonymous/ the customer
+    assert placement_event.order is order  # is the associated backref order valid
+    assert placement_event.date  # ensure a date was set
+    assert not placement_event.parameters  # should not have any additional parameters
+
+    # Ensure the correct email sent event was created
+    assert email_sent_event.type == OrderEvents.EMAIL_SENT  # should be email sent event
+    assert email_sent_event.user == checkout_user  # ensure the user is none or valid
+    assert email_sent_event.order is order  # ensure the mail event is related to order
+    assert email_sent_event.date  # ensure a date was set
+    assert email_sent_event.parameters == {  # ensure the correct parameters were set
+        "email": order.get_user_current_email(),
+        "email_type": OrderEventsEmails.ORDER,
+    }
+
+    # Check no event was created if the user was anonymous
+    if is_anonymous_user:
+        assert not CustomerEvent.objects.exists()  # should not have created any event
+        return  # we are done testing as the user is anonymous
+
+    # Ensure the correct customer event was created if the user was not anonymous
+    placement_event = customer_user.events.get()  # type: CustomerEvent
+    assert placement_event.type == CustomerEvents.PLACED_ORDER  # check the event type
+    assert placement_event.user == customer_user  # check the backref is valid
+    assert placement_event.order == order  # check the associated order is valid
+    assert placement_event.date  # ensure a date was set
+    assert not placement_event.parameters  # should not have any additional parameters
 
 
 def test_create_order_insufficient_stock(
