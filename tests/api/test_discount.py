@@ -3,11 +3,12 @@ from datetime import date, timedelta
 import graphene
 import pytest
 from django_countries import countries
+from tests.api.utils import get_graphql_content
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
-from saleor.graphql.discount.enums import DiscountValueTypeEnum, VoucherTypeEnum
-from tests.api.utils import get_graphql_content
+from saleor.graphql.discount.enums import (DiscountValueTypeEnum,
+                                           VoucherTypeEnum)
 
 
 @pytest.fixture
@@ -215,6 +216,61 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
     data = content["data"]["voucherCreate"]["voucher"]
     assert data["name"] == variables["name"]
     assert data["code"] != ""
+
+
+def test_create_voucher_with_existing_gift_card_code(
+    staff_api_client, gift_card, permission_manage_discounts
+):
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
+    variables = {
+        "name": "test voucher",
+        "type": VoucherTypeEnum.VALUE.name,
+        "code": gift_card.code,
+        "discountValueType": DiscountValueTypeEnum.FIXED.name,
+        "discountValue": 10.12,
+        "minAmountSpent": 1.12,
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+    }
+
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["voucherCreate"]["errors"]
+    errors = content["data"]["voucherCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "code"
+    assert errors[0]["message"] == "Voucher with this code is not avaible."
+
+
+def test_create_voucher_with_existing_voucher_code(
+    staff_api_client, voucher_shipping_type, permission_manage_discounts
+):
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
+    variables = {
+        "name": "test voucher",
+        "type": VoucherTypeEnum.VALUE.name,
+        "code": voucher_shipping_type.code,
+        "discountValueType": DiscountValueTypeEnum.FIXED.name,
+        "discountValue": 10.12,
+        "minAmountSpent": 1.12,
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+    }
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    from pprint import pprint
+    content = get_graphql_content(response)
+    pprint(content)
+    assert content["data"]["voucherCreate"]["errors"]
+    errors = content["data"]["voucherCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "code"
+    assert errors[0]["message"] == "Voucher with this code is not avaible."
 
 
 def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
