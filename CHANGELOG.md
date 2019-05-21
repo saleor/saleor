@@ -3,6 +3,7 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+
 - Cleanup code for updated function names, unused argument, etc. - #4090 by @jxltom
 - Merge authorize with capture - #4098 by @korycins, @NyanKiyoshi
 - Fix GATEWAYS_ENUM to always contain all implemented payment gateways - #4108 by @koradon
@@ -10,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change input style and improve Storybook stories - #4115 by @dominik-zeglen
 - Separated the legacy middleware from the GQL API middleware - #4102 by @NyanKiyoshi
 - Add navigation section - #4012 by @dominik-zeglen
+- Migrate deprecated fields in Dashboard 2.0 - #4121 by @benekex2
 
 ## 2.6.0
 
