@@ -90,38 +90,11 @@ export const product: (
       }
     }
   ],
-  availability: {
-    __typename: "ProductPricingInfo",
-    available: false,
-    priceRange: {
-      __typename: "TaxedMoneyRange",
-      start: {
-        __typename: "TaxedMoney",
-        gross: {
-          __typename: "Money",
-          amount: 12.3,
-          currency: "USD"
-        },
-        net: {
-          __typename: "Money",
-          amount: 10,
-          currency: "USD"
-        }
-      },
-      stop: {
-        __typename: "TaxedMoney",
-        gross: {
-          __typename: "Money",
-          amount: 24.6,
-          currency: "USD"
-        },
-        net: {
-          __typename: "Money",
-          amount: 20,
-          currency: "USD"
-        }
-      }
-    }
+  basePrice: {
+    __typename: "Money",
+    amount: 339.39,
+    currency: "NZD",
+    localized: "339.39 NZD"
   },
   category: { __typename: "Category", id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
   chargeTaxes: true,
@@ -171,15 +144,42 @@ export const product: (
       url: placeholderImage
     }
   ],
+  isAvailable: false,
   isFeatured: false,
   isPublished: true,
   margin: { __typename: "Margin", start: 2, stop: 7 },
   name: "Ergonomic Plastic Bacon",
-  price: {
-    __typename: "Money",
-    amount: 339.39,
-    currency: "NZD",
-    localized: "339.39 NZD"
+  pricing: {
+    __typename: "ProductPricingInfo",
+    priceRange: {
+      __typename: "TaxedMoneyRange",
+      start: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 12.3,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 10,
+          currency: "USD"
+        }
+      },
+      stop: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 24.6,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 20,
+          currency: "USD"
+        }
+      }
+    }
   },
   productType: {
     __typename: "ProductType",
@@ -406,7 +406,7 @@ export const products = (placeholderImage: string) => [
         }
       }
     ],
-    availability: { available: true },
+    basePrice: { amount: 274.99389477595827, currency: "XAG" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -426,11 +426,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: true,
     isFeatured: false,
     isPublished: false,
     margin: { start: 6, stop: 18 },
     name: "Gorgeous Frozen Chips",
-    price: { amount: 274.99389477595827, currency: "XAG" },
     productType: {
       hasVariants: true,
       id: "pt41284",
@@ -567,7 +567,7 @@ export const products = (placeholderImage: string) => [
         }
       }
     ],
-    availability: { available: true },
+    basePrice: { amount: 432.2991706153576, currency: "ZWL" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -587,11 +587,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: true,
     isFeatured: false,
     isPublished: true,
     margin: { start: 4, stop: 19 },
     name: "Handcrafted Wooden Towels",
-    price: { amount: 432.2991706153576, currency: "ZWL" },
     productType: { hasVariants: false, id: "pt29020", name: "Future" },
     publicationDate: null,
     purchaseCost: {
@@ -764,7 +764,7 @@ export const products = (placeholderImage: string) => [
         }
       }
     ],
-    availability: { available: false },
+    basePrice: { amount: 688.3543328975433, currency: "XDR" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -784,11 +784,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: true,
     margin: { start: 3, stop: 18 },
     name: "Handcrafted Metal Cheese",
-    price: { amount: 688.3543328975433, currency: "XDR" },
     productType: { hasVariants: true, id: "pt23508", name: "SMS" },
     publicationDate: null,
     purchaseCost: {
@@ -972,7 +972,7 @@ export const products = (placeholderImage: string) => [
         value: { id: "ptav60428", name: "HDD", slug: "HDD", sortOrder: 3 }
       }
     ],
-    availability: { available: false },
+    basePrice: { amount: 540.3817687240911, currency: "SLL" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -992,11 +992,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: true,
     isPublished: true,
     margin: { start: 4, stop: 19 },
     name: "Refined Rubber Keyboard",
-    price: { amount: 540.3817687240911, currency: "SLL" },
     productType: { hasVariants: false, id: "pt20625", name: "Virtual" },
     publicationDate: null,
     purchaseCost: {
@@ -1189,7 +1189,7 @@ export const products = (placeholderImage: string) => [
         value: { id: "ptav52878", name: "Burgs", slug: "Burgs", sortOrder: 0 }
       }
     ],
-    availability: { available: true },
+    basePrice: { amount: 4.359138839276078, currency: "AMD" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1209,11 +1209,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: true,
     isFeatured: false,
     isPublished: false,
     margin: { start: 6, stop: 17 },
     name: "Gorgeous Metal Gloves",
-    price: { amount: 4.359138839276078, currency: "AMD" },
     productType: { hasVariants: true, id: "pt91547", name: "Vermont" },
     publicationDate: null,
     purchaseCost: {
@@ -1445,7 +1445,7 @@ export const products = (placeholderImage: string) => [
         }
       }
     ],
-    availability: { available: false },
+    basePrice: { amount: 538.0974149450597, currency: "GMD" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1465,11 +1465,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: false,
     margin: { start: 1, stop: 15 },
     name: "Small Cotton Shirt",
-    price: { amount: 538.0974149450597, currency: "GMD" },
     productType: { hasVariants: false, id: "pt69941", name: "Gorgeous" },
     publicationDate: null,
     purchaseCost: {
@@ -1640,7 +1640,7 @@ export const products = (placeholderImage: string) => [
         value: { id: "ptav70505", name: "Avon", slug: "Avon", sortOrder: 0 }
       }
     ],
-    availability: { available: false },
+    basePrice: { amount: 56.90596710694962, currency: "CVE" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1660,11 +1660,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: false,
     margin: { start: 0, stop: 4 },
     name: "Fantastic Cotton Tuna",
-    price: { amount: 56.90596710694962, currency: "CVE" },
     productType: { hasVariants: true, id: "pt41677", name: "TCP" },
     publicationDate: null,
     purchaseCost: {
@@ -1749,7 +1749,7 @@ export const products = (placeholderImage: string) => [
         value: { id: "ptav98940", name: "silver", slug: "silver", sortOrder: 0 }
       }
     ],
-    availability: { available: false },
+    basePrice: { amount: 981.0598640464501, currency: "XAG" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1769,11 +1769,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: true,
     margin: { start: 0, stop: 18 },
     name: "Tasty Steel Pants",
-    price: { amount: 981.0598640464501, currency: "XAG" },
     productType: { hasVariants: true, id: "pt93233", name: "Buckinghamshire" },
     publicationDate: null,
     purchaseCost: {
@@ -1956,7 +1956,7 @@ export const products = (placeholderImage: string) => [
         value: { id: "ptav77181", name: "orchid", slug: "orchid", sortOrder: 1 }
       }
     ],
-    availability: { available: true },
+    basePrice: { amount: 449.93166054829857, currency: "WST" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -1976,11 +1976,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: true,
     isFeatured: false,
     isPublished: true,
     margin: { start: 0, stop: 11 },
     name: "Ergonomic Cotton Shoes",
-    price: { amount: 449.93166054829857, currency: "WST" },
     productType: { hasVariants: true, id: "pt53386", name: "Jewelery" },
     publicationDate: null,
     purchaseCost: {
@@ -2088,7 +2088,7 @@ export const products = (placeholderImage: string) => [
         }
       }
     ],
-    availability: { available: false },
+    basePrice: { amount: 590.5928694420302, currency: "MGA" },
     category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
     collections: {
       edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
@@ -2108,11 +2108,11 @@ export const products = (placeholderImage: string) => [
         }
       ]
     },
+    isAvailable: false,
     isFeatured: false,
     isPublished: true,
     margin: { start: 4, stop: 17 },
     name: "Unbranded Steel Tuna",
-    price: { amount: 590.5928694420302, currency: "MGA" },
     productType: { hasVariants: true, id: "pt48315", name: "Agent" },
     publicationDate: null,
     purchaseCost: {

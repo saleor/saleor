@@ -13,8 +13,8 @@ import { OrderDraftFinalize } from "../../types/OrderDraftFinalize";
 import { OrderDraftUpdate } from "../../types/OrderDraftUpdate";
 import { OrderFulfillmentCancel } from "../../types/OrderFulfillmentCancel";
 import { OrderFulfillmentUpdateTracking } from "../../types/OrderFulfillmentUpdateTracking";
-import { OrderLineAdd } from "../../types/OrderLineAdd";
 import { OrderLineDelete } from "../../types/OrderLineDelete";
+import { OrderLinesAdd } from "../../types/OrderLinesAdd";
 import { OrderLineUpdate } from "../../types/OrderLineUpdate";
 import { OrderMarkAsPaid } from "../../types/OrderMarkAsPaid";
 import { OrderRefund } from "../../types/OrderRefund";
@@ -35,7 +35,7 @@ interface OrderDetailsMessages {
     handleOrderFulfillmentUpdate: (
       data: OrderFulfillmentUpdateTracking
     ) => void;
-    handleOrderLineAdd: (data: OrderLineAdd) => void;
+    handleOrderLinesAdd: (data: OrderLinesAdd) => void;
     handleOrderLineDelete: (data: OrderLineDelete) => void;
     handleOrderLineUpdate: (data: OrderLineUpdate) => void;
     handleOrderMarkAsPaid: (data: OrderMarkAsPaid) => void;
@@ -210,7 +210,7 @@ export const OrderDetailsMessages: React.StatelessComponent<
       });
     }
   };
-  const handleOrderLineAdd = (data: OrderLineAdd) => {
+  const handleOrderLinesAdd = (data: OrderLinesAdd) => {
     if (!maybe(() => data.draftOrderLinesCreate.errors.length)) {
       pushMessage({
         text: i18n.t("Order line added", {
@@ -301,9 +301,9 @@ export const OrderDetailsMessages: React.StatelessComponent<
     handleOrderFulfillmentCancel,
     handleOrderFulfillmentCreate,
     handleOrderFulfillmentUpdate,
-    handleOrderLineAdd,
     handleOrderLineDelete,
     handleOrderLineUpdate,
+    handleOrderLinesAdd,
     handleOrderMarkAsPaid,
     handleOrderVoid,
     handlePaymentCapture,

@@ -12,6 +12,23 @@ All notable, unreleased changes to this project will be documented in this file.
 - Separated the legacy middleware from the GQL API middleware - #4102 by @NyanKiyoshi
 - Add navigation section - #4012 by @dominik-zeglen
 - Order Events containing order lines or fulfillment lines now return the line object in the GraphQL API - #4114 by @NyanKiyoshi
+- Migrate deprecated fields in Dashboard 2.0 - #4121 by @benekex2
+- Implement events for customers in backend for the customers actions:
+    - placing an order,
+    - adding a note to an order,
+    - downloading a digital good,
+    - asking for password reset,
+    - resetting the password.
+
+  For staff actions over customers:
+    - deleting a customer,
+    - assigning a new name to a customer,
+    - assigning a new email to a customer,
+    - adding a note to a customer,
+    - deleting a customer.
+
+  -- #4094 by @NyanKiyoshi
+- Fix draftail options and icons - #4132 by @benekex2
 - Add multiple select checkbox - #4133 by @benekex2
 
 ## 2.6.0

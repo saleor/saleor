@@ -121,7 +121,9 @@ const OrderFulfillmentDialog = withStyles(styles, {
                       product.quantity - product.quantityFulfilled;
                     return (
                       <TableRow key={product.id}>
-                        <TableCellAvatar thumbnail={product.thumbnailUrl} />
+                        <TableCellAvatar
+                          thumbnail={maybe(() => product.thumbnail.url)}
+                        />
                         <TableCell>{product.productName}</TableCell>
                         <TableCell>{product.productSku}</TableCell>
                         <TableCell className={classes.quantityInputContainer}>

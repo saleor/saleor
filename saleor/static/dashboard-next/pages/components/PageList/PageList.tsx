@@ -126,11 +126,11 @@ const PageList = withStyles(styles, { name: "PageList" })(
                       () => (
                         <StatusLabel
                           label={
-                            page.isVisible
+                            page.isPublished
                               ? i18n.t("Published")
                               : i18n.t("Not Published")
                           }
-                          status={page.isVisible ? "success" : "error"}
+                          status={page.isPublished ? "success" : "error"}
                         />
                       ),
                       <Skeleton />
