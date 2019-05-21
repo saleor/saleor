@@ -1820,6 +1820,7 @@ input ProductCreateInput {
   isPublished: Boolean
   name: String
   price: Decimal
+  basePrice: Decimal
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
@@ -1902,6 +1903,7 @@ input ProductInput {
   isPublished: Boolean
   name: String
   price: Decimal
+  basePrice: Decimal
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
