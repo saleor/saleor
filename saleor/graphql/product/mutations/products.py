@@ -270,7 +270,11 @@ class ProductInput(graphene.InputObjectType):
         description="Determines if product is visible to customers."
     )
     name = graphene.String(description="Product name.")
-    price = Decimal(description="Product price.")
+    price = Decimal(
+        description="""
+        Product price. Note: this field is deprecated, use basePrice instead."""
+    )
+    base_price = Decimal(description="Product price.")
     tax_rate = TaxRateType(description="Tax rate.")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
@@ -322,6 +326,12 @@ class ProductCreate(ModelMutation):
         product_type = (
             instance.product_type if instance.pk else cleaned_input.get("product_type")
         )
+
+        # Try to get price from "basePrice" or "price" field. Once "price" is removed
+        # from the schema, only "basePrice" should be used here.
+        price = data.get("base_price", data.get("price"))
+        if price is not None:
+            cleaned_input["price"] = price
 
         if attributes and product_type:
             qs = product_type.product_attributes.prefetch_related("values")

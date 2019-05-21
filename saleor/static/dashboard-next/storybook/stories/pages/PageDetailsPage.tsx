@@ -32,8 +32,8 @@ storiesOf("Views / Pages / Page details", module)
         "title",
         "slug",
         "content",
-        "availableOn",
-        "isVisible",
+        "publicationDate",
+        "isPublished",
         "seoDescription",
         "seoTitle"
       ] as Array<keyof FormData>).map(formError)}

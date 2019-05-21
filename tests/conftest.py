@@ -39,6 +39,7 @@ from saleor.product.models import (
     Category,
     Collection,
     DigitalContent,
+    DigitalContentUrl,
     Product,
     ProductImage,
     ProductTranslation,
@@ -595,6 +596,20 @@ def voucher_shipping_type():
 
 
 @pytest.fixture()
+def order_line(order, variant, vatlayer):
+    taxes = vatlayer
+    return order.lines.create(
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=3,
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes["standard"]["value"],
+    )
+
+
+@pytest.fixture()
 def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
     taxes = vatlayer
     product = Product.objects.create(
@@ -1110,6 +1125,11 @@ def digital_content(category, media_root):
         use_default_settings=True,
     )
     return d_content
+
+
+@pytest.fixture()
+def digital_content_url(digital_content, order_line):
+    return DigitalContentUrl.objects.create(content=digital_content, line=order_line)
 
 
 @pytest.fixture()

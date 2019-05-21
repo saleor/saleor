@@ -9,6 +9,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import pgettext, ugettext_lazy as _
 from django.views.decorators.http import require_POST
 
+from ..account import events as account_events
 from ..checkout.utils import find_and_assign_anonymous_checkout
 from ..core.utils import get_paginator_items
 from .emails import send_account_delete_confirmation_email
@@ -66,6 +67,11 @@ class PasswordResetConfirm(django_views.PasswordResetConfirmView):
     success_url = reverse_lazy("account:reset-password-complete")
     token = None
     uidb64 = None
+
+    def form_valid(self, form):
+        response = super(PasswordResetConfirm, self).form_valid(form)
+        account_events.customer_password_reset_event(user=self.user)
+        return response
 
 
 def password_reset_confirm(request, uidb64=None, token=None):
