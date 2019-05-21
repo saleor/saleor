@@ -38,6 +38,9 @@ const styles = (theme: Theme) =>
     colProducts: {
       textAlign: "center"
     },
+    relative: {
+      position: "relative"
+    },
     tableRow: {
       cursor: "pointer" as "pointer"
     }
@@ -66,7 +69,7 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
     toolbar
   }: CollectionListProps) => (
     <Card>
-      <Table>
+      <Table className={classes.relative}>
         <TableHead
           selected={selected}
           disabled={disabled}

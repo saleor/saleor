@@ -46,6 +46,9 @@ const styles = (theme: Theme) =>
     },
     colCountries: {},
     colName: {},
+    relative: {
+      position: "relative"
+    },
     row: {
       cursor: "pointer"
     }
@@ -64,6 +67,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: ShippingZonesListProps & WithStyles<typeof styles>) => (
     <Card>
@@ -78,19 +82,24 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
           </Button>
         }
       />
-      <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Name", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colCountries}>
-              {i18n.t("Countries", { context: "object" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
+      <Table className={classes.relative}>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={shippingZones}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+          tablebar={
+            <>
+              <TableCell className={classes.colName}>
+                {i18n.t("Name", { context: "object" })}
+              </TableCell>
+              <TableCell className={classes.colCountries}>
+                {i18n.t("Countries", { context: "object" })}
+              </TableCell>
+            </>
+          }
+        />
         <TableFooter>
           <TableRow>
             <TablePagination

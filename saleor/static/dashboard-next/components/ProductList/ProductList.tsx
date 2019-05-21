@@ -53,6 +53,9 @@ const styles = (theme: Theme) =>
     link: {
       cursor: "pointer"
     },
+    relative: {
+      position: "relative"
+    },
     textLeft: {
       textAlign: "left"
     },
@@ -83,7 +86,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
     onPreviousPage,
     onRowClick
   }: ProductListProps) => (
-    <Table>
+    <Table className={classes.relative}>
       <TableHead
         selected={selected}
         disabled={disabled}
@@ -92,7 +95,6 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
         toolbar={toolbar}
         tablebar={
           <>
-            <TableCell />
             <TableCell />
             <TableCell className={classes.colName}>
               {i18n.t("Name", { context: "object" })}

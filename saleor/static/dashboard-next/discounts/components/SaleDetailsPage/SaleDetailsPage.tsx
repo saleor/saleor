@@ -100,7 +100,8 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
   productListToolbar,
   isChecked,
   selected,
-  toggle
+  toggle,
+  toggleAll
 }) => {
   const initialForm: FormData = {
     endDate: maybe(() => (sale.endDate ? sale.endDate : ""), ""),
@@ -181,6 +182,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   isChecked={isChecked}
                   selected={selected}
                   toggle={toggle}
+                  toggleAll={toggleAll}
                   toolbar={categoryListToolbar}
                 />
               ) : activeTab === SaleDetailsPageTab.collections ? (
@@ -196,6 +198,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   isChecked={isChecked}
                   selected={selected}
                   toggle={toggle}
+                  toggleAll={toggleAll}
                   toolbar={collectionListToolbar}
                 />
               ) : (
@@ -211,6 +214,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   isChecked={isChecked}
                   selected={selected}
                   toggle={toggle}
+                  toggleAll={toggleAll}
                   toolbar={productListToolbar}
                 />
               )}
