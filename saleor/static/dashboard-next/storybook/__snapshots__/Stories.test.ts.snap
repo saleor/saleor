@@ -6923,7 +6923,7 @@ exports[`Storyshots Views / Categories / Category list default 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id CategoryList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -7306,7 +7306,7 @@ exports[`Storyshots Views / Categories / Category list empty 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id CategoryList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -7495,7 +7495,7 @@ exports[`Storyshots Views / Categories / Category list loading 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id CategoryList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -9341,7 +9341,7 @@ Ctrl + K"
           class="CardTitle-hr-id"
         />
         <table
-          class="MuiTable-root-id CategoryList-relative-id"
+          class="MuiTable-root-id"
         >
           <thead
             class="MuiTableHead-root-id"
@@ -10027,7 +10027,7 @@ Ctrl + K"
           class="CardTitle-hr-id"
         />
         <table
-          class="MuiTable-root-id CategoryList-relative-id"
+          class="MuiTable-root-id"
         >
           <thead
             class="MuiTableHead-root-id"
@@ -11004,7 +11004,7 @@ Ctrl + K"
           class="CardTitle-hr-id"
         />
         <table
-          class="MuiTable-root-id CategoryList-relative-id"
+          class="MuiTable-root-id"
         >
           <thead
             class="MuiTableHead-root-id"
@@ -11939,7 +11939,7 @@ Ctrl + K"
           class="CardTitle-hr-id"
         />
         <table
-          class="MuiTable-root-id ProductList-relative-id"
+          class="MuiTable-root-id"
         >
           <thead
             class="MuiTableHead-root-id"
@@ -12884,7 +12884,7 @@ Ctrl + K"
           class="CardTitle-hr-id"
         />
         <table
-          class="MuiTable-root-id CategoryList-relative-id"
+          class="MuiTable-root-id"
         >
           <thead
             class="MuiTableHead-root-id"
@@ -13758,7 +13758,7 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <table
-              class="MuiTable-root-id CollectionProducts-relative-id"
+              class="MuiTable-root-id"
             >
               <thead
                 class="MuiTableHead-root-id"
@@ -14850,7 +14850,7 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <table
-              class="MuiTable-root-id CollectionProducts-relative-id"
+              class="MuiTable-root-id"
             >
               <thead
                 class="MuiTableHead-root-id"
@@ -15978,7 +15978,7 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <table
-              class="MuiTable-root-id CollectionProducts-relative-id"
+              class="MuiTable-root-id"
             >
               <thead
                 class="MuiTableHead-root-id"
@@ -16332,7 +16332,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id CollectionList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -16588,7 +16588,7 @@ exports[`Storyshots Views / Collections / Collection list loading 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id CollectionList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -24870,7 +24870,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id CustomerList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -25866,7 +25866,7 @@ exports[`Storyshots Views / Customers / Customer list loading 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id CustomerList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -26090,7 +26090,7 @@ exports[`Storyshots Views / Customers / Customer list no data 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id CustomerList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -27158,10 +27158,6 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
                     </button>
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
-                    scope="col"
-                  />
-                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id DiscountCollections-wideColumn-id"
                     scope="col"
                   >
@@ -27173,10 +27169,6 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
                   >
                     Products
                   </th>
-                  <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
-                    scope="col"
-                  />
                 </tr>
               </thead>
               <tfoot
@@ -29921,7 +29913,7 @@ exports[`Storyshots Views / Discounts / Sale list default 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id SaleList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -30331,7 +30323,7 @@ exports[`Storyshots Views / Discounts / Sale list loading 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id SaleList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -30571,7 +30563,7 @@ exports[`Storyshots Views / Discounts / Sale list no data 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id SaleList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -33267,7 +33259,7 @@ exports[`Storyshots Views / Discounts / Voucher list default 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id VoucherList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -33574,7 +33566,7 @@ exports[`Storyshots Views / Discounts / Voucher list loading 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id VoucherList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -33844,7 +33836,7 @@ exports[`Storyshots Views / Discounts / Voucher list no data 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id VoucherList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -36665,7 +36657,7 @@ exports[`Storyshots Views / Navigation / Menu list default 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id MenuList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -36955,7 +36947,7 @@ exports[`Storyshots Views / Navigation / Menu list loading 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id MenuList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -37200,7 +37192,7 @@ exports[`Storyshots Views / Navigation / Menu list no data 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id MenuList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -53677,7 +53669,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
         </div>
       </div>
       <table
-        class="MuiTable-root-id OrderList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -55213,7 +55205,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
         </div>
       </div>
       <table
-        class="MuiTable-root-id OrderList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -55566,7 +55558,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
         </div>
       </div>
       <table
-        class="MuiTable-root-id OrderList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -55972,7 +55964,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
         </div>
       </div>
       <table
-        class="MuiTable-root-id OrderList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -59579,7 +59571,7 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id PageList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -59911,7 +59903,7 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id PageList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -60141,7 +60133,7 @@ exports[`Storyshots Views / Pages / Page list no data 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id PageList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -61514,7 +61506,7 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id ProductTypeList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -61889,7 +61881,7 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
       class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
     >
       <table
-        class="MuiTable-root-id ProductTypeList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -71360,7 +71352,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         </div>
       </div>
       <table
-        class="MuiTable-root-id ProductList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -72177,7 +72169,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
         </div>
       </div>
       <table
-        class="MuiTable-root-id ProductList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -72527,7 +72519,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         </div>
       </div>
       <table
-        class="MuiTable-root-id ProductList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -72924,7 +72916,7 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
         </div>
       </div>
       <table
-        class="MuiTable-root-id ProductList-relative-id"
+        class="MuiTable-root-id"
       >
         <thead
           class="MuiTableHead-root-id"
@@ -76706,7 +76698,7 @@ exports[`Storyshots Views / Shipping / Shipping zones list default 1`] = `
             class="CardTitle-hr-id"
           />
           <table
-            class="MuiTable-root-id ShippingZonesList-relative-id"
+            class="MuiTable-root-id"
           >
             <thead
               class="MuiTableHead-root-id"
@@ -77275,7 +77267,7 @@ exports[`Storyshots Views / Shipping / Shipping zones list loading 1`] = `
             class="CardTitle-hr-id"
           />
           <table
-            class="MuiTable-root-id ShippingZonesList-relative-id"
+            class="MuiTable-root-id"
           >
             <thead
               class="MuiTableHead-root-id"
@@ -77625,7 +77617,7 @@ exports[`Storyshots Views / Shipping / Shipping zones list no data 1`] = `
             class="CardTitle-hr-id"
           />
           <table
-            class="MuiTable-root-id ShippingZonesList-relative-id"
+            class="MuiTable-root-id"
           >
             <thead
               class="MuiTableHead-root-id"
