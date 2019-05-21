@@ -7,6 +7,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
+from saleor.account.models import CustomerEvent
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
@@ -1221,9 +1222,11 @@ def test_order_update_user_email_existing_user(
     assert order.user == customer_user
 
 
-def test_order_add_note(
+def test_order_add_note_as_staff_user(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
+    """We are testing that adding a note to an order as a staff user is doing the
+    expected behaviors."""
     order = order_with_lines
     query = """
         mutation addNote($id: ID!, $message: String) {
@@ -1258,10 +1261,14 @@ def test_order_add_note(
     assert data["event"]["user"]["email"] == staff_user.email
     assert data["event"]["message"] == message
 
+    # Ensure the correct order event was created
     event = order.events.get()
     assert event.type == order_events.OrderEvents.NOTE_ADDED
     assert event.user == staff_user
     assert event.parameters == {"message": message}
+
+    # Ensure not customer events were created as it was a staff action
+    assert not CustomerEvent.objects.exists()
 
 
 CANCEL_ORDER_QUERY = """

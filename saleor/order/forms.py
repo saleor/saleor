@@ -5,6 +5,7 @@ from django.utils.translation import pgettext_lazy
 from ..account.forms import SignupForm
 from ..payment.models import Payment
 from ..payment.utils import gateway_void
+from . import events
 from .models import Order
 
 PAYMENT_CHOICES = [(k, v) for k, v in settings.CHECKOUT_PAYMENT_GATEWAYS.items()]
@@ -69,3 +70,9 @@ class CustomerNoteForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = ["customer_note"]
+
+    def save(self, *, user, commit=True):
+        events.order_note_added_event(
+            order=self.instance, user=user, message=self.instance.customer_note
+        )
+        return super().save(commit)
