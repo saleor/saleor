@@ -53,9 +53,6 @@ const styles = (theme: Theme) =>
     link: {
       cursor: "pointer"
     },
-    table: {
-      position: "relative"
-    },
     textLeft: {
       textAlign: "left"
     },
@@ -86,7 +83,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
     onPreviousPage,
     onRowClick
   }: ProductListProps) => (
-    <Table className={classes.table}>
+    <Table>
       <TableHead
         selected={selected}
         disabled={disabled}

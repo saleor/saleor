@@ -54,9 +54,6 @@ const styles = (theme: Theme) =>
     colValue: {
       textAlign: "right"
     },
-    table: {
-      position: "relative"
-    },
     tableRow: {
       cursor: "pointer"
     }
@@ -81,7 +78,7 @@ const SaleList = withStyles(styles, {
     toolbar
   }: SaleListProps & WithStyles<typeof styles>) => (
     <Card>
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}

@@ -66,9 +66,6 @@ const styles = (theme: Theme) =>
     colValue: {
       textAlign: "right"
     },
-    table: {
-      position: "relative"
-    },
     tableRow: {
       cursor: "pointer"
     },
@@ -96,7 +93,7 @@ const VoucherList = withStyles(styles, {
     toolbar
   }: VoucherListProps & WithStyles<typeof styles>) => (
     <Card>
-      <Table className={classes.table}>
+      <Table>
         <TableHead
           selected={selected}
           disabled={disabled}

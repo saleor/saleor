@@ -55,9 +55,6 @@ const styles = (theme: Theme) =>
       marginBottom: theme.spacing.unit * 2,
       marginTop: theme.spacing.unit * 2
     },
-    table: {
-      border: "1px solid " + theme.palette.grey[200]
-    },
     wideCell: {
       width: "100%"
     }
@@ -120,7 +117,7 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                       context: "country selection"
                     })}
                   </Typography>
-                  <Table className={classes.table}>
+                  <Table>
                     <TableBody>
                       {filter(countries, data.query, {
                         key: "country"
