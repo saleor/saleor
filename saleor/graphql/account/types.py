@@ -171,12 +171,6 @@ class User(CountableDjangoObjectType):
             )
 
 
-class AddressValidationInput(graphene.InputObjectType):
-    country_code = graphene.String()
-    country_area = graphene.String()
-    city_area = graphene.String()
-
-
 class ChoiceValue(graphene.ObjectType):
     raw = graphene.String()
     verbose = graphene.String()

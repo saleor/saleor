@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change input style and improve Storybook stories - #4115 by @dominik-zeglen
 - Separated the legacy middleware from the GQL API middleware - #4102 by @NyanKiyoshi
 - Add navigation section - #4012 by @dominik-zeglen
+- Order Events containing order lines or fulfillment lines now return the line object in the GraphQL API - #4114 by @NyanKiyoshi
 - Migrate deprecated fields in Dashboard 2.0 - #4121 by @benekex2
 
 ## 2.6.0
