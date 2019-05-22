@@ -1,4 +1,5 @@
 import json
+import logging
 import traceback
 
 from django.conf import settings
@@ -14,6 +15,8 @@ from graphql.error import (
     format_error as format_graphql_error,
 )
 from graphql.execution import ExecutionResult
+
+logger = logging.getLogger(__name__)
 
 
 class GraphQLView(View):
@@ -190,10 +193,14 @@ class GraphQLView(View):
             result = format_graphql_error(error)
         else:
             result = {"message": str(error)}
+
+        exc = error
+        while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
+            exc = exc.original_error
+
+        logger.error("Exception information:", exc_info=exc)
+
         if settings.DEBUG:
-            exc = error
-            while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
-                exc = exc.original_error
             lines = []
             for line in traceback.format_exception(type(exc), exc, exc.__traceback__):
                 lines.extend(line.rstrip().splitlines())
