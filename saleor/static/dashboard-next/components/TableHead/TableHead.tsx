@@ -74,50 +74,46 @@ const TableHead = withStyles(styles, {
     toggleAll,
     toolbar,
     ...muiTableHeadProps
-  }: TableHeadProps & WithStyles<typeof styles>) => {
-    const [isSelected, setSelected] = React.useState(false);
-    return (
-      <MuiTableHead {...muiTableHeadProps}>
-        <TableRow>
-          <TableCell
-            padding="checkbox"
-            className={classNames({
-              [classes.checkboxSelected]: selected
-            })}
-          >
-            <Checkbox
-              checked={isSelected}
-              disabled={disabled}
-              onChange={event => {
-                toggleAll(items, selected);
-                setSelected(!isSelected);
-                event.stopPropagation();
-              }}
-            />
-          </TableCell>
-          {selected ? (
-            <>
-              <TableCell className={classNames(classes.root)} colSpan={50}>
-                <div className={classes.container}>
-                  {selected && (
-                    <Typography>
-                      {i18n.t("Selected {{ number }} items", {
-                        number: selected
-                      })}
-                    </Typography>
-                  )}
-                  <div className={classes.spacer} />
-                  <div className={classes.toolbar}>{toolbar}</div>
-                </div>
-              </TableCell>
-            </>
-          ) : (
-            children
-          )}
-        </TableRow>
-      </MuiTableHead>
-    );
-  }
+  }: TableHeadProps & WithStyles<typeof styles>) => (
+    <MuiTableHead {...muiTableHeadProps}>
+      <TableRow>
+        <TableCell
+          padding="checkbox"
+          className={classNames({
+            [classes.checkboxSelected]: selected
+          })}
+        >
+          <Checkbox
+            checked={selected === 0 ? false : true}
+            disabled={disabled}
+            onChange={event => {
+              toggleAll(items, selected);
+              event.stopPropagation();
+            }}
+          />
+        </TableCell>
+        {selected ? (
+          <>
+            <TableCell className={classNames(classes.root)} colSpan={50}>
+              <div className={classes.container}>
+                {selected && (
+                  <Typography>
+                    {i18n.t("Selected {{ number }} items", {
+                      number: selected
+                    })}
+                  </Typography>
+                )}
+                <div className={classes.spacer} />
+                <div className={classes.toolbar}>{toolbar}</div>
+              </div>
+            </TableCell>
+          </>
+        ) : (
+          children
+        )}
+      </TableRow>
+    </MuiTableHead>
+  )
 );
 TableHead.displayName = "TableHead";
 export default TableHead;
