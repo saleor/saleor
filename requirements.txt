@@ -5,9 +5,10 @@ autopep8==1.4.4
 babel==2.6.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.144
-botocore==1.12.144
+boto3==1.9.151
+botocore==1.12.151
 braintree==3.49.0
+cachetools==3.1.0
 cairocffi==1.0.2
 cairosvg==2.3.1
 celery[redis]==4.3.0
@@ -40,9 +41,9 @@ django-prices-vatlayer==1.0.2
 django-prices==1.0.4
 django-recaptcha==1.5.0
 django-redis==4.10.0
-django-render-block==0.5
+django-render-block==0.6
 django-silk==2.0.0
-django-storages==1.7.1
+django-storages[google]==1.7.1
 django-templated-email==2.3.0
 django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
@@ -50,10 +51,16 @@ django==2.2.1
 docutils==0.14
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
-faker==1.0.5
+faker==1.0.7
 freezegun==0.3.11
+google-api-core==1.11.0
+google-auth==1.6.3
+google-cloud-core==1.0.0
+google-cloud-storage==1.16.0
 google-i18n-address==2.3.4
 google-measurement-protocol==1.0.0
+google-resumable-media==0.3.2
+googleapis-common-protos==1.5.10
 gprof2dot==2016.10.13
 graphene-django-optimizer==0.4.0
 graphene-django==2.2.0
@@ -78,11 +85,14 @@ phonenumberslite==8.10.9
 pillow==5.4.1
 prices==1.0.0
 promise==2.2.1
+protobuf==3.7.1
 psycopg2-binary==2.8.2
 purl==1.5
+pyasn1-modules==0.2.5
+pyasn1==0.4.5
 pycodestyle==2.5.0
 pycparser==2.19
-pygments==2.3.1
+pygments==2.4.0
 pyjwt==1.7.1
 pyphen==0.9.5
 python-dateutil==2.8.0 ; python_version >= '2.7'
@@ -92,7 +102,8 @@ raven==6.9.0
 razorpay==1.2.0
 redis==3.2.1
 requests-oauthlib==1.2.0
-requests==2.21.0
+requests==2.22.0
+rsa==4.0
 rx==1.6.1
 s3transfer==0.2.0
 singledispatch==3.4.0.3
@@ -100,7 +111,7 @@ six==1.12.0
 social-auth-app-django==3.1.0
 social-auth-core==3.1.0
 sqlparse==0.3.0
-stripe==2.27.0
+stripe==2.28.0
 sympy==1.4
 text-unidecode==1.2
 tinycss2==1.0.2
