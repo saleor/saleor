@@ -32,6 +32,15 @@ const styles = (theme: Theme) =>
     cell: {
       padding: 0
     },
+    checkboxPartialSelect: {
+      "&:after": {
+        background: "#fff",
+        content: "''",
+        height: 2,
+        position: "absolute",
+        width: 4
+      }
+    },
     checkboxSelected: {
       backgroundColor: fade(theme.palette.primary.main, 0.05)
     },
@@ -75,7 +84,6 @@ const TableHead = withStyles(styles, {
     toolbar,
     ...muiTableHeadProps
   }: TableHeadProps & WithStyles<typeof styles>) => {
-    const [isSelected, setSelected] = React.useState(false);
     return (
       <MuiTableHead {...muiTableHeadProps}>
         <TableRow>
@@ -85,15 +93,20 @@ const TableHead = withStyles(styles, {
               [classes.checkboxSelected]: selected
             })}
           >
-            <Checkbox
-              checked={isSelected}
-              disabled={disabled}
-              onChange={event => {
-                toggleAll(items, selected);
-                setSelected(!isSelected);
-                event.stopPropagation();
-              }}
-            />
+            {items && items.length > 0 ? (
+              <Checkbox
+                className={classNames({
+                  [classes.checkboxPartialSelect]:
+                    items && items.length > selected && selected > 0
+                })}
+                checked={selected === 0 ? false : true}
+                disabled={disabled}
+                onClick={event => {
+                  toggleAll(items, selected);
+                  event.stopPropagation();
+                }}
+              />
+            ) : null}
           </TableCell>
           {selected ? (
             <>
