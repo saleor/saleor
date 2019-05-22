@@ -7,3 +7,4 @@ Deployment
    deployment/docker
    deployment/heroku
    deployment/s3
+   deployment/gcs
