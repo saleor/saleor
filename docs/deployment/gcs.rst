@@ -1,4 +1,4 @@
-.. _amazon-s3:
+.. _google-cloud-storage:
 
 Storing Files on Google Cloud Storage (GCS) 
 ===========================================
@@ -24,12 +24,6 @@ variable to use GCS as media bucket:
 ``GS_MEDIA_BUCKET_NAME``
   The GCS bucket name to use for media files.
 
-If you are intending into using a custom domain for your media GCS bucket,
-you can set this environment variable to your custom GCS media domain:
-
-``GS_MEDIA_CUSTOM_DOMAIN``
-  The GCS custom domain to use for the media bucket.
-
 
 .. note::
  The media files are every data uploaded through the dashboard
@@ -45,12 +39,6 @@ If you intend to use GCS for your static files as well, set an additional enviro
 
 ``GS_STORAGE_BUCKET_NAME``
   The GCS bucket name to use for static files.
-
-If you are intending into using a custom domain for your static GCS bucket,
-you can set this environment variable to your custom GCS domain:
-
-``GS_STATIC_CUSTOM_DOMAIN``
-  The GCS custom domain to use for the static bucket.
 
 
 .. note::
