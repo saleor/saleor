@@ -63,12 +63,7 @@ export const TaxConfiguration = withStyles(styles, {
       </CardContent>
       <Hr />
       <CardActions>
-        <Button
-          disabled={disabled}
-          onClick={onTaxFetch}
-          variant="flat"
-          color="primary"
-        >
+        <Button disabled={disabled} onClick={onTaxFetch} color="primary">
           {i18n.t("Fetch taxes")}
         </Button>
       </CardActions>

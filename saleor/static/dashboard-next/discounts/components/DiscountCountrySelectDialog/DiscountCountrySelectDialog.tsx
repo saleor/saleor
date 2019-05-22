@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -19,6 +18,7 @@ import Typography from "@material-ui/core/Typography";
 import { filter } from "fuzzaldrin";
 import * as React from "react";
 
+import Checkbox from "../../../components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "../../../components/ConfirmButton/ConfirmButton";
@@ -54,9 +54,6 @@ const styles = (theme: Theme) =>
     heading: {
       marginBottom: theme.spacing.unit * 2,
       marginTop: theme.spacing.unit * 2
-    },
-    table: {
-      border: "1px solid " + theme.palette.grey[200]
     },
     wideCell: {
       width: "100%"
@@ -115,12 +112,12 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                 </DialogContent>
                 <Hr />
                 <DialogContent className={classes.container}>
-                  <Typography className={classes.heading} variant="subheading">
+                  <Typography className={classes.heading} variant="subtitle1">
                     {i18n.t("Countries A to Z", {
                       context: "country selection"
                     })}
                   </Typography>
-                  <Table className={classes.table}>
+                  <Table>
                     <TableBody>
                       {filter(countries, data.query, {
                         key: "country"

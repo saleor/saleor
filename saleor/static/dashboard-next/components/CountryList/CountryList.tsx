@@ -98,7 +98,7 @@ const CountryList = withStyles(styles, {
         <CardTitle
           title={title}
           toolbar={
-            <Button variant="flat" color="primary" onClick={onCountryAssign}>
+            <Button color="primary" onClick={onCountryAssign}>
               {i18n.t("Assign countries")}
             </Button>
           }

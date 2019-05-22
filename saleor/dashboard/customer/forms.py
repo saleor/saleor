@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
+from ...account import events as account_events
 from ...account.models import CustomerNote, User
 
 
@@ -69,6 +70,32 @@ class CustomerForm(forms.ModelForm):
             placeholder = get_name_placeholder(address.last_name)
             self.fields["last_name"].widget.attrs["placeholder"] = placeholder
 
+    def save(self, commit=True):
+        is_user_creation = self.instance.pk is None
+        staff_user = self.user
+
+        instance = super(CustomerForm, self).save(commit=commit)  # type: User
+        if is_user_creation:
+            account_events.customer_account_created_event(user=instance)
+            return instance
+
+        has_new_email = "email" in self.changed_data
+        has_new_name = (
+            "first_name" in self.changed_data or "last_name" in self.changed_data
+        )
+
+        # Generate the events
+        if has_new_email:
+            account_events.staff_user_assigned_email_to_a_customer_event(
+                staff_user=staff_user, new_email=instance.email
+            )
+        if has_new_name:
+            account_events.staff_user_assigned_name_to_a_customer_event(
+                staff_user=staff_user, new_name=instance.get_full_name()
+            )
+
+        return instance
+
     class Meta:
         model = User
         fields = ["first_name", "last_name", "email", "note", "is_active"]
@@ -98,3 +125,11 @@ class CustomerNoteForm(forms.ModelForm):
                 "Allow customers to see note toggle", "Customer can see this note"
             ),
         }
+
+    def save(self, commit=True):
+        is_creation = self.instance.pk is None
+        super().save(commit=commit)
+        if is_creation:
+            account_events.staff_user_added_note_to_a_customer_event(
+                staff_user=self.instance.customer, note=self.instance.content
+            )

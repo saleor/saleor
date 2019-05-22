@@ -67,6 +67,11 @@ export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice {
   net: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_net;
 }
 
+export interface OrderDetailsFragment_fulfillments_lines_orderLine_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderDetailsFragment_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
@@ -76,7 +81,7 @@ export interface OrderDetailsFragment_fulfillments_lines_orderLine {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderDetailsFragment_fulfillments_lines_orderLine_thumbnail | null;
 }
 
 export interface OrderDetailsFragment_fulfillments_lines {
@@ -113,6 +118,11 @@ export interface OrderDetailsFragment_lines_unitPrice {
   net: OrderDetailsFragment_lines_unitPrice_net;
 }
 
+export interface OrderDetailsFragment_lines_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderDetailsFragment_lines {
   __typename: "OrderLine";
   id: string;
@@ -122,7 +132,7 @@ export interface OrderDetailsFragment_lines {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderDetailsFragment_lines_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderDetailsFragment_lines_thumbnail | null;
 }
 
 export interface OrderDetailsFragment_shippingAddress_country {

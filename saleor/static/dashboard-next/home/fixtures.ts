@@ -300,13 +300,13 @@ export const shop: (placeholderImage: string) => Home = (
           id: "UHJvZHVjdFZhcmlhbnQ6NDM=",
           product: {
             __typename: "Product",
-            id: "UHJvZHVjdDo4",
-            name: "Gardner-Martin",
-            price: {
+            basePrice: {
               __typename: "Money",
               amount: 37.65,
               currency: "USD"
             },
+            id: "UHJvZHVjdDo4",
+            name: "Gardner-Martin",
             thumbnail: {
               __typename: "Image",
               url: placeholderImage

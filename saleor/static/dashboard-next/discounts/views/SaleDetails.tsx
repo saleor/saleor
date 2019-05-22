@@ -63,7 +63,7 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
   const paginate = usePaginator();
   const notify = useNotifier();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -323,6 +323,7 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                               isChecked={isSelected}
                               selected={listElements.length}
                               toggle={toggle}
+                              toggleAll={toggleAll}
                             />
                             <SearchProductsProvider>
                               {(searchProducts, searchProductsOpts) => (

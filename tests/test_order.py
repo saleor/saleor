@@ -6,6 +6,7 @@ from django.urls import reverse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from saleor.account import events as account_events
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
 from saleor.core.exceptions import InsufficientStock
@@ -15,7 +16,7 @@ from saleor.core.utils.taxes import (
     get_taxes_for_country,
 )
 from saleor.core.weight import zero_weight
-from saleor.order import FulfillmentStatus, OrderStatus, models
+from saleor.order import FulfillmentStatus, OrderStatus, events as order_events, models
 from saleor.order.models import Fulfillment, Order
 from saleor.order.utils import (
     add_variant_to_order,
@@ -271,8 +272,8 @@ def test_restock_fulfilled_order_lines(fulfilled_order):
 
     line_1.variant.refresh_from_db()
     line_2.variant.refresh_from_db()
-    assert line_1.variant.quantity_allocated == (stock_1_quantity_allocated_before)
-    assert line_2.variant.quantity_allocated == (stock_2_quantity_allocated_before)
+    assert line_1.variant.quantity_allocated == stock_1_quantity_allocated_before
+    assert line_2.variant.quantity_allocated == stock_2_quantity_allocated_before
     assert line_1.variant.quantity == stock_1_quantity_before + line_1.quantity
     assert line_2.variant.quantity == stock_2_quantity_before + line_2.quantity
 
@@ -533,6 +534,20 @@ def test_add_order_note_view(order, authorized_client, customer_user):
     assert get_redirect_location(response) == redirect_url
     order.refresh_from_db()
     assert order.customer_note == customer_note
+
+    # Ensure an order event was triggered
+    note_event = order_events.OrderEvent.objects.get()  # type: order_events.OrderEvent
+    assert note_event.type == order_events.OrderEvents.NOTE_ADDED
+    assert note_event.user == customer_user
+    assert note_event.order == order
+    assert note_event.parameters == {"message": customer_note}
+
+    # Ensure a customer event was triggered
+    note_event = account_events.CustomerEvent.objects.get()
+    assert note_event.type == account_events.CustomerEvents.NOTE_ADDED_TO_ORDER
+    assert note_event.user == customer_user
+    assert note_event.order == order
+    assert note_event.parameters == {"message": customer_note}
 
 
 def _calculate_order_weight_from_lines(order):

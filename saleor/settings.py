@@ -195,22 +195,22 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.security.SecurityMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
-    "django_babel.middleware.LocaleMiddleware",
+    "saleor.core.middleware.django_session_middleware",
+    "saleor.core.middleware.django_security_middleware",
+    "saleor.core.middleware.django_common_middleware",
+    "saleor.core.middleware.django_csrf_view_middleware",
+    "saleor.core.middleware.django_auth_middleware",
+    "saleor.core.middleware.django_messages_middleware",
+    "saleor.core.middleware.django_locale_middleware",
+    "saleor.core.middleware.babel_locale_middleware",
     "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.taxes",
-    "social_django.middleware.SocialAuthExceptionMiddleware",
-    "impersonate.middleware.ImpersonateMiddleware",
+    "saleor.core.middleware.social_auth_exception_middleware",
+    "saleor.core.middleware.impersonate_middleware",
     "saleor.graphql.middleware.jwt_middleware",
 ]
 
@@ -411,11 +411,27 @@ AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", None)
 
+# Google Cloud Storage configuration
+GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
+GS_STORAGE_BUCKET_NAME = os.environ.get("GS_STORAGE_BUCKET_NAME")
+GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
+GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
+
+# If GOOGLE_APPLICATION_CREDENTIALS is set there is no need to load OAuth token
+# See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
+if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+    GS_CREDENTIALS = os.environ.get("GS_CREDENTIALS")
+
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+elif GS_STORAGE_BUCKET_NAME:
+    STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 
 if AWS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.S3MediaStorage"
+    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
+elif GS_MEDIA_BUCKET_NAME:
+    DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"

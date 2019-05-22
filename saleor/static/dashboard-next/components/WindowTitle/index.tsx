@@ -13,8 +13,6 @@ export const WindowTitle: React.StatelessComponent<WindowTitleProps> = ({
   const shop = useShop();
 
   return shop === undefined || !title ? null : (
-    <Helmet>
-      <title>{`${title} | ${shop.name}`}</title>
-    </Helmet>
+    <Helmet title={`${title} | ${shop.name}`} />
   );
 };

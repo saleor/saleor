@@ -1,5 +1,4 @@
 import Card from "@material-ui/core/Card";
-import Checkbox from "@material-ui/core/Checkbox";
 import {
   createStyles,
   Theme,
@@ -13,6 +12,7 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
+import Checkbox from "../../../components/Checkbox";
 import Date from "../../../components/Date";
 import Money from "../../../components/Money";
 import Percent from "../../../components/Percent";
@@ -74,34 +74,38 @@ const SaleList = withStyles(styles, {
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: SaleListProps & WithStyles<typeof styles>) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Name", {
-                context: "sale list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colStart}>
-              {i18n.t("Starts", {
-                context: "sale list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colEnd}>
-              {i18n.t("Ends", {
-                context: "sale list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colValue}>
-              {i18n.t("Value", {
-                context: "sale list table header"
-              })}
-            </TableCell>
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={sales}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Name", {
+              context: "sale list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colStart}>
+            {i18n.t("Starts", {
+              context: "sale list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colEnd}>
+            {i18n.t("Ends", {
+              context: "sale list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colValue}>
+            {i18n.t("Value", {
+              context: "sale list table header"
+            })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>
@@ -132,7 +136,6 @@ const SaleList = withStyles(styles, {
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

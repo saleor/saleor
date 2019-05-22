@@ -833,7 +833,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
             productSku: "5-1337",
             quantity: 2,
             quantityFulfilled: 2,
-            thumbnailUrl: placeholder,
+            thumbnail: {
+              __typename: "Image" as "Image",
+              url: placeholder
+            },
             unitPrice: {
               __typename: "TaxedMoney",
               gross: {
@@ -870,7 +873,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
             productSku: "5-1337",
             quantity: 2,
             quantityFulfilled: 2,
-            thumbnailUrl: placeholder,
+            thumbnail: {
+              __typename: "Image" as "Image",
+              url: placeholder
+            },
             unitPrice: {
               __typename: "TaxedMoney",
               gross: {
@@ -902,7 +908,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
       productSku: "59-1337",
       quantity: 3,
       quantityFulfilled: 0,
-      thumbnailUrl: placeholder,
+      thumbnail: {
+        __typename: "Image" as "Image",
+        url: placeholder
+      },
       unitPrice: {
         __typename: "TaxedMoney",
         gross: {
@@ -925,7 +934,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
       productSku: "5-1337",
       quantity: 2,
       quantityFulfilled: 2,
-      thumbnailUrl: placeholder,
+      thumbnail: {
+        __typename: "Image" as "Image",
+        url: placeholder
+      },
       unitPrice: {
         __typename: "TaxedMoney",
         gross: {
@@ -1027,7 +1039,10 @@ export const draftOrder = (placeholder: string): OrderDetails_order => ({
       productSku: "58-1338",
       quantity: 2,
       quantityFulfilled: 0,
-      thumbnailUrl: placeholder,
+      thumbnail: {
+        __typename: "Image" as "Image",
+        url: placeholder
+      },
       unitPrice: {
         __typename: "TaxedMoney" as "TaxedMoney",
         gross: {
@@ -1050,7 +1065,10 @@ export const draftOrder = (placeholder: string): OrderDetails_order => ({
       productSku: "15-1337",
       quantity: 2,
       quantityFulfilled: 0,
-      thumbnailUrl: placeholder,
+      thumbnail: {
+        __typename: "Image" as "Image",
+        url: placeholder
+      },
       unitPrice: {
         __typename: "TaxedMoney" as "TaxedMoney",
         gross: {

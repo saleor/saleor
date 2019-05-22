@@ -26,6 +26,7 @@ const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
   isChecked,
   selected,
   toggle,
+  toggleAll,
   toolbar
 }) => (
   <Container>
@@ -46,6 +47,7 @@ const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
       isChecked={isChecked}
       selected={selected}
       toggle={toggle}
+      toggleAll={toggleAll}
       toolbar={toolbar}
     />
   </Container>

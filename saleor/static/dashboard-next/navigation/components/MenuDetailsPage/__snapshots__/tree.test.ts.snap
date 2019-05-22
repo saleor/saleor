@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Properly computes trees # 1`] = `
+"
+Accessories
+··Jewelry
+··Glasses
+Groceries
+Apparel"
+`;
+
+exports[`Properly computes trees # 2`] = `
+"
+Groceries
+··Accessories
+····Jewelry
+······Glasses
+Apparel"
+`;
+
+exports[`Properly computes trees # 3`] = `
+"
+Apparel
+··Groceries
+····Accessories
+······Jewelry
+········Glasses"
+`;
+
+exports[`Properly computes trees # 4`] = `
+"
+Accessories
+Glasses
+Jewelry
+··Groceries
+····Apparel"
+`;
+
+exports[`Properly computes trees # 5`] = `
+"
+Jewelry
+··Groceries
+Glasses
+··Apparel
+····Accessories"
+`;
+
+exports[`Properly computes trees # 6`] = `
+"
+Groceries
+Apparel"
+`;
+
+exports[`Properly computes trees # 7`] = `
+"
+Apparel"
+`;

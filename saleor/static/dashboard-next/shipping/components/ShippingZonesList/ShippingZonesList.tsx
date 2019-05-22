@@ -1,6 +1,5 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
@@ -17,6 +16,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import Checkbox from "../../../components/Checkbox";
 import Skeleton from "../../../components/Skeleton";
 import TableHead from "../../../components/TableHead";
 import TablePagination from "../../../components/TablePagination";
@@ -64,6 +64,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: ShippingZonesListProps & WithStyles<typeof styles>) => (
     <Card>
@@ -79,17 +80,19 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Name", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colCountries}>
-              {i18n.t("Countries", { context: "object" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={shippingZones}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Name", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colCountries}>
+            {i18n.t("Countries", { context: "object" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>
@@ -122,7 +125,6 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {
