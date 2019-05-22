@@ -638,7 +638,6 @@ def get_checkout_context(
 ):
     """Data shared between views in checkout process."""
     checkout_total = checkout.get_total(discounts, taxes)
-    checkout_subtotal = checkout.get_subtotal(discounts, taxes)
     shipping_required = checkout.is_shipping_required()
     checkout_subtotal = checkout.get_subtotal(discounts, taxes)
     total_with_shipping = TaxedMoneyRange(
