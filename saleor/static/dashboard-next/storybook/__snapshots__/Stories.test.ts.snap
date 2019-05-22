@@ -7317,19 +7317,7 @@ exports[`Storyshots Views / Categories / Category list empty 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
               scope="col"
@@ -7506,19 +7494,7 @@ exports[`Storyshots Views / Categories / Category list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
               scope="col"
@@ -9352,19 +9328,7 @@ Ctrl + K"
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                 scope="col"
-              >
-                <button
-                  class="MuiButtonBase-root-id Checkbox-root-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <input
-                    class="Checkbox-box-id"
-                    type="checkbox"
-                    value="false"
-                  />
-                </button>
-              </th>
+              />
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
                 scope="col"
@@ -10038,21 +10002,7 @@ Ctrl + K"
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                 scope="col"
-              >
-                <button
-                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                  disabled=""
-                  tabindex="-1"
-                  type="button"
-                >
-                  <input
-                    class="Checkbox-box-id Checkbox-disabled-id"
-                    disabled=""
-                    type="checkbox"
-                    value="false"
-                  />
-                </button>
-              </th>
+              />
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
                 scope="col"
@@ -11015,19 +10965,7 @@ Ctrl + K"
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                 scope="col"
-              >
-                <button
-                  class="MuiButtonBase-root-id Checkbox-root-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <input
-                    class="Checkbox-box-id"
-                    type="checkbox"
-                    value="false"
-                  />
-                </button>
-              </th>
+              />
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
                 scope="col"
@@ -11950,19 +11888,7 @@ Ctrl + K"
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                 scope="col"
-              >
-                <button
-                  class="MuiButtonBase-root-id Checkbox-root-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <input
-                    class="Checkbox-box-id"
-                    type="checkbox"
-                    value="false"
-                  />
-                </button>
-              </th>
+              />
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id"
                 scope="col"
@@ -12895,19 +12821,7 @@ Ctrl + K"
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                 scope="col"
-              >
-                <button
-                  class="MuiButtonBase-root-id Checkbox-root-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <input
-                    class="Checkbox-box-id"
-                    type="checkbox"
-                    value="false"
-                  />
-                </button>
-              </th>
+              />
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
                 scope="col"
@@ -14861,21 +14775,7 @@ Ctrl + K"
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                     scope="col"
-                  >
-                    <button
-                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                      disabled=""
-                      tabindex="-1"
-                      type="button"
-                    >
-                      <input
-                        class="Checkbox-box-id Checkbox-disabled-id"
-                        disabled=""
-                        type="checkbox"
-                        value="false"
-                      />
-                    </button>
-                  </th>
+                  />
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
@@ -15989,21 +15889,7 @@ Ctrl + K"
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                     scope="col"
-                  >
-                    <button
-                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                      disabled=""
-                      tabindex="-1"
-                      type="button"
-                    >
-                      <input
-                        class="Checkbox-box-id Checkbox-disabled-id"
-                        disabled=""
-                        type="checkbox"
-                        value="false"
-                      />
-                    </button>
-                  </th>
+                  />
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
@@ -16599,21 +16485,7 @@ exports[`Storyshots Views / Collections / Collection list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CollectionList-colName-id"
               scope="col"
@@ -25877,21 +25749,7 @@ exports[`Storyshots Views / Customers / Customer list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-colName-id"
               scope="col"
@@ -26101,19 +25959,7 @@ exports[`Storyshots Views / Customers / Customer list no data 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-colName-id"
               scope="col"
@@ -28767,21 +28613,7 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                     scope="col"
-                  >
-                    <button
-                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                      disabled=""
-                      tabindex="-1"
-                      type="button"
-                    >
-                      <input
-                        class="Checkbox-box-id Checkbox-disabled-id"
-                        disabled=""
-                        type="checkbox"
-                        value="false"
-                      />
-                    </button>
-                  </th>
+                  />
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
@@ -30334,19 +30166,7 @@ exports[`Storyshots Views / Discounts / Sale list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id SaleList-colName-id"
               scope="col"
@@ -30574,19 +30394,7 @@ exports[`Storyshots Views / Discounts / Sale list no data 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id SaleList-colName-id"
               scope="col"
@@ -33577,19 +33385,7 @@ exports[`Storyshots Views / Discounts / Voucher list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colName-id"
               scope="col"
@@ -33847,19 +33643,7 @@ exports[`Storyshots Views / Discounts / Voucher list no data 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colName-id"
               scope="col"
@@ -36958,21 +36742,7 @@ exports[`Storyshots Views / Navigation / Menu list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colTitle-id"
               scope="col"
@@ -37203,19 +36973,7 @@ exports[`Storyshots Views / Navigation / Menu list no data 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colTitle-id"
               scope="col"
@@ -38526,21 +38284,7 @@ exports[`Storyshots Views / Orders / Draft order list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderDraftList-colNumber-id"
               scope="col"
@@ -38771,19 +38515,7 @@ exports[`Storyshots Views / Orders / Draft order list when no data 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderDraftList-colNumber-id"
               scope="col"
@@ -55216,21 +54948,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderList-colNumber-id"
               scope="col"
@@ -55569,19 +55287,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderList-colNumber-id"
               scope="col"
@@ -59914,21 +59620,7 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id PageList-colTitle-id"
               scope="col"
@@ -60144,19 +59836,7 @@ exports[`Storyshots Views / Pages / Page list no data 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id PageList-colTitle-id"
               scope="col"
@@ -61892,21 +61572,7 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeList-colName-id"
               scope="col"
@@ -72180,21 +71846,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id"
               scope="col"
@@ -72530,19 +72182,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            >
-              <button
-                class="MuiButtonBase-root-id Checkbox-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <input
-                  class="Checkbox-box-id"
-                  type="checkbox"
-                  value="false"
-                />
-              </button>
-            </th>
+            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id"
               scope="col"
@@ -77278,21 +76918,7 @@ exports[`Storyshots Views / Shipping / Shipping zones list loading 1`] = `
                 <th
                   class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                   scope="col"
-                >
-                  <button
-                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                    disabled=""
-                    tabindex="-1"
-                    type="button"
-                  >
-                    <input
-                      class="Checkbox-box-id Checkbox-disabled-id"
-                      disabled=""
-                      type="checkbox"
-                      value="false"
-                    />
-                  </button>
-                </th>
+                />
                 <th
                   class="MuiTableCell-root-id MuiTableCell-head-id ShippingZonesList-colName-id"
                   scope="col"
@@ -77628,19 +77254,7 @@ exports[`Storyshots Views / Shipping / Shipping zones list no data 1`] = `
                 <th
                   class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                   scope="col"
-                >
-                  <button
-                    class="MuiButtonBase-root-id Checkbox-root-id"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <input
-                      class="Checkbox-box-id"
-                      type="checkbox"
-                      value="false"
-                    />
-                  </button>
-                </th>
+                />
                 <th
                   class="MuiTableCell-root-id MuiTableCell-head-id ShippingZonesList-colName-id"
                   scope="col"
