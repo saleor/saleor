@@ -32,6 +32,15 @@ const styles = (theme: Theme) =>
     cell: {
       padding: 0
     },
+    checkboxPartialSelect: {
+      "&:after": {
+        background: "#fff",
+        content: "''",
+        height: 2,
+        position: "absolute",
+        width: 4
+      }
+    },
     checkboxSelected: {
       backgroundColor: fade(theme.palette.primary.main, 0.05)
     },
@@ -74,46 +83,54 @@ const TableHead = withStyles(styles, {
     toggleAll,
     toolbar,
     ...muiTableHeadProps
-  }: TableHeadProps & WithStyles<typeof styles>) => (
-    <MuiTableHead {...muiTableHeadProps}>
-      <TableRow>
-        <TableCell
-          padding="checkbox"
-          className={classNames({
-            [classes.checkboxSelected]: selected
-          })}
-        >
-          <Checkbox
-            checked={selected === 0 ? false : true}
-            disabled={disabled}
-            onChange={event => {
-              toggleAll(items, selected);
-              event.stopPropagation();
-            }}
-          />
-        </TableCell>
-        {selected ? (
-          <>
-            <TableCell className={classNames(classes.root)} colSpan={50}>
-              <div className={classes.container}>
-                {selected && (
-                  <Typography>
-                    {i18n.t("Selected {{ number }} items", {
-                      number: selected
-                    })}
-                  </Typography>
-                )}
-                <div className={classes.spacer} />
-                <div className={classes.toolbar}>{toolbar}</div>
-              </div>
-            </TableCell>
-          </>
-        ) : (
-          children
-        )}
-      </TableRow>
-    </MuiTableHead>
-  )
+  }: TableHeadProps & WithStyles<typeof styles>) => {
+    return (
+      <MuiTableHead {...muiTableHeadProps}>
+        <TableRow>
+          <TableCell
+            padding="checkbox"
+            className={classNames({
+              [classes.checkboxSelected]: selected
+            })}
+          >
+            {items && items.length > 0 ? (
+              <Checkbox
+                className={classNames({
+                  [classes.checkboxPartialSelect]:
+                    items && items.length > selected && selected > 0
+                })}
+                checked={selected === 0 ? false : true}
+                disabled={disabled}
+                onClick={event => {
+                  toggleAll(items, selected);
+                  event.stopPropagation();
+                }}
+              />
+            ) : null}
+          </TableCell>
+          {selected ? (
+            <>
+              <TableCell className={classNames(classes.root)} colSpan={50}>
+                <div className={classes.container}>
+                  {selected && (
+                    <Typography>
+                      {i18n.t("Selected {{ number }} items", {
+                        number: selected
+                      })}
+                    </Typography>
+                  )}
+                  <div className={classes.spacer} />
+                  <div className={classes.toolbar}>{toolbar}</div>
+                </div>
+              </TableCell>
+            </>
+          ) : (
+            children
+          )}
+        </TableRow>
+      </MuiTableHead>
+    );
+  }
 );
 TableHead.displayName = "TableHead";
 export default TableHead;
