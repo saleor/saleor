@@ -17,6 +17,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix draftail options and icons - #4132 by @benekex2
 - Add multiple select checkbox - #4133 by @benekex2
 - Add support for Google Cloud Storage - #4127 by @chetabahana
+- Fix wrong calculation of subtotal in cart page - #4145 by @korycins
 
 ## 2.6.0
 
