@@ -17,6 +17,7 @@ export interface ListProps {
 }
 export interface ListActionsWithoutToolbar {
   toggle: (id: string) => void;
+  toggleAll: (items: React.ReactNodeArray, selected: number) => void;
   isChecked: (id: string) => boolean;
   selected: number;
 }
@@ -37,6 +38,10 @@ export interface PartialMutationProviderOutput<
 > {
   opts: MutationResult<TData>;
   mutate: (variables: TVariables) => void;
+}
+
+export interface Node {
+  id: string;
 }
 
 export type FormErrors<TKeys extends string> = Partial<Record<TKeys, string>>;

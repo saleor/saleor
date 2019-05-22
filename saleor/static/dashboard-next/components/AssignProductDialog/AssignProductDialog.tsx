@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -22,6 +21,8 @@ import FormSpacer from "../../components/FormSpacer";
 import TableCellAvatar from "../../components/TableCellAvatar";
 import { SearchProducts_products_edges_node } from "../../containers/SearchProducts/types/SearchProducts";
 import i18n from "../../i18n";
+import { maybe } from "../../misc";
+import Checkbox from "../Checkbox";
 
 export interface FormData {
   products: SearchProducts_products_edges_node[];
@@ -119,7 +120,7 @@ const AssignProductDialog = withStyles(styles, {
                         <TableRow key={product.id}>
                           <TableCellAvatar
                             className={classes.avatar}
-                            thumbnail={product.thumbnail.url}
+                            thumbnail={maybe(() => product.thumbnail.url)}
                           />
                           <TableCell className={classes.wideCell}>
                             {product.name}

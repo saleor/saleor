@@ -1,6 +1,5 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
@@ -17,6 +16,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import Checkbox from "../../../components/Checkbox";
 import Skeleton from "../../../components/Skeleton";
 import TableHead from "../../../components/TableHead";
 import TablePagination from "../../../components/TablePagination";
@@ -65,6 +65,7 @@ const DiscountCategories = withStyles(styles, {
     onNextPage,
     toolbar,
     toggle,
+    toggleAll,
     selected,
     isChecked
   }: DiscountCategoriesProps & WithStyles<typeof styles>) => (
@@ -74,14 +75,20 @@ const DiscountCategories = withStyles(styles, {
           saleName: maybe(() => sale.name)
         })}
         toolbar={
-          <Button variant="flat" color="primary" onClick={onCategoryAssign}>
+          <Button color="primary" onClick={onCategoryAssign}>
             {i18n.t("Assign categories")}
           </Button>
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => sale.categories.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <>
             <TableCell />
             <TableCell className={classes.wideColumn}>
               {i18n.t("Category name")}
@@ -90,7 +97,7 @@ const DiscountCategories = withStyles(styles, {
               {i18n.t("Products")}
             </TableCell>
             <TableCell />
-          </TableRow>
+          </>
         </TableHead>
         <TableFooter>
           <TableRow>
@@ -121,7 +128,6 @@ const DiscountCategories = withStyles(styles, {
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

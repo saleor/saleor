@@ -18,7 +18,7 @@ export interface ProductDetails_product_collections {
   name: string;
 }
 
-export interface ProductDetails_product_price {
+export interface ProductDetails_product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -75,38 +75,37 @@ export interface ProductDetails_product_attributes {
   value: ProductDetails_product_attributes_value;
 }
 
-export interface ProductDetails_product_availability_priceRange_start_net {
+export interface ProductDetails_product_pricing_priceRange_start_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductDetails_product_availability_priceRange_start {
+export interface ProductDetails_product_pricing_priceRange_start {
   __typename: "TaxedMoney";
-  net: ProductDetails_product_availability_priceRange_start_net;
+  net: ProductDetails_product_pricing_priceRange_start_net;
 }
 
-export interface ProductDetails_product_availability_priceRange_stop_net {
+export interface ProductDetails_product_pricing_priceRange_stop_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductDetails_product_availability_priceRange_stop {
+export interface ProductDetails_product_pricing_priceRange_stop {
   __typename: "TaxedMoney";
-  net: ProductDetails_product_availability_priceRange_stop_net;
+  net: ProductDetails_product_pricing_priceRange_stop_net;
 }
 
-export interface ProductDetails_product_availability_priceRange {
+export interface ProductDetails_product_pricing_priceRange {
   __typename: "TaxedMoneyRange";
-  start: ProductDetails_product_availability_priceRange_start | null;
-  stop: ProductDetails_product_availability_priceRange_stop | null;
+  start: ProductDetails_product_pricing_priceRange_start | null;
+  stop: ProductDetails_product_pricing_priceRange_stop | null;
 }
 
-export interface ProductDetails_product_availability {
+export interface ProductDetails_product_pricing {
   __typename: "ProductPricingInfo";
-  available: boolean | null;
-  priceRange: ProductDetails_product_availability_priceRange | null;
+  priceRange: ProductDetails_product_pricing_priceRange | null;
 }
 
 export interface ProductDetails_product_images {
@@ -151,14 +150,15 @@ export interface ProductDetails_product {
   seoDescription: string | null;
   category: ProductDetails_product_category;
   collections: (ProductDetails_product_collections | null)[] | null;
-  price: ProductDetails_product_price | null;
+  basePrice: ProductDetails_product_basePrice | null;
   margin: ProductDetails_product_margin | null;
   purchaseCost: ProductDetails_product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;
   attributes: ProductDetails_product_attributes[];
-  availability: ProductDetails_product_availability | null;
+  pricing: ProductDetails_product_pricing | null;
   images: (ProductDetails_product_images | null)[] | null;
   variants: (ProductDetails_product_variants | null)[] | null;
   productType: ProductDetails_product_productType;

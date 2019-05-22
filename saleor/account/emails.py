@@ -2,13 +2,14 @@ from django.conf import settings
 from django.urls import reverse
 from templated_email import send_templated_mail
 
+from ..account import events as account_events
 from ..celeryconf import app
 from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
 
 
 @app.task
-def send_password_reset_email(context, recipient):
+def send_password_reset_email(context, recipient, user_id):
     reset_url = build_absolute_uri(
         reverse(
             "account:reset-password-confirm",
@@ -23,6 +24,7 @@ def send_password_reset_email(context, recipient):
         recipient_list=[recipient],
         context=context,
     )
+    account_events.customer_password_reset_link_sent_event(user_id=user_id)
 
 
 @app.task

@@ -17,9 +17,12 @@ from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import applicable_shipping_methods, validate_draft_order
 
 
-class OrderEventLineObject(graphene.ObjectType):
+class OrderEventOrderLineObject(graphene.ObjectType):
     quantity = graphene.Int(description="The variant quantity.")
-    item = graphene.String(description="The variant name.")
+    order_line = gql_optimizer.field(
+        graphene.Field(lambda: OrderLine, description="The order line.")
+    )
+    item_name = graphene.String(description="The variant name.")
 
 
 class OrderEvent(CountableDjangoObjectType):
@@ -46,9 +49,9 @@ class OrderEvent(CountableDjangoObjectType):
     oversold_items = graphene.List(
         graphene.String, description="List of oversold lines names."
     )
-    lines = graphene.List(OrderEventLineObject, description="The concerned lines.")
-    fulfilled_items = graphene.List(
-        OrderEventLineObject, description="The lines fulfilled."
+    lines = graphene.List(OrderEventOrderLineObject, description="The concerned lines.")
+    fulfilled_items = gql_optimizer.field(
+        graphene.List(lambda: FulfillmentLine, description="The lines fulfilled.")
     )
 
     class Meta:
@@ -90,8 +93,36 @@ class OrderEvent(CountableDjangoObjectType):
         return self.order_id
 
     def resolve_lines(self, _info):
-        lines = self.parameters.get("lines", None)
-        return [OrderEventLineObject(**line) for line in lines] if lines else None
+        raw_lines = self.parameters.get("lines", None)
+
+        if not raw_lines:
+            return None
+
+        line_pks = []
+        for entry in raw_lines:
+            line_pks.append(entry.get("line_pk", None))
+
+        lines = models.OrderLine.objects.filter(pk__in=line_pks).all()
+        results = []
+        for raw_line, line_pk in zip(raw_lines, line_pks):
+            line_object = None
+            for line in lines:
+                if line.pk == line_pk:
+                    line_object = line
+                    break
+            results.append(
+                OrderEventOrderLineObject(
+                    quantity=raw_line["quantity"],
+                    order_line=line_object,
+                    item_name=raw_line["item"],
+                )
+            )
+
+        return results
+
+    def resolve_fulfilled_items(self, _info):
+        lines = self.parameters.get("fulfilled_items", None)
+        return models.FulfillmentLine.objects.filter(pk__in=lines)
 
 
 class FulfillmentLine(CountableDjangoObjectType):

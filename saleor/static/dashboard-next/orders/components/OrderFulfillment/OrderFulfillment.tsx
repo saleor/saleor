@@ -85,7 +85,7 @@ const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
                             .map(line => line.quantity)
                             .reduce((prev, curr) => prev + curr, 0)
                         })}
-                    <Typography className={classes.orderNumber} variant="body1">
+                    <Typography className={classes.orderNumber} variant="body2">
                       {maybe(
                         () => `#${orderNumber}-${fulfillment.fulfillmentOrder}`
                       )}
@@ -140,7 +140,7 @@ const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
                 key={maybe(() => line.id)}
               >
                 <TableCellAvatar
-                  thumbnail={maybe(() => line.orderLine.thumbnailUrl)}
+                  thumbnail={maybe(() => line.orderLine.thumbnail.url)}
                 />
                 <TableCell>
                   {maybe(() => line.orderLine.productName) || <Skeleton />}

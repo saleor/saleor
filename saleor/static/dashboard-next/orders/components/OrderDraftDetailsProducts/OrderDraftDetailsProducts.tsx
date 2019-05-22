@@ -92,11 +92,11 @@ const OrderDraftDetailsProducts = withStyles(styles, {
         ) : (
           renderCollection(lines, line => (
             <TableRow key={line ? line.id : "skeleton"}>
-              <TableCellAvatar thumbnail={maybe(() => line.thumbnailUrl)} />
+              <TableCellAvatar thumbnail={maybe(() => line.thumbnail.url)} />
               <TableCell>
                 {maybe(() => line.productName && line.productSku) ? (
                   <>
-                    <Typography variant="body1">{line.productName}</Typography>
+                    <Typography variant="body2">{line.productName}</Typography>
                     <Typography variant="caption">{line.productSku}</Typography>
                   </>
                 ) : (

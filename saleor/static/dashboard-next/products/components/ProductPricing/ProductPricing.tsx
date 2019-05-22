@@ -26,7 +26,7 @@ interface ProductPricingProps extends WithStyles<typeof styles> {
   currency?: string;
   data: {
     chargeTaxes: boolean;
-    price: number;
+    basePrice: number;
   };
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
@@ -49,8 +49,8 @@ const ProductPricing = withStyles(styles, { name: "ProductPricing" })(
           <PriceField
             disabled={disabled}
             label={i18n.t("Price")}
-            name="price"
-            value={data.price}
+            name="basePrice"
+            value={data.basePrice}
             currencySymbol={currency}
             onChange={onChange}
           />

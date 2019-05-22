@@ -21,16 +21,16 @@ export interface PageDetailsProps {
 
 const createPageInput = (data: FormData): PageInput => ({
   contentJson: JSON.stringify(data.content),
-  isPublished: data.isVisible
+  isPublished: data.isPublished
     ? true
-    : data.availableOn === "" || data.availableOn === null
+    : data.publicationDate === "" || data.publicationDate === null
     ? false
     : true,
-  publicationDate: data.isVisible
+  publicationDate: data.isPublished
     ? null
-    : data.availableOn === ""
+    : data.publicationDate === ""
     ? null
-    : data.availableOn,
+    : data.publicationDate,
   seo: {
     description: data.seoDescription,
     title: data.seoTitle

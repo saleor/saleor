@@ -41,7 +41,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
         </Typography>
         {maybe(
           () => (
-            <Typography variant="title" className={classes.value}>
+            <Typography variant="h6" className={classes.value}>
               {customer.lastLogin === null ? (
                 i18n.t("-")
               ) : (
@@ -59,7 +59,7 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
         </Typography>
         {maybe(
           () => (
-            <Typography variant="title" className={classes.value}>
+            <Typography variant="h6" className={classes.value}>
               {customer.lastPlacedOrder.edges.length === 0 ? (
                 i18n.t("-")
               ) : (

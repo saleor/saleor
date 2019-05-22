@@ -12,12 +12,12 @@ const styles = (theme: Theme) =>
   createStyles({
     selectedTabLabel: {
       "&$tabLabel": {
-        color: theme.typography.body1.color
+        color: theme.typography.body2.color
       }
     },
     tabLabel: {
       "&:hover": {
-        color: theme.typography.body1.color
+        color: theme.typography.body2.color
       },
       color: theme.typography.caption.color,
       fontSize: "0.875rem"

@@ -30,13 +30,13 @@ export interface FormData {
     value: string;
   }>;
   available: boolean;
+  basePrice: number;
   publicationDate: string;
   category: ChoiceType;
   chargeTaxes: boolean;
   collections: ChoiceType[];
   description: RawDraftContentState;
   name: string;
-  price: number;
   productType: {
     label: string;
     value: {
@@ -98,6 +98,7 @@ export const ProductCreatePage: React.StatelessComponent<
   const initialData: FormData = {
     attributes: [],
     available: false,
+    basePrice: 0,
     category: {
       label: "",
       value: ""
@@ -106,7 +107,6 @@ export const ProductCreatePage: React.StatelessComponent<
     collections: [],
     description: {} as any,
     name: "",
-    price: 0,
     productType: {
       label: "",
       value: {

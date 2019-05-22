@@ -14,7 +14,7 @@ const styles = (theme: Theme) =>
     root: {
       "&$active": {
         borderBottomColor: theme.palette.primary.main,
-        color: theme.typography.body1.color
+        color: theme.typography.body2.color
       },
       "&:focus": {
         color: theme.palette.primary.main

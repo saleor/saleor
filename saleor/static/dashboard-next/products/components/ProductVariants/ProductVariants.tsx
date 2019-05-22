@@ -1,7 +1,6 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import Checkbox from "@material-ui/core/Checkbox";
 import Hidden from "@material-ui/core/Hidden";
 import {
   createStyles,
@@ -17,6 +16,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import Checkbox from "../../../components/Checkbox";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
@@ -84,6 +84,7 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: ProductVariantsProps) => (
     <Card>
@@ -108,20 +109,23 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
         </Typography>
       </CardContent>
       <Table className={classes.denseTable}>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
-            <TableCell className={classes.colStatus}>
-              {i18n.t("Status")}
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={variants}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
+          <TableCell className={classes.colStatus}>
+            {i18n.t("Status")}
+          </TableCell>
+          <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
+          <Hidden smDown>
+            <TableCell className={classes.colPrice}>
+              {i18n.t("Price")}
             </TableCell>
-            <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
-            <Hidden smDown>
-              <TableCell className={classes.colPrice}>
-                {i18n.t("Price")}
-              </TableCell>
-            </Hidden>
-          </TableRow>
+          </Hidden>
         </TableHead>
         <TableBody>
           {renderCollection(
@@ -139,7 +143,6 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

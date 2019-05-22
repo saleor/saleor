@@ -36,7 +36,7 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -116,6 +116,7 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
                         isChecked={isSelected}
                         selected={listElements.length}
                         toggle={toggle}
+                        toggleAll={toggleAll}
                         toolbar={
                           <IconButton
                             color="primary"

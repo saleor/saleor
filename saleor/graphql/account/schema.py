@@ -5,6 +5,7 @@ from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
+from .enums import CountryCodeEnum
 from .filters import CustomerFilter, StaffUserFilter
 from .mutations import (
     AddressCreate,
@@ -28,7 +29,7 @@ from .mutations import (
     UserAvatarUpdate,
 )
 from .resolvers import resolve_address_validator, resolve_customers, resolve_staff_users
-from .types import AddressValidationData, AddressValidationInput, User
+from .types import AddressValidationData, User
 
 
 class CustomerFilterInput(FilterInputObjectType):
@@ -42,9 +43,11 @@ class StaffUserInput(FilterInputObjectType):
 
 
 class AccountQueries(graphene.ObjectType):
-    address_validator = graphene.Field(
+    address_validation_rules = graphene.Field(
         AddressValidationData,
-        input=graphene.Argument(AddressValidationInput, required=True),
+        country_code=graphene.Argument(CountryCodeEnum, required=False),
+        country_area=graphene.String(required=False),
+        city_area=graphene.String(required=False),
     )
     customers = FilterInputConnectionField(
         User,
@@ -65,8 +68,15 @@ class AccountQueries(graphene.ObjectType):
         description="Lookup an user by ID.",
     )
 
-    def resolve_address_validator(self, info, input):
-        return resolve_address_validator(info, input)
+    def resolve_address_validation_rules(
+        self, info, country_code=None, country_area=None, city_area=None
+    ):
+        return resolve_address_validator(
+            info,
+            country_code=country_code,
+            country_area=country_area,
+            city_area=city_area,
+        )
 
     @permission_required("account.manage_users")
     def resolve_customers(self, info, query=None, **_kwargs):

@@ -1,6 +1,5 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
@@ -17,6 +16,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import Checkbox from "../../../components/Checkbox";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TableCellAvatar from "../../../components/TableCellAvatar";
@@ -62,6 +62,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: CollectionProductsProps) => (
     <Card>
@@ -89,17 +90,18 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell />
-            <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
-            <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
-            <TableCell>
-              {i18n.t("Published", { context: "table header" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => collection.products.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
+          <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
+          <TableCell>
+            {i18n.t("Published", { context: "table header" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>
@@ -128,7 +130,6 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      color="primary"
                       checked={isSelected}
                       disabled={disabled}
                       onClick={event => {

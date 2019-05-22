@@ -7,6 +7,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
+from saleor.account.models import CustomerEvent
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
@@ -17,13 +18,7 @@ from saleor.graphql.order.mutations.orders import (
 )
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.order import OrderStatus
-from saleor.order.events import (
-    OrderEvents,
-    OrderEventsEmails,
-    fulfillment_fulfilled_items_event,
-    payment_captured_event,
-)
+from saleor.order import OrderStatus, events as order_events
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
@@ -271,7 +266,7 @@ def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
 
 
 def test_nested_order_events_query(
-    staff_api_client, permission_manage_orders, fulfilled_order, staff_user
+    staff_api_client, permission_manage_orders, fulfilled_order, fulfillment, staff_user
 ):
     query = """
         query OrdersQuery {
@@ -291,9 +286,11 @@ def test_nested_order_events_query(
                             quantity
                             composedId
                             orderNumber
-                            lines {
+                            fulfilledItems {
                                 quantity
-                                item
+                                orderLine {
+                                    productName
+                                }
                             }
                             paymentId
                             paymentGateway
@@ -303,18 +300,16 @@ def test_nested_order_events_query(
             }
         }
     """
-    line = fulfilled_order.lines.first()
 
-    event = fulfillment_fulfilled_items_event(
+    event = order_events.fulfillment_fulfilled_items_event(
         order=fulfilled_order,
         user=staff_user,
-        quantities=[line.quantity],
-        order_lines=[line],
+        fulfillment_lines=fulfillment.lines.all(),
     )
     event.parameters.update(
         {
             "message": "Example note",
-            "email_type": OrderEventsEmails.PAYMENT,
+            "email_type": order_events.OrderEventsEmails.PAYMENT,
             "amount": "80.00",
             "quantity": "10",
             "composed_id": "10-10",
@@ -335,7 +330,13 @@ def test_nested_order_events_query(
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
     assert data["orderNumber"] == str(fulfilled_order.pk)
-    assert data["lines"] == [{"quantity": line.quantity, "item": str(line)}]
+    assert data["fulfilledItems"] == [
+        {
+            "quantity": line.quantity,
+            "orderLine": {"productName": line.order_line.product_name},
+        }
+        for line in fulfillment.lines.all()
+    ]
     assert data["paymentId"] is None
     assert data["paymentGateway"] is None
 
@@ -361,7 +362,7 @@ def test_payment_information_order_events_query(
                             composedId
                             orderNumber
                             lines {
-                                item
+                                quantity
                             }
                             paymentId
                             paymentGateway
@@ -374,7 +375,7 @@ def test_payment_information_order_events_query(
 
     amount = order.total.gross.amount
 
-    payment_captured_event(
+    order_events.payment_captured_event(
         order=order, user=staff_user, amount=amount, payment=payment_dummy
     )
 
@@ -509,7 +510,9 @@ def test_draft_order_create(
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
 
     # Ensure the correct event was created
-    created_draft_event = OrderEvent.objects.get(type=OrderEvents.DRAFT_CREATED)
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
     assert created_draft_event.user == staff_user
     assert created_draft_event.parameters == {}
 
@@ -693,11 +696,11 @@ def test_draft_order_complete(
     draft_placed_event, missing_stock_event = OrderEvent.objects.all()
 
     assert missing_stock_event.user == staff_user
-    assert missing_stock_event.type == OrderEvents.OVERSOLD_ITEMS
+    assert missing_stock_event.type == order_events.OrderEvents.OVERSOLD_ITEMS
     assert missing_stock_event.parameters == {"oversold_items": [str(line_2)]}
 
     assert draft_placed_event.user == staff_user
-    assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT
+    assert draft_placed_event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
     assert draft_placed_event.parameters == {}
 
 
@@ -915,10 +918,10 @@ def test_draft_order_line_update(
     assert data["orderLine"]["quantity"] == new_quantity
 
     removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
-    assert removed_items_event.type == OrderEvents.DRAFT_REMOVED_PRODUCTS
+    assert removed_items_event.type == order_events.OrderEvents.DRAFT_REMOVED_PRODUCTS
     assert removed_items_event.user == staff_user
     assert removed_items_event.parameters == {
-        "lines": [{"quantity": removed_quantity, "item": str(line)}]
+        "lines": [{"quantity": removed_quantity, "line_pk": line.pk, "item": str(line)}]
     }
 
     # mutation should fail when quantity is lower than 1
@@ -944,6 +947,93 @@ def test_require_draft_order_when_updating_lines(
     content = get_graphql_content(response)
     data = content["data"]["draftOrderLineUpdate"]
     assert data["errors"]
+
+
+QUERY_GET_FIRST_EVENT = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        events {
+                            lines {
+                                quantity
+                                orderLine {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+
+def test_retrieving_event_lines_with_deleted_line(
+    staff_api_client, order_with_lines, staff_user, permission_manage_orders
+):
+    order = order_with_lines
+    lines = order_with_lines.lines.all()
+    quantities_per_lines = [(line.quantity, line) for line in lines]
+
+    # Create the test event
+    order_events.draft_order_added_products_event(
+        order=order, user=staff_user, order_lines=quantities_per_lines
+    )
+
+    # Delete a line
+    deleted_line = lines.first()
+    deleted_line.delete()
+
+    # Prepare the query
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # Send the query and retrieve the data
+    content = get_graphql_content(staff_api_client.post_graphql(QUERY_GET_FIRST_EVENT))
+    data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
+
+    # Check every line is returned and the one deleted is None
+    assert len(data["lines"]) == len(quantities_per_lines)
+    for expected_data, received_line in zip(quantities_per_lines, data["lines"]):
+        quantity, line = expected_data
+
+        if line is deleted_line:
+            assert received_line["orderLine"] is None
+        else:
+            assert received_line["orderLine"] is not None
+            assert received_line["orderLine"]["id"] == graphene.Node.to_global_id(
+                "OrderLine", line.pk
+            )
+
+        assert received_line["quantity"] == quantity
+
+
+def test_retrieving_event_lines_with_missing_line_pk_in_data(
+    staff_api_client, order_with_lines, staff_user, permission_manage_orders
+):
+    order = order_with_lines
+    line = order_with_lines.lines.first()
+    quantities_per_lines = [(line.quantity, line)]
+
+    # Create the test event
+    event = order_events.draft_order_added_products_event(
+        order=order, user=staff_user, order_lines=quantities_per_lines
+    )
+    del event.parameters["lines"][0]["line_pk"]
+    event.save(update_fields=["parameters"])
+
+    # Prepare the query
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # Send the query and retrieve the data
+    content = get_graphql_content(staff_api_client.post_graphql(QUERY_GET_FIRST_EVENT))
+    data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
+
+    # Check every line is returned and the one deleted is None
+    received_line = data["lines"][0]
+    assert len(data["lines"]) == 1
+    assert received_line["quantity"] == line.quantity
+    assert received_line["orderLine"] is None
 
 
 DRAFT_ORDER_LINE_DELETE_MUTATION = """
@@ -1132,9 +1222,11 @@ def test_order_update_user_email_existing_user(
     assert order.user == customer_user
 
 
-def test_order_add_note(
+def test_order_add_note_as_staff_user(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
+    """We are testing that adding a note to an order as a staff user is doing the
+    expected behaviors."""
     order = order_with_lines
     query = """
         mutation addNote($id: ID!, $message: String) {
@@ -1169,10 +1261,14 @@ def test_order_add_note(
     assert data["event"]["user"]["email"] == staff_user.email
     assert data["event"]["message"] == message
 
+    # Ensure the correct order event was created
     event = order.events.get()
-    assert event.type == OrderEvents.NOTE_ADDED
+    assert event.type == order_events.OrderEvents.NOTE_ADDED
     assert event.user == staff_user
     assert event.parameters == {"message": message}
+
+    # Ensure not customer events were created as it was a staff action
+    assert not CustomerEvent.objects.exists()
 
 
 CANCEL_ORDER_QUERY = """
@@ -1203,7 +1299,7 @@ def test_order_cancel_and_restock(
     order.refresh_from_db()
     order_event = order.events.last()
     assert order_event.parameters["quantity"] == quantity
-    assert order_event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
+    assert order_event.type == order_events.OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
     assert data["status"] == order.status.upper()
 
 
@@ -1220,7 +1316,7 @@ def test_order_cancel(staff_api_client, permission_manage_orders, order_with_lin
     data = content["data"]["orderCancel"]["order"]
     order.refresh_from_db()
     order_event = order.events.last()
-    assert order_event.type == OrderEvents.CANCELED
+    assert order_event.type == order_events.OrderEvents.CANCELED
     assert data["status"] == order.status.upper()
 
 
@@ -1258,16 +1354,16 @@ def test_order_capture(
     assert data["totalCaptured"]["amount"] == float(amount)
 
     event_order_paid = order.events.first()
-    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
+    assert event_order_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID
     assert event_order_paid.user is None
 
     event_email_sent, event_captured = list(order.events.all())[-2:]
     assert event_email_sent.user is None
     assert event_email_sent.parameters == {
         "email": order.user_email,
-        "email_type": OrderEventsEmails.PAYMENT,
+        "email_type": order_events.OrderEventsEmails.PAYMENT,
     }
-    assert event_captured.type == OrderEvents.PAYMENT_CAPTURED
+    assert event_captured.type == order_events.OrderEvents.PAYMENT_CAPTURED
     assert event_captured.user == staff_user
     assert event_captured.parameters == {
         "amount": str(amount),
@@ -1334,7 +1430,7 @@ def test_order_mark_as_paid(
     assert data["isPaid"] is True is order.is_fully_paid()
 
     event_order_paid = order.events.first()
-    assert event_order_paid.type == OrderEvents.ORDER_MARKED_AS_PAID
+    assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
     assert event_order_paid.user == staff_user
 
 
@@ -1369,7 +1465,7 @@ def test_order_void(
     payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
     assert data["paymentStatusDisplay"] == payment_status_display
     event_payment_voided = order.events.last()
-    assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED
+    assert event_payment_voided.type == order_events.OrderEvents.PAYMENT_VOIDED
     assert event_payment_voided.user == staff_user
 
 
@@ -1424,7 +1520,7 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
 
     order_event = order.events.last()
     assert order_event.parameters["amount"] == str(amount)
-    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
+    assert order_event.type == order_events.OrderEvents.PAYMENT_REFUNDED
 
 
 @pytest.mark.parametrize(
@@ -1479,7 +1575,7 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
         )
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == OrderEvents.PAYMENT_FAILED
+    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
     assert error_event.user == staff_user
     assert error_event.parameters == {
         "message": message,
@@ -1745,7 +1841,7 @@ def test_order_bulk_cancel_with_restock(
     data = content["data"]["orderBulkCancel"]
     assert data["count"] == expected_count
     event = order_with_lines.events.all()[1]
-    assert event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
+    assert event.type == order_events.OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
     assert event.user == staff_api_client.user
 
 
