@@ -27,7 +27,7 @@ django-prices = ">=1.0.2"
 django-prices-openexchangerates = ">=1.0.0"
 django-prices-vatlayer = ">=1.0.2"
 django-redis = ">=4.0.0"
-django-storages = ">=1.4.1"
+django-storages = {extras = ["google"],version = "*"}
 django-templated-email = ">=2.2.0"
 django-versatileimagefield = ">=1.10"
 django-webpack-loader = ">=0.3.0"
