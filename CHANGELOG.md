@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add multiple select checkbox - #4133 by @benekex2
 - Add support for Google Cloud Storage - #4127 by @chetabahana
 - Fix wrong calculation of subtotal in cart page - #4145 by @korycins
+- Fix multiple checkbox selected behavior - #4146 by @benekex2
 
 ## 2.6.0
 
