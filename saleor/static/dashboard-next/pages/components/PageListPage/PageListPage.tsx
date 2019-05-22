@@ -27,6 +27,7 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   isChecked,
   selected,
   toggle,
+  toggleAll,
   toolbar
 }) => (
   <Container>
@@ -52,6 +53,7 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
       isChecked={isChecked}
       selected={selected}
       toggle={toggle}
+      toggleAll={toggleAll}
       toolbar={toolbar}
     />
   </Container>

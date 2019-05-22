@@ -126,6 +126,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   isChecked,
   selected,
   toggle,
+  toggleAll,
   toolbar
 }) => {
   const initialData: FormData = {
@@ -248,6 +249,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     isChecked={isChecked}
                     selected={selected}
                     toggle={toggle}
+                    toggleAll={toggleAll}
                   />
                 ) : (
                   <ProductStock

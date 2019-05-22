@@ -31,7 +31,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
 }) => {
   const navigate = useNavigator();
   const paginate = usePaginator();
-  const { isSelected, listElements, toggle, reset } = useBulkActions(
+  const { isSelected, listElements, toggle, toggleAll, reset } = useBulkActions(
     params.ids
   );
 
@@ -81,6 +81,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
                     isChecked={isSelected}
                     selected={listElements.length}
                     toggle={toggle}
+                    toggleAll={toggleAll}
                     toolbar={
                       <IconButton
                         color="primary"

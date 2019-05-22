@@ -69,7 +69,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
   const paginate = usePaginator();
   const notify = useNotifier();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -377,6 +377,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               isChecked={isSelected}
                               selected={listElements.length}
                               toggle={toggle}
+                              toggleAll={toggleAll}
                             />
                             <SearchCategoriesProvider>
                               {(searchCategories, searchCategoriesOpts) => (

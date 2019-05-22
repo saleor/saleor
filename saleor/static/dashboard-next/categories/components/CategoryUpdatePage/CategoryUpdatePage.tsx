@@ -94,7 +94,8 @@ export const CategoryUpdatePage: React.StatelessComponent<
   productListToolbar,
   selected,
   subcategoryListToolbar,
-  toggle
+  toggle,
+  toggleAll
 }: CategoryUpdatePageProps) => {
   const initialData: FormData = category
     ? {
@@ -177,6 +178,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
               onPreviousPage={onPreviousPage}
               pageInfo={pageInfo}
               toggle={toggle}
+              toggleAll={toggleAll}
               selected={selected}
               isChecked={isChecked}
               toolbar={subcategoryListToolbar}
@@ -193,6 +195,7 @@ export const CategoryUpdatePage: React.StatelessComponent<
               onRowClick={onProductClick}
               onAdd={onAddProduct}
               toggle={toggle}
+              toggleAll={toggleAll}
               selected={selected}
               isChecked={isChecked}
               toolbar={productListToolbar}

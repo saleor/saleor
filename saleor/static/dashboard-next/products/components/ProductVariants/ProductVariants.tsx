@@ -84,6 +84,7 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: ProductVariantsProps) => (
     <Card>
@@ -108,20 +109,23 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
         </Typography>
       </CardContent>
       <Table className={classes.denseTable}>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
-            <TableCell className={classes.colStatus}>
-              {i18n.t("Status")}
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={variants}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
+          <TableCell className={classes.colStatus}>
+            {i18n.t("Status")}
+          </TableCell>
+          <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
+          <Hidden smDown>
+            <TableCell className={classes.colPrice}>
+              {i18n.t("Price")}
             </TableCell>
-            <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
-            <Hidden smDown>
-              <TableCell className={classes.colPrice}>
-                {i18n.t("Price")}
-              </TableCell>
-            </Hidden>
-          </TableRow>
+          </Hidden>
         </TableHead>
         <TableBody>
           {renderCollection(
