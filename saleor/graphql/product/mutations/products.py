@@ -245,11 +245,12 @@ class CollectionReorderProducts(BaseMutation):
                 )
 
             if current_rel_pos is None:
-                # This case should never happen,
-                # except when products were migrated from a previous version
-                # or using unit-tests because of the usage of `bulk_create`
+                # This case happens when products created using a bulk_creation
+                # e.g., bulk_create or collections.add
                 if node.sort_order is None:
-                    current_rel_pos = node.get_max_sort_order() or 0
+                    current_rel_pos = (
+                        node.get_max_sort_order(node.get_ordering_queryset()) or 0
+                    )
                 else:
                     current_rel_pos = node.sort_order
             else:

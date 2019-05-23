@@ -51,7 +51,7 @@ def _assert_product_are_correctly_ordered(expected: List[Product], nodes: List[D
 
 
 @pytest.mark.parametrize("wanted_pos, expected_pos", ((-100, 0), (+100, 100)))
-def test_sort_products_within_category_with_out_of_bound_value(
+def test_sort_products_within_collection_with_out_of_bound_value(
     staff_api_client,
     collection,
     product,
@@ -79,6 +79,27 @@ def test_sort_products_within_category_with_out_of_bound_value(
 
     # Look if the order is as expected
     assert product.collectionproduct.first().sort_order == expected_pos
+
+
+def test_sort_products_within_collection_invalid_id(
+    staff_api_client, collection, product, permission_manage_products
+):
+    product_id = graphene.Node.to_global_id("Collection", product.pk)
+    moves = [{"productId": product_id, "sortOrder": 1}]
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            COLLECTION_RESORT_QUERY,
+            {
+                "collectionId": graphene.Node.to_global_id("Collection", collection.pk),
+                "moves": moves,
+            },
+            permissions=[permission_manage_products],
+        )
+    )["data"]["collectionReorderProducts"]
+
+    assert content["errors"] == [
+        {"field": "moves", "message": f"Couldn't resolve to a node: {product_id}"}
+    ]
 
 
 def test_sort_products_within_collection(

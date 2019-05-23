@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Rename menu items in Dashboard 2.0 - #4172 by @benekex2
 - Adding a non existent variant to a checkout no longer crashes - #4166 by @NyanKiyoshi
 - Category delete modal improvements - #4171 by @benekex2
+- Products are now sortable within collections - #4123 by @NyanKiyoshi
 
 ## 2.6.0
 
