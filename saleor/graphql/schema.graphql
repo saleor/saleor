@@ -270,7 +270,7 @@ type Category implements Node {
   parent: Category
   level: Int!
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image

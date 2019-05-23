@@ -18,8 +18,16 @@ from ....product.utils.availability import (
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
-from ...core.fields import PrefetchingConnectionField
-from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ...core.types import (
+    FilterInputObjectType,
+    Image,
+    Money,
+    MoneyRange,
+    TaxedMoney,
+    TaxedMoneyRange,
+)
+from ...product.filters import CollectionFilter, ProductFilter, ProductTypeFilter
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import (
@@ -72,6 +80,21 @@ def resolve_attribute_list(attributes_hstore, attributes_qs):
         if attribute and value:
             attributes_list.append(SelectedAttribute(attribute=attribute, value=value))
     return attributes_list
+
+
+class ProductFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductFilter
+
+
+class CollectionFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = CollectionFilter
+
+
+class ProductTypeFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductTypeFilter
 
 
 class ProductOrder(graphene.InputObjectType):
@@ -627,8 +650,10 @@ class Category(CountableDjangoObjectType):
         lambda: Category, description="List of ancestors of the category."
     )
     products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products in the category."
+        FilterInputConnectionField(
+            Product,
+            description="List of products in the category.",
+            filter=ProductFilterInput(),
         ),
         prefetch_related=prefetch_products,
     )
