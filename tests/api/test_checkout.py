@@ -1504,3 +1504,59 @@ def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == line.get_total(discounts=discounts).gross.amount
     )
+
+
+QUERY_GET_CHECKOUT_GIFT_CARD_CODES = """
+query getCheckout($token: UUID!) {
+  checkout(token: $token) {
+    token
+    giftCards {
+      displayCode
+      currentBalance {
+        amount
+      }
+    }
+  }
+}
+"""
+
+
+def test_checkout_get_gift_card_code(user_api_client, checkout_with_gift_card):
+    gift_card = checkout_with_gift_card.gift_cards.first()
+    variables = {"token": str(checkout_with_gift_card.token)}
+    response = user_api_client.post_graphql(
+        QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]["giftCards"][0]
+    assert data["displayCode"] == gift_card.display_code
+    assert data["currentBalance"]["amount"] == gift_card.current_balance.amount
+
+
+def test_checkout_get_gift_card_codes(
+    user_api_client, checkout_with_gift_card, gift_card_created_by_staff
+):
+    checkout_with_gift_card.gift_cards.add(gift_card_created_by_staff)
+    checkout_with_gift_card.save()
+    gift_card_0 = checkout_with_gift_card.gift_cards.first()
+    gift_card_1 = checkout_with_gift_card.gift_cards.last()
+    variables = {"token": str(checkout_with_gift_card.token)}
+    response = user_api_client.post_graphql(
+        QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]["giftCards"]
+    assert data[0]["displayCode"] == gift_card_0.display_code
+    assert data[0]["currentBalance"]["amount"] == gift_card_0.current_balance.amount
+    assert data[1]["displayCode"] == gift_card_1.display_code
+    assert data[1]["currentBalance"]["amount"] == gift_card_1.current_balance.amount
+
+
+def test_checkout_get_gift_card_code_without_gift_card(user_api_client, checkout):
+    variables = {"token": str(checkout.token)}
+    response = user_api_client.post_graphql(
+        QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]["giftCards"]
+    assert not data

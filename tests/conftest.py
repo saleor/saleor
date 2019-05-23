@@ -104,6 +104,13 @@ def checkout_with_voucher(checkout, product, voucher):
 
 
 @pytest.fixture
+def checkout_with_gift_card(checkout_with_item, gift_card):
+    checkout_with_item.gift_cards.add(gift_card)
+    checkout_with_item.save()
+    return checkout_with_item
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
@@ -349,7 +356,7 @@ def permission_manage_discounts():
 
 @pytest.fixture
 def permission_manage_gift_card():
-    return Permission.objects.get(codename='manage_gift_card')
+    return Permission.objects.get(codename="manage_gift_card")
 
 
 @pytest.fixture
@@ -619,15 +626,19 @@ def order_line(order, variant, vatlayer):
 @pytest.fixture
 def gift_card(customer_user, staff_user):
     return GiftCard.objects.create(
-        code='mirumee_giftcard', buyer=customer_user, initial_balance=10,
-        current_balance=10, creator=staff_user)
+        code="mirumee_giftcard",
+        buyer=customer_user,
+        initial_balance=10,
+        current_balance=10,
+        creator=staff_user,
+    )
 
 
 @pytest.fixture
 def gift_card_created_by_staff(staff_user):
     return GiftCard.objects.create(
-        code='mirumee_staff', creator=staff_user, initial_balance=100,
-        current_balance=100)
+        code="mirumee_staff", creator=staff_user, initial_balance=5, current_balance=5
+    )
 
 
 @pytest.fixture()
