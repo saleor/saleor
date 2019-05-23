@@ -62,7 +62,7 @@ def _resolve_graphene_type(type_name):
     raise AssertionError("Could not resolve the type {}".format(type_name))
 
 
-def get_nodes(ids, graphene_type=None, qs=None):
+def get_nodes(ids, graphene_type=None):
     """Return a list of nodes.
 
     If the `graphene_type` argument is provided, the IDs will be validated
@@ -78,10 +78,7 @@ def get_nodes(ids, graphene_type=None, qs=None):
     if nodes_type and not graphene_type:
         graphene_type = _resolve_graphene_type(nodes_type)
 
-    if qs is None:
-        qs = graphene_type._meta.model.objects
-
-    nodes = list(qs.filter(pk__in=pks))
+    nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
     nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
 
     if not nodes:

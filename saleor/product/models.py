@@ -23,7 +23,7 @@ from saleor.core.utils import build_absolute_uri
 
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
-from ..core.models import PublishableModel, SortableModel, SortableModelNullable
+from ..core.models import PublishableModel, SortableModel
 from ..core.utils.taxes import apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
@@ -191,9 +191,6 @@ class Product(SeoModel, PublishableModel):
         tax_rate = self.tax_rate or self.product_type.tax_rate
         price = apply_tax_to_price(taxes, tax_rate, price)
         return TaxedMoneyRange(start=price, stop=price)
-
-    def get_ordering_queryset(self):
-        return self.category.products.all()
 
 
 class ProductTranslation(SeoModelTranslation):
@@ -536,7 +533,7 @@ class VariantImage(models.Model):
     )
 
 
-class CollectionProduct(SortableModelNullable):
+class CollectionProduct(SortableModel):
     collection = models.ForeignKey(
         "Collection", related_name="collectionproduct", on_delete=models.CASCADE
     )
