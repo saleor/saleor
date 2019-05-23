@@ -250,3 +250,71 @@ def test_checkout_get_gift_card_code_without_gift_card(user_api_client, checkout
     content = get_graphql_content(response)
     data = content["data"]["checkout"]["giftCards"]
     assert not data
+
+
+MUTATION_CHECKOUT_ADD_PROMO_CODE = """
+    mutation($checkoutId: ID!, $promoCode: String!) {
+        checkoutAddPromoCode(
+            checkoutId: $checkoutId, promoCode: $promoCode) {
+            errors {
+                field
+                message
+            }
+            checkout {
+                id,
+                voucherCode
+                giftCards {
+                    code
+                }
+            }
+        }
+    }
+"""
+
+
+def _mutate_checkout_add_promo_code(client, variables):
+    response = client.post_graphql(MUTATION_CHECKOUT_ADD_PROMO_CODE, variables)
+    content = get_graphql_content(response)
+    return content["data"]["checkoutAddPromoCode"]
+
+
+def test_checkout_add_promo_code_voucher(api_client, checkout_with_item, voucher):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert not data["errors"]
+    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_promo_code_voucher_invalid_checkout(api_client, voucher):
+    variables = {"checkoutId": "XXX", "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "checkoutId"
+
+
+def test_checkout_add_promo_code_voucher_invalid_code(api_client, checkout_with_item):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": "XXX"}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
+
+
+def test_checkout_add_promo_code_voucher_not_applicable_voucher(
+    api_client, checkout_with_item, voucher_with_high_min_amount_spent
+):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "promoCode": voucher_with_high_min_amount_spent.code,
+    }
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
+
