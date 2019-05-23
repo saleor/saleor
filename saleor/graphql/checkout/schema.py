@@ -5,6 +5,7 @@ from graphql_jwt.decorators import permission_required
 from ..core.fields import PrefetchingConnectionField
 from ..payment.mutations import CheckoutPaymentCreate
 from .mutations import (
+    CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
     CheckoutComplete,
     CheckoutCreate,
@@ -53,6 +54,7 @@ class CheckoutQueries(graphene.ObjectType):
 
 
 class CheckoutMutations(graphene.ObjectType):
+    checkout_add_promo_code = CheckoutAddPromoCode.Field()
     checkout_billing_address_update = CheckoutBillingAddressUpdate.Field()
     checkout_complete = CheckoutComplete.Field()
     checkout_create = CheckoutCreate.Field()

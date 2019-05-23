@@ -562,3 +562,42 @@ class CheckoutUpdateVoucher(BaseMutation):
                 remove_voucher_from_checkout(checkout)
 
         return CheckoutUpdateVoucher(checkout=checkout)
+
+
+class CheckoutAddPromoCode(BaseMutation):
+    checkout = graphene.Field(
+        Checkout, description="An checkout with added gift card or voucher"
+    )
+
+    class Arguments:
+        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        promo_code = graphene.String(
+            description="Gift card code or voucher code", required=True
+        )
+
+    class Meta:
+        description = "Adds gift card or voucher to the checkout."
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, promo_code):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        try:
+            voucher = voucher_model.Voucher.objects.active(date=date.today()).get(
+                code=promo_code
+            )
+        except voucher_model.Voucher.DoesNotExist:
+            raise ValidationError(
+                {"promo_code": "Voucher with given code does not exist."}
+            )
+
+        try:
+            add_voucher_to_checkout(voucher, checkout)
+        except voucher_model.NotApplicable:
+            raise ValidationError(
+                {"promo_code": "Voucher is not applicable to that checkout."}
+            )
+
+        return CheckoutAddPromoCode(checkout=checkout)
+
