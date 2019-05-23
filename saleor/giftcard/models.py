@@ -41,3 +41,7 @@ class GiftCard(models.Model):
                 pgettext_lazy("Permission description", "Manage gift cards."),
             ),
         )
+
+    @property
+    def display_code(self):
+        return "****%s" % self.code[-4:]

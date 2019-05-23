@@ -11,12 +11,6 @@ def test_query_own_gift_card(user_api_client, staff_user, gift_card):
     query giftCard($id: ID!) {
         giftCard(id: $id){
             code
-            buyer {
-                email
-            }
-            creator {
-                email
-            }
             created
             startDate
             expirationDate
@@ -37,8 +31,6 @@ def test_query_own_gift_card(user_api_client, staff_user, gift_card):
     content = get_graphql_content(response)
     data = content["data"]["giftCard"]
     assert data["code"] == gift_card.code
-    assert data["buyer"]["email"] == gift_card.buyer.email
-    assert data["creator"]["email"] == staff_user.email
     assert data["created"] == gift_card.created.isoformat()
     assert data["startDate"] == gift_card.start_date.isoformat()
     assert data["expirationDate"] == gift_card.expiration_date

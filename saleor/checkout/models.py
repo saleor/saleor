@@ -13,6 +13,7 @@ from django_prices.models import MoneyField
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..core.weight import zero_weight
+from ..giftcard.models import GiftCard
 from ..shipping.models import ShippingMethod
 
 CENTS = Decimal("0.01")
@@ -73,6 +74,7 @@ class Checkout(models.Model):
     discount_name = models.CharField(max_length=255, blank=True, null=True)
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
+    gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="gift_cards")
 
     objects = CheckoutQueryset.as_manager()
 
