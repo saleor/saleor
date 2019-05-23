@@ -529,6 +529,7 @@ class CheckoutUpdateVoucher(BaseMutation):
 
     class Meta:
         description = (
+            "DEPRECATED: Use CheckoutAddPromoCode or CheckoutRemovePromoCode instead. "
             "Adds voucher to the checkout. Query it without voucher_code "
             "field to remove voucher from checkout."
         )
