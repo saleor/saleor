@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Category delete modal improvements - #4171 by @benekex2
 - Products are now sortable within collections - #4123 by @NyanKiyoshi
 - Restore Django's common middleware as a default middleware - #4186 by @cmiacz
+- Add phone validation in the GraphQL API to handle the library upgrade - #4156 by @NyanKiyoshi
 
 ## 2.6.0
 
