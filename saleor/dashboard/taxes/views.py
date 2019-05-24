@@ -13,8 +13,8 @@ from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 
 from ...core import TaxRateType
+from ...core.taxes.vatlayer import get_taxes_for_country  # FIXME
 from ...core.utils import get_paginator_items
-from ...core.utils.taxes import get_taxes_for_country
 from ...dashboard.taxes.filters import TaxFilter
 from ...dashboard.taxes.forms import TaxesConfigurationForm
 from ...dashboard.views import staff_member_required

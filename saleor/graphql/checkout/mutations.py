@@ -21,7 +21,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
-from ...core.utils.taxes import get_taxes_for_address
+from ...core.taxes.errors import TaxError
 from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment
@@ -239,7 +239,7 @@ class CheckoutLinesAdd(BaseMutation):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=get_taxes_for_address(checkout.shipping_address),
+            taxes=None,
         )
 
         if variants and quantities:
@@ -291,7 +291,7 @@ class CheckoutLineDelete(BaseMutation):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=get_taxes_for_address(checkout.shipping_address),
+            taxes=None,
         )
 
         recalculate_checkout_discount(
@@ -370,7 +370,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=get_taxes_for_address(shipping_address),
+            taxes=None,
         )
 
         with transaction.atomic():
@@ -510,6 +510,8 @@ class CheckoutComplete(BaseMutation):
             raise ValidationError("Insufficient product stock.")
         except voucher_model.NotApplicable:
             raise ValidationError("Voucher not applicable")
+        except TaxError as tax_error:
+            return ValidationError("Unable to calculate taxes - %s" % str(tax_error))
 
         payment.order = order
 

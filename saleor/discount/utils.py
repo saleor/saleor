@@ -3,7 +3,7 @@ import uuid
 from django.db.models import F
 from django.utils.translation import pgettext
 
-from ..core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
+from ..core.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from .models import NotApplicable
 
 

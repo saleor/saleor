@@ -37,7 +37,6 @@ def user_shipping_address_view(request, checkout):
     addresses_form, address_form, updated = update_shipping_address_in_checkout(
         checkout, user_addresses, request.POST or None, request.country
     )
-
     if updated:
         return redirect("checkout:shipping-method")
 

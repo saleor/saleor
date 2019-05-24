@@ -20,7 +20,6 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.utils.json_serializer import object_hook
-from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
@@ -52,7 +51,6 @@ from ...product.thumbnails import (
     create_product_thumbnails,
 )
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
 
@@ -362,7 +360,7 @@ def create_order_line(order, discounts, taxes):
         quantity=quantity,
         variant=variant,
         unit_price=variant.get_price(discounts=discounts, taxes=taxes),
-        tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes),
+        tax_rate=0,
     )
 
 
@@ -403,7 +401,6 @@ def create_fake_order(discounts, taxes):
 
     shipping_method = ShippingMethod.objects.order_by("?").first()
     shipping_price = shipping_method.price
-    shipping_price = get_taxed_shipping_price(shipping_price, taxes)
     order_data.update(
         {"shipping_method_name": shipping_method.name, "shipping_price": shipping_price}
     )
@@ -442,7 +439,7 @@ def create_users(how_many=10):
 
 
 def create_orders(how_many=10):
-    taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
+    taxes = None
     discounts = Sale.objects.active(date.today()).prefetch_related(
         "products", "categories", "collections"
     )

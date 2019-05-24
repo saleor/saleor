@@ -11,7 +11,8 @@ from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
 
 from ...core import TaxRateType
-from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
+from ...core.taxes import include_taxes_in_prices
+from ...core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME  # FIXME
 from ...core.weight import WeightField
 from ...product.models import (
     Attribute,

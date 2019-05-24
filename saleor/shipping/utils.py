@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.utils.translation import pgettext_lazy
 from prices import MoneyRange
 
-from ..core.utils.taxes import get_taxed_shipping_price
+from ..core.taxes.vatlayer import get_taxed_shipping_price  # FIXME
 from ..core.weight import convert_weight, get_default_weight_unit
 
 

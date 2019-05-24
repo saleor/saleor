@@ -24,7 +24,6 @@ from django_countries.fields import Country
 from ..discount.models import Sale
 from . import analytics
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
-from .utils.taxes import get_taxes_for_country
 
 logger = logging.getLogger(__name__)
 
@@ -168,12 +167,7 @@ def taxes(get_response):
     """Assign tax rates for default country to `request.taxes`."""
 
     def middleware(request):
-        if settings.VATLAYER_ACCESS_KEY:
-            request.taxes = SimpleLazyObject(
-                lambda: get_taxes_for_country(request.country)
-            )
-        else:
-            request.taxes = None
+        request.taxes = None
         return get_response(request)
 
     return middleware

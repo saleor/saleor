@@ -1,7 +1,8 @@
 from django import template
+from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
+from ...core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME  # FIXME
 
 register = template.Library()
 
@@ -15,9 +16,8 @@ def price_range(context, price_range):
 @register.simple_tag
 def tax_rate(taxes, rate_name):
     """Return tax rate value for given tax rate type in current country."""
-    if not taxes:
+    if not taxes or not settings.VATLAYER_ACCESS_KEY:  # FIXME
         return 0
-
     tax = taxes.get(rate_name) or taxes.get(DEFAULT_TAX_RATE_NAME)
     return tax["value"]
 

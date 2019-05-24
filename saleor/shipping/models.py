@@ -6,10 +6,9 @@ from django_countries.fields import CountryField
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from measurement.measures import Weight
-from prices import MoneyRange
+from prices import MoneyRange, TaxedMoney
 
 from ..core.utils import format_money
-from ..core.utils.taxes import get_taxed_shipping_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from . import ShippingMethodType
@@ -161,7 +160,7 @@ class ShippingMethod(models.Model):
         )
 
     def get_total(self, taxes=None):
-        return get_taxed_shipping_price(self.price, taxes)
+        return TaxedMoney(net=self.price, gross=self.price)
 
     def get_ajax_label(self):
         price_html = format_money(self.price)

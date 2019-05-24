@@ -4,7 +4,7 @@ from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
-from ....core.utils.taxes import ZERO_TAXED_MONEY
+from ....core.taxes import ZERO_TAXED_MONEY
 from ....order import OrderStatus, events, models
 from ....order.utils import (
     add_variant_to_order,

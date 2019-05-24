@@ -11,7 +11,7 @@ from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
 
 from ..account.models import Address
-from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
+from ..core.taxes import ZERO_TAXED_MONEY, zero_money
 from ..core.weight import zero_weight
 from ..shipping.models import ShippingMethod
 

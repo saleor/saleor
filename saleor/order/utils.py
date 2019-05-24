@@ -1,3 +1,4 @@
+from decimal import Decimal
 from functools import wraps
 
 from django.conf import settings
@@ -7,7 +8,7 @@ from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
-from ..core.utils.taxes import ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address
+from ..core.taxes import ZERO_MONEY
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
@@ -152,12 +153,12 @@ def recalculate_order_weight(order):
 
 def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
-    taxes = get_taxes_for_address(order.shipping_address)
+    taxes = None
 
     for line in order:
         if line.variant:
             line.unit_price = line.variant.get_price(discounts, taxes)
-            line.tax_rate = get_tax_rate_by_name(line.variant.product.tax_rate, taxes)
+            line.tax_rate = 0
             line.save()
 
     if order.shipping_method:
@@ -254,6 +255,7 @@ def add_variant_to_order(
     taxes=None,
     allow_overselling=False,
     track_inventory=True,
+    unit_tax=Decimal("0.0"),
 ):
     """Add total_quantity of variant to order.
 
@@ -265,6 +267,11 @@ def add_variant_to_order(
     if not allow_overselling:
         variant.check_quantity(quantity)
 
+    unit_price_net = variant.get_price(discounts).net
+    unit_price_gross = Money(
+        amount=unit_price_net.amount + unit_tax, currency=unit_price_net.currency
+    )
+    unit_price = TaxedMoney(net=unit_price_net, gross=unit_price_gross)
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
@@ -281,8 +288,8 @@ def add_variant_to_order(
             is_shipping_required=variant.is_shipping_required(),
             quantity=quantity,
             variant=variant,
-            unit_price=variant.get_price(discounts, taxes),
-            tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes),
+            unit_price=unit_price,
+            tax_rate=0,
         )
 
     if variant.track_inventory and track_inventory:

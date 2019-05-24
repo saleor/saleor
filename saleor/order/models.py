@@ -16,8 +16,8 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..account.models import Address
+from ..core.taxes import ZERO_TAXED_MONEY, zero_money
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
 from ..payment import ChargeStatus, TransactionKind
