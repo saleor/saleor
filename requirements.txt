@@ -5,8 +5,8 @@ autopep8==1.4.4
 babel==2.7.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.156
-botocore==1.12.156
+boto3==1.9.157
+botocore==1.12.157
 braintree==3.49.0
 cachetools==3.1.1
 cairocffi==1.0.2
@@ -34,7 +34,7 @@ django-impersonate==1.4.1
 django-js-asset==1.2.2
 django-measurement==3.0.0
 django-mptt==0.10.0
-django-phonenumber-field==2.3.1
+django-phonenumber-field==2.4.0
 django-prices-openexchangerates==1.0.1
 django-prices-vatlayer==1.0.2
 django-prices==1.0.4
@@ -52,9 +52,9 @@ elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
 faker==1.0.7
 freezegun==0.3.11
-google-api-core==1.11.0
+google-api-core==1.11.1
 google-auth==1.6.3
-google-cloud-core==1.0.0
+google-cloud-core==1.0.1
 google-cloud-storage==1.16.0
 google-i18n-address==2.3.4
 google-measurement-protocol==1.0.0
@@ -80,11 +80,11 @@ maxminddb==1.4.1
 measurement==2.0.1
 mpmath==1.1.0
 oauthlib==3.0.1
-phonenumberslite==8.10.9
+phonenumberslite==8.10.12
 pillow==5.4.1
 prices==1.0.0
 promise==2.2.1
-protobuf==3.7.1
+protobuf==3.8.0
 psycopg2-binary==2.8.2
 purl==1.5
 pyasn1-modules==0.2.5
