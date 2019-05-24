@@ -21,17 +21,18 @@ class BaseTranslationType(CountableDjangoObjectType):
     class Meta:
         abstract = True
 
-    def resolve_language(self, *_args):
+    @staticmethod
+    def resolve_language(root, *_args):
         try:
             language = next(
                 language[1]
                 for language in settings.LANGUAGES
-                if language[0] == self.language_code
+                if language[0] == root.language_code
             )
         except StopIteration:
             return None
         return LanguageDisplay(
-            code=LanguageCodeEnum[str_to_enum(self.language_code)], language=language
+            code=LanguageCodeEnum[str_to_enum(root.language_code)], language=language
         )
 
 

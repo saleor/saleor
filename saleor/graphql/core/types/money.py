@@ -14,8 +14,9 @@ class Money(graphene.ObjectType):
     class Meta:
         description = "Represents amount of money in specific currency."
 
-    def resolve_localized(self, _info):
-        return prices_i18n.amount(self)
+    @staticmethod
+    def resolve_localized(root, _info):
+        return prices_i18n.amount(root)
 
 
 class MoneyRange(graphene.ObjectType):
@@ -62,11 +63,13 @@ class VAT(graphene.ObjectType):
     class Meta:
         description = "Represents a VAT rate for a country."
 
-    def resolve_standard_rate(self, _info):
-        return self.data.get("standard_rate")
+    @staticmethod
+    def resolve_standard_rate(root, _info):
+        return root.data.get("standard_rate")
 
-    def resolve_reduced_rates(self, _info):
-        reduced_rates = self.data.get("reduced_rates", {}) or {}
+    @staticmethod
+    def resolve_reduced_rates(root, _info):
+        reduced_rates = root.data.get("reduced_rates", {}) or {}
         return [
             ReducedRate(rate=rate, rate_type=rate_type)
             for rate_type, rate in reduced_rates.items()
