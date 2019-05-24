@@ -44,8 +44,10 @@ class Page(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Page
 
-    def resolve_available_on(self, _info):
-        return self.publication_date
+    @staticmethod
+    def resolve_available_on(root: models.Page, _info):
+        return root.publication_date
 
-    def resolve_is_visible(self, _info):
-        return self.is_published
+    @staticmethod
+    def resolve_is_visible(root: models.Page, _info):
+        return root.is_published
