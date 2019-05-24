@@ -7,9 +7,9 @@ from ...checkout.utils import (
     get_checkout_from_request,
     get_or_create_checkout_from_request,
 )
+from ...core.taxes import ZERO_TAXED_MONEY, TaxedMoney
 from ...core.utils import get_paginator_items
 from ...core.utils.filters import get_now_sorted_by
-from ...core.utils.taxes import ZERO_TAXED_MONEY, TaxedMoney
 from ..forms import ProductForm
 from .availability import products_with_availability
 

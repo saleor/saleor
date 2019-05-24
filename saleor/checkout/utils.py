@@ -1,5 +1,6 @@
 """Checkout-related utility functions."""
 from datetime import date, timedelta
+from decimal import Decimal
 from functools import wraps
 from uuid import UUID
 
@@ -10,14 +11,22 @@ from django.db import transaction
 from django.db.models import Sum
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
-from prices import TaxedMoneyRange
+from prices import TaxedMoney, TaxedMoneyRange
 
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..core.taxes import ZERO_MONEY
+from ..core.taxes.avatax.interface import postprocess_order_creation_with_taxes  # FIXME
+from ..core.taxes.interface import (
+    get_lines_with_taxes,
+    get_shipping_gross,
+    get_subtotal_gross,
+    get_total_gross,
+)
+from ..core.taxes.vatlayer import get_taxes_for_country  # FIXME
 from ..core.utils import to_local_currency
-from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
@@ -637,22 +646,24 @@ def get_checkout_context(
     checkout, discounts, taxes, currency=None, shipping_range=None
 ):
     """Data shared between views in checkout process."""
-    checkout_total = checkout.get_total(discounts, taxes)
+    checkout_total = get_total_gross(checkout, discounts)
+    checkout_subtotal = get_subtotal_gross(checkout, discounts)
+    shipping_price = get_shipping_gross(checkout, discounts)
+
     shipping_required = checkout.is_shipping_required()
-    checkout_subtotal = checkout.get_subtotal(discounts, taxes)
     total_with_shipping = TaxedMoneyRange(
         start=checkout_subtotal, stop=checkout_subtotal
     )
     if shipping_required and shipping_range:
-        total_with_shipping = shipping_range + checkout_subtotal
+        total_with_shipping = shipping_range + checkout_subtotal.net
 
     context = {
         "checkout": checkout,
-        "checkout_are_taxes_handled": bool(taxes),
+        "checkout_are_taxes_handled": True,  # bool(taxes),
         "checkout_lines": [
             (line, line.get_total(discounts, taxes)) for line in checkout
         ],
-        "checkout_shipping_price": checkout.get_shipping_price(taxes),
+        "checkout_shipping_price": shipping_price,  # checkout.get_shipping_price(taxes),
         "checkout_subtotal": checkout_subtotal,
         "checkout_total": checkout_total,
         "shipping_required": checkout.is_shipping_required(),
@@ -874,7 +885,7 @@ def _process_voucher_data_for_order(checkout):
     }
 
 
-def _process_shipping_data_for_order(checkout, taxes):
+def _process_shipping_data_for_order(checkout, shipping_price):
     """Fetch, process and return shipping data from checkout."""
     if not checkout.is_shipping_required():
         return {}
@@ -890,7 +901,7 @@ def _process_shipping_data_for_order(checkout, taxes):
         "shipping_address": shipping_address,
         "shipping_method": checkout.shipping_method,
         "shipping_method_name": smart_text(checkout.shipping_method),
-        "shipping_price": checkout.get_shipping_price(taxes),
+        "shipping_price": shipping_price,  # checkout.get_shipping_price(taxes),
         "weight": checkout.get_total_weight(),
     }
 
@@ -931,26 +942,33 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user:
     if order is not None:
         return order
 
+    total = get_total_gross(checkout, discounts)
+    shipping_total = get_shipping_gross(checkout, discounts)
     order_data = {}
     order_data.update(_process_voucher_data_for_order(checkout))
-    order_data.update(_process_shipping_data_for_order(checkout, taxes))
+    order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
     order_data.update(_process_user_data_for_order(checkout))
     order_data.update(
         {
             "language_code": get_language(),
             "tracking_client_id": tracking_code,
-            "total": checkout.get_total(discounts, taxes),
+            "total": total,
         }
     )
 
     order = Order.objects.create(**order_data, checkout_token=checkout.token)
 
+    lines_with_taxes = get_lines_with_taxes(checkout, discounts)
     # create order lines from checkout lines
-    for line in checkout:
-        add_variant_to_order(order, line.variant, line.quantity, discounts, taxes)
+    for line, tax in lines_with_taxes:
+        add_variant_to_order(
+            order, line.variant, line.quantity, discounts, unit_tax=tax
+        )
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
+
+    postprocess_order_creation_with_taxes(order)
 
     # remove checkout after order is created
     checkout.delete()

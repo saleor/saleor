@@ -3,7 +3,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...core.utils import get_client_ip
-from ...core.utils.taxes import get_taxes_for_address
 from ...payment import PaymentError, models
 from ...payment.utils import (
     create_payment,
@@ -80,8 +79,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
         checkout_total = checkout.get_total(
-            discounts=info.context.discounts,
-            taxes=get_taxes_for_address(checkout.billing_address),
+            discounts=info.context.discounts, taxes=None
         )
         amount = data.get("amount", checkout_total)
         if amount < checkout_total.gross.amount:

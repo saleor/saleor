@@ -1,20 +1,12 @@
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_for_rate, get_tax_rates_for_country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...core import TaxRateType
+from ... import TaxRateType
+from .. import charge_taxes_on_shipping, include_taxes_in_prices
 
 DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
-
-ZERO_MONEY = Money(0, settings.DEFAULT_CURRENCY)
-ZERO_TAXED_MONEY = TaxedMoney(net=ZERO_MONEY, gross=ZERO_MONEY)
-
-
-def zero_money():
-    """Function used as a model's default."""
-    return ZERO_MONEY
 
 
 def apply_tax_to_price(taxes, rate_name, base):
@@ -85,18 +77,6 @@ def get_tax_rate_by_name(rate_name, taxes=None):
         tax_rate = taxes[DEFAULT_TAX_RATE_NAME]["value"]
 
     return tax_rate
-
-
-def include_taxes_in_prices():
-    return Site.objects.get_current().settings.include_taxes_in_prices
-
-
-def display_gross_prices():
-    return Site.objects.get_current().settings.display_gross_prices
-
-
-def charge_taxes_on_shipping():
-    return Site.objects.get_current().settings.charge_taxes_on_shipping
 
 
 def get_taxed_shipping_price(shipping_price, taxes):

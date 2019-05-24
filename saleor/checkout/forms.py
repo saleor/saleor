@@ -9,10 +9,11 @@ from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import LazyTypedChoiceField
+from prices import TaxedMoney
 
 from ..core.exceptions import InsufficientStock
+from ..core.taxes import display_gross_prices
 from ..core.utils import format_money
-from ..core.utils.taxes import display_gross_prices, get_taxed_shipping_price
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod, ShippingZone
 from ..shipping.utils import get_shipping_price_estimate
@@ -295,7 +296,7 @@ class ShippingMethodChoiceField(forms.ModelChoiceField):
 
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
-        price = get_taxed_shipping_price(obj.price, self.taxes)
+        price = TaxedMoney(net=obj.price, gross=obj.price)
         if display_gross_prices():
             price = price.gross
         else:

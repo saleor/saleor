@@ -5,7 +5,7 @@ from django.template.loader import get_template
 
 from ...checkout import AddressType
 from ...checkout.utils import _get_products_voucher_discount
-from ...core.utils.taxes import ZERO_MONEY
+from ...core.taxes import ZERO_MONEY
 from ...discount import VoucherType
 from ...discount.utils import get_shipping_voucher_discount, get_value_voucher_discount
 

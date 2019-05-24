@@ -1,6 +1,6 @@
 from prices import MoneyRange
 
-from ...core.utils.taxes import ZERO_MONEY
+from ...core.taxes import ZERO_MONEY
 
 
 def get_product_costs_data(product):

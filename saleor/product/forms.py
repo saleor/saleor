@@ -6,7 +6,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import amount
 
 from ..checkout.forms import AddToCheckoutForm
-from ..core.utils.taxes import display_gross_prices
+from ..core.taxes import display_gross_prices
 
 
 class VariantChoiceField(forms.ModelChoiceField):

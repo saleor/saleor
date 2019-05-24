@@ -6,6 +6,9 @@ from django.utils.translation import pgettext
 from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
+
+# FIXME This should be taken from taxes module
+from ...core.taxes.errors import TaxError
 from ...discount.models import NotApplicable
 from ..forms import CheckoutNoteForm
 from ..utils import (
@@ -38,6 +41,14 @@ def _handle_order_placement(request, checkout):
     except NotApplicable:
         messages.warning(
             request, pgettext("Checkout warning", "Please review your checkout.")
+        )
+        return redirect("checkout:summary")
+    except TaxError as tax_error:
+        messages.warning(
+            request,
+            pgettext(
+                "Checkout warning", "Unable to calculate taxes - %s" % str(tax_error)
+            ),
         )
         return redirect("checkout:summary")
 

@@ -2,8 +2,8 @@ from collections import defaultdict
 
 from django_prices.templatetags import prices_i18n
 
+from ...core.taxes import display_gross_prices
 from ...core.utils import to_local_currency
-from ...core.utils.taxes import display_gross_prices, get_tax_rate_by_name
 from ...seo.schema.product import variant_json_ld
 from .availability import get_product_availability
 
@@ -65,7 +65,7 @@ def get_variant_picker_data(product, discounts=None, taxes=None, local_currency=
 
     data["availability"] = {
         "discount": price_as_dict(availability.discount),
-        "taxRate": get_tax_rate_by_name(product.tax_rate, taxes),
+        "taxRate": 0,
         "priceRange": price_range_as_dict(availability.price_range),
         "priceRangeUndiscounted": price_range_as_dict(
             availability.price_range_undiscounted

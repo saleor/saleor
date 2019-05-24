@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
+from ...core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME
 
 
 def add_default_tax_rate_instead_of_empty_field(apps, schema_editor):

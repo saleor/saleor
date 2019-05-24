@@ -6,7 +6,7 @@ from django_countries import countries
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
-from ...core.utils.taxes import ZERO_MONEY
+from ...core.taxes import ZERO_MONEY
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
 from ...discount.utils import generate_voucher_code
