@@ -216,4 +216,46 @@ def test_ajax_voucher_list(admin_client, voucher):
     resp_decoded = json.loads(response.content.decode("utf-8"))
 
     assert response.status_code == 200
-    assert resp_decoded == {"results": vouchers_list}
+    assert resp_decoded == {'results': vouchers_list}
+
+
+@pytest.mark.parametrize('voucher_type', [
+    'collection', 'category', 'product', 'value', 'shipping'
+])
+def test_voucher_form_min_amount_spent_is_changed_on_edit(admin_client, product, collection, voucher_type):
+    assert Voucher.objects.count() == 0
+    url = reverse('dashboard:voucher-add')
+    data = {
+        'code': 'TESTVOUCHER',
+        'name': 'Test Voucher',
+        'start_date': '2019-01-01',
+        'end_date': '2019-06-01',
+        'type': voucher_type,
+        'discount_value': '15.99',
+        'discount_value_type': DiscountValueType.FIXED,
+        'product-products': [product.pk],
+        'category-categories': [product.category.pk],
+        'collection-collections': [collection.pk],
+        'shipping-min_amount_spent': '400',
+        'product-min_amount_spent': '400',
+        'category-min_amount_spent': '400',
+        'collection-min_amount_spent': '400',
+        'value-min_amount_spent': '400',
+    }
+
+    data['{}-min_amount_spent'.format(voucher_type)] = '800'
+
+    response = admin_client.post(url, data, follow=True)
+
+    assert response.status_code == 200
+    assert Voucher.objects.count() == 1
+
+    voucher = Voucher.objects.all()[0]
+    assert voucher.type == voucher_type
+    assert voucher.code == data['code']
+    assert voucher.name == data['name']
+    assert voucher.start_date == date(2019, 1, 1)
+    assert voucher.end_date == date(2019, 6, 1)
+    assert voucher.discount_value_type == DiscountValueType.FIXED
+    assert voucher.discount_value == Decimal('15.99')
+    assert voucher.min_amount_spent == Money('800', 'USD')
