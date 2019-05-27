@@ -566,7 +566,7 @@ class CheckoutUpdateVoucher(BaseMutation):
 
 class CheckoutAddPromoCode(BaseMutation):
     checkout = graphene.Field(
-        Checkout, description="An checkout with added gift card or voucher"
+        Checkout, description="The checkout with the added gift card or voucher"
     )
 
     class Arguments:
@@ -576,7 +576,7 @@ class CheckoutAddPromoCode(BaseMutation):
         )
 
     class Meta:
-        description = "Adds gift card or voucher to the checkout."
+        description = "Adds a gift card or a voucher to a checkout."
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, promo_code):
@@ -601,3 +601,29 @@ class CheckoutAddPromoCode(BaseMutation):
 
         return CheckoutAddPromoCode(checkout=checkout)
 
+
+class CheckoutRemovePromoCode(BaseMutation):
+    checkout = graphene.Field(
+        Checkout, description="The checkout with the removed gift card or voucher"
+    )
+
+    class Arguments:
+        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        promo_code = graphene.String(
+            description="Gift card code or voucher code", required=True
+        )
+
+    class Meta:
+        description = "Remove a gift card or a voucher from a checkout."
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, promo_code):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+
+        existing_voucher = get_voucher_for_checkout(checkout)
+        if existing_voucher and existing_voucher.code == promo_code:
+            remove_voucher_from_checkout(checkout)
+
+        return CheckoutUpdateVoucher(checkout=checkout)
