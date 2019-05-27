@@ -318,3 +318,41 @@ def test_checkout_add_promo_code_voucher_not_applicable_voucher(
     assert data["errors"]
     assert data["errors"][0]["field"] == "promoCode"
 
+
+MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
+    mutation($checkoutId: ID!, $promoCode: String!) {
+        checkoutRemovePromoCode(
+            checkoutId: $checkoutId, promoCode: $promoCode) {
+            errors {
+                field
+                message
+            }
+            checkout {
+                id,
+                voucherCode
+                giftCards {
+                    code
+                }
+            }
+        }
+    }
+"""
+
+
+def test_checkout_remove_promo_code_voucher(api_client, checkout_with_voucher):
+    assert checkout_with_voucher.voucher_code is not None
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_voucher.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "promoCode": checkout_with_voucher.voucher_code,
+    }
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_REMOVE_PROMO_CODE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutRemovePromoCode"]
+
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["voucherCode"] is None
+    assert checkout_with_voucher.voucher_code is None
