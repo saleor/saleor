@@ -201,7 +201,7 @@ class Home extends Component {
               <div className="news">
                 <div className="label"><span>NEW</span></div>
                 <div className="content">
-                  <a href="http://bit.ly/MarchRelease2019" target="_blank" rel="noopener"><strong>March Release of Saleor</strong></a>
+                  <a href="http://bit.ly/AprilRelease2019" target="_blank" rel="noopener"><strong>April Release of Saleor</strong></a>
                   <div className="close-icon" onClick={this.toggleNewsBar}></div>
                 </div>
               </div>
