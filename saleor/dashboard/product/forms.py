@@ -415,7 +415,9 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
-        attrs = self.instance.product.product_type.variant_attributes.all()
+        attrs = self.instance.product.product_type.variant_attributes.prefetch_related(
+            "values__translations"
+        )
         self.instance.name = get_name_from_attributes(self.instance, attrs)
         return super().save(commit=commit)
 
