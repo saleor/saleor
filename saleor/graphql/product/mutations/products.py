@@ -518,7 +518,9 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        attributes = instance.product.product_type.variant_attributes.all()
+        attributes = instance.product.product_type.variant_attributes.prefetch_related(
+            "values__translations"
+        )
         instance.name = get_name_from_attributes(instance, attributes)
         instance.save()
 
