@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - GraphQL now prints exceptions to stderr as well as returning them or not - #4148 by @NyanKiyoshi
 - Refactored API resolvers to staticmethods with root typing - #4155 by @NyanKiyoshi
 - Users can how add multiple "Add to Cart" forms in a single page - #4165 by @NyanKiyoshi
+- Adding a non existent variant to a checkout no longer crashes - #4166 by @NyanKiyoshi
 
 ## 2.6.0
 
