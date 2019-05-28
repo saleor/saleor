@@ -27,6 +27,7 @@ from ..discount.utils import (
     get_value_voucher_discount,
     increase_voucher_usage,
 )
+from ..giftcard.utils import add_gift_card_code_to_checkout
 from ..order import events
 from ..order.emails import send_order_confirmation
 from ..order.models import Order
@@ -786,7 +787,7 @@ def add_promo_code_to_checkout(checkout, promo_code):
     if promo_code_is_voucher(promo_code):
         add_voucher_code_to_checkout(checkout, promo_code)
     elif promo_code_is_gift_card(promo_code):
-        raise ValidationError({"promo_code": "Not implemented yet"})
+        add_gift_card_code_to_checkout(checkout, promo_code)
     else:
         raise ValidationError({"promo_code": "Promo code does not exists."})
 
@@ -795,7 +796,7 @@ def add_voucher_code_to_checkout(checkout, voucher_code):
     try:
         voucher = Voucher.objects.active(date=date.today()).get(code=voucher_code)
     except Voucher.DoesNotExist:
-        raise ValidationError({"promo_code": "Voucher with given code does not exist."})
+        raise ValidationError({"promo_code": "Voucher with given code is invalid."})
     try:
         add_voucher_to_checkout(voucher, checkout)
     except NotApplicable:
