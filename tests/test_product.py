@@ -209,6 +209,19 @@ def test_view_invalid_add_to_checkout(client, product, request_checkout):
     assert request_checkout.quantity == 2
 
 
+def test_view_add_to_checkout_invalid_variant(client, product, request_checkout):
+    response = client.post(
+        reverse(
+            "product:add-to-checkout",
+            kwargs={"slug": product.get_slug(), "product_id": product.pk},
+        ),
+        {"variant": 1234, "quantity": 1},
+        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+    )
+    assert response.status_code == 400
+    assert request_checkout.quantity == 0
+
+
 def test_view_add_to_checkout(authorized_client, product, user_checkout):
     variant = product.variants.first()
 
