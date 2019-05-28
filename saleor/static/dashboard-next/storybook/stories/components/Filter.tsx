@@ -9,14 +9,56 @@ import Decorator from "../../Decorator";
 const props: FilterContentProps = {
   filters: [
     {
+      children: [],
+      data: {
+        type: FieldType.text
+      },
+      label: "Category",
+      value: "category"
+    },
+    {
+      children: [],
+      data: {
+        type: FieldType.text
+      },
+      label: "Product Type",
+      value: "product-type"
+    },
+    {
+      children: [],
+      data: {
+        options: [
+          {
+            label: "Published",
+            value: true
+          },
+          {
+            label: "Hidden",
+            value: false
+          }
+        ],
+        type: FieldType.select
+      },
+      label: "Published",
+      value: "published"
+    },
+    {
+      children: [],
+      data: {
+        type: FieldType.range
+      },
+      label: "Stock",
+      value: "stock"
+    },
+    {
       children: [
         {
           children: [],
           data: {
             type: FieldType.date
           },
-          label: "Exactly",
-          value: "date-exactly"
+          label: "Equal to",
+          value: "date-equal"
         },
         {
           children: [],
@@ -59,7 +101,7 @@ const props: FilterContentProps = {
       value: "price"
     }
   ],
-  onSubmit: data => console.log(data)
+  onSubmit: () => undefined
 };
 
 storiesOf("Generics / Filter", module)

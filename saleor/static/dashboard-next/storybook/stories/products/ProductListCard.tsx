@@ -24,6 +24,54 @@ const filtersList: Filter[] = [
   {
     label: "Franklin Inc",
     onClick: () => undefined
+  },
+  {
+    label: "Gardner-Schultz",
+    onClick: () => undefined
+  },
+  {
+    label: "Davis, Brown and Ray",
+    onClick: () => undefined
+  },
+  {
+    label: "Franklin Inc",
+    onClick: () => undefined
+  },
+  {
+    label: "Gardner-Schultz",
+    onClick: () => undefined
+  },
+  {
+    label: "Davis, Brown and Ray",
+    onClick: () => undefined
+  },
+  {
+    label: "Franklin Inc",
+    onClick: () => undefined
+  },
+  {
+    label: "Gardner-Schultz",
+    onClick: () => undefined
+  },
+  {
+    label: "Davis, Brown and Ray",
+    onClick: () => undefined
+  },
+  {
+    label: "Franklin Inc",
+    onClick: () => undefined
+  },
+  {
+    label: "Gardner-Schultz",
+    onClick: () => undefined
+  },
+  {
+    label: "Davis, Brown and Ray",
+    onClick: () => undefined
+  },
+  {
+    label: "Franklin Inc",
+    onClick: () => undefined
   }
 ];
 
