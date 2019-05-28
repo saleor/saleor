@@ -1029,12 +1029,12 @@ msgid "The %(currency)s currency is not supported."
 msgstr "%(currency)s valutaen er ikke understøttet."
 
 #: saleor/payment/gateways/razorpay/forms.py:14
-msgctxt "Rozorpay payment gateway primary button"
+msgctxt "Razorpay payment gateway primary button"
 msgid "Pay now with Razorpay"
 msgstr "Betal med Razorpay"
 
 #: saleor/payment/gateways/razorpay/forms.py:16
-msgctxt "Rozorpay payment gateway secondary title"
+msgctxt "Razorpay payment gateway secondary title"
 msgid "Total payment"
 msgstr "Samlet betaling"
 

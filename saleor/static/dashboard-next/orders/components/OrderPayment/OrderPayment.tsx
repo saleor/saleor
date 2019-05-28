@@ -176,7 +176,7 @@ const OrderPayment = withStyles(styles, { name: "OrderPayment" })(
                 </td>
               </tr>
               <tr className={classes.totalRow}>
-                <td>{i18n.t("Balance")}</td>
+                <td>{i18n.t("Outstanding Balance")}</td>
                 <td className={classes.textRight}>
                   {maybe(
                     () => order.total.gross.amount && order.totalCaptured.amount
