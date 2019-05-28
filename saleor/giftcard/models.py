@@ -2,8 +2,18 @@ from datetime import date
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import pgettext_lazy
 from django_prices.models import MoneyField
+
+
+class GiftCardQueryset(models.QuerySet):
+    def active(self, date):
+        return self.filter(
+            Q(expiration_date__isnull=True) | Q(expiration_date__gte=date),
+            start_date__lte=date,
+            is_active=True,
+        )
 
 
 class GiftCard(models.Model):
@@ -33,6 +43,8 @@ class GiftCard(models.Model):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
+
+    objects = GiftCardQueryset.as_manager()
 
     class Meta:
         permissions = (
