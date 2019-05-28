@@ -23,7 +23,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactored API resolvers to staticmethods with root typing - #4155 by @NyanKiyoshi
 - Users can how add multiple "Add to Cart" forms in a single page - #4165 by @NyanKiyoshi
 - Disabled by default the storage of celery results - #4169 by @NyanKiyoshi
-- Fix typos and messages system tense - #4168 by @benekex2
+- Fix typos and messages in Dashboard 2.0 - #4168 by @benekex2
+- Rename menu items in Dashboard 2.0 - #4172 by @benekex2
 
 ## 2.6.0
 
