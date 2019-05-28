@@ -48,13 +48,6 @@ class PublishedQuerySet(models.QuerySet):
             return self.all()
         return self.published()
 
-    def collection_sorted(self, user):
-        qs = self.visible_to_user(user).prefetch_related(
-            "collections__products__collectionproduct"
-        )
-        qs = qs.order_by(F("collectionproduct__sort_order").desc(nulls_last=True))
-        return qs
-
 
 class PublishableModel(models.Model):
     publication_date = models.DateField(blank=True, null=True)
