@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix multiple checkbox selected behavior - #4146 by @benekex2
 - GraphQL now prints exceptions to stderr as well as returning them or not - #4148 by @NyanKiyoshi
 - Refactored API resolvers to staticmethods with root typing - #4155 by @NyanKiyoshi
+- Fix typos and messages system tense - #4168 by @benekex2
 
 ## 2.6.0
 
