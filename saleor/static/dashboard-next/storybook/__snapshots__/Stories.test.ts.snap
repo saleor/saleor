@@ -26108,7 +26108,7 @@ exports[`Storyshots Views / Discounts / Sale create default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -26315,7 +26315,7 @@ exports[`Storyshots Views / Discounts / Sale create form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -26542,7 +26542,7 @@ exports[`Storyshots Views / Discounts / Sale create loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -26753,7 +26753,7 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -27279,7 +27279,7 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -27813,7 +27813,7 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -28372,7 +28372,7 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -28926,7 +28926,7 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -30549,7 +30549,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -30671,7 +30671,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Informations
+                Detailed Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -30954,7 +30954,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -31091,7 +31091,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Informations
+                Detailed Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -31384,7 +31384,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -31505,7 +31505,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Informations
+                Detailed Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -31915,7 +31915,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -32051,7 +32051,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Informations
+                Detailed Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -32481,7 +32481,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -32604,7 +32604,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Informations
+                Detailed Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -33854,7 +33854,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
       <p
         class="MuiTypography-root-id MuiTypography-body2-id HomeOrdersCard-subtitle-id"
       >
-        Here are some information we gathered about your store
+        Here is some information we gathered about your store
       </p>
     </div>
     <div
@@ -34216,7 +34216,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed from draft by admin@example.com
+                  Order #15 was placed from draft by admin@example.com
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34240,7 +34240,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed
+                  Order #15 was placed
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34264,7 +34264,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been fully paid
+                  Order #15 was fully paid
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34288,7 +34288,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed from draft by admin@example.com
+                  Order #15 was placed from draft by admin@example.com
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34312,7 +34312,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed from draft by admin@example.com
+                  Order #15 was placed from draft by admin@example.com
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34336,7 +34336,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed from draft by admin@example.com
+                  Order #15 was placed from draft by admin@example.com
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34360,7 +34360,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed from draft by admin@example.com
+                  Order #15 was placed from draft by admin@example.com
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34384,7 +34384,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed
+                  Order #15 was placed
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34408,7 +34408,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed from draft by admin@example.com
+                  Order #15 was placed from draft by admin@example.com
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34432,7 +34432,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed
+                  Order #15 was placed
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34456,7 +34456,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been placed
+                  Order #15 was placed
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34480,7 +34480,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been fully paid
+                  Order #15 was fully paid
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34504,7 +34504,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id"
                 >
-                  Order #15 had been fully paid
+                  Order #15 was fully paid
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id MuiListItemText-secondary-id MuiListItemText-textDense-id"
@@ -34963,7 +34963,7 @@ exports[`Storyshots Views / HomePage no data 1`] = `
       <p
         class="MuiTypography-root-id MuiTypography-body2-id HomeOrdersCard-subtitle-id"
       >
-        Here are some information we gathered about your store
+        Here is some information we gathered about your store
       </p>
     </div>
     <div
@@ -35342,7 +35342,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -36128,7 +36128,7 @@ exports[`Storyshots Views / Navigation / Menu details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -36273,7 +36273,7 @@ exports[`Storyshots Views / Navigation / Menu details no data 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -57153,7 +57153,7 @@ exports[`Storyshots Views / Pages / Page details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -57905,7 +57905,7 @@ exports[`Storyshots Views / Pages / Page details form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -58672,7 +58672,7 @@ exports[`Storyshots Views / Pages / Page details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                General Informations
+                General Information
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -66362,7 +66362,7 @@ Ctrl + K"
               <p
                 class="MuiTypography-root-id MuiTypography-body2-id"
               >
-                Use variants for products that come in a variety of version for example different sizes or colors
+                Use variants for products that come in a variety of versions for example different sizes or colors
               </p>
             </div>
             <table
@@ -68602,7 +68602,7 @@ Ctrl + K"
               <p
                 class="MuiTypography-root-id MuiTypography-body2-id"
               >
-                Use variants for products that come in a variety of version for example different sizes or colors
+                Use variants for products that come in a variety of versions for example different sizes or colors
               </p>
             </div>
             <table
