@@ -3,9 +3,11 @@ from datetime import date
 from decimal import Decimal
 from unittest.mock import Mock
 
-import pytest
 from django.urls import reverse
+
 from prices import Money, TaxedMoney
+
+import pytest
 
 from saleor.dashboard.order.utils import get_voucher_discount_for_order
 from saleor.discount import DiscountValueType, VoucherType
@@ -13,13 +15,13 @@ from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.product.models import Collection
 
 
-def test_sales_list(admin_client, sale):
+def test_sales_list(admin_client):
     url = reverse("dashboard:sale-list")
     response = admin_client.get(url)
     assert response.status_code == 200
 
 
-def test_vouchers_list(admin_client, voucher):
+def test_vouchers_list(admin_client):
     url = reverse("dashboard:voucher-list")
     response = admin_client.get(url)
     assert response.status_code == 200
@@ -110,7 +112,7 @@ def test_view_sale_add_requires_product_category_or_collection(
     ],
 )
 def test_value_voucher_order_discount(
-    settings, total, discount_value, discount_type, min_amount_spent, expected_value
+    total, discount_value, discount_type, min_amount_spent, expected_value
 ):
     voucher = Voucher(
         code="unique",
@@ -216,34 +218,36 @@ def test_ajax_voucher_list(admin_client, voucher):
     resp_decoded = json.loads(response.content.decode("utf-8"))
 
     assert response.status_code == 200
-    assert resp_decoded == {'results': vouchers_list}
+    assert resp_decoded == {"results": vouchers_list}
 
 
-@pytest.mark.parametrize('voucher_type', [
-    'collection', 'category', 'product', 'value', 'shipping'
-])
-def test_voucher_form_min_amount_spent_is_changed_on_edit(admin_client, product, collection, voucher_type):
+@pytest.mark.parametrize(
+    "voucher_type", ["collection", "category", "product", "value", "shipping"]
+)
+def test_voucher_form_min_amount_spent_is_changed_on_edit(
+    admin_client, product, collection, voucher_type
+):
     assert Voucher.objects.count() == 0
-    url = reverse('dashboard:voucher-add')
+    url = reverse("dashboard:voucher-add")
     data = {
-        'code': 'TESTVOUCHER',
-        'name': 'Test Voucher',
-        'start_date': '2019-01-01',
-        'end_date': '2019-06-01',
-        'type': voucher_type,
-        'discount_value': '15.99',
-        'discount_value_type': DiscountValueType.FIXED,
-        'product-products': [product.pk],
-        'category-categories': [product.category.pk],
-        'collection-collections': [collection.pk],
-        'shipping-min_amount_spent': '400',
-        'product-min_amount_spent': '400',
-        'category-min_amount_spent': '400',
-        'collection-min_amount_spent': '400',
-        'value-min_amount_spent': '400',
+        "code": "TESTVOUCHER",
+        "name": "Test Voucher",
+        "start_date": "2019-01-01",
+        "end_date": "2019-06-01",
+        "type": voucher_type,
+        "discount_value": "15.99",
+        "discount_value_type": DiscountValueType.FIXED,
+        "product-products": [product.pk],
+        "category-categories": [product.category.pk],
+        "collection-collections": [collection.pk],
+        "shipping-min_amount_spent": "400",
+        "product-min_amount_spent": "400",
+        "category-min_amount_spent": "400",
+        "collection-min_amount_spent": "400",
+        "value-min_amount_spent": "400",
     }
 
-    data['{}-min_amount_spent'.format(voucher_type)] = '800'
+    data["{}-min_amount_spent".format(voucher_type)] = "800"
 
     response = admin_client.post(url, data, follow=True)
 
@@ -252,10 +256,10 @@ def test_voucher_form_min_amount_spent_is_changed_on_edit(admin_client, product,
 
     voucher = Voucher.objects.all()[0]
     assert voucher.type == voucher_type
-    assert voucher.code == data['code']
-    assert voucher.name == data['name']
+    assert voucher.code == data["code"]
+    assert voucher.name == data["name"]
     assert voucher.start_date == date(2019, 1, 1)
     assert voucher.end_date == date(2019, 6, 1)
     assert voucher.discount_value_type == DiscountValueType.FIXED
-    assert voucher.discount_value == Decimal('15.99')
-    assert voucher.min_amount_spent == Money('800', 'USD')
+    assert voucher.discount_value == Decimal("15.99")
+    assert voucher.min_amount_spent == Money("800", "USD")
