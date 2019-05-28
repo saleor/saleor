@@ -313,7 +313,7 @@ export const CategoryDetails: React.StatelessComponent<
                                     confirmButtonState={
                                       removeDialogTransitionState
                                     }
-                                    onClose={() => closeModal}
+                                    onClose={closeModal}
                                     onConfirm={() =>
                                       deleteCategory({ variables: { id } })
                                     }
@@ -326,7 +326,7 @@ export const CategoryDetails: React.StatelessComponent<
                                     <DialogContentText
                                       dangerouslySetInnerHTML={{
                                         __html: i18n.t(
-                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>?",
+                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>? <br /> ",
                                           {
                                             categoryName: maybe(
                                               () => data.category.name
@@ -336,6 +336,11 @@ export const CategoryDetails: React.StatelessComponent<
                                         )
                                       }}
                                     />
+                                    <DialogContentText>
+                                      {i18n.t(
+                                        "Remember that this will also remove all products assigned to this category."
+                                      )}
+                                    </DialogContentText>
                                   </ActionDialog>
                                   <ActionDialog
                                     open={params.action === "delete-categories"}
@@ -365,6 +370,11 @@ export const CategoryDetails: React.StatelessComponent<
                                         )
                                       }}
                                     />
+                                    <DialogContentText>
+                                      {i18n.t(
+                                        "Remember that this will also remove all products assigned to this category."
+                                      )}
+                                    </DialogContentText>
                                   </ActionDialog>
                                   <ActionDialog
                                     open={params.action === "delete-products"}

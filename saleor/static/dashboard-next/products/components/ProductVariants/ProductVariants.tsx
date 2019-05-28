@@ -104,7 +104,7 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
       <CardContent>
         <Typography>
           {i18n.t(
-            "Use variants for products that come in a variety of version for example different sizes or colors"
+            "Use variants for products that come in a variety of versions for example different sizes or colors"
           )}
         </Typography>
       </CardContent>
