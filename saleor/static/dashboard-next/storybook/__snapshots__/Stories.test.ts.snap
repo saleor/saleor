@@ -35323,13 +35323,10 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
           >
             Navigation
           </h5>
-          <div
-            class="CardSpacer-spacer-id"
-          />
           <p
             class="MuiTypography-root-id MuiTypography-body2-id"
           >
-            Creating structure of navigation is done via dragging and dropping. Simply create a new menu item and then dragging it into it’s destined place. Take note that you can move items inside one another to create a tree structure
+            Creating the navigation structure is done by dragging and dropping. Simply create a new menu item and then drag it into its destined place. You can move items inside one another to create a tree structure and drag items up and down to create a hierarchy
           </p>
         </div>
         <div>
@@ -36109,13 +36106,10 @@ exports[`Storyshots Views / Navigation / Menu details loading 1`] = `
           >
             Navigation
           </h5>
-          <div
-            class="CardSpacer-spacer-id"
-          />
           <p
             class="MuiTypography-root-id MuiTypography-body2-id"
           >
-            Creating structure of navigation is done via dragging and dropping. Simply create a new menu item and then dragging it into it’s destined place. Take note that you can move items inside one another to create a tree structure
+            Creating the navigation structure is done by dragging and dropping. Simply create a new menu item and then drag it into its destined place. You can move items inside one another to create a tree structure and drag items up and down to create a hierarchy
           </p>
         </div>
         <div>
@@ -36254,13 +36248,10 @@ exports[`Storyshots Views / Navigation / Menu details no data 1`] = `
           >
             Navigation
           </h5>
-          <div
-            class="CardSpacer-spacer-id"
-          />
           <p
             class="MuiTypography-root-id MuiTypography-body2-id"
           >
-            Creating structure of navigation is done via dragging and dropping. Simply create a new menu item and then dragging it into it’s destined place. Take note that you can move items inside one another to create a tree structure
+            Creating the navigation structure is done by dragging and dropping. Simply create a new menu item and then drag it into its destined place. You can move items inside one another to create a tree structure and drag items up and down to create a hierarchy
           </p>
         </div>
         <div>
