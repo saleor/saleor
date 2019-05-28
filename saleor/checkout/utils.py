@@ -27,7 +27,10 @@ from ..discount.utils import (
     get_value_voucher_discount,
     increase_voucher_usage,
 )
-from ..giftcard.utils import add_gift_card_code_to_checkout
+from ..giftcard.utils import (
+    add_gift_card_code_to_checkout,
+    remove_gift_card_code_from_checkout,
+)
 from ..order import events
 from ..order.emails import send_order_confirmation
 from ..order.models import Order
@@ -830,7 +833,7 @@ def remove_promo_code_from_checkout(checkout, promo_code):
     if promo_code_is_voucher(promo_code):
         remove_voucher_code_from_checkout(checkout, promo_code)
     elif promo_code_is_gift_card(promo_code):
-        raise ValidationError({"promo_code": "NOT IMPLEMENTED YET."})
+        remove_gift_card_code_from_checkout(checkout, promo_code)
 
 
 def remove_voucher_code_from_checkout(checkout, promo_code):
