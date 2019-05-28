@@ -1,10 +1,14 @@
+from datetime import date, timedelta
+
 import graphene
-from tests.api.utils import get_graphql_content
-from saleor.checkout.utils import add_voucher_to_checkout
 from tests.api.test_checkout import (
     MUTATION_CHECKOUT_LINES_DELETE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
 )
+from tests.api.utils import get_graphql_content
+
+from saleor.checkout.utils import add_voucher_to_checkout
+
 
 MUTATION_CHECKOUT_UPDATE_VOUCHER = """
     mutation($checkoutId: ID!, $voucherCode: String) {
@@ -339,6 +343,34 @@ def test_checkout_add_same_gift_card_code(api_client, checkout_with_gift_card):
     assert data["checkout"]["id"] == checkout_id
     assert data["checkout"]["giftCards"][0]["code"] == gift_card.code
     assert len(data["checkout"]["giftCards"]) == gift_card_count
+
+
+def test_checkout_add_gift_card_code_in_active_gift_card(
+    api_client, checkout_with_item, gift_card
+):
+    gift_card.is_active = False
+    gift_card.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
+
+
+def test_checkout_add_gift_card_code_in_expired_gift_card(
+    api_client, checkout_with_item, gift_card
+):
+    gift_card.expiration_date = date.today() - timedelta(days=1)
+    gift_card.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
 
 
 def test_checkout_add_promo_code_invalid_checkout(api_client, voucher):
