@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import HStoreField, JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import F
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -23,7 +24,7 @@ from saleor.core.utils import build_absolute_uri
 
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
-from ..core.models import PublishableModel, SortableModel
+from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils.taxes import apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
@@ -108,6 +109,15 @@ class ProductType(models.Model):
         )
 
 
+class ProductsQueryset(PublishedQuerySet):
+    def collection_sorted(self, user):
+        qs = self.visible_to_user(user).prefetch_related(
+            "collections__products__collectionproduct"
+        )
+        qs = qs.order_by(F("collectionproduct__sort_order").desc(nulls_last=True))
+        return qs
+
+
 class Product(SeoModel, PublishableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
@@ -131,6 +141,7 @@ class Product(SeoModel, PublishableModel):
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
 
+    objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 
     class Meta:
