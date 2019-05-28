@@ -39115,7 +39115,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -40027,7 +40027,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -41020,7 +41020,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -41752,7 +41752,7 @@ exports[`Storyshots Views / Orders / Order details loading 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -42575,7 +42575,7 @@ exports[`Storyshots Views / Orders / Order details no customer note 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -43568,7 +43568,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -44561,7 +44561,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -45554,7 +45554,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -46547,7 +46547,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -47540,7 +47540,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -48533,7 +48533,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -49526,7 +49526,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -50519,7 +50519,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
@@ -51512,7 +51512,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                   class="OrderPayment-totalRow-id"
                 >
                   <td>
-                    Balance
+                    Outstanding Balance
                   </td>
                   <td
                     class="OrderPayment-textRight-id"
