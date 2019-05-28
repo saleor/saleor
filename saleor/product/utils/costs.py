@@ -57,10 +57,8 @@ def get_margin_for_variant(variant):
     if variant.cost_price is None:
         return None
     base_price = variant.base_price
+    if not base_price:
+        return None
     margin = base_price - variant.cost_price
-    try:
-        percent = round((margin / base_price) * 100, 0)
-    except ZeroDivisionError:
-        sign = lambda margin: (1, -1)[margin.amount < 0]
-        percent = 9999999999999999999999 * sign(margin)
+    percent = round((margin / base_price) * 100, 0)
     return percent
