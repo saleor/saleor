@@ -18,6 +18,7 @@ from ...checkout.utils import (
     get_taxes_for_checkout,
     get_voucher_for_checkout,
     recalculate_checkout_discount,
+    remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
 )
 from ...core import analytics
@@ -584,6 +585,7 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
+
         add_promo_code_to_checkout(checkout, promo_code)
 
         return CheckoutAddPromoCode(checkout=checkout)
@@ -609,8 +611,6 @@ class CheckoutRemovePromoCode(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
 
-        existing_voucher = get_voucher_for_checkout(checkout)
-        if existing_voucher and existing_voucher.code == promo_code:
-            remove_voucher_from_checkout(checkout)
+        remove_promo_code_from_checkout(checkout, promo_code)
 
         return CheckoutUpdateVoucher(checkout=checkout)
