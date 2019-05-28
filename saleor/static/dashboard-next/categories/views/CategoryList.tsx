@@ -124,7 +124,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
                     <DialogContentText
                       dangerouslySetInnerHTML={{
                         __html: i18n.t(
-                          "Are you sure you want to remove <strong>{{ number }}</strong> categories? <br /> Remember that this will also remove all products assigned to this category",
+                          "Are you sure you want to remove <strong>{{ number }}</strong> categories?",
                           {
                             number: maybe(
                               () => params.ids.length.toString(),
@@ -134,6 +134,11 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
                         )
                       }}
                     />
+                    <DialogContentText>
+                      {i18n.t(
+                        "Remember that this will also remove all products assigned to this category."
+                      )}
+                    </DialogContentText>
                   </ActionDialog>
                 </>
               );

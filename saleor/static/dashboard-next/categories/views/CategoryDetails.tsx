@@ -1,5 +1,6 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import IconButton from "@material-ui/core/IconButton";
+import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
@@ -326,7 +327,7 @@ export const CategoryDetails: React.StatelessComponent<
                                     <DialogContentText
                                       dangerouslySetInnerHTML={{
                                         __html: i18n.t(
-                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>? <br /> Remember that this will also remove all products assigned to this category.",
+                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>? <br /> ",
                                           {
                                             categoryName: maybe(
                                               () => data.category.name
@@ -336,6 +337,11 @@ export const CategoryDetails: React.StatelessComponent<
                                         )
                                       }}
                                     />
+                                    <DialogContentText>
+                                      {i18n.t(
+                                        "Remember that this will also remove all products assigned to this category."
+                                      )}
+                                    </DialogContentText>
                                   </ActionDialog>
                                   <ActionDialog
                                     open={params.action === "delete-categories"}
@@ -354,7 +360,7 @@ export const CategoryDetails: React.StatelessComponent<
                                     <DialogContentText
                                       dangerouslySetInnerHTML={{
                                         __html: i18n.t(
-                                          "Are you sure you want to remove <strong>{{ number }}</strong> categories? <br /> Remember that this will also remove all products assigned to this category. Remember that this will also remove all products assigned to this category.",
+                                          "Are you sure you want to remove <strong>{{ number }}</strong> categories?",
                                           {
                                             number: maybe(
                                               () =>
@@ -365,6 +371,11 @@ export const CategoryDetails: React.StatelessComponent<
                                         )
                                       }}
                                     />
+                                    <DialogContentText>
+                                      {i18n.t(
+                                        "Remember that this will also remove all products assigned to this category."
+                                      )}
+                                    </DialogContentText>
                                   </ActionDialog>
                                   <ActionDialog
                                     open={params.action === "delete-products"}
