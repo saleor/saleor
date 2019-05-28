@@ -17,6 +17,7 @@ from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
+from ..core.utils.promo_code import promo_code_is_gift_card, promo_code_is_voucher
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
@@ -779,6 +780,28 @@ def recalculate_checkout_discount(checkout, discounts, taxes):
             )
     else:
         remove_voucher_from_checkout(checkout)
+
+
+def add_promo_code_to_checkout(checkout, promo_code):
+    if promo_code_is_voucher(promo_code):
+        add_voucher_code_to_checkout(checkout, promo_code)
+    elif promo_code_is_gift_card(promo_code):
+        raise ValidationError({"promo_code": "Not implemented yet"})
+    else:
+        raise ValidationError({"promo_code": "Promo code does not exists."})
+
+
+def add_voucher_code_to_checkout(checkout, voucher_code):
+    try:
+        voucher = Voucher.objects.active(date=date.today()).get(code=voucher_code)
+    except Voucher.DoesNotExist:
+        raise ValidationError({"promo_code": "Voucher with given code does not exist."})
+    try:
+        add_voucher_to_checkout(voucher, checkout)
+    except NotApplicable:
+        raise ValidationError(
+            {"promo_code": "Voucher is not applicable to that checkout."}
+        )
 
 
 def add_voucher_to_checkout(voucher, checkout):

@@ -7,6 +7,7 @@ from django.db import transaction
 
 from ...checkout import models
 from ...checkout.utils import (
+    add_promo_code_to_checkout,
     add_variant_to_checkout,
     add_voucher_to_checkout,
     change_billing_address_in_checkout,
@@ -583,21 +584,7 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        try:
-            voucher = voucher_model.Voucher.objects.active(date=date.today()).get(
-                code=promo_code
-            )
-        except voucher_model.Voucher.DoesNotExist:
-            raise ValidationError(
-                {"promo_code": "Voucher with given code does not exist."}
-            )
-
-        try:
-            add_voucher_to_checkout(voucher, checkout)
-        except voucher_model.NotApplicable:
-            raise ValidationError(
-                {"promo_code": "Voucher is not applicable to that checkout."}
-            )
+        add_promo_code_to_checkout(checkout, promo_code)
 
         return CheckoutAddPromoCode(checkout=checkout)
 
