@@ -41,7 +41,7 @@ const menuStructure: IMenuItem[] = [
         url: collectionListUrl()
       }
     ],
-    label: i18n.t("Catalogue", { context: "Menu label" }),
+    label: i18n.t("Catalog", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_PRODUCTS
   },
   {

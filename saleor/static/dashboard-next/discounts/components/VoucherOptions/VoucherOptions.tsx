@@ -56,7 +56,7 @@ const VoucherOptions = withStyles(styles, {
     onChange
   }: VoucherOptionsProps & WithStyles<typeof styles>) => (
     <Card>
-      <CardTitle title={i18n.t("Detailed Informations")} />
+      <CardTitle title={i18n.t("Detailed Information")} />
       <CardContent className={classes.root}>
         <TextFieldWithChoice
           disabled={disabled}
