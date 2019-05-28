@@ -13,7 +13,12 @@ def generate_promo_code(length=12):
 
 
 def is_avaible_promo_code(code):
-    return not (
-        GiftCard.objects.filter(code=code).exists()
-        or Voucher.objects.filter(code=code).exists()
-    )
+    return not (promo_code_is_gift_card(code) or promo_code_is_voucher(code))
+
+
+def promo_code_is_voucher(code):
+    return Voucher.objects.filter(code=code).exists()
+
+
+def promo_code_is_gift_card(code):
+    return GiftCard.objects.filter(code=code).exists()
