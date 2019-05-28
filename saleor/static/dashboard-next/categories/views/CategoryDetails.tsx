@@ -313,7 +313,7 @@ export const CategoryDetails: React.StatelessComponent<
                                     confirmButtonState={
                                       removeDialogTransitionState
                                     }
-                                    onClose={() => closeModal}
+                                    onClose={closeModal}
                                     onConfirm={() =>
                                       deleteCategory({ variables: { id } })
                                     }
