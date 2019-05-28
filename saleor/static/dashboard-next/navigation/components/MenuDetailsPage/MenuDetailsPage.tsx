@@ -80,10 +80,9 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
           <Grid variant="inverted">
             <div>
               <Typography variant="headline">{i18n.t("Navigation")}</Typography>
-              <CardSpacer />
               <Typography>
                 {i18n.t(
-                  "Creating structure of navigation is done via dragging and dropping. Simply create a new menu item and then dragging it into it’s destined place. Take note that you can move items inside one another to create a tree structure"
+                  "Creating the navigation structure is done by dragging and dropping. Simply create a new menu item and then drag it into its destined place. You can move items inside one another to create a tree structure and drag items up and down to create a hierarchy"
                 )}
               </Typography>
             </div>
