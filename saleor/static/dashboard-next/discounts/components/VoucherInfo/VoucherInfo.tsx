@@ -57,7 +57,7 @@ const VoucherInfo = withStyles(styles, {
 
     return (
       <Card>
-        <CardTitle title={i18n.t("General Informations")} />
+        <CardTitle title={i18n.t("General Information")} />
         <CardContent>
           <TextField
             className={classes.nameInput}
