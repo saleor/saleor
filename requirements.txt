@@ -2,15 +2,15 @@
 amqp==2.4.2
 aniso8601==3.0.2
 autopep8==1.4.4
-babel==2.6.0
+babel==2.7.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.151
-botocore==1.12.151
+boto3==1.9.156
+botocore==1.12.156
 braintree==3.49.0
-cachetools==3.1.0
+cachetools==3.1.1
 cairocffi==1.0.2
-cairosvg==2.3.1
+cairosvg==2.4.0
 celery[redis]==4.3.0
 certifi==2019.3.9
 cffi==1.12.3
@@ -24,7 +24,6 @@ django-appconf==1.0.3
 django-babel==0.6.2
 django-bootstrap4==0.0.8
 django-cache-url==3.0.0
-django-celery-results==1.0.4
 django-countries==5.3.3
 django-debug-toolbar-request-history==0.0.10
 django-debug-toolbar==1.11
@@ -60,7 +59,7 @@ google-cloud-storage==1.16.0
 google-i18n-address==2.3.4
 google-measurement-protocol==1.0.0
 google-resumable-media==0.3.2
-googleapis-common-protos==1.5.10
+googleapis-common-protos==1.6.0
 gprof2dot==2016.10.13
 graphene-django-optimizer==0.4.0
 graphene-django==2.2.0
@@ -74,7 +73,7 @@ jinja2==2.10.1
 jmespath==0.9.4
 jsonfield==2.0.2
 kombu==4.5.0
-markdown==3.1
+markdown==3.1.1
 markupsafe==1.1.1
 maxminddb-geolite2==2018.703
 maxminddb==1.4.1
@@ -92,7 +91,7 @@ pyasn1-modules==0.2.5
 pyasn1==0.4.5
 pycodestyle==2.5.0
 pycparser==2.19
-pygments==2.4.0
+pygments==2.4.2
 pyjwt==1.7.1
 pyphen==0.9.5
 python-dateutil==2.8.0 ; python_version >= '2.7'
@@ -111,12 +110,12 @@ six==1.12.0
 social-auth-app-django==3.1.0
 social-auth-core==3.1.0
 sqlparse==0.3.0
-stripe==2.28.0
+stripe==2.29.0
 sympy==1.4
 text-unidecode==1.2
 tinycss2==1.0.2
 typing==3.6.6
-urllib3==1.24.3
+urllib3==1.25.3
 uwsgi==2.0.18 ; platform_system != 'Windows'
 vine==1.3.0
 weasyprint==47
