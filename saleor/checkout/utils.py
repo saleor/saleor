@@ -786,7 +786,10 @@ def recalculate_checkout_discount(checkout, discounts, taxes):
         remove_voucher_from_checkout(checkout)
 
 
-def add_promo_code_to_checkout(checkout, promo_code):
+def add_promo_code_to_checkout(checkout: Checkout, promo_code: str):
+    """Add gift card or voucher data to checkout.
+
+    Raise ValidationError if promo code does not match to any voucher or gift card."""
     if promo_code_is_voucher(promo_code):
         add_voucher_code_to_checkout(checkout, promo_code)
     elif promo_code_is_gift_card(promo_code):
@@ -795,7 +798,10 @@ def add_promo_code_to_checkout(checkout, promo_code):
         raise ValidationError({"promo_code": "Promo code does not exists."})
 
 
-def add_voucher_code_to_checkout(checkout, voucher_code):
+def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str):
+    """Add voucher data to checkout by code.
+
+    Raise ValidationError if voucher of given type cannot be applied."""
     try:
         voucher = Voucher.objects.active(date=date.today()).get(code=voucher_code)
     except Voucher.DoesNotExist:
@@ -808,7 +814,7 @@ def add_voucher_code_to_checkout(checkout, voucher_code):
         )
 
 
-def add_voucher_to_checkout(voucher, checkout):
+def add_voucher_to_checkout(voucher: Voucher, checkout: Checkout):
     """Add voucher data to checkout.
 
     Raise NotApplicable if voucher of given type cannot be applied."""
@@ -829,20 +835,22 @@ def add_voucher_to_checkout(voucher, checkout):
     )
 
 
-def remove_promo_code_from_checkout(checkout, promo_code):
+def remove_promo_code_from_checkout(checkout: Checkout, promo_code: str):
+    """Remove gift card or voucher data from checkout."""
     if promo_code_is_voucher(promo_code):
         remove_voucher_code_from_checkout(checkout, promo_code)
     elif promo_code_is_gift_card(promo_code):
         remove_gift_card_code_from_checkout(checkout, promo_code)
 
 
-def remove_voucher_code_from_checkout(checkout, promo_code):
+def remove_voucher_code_from_checkout(checkout: Checkout, voucher_code: str):
+    """Remove voucher data from checkout by code"""
     existing_voucher = get_voucher_for_checkout(checkout)
-    if existing_voucher and existing_voucher.code == promo_code:
+    if existing_voucher and existing_voucher.code == voucher_code:
         remove_voucher_from_checkout(checkout)
 
 
-def remove_voucher_from_checkout(checkout):
+def remove_voucher_from_checkout(checkout: Checkout):
     """Remove voucher data from checkout."""
     checkout.voucher_code = None
     checkout.discount_name = None
