@@ -826,6 +826,19 @@ def add_voucher_to_checkout(voucher, checkout):
     )
 
 
+def remove_promo_code_from_checkout(checkout, promo_code):
+    if promo_code_is_voucher(promo_code):
+        remove_voucher_code_from_checkout(checkout, promo_code)
+    elif promo_code_is_gift_card(promo_code):
+        raise ValidationError({"promo_code": "NOT IMPLEMENTED YET."})
+
+
+def remove_voucher_code_from_checkout(checkout, promo_code):
+    existing_voucher = get_voucher_for_checkout(checkout)
+    if existing_voucher and existing_voucher.code == promo_code:
+        remove_voucher_from_checkout(checkout)
+
+
 def remove_voucher_from_checkout(checkout):
     """Remove voucher data from checkout."""
     checkout.voucher_code = None
