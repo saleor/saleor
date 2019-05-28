@@ -1,7 +1,8 @@
 from datetime import date, timedelta
 
-import pytest
 from prices import Money, TaxedMoney
+
+import pytest
 
 from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.discount import DiscountValueType, VoucherType
@@ -15,7 +16,6 @@ from saleor.discount.utils import (
     increase_voucher_usage,
 )
 from saleor.product.models import Product, ProductVariant
-from saleor.product.models import Collection
 
 
 def get_min_amount_spent(min_amount_spent):
