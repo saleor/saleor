@@ -169,7 +169,7 @@ class ProductVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
-        fields = ['products', 'apply_once_per_order', 'min_amount_spent']
+        fields = ["products", "apply_once_per_order", "min_amount_spent"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -180,8 +180,8 @@ class ProductVoucherForm(CommonVoucherForm):
 class CollectionVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
-        fields = ['collections', 'apply_once_per_order', 'min_amount_spent']
-        labels = {'collections': pgettext_lazy('Collections', 'Collections')}
+        fields = ["collections", "apply_once_per_order", "min_amount_spent"]
+        labels = {"collections": pgettext_lazy("Collections", "Collections")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -197,4 +197,4 @@ class CategoryVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
-        fields = ['categories', 'apply_once_per_order', 'min_amount_spent']
+        fields = ["categories", "apply_once_per_order", "min_amount_spent"]
