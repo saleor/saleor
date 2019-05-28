@@ -10,7 +10,13 @@ export enum FieldType {
   text
 }
 
+export interface FilterChoice {
+  label: string;
+  value: string | boolean;
+}
+
 export interface FilterData {
+  options?: FilterChoice[];
   type: FieldType;
 }
 

@@ -48,9 +48,10 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
         />
       )}
     </FilterTabs>
-    {currentTab === "custom" && filtersList && filtersList.length > 0 && (
-      <FilterChips filtersList={filtersList} />
-    )}
+    <FilterChips
+      filtersList={filtersList}
+      placeholder={i18n.t("Search Products...")}
+    />
   </>
 );
 ProductListFilter.displayName = "ProductListFilter";
