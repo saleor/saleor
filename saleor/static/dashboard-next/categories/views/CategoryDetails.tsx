@@ -326,7 +326,7 @@ export const CategoryDetails: React.StatelessComponent<
                                     <DialogContentText
                                       dangerouslySetInnerHTML={{
                                         __html: i18n.t(
-                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>?",
+                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>? <br /> Remember that this will also remove all products assigned to this category.",
                                           {
                                             categoryName: maybe(
                                               () => data.category.name
@@ -354,7 +354,7 @@ export const CategoryDetails: React.StatelessComponent<
                                     <DialogContentText
                                       dangerouslySetInnerHTML={{
                                         __html: i18n.t(
-                                          "Are you sure you want to remove <strong>{{ number }}</strong> categories?",
+                                          "Are you sure you want to remove <strong>{{ number }}</strong> categories? <br /> Remember that this will also remove all products assigned to this category. Remember that this will also remove all products assigned to this category.",
                                           {
                                             number: maybe(
                                               () =>
