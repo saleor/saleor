@@ -7,7 +7,7 @@ import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
-import { orderUrl } from "../../orders/urls";
+import { orderUrl, orderListUrl } from "../../orders/urls";
 import CustomerDetailsPage from "../components/CustomerDetailsPage/CustomerDetailsPage";
 import {
   TypedRemoveCustomerMutation,
@@ -120,7 +120,13 @@ export const CustomerDetailsView: React.StatelessComponent<
                           })
                         )
                       }
-                      onViewAllOrdersClick={() => undefined} // TODO: add filters to order #3172
+                      onViewAllOrdersClick={() =>
+                        navigate(
+                          orderListUrl({
+                            email: maybe(() => customerDetails.data.user.email)
+                          })
+                        )
+                      }
                     />
                     <ActionDialog
                       confirmButtonState={removeTransitionState}
