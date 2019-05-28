@@ -39,7 +39,7 @@ const PageInfo = withStyles(styles, {
     onChange
   }: PageInfoProps & WithStyles<typeof styles>) => (
     <Card className={classes.root}>
-      <CardTitle title={i18n.t("General Informations")} />
+      <CardTitle title={i18n.t("General Information")} />
       <CardContent>
         <TextField
           disabled={disabled}
