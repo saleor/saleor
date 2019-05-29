@@ -3,13 +3,12 @@ import { Theme } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import TextField, { TextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ClearIcon from "@material-ui/icons/Clear";
 import { createStyles, makeStyles, useTheme } from "@material-ui/styles";
-import * as classNames from "classnames";
 import * as React from "react";
 
-import i18n from "../../i18n";
+import Filter from "../Filter";
+import { IFilter } from "../Filter/types";
 import Hr from "../Hr";
 
 export interface Filter {
@@ -47,27 +46,6 @@ const useStyles = makeStyles(
         flexWrap: "wrap",
         padding: `${theme.spacing.unit}px ${theme.spacing.unit * 3}px`
       },
-      addFilterButton: {
-        "&$filterButton": {
-          "&:hover, &:focus": {
-            backgroundColor: fade(theme.palette.primary.main, 0.1)
-          },
-          backgroundColor: "#ffffff",
-          border: `1px solid ${theme.palette.primary.main}`,
-          cursor: "pointer",
-          marginBottom: 0,
-          marginRight: theme.spacing.unit * 2,
-          marginTop: 0,
-          transition: theme.transitions.duration.short + "ms"
-        }
-      },
-      addFilterText: {
-        color: theme.palette.primary.main,
-        fontSize: 14,
-        fontWeight: 600 as 600,
-        marginRight: 4,
-        textTransform: "uppercase"
-      },
       filterButton: {
         alignItems: "center",
         backgroundColor: fade(theme.palette.primary.main, 0.6),
@@ -103,6 +81,9 @@ const useStyles = makeStyles(
         padding: 8,
         width: 32
       },
+      filterLabel: {
+        marginBottom: theme.spacing.unit
+      },
       filterText: {
         color: theme.palette.common.white,
         fontSize: 12,
@@ -115,12 +96,18 @@ const useStyles = makeStyles(
 );
 
 interface FilterChipProps {
+  currencySymbol: string;
+  menu: IFilter;
   filtersList: Filter[];
+  filterLabel: string;
   placeholder: string;
 }
 
 export const FilterChips: React.FC<FilterChipProps> = ({
+  currencySymbol,
   filtersList,
+  menu,
+  filterLabel,
   placeholder
 }) => {
   const theme = useTheme();
@@ -129,14 +116,11 @@ export const FilterChips: React.FC<FilterChipProps> = ({
   return (
     <>
       <div className={classes.actionContainer}>
-        <ButtonBase
-          className={classNames(classes.filterButton, classes.addFilterButton)}
-        >
-          <Typography className={classes.addFilterText}>
-            {i18n.t("Add Filter")}
-          </Typography>
-          <ArrowDropDownIcon color="primary" />
-        </ButtonBase>
+        <Filter
+          currencySymbol={currencySymbol}
+          menu={menu}
+          filterLabel={filterLabel}
+        />
         <Search fullWidth placeholder={placeholder} />
       </div>
       {filtersList && filtersList.length > 0 ? (

@@ -1,11 +1,6 @@
 import * as React from "react";
 
-import {
-  Filter,
-  FilterChips,
-  FilterTab,
-  FilterTabs
-} from "../../../components/TableFilter";
+import { Filter, FilterTab, FilterTabs } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 
 export type OrderListFilterTabs = "all" | "toFulfill" | "toCapture" | "custom";
@@ -44,9 +39,9 @@ const OrderListFilter: React.StatelessComponent<OrderListFilterProps> = ({
         />
       )}
     </FilterTabs>
-    {currentTab === "custom" && filtersList && filtersList.length > 0 && (
+    {/* {currentTab === "custom" && filtersList && filtersList.length > 0 && (
       <FilterChips filtersList={filtersList} />
-    )}
+    )} */}
   </>
 );
 OrderListFilter.displayName = "OrderListFilter";

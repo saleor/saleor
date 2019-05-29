@@ -9,6 +9,7 @@ import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
+import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { StockAvailability } from "../../types/globalTypes";
@@ -42,6 +43,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
+  const shop = useShop();
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
@@ -135,6 +137,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                   return (
                     <>
                       <ProductListCard
+                        currencySymbol={maybe(() => shop.defaultCurrency)}
                         currentTab={currentTab}
                         filtersList={[]}
                         onAdd={() => navigate(productAddUrl)}

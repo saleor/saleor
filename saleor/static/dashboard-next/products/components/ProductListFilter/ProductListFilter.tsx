@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { FieldType, IFilter } from "../../../components/Filter/types";
 import {
   Filter,
   FilterChips,
@@ -15,6 +16,7 @@ export type ProductListFilterTabs =
   | "custom";
 
 interface ProductListFilterProps {
+  currencySymbol: string;
   currentTab: ProductListFilterTabs;
   filtersList: Filter[];
   onAllProducts: () => void;
@@ -23,7 +25,74 @@ interface ProductListFilterProps {
   onCustomFilter: () => void;
 }
 
+export enum ProductFilterKeys {
+  published,
+  price,
+  priceEqual,
+  priceRange,
+  stock
+}
+const filterMenu: IFilter = [
+  {
+    children: [],
+    data: {
+      fieldLabel: i18n.t("Status"),
+      options: [
+        {
+          label: i18n.t("Published"),
+          value: true
+        },
+        {
+          label: i18n.t("Hidden"),
+          value: false
+        }
+      ],
+      type: FieldType.select
+    },
+    label: i18n.t("Published"),
+    value: ProductFilterKeys.published.toString()
+  },
+  {
+    children: [],
+    data: {
+      fieldLabel: i18n.t("Stock quantity"),
+      type: FieldType.range
+    },
+    label: i18n.t("Stock"),
+    value: ProductFilterKeys.stock.toString()
+  },
+  {
+    children: [
+      {
+        children: [],
+        data: {
+          fieldLabel: i18n.t("Price"),
+          type: FieldType.price
+        },
+        label: i18n.t("Specific Price"),
+        value: ProductFilterKeys.priceEqual.toString()
+      },
+      {
+        children: [],
+        data: {
+          fieldLabel: i18n.t("Range"),
+          type: FieldType.rangePrice
+        },
+        label: i18n.t("Range"),
+        value: ProductFilterKeys.priceRange.toString()
+      }
+    ],
+    data: {
+      fieldLabel: i18n.t("Price"),
+      type: FieldType.range
+    },
+    label: i18n.t("Price"),
+    value: ProductFilterKeys.price.toString()
+  }
+];
+
 const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
+  currencySymbol,
   filtersList,
   currentTab,
   onAllProducts,
@@ -49,7 +118,10 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
       )}
     </FilterTabs>
     <FilterChips
+      currencySymbol={currencySymbol}
+      menu={filterMenu}
       filtersList={filtersList}
+      filterLabel={i18n.t("Select all products where:")}
       placeholder={i18n.t("Search Products...")}
     />
   </>

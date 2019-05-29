@@ -13,6 +13,7 @@ import { ListActions, PageListProps } from "../../../types";
 import ProductListFilter, { ProductListFilterTabs } from "../ProductListFilter";
 
 interface ProductListCardProps extends PageListProps, ListActions {
+  currencySymbol: string;
   currentTab: ProductListFilterTabs;
   filtersList: Filter[];
   products: CategoryDetails_category_products_edges_node[];
@@ -25,6 +26,7 @@ interface ProductListCardProps extends PageListProps, ListActions {
 export const ProductListCard: React.StatelessComponent<
   ProductListCardProps
 > = ({
+  currencySymbol,
   currentTab,
   disabled,
   filtersList,
@@ -52,6 +54,7 @@ export const ProductListCard: React.StatelessComponent<
     </PageHeader>
     <Card>
       <ProductListFilter
+        currencySymbol={currencySymbol}
         currentTab={currentTab}
         filtersList={filtersList}
         onAvailable={onAvailable}

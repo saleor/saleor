@@ -88,6 +88,7 @@ storiesOf("Views / Products / Product list", module)
       onAvailable={() => undefined}
       onOfStock={() => undefined}
       onCustomFilter={() => undefined}
+      currencySymbol="USD"
     />
   ))
   .add("with custom filters", () => (
@@ -101,6 +102,7 @@ storiesOf("Views / Products / Product list", module)
       onAvailable={() => undefined}
       onOfStock={() => undefined}
       onCustomFilter={() => undefined}
+      currencySymbol="USD"
     />
   ))
   .add("loading", () => (
@@ -114,6 +116,7 @@ storiesOf("Views / Products / Product list", module)
       onAvailable={() => undefined}
       onOfStock={() => undefined}
       onCustomFilter={() => undefined}
+      currencySymbol="USD"
     />
   ))
   .add("no data", () => (
@@ -127,5 +130,6 @@ storiesOf("Views / Products / Product list", module)
       onAvailable={() => undefined}
       onOfStock={() => undefined}
       onCustomFilter={() => undefined}
+      currencySymbol="USD"
     />
   ));
