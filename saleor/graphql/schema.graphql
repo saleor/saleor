@@ -166,7 +166,7 @@ input AttributeUpdateInput {
 }
 
 type AttributeValue implements Node {
-  sortOrder: Int!
+  sortOrder: Int
   id: ID!
   name: String
   slug: String
@@ -559,6 +559,11 @@ enum CollectionPublished {
 }
 
 type CollectionRemoveProducts {
+  errors: [Error!]
+  collection: Collection
+}
+
+type CollectionReorderProducts {
   errors: [Error!]
   collection: Collection
 }
@@ -1311,7 +1316,7 @@ input MenuInput {
 
 type MenuItem implements Node {
   id: ID!
-  sortOrder: Int!
+  sortOrder: Int
   menu: Menu!
   name: String!
   parent: MenuItem
@@ -1411,6 +1416,11 @@ type MoneyRange {
   stop: Money
 }
 
+input MoveProductInput {
+  productId: ID!
+  sortOrder: Int
+}
+
 type Mutations {
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
@@ -1446,6 +1456,7 @@ type Mutations {
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
+  collectionReorderProducts(collectionId: ID!, moves: [MoveProductInput]!): CollectionReorderProducts
   collectionBulkDelete(ids: [ID]!): CollectionBulkDelete
   collectionBulkPublish(ids: [ID]!, isPublished: Boolean!): CollectionBulkPublish
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
@@ -2119,7 +2130,7 @@ input ProductFilterInput {
 }
 
 type ProductImage implements Node {
-  sortOrder: Int!
+  sortOrder: Int
   id: ID!
   alt: String!
   url(size: Int): String!
