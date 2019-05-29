@@ -205,7 +205,7 @@ def test_get_client_token(mock_gateway, gateway_config):
     client_token = "client-token"
     mock_generate = Mock(return_value="client-token")
     mock_gateway.return_value = Mock(client_token=Mock(generate=mock_generate))
-    result = get_client_token(gateway_config.connection_params)
+    result = get_client_token(gateway_config)
     mock_gateway.assert_called_once_with(**gateway_config.connection_params)
     mock_generate.assert_called_once_with()
     assert result == client_token
