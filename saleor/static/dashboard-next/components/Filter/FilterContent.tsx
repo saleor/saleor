@@ -14,6 +14,7 @@ export interface FilterContentSubmitData {
   value: string | string[];
 }
 export interface FilterContentProps {
+  currencySymbol: string;
   filters: IFilter;
   onSubmit: (data: FilterContentSubmitData) => void;
 }
@@ -31,7 +32,11 @@ const useStyles = makeStyles({
   }
 });
 
-const FilterContent: React.FC<FilterContentProps> = ({ filters, onSubmit }) => {
+const FilterContent: React.FC<FilterContentProps> = ({
+  currencySymbol,
+  filters,
+  onSubmit
+}) => {
   const [menuValue, setMenuValue] = React.useState<string>("");
   const [filterValue, setFilterValue] = React.useState<string | string[]>("");
   const classes = useStyles();
@@ -95,6 +100,7 @@ const FilterContent: React.FC<FilterContentProps> = ({ filters, onSubmit }) => {
         <>
           <FormSpacer />
           <FilterElement
+            currencySymbol={currencySymbol}
             filter={activeMenu}
             value={filterValue}
             onChange={value => setFilterValue(value)}

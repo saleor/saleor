@@ -7,10 +7,12 @@ import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 
 const props: FilterContentProps = {
+  currencySymbol: "USD",
   filters: [
     {
       children: [],
       data: {
+        fieldLabel: "Category Name",
         type: FieldType.text
       },
       label: "Category",
@@ -19,6 +21,7 @@ const props: FilterContentProps = {
     {
       children: [],
       data: {
+        fieldLabel: "Product Type Name",
         type: FieldType.text
       },
       label: "Product Type",
@@ -27,6 +30,7 @@ const props: FilterContentProps = {
     {
       children: [],
       data: {
+        fieldLabel: "Status",
         options: [
           {
             label: "Published",
@@ -45,6 +49,7 @@ const props: FilterContentProps = {
     {
       children: [],
       data: {
+        fieldLabel: "Stock",
         type: FieldType.range
       },
       label: "Stock",
@@ -55,6 +60,7 @@ const props: FilterContentProps = {
         {
           children: [],
           data: {
+            fieldLabel: "Equal to",
             type: FieldType.date
           },
           label: "Equal to",
@@ -63,6 +69,7 @@ const props: FilterContentProps = {
         {
           children: [],
           data: {
+            fieldLabel: "Range",
             type: FieldType.rangeDate
           },
           label: "Range",
@@ -70,6 +77,7 @@ const props: FilterContentProps = {
         }
       ],
       data: {
+        fieldLabel: "Date",
         type: FieldType.select
       },
       label: "Date",
@@ -80,7 +88,8 @@ const props: FilterContentProps = {
         {
           children: [],
           data: {
-            type: FieldType.number
+            fieldLabel: "Exactly",
+            type: FieldType.price
           },
           label: "Exactly",
           value: "price-exactly"
@@ -88,6 +97,7 @@ const props: FilterContentProps = {
         {
           children: [],
           data: {
+            fieldLabel: "Range",
             type: FieldType.rangePrice
           },
           label: "Range",
@@ -95,6 +105,7 @@ const props: FilterContentProps = {
         }
       ],
       data: {
+        fieldLabel: "Price",
         type: FieldType.select
       },
       label: "Price",
