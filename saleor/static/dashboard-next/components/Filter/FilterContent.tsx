@@ -73,7 +73,7 @@ const FilterContent: React.FC<FilterContentProps> = ({
         menus.map(
           (filterItem, filterItemIndex) =>
             !isLeaf(filterItem) && (
-              <>
+              <React.Fragment key={filterItem.label.toString() + filterItem.value}>
                 <FormSpacer />
                 <SingleSelectField
                   choices={filterItem.children.map(filterItem => ({
@@ -93,7 +93,7 @@ const FilterContent: React.FC<FilterContentProps> = ({
                   }
                   placeholder={i18n.t("Select Filter...")}
                 />
-              </>
+              </React.Fragment>
             )
         )}
       {activeMenu && isLeaf(activeMenu) && (

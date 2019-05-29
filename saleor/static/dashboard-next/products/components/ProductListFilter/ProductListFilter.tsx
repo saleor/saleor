@@ -66,7 +66,7 @@ const filterMenu: IFilter = [
       {
         children: [],
         data: {
-          fieldLabel: i18n.t("Price"),
+          fieldLabel: null,
           type: FieldType.price
         },
         label: i18n.t("Specific Price"),

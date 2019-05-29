@@ -182,9 +182,10 @@ const FilterElement: React.FC<FilterElementProps> = ({
         onChange={event => onChange(event.target.value)}
         InputProps={{
           classes: {
-            input: filter.data.fieldLabel && classes.input
+            input: !filter.data.fieldLabel && classes.input
           }
         }}
+        value={value as string}
       />
     );
   }
@@ -197,9 +198,11 @@ const FilterElement: React.FC<FilterElementProps> = ({
         label={filter.data.fieldLabel}
         InputProps={{
           classes: {
-            input: filter.data.fieldLabel && classes.input
+            input: !filter.data.fieldLabel && classes.input
           }
         }}
+        onChange={event => onChange(event.target.value)}
+        value={value as string}
       />
     </>
   );
