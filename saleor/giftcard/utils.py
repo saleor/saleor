@@ -2,8 +2,8 @@ from datetime import date
 
 from django.core.exceptions import ValidationError
 
-from .models import GiftCard
 from ..checkout.models import Checkout
+from .models import GiftCard
 
 
 def add_gift_card_code_to_checkout(checkout: Checkout, promo_code: str):
