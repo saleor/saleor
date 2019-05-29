@@ -1,12 +1,12 @@
 -i https://pypi.python.org/simple
-amqp==2.4.2
+amqp==2.5.0
 aniso8601==3.0.2
 autopep8==1.4.4
 babel==2.7.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.157
-botocore==1.12.157
+boto3==1.9.158
+botocore==1.12.158
 braintree==3.49.0
 cachetools==3.1.1
 cairocffi==1.0.2
@@ -51,7 +51,7 @@ docutils==0.14
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
 faker==1.0.7
-freezegun==0.3.11
+freezegun==0.3.12
 google-api-core==1.11.1
 google-auth==1.6.3
 google-cloud-core==1.0.1
@@ -72,7 +72,7 @@ ipaddress==1.0.22
 jinja2==2.10.1
 jmespath==0.9.4
 jsonfield==2.0.2
-kombu==4.5.0
+kombu==4.6.0
 markdown==3.1.1
 markupsafe==1.1.1
 maxminddb-geolite2==2018.703
@@ -108,7 +108,7 @@ s3transfer==0.2.0
 singledispatch==3.4.0.3
 six==1.12.0
 social-auth-app-django==3.1.0
-social-auth-core==3.1.0
+social-auth-core==3.2.0
 sqlparse==0.3.0
 stripe==2.29.0
 sympy==1.4
