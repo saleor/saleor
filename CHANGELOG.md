@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix incorrect argument in `get_client_token` in Braintree integration - #4182 by @maarcingebala
 - Fix resolving attribute values when transforming them to HStore - #4161 by @maarcingebala
 - Fix margin calculations when product/variant price is set to zero - #4170 by @MahmoudRizk
+- Disable polling in Playgroud by default - #4188 by @maarcingebala
 
 ## 2.6.0
 
