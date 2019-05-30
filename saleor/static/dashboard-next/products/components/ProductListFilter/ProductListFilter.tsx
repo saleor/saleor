@@ -10,6 +10,7 @@ import {
   FilterTabs
 } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
+import { StockAvailability } from "../../../types/globalTypes";
 
 export type ProductListFilterTabs =
   | "all"
@@ -60,7 +61,17 @@ const filterMenu: IFilter = [
     children: [],
     data: {
       fieldLabel: i18n.t("Stock quantity"),
-      type: FieldType.range
+      options: [
+        {
+          label: i18n.t("Available"),
+          value: StockAvailability.IN_STOCK
+        },
+        {
+          label: i18n.t("Out Of Stock"),
+          value: StockAvailability.OUT_OF_STOCK
+        }
+      ],
+      type: FieldType.select
     },
     label: i18n.t("Stock"),
     value: ProductFilterKeys.stock.toString()

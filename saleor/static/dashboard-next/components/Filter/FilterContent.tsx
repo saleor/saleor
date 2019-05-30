@@ -23,7 +23,7 @@ function checkFilterValue(value: string | string[]): boolean {
   if (typeof value === "string") {
     return value !== "";
   }
-  return value.every(v => !!v);
+  return value.some(v => !!v);
 }
 
 const useStyles = makeStyles({
@@ -73,7 +73,9 @@ const FilterContent: React.FC<FilterContentProps> = ({
         menus.map(
           (filterItem, filterItemIndex) =>
             !isLeaf(filterItem) && (
-              <React.Fragment key={filterItem.label.toString() + filterItem.value}>
+              <React.Fragment
+                key={filterItem.label.toString() + filterItem.value}
+              >
                 <FormSpacer />
                 <SingleSelectField
                   choices={filterItem.children.map(filterItem => ({

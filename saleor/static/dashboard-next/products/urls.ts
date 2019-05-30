@@ -12,7 +12,7 @@ export const productAddUrl = productAddPath;
 export const productListPath = productSection;
 export type ProductListUrlDialog = "publish" | "unpublish" | "delete";
 export type ProductListUrlFilters = Partial<{
-  isPublished: boolean;
+  isPublished: string;
   priceFrom: string;
   priceTo: string;
   status: StockAvailability;
