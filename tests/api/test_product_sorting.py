@@ -126,13 +126,13 @@ def test_sort_products_within_collection(
     product_move_1 = expected_product_order.pop(2)
     product_move_2 = expected_product_order.pop(0)
 
-    expected_product_order.insert(0, product_move_1)
     expected_product_order.insert(2, product_move_2)
+    expected_product_order.insert(0, product_move_1)
 
     moves = [
         {
             "productId": graphene.Node.to_global_id("Product", product_move_1.pk),
-            "sortOrder": -1,
+            "sortOrder": -2,
         },
         {
             "productId": graphene.Node.to_global_id("Product", product_move_2.pk),
