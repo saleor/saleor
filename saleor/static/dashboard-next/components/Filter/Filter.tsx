@@ -16,12 +16,14 @@ import * as React from "react";
 
 import { FilterContent } from ".";
 import i18n from "../../i18n";
+import { FilterContentSubmitData } from "./FilterContent";
 import { IFilter } from "./types";
 
 export interface FilterProps {
   currencySymbol: string;
   menu: IFilter;
   filterLabel: string;
+  onFilterAdd: (filter: FilterContentSubmitData) => void;
 }
 
 const styles = (theme: Theme) =>
@@ -86,7 +88,8 @@ const Filter = withStyles(styles, { name: "Filter" })(
     classes,
     currencySymbol,
     filterLabel,
-    menu
+    menu,
+    onFilterAdd
   }: FilterProps & WithStyles<typeof styles>) => {
     const anchor = React.useRef<HTMLDivElement>();
     const [isFilterMenuOpened, setFilterMenuOpened] = React.useState(false);
@@ -132,7 +135,7 @@ const Filter = withStyles(styles, { name: "Filter" })(
                 <FilterContent
                   currencySymbol={currencySymbol}
                   filters={menu}
-                  onSubmit={() => undefined}
+                  onSubmit={onFilterAdd}
                 />
               </Paper>
             </Grow>

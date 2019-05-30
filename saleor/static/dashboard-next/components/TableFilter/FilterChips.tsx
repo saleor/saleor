@@ -7,7 +7,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 import { createStyles, makeStyles, useTheme } from "@material-ui/styles";
 import * as React from "react";
 
-import Filter from "../Filter";
+import Filter, { FilterContentSubmitData } from "../Filter";
 import { IFilter } from "../Filter/types";
 import Hr from "../Hr";
 
@@ -101,6 +101,9 @@ interface FilterChipProps {
   filtersList: Filter[];
   filterLabel: string;
   placeholder: string;
+  search: string;
+  onSearchChange: (event: React.ChangeEvent<any>) => void;
+  onFilterAdd: (filter: FilterContentSubmitData) => void;
 }
 
 export const FilterChips: React.FC<FilterChipProps> = ({
@@ -108,7 +111,10 @@ export const FilterChips: React.FC<FilterChipProps> = ({
   filtersList,
   menu,
   filterLabel,
-  placeholder
+  placeholder,
+  onSearchChange,
+  search,
+  onFilterAdd
 }) => {
   const theme = useTheme();
   const classes = useStyles({ theme });
@@ -120,8 +126,14 @@ export const FilterChips: React.FC<FilterChipProps> = ({
           currencySymbol={currencySymbol}
           menu={menu}
           filterLabel={filterLabel}
+          onFilterAdd={onFilterAdd}
         />
-        <Search fullWidth placeholder={placeholder} />
+        <Search
+          fullWidth
+          placeholder={placeholder}
+          value={search}
+          onChange={onSearchChange}
+        />
       </div>
       {filtersList && filtersList.length > 0 ? (
         <div className={classes.filterContainer}>
