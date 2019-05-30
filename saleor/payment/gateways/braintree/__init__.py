@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List
+from typing import Dict, List
 
 import braintree as braintree_sdk
 from django.core.exceptions import ImproperlyConfigured
@@ -109,8 +109,8 @@ def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     return gateway
 
 
-def get_client_token(connection_params: Dict[str, Any]) -> str:
-    gateway = get_braintree_gateway(**connection_params)
+def get_client_token(config: GatewayConfig) -> str:
+    gateway = get_braintree_gateway(**config.connection_params)
     client_token = gateway.client_token.generate()
     return client_token
 
