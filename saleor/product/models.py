@@ -114,7 +114,7 @@ class ProductsQueryset(PublishedQuerySet):
         qs = self.visible_to_user(user).prefetch_related(
             "collections__products__collectionproduct"
         )
-        qs = qs.order_by(F("collectionproduct__sort_order").desc(nulls_last=True))
+        qs = qs.order_by(F("collectionproduct__sort_order").asc(nulls_last=True))
         return qs
 
 
