@@ -680,8 +680,31 @@ def test_checkout_shipping_address_update(
     assert checkout.shipping_address.city == shipping_address["city"].upper()
 
 
+def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
+    user_api_client, checkout_with_item, graphql_address_data
+):
+    checkout = checkout_with_item
+    assert checkout.shipping_address is None
+
+    shipping_address = graphql_address_data
+    shipping_address["phone"] = "+33600000"
+
+    response = get_graphql_content(
+        user_api_client.post_graphql(
+            MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
+            {
+                "checkoutId": graphene.Node.to_global_id("Checkout", checkout.pk),
+                "shippingAddress": shipping_address,
+            },
+        )
+    )["data"]["checkoutShippingAddressUpdate"]
+    assert response["errors"] == [
+        {"field": "phone", "message": "'+33600000' is not a valid phone number."}
+    ]
+
+
 @pytest.mark.parametrize(
-    "number", ["+48321321888", "+1 (555) 555-5555", "00 44 (0155 55) 5555"]
+    "number", ["+48321321888", "+44 (113) 892-1113", "00 44 (0) 20 7839 1377"]
 )
 def test_checkout_shipping_address_update_with_phone_country_prefix(
     number, user_api_client, checkout_with_item, graphql_address_data
@@ -710,7 +733,7 @@ def test_checkout_shipping_address_update_without_phone_country_prefix(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     shipping_address = graphql_address_data
-    shipping_address["phone"] = "321321888"
+    shipping_address["phone"] = "+1-202-555-0132"
     variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
