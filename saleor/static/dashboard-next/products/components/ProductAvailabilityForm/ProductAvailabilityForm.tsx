@@ -16,7 +16,10 @@ import i18n from "../../../i18n";
 const styles = (theme: Theme) =>
   createStyles({
     date: {
-      marginTop: theme.spacing.unit
+      marginTop: theme.spacing.unit * 4,
+      "& svg": {
+        fill: theme.palette.primary.main
+      }
     },
     expandedSwitchContainer: {
       marginBottom: 0
@@ -47,7 +50,7 @@ export const ProductAvailabilityForm = withStyles(styles, {
     onChange
   }: ProductAvailabilityFormProps) => (
     <Card>
-      <CardTitle title={i18n.t("Availability")} />
+      <CardTitle title={i18n.t("Visibility")} />
       <CardContent>
         <div
           className={
@@ -58,18 +61,26 @@ export const ProductAvailabilityForm = withStyles(styles, {
         >
           <ControlledSwitch
             name="available"
-            label={i18n.t("Published in storefront")}
+            label={i18n.t("Visible")}
+            uncheckedLabel={i18n.t("Hidden")}
+            secondLabel={
+              publicationDate
+                ? available
+                  ? i18n.t("since ") + publicationDate
+                  : i18n.t("will be visible on ") + publicationDate
+                : null
+            }
             checked={available}
             onChange={onChange}
             disabled={loading}
           />
         </div>
-        {available && (
+        {!available && (
           <>
             <TextField
               error={!!errors.publicationDate}
               disabled={loading}
-              label={i18n.t("Publish product on")}
+              label={i18n.t("Publish on")}
               name="publicationDate"
               type="date"
               fullWidth={true}
