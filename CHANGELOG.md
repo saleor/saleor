@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Restore Django's common middleware as a default middleware - #4186 by @cmiacz
 - Fix incorrect argument in `get_client_token` in Braintree integration - #4182 by @maarcingebala
 - Fix resolving attribute values when transforming them to HStore - #4161 by @maarcingebala
+- Fix margin calculations when product/variant price is set to zero - #4170 by @MahmoudRizk
 
 ## 2.6.0
 
