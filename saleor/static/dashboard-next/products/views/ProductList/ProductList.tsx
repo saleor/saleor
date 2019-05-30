@@ -32,7 +32,7 @@ import {
   ProductListUrlQueryParams,
   productUrl
 } from "../../urls";
-import { getActiveFilters, createFilter } from "./filters";
+import { getActiveFilters, createFilter, getFilterVariables } from "./filters";
 
 interface ProductListProps {
   params: ProductListUrlQueryParams;
@@ -92,8 +92,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       displayLoader
       variables={{
         ...paginationState,
-        query: params.query,
-        stockAvailability: params.status
+        filter: getFilterVariables(params)
       }}
     >
       {({ data, loading, refetch }) => {
