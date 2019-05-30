@@ -9,6 +9,7 @@ const orderSectionUrl = "/orders";
 export const orderListPath = orderSectionUrl;
 export type OrderListUrlFilters = Partial<{
   status: OrderStatusFilter;
+  email: string;
 }>;
 export type OrderListUrlDialog = "cancel";
 export type OrderListUrlQueryParams = BulkAction &
