@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import Debounce from "../../../components/Debounce";
+import { FilterContentSubmitData } from "../../../components/Filter";
 import { FieldType, IFilter } from "../../../components/Filter/types";
 import {
   Filter,
@@ -23,6 +25,8 @@ interface ProductListFilterProps {
   onAvailable: () => void;
   onOfStock: () => void;
   onCustomFilter: () => void;
+  onSearchChange: (value: string) => void;
+  onFilterAdd: (filter: FilterContentSubmitData) => void;
 }
 
 export enum ProductFilterKeys {
@@ -98,33 +102,54 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
   onAllProducts,
   onAvailable,
   onOfStock,
-  onCustomFilter
-}) => (
-  <>
-    <FilterTabs
-      currentTab={["all", "available", "outOfStock", "custom"].indexOf(
-        currentTab
-      )}
-    >
-      <FilterTab label={i18n.t("All Products")} onClick={onAllProducts} />
-      <FilterTab label={i18n.t("Available")} onClick={onAvailable} />
-      <FilterTab label={i18n.t("Out Of Stock")} onClick={onOfStock} />
-      {currentTab === "custom" && filtersList && filtersList.length > 0 && (
-        <FilterTab
-          onClick={onCustomFilter}
-          value={0}
-          label={i18n.t("Custom Filter")}
-        />
-      )}
-    </FilterTabs>
-    <FilterChips
-      currencySymbol={currencySymbol}
-      menu={filterMenu}
-      filtersList={filtersList}
-      filterLabel={i18n.t("Select all products where:")}
-      placeholder={i18n.t("Search Products...")}
-    />
-  </>
-);
+  onCustomFilter,
+  onSearchChange,
+  onFilterAdd
+}) => {
+  const [search, setSearch] = React.useState("");
+
+  return (
+    <>
+      <FilterTabs
+        currentTab={["all", "available", "outOfStock", "custom"].indexOf(
+          currentTab
+        )}
+      >
+        <FilterTab label={i18n.t("All Products")} onClick={onAllProducts} />
+        <FilterTab label={i18n.t("Available")} onClick={onAvailable} />
+        <FilterTab label={i18n.t("Out Of Stock")} onClick={onOfStock} />
+        {currentTab === "custom" && filtersList && filtersList.length > 0 && (
+          <FilterTab
+            onClick={onCustomFilter}
+            value={0}
+            label={i18n.t("Custom Filter")}
+          />
+        )}
+      </FilterTabs>
+      <Debounce debounceFn={onSearchChange}>
+        {debounceSearchChange => {
+          const handleSearchChange = (event: React.ChangeEvent<any>) => {
+            const value = event.target.value;
+            setSearch(value);
+            debounceSearchChange(value);
+          };
+
+          return (
+            <FilterChips
+              currencySymbol={currencySymbol}
+              menu={filterMenu}
+              filtersList={filtersList}
+              filterLabel={i18n.t("Select all products where:")}
+              placeholder={i18n.t("Search Products...")}
+              search={search}
+              onSearchChange={handleSearchChange}
+              onFilterAdd={onFilterAdd}
+            />
+          );
+        }}
+      </Debounce>
+    </>
+  );
+};
 ProductListFilter.displayName = "ProductListFilter";
 export default ProductListFilter;

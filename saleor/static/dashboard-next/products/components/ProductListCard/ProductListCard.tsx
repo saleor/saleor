@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
 import Container from "../../../components/Container";
+import { FilterContentSubmitData } from "../../../components/Filter";
 import PageHeader from "../../../components/PageHeader";
 import ProductList from "../../../components/ProductList";
 import { Filter } from "../../../components/TableFilter";
@@ -12,7 +13,7 @@ import i18n from "../../../i18n";
 import { ListActions, PageListProps } from "../../../types";
 import ProductListFilter, { ProductListFilterTabs } from "../ProductListFilter";
 
-interface ProductListCardProps extends PageListProps, ListActions {
+export interface ProductListCardProps extends PageListProps, ListActions {
   currencySymbol: string;
   currentTab: ProductListFilterTabs;
   filtersList: Filter[];
@@ -21,6 +22,8 @@ interface ProductListCardProps extends PageListProps, ListActions {
   onAvailable: () => void;
   onCustomFilter: () => void;
   onOfStock: () => void;
+  onSearchChange: (value: string) => void;
+  onFilterAdd: (filter: FilterContentSubmitData) => void;
 }
 
 export const ProductListCard: React.StatelessComponent<
@@ -44,7 +47,9 @@ export const ProductListCard: React.StatelessComponent<
   selected,
   toggle,
   toggleAll,
-  toolbar
+  toolbar,
+  onSearchChange,
+  onFilterAdd
 }) => (
   <Container>
     <PageHeader title={i18n.t("Products")}>
@@ -61,6 +66,8 @@ export const ProductListCard: React.StatelessComponent<
         onAllProducts={onAllProducts}
         onOfStock={onOfStock}
         onCustomFilter={onCustomFilter}
+        onSearchChange={onSearchChange}
+        onFilterAdd={onFilterAdd}
       />
       <ProductList
         products={products}

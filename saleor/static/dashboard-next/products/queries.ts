@@ -217,14 +217,14 @@ const productListQuery = gql`
     $after: String
     $last: Int
     $before: String
-    $stockAvailability: StockAvailability
+    $filter: ProductFilterInput
   ) {
     products(
       before: $before
       after: $after
       first: $first
       last: $last
-      stockAvailability: $stockAvailability
+      filter: $filter
     ) {
       edges {
         node {

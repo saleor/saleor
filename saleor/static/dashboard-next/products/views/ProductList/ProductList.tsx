@@ -4,24 +4,26 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
-import useShop from "../../hooks/useShop";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
-import { StockAvailability } from "../../types/globalTypes";
-import ProductListCard from "../components/ProductListCard";
-import { getTabName } from "../misc";
+import ActionDialog from "../../../components/ActionDialog";
+import useBulkActions from "../../../hooks/useBulkActions";
+import useNavigator from "../../../hooks/useNavigator";
+import useNotifier from "../../../hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "../../../hooks/usePaginator";
+import useShop from "../../../hooks/useShop";
+import i18n from "../../../i18n";
+import { getMutationState, maybe } from "../../../misc";
+import { StockAvailability } from "../../../types/globalTypes";
+import ProductListCard from "../../components/ProductListCard";
+import { getTabName } from "../../misc";
 import {
   TypedProductBulkDeleteMutation,
   TypedProductBulkPublishMutation
-} from "../mutations";
-import { TypedProductListQuery } from "../queries";
-import { productBulkDelete } from "../types/productBulkDelete";
-import { productBulkPublish } from "../types/productBulkPublish";
+} from "../../mutations";
+import { TypedProductListQuery } from "../../queries";
+import { productBulkDelete } from "../../types/productBulkDelete";
+import { productBulkPublish } from "../../types/productBulkPublish";
 import {
   productAddUrl,
   productListUrl,
@@ -29,7 +31,8 @@ import {
   ProductListUrlFilters,
   ProductListUrlQueryParams,
   productUrl
-} from "../urls";
+} from "../../urls";
+import { getActiveFilters, createFilter } from "./filters";
 
 interface ProductListProps {
   params: ProductListUrlQueryParams;
@@ -63,6 +66,16 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     navigate(productListUrl(filters));
   };
 
+  const addFilterField = (filter: ProductListUrlFilters) => {
+    reset();
+    navigate(
+      productListUrl({
+        ...getActiveFilters(params),
+        ...filter
+      })
+    );
+  };
+
   const openModal = (action: ProductListUrlDialog, ids: string[]) =>
     navigate(
       productListUrl({
@@ -79,6 +92,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       displayLoader
       variables={{
         ...paginationState,
+        query: params.query,
         stockAvailability: params.status
       }}
     >
@@ -197,6 +211,14 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         selected={listElements.length}
                         toggle={toggle}
                         toggleAll={toggleAll}
+                        onSearchChange={query =>
+                          addFilterField({
+                            query
+                          })
+                        }
+                        onFilterAdd={filter =>
+                          addFilterField(createFilter(filter))
+                        }
                       />
                       <ActionDialog
                         open={params.action === "delete"}

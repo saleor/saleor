@@ -12,7 +12,11 @@ export const productAddUrl = productAddPath;
 export const productListPath = productSection;
 export type ProductListUrlDialog = "publish" | "unpublish" | "delete";
 export type ProductListUrlFilters = Partial<{
+  isPublished: boolean;
+  priceFrom: string;
+  priceTo: string;
   status: StockAvailability;
+  query: string;
 }>;
 export type ProductListUrlQueryParams = BulkAction &
   Dialog<ProductListUrlDialog> &
