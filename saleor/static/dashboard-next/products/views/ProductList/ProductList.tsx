@@ -6,6 +6,7 @@ import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
 import useBulkActions from "../../../hooks/useBulkActions";
+import useLocale from "../../../hooks/useLocale";
 import useNavigator from "../../../hooks/useNavigator";
 import useNotifier from "../../../hooks/useNotifier";
 import usePaginator, {
@@ -32,7 +33,12 @@ import {
   ProductListUrlQueryParams,
   productUrl
 } from "../../urls";
-import { getActiveFilters, createFilter, getFilterVariables } from "./filters";
+import {
+  createFilter,
+  createFilterChips,
+  getActiveFilters,
+  getFilterVariables
+} from "./filters";
 
 interface ProductListProps {
   params: ProductListUrlQueryParams;
@@ -43,6 +49,7 @@ const PAGINATE_BY = 20;
 export const ProductList: React.StatelessComponent<ProductListProps> = ({
   params
 }) => {
+  const locale = useLocale();
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
@@ -66,7 +73,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     navigate(productListUrl(filters));
   };
 
-  const addFilterField = (filter: ProductListUrlFilters) => {
+  const changeFilterField = (filter: ProductListUrlFilters) => {
     reset();
     navigate(
       productListUrl({
@@ -86,6 +93,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     );
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
+  const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
 
   return (
     <TypedProductListQuery
@@ -150,9 +158,16 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                   return (
                     <>
                       <ProductListCard
-                        currencySymbol={maybe(() => shop.defaultCurrency)}
+                        currencySymbol={currencySymbol}
                         currentTab={currentTab}
-                        filtersList={[]}
+                        filtersList={createFilterChips(
+                          params,
+                          {
+                            currencySymbol,
+                            locale
+                          },
+                          changeFilterField
+                        )}
                         onAdd={() => navigate(productAddUrl)}
                         disabled={loading}
                         products={
@@ -211,12 +226,12 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         toggle={toggle}
                         toggleAll={toggleAll}
                         onSearchChange={query =>
-                          addFilterField({
+                          changeFilterField({
                             query
                           })
                         }
                         onFilterAdd={filter =>
-                          addFilterField(createFilter(filter))
+                          changeFilterField(createFilter(filter))
                         }
                       />
                       <ActionDialog
