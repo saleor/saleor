@@ -195,9 +195,9 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
+    "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.django_session_middleware",
     "saleor.core.middleware.django_security_middleware",
-    "saleor.core.middleware.django_common_middleware",
     "saleor.core.middleware.django_csrf_view_middleware",
     "saleor.core.middleware.django_auth_middleware",
     "saleor.core.middleware.django_messages_middleware",
