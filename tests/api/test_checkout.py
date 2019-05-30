@@ -1452,3 +1452,58 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
 
     assert checkout_with_item.shipping_address.country == new_address["country"]
     assert checkout_with_item.voucher_code is None
+
+
+def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
+    query = """
+    query getCheckout($token: UUID) {
+        checkout(token: $token) {
+            lines {
+                totalPrice {
+                    gross {
+                        amount
+                    }
+                }
+            }
+            totalPrice {
+                gross {
+                    amount
+                }
+            }
+            subtotalPrice {
+                gross {
+                    amount
+                }
+            }
+        }
+    }
+    """
+    checkout = checkout_with_item
+    variables = {"token": str(checkout.token)}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    discounts = [sale]
+
+    # make sure that we're testing a variant that is actually on sale
+    variant = checkout.lines.first().variant
+    assert (
+        variant.get_price().gross.amount
+        == variant.get_price(discounts=discounts).gross.amount + sale.value
+    )
+
+    assert (
+        data["totalPrice"]["gross"]["amount"]
+        == checkout.get_total(discounts=discounts).gross.amount
+    )
+    assert (
+        data["subtotalPrice"]["gross"]["amount"]
+        == checkout.get_subtotal(discounts=discounts).gross.amount
+    )
+
+    line = checkout.lines.first()
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line.get_total(discounts=discounts).gross.amount
+    )
