@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Products are now sortable within collections - #4123 by @NyanKiyoshi
 - Restore Django's common middleware as a default middleware - #4186 by @cmiacz
 - Fix incorrect argument in `get_client_token` in Braintree integration - #4182 by @maarcingebala
+- Fix resolving attribute values when transforming them to HStore - #4161 by @maarcingebala
 
 ## 2.6.0
 
