@@ -31,6 +31,7 @@ from saleor.product.utils import (
 )
 from saleor.product.utils.attributes import get_product_attributes_data
 from saleor.product.utils.availability import get_product_availability_status
+from saleor.product.utils.costs import get_margin_for_variant
 from saleor.product.utils.digital_products import increment_download_count
 from saleor.product.utils.variants_picker import get_variant_picker_data
 
@@ -908,3 +909,12 @@ def test_variant_picker_data_price_range(product_type, category, taxes, site_set
 
     assert min_price == start
     assert max_price == stop
+
+
+@pytest.mark.parametrize(
+    "price, cost", [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)]
+)
+def test_costs_get_margin_for_variant(variant, price, cost):
+    variant.cost_price = cost
+    variant.price_override = price
+    assert not get_margin_for_variant(variant)
