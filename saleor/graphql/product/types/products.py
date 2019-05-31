@@ -442,7 +442,7 @@ class Product(CountableDjangoObjectType):
     def resolve_pricing(self, info):
         context = info.context
         availability = get_product_availability(
-            self, context.discounts, context.taxes, context.currency
+            self, context.discounts, context.country, context.currency
         )
         return ProductPricingInfo(**availability._asdict())
 

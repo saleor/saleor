@@ -3,6 +3,12 @@ import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 
 from ...checkout import models
+from ...core.taxes.interface import (
+    get_line_total_gross,
+    get_shipping_gross,
+    get_subtotal_gross,
+    get_total_gross,
+)
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
 from ..order.utils import applicable_shipping_methods
@@ -27,8 +33,9 @@ class CheckoutLine(CountableDjangoObjectType):
         filter_fields = ["id"]
 
     def resolve_total_price(self, info):
-        taxes = None  # FIXME
-        return self.get_total(discounts=info.context.discounts, taxes=taxes)
+        return get_line_total_gross(
+            checkout_line=self, discounts=info.context.discounts
+        )
 
     def resolve_requires_shipping(self, *_args):
         return self.is_shipping_required()
@@ -98,16 +105,13 @@ class Checkout(CountableDjangoObjectType):
         filter_fields = ["token"]
 
     def resolve_total_price(self, info):
-        taxes = None  # FIXME
-        return self.get_total(discounts=info.context.discounts, taxes=taxes)
+        return get_total_gross(checkout=self, discounts=info.context.discounts)
 
-    def resolve_subtotal_price(self, *_args):
-        taxes = None
-        return self.get_subtotal(taxes=taxes)
+    def resolve_subtotal_price(self, info):
+        return get_subtotal_gross(checkout=self, discounts=info.context.discounts)
 
-    def resolve_shipping_price(self, *_args):
-        taxes = None
-        return self.get_shipping_price(taxes=taxes)
+    def resolve_shipping_price(self, info):
+        return get_shipping_gross(checkout=self, discounts=info.context.discounts)
 
     def resolve_lines(self, *_args):
         return self.lines.prefetch_related("variant")

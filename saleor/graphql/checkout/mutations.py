@@ -22,6 +22,7 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.taxes.errors import TaxError
+from ...core.taxes.interface import get_subtotal_gross
 from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.utils import gateway_process_payment
@@ -36,9 +37,7 @@ from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
 
 
-def clean_shipping_method(
-    checkout, method, discounts, taxes, country_code=None, remove=True
-):
+def clean_shipping_method(checkout, method, discounts, country_code=None, remove=True):
     # FIXME Add tests for this function
     if not method:
         return None
@@ -53,7 +52,7 @@ def clean_shipping_method(
         )
 
     valid_methods = ShippingMethodModel.objects.applicable_shipping_methods(
-        price=checkout.get_subtotal(discounts, taxes).gross.amount,
+        price=get_subtotal_gross(checkout, discounts).gross.amount,
         weight=checkout.get_total_weight(),
         country_code=country_code or checkout.shipping_address.country.code,
     )
@@ -239,7 +238,6 @@ class CheckoutLinesAdd(BaseMutation):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=None,
         )
 
         if variants and quantities:
@@ -291,7 +289,6 @@ class CheckoutLineDelete(BaseMutation):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=None,
         )
 
         recalculate_checkout_discount(
@@ -370,7 +367,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=None,
         )
 
         with transaction.atomic():
@@ -461,7 +457,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout=checkout,
             method=shipping_method,
             discounts=info.context.discounts,
-            taxes=info.context.taxes,
             remove=False,
         )
 

@@ -167,7 +167,7 @@ def taxes(get_response):
     """Assign tax rates for default country to `request.taxes`."""
 
     def middleware(request):
-        request.taxes = None
+        request.taxes = None  # FIXME
         return get_response(request)
 
     return middleware

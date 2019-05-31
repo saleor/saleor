@@ -1,5 +1,6 @@
 """Checkout-related forms and fields."""
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 from django import forms
@@ -9,7 +10,9 @@ from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import LazyTypedChoiceField
-from prices import TaxedMoney
+from prices import Money, TaxedMoney
+
+from saleor.core.taxes.interface import apply_taxes_to_shipping, get_subtotal_gross
 
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import display_gross_prices
@@ -291,16 +294,17 @@ class ShippingMethodChoiceField(forms.ModelChoiceField):
     prices.
     """
 
-    taxes = None
+    shipping_address = None
     widget = forms.RadioSelect()
 
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
-        price = TaxedMoney(net=obj.price, gross=obj.price)
         if display_gross_prices():
-            price = price.gross
+            price = apply_taxes_to_shipping(
+                obj.price, shipping_address=self.shipping_address
+            ).gross
         else:
-            price = price.net
+            price = obj.price
         price_html = format_money(price)
         label = mark_safe("%s %s" % (obj.name, price_html))
         return label
@@ -319,16 +323,16 @@ class CheckoutShippingMethodForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         discounts = kwargs.pop("discounts")
-        taxes = kwargs.pop("taxes")
         super().__init__(*args, **kwargs)
-        country_code = self.instance.shipping_address.country.code
+        shipping_address = self.instance.shipping_address
+        country_code = shipping_address.country.code
         qs = ShippingMethod.objects.applicable_shipping_methods(
-            price=self.instance.get_subtotal(discounts, taxes).gross,
+            price=get_subtotal_gross(self.instance, discounts).gross,
             weight=self.instance.get_total_weight(),
             country_code=country_code,
         )
         self.fields["shipping_method"].queryset = qs
-        self.fields["shipping_method"].taxes = taxes
+        self.fields["shipping_method"].shipping_address = shipping_address
 
         if self.initial.get("shipping_method") is None:
             shipping_methods = qs.all()

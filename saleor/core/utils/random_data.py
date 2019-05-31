@@ -16,6 +16,8 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money
 
+from saleor.core.taxes.vatlayer import get_taxed_shipping_price, get_taxes_for_country
+
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
@@ -401,6 +403,7 @@ def create_fake_order(discounts, taxes):
 
     shipping_method = ShippingMethod.objects.order_by("?").first()
     shipping_price = shipping_method.price
+    shipping_price = get_taxed_shipping_price(shipping_price, taxes)
     order_data.update(
         {"shipping_method_name": shipping_method.name, "shipping_price": shipping_price}
     )
@@ -439,7 +442,7 @@ def create_users(how_many=10):
 
 
 def create_orders(how_many=10):
-    taxes = None
+    taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
     discounts = Sale.objects.active(date.today()).prefetch_related(
         "products", "categories", "collections"
     )

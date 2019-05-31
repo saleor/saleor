@@ -12,9 +12,13 @@ from ..errors import TaxError
 from . import (
     TransactionType,
     api_post_request,
+    common_carrier_code,
     generate_request_data,
+    generate_request_data_from_checkout,
     get_api_url,
+    get_cached_response_or_fetch,
     get_checkout_tax_data,
+    get_order_tax_data,
     validate_checkout,
 )
 
@@ -92,7 +96,7 @@ def postprocess_order_creation_with_taxes(order: "Order"):
     discounts = Sale.objects.active(date.today()).prefetch_related(
         "products", "categories", "collections"
     )
-    data = generate_request_data(
+    data = generate_request_data_from_checkout(
         checkout,
         transaction_token=str(order.token),
         transaction_type=TransactionType.INVOICE,
@@ -103,3 +107,27 @@ def postprocess_order_creation_with_taxes(order: "Order"):
     # FIXME errors for users (?)
     if not response or "error" in response:
         raise TaxError(response.get("error", {}).get("message", ""))
+
+
+def get_line_total_gross(checkout_line: "CheckoutLine", discounts):
+    checkout = checkout_line.checkout
+    taxes_data = get_checkout_tax_data(checkout, discounts)
+
+    for line in taxes_data.get("lines", []):
+        if line.get("itemCode") == checkout_line.variant.sku:
+            tax = Decimal(line.get("tax", "0.0"))
+            net = checkout_line.get_total(discounts).net
+            return Money(amount=net.amount + tax, currency=net.currency)
+
+    return checkout_line.get_total(discounts).gross
+
+
+def get_order_line_total_gross(order_line: "OrderLine", discounts):
+    order = order_line.order
+    taxes_data = get_order_tax_data(order, discounts)
+    for line in taxes_data.get("lines", []):
+        if line.get("itemCode") == order_line.variant.sku:
+            tax = Decimal(line.get("tax", "0.0"))
+            net = order_line.variant.get_total(discounts).net
+            return Money(amount=net.amount + tax, currency=net.currency)
+    return order_line.variant.get_total(discounts).gross

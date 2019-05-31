@@ -7,6 +7,7 @@ from prices import TaxedMoneyRange
 from saleor.graphql.core.types import MoneyRange
 from saleor.product.models import Product, ProductVariant
 
+from ...core.taxes.interface import apply_taxes_to_product
 from ...core.utils import to_local_currency
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
@@ -37,11 +38,11 @@ VariantAvailability = namedtuple(
 )
 
 
-def products_with_availability(products, discounts, taxes, local_currency):
+def products_with_availability(products, discounts, country, local_currency):
     for product in products:
         yield (
             product,
-            get_product_availability(product, discounts, taxes, local_currency),
+            get_product_availability(product, discounts, country, local_currency),
         )
 
 
@@ -107,11 +108,19 @@ def _get_product_price_range(
 
 
 def get_product_availability(
-    product: Product, discounts=None, taxes=None, local_currency=None
+    product: Product, discounts=None, country=None, local_currency=None
 ) -> ProductAvailability:
 
-    discounted = product.get_price_range(discounts=discounts, taxes=taxes)
-    undiscounted = product.get_price_range(taxes=taxes)
+    discounted_net_range = product.get_price_range(discounts=discounts)
+    undiscounted_net_range = product.get_price_range()
+    discounted = TaxedMoneyRange(
+        start=apply_taxes_to_product(product, discounted_net_range.start, country),
+        stop=apply_taxes_to_product(product, discounted_net_range.stop, country),
+    )
+    undiscounted = TaxedMoneyRange(
+        start=apply_taxes_to_product(product, undiscounted_net_range.start, country),
+        stop=apply_taxes_to_product(product, undiscounted_net_range.stop, country),
+    )
 
     discount = _get_total_discount(undiscounted, discounted)
     price_range_local, discount_local_currency = _get_product_price_range(

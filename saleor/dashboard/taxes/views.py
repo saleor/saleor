@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
+from django.http import HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -21,24 +22,31 @@ from ...dashboard.views import staff_member_required
 
 logger = logging.getLogger(__name__)
 
+# FIXME these views belong to vatlayer module.
+
 
 @staff_member_required
 def tax_list(request):
-    taxes = VAT.objects.order_by("country_code")
-    tax_filter = TaxFilter(request.GET, queryset=taxes)
-    taxes = get_paginator_items(
-        tax_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get("page")
-    )
-    ctx = {
-        "taxes": taxes,
-        "filter_set": tax_filter,
-        "is_empty": not tax_filter.queryset.exists(),
-    }
+    if settings.VATLAYER_ACCESS_KEY:
+        taxes = VAT.objects.order_by("country_code")
+        tax_filter = TaxFilter(request.GET, queryset=taxes)
+        taxes = get_paginator_items(
+            tax_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get("page")
+        )
+        ctx = {
+            "taxes": taxes,
+            "filter_set": tax_filter,
+            "is_empty": not tax_filter.queryset.exists(),
+        }
+    else:
+        ctx = {"taxes": [], "filter_set": None, "is_empty": True}
     return TemplateResponse(request, "dashboard/taxes/list.html", ctx)
 
 
 @staff_member_required
 def tax_details(request, country_code):
+    if not settings.VATLAYER_ACCESS_KEY:
+        return HttpResponseNotFound()
     tax = get_object_or_404(VAT, country_code=country_code)
     tax_rates = get_taxes_for_country(Country(country_code))
     translations = dict(TaxRateType.CHOICES)

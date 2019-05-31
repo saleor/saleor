@@ -2,6 +2,7 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from ...core.taxes.interface import get_total_gross
 from ...core.utils import get_client_ip
 from ...payment import PaymentError, models
 from ...payment.utils import (
@@ -77,10 +78,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             raise ValidationError(
                 {"billing_address": "No billing address associated with this checkout."}
             )
-
-        checkout_total = checkout.get_total(
-            discounts=info.context.discounts, taxes=None
-        )
+        checkout_total = get_total_gross(discounts=info.context.discounts)
         amount = data.get("amount", checkout_total)
         if amount < checkout_total.gross.amount:
             raise ValidationError(

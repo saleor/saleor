@@ -659,11 +659,11 @@ def get_checkout_context(
 
     context = {
         "checkout": checkout,
-        "checkout_are_taxes_handled": True,  # bool(taxes),
+        "checkout_are_taxes_handled": True,  # bool(taxes), #FIXME
         "checkout_lines": [
             (line, line.get_total(discounts, taxes)) for line in checkout
         ],
-        "checkout_shipping_price": shipping_price,  # checkout.get_shipping_price(taxes),
+        "checkout_shipping_price": shipping_price,
         "checkout_subtotal": checkout_subtotal,
         "checkout_total": checkout_total,
         "shipping_required": checkout.is_shipping_required(),
@@ -840,13 +840,13 @@ def get_taxes_for_checkout(checkout, default_taxes):
     return default_taxes
 
 
-def is_valid_shipping_method(checkout, taxes, discounts):
+def is_valid_shipping_method(checkout, discounts):
     """Check if shipping method is valid and remove (if not)."""
     if not checkout.shipping_method:
         return False
 
     valid_methods = ShippingMethod.objects.applicable_shipping_methods(
-        price=checkout.get_subtotal(discounts, taxes).gross,
+        price=get_subtotal_gross(checkout, discounts).gross,
         weight=checkout.get_total_weight(),
         country_code=checkout.shipping_address.country.code,
     )
@@ -901,7 +901,7 @@ def _process_shipping_data_for_order(checkout, shipping_price):
         "shipping_address": shipping_address,
         "shipping_method": checkout.shipping_method,
         "shipping_method_name": smart_text(checkout.shipping_method),
-        "shipping_price": shipping_price,  # checkout.get_shipping_price(taxes),
+        "shipping_price": shipping_price,
         "weight": checkout.get_total_weight(),
     }
 
@@ -997,7 +997,7 @@ def clean_checkout(checkout: Checkout, taxes, discounts):
             raise ValidationError("Shipping method is not set")
         if not checkout.shipping_address:
             raise ValidationError("Shipping address is not set")
-        if not is_valid_shipping_method(checkout, taxes, discounts):
+        if not is_valid_shipping_method(checkout, discounts):
             raise ValidationError(
                 "Shipping method is not valid for your shipping address"
             )
