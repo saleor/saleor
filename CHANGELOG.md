@@ -21,6 +21,19 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix multiple checkbox selected behavior - #4146 by @benekex2
 - GraphQL now prints exceptions to stderr as well as returning them or not - #4148 by @NyanKiyoshi
 - Refactored API resolvers to staticmethods with root typing - #4155 by @NyanKiyoshi
+- Users can how add multiple "Add to Cart" forms in a single page - #4165 by @NyanKiyoshi
+- Disabled by default the storage of celery results - #4169 by @NyanKiyoshi
+- Fix typos and messages in Dashboard 2.0 - #4168 by @benekex2
+- Rename menu items in Dashboard 2.0 - #4172 by @benekex2
+- Adding a non existent variant to a checkout no longer crashes - #4166 by @NyanKiyoshi
+- Category delete modal improvements - #4171 by @benekex2
+- Products are now sortable within collections - #4123 by @NyanKiyoshi
+- Restore Django's common middleware as a default middleware - #4186 by @cmiacz
+- Fix incorrect argument in `get_client_token` in Braintree integration - #4182 by @maarcingebala
+- Fix resolving attribute values when transforming them to HStore - #4161 by @maarcingebala
+- Fix margin calculations when product/variant price is set to zero - #4170 by @MahmoudRizk
+- Disable polling in Playgroud by default - #4188 by @maarcingebala
+- Add phone validation in the GraphQL API to handle the library upgrade - #4156 by @NyanKiyoshi
 - Fix view all orders button - #4173 by @benekex2
 
 ## 2.6.0
