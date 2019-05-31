@@ -47,6 +47,8 @@ class PaymentData:
     order_id: Optional[int]
     customer_ip_address: str
     customer_email: str
+    customer_id: str
+    reuse_source: bool = False
 
 
 @dataclass
