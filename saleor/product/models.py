@@ -419,6 +419,13 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
+class AttributeCategory(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class Attribute(models.Model):
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=50)
@@ -438,6 +445,13 @@ class Attribute(models.Model):
     )
 
     translated = TranslationProxy()
+
+    attribute_category = models.ForeignKey(
+        AttributeCategory,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
 
     class Meta:
         ordering = ("slug",)

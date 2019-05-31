@@ -15,6 +15,7 @@ from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...core.weight import WeightField
 from ...product.models import (
     Attribute,
+    AttributeCategory,
     AttributeValue,
     Category,
     Collection,
@@ -502,6 +503,16 @@ class AttributeForm(forms.ModelForm):
         labels = {
             "name": pgettext_lazy("Product display name", "Display name"),
             "slug": pgettext_lazy("Product internal name", "Internal name"),
+            "attribute_category": pgettext_lazy("Attribute category", "Attribute category"),
+        }
+
+
+class AttributeCategoryForm(forms.ModelForm):
+    class Meta:
+        model = AttributeCategory
+        exclude = []
+        labels = {
+            "name": pgettext_lazy("Attribute category", "Attribute category name"),
         }
 
 

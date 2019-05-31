@@ -14,6 +14,7 @@ from ...core.utils import get_paginator_items
 from ...discount.models import Sale
 from ...product.models import (
     Attribute,
+    AttributeCategory,
     AttributeValue,
     Product,
     ProductImage,
@@ -581,6 +582,18 @@ def attribute_create(request):
         return redirect("dashboard:attribute-details", pk=attribute.pk)
     ctx = {"attribute": attribute, "form": form}
     return TemplateResponse(request, "dashboard/product/attribute/form.html", ctx)
+
+
+@staff_member_required
+@permission_required("product.manage_products")
+def attribute_category_create(request):
+    attribute_category = AttributeCategory()
+    form = forms.AttributeCategoryForm(request.POST or None, instance=attribute_category)
+    if form.is_valid():
+        attribute_category = form.save()
+        return redirect("dashboard:attributes")
+    ctx = {"attribute_category": attribute_category, "form": form}
+    return TemplateResponse(request, "dashboard/product/attribute_category/form.html", ctx)
 
 
 @staff_member_required

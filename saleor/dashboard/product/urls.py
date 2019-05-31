@@ -97,6 +97,7 @@ urlpatterns = [
         name="attribute-details",
     ),
     url(r"attributes/add/$", views.attribute_create, name="attribute-add"),
+    url(r"attributes_category/add/$", views.attribute_category_create, name="attributes_category-add"),
     url(
         r"attributes/(?P<pk>[0-9]+)/update/$",
         views.attribute_edit,

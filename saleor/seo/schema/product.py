@@ -7,13 +7,16 @@ OUT_OF_STOCK = "http://schema.org/OutOfStock"
 def get_brand_from_attributes(attributes):
     if attributes is None:
         return
-    brand = ""
+    brand = []
+    # for key in attributes:
+    #     if key.name == "brand":
+    #         brand = attributes[key].name
+    #         break
+    #     elif key.name == "publisher":
+    #         brand = attributes[key].name
     for key in attributes:
-        if key.name == "brand":
-            brand = attributes[key].name
-            break
-        elif key.name == "publisher":
-            brand = attributes[key].name
+        if key.attribute_category:
+            brand.append({attributes[key].attribute.attribute_category.name: attributes[key].name})
     return brand
 
 
@@ -38,8 +41,11 @@ def product_json_ld(product, attributes=None):
         data["offers"].append(variant_data)
 
     brand = get_brand_from_attributes(attributes)
-    if brand:
-        data["brand"] = {"@type": "Thing", "name": brand}
+    # if brand:
+    #     data["brand"] = {"@type": "Thing", "name": brand}
+    for br in brand:
+        for key in br:
+            data[key] = {"@type": "Thing", "name": br[key]}
     return data
 
 

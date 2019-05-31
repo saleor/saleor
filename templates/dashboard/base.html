@@ -193,6 +193,11 @@
                         {% trans "Attributes" context "Dashboard attributes list" %}
                       </a>
                     </li>
+                    <li class="{% block menu_attributes_category_class %}{% endblock %}">
+                      <a href="{% url 'dashboard:attributes_category-add' %}">
+                        {% trans "Attributes category" context "Dashboard attributes_category list" %}
+                      </a>
+                    </li>
                   {% endif %}
                   {% if perms.shipping.manage_shipping %}
                     <li class="{% block menu_delivery_class %}{% endblock %}">
