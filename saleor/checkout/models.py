@@ -11,7 +11,7 @@ from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
 
 from ..account.models import Address
-from ..core.utils.taxes import ZERO_TAXED_MONEY, zero_money
+from ..core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY, zero_money
 from ..core.weight import zero_weight
 from ..giftcard.models import GiftCard
 from ..shipping.models import ShippingMethod
@@ -108,11 +108,22 @@ class Checkout(models.Model):
 
     def get_total(self, discounts=None, taxes=None):
         """Return the total cost of the checkout."""
-        return (
+        total = (
             self.get_subtotal(discounts, taxes)
             + self.get_shipping_price(taxes)
             - self.discount_amount
+            - self.get_total_gift_cards_balance()
         )
+        return max(total, ZERO_TAXED_MONEY)
+
+    def get_total_gift_cards_balance(self):
+        """Return the total balance of the gift cards assigned to the checkout"""
+        gift_cards_total_balance = self.gift_cards.aggregate(
+            models.Sum("current_balance")
+        )["current_balance__sum"]
+        if gift_cards_total_balance:
+            return gift_cards_total_balance
+        return ZERO_MONEY
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int
