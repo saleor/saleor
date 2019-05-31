@@ -84,13 +84,15 @@ const props: ProductListCardProps = {
   ...listActionsProps,
   ...pageListProps.default,
   currencySymbol: "USD",
-  currentTab: "all",
+  currentTab: 0,
   filtersList: [],
+  initialSearch: "",
   onAllProducts: () => undefined,
-  onAvailable: () => undefined,
-  onCustomFilter: () => undefined,
-  onOfStock: () => undefined,
-  onSearchChange: val => console.log(val),
+  onFilterAdd: () => undefined,
+  onFilterDelete: () => undefined,
+  onFilterSave: () => undefined,
+  onSearchChange: () => undefined,
+  onTabChange: () => undefined,
   products
 };
 
@@ -98,7 +100,7 @@ storiesOf("Views / Products / Product list", module)
   .addDecorator(Decorator)
   .add("default", () => <ProductListCard {...props} />)
   .add("with custom filters", () => (
-    <ProductListCard {...props} filtersList={filtersList} currentTab="custom" />
+    <ProductListCard {...props} filtersList={filtersList} />
   ))
   .add("loading", () => (
     <ProductListCard
