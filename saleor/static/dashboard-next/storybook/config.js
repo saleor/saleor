@@ -12,6 +12,7 @@ function loadStories() {
   require("./stories/components/Chip");
   require("./stories/components/Date");
   require("./stories/components/DateTime");
+  require("./stories/components/DeleteFilterTabDialog");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/ErrorPage");

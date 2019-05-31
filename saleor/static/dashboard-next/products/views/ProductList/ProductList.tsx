@@ -5,6 +5,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
+import DeleteFilterTabDialog from "../../../components/DeleteFilterTabDialog";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
 } from "../../../components/SaveFilterTabDialog";
@@ -63,10 +64,12 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     params.ids
   );
 
+  const tabs = getFilterTabs();
+
   const currentTab =
     params.activeTab === undefined
       ? areFiltersApplied(params)
-        ? getFilterTabs().length + 1
+        ? tabs.length + 1
         : 0
       : parseInt(params.activeTab, 0);
 
@@ -111,16 +114,14 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       })
     );
 
-  const handleTabChange = (tab: number) => {
-    const tabs = getFilterTabs();
+  const handleTabChange = (tab: number) =>
     navigate(
       productListUrl({
         activeTab: tab.toString(),
-        ...tabs[tab - 1].data,
+        ...getFilterTabs()[tab - 1].data,
         query: params.query
       })
     );
-  };
 
   const handleFilterTabDelete = () => {
     deleteFilterTab(currentTab);
@@ -130,7 +131,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
 
   const handleFilterTabSave = (data: SaveFilterTabDialogFormData) => {
     saveFilterTab(data.name, getActiveFilters(params));
-    handleTabChange(getFilterTabs().length);
+    handleTabChange(tabs.length);
   };
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
@@ -263,7 +264,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                           changeFilterField(createFilter(filter))
                         }
                         onFilterSave={() => openModal("save-search")}
-                        onFilterDelete={handleFilterTabDelete}
+                        onFilterDelete={() => openModal("delete-search")}
                         onTabChange={handleTabChange}
                         initialSearch={params.query || ""}
                       />
@@ -352,6 +353,13 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         confirmButtonState="default"
                         onClose={closeModal}
                         onSubmit={handleFilterTabSave}
+                      />
+                      <DeleteFilterTabDialog
+                        open={params.action === "delete-search"}
+                        confirmButtonState="default"
+                        onClose={closeModal}
+                        onSubmit={handleFilterTabDelete}
+                        tabName={maybe(() => tabs[currentTab - 1].name, "...")}
                       />
                     </>
                   );
