@@ -8,6 +8,13 @@ import {
 import { ProductFilterKeys } from "../../components/ProductListFilter";
 import { ProductListUrlFilters, ProductListUrlQueryParams } from "../../urls";
 
+export const PRODUCT_FILTERS_KEY = "productFilters";
+
+export interface UserFilter {
+  name: string;
+  data: ProductListUrlFilters;
+}
+
 export function getFilterVariables(
   params: ProductListUrlFilters
 ): ProductFilterInput {
@@ -36,6 +43,10 @@ export function getActiveFilters(
       acc[key] = params[key];
       return acc;
     }, {});
+}
+
+export function areFiltersApplied(params: ProductListUrlQueryParams): boolean {
+  return Object.keys(getActiveFilters(params)).some(key => !!params[key]);
 }
 
 export function createFilter(
@@ -185,4 +196,23 @@ export function createFilterChips(
   }
 
   return filterChips;
+}
+
+export function getFilterTabs(): UserFilter[] {
+  return JSON.parse(localStorage.getItem(PRODUCT_FILTERS_KEY)) || [];
+}
+
+export function saveFilterTab(name: string, data: ProductListUrlFilters) {
+  const userFilters = getFilterTabs();
+
+  localStorage.setItem(
+    PRODUCT_FILTERS_KEY,
+    JSON.stringify([
+      ...userFilters,
+      {
+        data,
+        name
+      }
+    ])
+  );
 }

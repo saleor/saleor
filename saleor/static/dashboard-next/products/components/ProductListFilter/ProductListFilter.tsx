@@ -11,23 +11,17 @@ import {
 } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 import { StockAvailability } from "../../../types/globalTypes";
-
-export type ProductListFilterTabs =
-  | "all"
-  | "available"
-  | "outOfStock"
-  | "custom";
+import { getFilterTabs } from "../../views/ProductList/filters";
 
 interface ProductListFilterProps {
   currencySymbol: string;
-  currentTab: ProductListFilterTabs;
+  currentTab: number;
   filtersList: Filter[];
   onAllProducts: () => void;
-  onAvailable: () => void;
-  onOfStock: () => void;
-  onCustomFilter: () => void;
   onSearchChange: (value: string) => void;
   onFilterAdd: (filter: FilterContentSubmitData) => void;
+  onFilterSave: () => void;
+  onTabChange: (tab: number) => void;
 }
 
 export enum ProductFilterKeys {
@@ -111,28 +105,27 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
   filtersList,
   currentTab,
   onAllProducts,
-  onAvailable,
-  onOfStock,
-  onCustomFilter,
   onSearchChange,
-  onFilterAdd
+  onFilterAdd,
+  onFilterSave,
+  onTabChange
 }) => {
   const [search, setSearch] = React.useState("");
+  const filterTabs = getFilterTabs();
 
   return (
     <>
-      <FilterTabs
-        currentTab={["all", "available", "outOfStock", "custom"].indexOf(
-          currentTab
-        )}
-      >
+      <FilterTabs currentTab={currentTab}>
         <FilterTab label={i18n.t("All Products")} onClick={onAllProducts} />
-        <FilterTab label={i18n.t("Available")} onClick={onAvailable} />
-        <FilterTab label={i18n.t("Out Of Stock")} onClick={onOfStock} />
-        {currentTab === "custom" && filtersList && filtersList.length > 0 && (
+        {filterTabs.map((tab, tabIndex) => (
           <FilterTab
-            onClick={onCustomFilter}
-            value={0}
+            onClick={() => onTabChange(tabIndex + 1)}
+            label={tab.name}
+          />
+        ))}
+        {currentTab === filterTabs.length + 1 && (
+          <FilterTab
+            onClick={() => undefined}
             label={i18n.t("Custom Filter")}
           />
         )}
@@ -155,6 +148,7 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
               search={search}
               onSearchChange={handleSearchChange}
               onFilterAdd={onFilterAdd}
+              onFilterSave={onFilterSave}
             />
           );
         }}

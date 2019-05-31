@@ -7,9 +7,11 @@ import ClearIcon from "@material-ui/icons/Clear";
 import { createStyles, makeStyles, useTheme } from "@material-ui/styles";
 import * as React from "react";
 
+import i18n from "../../i18n";
 import Filter, { FilterContentSubmitData } from "../Filter";
 import { IFilter } from "../Filter/types";
 import Hr from "../Hr";
+import Link from "../Link";
 
 export interface Filter {
   label: string;
@@ -57,13 +59,16 @@ const useStyles = makeStyles(
         marginLeft: 0,
         padding: "0 16px"
       },
+      filterChipContainer: {
+        display: "flex",
+        flex: 1,
+        flexWrap: "wrap"
+      },
       filterContainer: {
         borderBottom: "1px solid #e8e8e8",
         display: "flex",
-        flexWrap: "wrap",
         marginTop: theme.spacing.unit,
-        paddingBottom: theme.spacing.unit,
-        paddingLeft: theme.spacing.unit * 3
+        padding: `0 ${theme.spacing.unit * 3}px ${theme.spacing.unit}px`
       },
       filterIcon: {
         color: theme.palette.common.white,
@@ -104,6 +109,7 @@ interface FilterChipProps {
   search: string;
   onSearchChange: (event: React.ChangeEvent<any>) => void;
   onFilterAdd: (filter: FilterContentSubmitData) => void;
+  onFilterSave: () => void;
 }
 
 export const FilterChips: React.FC<FilterChipProps> = ({
@@ -114,7 +120,8 @@ export const FilterChips: React.FC<FilterChipProps> = ({
   placeholder,
   onSearchChange,
   search,
-  onFilterAdd
+  onFilterAdd,
+  onFilterSave
 }) => {
   const theme = useTheme();
   const classes = useStyles({ theme });
@@ -137,19 +144,22 @@ export const FilterChips: React.FC<FilterChipProps> = ({
       </div>
       {filtersList && filtersList.length > 0 ? (
         <div className={classes.filterContainer}>
-          {filtersList.map(filter => (
-            <div className={classes.filterButton} key={filter.label}>
-              <Typography className={classes.filterText}>
-                {filter.label}
-              </Typography>
-              <ButtonBase
-                className={classes.filterIconContainer}
-                onClick={filter.onClick}
-              >
-                <ClearIcon className={classes.filterIcon} />
-              </ButtonBase>
-            </div>
-          ))}
+          <div className={classes.filterChipContainer}>
+            {filtersList.map(filter => (
+              <div className={classes.filterButton} key={filter.label}>
+                <Typography className={classes.filterText}>
+                  {filter.label}
+                </Typography>
+                <ButtonBase
+                  className={classes.filterIconContainer}
+                  onClick={filter.onClick}
+                >
+                  <ClearIcon className={classes.filterIcon} />
+                </ButtonBase>
+              </div>
+            ))}
+          </div>
+          <Link onClick={onFilterSave}>{i18n.t("Save Custom Search")}</Link>
         </div>
       ) : (
         <Hr />

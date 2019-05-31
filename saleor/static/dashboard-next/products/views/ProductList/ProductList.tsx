@@ -17,7 +17,6 @@ import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { StockAvailability } from "../../../types/globalTypes";
 import ProductListCard from "../../components/ProductListCard";
-import { getTabName } from "../../misc";
 import {
   TypedProductBulkDeleteMutation,
   TypedProductBulkPublishMutation
@@ -34,10 +33,13 @@ import {
   productUrl
 } from "../../urls";
 import {
+  areFiltersApplied,
   createFilter,
   createFilterChips,
   getActiveFilters,
-  getFilterVariables
+  getFilterTabs,
+  getFilterVariables,
+  saveFilterTab
 } from "./filters";
 
 interface ProductListProps {
@@ -92,6 +94,16 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       })
     );
 
+  const handleTabChange = (tab: number) => {
+    const tabs = getFilterTabs();
+    navigate(
+      productListUrl({
+        activeTab: tab.toString(),
+        ...tabs[tab - 1].data
+      })
+    );
+  };
+
   const paginationState = createPaginationState(PAGINATE_BY, params);
   const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
 
@@ -104,7 +116,12 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       }}
     >
       {({ data, loading, refetch }) => {
-        const currentTab = getTabName(params);
+        const currentTab =
+          params.activeTab === undefined
+            ? areFiltersApplied(params)
+              ? getFilterTabs().length + 1
+              : 0
+            : parseInt(params.activeTab, 0);
         const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
           maybe(() => data.products.pageInfo),
           paginationState,
@@ -186,17 +203,6 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                             status: undefined
                           })
                         }
-                        onCustomFilter={() => undefined}
-                        onAvailable={() =>
-                          changeFilters({
-                            status: StockAvailability.IN_STOCK
-                          })
-                        }
-                        onOfStock={() =>
-                          changeFilters({
-                            status: StockAvailability.OUT_OF_STOCK
-                          })
-                        }
                         toolbar={
                           <>
                             <Button
@@ -233,6 +239,12 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         onFilterAdd={filter =>
                           changeFilterField(createFilter(filter))
                         }
+                        onFilterSave={() => {
+                          const name = prompt("Tab name");
+                          saveFilterTab(name, getActiveFilters(params));
+                          handleTabChange(getFilterTabs().length);
+                        }}
+                        onTabChange={handleTabChange}
                       />
                       <ActionDialog
                         open={params.action === "delete"}
