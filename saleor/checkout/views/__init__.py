@@ -71,12 +71,11 @@ def checkout_shipping_method(request, checkout):
     """Display the shipping method selection step."""
     discounts = request.discounts
     taxes = get_taxes_for_checkout(checkout, request.taxes)
-    is_valid_shipping_method(checkout, request.taxes, discounts)
+    is_valid_shipping_method(checkout, discounts)
 
     form = CheckoutShippingMethodForm(
         request.POST or None,
         discounts=discounts,
-        taxes=taxes,
         instance=checkout,
         initial={"shipping_method": checkout.shipping_method},
     )

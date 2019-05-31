@@ -7,12 +7,10 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
-from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
 
-from ...core import TaxRateType
 from ...core.taxes import include_taxes_in_prices
-from ...core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME  # FIXME
+from ...core.taxes.interface import get_tax_rate_type_choices
 from ...core.weight import WeightField
 from ...product.models import (
     Attribute,
@@ -66,17 +64,6 @@ class ProductTypeSelectorForm(forms.Form):
         widget=forms.RadioSelect,
         empty_label=None,
     )
-
-
-def get_tax_rate_type_choices():
-    rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME]
-    translations = dict(TaxRateType.CHOICES)
-    choices = [
-        (rate_name, translations.get(rate_name, "---------"))
-        for rate_name in rate_types
-    ]
-    # sort choices alphabetically by translations
-    return sorted(choices, key=lambda x: x[1])
 
 
 class ProductTypeForm(forms.ModelForm):

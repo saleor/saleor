@@ -633,7 +633,7 @@ class AddVariantToOrderForm(forms.Form):
         variant = self.cleaned_data.get("variant")
         quantity = self.cleaned_data.get("quantity")
         line = add_variant_to_order(
-            self.order, variant, quantity, self.discounts, self.taxes
+            self.order, variant, quantity, self.discounts, self.taxes  # FIXME
         )
         events.draft_order_added_products_event(
             order=self.order, user=user, order_lines=[(line.quantity, line)]

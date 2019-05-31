@@ -78,12 +78,12 @@ def product_details(request, slug, product_id, form=None):
     availability = get_product_availability(
         product,
         discounts=request.discounts,
-        taxes=request.taxes,
+        country=request.country,
         local_currency=request.currency,
     )
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
-        product, request.discounts, request.taxes, request.currency
+        product, request.discounts, request.country, request.currency
     )
     product_attributes = get_product_attributes_data(product)
     # show_variant_picker determines if variant picker is used or select input

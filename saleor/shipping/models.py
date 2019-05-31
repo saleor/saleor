@@ -159,7 +159,8 @@ class ShippingMethod(models.Model):
             ),
         )
 
-    def get_total(self, taxes=None):
+    def get_total(self, country=None):
+
         return TaxedMoney(net=self.price, gross=self.price)
 
     def get_ajax_label(self):

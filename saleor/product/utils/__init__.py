@@ -136,7 +136,7 @@ def get_product_list_context(request, filter_set):
     )
     products_and_availability = list(
         products_with_availability(
-            products_paginated, request.discounts, request.taxes, request.currency
+            products_paginated, request.discounts, request.country, request.currency
         )
     )
     now_sorted_by = get_now_sorted_by(filter_set)
