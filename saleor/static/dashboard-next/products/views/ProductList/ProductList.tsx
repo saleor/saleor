@@ -5,7 +5,9 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
-import SaveFilterTabDialog from "../../../components/SaveFilterTabDialog";
+import SaveFilterTabDialog, {
+  SaveFilterTabDialogFormData
+} from "../../../components/SaveFilterTabDialog";
 import useBulkActions from "../../../hooks/useBulkActions";
 import useLocale from "../../../hooks/useLocale";
 import useNavigator from "../../../hooks/useNavigator";
@@ -36,6 +38,7 @@ import {
   areFiltersApplied,
   createFilter,
   createFilterChips,
+  deleteFilterTab,
   getActiveFilters,
   getFilterTabs,
   getFilterVariables,
@@ -60,6 +63,13 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     params.ids
   );
 
+  const currentTab =
+    params.activeTab === undefined
+      ? areFiltersApplied(params)
+        ? getFilterTabs().length + 1
+        : 0
+      : parseInt(params.activeTab, 0);
+
   const closeModal = () =>
     navigate(
       productListUrl({
@@ -76,11 +86,18 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   };
 
   const changeFilterField = (filter: ProductListUrlFilters) => {
+    const hasOnlyQueryChanged =
+      filter.query !== undefined &&
+      Object.keys(filter)
+        .filter((key: keyof ProductListUrlFilters) => key !== "query")
+        .every(key => !filter[key]);
+
     reset();
     navigate(
       productListUrl({
         ...getActiveFilters(params),
-        ...filter
+        ...filter,
+        activeTab: hasOnlyQueryChanged ? params.activeTab : undefined
       })
     );
   };
@@ -99,9 +116,21 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     navigate(
       productListUrl({
         activeTab: tab.toString(),
-        ...tabs[tab - 1].data
+        ...tabs[tab - 1].data,
+        query: params.query
       })
     );
+  };
+
+  const handleFilterTabDelete = () => {
+    deleteFilterTab(currentTab);
+    reset();
+    navigate(productListUrl());
+  };
+
+  const handleFilterTabSave = (data: SaveFilterTabDialogFormData) => {
+    saveFilterTab(data.name, getActiveFilters(params));
+    handleTabChange(getFilterTabs().length);
   };
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
@@ -116,12 +145,6 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       }}
     >
       {({ data, loading, refetch }) => {
-        const currentTab =
-          params.activeTab === undefined
-            ? areFiltersApplied(params)
-              ? getFilterTabs().length + 1
-              : 0
-            : parseInt(params.activeTab, 0);
         const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
           maybe(() => data.products.pageInfo),
           paginationState,
@@ -240,7 +263,9 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                           changeFilterField(createFilter(filter))
                         }
                         onFilterSave={() => openModal("save-search")}
+                        onFilterDelete={handleFilterTabDelete}
                         onTabChange={handleTabChange}
+                        initialSearch={params.query || ""}
                       />
                       <ActionDialog
                         open={params.action === "delete"}
@@ -326,10 +351,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         open={params.action === "save-search"}
                         confirmButtonState="default"
                         onClose={closeModal}
-                        onSubmit={data => {
-                          saveFilterTab(data.name, getActiveFilters(params));
-                          handleTabChange(getFilterTabs().length);
-                        }}
+                        onSubmit={handleFilterTabSave}
                       />
                     </>
                   );

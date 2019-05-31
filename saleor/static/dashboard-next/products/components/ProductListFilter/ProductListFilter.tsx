@@ -17,9 +17,11 @@ interface ProductListFilterProps {
   currencySymbol: string;
   currentTab: number;
   filtersList: Filter[];
+  initialSearch: string;
   onAllProducts: () => void;
   onSearchChange: (value: string) => void;
   onFilterAdd: (filter: FilterContentSubmitData) => void;
+  onFilterDelete: () => void;
   onFilterSave: () => void;
   onTabChange: (tab: number) => void;
 }
@@ -104,14 +106,23 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
   currencySymbol,
   filtersList,
   currentTab,
+  initialSearch,
   onAllProducts,
   onSearchChange,
   onFilterAdd,
   onFilterSave,
-  onTabChange
+  onTabChange,
+  onFilterDelete
 }) => {
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] = React.useState(initialSearch);
+  React.useEffect(
+    () => console.log(initialSearch) || setSearch(initialSearch),
+    [currentTab, initialSearch]
+  );
+
   const filterTabs = getFilterTabs();
+
+  const isCustom = currentTab === filterTabs.length + 1;
 
   return (
     <>
@@ -123,7 +134,7 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
             label={tab.name}
           />
         ))}
-        {currentTab === filterTabs.length + 1 && (
+        {isCustom && (
           <FilterTab
             onClick={() => undefined}
             label={i18n.t("Custom Filter")}
@@ -149,6 +160,8 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
               onSearchChange={handleSearchChange}
               onFilterAdd={onFilterAdd}
               onFilterSave={onFilterSave}
+              isCustomSearch={isCustom}
+              onFilterDelete={onFilterDelete}
             />
           );
         }}

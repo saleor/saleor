@@ -107,8 +107,10 @@ interface FilterChipProps {
   filterLabel: string;
   placeholder: string;
   search: string;
+  isCustomSearch: boolean;
   onSearchChange: (event: React.ChangeEvent<any>) => void;
   onFilterAdd: (filter: FilterContentSubmitData) => void;
+  onFilterDelete: () => void;
   onFilterSave: () => void;
 }
 
@@ -121,7 +123,9 @@ export const FilterChips: React.FC<FilterChipProps> = ({
   onSearchChange,
   search,
   onFilterAdd,
-  onFilterSave
+  onFilterSave,
+  onFilterDelete,
+  isCustomSearch
 }) => {
   const theme = useTheme();
   const classes = useStyles({ theme });
@@ -159,7 +163,11 @@ export const FilterChips: React.FC<FilterChipProps> = ({
               </div>
             ))}
           </div>
-          <Link onClick={onFilterSave}>{i18n.t("Save Custom Search")}</Link>
+          {isCustomSearch ? (
+            <Link onClick={onFilterSave}>{i18n.t("Save Custom Search")}</Link>
+          ) : (
+            <Link onClick={onFilterDelete}>{i18n.t("Delete Search")}</Link>
+          )}
         </div>
       ) : (
         <Hr />
