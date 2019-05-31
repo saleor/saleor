@@ -14,7 +14,8 @@ export type ProductListUrlDialog =
   | "publish"
   | "unpublish"
   | "delete"
-  | "save-search";
+  | "save-search"
+  | "delete-search";
 export type ProductListUrlFilters = Partial<{
   isPublished: string;
   priceFrom: string;
