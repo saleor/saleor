@@ -106,9 +106,9 @@ class Checkout(CountableDjangoObjectType):
         return root.get_total(discounts=info.context.discounts, taxes=taxes)
 
     @staticmethod
-    def resolve_subtotal_price(root: models.Checkout, *_args):
+    def resolve_subtotal_price(root: models.Checkout, info):
         taxes = get_taxes_for_address(root.shipping_address)
-        return root.get_subtotal(taxes=taxes)
+        return root.get_subtotal(discounts=info.context.discounts, taxes=taxes)
 
     @staticmethod
     def resolve_shipping_price(root: models.Checkout, *_args):
