@@ -39,9 +39,6 @@ const OrderListFilter: React.StatelessComponent<OrderListFilterProps> = ({
         />
       )}
     </FilterTabs>
-    {/* {currentTab === "custom" && filtersList && filtersList.length > 0 && (
-      <FilterChips filtersList={filtersList} />
-    )} */}
   </>
 );
 OrderListFilter.displayName = "OrderListFilter";
