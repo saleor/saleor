@@ -92,10 +92,23 @@ Array [
     "value": "4.1",
   },
   Object {
-    "children": Array [],
+    "children": Array [
+      Object {
+        "children": Array [],
+        "data": null,
+        "label": "4.1",
+        "value": "4.1",
+      },
+      Object {
+        "children": Array [],
+        "data": null,
+        "label": "4.2",
+        "value": "4.2",
+      },
+    ],
     "data": null,
-    "label": "3",
-    "value": "3",
+    "label": "4",
+    "value": "4",
   },
 ]
 `;
