@@ -15,6 +15,7 @@ class GatewayResponse:
     currency: str
     transaction_id: str
     error: Optional[str]
+    customer_id: Optional[str] = None
     raw_response: Optional[Dict[str, str]] = None
 
 
@@ -47,7 +48,7 @@ class PaymentData:
     order_id: Optional[int]
     customer_ip_address: str
     customer_email: str
-    customer_id: str
+    customer_id: Optional[str] = None
     reuse_source: bool = False
 
 
