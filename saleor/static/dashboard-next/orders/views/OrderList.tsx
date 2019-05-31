@@ -80,6 +80,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
           displayLoader
           variables={{
             ...paginationState,
+            filter: { customer: params.email },
             status: params.status
           }}
         >
