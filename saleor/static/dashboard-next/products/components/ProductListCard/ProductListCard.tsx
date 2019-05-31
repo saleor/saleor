@@ -11,19 +11,18 @@ import ProductList from "../../../components/ProductList";
 import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 import { ListActions, PageListProps } from "../../../types";
-import ProductListFilter, { ProductListFilterTabs } from "../ProductListFilter";
+import ProductListFilter from "../ProductListFilter";
 
 export interface ProductListCardProps extends PageListProps, ListActions {
   currencySymbol: string;
-  currentTab: ProductListFilterTabs;
+  currentTab: number;
   filtersList: Filter[];
   products: CategoryDetails_category_products_edges_node[];
   onAllProducts: () => void;
-  onAvailable: () => void;
-  onCustomFilter: () => void;
-  onOfStock: () => void;
   onSearchChange: (value: string) => void;
   onFilterAdd: (filter: FilterContentSubmitData) => void;
+  onFilterSave: () => void;
+  onTabChange: (tab: number) => void;
 }
 
 export const ProductListCard: React.StatelessComponent<
@@ -37,10 +36,7 @@ export const ProductListCard: React.StatelessComponent<
   products,
   onAdd,
   onAllProducts,
-  onAvailable,
-  onCustomFilter,
   onNextPage,
-  onOfStock,
   onPreviousPage,
   onRowClick,
   isChecked,
@@ -49,7 +45,9 @@ export const ProductListCard: React.StatelessComponent<
   toggleAll,
   toolbar,
   onSearchChange,
-  onFilterAdd
+  onFilterAdd,
+  onFilterSave,
+  onTabChange
 }) => (
   <Container>
     <PageHeader title={i18n.t("Products")}>
@@ -62,12 +60,11 @@ export const ProductListCard: React.StatelessComponent<
         currencySymbol={currencySymbol}
         currentTab={currentTab}
         filtersList={filtersList}
-        onAvailable={onAvailable}
         onAllProducts={onAllProducts}
-        onOfStock={onOfStock}
-        onCustomFilter={onCustomFilter}
         onSearchChange={onSearchChange}
         onFilterAdd={onFilterAdd}
+        onFilterSave={onFilterSave}
+        onTabChange={onTabChange}
       />
       <ProductList
         products={products}

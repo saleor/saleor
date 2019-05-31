@@ -1,7 +1,7 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { BulkAction, Dialog, Pagination } from "../types";
+import { ActiveTab, BulkAction, Dialog, Pagination } from "../types";
 import { StockAvailability } from "../types/globalTypes";
 
 const productSection = "/products/";
@@ -21,7 +21,8 @@ export type ProductListUrlFilters = Partial<{
 export type ProductListUrlQueryParams = BulkAction &
   Dialog<ProductListUrlDialog> &
   Pagination &
-  ProductListUrlFilters;
+  ProductListUrlFilters &
+  ActiveTab;
 export const productListUrl = (params?: ProductListUrlQueryParams): string =>
   productListPath + "?" + stringifyQs(params);
 

@@ -54,7 +54,7 @@ export type Pagination = Partial<{
 export type Dialog<TDialog extends string> = Partial<{
   action: TDialog;
 }>;
-export type ActiveTab<TTab extends string> = Partial<{
+export type ActiveTab<TTab extends string = string> = Partial<{
   activeTab: TTab;
 }>;
 export type SingleAction = Partial<{
