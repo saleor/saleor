@@ -115,10 +115,7 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
   onFilterDelete
 }) => {
   const [search, setSearch] = React.useState(initialSearch);
-  React.useEffect(
-    () => console.log(initialSearch) || setSearch(initialSearch),
-    [currentTab, initialSearch]
-  );
+  React.useEffect(() => setSearch(initialSearch), [currentTab, initialSearch]);
 
   const filterTabs = getFilterTabs();
 
