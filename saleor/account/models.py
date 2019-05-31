@@ -151,6 +151,8 @@ class User(PermissionsMixin, AbstractBaseUser):
     )
     avatar = VersatileImageField(upload_to="user-avatars", blank=True, null=True)
 
+    private_meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+
     USERNAME_FIELD = "email"
 
     objects = UserManager()
