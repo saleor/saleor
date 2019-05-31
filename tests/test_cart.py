@@ -5,7 +5,6 @@ from uuid import uuid4
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
-from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -379,20 +378,6 @@ def test_add_to_checkout_form(checkout, product):
     data = {}
 
     form = forms.AddToCheckoutForm(data=data, checkout=checkout, product=product)
-    assert not form.is_valid()
-
-
-def test_form_when_variant_does_not_exist():
-    checkout_lines = []
-    checkout = Mock(
-        add=lambda variant, quantity: checkout_lines.append(Mock()),
-        get_line=Mock(return_value=Mock(quantity=1)),
-    )
-
-    form = forms.AddToCheckoutForm(
-        data={"quantity": 1}, checkout=checkout, product=Mock()
-    )
-    form.get_variant = Mock(side_effect=ObjectDoesNotExist)
     assert not form.is_valid()
 
 

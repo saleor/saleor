@@ -19,7 +19,7 @@ const MenuProperties: React.StatelessComponent<MenuPropertiesProps> = ({
   onChange
 }) => (
   <Card>
-    <CardTitle title={i18n.t("General Informations")} />
+    <CardTitle title={i18n.t("General Information")} />
     <CardContent>
       <TextField
         disabled={disabled}

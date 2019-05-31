@@ -134,6 +134,11 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
                         )
                       }}
                     />
+                    <DialogContentText>
+                      {i18n.t(
+                        "Remember that this will also remove all products assigned to this category."
+                      )}
+                    </DialogContentText>
                   </ActionDialog>
                 </>
               );

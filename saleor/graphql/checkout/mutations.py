@@ -350,7 +350,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         checkout_id = graphene.ID(required=True, description="ID of the Checkout.")
         shipping_address = AddressInput(
             required=True,
-            description=("The mailing address to where the checkout will be shipped."),
+            description="The mailing address to where the checkout will be shipped.",
         )
 
     class Meta:

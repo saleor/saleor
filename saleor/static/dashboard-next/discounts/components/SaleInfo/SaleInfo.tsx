@@ -42,7 +42,7 @@ const SaleInfo = withStyles(styles, {
     onChange
   }: SaleInfoProps & WithStyles<typeof styles>) => (
     <Card>
-      <CardTitle title={i18n.t("General Informations")} />
+      <CardTitle title={i18n.t("General Information")} />
       <CardContent className={classes.root}>
         <TextField
           disabled={disabled}
