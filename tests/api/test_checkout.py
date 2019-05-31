@@ -1455,6 +1455,11 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
 
 
 def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
+    checkout = checkout_with_item
+    # make sure that we're testing a variant that is actually on sale
+    product = checkout.lines.first().variant.product
+    sale.products.add(product)
+
     query = """
     query getCheckout($token: UUID) {
         checkout(token: $token) {
@@ -1478,21 +1483,13 @@ def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
         }
     }
     """
-    checkout = checkout_with_item
+
     variables = {"token": str(checkout.token)}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
     discounts = [sale]
-
-    # make sure that we're testing a variant that is actually on sale
-    variant = checkout.lines.first().variant
-    assert (
-        variant.get_price().gross.amount
-        == variant.get_price(discounts=discounts).gross.amount + sale.value
-    )
-
     assert (
         data["totalPrice"]["gross"]["amount"]
         == checkout.get_total(discounts=discounts).gross.amount
