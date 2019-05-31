@@ -131,7 +131,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
 
   const handleFilterTabSave = (data: SaveFilterTabDialogFormData) => {
     saveFilterTab(data.name, getActiveFilters(params));
-    handleTabChange(tabs.length);
+    handleTabChange(tabs.length + 1);
   };
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
