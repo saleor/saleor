@@ -13,11 +13,13 @@ click==7.0
 codecov==2.0.15
 coverage==4.5.3
 django-extensions==2.1.7
+entrypoints==0.3
 execnet==1.6.0
 filelock==3.0.12
+flake8==3.7.7
 identify==1.4.3
 idna==2.8
-importlib-metadata==0.15
+importlib-metadata==0.17
 isort==4.3.20
 lazy-object-proxy==1.4.1
 mccabe==0.6.1
@@ -29,6 +31,7 @@ pre-commit==1.16.1
 py==1.8.0
 pycodestyle==2.5.0
 pydocstyle==3.0.0
+pyflakes==2.1.1
 pylint-celery==0.3
 pylint-django==2.0.9
 pylint-plugin-utils==0.5
