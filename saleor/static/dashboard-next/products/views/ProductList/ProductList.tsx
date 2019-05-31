@@ -5,6 +5,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
+import SaveFilterTabDialog from "../../../components/SaveFilterTabDialog";
 import useBulkActions from "../../../hooks/useBulkActions";
 import useLocale from "../../../hooks/useLocale";
 import useNavigator from "../../../hooks/useNavigator";
@@ -15,7 +16,6 @@ import usePaginator, {
 import useShop from "../../../hooks/useShop";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
-import { StockAvailability } from "../../../types/globalTypes";
 import ProductListCard from "../../components/ProductListCard";
 import {
   TypedProductBulkDeleteMutation,
@@ -85,7 +85,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     );
   };
 
-  const openModal = (action: ProductListUrlDialog, ids: string[]) =>
+  const openModal = (action: ProductListUrlDialog, ids?: string[]) =>
     navigate(
       productListUrl({
         ...params,
@@ -239,11 +239,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         onFilterAdd={filter =>
                           changeFilterField(createFilter(filter))
                         }
-                        onFilterSave={() => {
-                          const name = prompt("Tab name");
-                          saveFilterTab(name, getActiveFilters(params));
-                          handleTabChange(getFilterTabs().length);
-                        }}
+                        onFilterSave={() => openModal("save-search")}
                         onTabChange={handleTabChange}
                       />
                       <ActionDialog
@@ -326,6 +322,15 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                           }}
                         />
                       </ActionDialog>
+                      <SaveFilterTabDialog
+                        open={params.action === "save-search"}
+                        confirmButtonState="default"
+                        onClose={closeModal}
+                        onSubmit={data => {
+                          saveFilterTab(data.name, getActiveFilters(params));
+                          handleTabChange(getFilterTabs().length);
+                        }}
+                      />
                     </>
                   );
                 }}

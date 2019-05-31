@@ -10,7 +10,11 @@ export const productAddPath = urlJoin(productSection, "add");
 export const productAddUrl = productAddPath;
 
 export const productListPath = productSection;
-export type ProductListUrlDialog = "publish" | "unpublish" | "delete";
+export type ProductListUrlDialog =
+  | "publish"
+  | "unpublish"
+  | "delete"
+  | "save-search";
 export type ProductListUrlFilters = Partial<{
   isPublished: string;
   priceFrom: string;
