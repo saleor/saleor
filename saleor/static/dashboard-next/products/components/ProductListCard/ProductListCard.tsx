@@ -17,10 +17,12 @@ export interface ProductListCardProps extends PageListProps, ListActions {
   currencySymbol: string;
   currentTab: number;
   filtersList: Filter[];
+  initialSearch: string;
   products: CategoryDetails_category_products_edges_node[];
   onAllProducts: () => void;
   onSearchChange: (value: string) => void;
   onFilterAdd: (filter: FilterContentSubmitData) => void;
+  onFilterDelete: () => void;
   onFilterSave: () => void;
   onTabChange: (tab: number) => void;
 }
@@ -32,6 +34,7 @@ export const ProductListCard: React.StatelessComponent<
   currentTab,
   disabled,
   filtersList,
+  initialSearch,
   pageInfo,
   products,
   onAdd,
@@ -47,7 +50,8 @@ export const ProductListCard: React.StatelessComponent<
   onSearchChange,
   onFilterAdd,
   onFilterSave,
-  onTabChange
+  onTabChange,
+  onFilterDelete
 }) => (
   <Container>
     <PageHeader title={i18n.t("Products")}>
@@ -60,11 +64,13 @@ export const ProductListCard: React.StatelessComponent<
         currencySymbol={currencySymbol}
         currentTab={currentTab}
         filtersList={filtersList}
+        initialSearch={initialSearch}
         onAllProducts={onAllProducts}
         onSearchChange={onSearchChange}
         onFilterAdd={onFilterAdd}
         onFilterSave={onFilterSave}
         onTabChange={onTabChange}
+        onFilterDelete={onFilterDelete}
       />
       <ProductList
         products={products}

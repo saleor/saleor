@@ -46,7 +46,9 @@ export function getActiveFilters(
 }
 
 export function areFiltersApplied(params: ProductListUrlQueryParams): boolean {
-  return Object.keys(getActiveFilters(params)).some(key => !!params[key]);
+  return Object.keys(getActiveFilters(params))
+    .filter((key: keyof ProductListUrlFilters) => key !== "query")
+    .some(key => !!params[key]);
 }
 
 export function createFilter(
@@ -210,9 +212,21 @@ export function saveFilterTab(name: string, data: ProductListUrlFilters) {
     JSON.stringify([
       ...userFilters,
       {
-        data,
+        data: {
+          ...data,
+          query: undefined
+        },
         name
       }
     ])
+  );
+}
+
+export function deleteFilterTab(id: number) {
+  const userFilters = getFilterTabs();
+
+  localStorage.setItem(
+    PRODUCT_FILTERS_KEY,
+    JSON.stringify([...userFilters.slice(0, id - 1), ...userFilters.slice(id)])
   );
 }
