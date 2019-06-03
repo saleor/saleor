@@ -21,9 +21,16 @@ export interface FilterContentProps {
 
 function checkFilterValue(value: string | string[]): boolean {
   if (typeof value === "string") {
-    return value !== "";
+    return !!value;
   }
   return value.some(v => !!v);
+}
+
+function getFilterChoices(items: IFilter) {
+  return items.map(filterItem => ({
+    label: filterItem.label,
+    value: filterItem.value
+  }));
 }
 
 const useStyles = makeStyles({
@@ -41,9 +48,8 @@ const FilterContent: React.FC<FilterContentProps> = ({
   const [filterValue, setFilterValue] = React.useState<string | string[]>("");
   const classes = useStyles();
 
-  const activeMenu = menuValue
-    ? getMenuItemByValue(filters, menuValue)
-    : undefined;
+  const activeMenu = getMenuItemByValue(filters, menuValue);
+
   const menus = menuValue
     ? walkToRoot(filters, menuValue).slice(-1)
     : undefined;
@@ -56,10 +62,7 @@ const FilterContent: React.FC<FilterContentProps> = ({
   return (
     <>
       <SingleSelectField
-        choices={filters.map(filterItem => ({
-          label: filterItem.label,
-          value: filterItem.value
-        }))}
+        choices={getFilterChoices(filters)}
         onChange={onMenuChange}
         selectProps={{
           classes: {
@@ -74,14 +77,11 @@ const FilterContent: React.FC<FilterContentProps> = ({
           (filterItem, filterItemIndex) =>
             !isLeaf(filterItem) && (
               <React.Fragment
-                key={filterItem.label.toString() + filterItem.value}
+                key={filterItem.label.toString() + ":" + filterItem.value}
               >
                 <FormSpacer />
                 <SingleSelectField
-                  choices={filterItem.children.map(filterItem => ({
-                    label: filterItem.label,
-                    value: filterItem.value
-                  }))}
+                  choices={getFilterChoices(filterItem.children)}
                   onChange={onMenuChange}
                   selectProps={{
                     classes: {
