@@ -144,11 +144,12 @@ export const CollectionDetails: React.StatelessComponent<
               const handleSubmit = (
                 formData: CollectionDetailsPageFormData
               ) => {
-                const input = {
+                const input: CollectionInput = {
                   backgroundImageAlt: formData.backgroundImageAlt,
                   descriptionJson: JSON.stringify(formData.description),
                   isPublished: formData.isPublished,
                   name: formData.name,
+                  publicationDate: formData.publicationDate,
                   seo: {
                     description: formData.seoDescription,
                     title: formData.seoTitle
