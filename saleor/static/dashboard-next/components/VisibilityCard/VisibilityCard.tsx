@@ -71,7 +71,9 @@ export const VisibilityCard = withStyles(styles, {
                 publicationDate
                   ? isPublished
                     ? i18n.t("since ") + publicationDate
-                    : i18n.t("will be visible on ") + publicationDate
+                    : Date.parse(publicationDate) > Date.now()
+                    ? i18n.t("will be visible on ") + publicationDate
+                    : null
                   : null
               }
               checked={isPublished}
