@@ -18,10 +18,14 @@ export interface LoadMore<TData, TVariables> {
   ) => Promise<ApolloQueryResult<TData>>;
 }
 
-interface TypedQueryInnerProps<TData, TVariables> {
-  children: (
-    result: QueryResult<TData, TVariables> & LoadMore<TData, TVariables>
-  ) => React.ReactNode;
+export type TypedQueryResult<TData, TVariables> = QueryResult<
+  TData,
+  TVariables
+> &
+  LoadMore<TData, TVariables>;
+
+export interface TypedQueryInnerProps<TData, TVariables> {
+  children: (result: TypedQueryResult<TData, TVariables>) => React.ReactNode;
   displayLoader?: boolean;
   skip?: boolean;
   variables?: TVariables;
@@ -58,9 +62,11 @@ class QueryProgress extends React.Component<QueryProgressProps, {}> {
   }
 }
 
-export function TypedQuery<TData, TVariables>(query: DocumentNode) {
+export function TypedQuery<TData, TVariables>(
+  query: DocumentNode
+): React.FC<TypedQueryInnerProps<TData, TVariables>> {
   class StrictTypedQuery extends Query<TData, TVariables> {}
-  return (props: TypedQueryInnerProps<TData, TVariables>) => {
+  return props => {
     const navigate = useNavigator();
     const pushMessage = useNotifier();
 
