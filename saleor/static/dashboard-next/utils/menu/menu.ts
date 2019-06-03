@@ -45,10 +45,6 @@ export function getMenuItemByValue<TMenuData = {}>(
   menu: IMenu<TMenuData>,
   value: string
 ): IMenuItem<TMenuData> {
-  if (value === undefined) {
-    return undefined;
-  }
-
   const flatMenu = toFlat(menu);
   const flatMenuItem: IFlatMenuItem<TMenuData> = flatMenu.find(
     menuItem => menuItem.value === value
