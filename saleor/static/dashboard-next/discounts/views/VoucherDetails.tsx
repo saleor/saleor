@@ -9,9 +9,10 @@ import AssignCategoriesDialog from "../../components/AssignCategoryDialog";
 import AssignCollectionDialog from "../../components/AssignCollectionDialog";
 import AssignProductDialog from "../../components/AssignProductDialog";
 import { WindowTitle } from "../../components/WindowTitle";
-import { SearchCategoriesProvider } from "../../containers/SearchCategories";
-import { SearchCollectionsProvider } from "../../containers/SearchCollections";
-import { SearchProductsProvider } from "../../containers/SearchProducts";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
+import SearchCategories from "../../containers/SearchCategories";
+import SearchCollections from "../../containers/SearchCollections";
+import SearchProducts from "../../containers/SearchProducts";
 import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
@@ -379,8 +380,13 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               toggle={toggle}
                               toggleAll={toggleAll}
                             />
-                            <SearchCategoriesProvider>
-                              {(searchCategories, searchCategoriesOpts) => (
+                            <SearchCategories
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchCategories,
+                                result: searchCategoriesOpts
+                              }) => (
                                 <AssignCategoriesDialog
                                   categories={maybe(() =>
                                     searchCategoriesOpts.data.categories.edges
@@ -410,9 +416,14 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   }
                                 />
                               )}
-                            </SearchCategoriesProvider>
-                            <SearchCollectionsProvider>
-                              {(searchCollections, searchCollectionsOpts) => (
+                            </SearchCategories>
+                            <SearchCollections
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchCollections,
+                                result: searchCollectionsOpts
+                              }) => (
                                 <AssignCollectionDialog
                                   collections={maybe(() =>
                                     searchCollectionsOpts.data.collections.edges
@@ -442,7 +453,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   }
                                 />
                               )}
-                            </SearchCollectionsProvider>
+                            </SearchCollections>
                             <DiscountCountrySelectDialog
                               confirmButtonState={formTransitionState}
                               countries={maybe(() => shop.countries, [])}
@@ -466,8 +477,13 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                 []
                               )}
                             />
-                            <SearchProductsProvider>
-                              {(searchProducts, searchProductsOpts) => (
+                            <SearchProducts
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchProducts,
+                                result: searchProductsOpts
+                              }) => (
                                 <AssignProductDialog
                                   confirmButtonState={assignTransitionState}
                                   open={params.action === "assign-product"}
@@ -496,7 +512,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   )}
                                 />
                               )}
-                            </SearchProductsProvider>
+                            </SearchProducts>
                             <ActionDialog
                               open={params.action === "unassign-category"}
                               title={i18n.t("Unassign Categories From Sale")}
