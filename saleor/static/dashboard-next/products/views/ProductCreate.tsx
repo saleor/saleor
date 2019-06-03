@@ -67,7 +67,7 @@ export const ProductUpdate: React.StatelessComponent<
                             descriptionJson: JSON.stringify(
                               formData.description
                             ),
-                            isPublished: formData.available,
+                            isPublished: formData.isPublished,
                             name: formData.name,
                             productType: formData.productType.value.id,
                             publicationDate:

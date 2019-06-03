@@ -1,100 +1,109 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import {
+  createStyles,
+  Theme,
+  withStyles,
+  WithStyles
+} from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import * as moment from "moment-timezone";
 import * as React from "react";
 
 import CardTitle from "../../components/CardTitle";
 import ControlledSwitch from "../../components/ControlledSwitch";
-import FormSpacer from "../../components/FormSpacer";
-import { LocaleConsumer } from "../../components/Locale";
+import { FormSpacer } from "../../components/FormSpacer";
 import i18n from "../../i18n";
 
-export interface FormData {
-  isPublished: boolean;
-  publicationDate: string;
+const styles = (theme: Theme) =>
+  createStyles({
+    date: {
+      "& svg": {
+        fill: theme.palette.primary.main
+      },
+      marginTop: theme.spacing.unit * 4
+    },
+    expandedSwitchContainer: {
+      marginBottom: 0
+    },
+    switchContainer: {
+      marginBottom: -theme.spacing.unit
+    }
+  });
+
+interface VisibilityCardProps extends WithStyles<typeof styles> {
+  children?: React.ReactNode;
+  data: {
+    isPublished: boolean;
+    publicationDate: string;
+  };
+  errors: { [key: string]: string };
+  loading?: boolean;
+  onChange(event: any);
 }
 
-export interface VisibilityCardProps {
-  data: FormData;
-  disabled: boolean;
-  errors: Partial<Record<"publicationDate", string>>;
-  onChange: (event: React.ChangeEvent<any>, cb?: () => void) => void;
-}
-
-const VisibilityCard: React.StatelessComponent<VisibilityCardProps> = ({
-  data,
-  disabled,
-  errors,
-  onChange
-}) => (
-  <LocaleConsumer>
-    {locale => (
+export const VisibilityCard = withStyles(styles, {
+  name: "PVisibilityCard"
+})(
+  ({
+    children,
+    classes,
+    data: { isPublished, publicationDate },
+    errors,
+    loading,
+    onChange
+  }: VisibilityCardProps) => {
+    return (
       <Card>
         <CardTitle title={i18n.t("Visibility")} />
         <CardContent>
-          <ControlledSwitch
-            checked={
-              (data.publicationDate === "" || data.publicationDate === null) &&
-              data.isPublished
+          <div
+            className={
+              isPublished
+                ? classes.expandedSwitchContainer
+                : classes.switchContainer
             }
-            disabled={disabled}
-            label={
-              data.isPublished && !data.publicationDate ? (
-                i18n.t("Visible")
-              ) : (
-                <>
-                  {i18n.t("Hidden")}
-                  {data.publicationDate && (
-                    <Typography variant="caption">
-                      {i18n.t("Will become visible on {{ date }}", {
-                        context: "page",
-                        date: moment(data.publicationDate)
-                          .locale(locale)
-                          .format("ll")
-                      })}
-                    </Typography>
-                  )}
-                </>
-              )
-            }
-            name={"isPublished" as keyof FormData}
-            onChange={event =>
-              onChange(
-                event,
-                () =>
-                  event.target.value &&
-                  onChange({
-                    target: {
-                      name: "publicationDate",
-                      value: ""
-                    }
-                  } as any)
-              )
-            }
-          />
-          {!(data.publicationDate === "" || data.publicationDate === null) &&
-            data.isPublished && (
-              <>
-                <FormSpacer />
-                <TextField
-                  disabled={disabled}
-                  error={!!errors.publicationDate}
-                  fullWidth
-                  helperText={errors.publicationDate}
-                  label={i18n.t("Publish on")}
-                  name={"publicationDate" as keyof FormData}
-                  type="date"
-                  value={data.publicationDate}
-                  onChange={onChange}
-                />
-              </>
-            )}
+          >
+            <ControlledSwitch
+              name="isPublished"
+              label={i18n.t("Visible")}
+              uncheckedLabel={i18n.t("Hidden")}
+              secondLabel={
+                publicationDate
+                  ? isPublished
+                    ? i18n.t("since ") + publicationDate
+                    : i18n.t("will be visible on ") + publicationDate
+                  : null
+              }
+              checked={isPublished}
+              onChange={onChange}
+              disabled={loading}
+            />
+          </div>
+          {!isPublished && (
+            <>
+              <TextField
+                error={!!errors.publicationDate}
+                disabled={loading}
+                label={i18n.t("Publish on")}
+                name="publicationDate"
+                type="date"
+                fullWidth={true}
+                helperText={errors.publicationDate}
+                value={publicationDate ? publicationDate : ""}
+                onChange={onChange}
+                className={classes.date}
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </>
+          )}
+          <FormSpacer />
+          {children}
         </CardContent>
       </Card>
-    )}
-  </LocaleConsumer>
+    );
+  }
 );
 VisibilityCard.displayName = "VisibilityCard";
 export default VisibilityCard;
