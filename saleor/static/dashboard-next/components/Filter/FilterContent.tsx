@@ -48,8 +48,9 @@ const FilterContent: React.FC<FilterContentProps> = ({
   const [filterValue, setFilterValue] = React.useState<string | string[]>("");
   const classes = useStyles();
 
-  const activeMenu = getMenuItemByValue(filters, menuValue);
-
+  const activeMenu = menuValue
+    ? getMenuItemByValue(filters, menuValue)
+    : undefined;
   const menus = menuValue
     ? walkToRoot(filters, menuValue).slice(-1)
     : undefined;
