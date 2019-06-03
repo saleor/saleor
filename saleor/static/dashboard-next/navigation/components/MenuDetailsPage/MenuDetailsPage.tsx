@@ -79,7 +79,7 @@ const MenuDetailsPage: React.StatelessComponent<MenuDetailsPageProps> = ({
           <AppHeader onBack={onBack}>{i18n.t("Navigation")}</AppHeader>
           <Grid variant="inverted">
             <div>
-              <Typography variant="headline">{i18n.t("Navigation")}</Typography>
+              <Typography variant="h5">{i18n.t("Navigation")}</Typography>
               <Typography>
                 {i18n.t(
                   "Creating the navigation structure is done by dragging and dropping. Simply create a new menu item and then drag it into its destined place. You can move items inside one another to create a tree structure and drag items up and down to create a hierarchy"
