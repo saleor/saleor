@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
+from saleor.core.utils.taxes import ZERO_MONEY
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
@@ -873,9 +874,14 @@ MUTATION_CHECKOUT_COMPLETE = """
 
 @pytest.mark.integration
 def test_checkout_complete(
-    user_api_client, checkout_with_item, payment_dummy, address, shipping_method
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
 ):
-    checkout = checkout_with_item
+    checkout = checkout_with_gift_card
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
@@ -918,6 +924,8 @@ def test_checkout_complete(
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 1
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance == ZERO_MONEY
 
     # assert that the checkout instance has been deleted after checkout
     with pytest.raises(Checkout.DoesNotExist):
