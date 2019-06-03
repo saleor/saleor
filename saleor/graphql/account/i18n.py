@@ -3,6 +3,7 @@ from django_countries import countries
 
 from ...account.forms import get_address_form
 from ...account.models import Address
+from ...account.validators import validate_possible_number
 
 
 class I18nMixin:
@@ -11,7 +12,16 @@ class I18nMixin:
     """
 
     @classmethod
-    def validate_address(cls, address_data, instance=None):
+    def validate_address(cls, address_data: dict, instance=None):
+        phone = address_data.get("phone", None)
+        if phone:
+            try:
+                validate_possible_number(phone, address_data.get("country"))
+            except ValidationError as exc:
+                raise ValidationError(
+                    {"phone": f"'{phone}' is not a valid phone number."}
+                ) from exc
+
         country_code = address_data.get("country")
         if country_code in countries.countries.keys():
             address_form, _ = get_address_form(address_data, address_data["country"])

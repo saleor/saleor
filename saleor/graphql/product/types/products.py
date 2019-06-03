@@ -650,7 +650,7 @@ class Collection(CountableDjangoObjectType):
     def resolve_products(root: models.Collection, info, **_kwargs):
         if hasattr(root, "prefetched_products"):
             return root.prefetched_products
-        qs = root.products.visible_to_user(info.context.user)
+        qs = root.products.collection_sorted(info.context.user)
         return gql_optimizer.query(qs, info)
 
     @staticmethod
