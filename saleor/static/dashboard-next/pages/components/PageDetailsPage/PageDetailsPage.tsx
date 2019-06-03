@@ -15,11 +15,11 @@ import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
+import VisibilityCard from "../../../components/VisibilityCard";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { PageDetails_page } from "../../types/PageDetails";
-import PageAvailability from "../PageAvailability";
 import PageInfo from "../PageInfo";
 import PageSlug from "../PageSlug";
 
@@ -112,7 +112,7 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
                 onChange={change}
               />
               <CardSpacer />
-              <PageAvailability
+              <VisibilityCard
                 data={data}
                 disabled={disabled}
                 errors={formErrors}

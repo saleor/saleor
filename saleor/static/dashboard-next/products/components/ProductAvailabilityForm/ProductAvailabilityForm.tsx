@@ -16,10 +16,10 @@ import i18n from "../../../i18n";
 const styles = (theme: Theme) =>
   createStyles({
     date: {
-      marginTop: theme.spacing.unit * 4,
       "& svg": {
         fill: theme.palette.primary.main
-      }
+      },
+      marginTop: theme.spacing.unit * 4
     },
     expandedSwitchContainer: {
       marginBottom: 0
