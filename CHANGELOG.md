@@ -34,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix margin calculations when product/variant price is set to zero - #4170 by @MahmoudRizk
 - Disable polling in Playgroud by default - #4188 by @maarcingebala
 - Add phone validation in the GraphQL API to handle the library upgrade - #4156 by @NyanKiyoshi
+- Fix visibility card view - #4198 by @benekex2
 
 ## 2.6.0
 
