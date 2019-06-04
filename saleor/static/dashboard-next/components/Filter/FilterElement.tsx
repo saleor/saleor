@@ -190,21 +190,18 @@ const FilterElement: React.FC<FilterElementProps> = ({
     );
   }
   return (
-    <>
-      <Typography>{i18n.t("is")}</Typography>
-      <TextField
-        className={className}
-        fullWidth
-        label={filter.data.fieldLabel}
-        InputProps={{
-          classes: {
-            input: !filter.data.fieldLabel && classes.input
-          }
-        }}
-        onChange={event => onChange(event.target.value)}
-        value={value as string}
-      />
-    </>
+    <TextField
+      className={className}
+      fullWidth
+      label={filter.data.fieldLabel}
+      InputProps={{
+        classes: {
+          input: !filter.data.fieldLabel && classes.input
+        }
+      }}
+      onChange={event => onChange(event.target.value)}
+      value={value as string}
+    />
   );
 };
 FilterElement.displayName = "FilterElement";
