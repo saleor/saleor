@@ -17,6 +17,7 @@ export interface FilterChoice {
 }
 
 export interface FilterData {
+  additionalText?: string;
   fieldLabel: string;
   options?: FilterChoice[];
   type: FieldType;

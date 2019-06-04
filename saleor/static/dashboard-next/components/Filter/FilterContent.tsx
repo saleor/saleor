@@ -1,4 +1,5 @@
 import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { makeStyles } from "@material-ui/styles";
@@ -102,6 +103,9 @@ const FilterContent: React.FC<FilterContentProps> = ({
       {activeMenu && isLeaf(activeMenu) && (
         <>
           <FormSpacer />
+          {activeMenu.data.additionalText && (
+            <Typography>{activeMenu.data.additionalText}</Typography>
+          )}
           <FilterElement
             currencySymbol={currencySymbol}
             filter={activeMenu}

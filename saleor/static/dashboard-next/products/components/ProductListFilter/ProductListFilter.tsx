@@ -37,10 +37,11 @@ const filterMenu: IFilter = [
   {
     children: [],
     data: {
+      additionalText: i18n.t("is set as"),
       fieldLabel: i18n.t("Status"),
       options: [
         {
-          label: i18n.t("Published"),
+          label: i18n.t("Visible"),
           value: true
         },
         {
@@ -50,7 +51,7 @@ const filterMenu: IFilter = [
       ],
       type: FieldType.select
     },
-    label: i18n.t("Published"),
+    label: i18n.t("Visibility"),
     value: ProductFilterKeys.published.toString()
   },
   {
@@ -77,6 +78,7 @@ const filterMenu: IFilter = [
       {
         children: [],
         data: {
+          additionalText: i18n.t("equals"),
           fieldLabel: null,
           type: FieldType.price
         },
