@@ -89,18 +89,12 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   };
 
   const changeFilterField = (filter: ProductListUrlFilters) => {
-    const hasOnlyQueryChanged =
-      filter.query !== undefined &&
-      Object.keys(filter)
-        .filter((key: keyof ProductListUrlFilters) => key !== "query")
-        .every(key => !filter[key]);
-
     reset();
     navigate(
       productListUrl({
         ...getActiveFilters(params),
         ...filter,
-        activeTab: hasOnlyQueryChanged ? params.activeTab : undefined
+        activeTab: undefined
       })
     );
   };
@@ -118,8 +112,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     navigate(
       productListUrl({
         activeTab: tab.toString(),
-        ...getFilterTabs()[tab - 1].data,
-        query: params.query
+        ...getFilterTabs()[tab - 1].data
       })
     );
 
@@ -255,11 +248,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         selected={listElements.length}
                         toggle={toggle}
                         toggleAll={toggleAll}
-                        onSearchChange={query =>
-                          changeFilterField({
-                            query
-                          })
-                        }
+                        onSearchChange={query => changeFilterField({ query })}
                         onFilterAdd={filter =>
                           changeFilterField(createFilter(filter))
                         }
