@@ -74,7 +74,7 @@ class Checkout(models.Model):
     discount_name = models.CharField(max_length=255, blank=True, null=True)
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
-    gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="gift_cards")
+    gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
 
     objects = CheckoutQueryset.as_manager()
 
@@ -106,12 +106,18 @@ class Checkout(models.Model):
         subtotals = (line.get_total(discounts, taxes) for line in self)
         return sum(subtotals, ZERO_TAXED_MONEY)
 
-    def get_total(self, discounts=None, taxes=None):
-        """Return the total cost of the checkout."""
-        total = (
+    def get_total_without_gift_cards(self, discounts=None, taxes=None):
+        """Return the total cost of the checkout without gift cards."""
+        return (
             self.get_subtotal(discounts, taxes)
             + self.get_shipping_price(taxes)
             - self.discount_amount
+        )
+
+    def get_total(self, discounts=None, taxes=None):
+        """Return the total cost of the checkout."""
+        total = (
+            self.get_total_without_gift_cards(discounts, taxes)
             - self.get_total_gift_cards_balance()
         )
         return max(total, ZERO_TAXED_MONEY)
