@@ -31,25 +31,25 @@ const styles = (theme: Theme) =>
   });
 
 interface VisibilityCardProps extends WithStyles<typeof styles> {
-  children?: React.ReactNode;
+  children?: React.ReactNode | React.ReactNodeArray;
   data: {
     isPublished: boolean;
     publicationDate: string;
   };
   errors: { [key: string]: string };
-  loading?: boolean;
+  disabled?: boolean;
   onChange(event: any);
 }
 
 export const VisibilityCard = withStyles(styles, {
-  name: "PVisibilityCard"
+  name: "VisibilityCard"
 })(
   ({
     children,
     classes,
     data: { isPublished, publicationDate },
     errors,
-    loading,
+    disabled,
     onChange
   }: VisibilityCardProps) => {
     return (
@@ -70,22 +70,24 @@ export const VisibilityCard = withStyles(styles, {
               secondLabel={
                 publicationDate
                   ? isPublished
-                    ? i18n.t("since ") + publicationDate
+                    ? i18n.t("since {{ date }}", { date: publicationDate })
                     : Date.parse(publicationDate) > Date.now()
-                    ? i18n.t("will be visible on ") + publicationDate
+                    ? i18n.t("will be visible on {{ date }}", {
+                        date: publicationDate
+                      })
                     : null
                   : null
               }
               checked={isPublished}
               onChange={onChange}
-              disabled={loading}
+              disabled={disabled}
             />
           </div>
           {!isPublished && (
             <>
               <TextField
                 error={!!errors.publicationDate}
-                disabled={loading}
+                disabled={disabled}
                 label={i18n.t("Publish on")}
                 name="publicationDate"
                 type="date"

@@ -292,7 +292,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 <VisibilityCard
                   data={data}
                   errors={errors}
-                  loading={disabled}
+                  disabled={disabled}
                   onChange={change}
                 />
               </div>
