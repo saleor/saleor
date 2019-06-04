@@ -132,7 +132,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               ),
                               descriptionJson: JSON.stringify(data.description),
                               id: product.id,
-                              isPublished: data.available,
+                              isPublished: data.isPublished,
                               name: data.name,
                               publicationDate:
                                 data.publicationDate !== ""
@@ -150,7 +150,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               ),
                               descriptionJson: JSON.stringify(data.description),
                               id: product.id,
-                              isPublished: data.available,
+                              isPublished: data.isPublished,
                               name: data.name,
                               productVariantId: product.variants[0].id,
                               productVariantInput: {
