@@ -5,6 +5,7 @@ import { LocaleContext } from "../components/Locale";
 
 function useDateLocalize(): (date: string) => string {
   const locale = useContext(LocaleContext);
+
   return (date: string) =>
     moment(date)
       .locale(locale)
