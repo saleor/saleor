@@ -960,6 +960,19 @@ def _process_user_data_for_order(checkout):
     }
 
 
+def validate_gift_cards(checkout: Checkout):
+    """Check if all gift cards assigned to checkout are available."""
+    if (
+        not checkout.gift_cards.count()
+        == checkout.gift_cards.active(date=date.today()).count()
+    ):
+        msg = pgettext(
+            "Gift card not applicable",
+            "Gift card expired in meantime. Order placement aborted.",
+        )
+        raise NotApplicable(msg)
+
+
 @transaction.atomic
 def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user: User):
     """Create an order from the checkout.
@@ -973,7 +986,7 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user:
     Current user's language is saved in the order so we can later determine
     which language to use when sending email.
     """
-    from ..order.utils import add_variant_to_order
+    from ..order.utils import add_gift_card_to_order, add_variant_to_order
 
     order = Order.objects.filter(checkout_token=checkout.token).first()
     if order is not None:
@@ -991,11 +1004,19 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user:
         }
     )
 
+    # validate checkout gift cards
+    validate_gift_cards(checkout)
+
     order = Order.objects.create(**order_data, checkout_token=checkout.token)
 
     # create order lines from checkout lines
     for line in checkout:
         add_variant_to_order(order, line.variant, line.quantity, discounts, taxes)
+
+    # assign gift cards to the order
+    total_price_left = checkout.get_total_without_gift_cards().gross
+    for gift_card in checkout.gift_cards.select_for_update():
+        total_price_left = add_gift_card_to_order(order, gift_card, total_price_left)
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)

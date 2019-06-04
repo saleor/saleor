@@ -290,6 +290,24 @@ def add_variant_to_order(
     return line
 
 
+def add_gift_card_to_order(order, gift_card, total_price_left):
+    """Add gift card to order.
+
+    Return a total price left after applying the gift cards.
+    """
+    if total_price_left > ZERO_MONEY:
+        order.gift_cards.add(gift_card)
+        if total_price_left < gift_card.current_balance:
+            gift_card.current_balance = gift_card.current_balance - total_price_left
+            total_price_left = ZERO_MONEY
+            gift_card.save(update_fields=["current_balance"])
+        else:
+            total_price_left = total_price_left - gift_card.current_balance
+            gift_card.current_balance = 0
+            gift_card.save(update_fields=["current_balance"])
+    return total_price_left
+
+
 def change_order_line_quantity(user, line, old_quantity, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
