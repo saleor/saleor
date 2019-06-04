@@ -31,7 +31,8 @@ export enum ProductFilterKeys {
   price,
   priceEqual,
   priceRange,
-  stock
+  stock,
+  query
 }
 const filterMenu: IFilter = [
   {
