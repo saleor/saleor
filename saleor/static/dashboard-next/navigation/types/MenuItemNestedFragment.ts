@@ -140,7 +140,7 @@ export interface MenuItemNestedFragment_children_children_children_children_chil
   level: number;
   name: string;
   page: MenuItemNestedFragment_children_children_children_children_children_children_page | null;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string | null;
 }
 
@@ -152,7 +152,7 @@ export interface MenuItemNestedFragment_children_children_children_children_chil
   level: number;
   name: string;
   page: MenuItemNestedFragment_children_children_children_children_children_page | null;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string | null;
   children: (MenuItemNestedFragment_children_children_children_children_children_children | null)[] | null;
 }
@@ -165,7 +165,7 @@ export interface MenuItemNestedFragment_children_children_children_children {
   level: number;
   name: string;
   page: MenuItemNestedFragment_children_children_children_children_page | null;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string | null;
   children: (MenuItemNestedFragment_children_children_children_children_children | null)[] | null;
 }
@@ -178,7 +178,7 @@ export interface MenuItemNestedFragment_children_children_children {
   level: number;
   name: string;
   page: MenuItemNestedFragment_children_children_children_page | null;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string | null;
   children: (MenuItemNestedFragment_children_children_children_children | null)[] | null;
 }
@@ -191,7 +191,7 @@ export interface MenuItemNestedFragment_children_children {
   level: number;
   name: string;
   page: MenuItemNestedFragment_children_children_page | null;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string | null;
   children: (MenuItemNestedFragment_children_children_children | null)[] | null;
 }
@@ -204,7 +204,7 @@ export interface MenuItemNestedFragment_children {
   level: number;
   name: string;
   page: MenuItemNestedFragment_children_page | null;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string | null;
   children: (MenuItemNestedFragment_children_children | null)[] | null;
 }
@@ -217,7 +217,7 @@ export interface MenuItemNestedFragment {
   level: number;
   name: string;
   page: MenuItemNestedFragment_page | null;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string | null;
   children: (MenuItemNestedFragment_children | null)[] | null;
 }

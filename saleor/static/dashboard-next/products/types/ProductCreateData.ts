@@ -9,7 +9,7 @@
 export interface ProductCreateData_productTypes_edges_node_productAttributes_values {
   __typename: "AttributeValue";
   id: string;
-  sortOrder: number;
+  sortOrder: number | null;
   name: string | null;
   slug: string | null;
 }
