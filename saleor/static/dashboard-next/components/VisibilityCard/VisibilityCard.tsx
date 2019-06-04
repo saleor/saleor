@@ -76,7 +76,7 @@ export const VisibilityCard = withStyles(styles, {
                         date: localizeDate(publicationDate)
                       })
                     : Date.parse(publicationDate) > Date.now()
-                    ? i18n.t("will be visible on {{ date }}", {
+                    ? i18n.t("will be visible from {{ date }}", {
                         date: localizeDate(publicationDate)
                       })
                     : null
