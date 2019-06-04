@@ -146,7 +146,7 @@ export const FilterChips: React.FC<FilterChipProps> = ({
           onChange={onSearchChange}
         />
       </div>
-      {filtersList && filtersList.length ? (
+      {search || (filtersList && filtersList.length) ? (
         <div className={classes.filterContainer}>
           <div className={classes.filterChipContainer}>
             {filtersList.map(filter => (
