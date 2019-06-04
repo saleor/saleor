@@ -33,7 +33,7 @@ const styles = (theme: Theme) =>
         "&:hover, &:focus": {
           backgroundColor: fade(theme.palette.primary.main, 0.1)
         },
-        backgroundColor: "#ffffff",
+        backgroundColor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.primary.main}`,
         cursor: "pointer",
         marginBottom: 0,
