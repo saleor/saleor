@@ -135,7 +135,10 @@ const Filter = withStyles(styles, { name: "Filter" })(
                 <FilterContent
                   currencySymbol={currencySymbol}
                   filters={menu}
-                  onSubmit={onFilterAdd}
+                  onSubmit={data => {
+                    onFilterAdd(data);
+                    setFilterMenuOpened(false);
+                  }}
                 />
               </Paper>
             </Grow>
