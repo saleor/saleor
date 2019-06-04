@@ -3,11 +3,12 @@ import { useContext } from "react";
 
 import { LocaleContext } from "../components/Locale";
 
-function useDateLocalize(date: string): string {
+function useDateLocalize(): (date: string) => string {
   const locale = useContext(LocaleContext);
-  return moment(date)
-    .locale(locale)
-    .format("ll");
+  return (date: string) =>
+    moment(date)
+      .locale(locale)
+      .format("ll");
 }
 
 export default useDateLocalize;
