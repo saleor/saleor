@@ -114,7 +114,7 @@ const PageDetailsPage: React.StatelessComponent<PageDetailsPageProps> = ({
               <CardSpacer />
               <VisibilityCard
                 data={data}
-                loading={disabled}
+                disabled={disabled}
                 errors={formErrors}
                 onChange={change}
               />

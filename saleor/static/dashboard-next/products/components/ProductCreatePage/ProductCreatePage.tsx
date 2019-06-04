@@ -208,7 +208,7 @@ export const ProductCreatePage: React.StatelessComponent<
                 <VisibilityCard
                   data={data}
                   errors={errors}
-                  loading={disabled}
+                  disabled={disabled}
                   onChange={change}
                 />
               </div>

@@ -120,7 +120,7 @@ const CollectionDetailsPage: React.StatelessComponent<
                 <VisibilityCard
                   data={data}
                   errors={formErrors}
-                  loading={disabled}
+                  disabled={disabled}
                   onChange={change}
                 >
                   <ControlledSwitch
