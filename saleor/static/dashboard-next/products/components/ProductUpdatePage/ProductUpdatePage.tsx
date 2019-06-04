@@ -10,6 +10,7 @@ import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
+import VisibilityCard from "../../../components/VisibilityCard";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ListActions, UserError } from "../../../types";
@@ -19,7 +20,6 @@ import {
   ProductDetails_product_images,
   ProductDetails_product_variants
 } from "../../types/ProductDetails";
-import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
 import ProductOrganization from "../ProductOrganization";
@@ -73,12 +73,12 @@ export interface FormData {
     slug: string;
     value: string;
   }>;
-  available: boolean;
   basePrice: number;
   category: ChoiceType | null;
   chargeTaxes: boolean;
   collections: ChoiceType[];
   description: RawDraftContentState;
+  isPublished: boolean;
   name: string;
   productType: {
     label: string;
@@ -138,7 +138,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         })),
       []
     ),
-    available: maybe(() => product.isPublished, false),
     basePrice: maybe(() => product.basePrice.amount),
     category: maybe(() => ({
       label: product.category.name,
@@ -152,6 +151,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         }))
       : [],
     description: maybe(() => JSON.parse(product.descriptionJson)),
+    isPublished: maybe(() => product.isPublished, false),
     name: maybe(() => product.name),
     productType: maybe(() => ({
       label: product.productType.name,
@@ -289,10 +289,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   onChange={change}
                 />
                 <CardSpacer />
-                <ProductAvailabilityForm
+                <VisibilityCard
                   data={data}
                   errors={errors}
-                  loading={disabled}
+                  disabled={disabled}
                   onChange={change}
                 />
               </div>
