@@ -12,6 +12,7 @@ import * as React from "react";
 import CardTitle from "../../components/CardTitle";
 import ControlledSwitch from "../../components/ControlledSwitch";
 import { FormSpacer } from "../../components/FormSpacer";
+import useDateLocalize from "../../hooks/useDateLocalize";
 import i18n from "../../i18n";
 
 const styles = (theme: Theme) =>
@@ -52,6 +53,7 @@ export const VisibilityCard = withStyles(styles, {
     disabled,
     onChange
   }: VisibilityCardProps) => {
+    const localizeDate = useDateLocalize();
     return (
       <Card>
         <CardTitle title={i18n.t("Visibility")} />
@@ -70,10 +72,12 @@ export const VisibilityCard = withStyles(styles, {
               secondLabel={
                 publicationDate
                   ? isPublished
-                    ? i18n.t("since {{ date }}", { date: publicationDate })
+                    ? i18n.t("since {{ date }}", {
+                        date: localizeDate(publicationDate)
+                      })
                     : Date.parse(publicationDate) > Date.now()
-                    ? i18n.t("will be visible on {{ date }}", {
-                        date: publicationDate
+                    ? i18n.t("will be visible from {{ date }}", {
+                        date: localizeDate(publicationDate)
                       })
                     : null
                   : null
