@@ -4,16 +4,16 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# jakk sutt <jakkrit@ppsmartbot.com>, 2019
+# Jakkrit S <jakkrit@ppsmartbot.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-04 10:43-0600\n"
+"POT-Creation-Date: 2019-05-13 03:43-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: jakk sutt <jakkrit@ppsmartbot.com>, 2019\n"
+"Last-Translator: Jakkrit S <jakkrit@ppsmartbot.com>, 2019\n"
 "Language-Team: Thai (https://www.transifex.com/mirumee/teams/34782/th/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -370,5 +370,5 @@ msgstr "จำนวน"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to cart"
+msgid "Add to checkout"
 msgstr ""
