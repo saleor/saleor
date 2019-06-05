@@ -4,11 +4,11 @@ from ...discount.models import Voucher
 from ...giftcard.models import GiftCard
 
 
-def generate_promo_code(length=12):
-    """Generate new unique gift card code."""
-    code = str(uuid.uuid4()).replace("-", "").upper()[:length]
+def generate_promo_code():
+    """Generate a promo unique code that can be used as a voucher or gift card code."""
+    code = str(uuid.uuid4()).replace("-", "").upper()[:12]
     while not is_available_promo_code(code):
-        code = str(uuid.uuid4()).replace("-", "").upper()[:length]
+        code = str(uuid.uuid4()).replace("-", "").upper()[:12]
     return code
 
 

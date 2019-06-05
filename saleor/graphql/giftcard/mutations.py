@@ -44,7 +44,7 @@ class GiftCardCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         code = data.get("code", None)
         if not code and not instance.pk:
-            data["code"] = generate_promo_code(16)
+            data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
             raise ValidationError(
                 {"code": "Gift card with this code is not available."}
