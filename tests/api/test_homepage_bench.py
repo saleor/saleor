@@ -13,23 +13,18 @@ def test_retrieve_main_menu(api_client, count_queries):
           category {
             id
             name
-            __typename
           }
           url
           collection {
             id
             name
-            __typename
           }
           page {
             slug
-            __typename
           }
           parent {
             id
-            __typename
           }
-          __typename
         }
 
         query MainMenu {
@@ -43,17 +38,11 @@ def test_retrieve_main_menu(api_client, count_queries):
                     ...MainMenuSubItem
                     children {
                       ...MainMenuSubItem
-                      __typename
                     }
-                    __typename
                   }
-                  __typename
                 }
-                __typename
               }
-              __typename
             }
-            __typename
           }
         }
     """
@@ -71,19 +60,15 @@ def test_retrieve_secondary_menu(api_client, count_queries):
           category {
             id
             name
-            __typename
           }
           url
           collection {
             id
             name
-            __typename
           }
           page {
             slug
-            __typename
           }
-          __typename
         }
 
         query SecondaryMenu {
@@ -94,15 +79,10 @@ def test_retrieve_secondary_menu(api_client, count_queries):
                   ...SecondaryMenuSubItem
                   children {
                     ...SecondaryMenuSubItem
-                    __typename
                   }
-                  __typename
                 }
-                __typename
               }
-              __typename
             }
-            __typename
           }
         }
     """
@@ -118,22 +98,17 @@ def test_retrieve_shop(api_client, count_queries):
             defaultCountry {
               code
               country
-              __typename
             }
             countries {
               country
               code
-              __typename
             }
             geolocalization {
               country {
                 code
                 country
-                __typename
               }
-              __typename
             }
-            __typename
           }
         }
     """
@@ -153,12 +128,9 @@ def test_retrieve_product_list(api_client, count_queries):
               id
               backgroundImage {
                 url
-                __typename
               }
               name
-              __typename
             }
-            __typename
           }
           categories(level: 0, first: 4) {
             edges {
@@ -167,13 +139,9 @@ def test_retrieve_product_list(api_client, count_queries):
                 name
                 backgroundImage {
                   url
-                  __typename
                 }
-                __typename
               }
-              __typename
             }
-            __typename
           }
         }
     """

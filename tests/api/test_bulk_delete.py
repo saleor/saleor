@@ -82,14 +82,6 @@ def product_type_list():
 
 
 @pytest.fixture
-def product_variant_list(product):
-    product_variant_1 = ProductVariant.objects.create(product=product, sku="1")
-    product_variant_2 = ProductVariant.objects.create(product=product, sku="2")
-    product_variant_3 = ProductVariant.objects.create(product=product, sku="3")
-    return product_variant_1, product_variant_2, product_variant_3
-
-
-@pytest.fixture
 def sale_list():
     sale_1 = Sale.objects.create(name="Sale 1", value=5)
     sale_2 = Sale.objects.create(name="Sale 2", value=5)
