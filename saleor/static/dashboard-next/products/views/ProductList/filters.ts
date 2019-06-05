@@ -5,7 +5,10 @@ import {
   ProductFilterInput,
   StockAvailability
 } from "../../../types/globalTypes";
-import { createFilterTabUtils } from "../../../utils/filters";
+import {
+  createFilterTabUtils,
+  createFilterUtils
+} from "../../../utils/filters";
 import { ProductFilterKeys } from "../../components/ProductListFilter";
 import {
   ProductListUrlFilters,
@@ -28,21 +31,6 @@ export function getFilterVariables(
     search: params.query,
     stockAvailability: StockAvailability[params.status]
   };
-}
-
-export function getActiveFilters(
-  params: ProductListUrlQueryParams
-): ProductListUrlFilters {
-  return Object.keys(params)
-    .filter(key => Object.keys(ProductListUrlFiltersEnum).includes(key))
-    .reduce((acc, key) => {
-      acc[key] = params[key];
-      return acc;
-    }, {});
-}
-
-export function areFiltersApplied(params: ProductListUrlQueryParams): boolean {
-  return Object.keys(getActiveFilters(params)).some(key => !!params[key]);
 }
 
 export function createFilter(
@@ -80,7 +68,7 @@ interface ProductListChipFormatData {
 export function createFilterChips(
   filters: ProductListUrlFilters,
   formatData: ProductListChipFormatData,
-  onClose: (filters: ProductListUrlFilters) => void
+  onFilterDelete: (filters: ProductListUrlFilters) => void
 ): Filter[] {
   let filterChips: Filter[] = [];
 
@@ -99,7 +87,7 @@ export function createFilterChips(
             )
           }),
           onClick: () =>
-            onClose({
+            onFilterDelete({
               ...filters,
               priceFrom: undefined,
               priceTo: undefined
@@ -121,7 +109,7 @@ export function createFilterChips(
               )
             }),
             onClick: () =>
-              onClose({
+              onFilterDelete({
                 ...filters,
                 priceFrom: undefined
               })
@@ -143,7 +131,7 @@ export function createFilterChips(
               )
             }),
             onClick: () =>
-              onClose({
+              onFilterDelete({
                 ...filters,
                 priceTo: undefined
               })
@@ -162,7 +150,7 @@ export function createFilterChips(
             ? i18n.t("Available")
             : i18n.t("Out Of Stock"),
         onClick: () =>
-          onClose({
+          onFilterDelete({
             ...filters,
             status: undefined
           })
@@ -179,7 +167,7 @@ export function createFilterChips(
             ? i18n.t("Published")
             : i18n.t("Hidden"),
         onClick: () =>
-          onClose({
+          onFilterDelete({
             ...filters,
             isPublished: undefined
           })
@@ -195,3 +183,8 @@ export const {
   getFilterTabs,
   saveFilterTab
 } = createFilterTabUtils<ProductListUrlFilters>(PRODUCT_FILTERS_KEY);
+
+export const { areFiltersApplied, getActiveFilters } = createFilterUtils<
+  ProductListUrlQueryParams,
+  ProductListUrlFilters
+>(ProductListUrlFiltersEnum);
