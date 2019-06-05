@@ -7,12 +7,12 @@ from ...giftcard.models import GiftCard
 def generate_promo_code(length=12):
     """Generate new unique gift card code."""
     code = str(uuid.uuid4()).replace("-", "").upper()[:length]
-    while not is_avaible_promo_code(code):
+    while not is_available_promo_code(code):
         code = str(uuid.uuid4()).replace("-", "").upper()[:length]
     return code
 
 
-def is_avaible_promo_code(code):
+def is_available_promo_code(code):
     return not (promo_code_is_gift_card(code) or promo_code_is_voucher(code))
 
 

@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
-from ...core.utils.promo_code import generate_promo_code, is_avaible_promo_code
+from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...discount import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
@@ -115,8 +115,8 @@ class VoucherCreate(ModelMutation):
         code = data.get("code", None)
         if code == "":
             data["code"] = generate_promo_code()
-        elif not is_avaible_promo_code(code):
-            raise ValidationError({"code": "Voucher with this code is not avaible."})
+        elif not is_available_promo_code(code):
+            raise ValidationError({"code": "Voucher with this code is not available."})
         cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
 
