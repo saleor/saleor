@@ -3,7 +3,7 @@ footer {
   position: relative;
   border: solid var(--border-width) var(--sectionBorder);
   border-top: none;
-  @media (max-width: 450px) {
+  @media (max-width: 550px) {
     border: none;
   }
   @media (max-width: 768px) {
@@ -36,7 +36,7 @@ footer {
     @media (max-width: 1024px) {
       padding: calc(var(--spacer) * 2.5) calc(var(--spacer) * 4) var(--spacer) calc(var(--spacer) * 4);
     }
-    @media (max-width: 450px) {
+    @media (max-width: 550px) {
       width: 200px;
       padding: calc(var(--spacer) * 3.5) 0 0 0;
       & .craftedBy {
@@ -56,7 +56,7 @@ footer {
     @media (max-width: 1024px) {
       padding: 0 calc(var(--spacer) * 4);
     }
-    @media (max-width: 450px) {
+    @media (max-width: 550px) {
       padding: 0;
       border-bottom: solid 1px var(--primaryColor);
     }
@@ -66,7 +66,7 @@ footer {
       @media (max-width: 768px) {
         padding: calc(var(--spacer) * 2) 0;
       }
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         padding: calc(var(--spacer) * 2) calc(var(--spacer) / 2);
       }
       & .grid {
@@ -76,7 +76,7 @@ footer {
         }
       }
       & .menu-item {
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           margin-bottom: calc(var(--spacer) * 2);
         }
         & h4 {
@@ -88,7 +88,7 @@ footer {
           @media (max-width: 570px) {
             font-size: calc(var(--font-size-base) * 0.8);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             font-size: calc(var(--font-size-base));
           }
           @media (max-width: 320px) {
@@ -111,7 +111,7 @@ footer {
               @media (max-width: 570px) {
                 font-size: calc(var(--font-size-base) * 0.8);
               }
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 font-size: calc(var(--font-size-base));
               }
               @media (max-width: 320px) {
@@ -134,7 +134,7 @@ footer {
         @media (max-width: 570px) {
           font-size: calc(var(--font-size-base) * 0.8);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           display: none;
         }
         @media (max-width: 320px) {
@@ -146,7 +146,7 @@ footer {
         height: 25px;
         margin: 0 calc(var(--spacer) / 2);
       }
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         position: absolute;
         width: 30%;
         top: 5%;
@@ -167,7 +167,7 @@ footer {
   padding: 0 calc(var(--spacer) * 1.5);
   font-weight: var(--font-weight-lighter);
   opacity: 0.6;
-  @media (max-width: 450px) {
+  @media (max-width: 550px) {
     padding: var(--spacer);
     font-size: calc(var(--font-size-base) * 0.9);
   }

@@ -28,7 +28,7 @@
           width: 130%;
           left: -25%;
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           width: 240%;
           left: -100%;
           top: -13%;
@@ -50,7 +50,7 @@
         @media (max-width: 768px) {
           width: 100%;
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           width: auto;
           position: absolute;
           left: var(--spacer);
@@ -94,7 +94,7 @@
               padding-left: calc(var(--spacer) * 2);
             }
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             display: none;
           }
         }
@@ -107,7 +107,7 @@
             font-size: calc(var(--font-size-base) * 2.5);
             padding-bottom: calc(var(--spacer) * 2);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             padding: 0 0 var(--spacer) 0;
           }
         }
@@ -121,13 +121,13 @@
           @media (max-width: 570px) {
             font-size: var(--font-size-base);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             display: block;
             margin: var(--spacer) calc(var(--spacer) * 3) var(--spacer) calc(var(--spacer) * 2);
             text-align: center;
           }
           &.btn-primary {
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               padding: calc(var(--spacer) / 1.5) 0;
             }
             @media (max-width: 320px) {
@@ -135,7 +135,7 @@
             }
           }
           &.btn-secondary {
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               padding: calc(var(--spacer) / 1.5) 0;
             }
             @media (max-width: 320px) {
@@ -176,7 +176,7 @@
     &.features {
       position: relative;
       top: calc(var(--spacer) * -6);
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         top: 0;
       }
       & .grid {
@@ -185,7 +185,7 @@
         @media (max-width: 768px) {
           width: 100%;
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           width: 100%;
         }
       }
@@ -197,7 +197,7 @@
         @media (max-width: 1024px) {
           padding: 0 calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding: 0;
         }
       }
@@ -206,7 +206,7 @@
           width: calc(100% - calc(var(--spacer) * 4));
           padding: 0 calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           display: none;
         }
         & .image {
@@ -275,7 +275,7 @@
       & img {
         margin-bottom: var(--spacer);
         padding: var(--spacer) 0;
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding-top: calc(var(--spacer) * 2);
         }
       }
@@ -297,7 +297,7 @@
             transform: translateY(-65%);
             font-size: calc(var(--font-size-base) * 1.5);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             left: calc(var(--spacer) * 0.5);
           }
         }
@@ -310,7 +310,7 @@
         @media (max-width: 700px) {
           font-size: calc(var(--font-size-base) * 1.5);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding-left: calc(var(--spacer) * 2);
           font-size: calc(var(--font-size-base) * 1.5);
           font-size: var(--font-size-base);
@@ -327,7 +327,7 @@
         @media (max-width: 1024px) {
           padding: calc(var(--spacer) * 3) 0;
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 2) 0;
         }
         position: relative;
@@ -336,9 +336,9 @@
           @media (max-width: 1024px) {
             padding: 0;
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             z-index: 22;
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               padding: 0 var(--spacer);
             }
           }
@@ -381,7 +381,7 @@
               @media (max-width: 768px) {
                 width: 100%;
               }
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 font-size: calc(var(--font-size-base) * 2.5);
               }
             }
@@ -396,7 +396,7 @@
         & .image {
           background-repeat: no-repeat;
           background-position: 50% 50%;
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             width: 100%;
             height: 100%;
             position: absolute;
@@ -420,7 +420,7 @@
             @media (max-width: 700px) {
               background-position: -50% 50%;
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               background-image: url('../../images/modern-stack.svg');
               background-position: 30% 60%;
               background-size: 170%;
@@ -443,7 +443,7 @@
               width: 80% !important;
               padding-left: 10%;
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               & svg {
                 display: none;
               }
@@ -459,7 +459,7 @@
               width: 80% !important;
               padding-right: 10%;
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               & svg {
                 display: none;
               }
@@ -478,7 +478,7 @@
             @media (max-width: 1024px) {
               width: 100%;
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               width: calc(100% - calc(var(--spacer) * 2));
               padding: 0 var(--spacer);
             }
@@ -491,7 +491,7 @@
                 @media (max-width: 1024px) {
                   left: calc(var(--spacer) * -1);
                 }
-                @media (max-width: 450px) {
+                @media (max-width: 550px) {
                   left: calc(var(--spacer) * -2);
                 }
               }
@@ -502,7 +502,7 @@
               font-size: var(--font-size-base);
               font-weight: var(--font-weight-light);
               letter-spacing: 2px;
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding: 0;
                 text-align: left;
                 font-size: calc(var(--font-size-base) * 1.2);
@@ -523,7 +523,7 @@
             & img {
               padding-bottom: calc(var(--spacer) * 1.5);
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               padding-right: 0;
               & img {
                 max-width: 120%;
@@ -534,7 +534,7 @@
             & h2 {
               color: var(--primaryColor);
               font-size: var(--font-size-base);
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding: 0 var(--spacer);
               }
             }
@@ -547,7 +547,7 @@
                 width: 90%;
                 font-size: var(--spacer);
               }
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding: var(--spacer) var(--spacer) 0 var(--spacer);
               }
               &.text-light {
@@ -564,7 +564,7 @@
               &:hover {
                 color: var(--primaryColor);
               }
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding-left: var(--spacer);
               }
             }
@@ -579,14 +579,14 @@
               padding-left: 0;
             }
             & img {
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                  max-width: 110%;
               }
             }
             & h2 {
               color: var(--primaryColor);
               font-size: var(--font-size-base);
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding: 0 var(--spacer);
               }
             }
@@ -598,7 +598,7 @@
                 width: 90%;
                 font-size: var(--spacer);
               }
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding: var(--spacer) var(--spacer) 0 var(--spacer);
               }
               &.text-light {
@@ -615,7 +615,7 @@
               &:hover {
                 color: var(--primaryColor);
               }
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding-left: var(--spacer);
               }
             }
@@ -627,7 +627,7 @@
           & .btn {
             padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 6);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             margin: 0 auto calc(var(--spacer) * 2) auto;
             & .btn {
               margin: calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2);
@@ -645,7 +645,7 @@
         height: 100%;
         padding-bottom: calc(var(--spacer) * 10);
       }
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         height: 100%;
         padding-bottom: calc(var(--spacer) * 17);
       }
@@ -657,7 +657,7 @@
         @media (max-width: 1024px) {
           padding: 0 calc(var(--spacer) * 4) calc(var(--spacer) * 10) calc(var(--spacer) * 4);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding: 0 var(--spacer);
         }
       }
@@ -676,14 +676,14 @@
           @media (max-width: 1440px) {
             font-size: calc(var(--font-size-base) * 2);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             font-size: calc(var(--font-size-base) * 2.5);
             line-height: 1.4;
           }
         }
         & .text-light {
           width: 80%;
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             width: 100%;
           }
           font-size: calc(var(--font-size-base) * 1);
@@ -707,7 +707,7 @@
             @media (max-width: 700px) {
               grid-column: span 12;
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               padding: var(--spacer) 0;
             }
           }
@@ -878,7 +878,7 @@
       position: relative;
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 4%, rgba(16,10,53,1) 4%, rgba(16,10,53,1) 96%, rgba(16,10,53,0) 96%, rgba(16,10,53,0) 100%);
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         background: linear-gradient(135deg, rgba(16,10,53,0) 4%, rgba(16,10,53,1) 4%, rgba(16,10,53,1) 96%, rgba(16,10,53,0) 96%, rgba(16,10,53,0) 100%);
       }
       & .section-container {
@@ -887,14 +887,14 @@
         @media (max-width: 1024px) {
           padding: calc(var(--spacer) * 4);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding: calc(var(--spacer) * 2);
         }
       }
       & .head {
         padding-top: calc(var(--spacer) * 5);
         margin-bottom: calc(var(--spacer) * 4);
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding-top: var(--spacer);
           margin-bottom: 0;
         }
@@ -908,7 +908,7 @@
           @media (max-width: 768px) {
             padding-bottom: calc(var(--spacer) * 2);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             font-size: calc(var(--font-size-base) * 2);
           }
         }
@@ -964,7 +964,7 @@
           @media (max-width: 768px) {
             width: 70%;
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             width: 100%;
             margin-bottom: calc(var(--spacer) * 2);
             & .border-skew {
@@ -1002,7 +1002,7 @@
           & p {
             font-size: calc(var(--font-size-base) * 1.3);
             font-style: italic;
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               font-size: var(--font-size-base);
             }
           }
@@ -1010,7 +1010,7 @@
             padding-bottom: calc(var(--spacer) * 4);
             & img {
               width: 70px;
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 width: 45px;
               }
               display: inline-block;
@@ -1022,7 +1022,7 @@
               padding-left: var(--spacer);
               text-transform: uppercase;
               line-height: 1.5;
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 font-size: calc(var(--font-size-base) * 0.8);
               }
               @media (max-width: 320px) {
@@ -1035,7 +1035,7 @@
           & .btn {
             margin-left: calc(var(--spacer) * 2);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             & .btn {
               padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 4)
             }
@@ -1059,7 +1059,7 @@
           & .item {
             & .logo {
               padding-top: var(--spacer);
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding-top: calc(var(--spacer) / 2);
                 & svg {
                   width: 80%;
@@ -1068,7 +1068,7 @@
             }
             & .link {
               display: none;
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 display: block;
                 text-align: center;
                 & a {
@@ -1123,7 +1123,7 @@
                     z-index: 9;
                   }
                 }
-                @media (max-width: 450px) {
+                @media (max-width: 550px) {
                   display: none;
                 }
               }
@@ -1131,7 +1131,7 @@
                 &::after {
                   opacity: 1;
                 }
-                @media (max-width: 450px) {
+                @media (max-width: 550px) {
                   &::after {
                     width: 0;
                     height: 0;
@@ -1153,7 +1153,7 @@
               & .imageLayer {
                 background-image: url('../../images/implementation-patchGarden-2x.jpg');
               }
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 & .logo {
                   & svg {
                     width: 100%;
@@ -1174,7 +1174,7 @@
       position: relative;
       z-index: 1;
       padding: calc(var(--spacer) * 4) 0 calc(var(--spacer) * 2) 0;
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         padding: calc(var(--spacer) * 4) 0 0 0;
       }
       & .section-container {
@@ -1182,7 +1182,7 @@
         @media (max-width: 1024px) {
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding: calc(var(--spacer) * 2) calc(var(--spacer) * 1) calc(var(--spacer) * 0) calc(var(--spacer) * 1);
         }
       }
@@ -1205,7 +1205,7 @@
         @media (max-width: 1024px) {
           font-size: calc(var(--font-size-base) * 1.5);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           width: 100%;
           font-size: calc(var(--font-size-base) * 2.5);
         }
@@ -1215,7 +1215,7 @@
         @media (max-width: 1024px) {
           grid-gap: var(--spacer);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding: calc(var(--spacer) * 2) 0;
           & .list-item {
             position: relative;
@@ -1253,7 +1253,7 @@
             @media (max-width: 570px) {
               font-size: var(--font-size-base);
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               font-size: calc(var(--font-size-base) * 1);
               line-height: 1.4;
             }
@@ -1261,13 +1261,13 @@
         }
       }
       & .btn-container {
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           text-align: center;
         }
         & .btn {
           margin-left: calc(var(--spacer) * 1.5);
           padding: calc(var(--spacer) / 2) calc(var(--spacer) * 6);
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             font-size: var(--font-size-base);
             padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
             margin-left: 0;

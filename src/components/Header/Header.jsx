@@ -110,7 +110,7 @@ class Header extends Component {
           <div className="news">
             <div className="content">
               <a href="http://bit.ly/AprilRelease2019" target="_blank">
-              April Release of Saleor
+                April Release of Saleor
               </a>
               <div className="close-icon" onClick={this.closeNewsBar} />
             </div>
@@ -305,7 +305,6 @@ class Header extends Component {
                   className={
                     this.state.mobileMenu ? "github-link open" : "github-link"
                   }
-                  onClick={this.toggleMenu}
                 >
                   <GitHubLink owner="mirumee" name="saleor" />
                 </li>

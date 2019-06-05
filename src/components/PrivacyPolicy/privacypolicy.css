@@ -19,7 +19,7 @@
       @media (max-width: 700px) {
         background-position: 180% 0%;
       }
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         background-size: 100%;
         background-position: 35% 0%;
       }
@@ -38,7 +38,7 @@
 					font-size: calc(var(--font-size-base) * 1.2);
 					width: 70%;
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           padding: 0 var(--spacer);
           width: auto;
           position: absolute;
@@ -60,7 +60,7 @@
           position: absolute;
           bottom: 5%;
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           bottom: 10%;
         }
         @media (max-width: 320px) {
@@ -73,7 +73,7 @@
       @media (max-width: 1024px) {
         padding: calc(var(--spacer) * 2) calc(var(--spacer) * 4);
       }
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         padding: calc(var(--spacer) * 2) var(--spacer);
       }
       & a {

@@ -3,7 +3,7 @@
     width: 100%;
     display: inline-grid;
     grid-template-columns: repeat(12, 1fr);
-    @media (max-width: 450px) {
+    @media (max-width: 550px) {
       & .col-xs-1 { grid-column: span 1; }
       & .col-xs-2 { grid-column: span 2; }
       & .col-xs-3 { grid-column: span 3; }

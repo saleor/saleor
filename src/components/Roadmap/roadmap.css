@@ -119,7 +119,7 @@
             @media (max-width: 768px) {
                right: 49%;
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               right: 51%;
               top: 9%;
             }
@@ -128,7 +128,7 @@
               top: 9%;
             }
             &.parrot {
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 top: 6%;
               }
               @media (max-width: 320px) {

@@ -44,7 +44,7 @@ h1 {
   @media (max-width: 768px) {
     font-size: calc(var(--h1-font-size) * 0.7);
   }
-  @media (max-width: 450px) {
+  @media (max-width: 550px) {
     font-size: calc(var(--h1-font-size) * 0.6);
   }
 }
@@ -61,7 +61,7 @@ h2 {
     font-size: calc(var(--font-size-base) * 2);
   }
   
-  @media (max-width: 450px) {
+  @media (max-width: 550px) {
     font-size: calc(var(--font-size-base) * 1.8);
   }
 }
@@ -153,7 +153,7 @@ img {
   @media (max-width: 768px) {
     margin: 0 var(--spacer);
   }
-  @media (max-width: 450px) {
+  @media (max-width: 550px) {
     border: none;
     margin: 0;
   }
@@ -181,7 +181,7 @@ ul {
           bottom: 0;
           left: 0;
           top: calc(var(--spacer) * 2);
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             top: calc(var(--spacer) * 1.5);
           }
           position: absolute;
@@ -274,7 +274,7 @@ ul {
       color: var(--mobile-background);
     }
   }
-  @media (max-width: 450px) {
+  @media (max-width: 550px) {
     font-size: calc(var(--font-size-base));
   }
   @media (max-width: 320px) {
@@ -282,7 +282,7 @@ ul {
   }
 }
 
-@media (max-width: 450px) {
+@media (max-width: 550px) {
   .decoration {
     display: none;
   }
@@ -315,7 +315,7 @@ section.hero {
   @media (max-width: 700px) {
     height: 180vh;
   }
-  @media (max-width: 450px) {
+  @media (max-width: 550px) {
     height: 550px;
   }
   @media (max-width: 320px) {

@@ -10,7 +10,7 @@ header {
     @media (max-width: 768px) {
       padding: 0 var(--spacer);
     }
-    @media (max-width: 450px) {
+    @media (max-width: 550px) {
       padding: 0 calc(var(--spacer) * 0.5);
     }
   }
@@ -36,7 +36,7 @@ header {
   }
   & .news {
     display: none;
-    @media (max-width: 450px) {
+    @media (max-width: 550px) {
       position: relative;
       width: 100%;
       top: 0;
@@ -94,7 +94,7 @@ header {
       display: flex;
       margin: auto 0;
       align-items: center;
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         flex-direction: column;
         padding: calc(var(--spacer) / 2) 1rem;
         align-items: flex-start;
@@ -102,7 +102,7 @@ header {
       & .cookieImg {
         width: 40px;
         height: 40px;
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           display: none;
         }
       }
@@ -111,7 +111,7 @@ header {
         height: 24px;
         cursor: pointer;
         order: 3;
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           order: 1;
         }
       }
@@ -121,7 +121,7 @@ header {
         margin-right: 1rem;
         cursor: pointer;
         text-decoration: underline;
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           order: 3;
         }
       }
@@ -130,7 +130,7 @@ header {
         margin: 0rem 2rem;
         order: 1;
         flex: 1;
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           margin: 0.5rem 0rem;
           order: 2;
         }
@@ -148,7 +148,7 @@ header {
       transition: width 0.5s;
       width: 95px;
       padding: calc(var(--spacer) * 1.2) var(--spacer);
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         padding: calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
       }
     }
@@ -164,7 +164,7 @@ header {
       @media (max-width: 768px) {
         left: calc(var(--spacer) * 2);
       }
-      @media (max-width: 450px) {
+      @media (max-width: 550px) {
         left: calc(var(--spacer) / 2);
         & .logo-svg {
           width: 80px;
@@ -331,7 +331,7 @@ header {
               fill: var(--body-color);
             }
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             & svg {
               fill: var(--primaryColor);
               & path {
@@ -390,7 +390,7 @@ header {
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2) 0
             calc(var(--spacer) * 2);
         }
-        @media (max-width: 450px) {
+        @media (max-width: 550px) {
           width: calc(100% - calc(var(--spacer) * 2));
           padding: calc(var(--spacer) * 5) var(--spacer) 0 var(--spacer);
         }
@@ -402,7 +402,7 @@ header {
           @media (max-width: 570px) {
             font-size: calc(var(--font-size-base) * 1.5);
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             font-size: calc(var(--font-size-base) * 2);
             padding: 0 calc(var(--spacer) * 3);
           }
@@ -539,7 +539,7 @@ header {
           @media (max-width: 570px) {
             grid-column: -9 / span 5;
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             grid-column: -8 / span 4;
           }
           @media (max-width: 320px) {
@@ -547,7 +547,7 @@ header {
           }
           padding: 0;
           &.github-link {
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               & .githubLink {
                 color: var(--primaryColor);
               }

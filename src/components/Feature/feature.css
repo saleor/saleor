@@ -21,7 +21,7 @@
             background-position: 50% 40%;
             background-size: 120%;
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             background-position: 60% 0%;
             background-size: cover;
           }
@@ -41,7 +41,7 @@
             @media (max-width: 768px) {
               width: 80%;
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               padding: calc(var(--spacer) * 2) var(--spacer);
               width: auto;
               position: absolute;
@@ -115,7 +115,7 @@
             @media (max-width: 768px) {
               padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2);
             }
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               padding: calc(var(--spacer) * 2) var(--spacer);
             }
           }
@@ -135,17 +135,17 @@
               grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             }
             grid-gap: calc(var(--spacer) * 5) calc(var(--spacer) * 5);
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               grid-gap: calc(var(--spacer) * 2) calc(var(--spacer) * 2);
             }
             & .icon-card {
               position: relative;
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 padding-bottom: calc(var(--spacer) * 2);
               }
               & .loved-by-search {
                 & svg {
-                  @media (max-width: 450px) {
+                  @media (max-width: 550px) {
                     width: 130%;
                   }
                 }
@@ -157,7 +157,7 @@
                 word-break: break-word;
                 hyphens: auto;
                 text-transform: initial;
-                @media (max-width: 450px) {
+                @media (max-width: 550px) {
                   width: 100%;
                   font-size: calc(var(--font-size-base) * 2.3);
                 }
@@ -171,7 +171,7 @@
                 position: relative;
                 top: 5%;
                 left: -9%;
-                @media (max-width: 450px) {
+                @media (max-width: 550px) {
                   width: 110%;
                 }
               }
@@ -181,7 +181,7 @@
               }
             }
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
             & .icons {
               grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -209,7 +209,7 @@
               margin-bottom: var(--spacer);
               text-transform: initial;
               font-size: calc(var(--font-size-base) * 2);
-              @media (max-width: 450px) {
+              @media (max-width: 550px) {
                 font-size: calc(var(--font-size-base) * 2.5);
                 padding-top: calc(var(--spacer) * 2)
               }
@@ -260,7 +260,7 @@
               margin-bottom: calc(var(--spacer) * 2);
             }
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
             margin: 0;
           }
@@ -293,7 +293,7 @@
           }
           & .btn {
             margin-left: calc(var(--spacer) * 2);
-            @media (max-width: 450px) {
+            @media (max-width: 550px) {
               margin-left: 0;
             }
           }
@@ -304,7 +304,7 @@
               font-size: calc(var(--font-size-base) * 1.2);
             }
           }
-          @media (max-width: 450px) {
+          @media (max-width: 550px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
             margin: 0;
             & .description {
