@@ -5,7 +5,9 @@ import * as placeholderImage from "../../../../images/placeholder255x255.png";
 import { category as categoryFixture } from "../../../categories/fixtures";
 import { Filter } from "../../../components/TableFilter";
 import { listActionsProps, pageListProps } from "../../../fixtures";
-import ProductListCard from "../../../products/components/ProductListCard";
+import ProductListCard, {
+  ProductListCardProps
+} from "../../../products/components/ProductListCard";
 import Decorator from "../../Decorator";
 
 const products = categoryFixture(placeholderImage).products.edges.map(
@@ -14,70 +16,99 @@ const products = categoryFixture(placeholderImage).products.edges.map(
 
 const filtersList: Filter[] = [
   {
-    label: "Gardner-Schultz",
+    label: "Property X is ",
     onClick: () => undefined
   },
   {
-    label: "Davis, Brown and Ray",
+    label: "Property Y is ",
     onClick: () => undefined
   },
   {
-    label: "Franklin Inc",
+    label: "Property Z is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property X is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property Y is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property Z is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property X is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property Y is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property Z is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property X is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property Y is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property Z is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property X is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property Y is ",
+    onClick: () => undefined
+  },
+  {
+    label: "Property Z is ",
     onClick: () => undefined
   }
-];
+].map((filter, filterIndex) => ({
+  ...filter,
+  label: filter.label + filterIndex
+}));
+
+const props: ProductListCardProps = {
+  ...listActionsProps,
+  ...pageListProps.default,
+  currencySymbol: "USD",
+  currentTab: 0,
+  filtersList: [],
+  initialSearch: "",
+  onAllProducts: () => undefined,
+  onFilterAdd: () => undefined,
+  onFilterDelete: () => undefined,
+  onFilterSave: () => undefined,
+  onSearchChange: () => undefined,
+  onTabChange: () => undefined,
+  products
+};
 
 storiesOf("Views / Products / Product list", module)
   .addDecorator(Decorator)
-  .add("default", () => (
-    <ProductListCard
-      filtersList={[]}
-      currentTab="all"
-      products={products}
-      {...listActionsProps}
-      {...pageListProps.default}
-      onAllProducts={() => undefined}
-      onAvailable={() => undefined}
-      onOfStock={() => undefined}
-      onCustomFilter={() => undefined}
-    />
-  ))
+  .add("default", () => <ProductListCard {...props} />)
   .add("with custom filters", () => (
-    <ProductListCard
-      products={products}
-      {...listActionsProps}
-      {...pageListProps.default}
-      filtersList={filtersList}
-      currentTab="custom"
-      onAllProducts={() => undefined}
-      onAvailable={() => undefined}
-      onOfStock={() => undefined}
-      onCustomFilter={() => undefined}
-    />
+    <ProductListCard {...props} filtersList={filtersList} />
   ))
   .add("loading", () => (
     <ProductListCard
-      {...listActionsProps}
-      {...pageListProps.loading}
+      {...props}
       products={undefined}
       filtersList={undefined}
       currentTab={undefined}
-      onAllProducts={() => undefined}
-      onAvailable={() => undefined}
-      onOfStock={() => undefined}
-      onCustomFilter={() => undefined}
+      disabled={true}
     />
   ))
-  .add("no data", () => (
-    <ProductListCard
-      products={[]}
-      {...listActionsProps}
-      {...pageListProps.default}
-      filtersList={[]}
-      currentTab="all"
-      onAllProducts={() => undefined}
-      onAvailable={() => undefined}
-      onOfStock={() => undefined}
-      onCustomFilter={() => undefined}
-    />
-  ));
+  .add("no data", () => <ProductListCard {...props} products={[]} />);
