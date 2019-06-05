@@ -807,14 +807,14 @@ def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str):
     except Voucher.DoesNotExist:
         raise ValidationError({"promo_code": "Voucher with given code is invalid."})
     try:
-        add_voucher_to_checkout(voucher, checkout)
+        add_voucher_to_checkout(checkout, voucher)
     except NotApplicable:
         raise ValidationError(
             {"promo_code": "Voucher is not applicable to that checkout."}
         )
 
 
-def add_voucher_to_checkout(voucher: Voucher, checkout: Checkout):
+def add_voucher_to_checkout(checkout: Checkout, voucher: Voucher):
     """Add voucher data to checkout.
 
     Raise NotApplicable if voucher of given type cannot be applied."""
