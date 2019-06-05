@@ -7,6 +7,9 @@ import { arrayMove } from "react-sortable-hoc";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import ActionDialog from "../../components/ActionDialog";
 import { WindowTitle } from "../../components/WindowTitle";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
+import SearchCategories from "../../containers/SearchCategories";
+import SearchCollections from "../../containers/SearchCollections";
 import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
@@ -14,8 +17,6 @@ import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import { productTypeUrl } from "../../productTypes/urls";
 import ProductUpdatePage, { FormData } from "../components/ProductUpdatePage";
-import { CategorySearchProvider } from "../containers/CategorySearch";
-import { CollectionSearchProvider } from "../containers/CollectionSearch";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import { TypedProductDetailsQuery } from "../queries";
 import {
@@ -48,13 +49,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   );
 
   return (
-    <CategorySearchProvider>
-      {({ search: searchCategories, searchOpts: searchCategoriesOpts }) => (
-        <CollectionSearchProvider>
-          {({
-            search: searchCollections,
-            searchOpts: searchCollectionsOpts
-          }) => (
+    <SearchCategories variables={DEFAULT_INITIAL_SEARCH_DATA}>
+      {({ search: searchCategories, result: searchCategoriesOpts }) => (
+        <SearchCollections variables={DEFAULT_INITIAL_SEARCH_DATA}>
+          {({ search: searchCollections, result: searchCollectionsOpts }) => (
             <TypedProductDetailsQuery
               displayLoader
               require={["product"]}
@@ -360,9 +358,9 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
               }}
             </TypedProductDetailsQuery>
           )}
-        </CollectionSearchProvider>
+        </SearchCollections>
       )}
-    </CategorySearchProvider>
+    </SearchCategories>
   );
 };
 export default ProductUpdate;

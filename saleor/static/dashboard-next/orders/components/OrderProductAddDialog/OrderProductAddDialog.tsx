@@ -22,19 +22,18 @@ import Checkbox from "../../../components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "../../../components/ConfirmButton";
-import Debounce from "../../../components/Debounce";
 import Form from "../../../components/Form";
 import Money from "../../../components/Money";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import {
-  OrderVariantSearch_products_edges_node,
-  OrderVariantSearch_products_edges_node_variants
-} from "../../types/OrderVariantSearch";
+  SearchOrderVariant_products_edges_node,
+  SearchOrderVariant_products_edges_node_variants
+} from "../../types/SearchOrderVariant";
 
 export interface FormData {
-  variants: OrderVariantSearch_products_edges_node_variants[];
+  variants: SearchOrderVariant_products_edges_node_variants[];
   query: string;
 }
 
@@ -79,7 +78,7 @@ const styles = (theme: Theme) =>
 interface OrderProductAddDialogProps extends WithStyles<typeof styles> {
   confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
-  products: OrderVariantSearch_products_edges_node[];
+  products: SearchOrderVariant_products_edges_node[];
   loading: boolean;
   hasMore: boolean;
   onClose: () => void;
@@ -94,8 +93,8 @@ const initialForm: FormData = {
 };
 
 function hasAllVariantsSelected(
-  productVariants: OrderVariantSearch_products_edges_node_variants[],
-  selectedVariants: OrderVariantSearch_products_edges_node_variants[]
+  productVariants: SearchOrderVariant_products_edges_node_variants[],
+  selectedVariants: SearchOrderVariant_products_edges_node_variants[]
 ): boolean {
   return productVariants.reduce(
     (acc, productVariant) =>
@@ -108,8 +107,8 @@ function hasAllVariantsSelected(
 }
 
 function isVariantSelected(
-  variant: OrderVariantSearch_products_edges_node_variants,
-  selectedVariants: OrderVariantSearch_products_edges_node_variants[]
+  variant: SearchOrderVariant_products_edges_node_variants,
+  selectedVariants: SearchOrderVariant_products_edges_node_variants[]
 ): boolean {
   return !!selectedVariants.find(
     selectedVariant => selectedVariant.id === variant.id
@@ -153,7 +152,7 @@ const OrderProductAddDialog = withStyles(styles, {
             : [];
 
           const onProductAdd = (
-            product: OrderVariantSearch_products_edges_node,
+            product: SearchOrderVariant_products_edges_node,
             productIndex: number
           ) =>
             selectedProducts[productIndex]
@@ -185,7 +184,7 @@ const OrderProductAddDialog = withStyles(styles, {
                   }
                 } as any);
           const onVariantAdd = (
-            variant: OrderVariantSearch_products_edges_node_variants,
+            variant: SearchOrderVariant_products_edges_node_variants,
             variantIndex: number,
             productIndex: number
           ) =>
@@ -209,29 +208,25 @@ const OrderProductAddDialog = withStyles(styles, {
             <>
               <DialogTitle>{i18n.t("Add product")}</DialogTitle>
               <DialogContent className={classes.overflow}>
-                <Debounce debounceFn={onFetch}>
-                  {fetch => (
-                    <TextField
-                      name="query"
-                      value={data.query}
-                      onChange={event => change(event, () => fetch(data.query))}
-                      label={i18n.t("Search Products", {
-                        context: "product search input label"
-                      })}
-                      placeholder={i18n.t(
-                        "Search by product name, attribute, product type etc...",
-                        {
-                          context: "product search input placeholder"
-                        }
-                      )}
-                      fullWidth
-                      InputProps={{
-                        autoComplete: "off",
-                        endAdornment: loading && <CircularProgress size={16} />
-                      }}
-                    />
+                <TextField
+                  name="query"
+                  value={data.query}
+                  onChange={event => change(event, () => onFetch(data.query))}
+                  label={i18n.t("Search Products", {
+                    context: "product search input label"
+                  })}
+                  placeholder={i18n.t(
+                    "Search by product name, attribute, product type etc...",
+                    {
+                      context: "product search input placeholder"
+                    }
                   )}
-                </Debounce>
+                  fullWidth
+                  InputProps={{
+                    autoComplete: "off",
+                    endAdornment: loading && <CircularProgress size={16} />
+                  }}
+                />
               </DialogContent>
               <DialogContent className={classes.content}>
                 <InfiniteScroll

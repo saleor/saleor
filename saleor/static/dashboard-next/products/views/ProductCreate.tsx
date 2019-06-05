@@ -1,14 +1,15 @@
 import * as React from "react";
 
 import { WindowTitle } from "../../components/WindowTitle";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
+import SearchCategories from "../../containers/SearchCategories";
+import SearchCollections from "../../containers/SearchCollections";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import ProductCreatePage, { FormData } from "../components/ProductCreatePage";
-import { CategorySearchProvider } from "../containers/CategorySearch";
-import { CollectionSearchProvider } from "../containers/CollectionSearch";
 import { TypedProductCreateMutation } from "../mutations";
 import { TypedProductCreateQuery } from "../queries";
 import { ProductCreate } from "../types/ProductCreate";
@@ -29,10 +30,10 @@ export const ProductUpdate: React.StatelessComponent<
   const handleBack = () => navigate(productListUrl());
 
   return (
-    <CategorySearchProvider>
-      {({ search: searchCategory, searchOpts: searchCategoryOpts }) => (
-        <CollectionSearchProvider>
-          {({ search: searchCollection, searchOpts: searchCollectionOpts }) => (
+    <SearchCategories variables={DEFAULT_INITIAL_SEARCH_DATA}>
+      {({ search: searchCategory, result: searchCategoryOpts }) => (
+        <SearchCollections variables={DEFAULT_INITIAL_SEARCH_DATA}>
+          {({ search: searchCollection, result: searchCollectionOpts }) => (
             <TypedProductCreateQuery displayLoader>
               {({ data, loading }) => {
                 const handleSuccess = (data: ProductCreate) => {
@@ -127,9 +128,9 @@ export const ProductUpdate: React.StatelessComponent<
               }}
             </TypedProductCreateQuery>
           )}
-        </CollectionSearchProvider>
+        </SearchCollections>
       )}
-    </CategorySearchProvider>
+    </SearchCategories>
   );
 };
 export default ProductUpdate;
