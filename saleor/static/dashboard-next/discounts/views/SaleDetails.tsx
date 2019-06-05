@@ -9,9 +9,10 @@ import AssignCategoriesDialog from "../../components/AssignCategoryDialog";
 import AssignCollectionDialog from "../../components/AssignCollectionDialog";
 import AssignProductDialog from "../../components/AssignProductDialog";
 import { WindowTitle } from "../../components/WindowTitle";
-import { SearchCategoriesProvider } from "../../containers/SearchCategories";
-import { SearchCollectionsProvider } from "../../containers/SearchCollections";
-import { SearchProductsProvider } from "../../containers/SearchProducts";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
+import SearchCategories from "../../containers/SearchCategories";
+import SearchCollections from "../../containers/SearchCollections";
+import SearchProducts from "../../containers/SearchProducts";
 import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
@@ -325,8 +326,13 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                               toggle={toggle}
                               toggleAll={toggleAll}
                             />
-                            <SearchProductsProvider>
-                              {(searchProducts, searchProductsOpts) => (
+                            <SearchProducts
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchProducts,
+                                result: searchProductsOpts
+                              }) => (
                                 <AssignProductDialog
                                   confirmButtonState={assignTransitionState}
                                   open={params.action === "assign-product"}
@@ -355,9 +361,14 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                   )}
                                 />
                               )}
-                            </SearchProductsProvider>
-                            <SearchCategoriesProvider>
-                              {(searchCategories, searchCategoriesOpts) => (
+                            </SearchProducts>
+                            <SearchCategories
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchCategories,
+                                result: searchCategoriesOpts
+                              }) => (
                                 <AssignCategoriesDialog
                                   categories={maybe(() =>
                                     searchCategoriesOpts.data.categories.edges
@@ -387,9 +398,14 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                   }
                                 />
                               )}
-                            </SearchCategoriesProvider>
-                            <SearchCollectionsProvider>
-                              {(searchCollections, searchCollectionsOpts) => (
+                            </SearchCategories>
+                            <SearchCollections
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchCollections,
+                                result: searchCollectionsOpts
+                              }) => (
                                 <AssignCollectionDialog
                                   collections={maybe(() =>
                                     searchCollectionsOpts.data.collections.edges
@@ -419,7 +435,7 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                   }
                                 />
                               )}
-                            </SearchCollectionsProvider>
+                            </SearchCollections>
                             <ActionDialog
                               open={params.action === "unassign-category"}
                               title={i18n.t("Unassign Categories From Sale")}
