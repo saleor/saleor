@@ -1,5 +1,7 @@
 import { MutationResult } from "react-apollo";
 
+import { Filter } from "./components/TableFilter";
+
 export interface UserError {
   field: string;
   message: string;
@@ -30,6 +32,17 @@ export interface ListActions extends ListActionsWithoutToolbar {
 }
 export interface PageListProps extends ListProps {
   onAdd: () => void;
+}
+export interface FilterProps<TFilterContentSubmitData> {
+  currentTab: number;
+  filtersList: Filter[];
+  initialSearch: string;
+  onAllProducts: () => void;
+  onSearchChange: (value: string) => void;
+  onFilterAdd: (filter: TFilterContentSubmitData) => void;
+  onFilterDelete: () => void;
+  onFilterSave: () => void;
+  onTabChange: (tab: number) => void;
 }
 
 export interface PartialMutationProviderOutput<
