@@ -9,7 +9,7 @@ from prices import Money, TaxedMoney
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.taxes import ZERO_MONEY
-from ..core.taxes.interface import get_order_line_total_gross
+from ..core.taxes.interface import refresh_order_line_unit_price
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
@@ -156,13 +156,13 @@ def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
     for line in order:
         if line.variant:
-            price = get_order_line_total_gross(line, discounts)
+            price = refresh_order_line_unit_price(line, discounts)
             line.unit_price = price
-            line.tax_rate = 0
+            line.tax_rate = 0  # Fixme we can calulcate tax_rate based on prices
             line.save()
 
     if order.shipping_method:
-        order.shipping_price = order.shipping_method.get_total(taxes)
+        order.shipping_price = order.shipping_method.get_total()
         order.save()
 
     recalculate_order(order)
@@ -268,7 +268,7 @@ def add_variant_to_order(
         variant.check_quantity(quantity)
 
     # FIXME maybe something more prettier ?
-    unit_price_net = variant.get_price(discounts).net
+    unit_price_net = variant.get_price(discounts)
     unit_price_gross = Money(
         amount=unit_price_net.amount + unit_tax, currency=unit_price_net.currency
     )

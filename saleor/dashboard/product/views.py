@@ -10,6 +10,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 
+from ...core.taxes import interface as tax_interface
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale
 from ...product.models import (
@@ -313,8 +314,10 @@ def variant_details(request, product_pk, variant_pk):
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
-    discounted_price = variant.get_price(
-        discounts=Sale.objects.active(date.today())
+    discounted_price = tax_interface.apply_taxes_to_variant(
+        variant,
+        variant.get_price(discounts=Sale.objects.active(date.today())),
+        request.country,
     ).gross
     ctx = {
         "images": images,

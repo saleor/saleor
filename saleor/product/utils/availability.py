@@ -7,7 +7,7 @@ from prices import TaxedMoneyRange
 from saleor.graphql.core.types import MoneyRange
 from saleor.product.models import Product, ProductVariant
 
-from ...core.taxes.interface import apply_taxes_to_product
+from ...core.taxes.interface import apply_taxes_to_product, apply_taxes_to_variant
 from ...core.utils import to_local_currency
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
@@ -141,11 +141,13 @@ def get_product_availability(
 
 
 def get_variant_availability(
-    variant: ProductVariant, discounts=None, taxes=None, local_currency=None
+    variant: ProductVariant, discounts=None, country=None, local_currency=None
 ) -> VariantAvailability:
 
-    discounted = variant.get_price(discounts=discounts, taxes=taxes)
-    undiscounted = variant.get_price(taxes=taxes)
+    discounted = apply_taxes_to_variant(
+        variant, variant.get_price(discounts=discounts), country
+    )
+    undiscounted = apply_taxes_to_variant(variant, variant.get_price(), country)
 
     discount = _get_total_discount(undiscounted, discounted)
 

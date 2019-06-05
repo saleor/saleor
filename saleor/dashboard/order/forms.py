@@ -189,7 +189,7 @@ class OrderShippingForm(forms.ModelForm):
         fields = ["shipping_method"]
 
     def __init__(self, *args, **kwargs):
-        self.taxes = kwargs.pop("taxes")
+        self.taxes = kwargs.pop("taxes")  # FIXME
         super().__init__(*args, **kwargs)
         method_field = self.fields["shipping_method"]
         fetch_data_url = reverse(
@@ -212,7 +212,7 @@ class OrderShippingForm(forms.ModelForm):
     def save(self, commit=True):
         method = self.instance.shipping_method
         self.instance.shipping_method_name = method.name
-        self.instance.shipping_price = method.get_total(self.taxes)
+        self.instance.shipping_price = method.get_total(self.taxes)  # FIXME
         recalculate_order(self.instance)
         return super().save(commit)
 
@@ -602,7 +602,7 @@ class AddVariantToOrderForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop("order")
         self.discounts = kwargs.pop("discounts")
-        self.taxes = kwargs.pop("taxes")
+        self.taxes = kwargs.pop("taxes")  # FIXME
         super().__init__(*args, **kwargs)
 
     def clean(self):

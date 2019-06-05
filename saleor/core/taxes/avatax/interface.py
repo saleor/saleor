@@ -1,41 +1,41 @@
 from collections import defaultdict
 from datetime import date
 from decimal import Decimal
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
 from prices import Money, TaxedMoney
 
-from ....checkout.models import Checkout
+from ....checkout import models as checkout_models
 from ....discount.models import Sale
-from ....order.models import Order
 from ..errors import TaxError
 from . import (
     TransactionType,
     api_post_request,
-    common_carrier_code,
-    generate_request_data,
     generate_request_data_from_checkout,
     get_api_url,
-    get_cached_response_or_fetch,
     get_checkout_tax_data,
     get_order_tax_data,
     validate_checkout,
 )
 
+if TYPE_CHECKING:
+    from ....order.models import Order, OrderLine
 
-def get_total_gross(checkout: "Checkout", discounts):
+
+def get_total_gross(checkout: "checkout_models.Checkout", discounts):
     if not validate_checkout(checkout):
         return checkout.get_total(discounts=discounts)
     response = get_checkout_tax_data(checkout, discounts)
     tax = Decimal(response.get("totalTax", "0.0"))
-    total_net = checkout.get_total(discounts=discounts).net
+    total_net = checkout.get_total(discounts=discounts)
     total_gross = Money(amount=total_net.amount + tax, currency=total_net.currency)
     total = TaxedMoney(net=total_net, gross=total_gross)
 
     return total
 
 
-def get_subtotal_gross(checkout: "Checkout", discounts):
+def get_subtotal_gross(checkout: "checkout_models.Checkout", discounts):
     if not validate_checkout(checkout):
         return checkout.get_subtotal(discounts)
     response = get_checkout_tax_data(checkout, discounts)
@@ -45,15 +45,15 @@ def get_subtotal_gross(checkout: "Checkout", discounts):
         if line["itemCode"] == "Shipping":
             continue
         sub_tax += Decimal(line["tax"])
-    sub_total_net = checkout.get_subtotal(discounts).net
+    sub_total_net = checkout.get_subtotal(discounts)
     sub_total_gross = Money(sub_total_net.amount + sub_tax, sub_total_net.currency)
     sub_total = TaxedMoney(net=sub_total_net, gross=sub_total_gross)
     return sub_total
 
 
-def get_shipping_gross(checkout: "Checkout", discounts):
+def get_shipping_gross(checkout: "checkout_models.Checkout", discounts):
     if not validate_checkout(checkout):
-        return checkout.get_shipping_price(None)
+        return checkout.get_shipping_price()
     response = get_checkout_tax_data(checkout, discounts)
 
     shipping_tax = Decimal(0.0)
@@ -62,14 +62,14 @@ def get_shipping_gross(checkout: "Checkout", discounts):
             shipping_tax = Decimal(line["tax"])
             break
 
-    shipping_net = checkout.get_shipping_price(None).net
+    shipping_net = checkout.get_shipping_price()
     shipping_gross = Money(shipping_net.amount + shipping_tax, shipping_net.currency)
     shipping_total = TaxedMoney(net=shipping_net, gross=shipping_gross)
 
     return shipping_total
 
 
-def get_lines_with_taxes(checkout: "Checkout", discounts):
+def get_lines_with_taxes(checkout: "checkout_models.Checkout", discounts):
     """Calculate and return tuple (line, unit_tax)"""
     lines_taxes = defaultdict(lambda: Decimal("0.0"))
 
@@ -92,7 +92,7 @@ def postprocess_order_creation_with_taxes(order: "Order"):
     # FIXME this can be a celery task (?)
     # FIXME maybe we can figure out better name
 
-    checkout = Checkout.objects.get(token=order.checkout_token)
+    checkout = checkout_models.Checkout.objects.get(token=order.checkout_token)
     discounts = Sale.objects.active(date.today()).prefetch_related(
         "products", "categories", "collections"
     )
@@ -102,32 +102,34 @@ def postprocess_order_creation_with_taxes(order: "Order"):
         transaction_type=TransactionType.INVOICE,
         discounts=discounts,
     )
-    transaction_url = urljoin(get_api_url(), "transactions/create")
+    transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
     response = api_post_request(transaction_url, data)
     # FIXME errors for users (?)
     if not response or "error" in response:
         raise TaxError(response.get("error", {}).get("message", ""))
 
 
-def get_line_total_gross(checkout_line: "CheckoutLine", discounts):
+def get_line_total_gross(checkout_line: "checkout_models.CheckoutLine", discounts):
     checkout = checkout_line.checkout
     taxes_data = get_checkout_tax_data(checkout, discounts)
 
     for line in taxes_data.get("lines", []):
         if line.get("itemCode") == checkout_line.variant.sku:
             tax = Decimal(line.get("tax", "0.0"))
-            net = checkout_line.get_total(discounts).net
+            net = checkout_line.get_total(discounts)
             return Money(amount=net.amount + tax, currency=net.currency)
 
     return checkout_line.get_total(discounts).gross
 
 
-def get_order_line_total_gross(order_line: "OrderLine", discounts):
+def refresh_order_line_unit_price(order_line: "OrderLine", discounts):
     order = order_line.order
     taxes_data = get_order_tax_data(order, discounts)
     for line in taxes_data.get("lines", []):
         if line.get("itemCode") == order_line.variant.sku:
             tax = Decimal(line.get("tax", "0.0"))
-            net = order_line.variant.get_total(discounts).net
-            return Money(amount=net.amount + tax, currency=net.currency)
-    return order_line.variant.get_total(discounts).gross
+            net = order_line.variant.get_price(discounts)
+            gross = Money(amount=net.amount + tax, currency=net.currency)
+            return TaxedMoney(net=net, gross=gross)
+    price = order_line.variant.get_price(discounts)
+    return TaxedMoney(net=price, gross=price)

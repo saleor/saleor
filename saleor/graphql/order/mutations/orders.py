@@ -172,7 +172,7 @@ class OrderUpdateShipping(BaseMutation):
         clean_order_update_shipping(order, method)
 
         order.shipping_method = method
-        order.shipping_price = method.get_total(info.context.taxes)
+        order.shipping_price = method.get_total(info.context.taxes)  # FIXME
         order.shipping_method_name = method.name
         order.save(
             update_fields=[

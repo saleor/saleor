@@ -7,27 +7,28 @@ from django_prices.templatetags.prices_i18n import amount
 
 from ..checkout.forms import AddToCheckoutForm
 from ..core.taxes import display_gross_prices
+from ..core.taxes.interface import apply_taxes_to_variant
 
 
 class VariantChoiceField(forms.ModelChoiceField):
     discounts = None
-    taxes = None
+    country = None
     display_gross = True
 
     def label_from_instance(self, obj):
         variant_label = smart_text(obj)
-        price = obj.get_price(self.discounts, self.taxes)
+        price = apply_taxes_to_variant(obj, obj.get_price(self.discounts), self.country)
         price = price.gross if self.display_gross else price.net
         label = pgettext_lazy(
             "Variant choice field label", "%(variant_label)s - %(price)s"
         ) % {"variant_label": variant_label, "price": amount(price)}
         return label
 
-    def update_field_data(self, variants, discounts, taxes):
+    def update_field_data(self, variants, discounts, country):
         """Initialize variant picker metadata."""
         self.queryset = variants
         self.discounts = discounts
-        self.taxes = taxes
+        self.country = country
         self.empty_label = None
         self.display_gross = display_gross_prices()
         images_map = {
@@ -46,8 +47,10 @@ class ProductForm(AddToCheckoutForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         variant_field = self.fields["variant"]
+        shipping_address = self.checkout.shipping_address
+        country = shipping_address.country if shipping_address else self.country
         variant_field.update_field_data(
-            self.product.variants.all(), self.discounts, self.taxes
+            self.product.variants.all(), self.discounts, country
         )
 
     def get_variant(self, cleaned_data):

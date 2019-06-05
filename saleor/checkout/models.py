@@ -11,7 +11,7 @@ from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
 
 from ..account.models import Address
-from ..core.taxes import ZERO_TAXED_MONEY, zero_money
+from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..shipping.models import ShippingMethod
 
@@ -92,23 +92,23 @@ class Checkout(models.Model):
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
 
-    def get_shipping_price(self, taxes):
+    def get_shipping_price(self):
         return (
-            self.shipping_method.get_total(taxes)
+            self.shipping_method.get_total()
             if self.shipping_method and self.is_shipping_required()
-            else ZERO_TAXED_MONEY
+            else zero_money()
         )
 
-    def get_subtotal(self, discounts=None, taxes=None):
+    def get_subtotal(self, discounts=None):
         """Return the total cost of the checkout prior to shipping."""
-        subtotals = (line.get_total(discounts, taxes) for line in self)
-        return sum(subtotals, ZERO_TAXED_MONEY)
+        subtotals = (line.get_total(discounts) for line in self)
+        return sum(subtotals, zero_money())
 
-    def get_total(self, discounts=None, taxes=None):
+    def get_total(self, discounts=None):
         """Return the total cost of the checkout."""
         return (
-            self.get_subtotal(discounts, taxes)
-            + self.get_shipping_price(taxes)
+            self.get_subtotal(discounts)
+            + self.get_shipping_price()
             - self.discount_amount
         )
 
@@ -172,9 +172,9 @@ class CheckoutLine(models.Model):
     def __setstate__(self, data):
         self.variant, self.quantity = data
 
-    def get_total(self, discounts=None, taxes=None):
+    def get_total(self, discounts=None):
         """Return the total price of this line."""
-        amount = self.quantity * self.variant.get_price(discounts, taxes)
+        amount = self.quantity * self.variant.get_price(discounts)
         return amount.quantize(CENTS)
 
     def is_shipping_required(self):

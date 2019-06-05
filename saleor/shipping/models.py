@@ -6,7 +6,7 @@ from django_countries.fields import CountryField
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from measurement.measures import Weight
-from prices import MoneyRange, TaxedMoney
+from prices import MoneyRange
 
 from ..core.utils import format_money
 from ..core.utils.translations import TranslationProxy
@@ -48,7 +48,7 @@ class ShippingZone(models.Model):
             for shipping_method in self.shipping_methods.all()
         ]
         if prices:
-            return MoneyRange(min(prices).net, max(prices).net)
+            return MoneyRange(min(prices), max(prices))
         return None
 
     class Meta:
@@ -159,9 +159,8 @@ class ShippingMethod(models.Model):
             ),
         )
 
-    def get_total(self, country=None):
-
-        return TaxedMoney(net=self.price, gross=self.price)
+    def get_total(self):
+        return self.price
 
     def get_ajax_label(self):
         price_html = format_money(self.price)

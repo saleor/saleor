@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from urllib.parse import urljoin
 
 import requests
@@ -9,6 +9,11 @@ from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
 from .. import charge_taxes_on_shipping
+
+if TYPE_CHECKING:
+    from ....checkout.models import Checkout
+    from ....order.models import Order
+
 
 common_carrier_code = "FR020100"  # FIXME
 cache_key = "avatax_request_id_"  # FIXME
@@ -128,8 +133,9 @@ def get_checkout_lines_data(
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=str(line.get_total(discounts).net.amount),
-            tax_code="PC040156",  # FIXME Should fetch taxcode from somewhere and save inside variant/product
+            amount=str(line.get_total(discounts).amount),
+            # FIXME Should fetch taxcode from somewhere and save inside variant/product
+            tax_code="PC040156",
             item_code=line.variant.sku,
             description=description,
         )

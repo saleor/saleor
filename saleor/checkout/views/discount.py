@@ -12,7 +12,6 @@ from ..forms import CheckoutVoucherForm
 from ..models import Checkout
 from ..utils import (
     get_or_empty_db_checkout,
-    get_taxes_for_checkout,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
@@ -38,8 +37,7 @@ def add_voucher_form(view):
                 # if only discount form was used we clear post for other forms
                 request.POST = {}
         else:
-            taxes = get_taxes_for_checkout(checkout, request.taxes)
-            recalculate_checkout_discount(checkout, request.discounts, taxes)
+            recalculate_checkout_discount(checkout, request.discounts)
         response = view(request, checkout)
         if isinstance(response, TemplateResponse):
             response.context_data["voucher_form"] = voucher_form
