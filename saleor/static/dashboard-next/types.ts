@@ -1,5 +1,6 @@
 import { MutationResult } from "react-apollo";
 
+import { FilterContentSubmitData } from "./components/Filter";
 import { Filter } from "./components/TableFilter";
 import { GetFilterTabsOutput } from "./utils/filters";
 
@@ -34,20 +35,20 @@ export interface ListActions extends ListActionsWithoutToolbar {
 export interface PageListProps extends ListProps {
   onAdd: () => void;
 }
-export interface FilterViewProps<TFilterContentSubmitData, TUrlFilters> {
+export interface FilterPageProps<TUrlFilters> {
+  currencySymbol: string;
   currentTab: number;
   filterTabs: GetFilterTabsOutput<TUrlFilters>;
   filtersList: Filter[];
   initialSearch: string;
   onAll: () => void;
   onSearchChange: (value: string) => void;
-  onFilterAdd: (filter: TFilterContentSubmitData) => void;
+  onFilterAdd: (filter: FilterContentSubmitData) => void;
   onFilterDelete: () => void;
   onFilterSave: () => void;
   onTabChange: (tab: number) => void;
 }
-export interface FilterProps<TFilterContentSubmitData, TUrlFilters>
-  extends FilterViewProps<TFilterContentSubmitData, TUrlFilters> {
+export interface FilterProps<TUrlFilters> extends FilterPageProps<TUrlFilters> {
   allTabLabel: string;
   filterLabel: string;
   searchPlaceholder: string;
