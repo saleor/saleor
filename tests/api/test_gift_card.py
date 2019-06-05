@@ -1,42 +1,9 @@
-from datetime import date, timedelta
+from datetime import date
 
 import graphene
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
-
-
-def test_query_own_gift_card(user_api_client, staff_user, gift_card):
-    query = """
-    query giftCard($id: ID!) {
-        giftCard(id: $id){
-            code
-            created
-            startDate
-            endDate
-            lastUsedOn
-            isActive
-            initialBalance {
-                amount
-            }
-            currentBalance {
-                amount
-            }
-        }
-    }
-    """
-    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
-    variables = {"id": gift_card_id}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["giftCard"]
-    assert data["code"] == gift_card.code
-    assert data["created"] == gift_card.created.isoformat()
-    assert data["startDate"] == gift_card.start_date.isoformat()
-    assert data["endDate"] == gift_card.end_date
-    assert data["isActive"] == gift_card.is_active
-    assert data["initialBalance"]["amount"] == gift_card.initial_balance
-    assert data["currentBalance"]["amount"] == gift_card.current_balance
 
 
 def test_query_gift_card_with_premissions(
@@ -75,8 +42,7 @@ def test_query_gift_card_without_premissions(
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card_created_by_staff.pk)
     variables = {"id": gift_card_id}
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert not content["data"]["giftCard"]
+    assert_no_permission(response)
 
 
 def test_query_gift_cards(
