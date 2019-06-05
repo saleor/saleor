@@ -7,26 +7,17 @@ import {
   IFilter
 } from "@saleor/components/Filter";
 import {
-  Filter,
   FilterChips,
   FilterTab,
   FilterTabs
 } from "@saleor/components/TableFilter";
 import i18n from "../../../i18n";
+import { FilterProps } from "../../../types";
 import { StockAvailability } from "../../../types/globalTypes";
 import { getFilterTabs } from "../../views/ProductList/filters";
 
-interface ProductListFilterProps {
+interface ProductListFilterProps extends FilterProps<FilterContentSubmitData> {
   currencySymbol: string;
-  currentTab: number;
-  filtersList: Filter[];
-  initialSearch: string;
-  onAllProducts: () => void;
-  onSearchChange: (value: string) => void;
-  onFilterAdd: (filter: FilterContentSubmitData) => void;
-  onFilterDelete: () => void;
-  onFilterSave: () => void;
-  onTabChange: (tab: number) => void;
 }
 
 export enum ProductFilterKeys {
