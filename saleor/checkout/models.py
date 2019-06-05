@@ -123,7 +123,7 @@ class Checkout(models.Model):
         return max(total, ZERO_TAXED_MONEY)
 
     def get_total_gift_cards_balance(self):
-        """Return the total balance of the gift cards assigned to the checkout"""
+        """Return the total balance of the gift cards assigned to the checkout."""
         gift_cards_total_balance = self.gift_cards.aggregate(
             models.Sum("current_balance")
         )["current_balance__sum"]
