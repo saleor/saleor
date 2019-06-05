@@ -58,11 +58,6 @@ class GiftCardCreate(ModelMutation):
                 )
         return cleaned_input
 
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        instance.creator = info.context.user
-        super().save(info, instance, cleaned_input)
-
 
 class GiftCardUpdate(GiftCardCreate):
     class Arguments:

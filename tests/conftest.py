@@ -630,7 +630,6 @@ def gift_card(customer_user, staff_user):
         buyer=customer_user,
         initial_balance=10,
         current_balance=10,
-        creator=staff_user,
     )
 
 
@@ -640,14 +639,13 @@ def gift_card_used(staff_user):
         code="used_gift_card",
         initial_balance=150,
         current_balance=100,
-        creator=staff_user,
     )
 
 
 @pytest.fixture
 def gift_card_created_by_staff(staff_user):
     return GiftCard.objects.create(
-        code="mirumee_staff", creator=staff_user, initial_balance=5, current_balance=5
+        code="mirumee_staff", initial_balance=5, current_balance=5
     )
 
 

@@ -15,10 +15,6 @@ class GiftCard(CountableDjangoObjectType):
         "saleor.graphql.account.types.User",
         description="The customer who bought a gift card.",
     )
-    creator = graphene.Field(
-        "saleor.graphql.account.types.User",
-        description="The staff who created a gift card.",
-    )
 
     class Meta:
         description = dedent(
@@ -30,7 +26,6 @@ class GiftCard(CountableDjangoObjectType):
         only_fields = [
             "code",
             "buyer",
-            "creator",
             "created",
             "start_date",
             "end_date",
@@ -48,7 +43,3 @@ class GiftCard(CountableDjangoObjectType):
     @permission_required("giftcard.manage_gift_card")
     def resolve_buyer(self, _info):
         return self.buyer
-
-    @permission_required("giftcard.manage_gift_card")
-    def resolve_creator(self, _info):
-        return self.creator
