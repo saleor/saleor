@@ -115,32 +115,7 @@ class GiftCardActivate(BaseMutation):
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
-        if not gift_card.is_active:
+           if not gift_card.is_active:
             gift_card.is_active = True
             gift_card.save(update_fields=["is_active"])
-        return GiftCardDeactivate(gift_card=gift_card)
-
-
-class GiftCardVerify(BaseMutation):
-    gift_card = graphene.Field(GiftCard, description="A gift card to verify.")
-
-    class Arguments:
-        code = graphene.String(required=True, description="Code of a gift card.")
-
-    class Meta:
-        description = "Verify a gift card."
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        code = data.get("code")
-        try:
-            gift_card = models.GiftCard.objects.get(code=code)
-        except models.GiftCard.DoesNotExist:
-            gift_card = None
-            raise ValidationError({"code": "Incorrect gift card code."})
-        if gift_card:
-            if not gift_card.is_active:
-                raise ValidationError({"is_active": "Gift card is inactive."})
-            if gift_card.end_date and date.today() > gift_card.end_date:
-                raise ValidationError({"end_date": "Gift card expired."})
         return GiftCardDeactivate(gift_card=gift_card)
