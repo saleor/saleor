@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from ...account.models import User
 from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...giftcard import models
+from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import Decimal
 from .types import GiftCard
@@ -93,9 +94,7 @@ class GiftCardDeactivate(BaseMutation):
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
-        if gift_card.is_active:
-            gift_card.is_active = False
-            gift_card.save(update_fields=["is_active"])
+        deactivate_gift_card(gift_card)
         return GiftCardDeactivate(gift_card=gift_card)
 
 
@@ -115,7 +114,5 @@ class GiftCardActivate(BaseMutation):
         gift_card = cls.get_node_or_error(
             info, gift_card_id, field="gift_card_id", only_type=GiftCard
         )
-           if not gift_card.is_active:
-            gift_card.is_active = True
-            gift_card.save(update_fields=["is_active"])
-        return GiftCardDeactivate(gift_card=gift_card)
+        activate_gift_card(gift_card)
+        return GiftCardActivate(gift_card=gift_card)
