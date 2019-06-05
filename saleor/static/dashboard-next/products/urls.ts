@@ -15,16 +15,17 @@ export type ProductListUrlDialog =
   | "delete"
   | "save-search"
   | "delete-search";
-export enum ProductListUrlFilters {
+export enum ProductListUrlFiltersEnum {
   isPublished = "isPublished",
   priceFrom = "priceFrom",
   priceTo = "priceTo",
   status = "status",
   query = "query"
 }
+export type ProductListUrlFilters = Filters<ProductListUrlFiltersEnum>;
 export type ProductListUrlQueryParams = BulkAction &
   Dialog<ProductListUrlDialog> &
-  Filters<ProductListUrlFilters> &
+  ProductListUrlFilters &
   Pagination &
   ActiveTab;
 export const productListUrl = (params?: ProductListUrlQueryParams): string =>

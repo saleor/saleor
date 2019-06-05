@@ -1,21 +1,22 @@
 import { FilterContentSubmitData } from "../../../components/Filter";
 import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
-import { Filters } from "../../../types";
 import {
   ProductFilterInput,
   StockAvailability
 } from "../../../types/globalTypes";
 import { createFilterTabUtils } from "../../../utils/filters";
 import { ProductFilterKeys } from "../../components/ProductListFilter";
-import { ProductListUrlFilters, ProductListUrlQueryParams } from "../../urls";
+import {
+  ProductListUrlFilters,
+  ProductListUrlFiltersEnum,
+  ProductListUrlQueryParams
+} from "../../urls";
 
 export const PRODUCT_FILTERS_KEY = "productFilters";
 
-type ProductListFilters = Filters<ProductListUrlFilters>;
-
 export function getFilterVariables(
-  params: ProductListFilters
+  params: ProductListUrlFilters
 ): ProductFilterInput {
   return {
     isPublished:
@@ -31,9 +32,9 @@ export function getFilterVariables(
 
 export function getActiveFilters(
   params: ProductListUrlQueryParams
-): ProductListFilters {
+): ProductListUrlFilters {
   return Object.keys(params)
-    .filter(key => Object.keys(ProductListUrlFilters).includes(key))
+    .filter(key => Object.keys(ProductListUrlFiltersEnum).includes(key))
     .reduce((acc, key) => {
       acc[key] = params[key];
       return acc;
@@ -46,7 +47,7 @@ export function areFiltersApplied(params: ProductListUrlQueryParams): boolean {
 
 export function createFilter(
   filter: FilterContentSubmitData
-): ProductListFilters {
+): ProductListUrlFilters {
   const filterName = filter.name;
   if (filterName === ProductFilterKeys.priceEqual.toString()) {
     const value = filter.value as string;
@@ -77,9 +78,9 @@ interface ProductListChipFormatData {
   locale: string;
 }
 export function createFilterChips(
-  filters: ProductListFilters,
+  filters: ProductListUrlFilters,
   formatData: ProductListChipFormatData,
-  onClose: (filters: ProductListFilters) => void
+  onClose: (filters: ProductListUrlFilters) => void
 ): Filter[] {
   let filterChips: Filter[] = [];
 
@@ -193,4 +194,4 @@ export const {
   deleteFilterTab,
   getFilterTabs,
   saveFilterTab
-} = createFilterTabUtils<ProductListFilters>(PRODUCT_FILTERS_KEY);
+} = createFilterTabUtils<ProductListUrlFilters>(PRODUCT_FILTERS_KEY);
