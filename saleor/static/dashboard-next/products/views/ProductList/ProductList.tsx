@@ -203,13 +203,9 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         )}
                         onAdd={() => navigate(productAddUrl)}
                         disabled={loading}
-                        products={
-                          data &&
-                          data.products !== undefined &&
-                          data.products !== null
-                            ? data.products.edges.map(p => p.node)
-                            : undefined
-                        }
+                        products={maybe(() =>
+                          data.products.edges.map(edge => edge.node)
+                        )}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
                         pageInfo={pageInfo}
