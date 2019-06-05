@@ -1,17 +1,15 @@
 """Checkout-related utility functions."""
 from datetime import date, timedelta
-from decimal import Decimal
 from functools import wraps
 from uuid import UUID
 
-from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Sum
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
-from prices import TaxedMoney, TaxedMoneyRange
+from prices import TaxedMoneyRange
 
 from ..account.forms import get_address_form
 from ..account.models import Address, User
@@ -20,12 +18,12 @@ from ..core.exceptions import InsufficientStock
 from ..core.taxes import ZERO_MONEY
 from ..core.taxes.avatax.interface import postprocess_order_creation_with_taxes  # FIXME
 from ..core.taxes.interface import (
+    get_line_total_gross,
     get_lines_with_taxes,
     get_shipping_gross,
     get_subtotal_gross,
     get_total_gross,
 )
-from ..core.taxes.vatlayer import get_taxes_for_country  # FIXME
 from ..core.utils import to_local_currency
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
@@ -642,9 +640,7 @@ def change_shipping_address_in_checkout(checkout, address):
         checkout.save(update_fields=["shipping_address"])
 
 
-def get_checkout_context(
-    checkout, discounts, taxes, currency=None, shipping_range=None
-):
+def get_checkout_context(checkout, discounts, currency=None, shipping_range=None):
     """Data shared between views in checkout process."""
     checkout_total = get_total_gross(checkout, discounts)
     checkout_subtotal = get_subtotal_gross(checkout, discounts)
@@ -661,7 +657,7 @@ def get_checkout_context(
         "checkout": checkout,
         "checkout_are_taxes_handled": True,  # bool(taxes), #FIXME
         "checkout_lines": [
-            (line, line.get_total(discounts, taxes)) for line in checkout
+            (line, get_line_total_gross(line, discounts)) for line in checkout
         ],
         "checkout_shipping_price": shipping_price,
         "checkout_subtotal": checkout_subtotal,
@@ -760,7 +756,7 @@ def get_voucher_for_checkout(checkout, vouchers=None):
     return None
 
 
-def recalculate_checkout_discount(checkout, discounts, taxes):
+def recalculate_checkout_discount(checkout, discounts):
     """Recalculate `checkout.discount` based on the voucher.
 
     Will clear both voucher and discount if the discount is no longer
@@ -773,7 +769,7 @@ def recalculate_checkout_discount(checkout, discounts, taxes):
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
-            subtotal = checkout.get_subtotal(discounts, taxes).gross
+            subtotal = get_subtotal_gross(checkout, discounts).gross
             checkout.discount_amount = min(discount, subtotal)
             checkout.discount_name = str(voucher)
             checkout.translated_discount_name = (
@@ -827,17 +823,6 @@ def remove_voucher_from_checkout(checkout):
             "discount_amount",
         ]
     )
-
-
-def get_taxes_for_checkout(checkout, default_taxes):
-    """Return taxes (if handled) due to shipping address or default one."""
-    if not settings.VATLAYER_ACCESS_KEY:
-        return None
-
-    if checkout.shipping_address:
-        return get_taxes_for_country(checkout.shipping_address.country)
-
-    return default_taxes
 
 
 def is_valid_shipping_method(checkout, discounts):
@@ -924,7 +909,7 @@ def _process_user_data_for_order(checkout):
 
 
 @transaction.atomic
-def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user: User):
+def create_order(checkout: Checkout, tracking_code: str, discounts, user: User):
     """Create an order from the checkout.
 
     Each order will get a private copy of both the billing and the shipping
@@ -981,16 +966,16 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user:
     return order
 
 
-def is_fully_paid(checkout: Checkout, taxes, discounts):
+def is_fully_paid(checkout: Checkout, discounts):
     """Check if provided payment methods cover the checkout's total amount.
     Note that these payments may not be captured or charged at all."""
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
-    checkout_total = checkout.get_total(discounts=discounts, taxes=taxes).gross.amount
-    return total_paid >= checkout_total
+    checkout_total = get_total_gross(checkout, discounts=discounts).gross
+    return total_paid >= checkout_total.amount
 
 
-def clean_checkout(checkout: Checkout, taxes, discounts):
+def clean_checkout(checkout: Checkout, discounts):
     """Check if checkout can be completed."""
     if checkout.is_shipping_required():
         if not checkout.shipping_method:
@@ -1005,7 +990,7 @@ def clean_checkout(checkout: Checkout, taxes, discounts):
     if not checkout.billing_address:
         raise ValidationError("Billing address is not set")
 
-    if not is_fully_paid(checkout, taxes, discounts):
+    if not is_fully_paid(checkout, discounts):
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total " "amount"
         )

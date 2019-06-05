@@ -1,6 +1,5 @@
 """Checkout-related forms and fields."""
 from datetime import date
-from decimal import Decimal
 from typing import Any
 
 from django import forms
@@ -10,12 +9,10 @@ from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import LazyTypedChoiceField
-from prices import Money, TaxedMoney
-
-from saleor.core.taxes.interface import apply_taxes_to_shipping, get_subtotal_gross
 
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import display_gross_prices
+from ..core.taxes.interface import apply_taxes_to_shipping, get_subtotal_gross
 from ..core.utils import format_money
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod, ShippingZone
@@ -73,7 +70,7 @@ class AddToCheckoutForm(forms.Form):
         self.checkout = kwargs.pop("checkout")
         self.product = kwargs.pop("product")
         self.discounts = kwargs.pop("discounts", ())
-        self.taxes = kwargs.pop("taxes", {})
+        self.country = kwargs.pop("country", {})
         super().__init__(*args, **kwargs)
 
     def add_error_i18n(self, field, error_name, fmt: Any = tuple()):
@@ -193,7 +190,6 @@ class CountryForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        self.taxes = kwargs.pop("taxes", {})
         super().__init__(*args, **kwargs)
         available_countries = {
             (country.code, country.name)
@@ -208,8 +204,8 @@ class CountryForm(forms.Form):
         """Return a shipping price range for given order for the selected
         country.
         """
-        code = self.cleaned_data["country"]
-        return get_shipping_price_estimate(price, weight, code, self.taxes)
+        country = self.cleaned_data["country"]
+        return get_shipping_price_estimate(price, weight, country)
 
 
 class AnonymousUserShippingForm(forms.ModelForm):

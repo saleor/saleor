@@ -15,7 +15,7 @@ from django_prices.templatetags import prices_i18n
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
@@ -24,7 +24,6 @@ from saleor.core.utils import build_absolute_uri
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, SortableModel
-from ..core.taxes import interface as tax_interface
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
@@ -179,10 +178,10 @@ class Product(SeoModel, PublishableModel):
         images = list(self.images.all())
         return images[0] if images else None
 
-    def get_price_range(self, discounts=None, country=None):
+    def get_price_range(self, discounts=None):
         if self.variants.all():
-            prices = [variant.get_price(discounts, country) for variant in self]
-            return MoneyRange(min(prices, max(prices)))
+            prices = [variant.get_price(discounts) for variant in self]
+            return MoneyRange(min(prices), max(prices))
         price = calculate_discounted_price(self, self.price, discounts)
         return MoneyRange(start=price, stop=price)
 

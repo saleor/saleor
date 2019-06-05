@@ -117,8 +117,7 @@ class Checkout(CountableDjangoObjectType):
         return self.lines.prefetch_related("variant")
 
     def resolve_available_shipping_methods(self, info):
-        taxes = None
-        price = self.get_subtotal(taxes=taxes, discounts=info.context.discounts)
+        price = get_subtotal_gross(checkout=self, discounts=info.context.discounts)
         return applicable_shipping_methods(self, price.gross.amount)
 
     def resolve_available_payment_gateways(self, _info):

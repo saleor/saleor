@@ -267,7 +267,7 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_pricing(self, info):
         context = info.context
         availability = get_variant_availability(
-            self, context.discounts, context.taxes, context.currency
+            self, context.discounts, context.country, context.currency
         )
         return VariantPricingInfo(**availability._asdict())
 
@@ -461,7 +461,7 @@ class Product(CountableDjangoObjectType):
     )
     def resolve_price(self, info):
         price_range = self.get_price_range(info.context.discounts)
-        return price_range.start.net
+        return price_range.start
 
     @gql_optimizer.resolver_hints(
         prefetch_related="product_type__product_attributes__values"

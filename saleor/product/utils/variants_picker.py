@@ -3,7 +3,7 @@ from collections import defaultdict
 from django_prices.templatetags import prices_i18n
 
 from ...core.taxes import display_gross_prices
-from ...core.taxes.interface import apply_taxes_to_variant
+from ...core.taxes.interface import apply_taxes_to_variant, show_taxes_on_storefront
 from ...core.utils import to_local_currency
 from ...seo.schema.product import variant_json_ld
 from .availability import get_product_availability
@@ -29,7 +29,7 @@ def get_variant_picker_data(product, discounts=None, country=None, local_currenc
         else:
             price_local_currency = None
         in_stock = variant.is_in_stock()
-        schema_data = variant_json_ld(price, variant, in_stock)
+        schema_data = variant_json_ld(price.net, variant, in_stock)
         variant_data = {
             "id": variant.id,
             "availability": in_stock,
@@ -79,7 +79,7 @@ def get_variant_picker_data(product, discounts=None, country=None, local_currenc
     }
     data["priceDisplay"] = {
         "displayGross": display_gross_prices(),
-        "handleTaxes": bool(taxes),
+        "handleTaxes": show_taxes_on_storefront(),
     }
     return data
 
