@@ -141,9 +141,6 @@ mutation giftCardCreate(
                 buyer {
                     email
                 }
-                creator {
-                    email
-                }
                 created
                 startDate
                 endDate
@@ -180,7 +177,6 @@ def test_create_gift_card(staff_api_client, customer_user, permission_manage_gif
     data = content["data"]["giftCardCreate"]["giftCard"]
     assert data["code"] == code
     assert data["buyer"]["email"] == customer_user.email
-    assert data["creator"]["email"] == staff_api_client.user.email
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
     assert not data["lastUsedOn"]

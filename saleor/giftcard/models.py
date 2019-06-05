@@ -25,9 +25,6 @@ class GiftCard(models.Model):
         on_delete=models.SET_NULL,
         related_name="gift_cards",
     )
-    creator = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL
-    )
     created = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=date.today)
     end_date = models.DateField(null=True, blank=True)
