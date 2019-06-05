@@ -31,7 +31,7 @@ class GiftCard(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=date.today)
     expiration_date = models.DateField(null=True, blank=True)
-    last_used_on = models.DateField(default=date.today)
+    last_used_on = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     initial_balance = MoneyField(
         currency=settings.DEFAULT_CURRENCY,

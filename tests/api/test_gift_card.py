@@ -34,7 +34,6 @@ def test_query_own_gift_card(user_api_client, staff_user, gift_card):
     assert data["created"] == gift_card.created.isoformat()
     assert data["startDate"] == gift_card.start_date.isoformat()
     assert data["expirationDate"] == gift_card.expiration_date
-    assert data["lastUsedOn"] == gift_card.last_used_on.isoformat()
     assert data["isActive"] == gift_card.is_active
     assert data["initialBalance"]["amount"] == gift_card.initial_balance
     assert data["currentBalance"]["amount"] == gift_card.current_balance
@@ -184,7 +183,7 @@ def test_create_gift_card(staff_api_client, customer_user, permission_manage_gif
     assert data["creator"]["email"] == staff_api_client.user.email
     assert data["startDate"] == start_date.isoformat()
     assert data["expirationDate"] == expiration_date.isoformat()
-    assert data["lastUsedOn"] == date.today().isoformat()
+    assert not data["lastUsedOn"]
     assert data["isActive"]
     assert data["initialBalance"]["amount"] == initial_balance
     assert data["currentBalance"]["amount"] == initial_balance
