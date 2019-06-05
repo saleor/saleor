@@ -51,7 +51,9 @@ class Checkout(CountableDjangoObjectType):
     )
     email = graphene.String(description="Email of a customer", required=True)
     gift_cards = gql_optimizer.field(
-        graphene.List(GiftCard, description="List of userd gift cards"),
+        graphene.List(
+            GiftCard, description="List of gift cards associated with this checkout"
+        ),
         model_field="gift_cards",
     )
     is_shipping_required = graphene.Boolean(
