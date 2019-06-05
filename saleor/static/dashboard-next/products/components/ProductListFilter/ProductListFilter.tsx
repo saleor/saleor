@@ -7,9 +7,7 @@ import { FilterProps } from "@saleor/types";
 import { StockAvailability } from "@saleor/types/globalTypes";
 import { ProductListUrlFilters } from "../../urls";
 
-interface ProductListFilterProps extends FilterProps<ProductListUrlFilters> {
-  currencySymbol: string;
-}
+type ProductListFilterProps = FilterProps<ProductListUrlFilters>;
 
 export enum ProductFilterKeys {
   published,
