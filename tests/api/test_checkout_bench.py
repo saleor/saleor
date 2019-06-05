@@ -69,10 +69,8 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
           gross {
             amount
             localized
-            __typename
           }
           currency
-          __typename
         }
 
         fragment ProductVariant on ProductVariant {
@@ -82,7 +80,6 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
             amount
             currency
             localized
-            __typename
           }
           product {
             id
@@ -90,15 +87,11 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
             thumbnail {
               url
               alt
-              __typename
             }
             thumbnail2x: thumbnail(size: 510) {
               url
-              __typename
             }
-            __typename
           }
-          __typename
         }
 
         fragment CheckoutLine on CheckoutLine {
@@ -106,15 +99,12 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
           quantity
           totalPrice {
             ...Price
-            __typename
           }
           variant {
             stockQuantity
             ...ProductVariant
-            __typename
           }
           quantity
-          __typename
         }
 
         fragment Address on Address {
@@ -129,11 +119,9 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
           country {
             code
             country
-            __typename
           }
           countryArea
           phone
-          __typename
         }
 
         fragment ShippingMethod on ShippingMethod {
@@ -143,9 +131,7 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
             currency
             amount
             localized
-            __typename
           }
-          __typename
         }
 
         fragment Checkout on Checkout {
@@ -154,42 +140,32 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
           id
           user {
             email
-            __typename
           }
           totalPrice {
             ...Price
-            __typename
           }
           subtotalPrice {
             ...Price
-            __typename
           }
           billingAddress {
             ...Address
-            __typename
           }
           shippingAddress {
             ...Address
-            __typename
           }
           email
           availableShippingMethods {
             ...ShippingMethod
-            __typename
           }
           shippingMethod {
             ...ShippingMethod
-            __typename
           }
           shippingPrice {
             ...Price
-            __typename
           }
           lines {
             ...CheckoutLine
-            __typename
           }
-          __typename
         }
 
         mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
@@ -197,13 +173,10 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
             errors {
               field
               message
-              __typename
             }
             checkout {
               ...Checkout
-              __typename
             }
-            __typename
           }
         }
     """
@@ -237,10 +210,8 @@ def test_add_shipping_to_checkout(
           gross {
             amount
             localized
-            __typename
           }
           currency
-          __typename
         }
 
         fragment ProductVariant on ProductVariant {
@@ -250,7 +221,6 @@ def test_add_shipping_to_checkout(
             amount
             currency
             localized
-            __typename
           }
           product {
             id
@@ -258,15 +228,11 @@ def test_add_shipping_to_checkout(
             thumbnail {
               url
               alt
-              __typename
             }
             thumbnail2x: thumbnail(size: 510) {
               url
-              __typename
             }
-            __typename
           }
-          __typename
         }
 
         fragment CheckoutLine on CheckoutLine {
@@ -274,15 +240,12 @@ def test_add_shipping_to_checkout(
           quantity
           totalPrice {
             ...Price
-            __typename
           }
           variant {
             stockQuantity
             ...ProductVariant
-            __typename
           }
           quantity
-          __typename
         }
 
         fragment Address on Address {
@@ -297,11 +260,9 @@ def test_add_shipping_to_checkout(
           country {
             code
             country
-            __typename
           }
           countryArea
           phone
-          __typename
         }
 
         fragment ShippingMethod on ShippingMethod {
@@ -311,9 +272,7 @@ def test_add_shipping_to_checkout(
             currency
             amount
             localized
-            __typename
           }
-          __typename
         }
 
         fragment Checkout on Checkout {
@@ -322,42 +281,32 @@ def test_add_shipping_to_checkout(
           id
           user {
             email
-            __typename
           }
           totalPrice {
             ...Price
-            __typename
           }
           subtotalPrice {
             ...Price
-            __typename
           }
           billingAddress {
             ...Address
-            __typename
           }
           shippingAddress {
             ...Address
-            __typename
           }
           email
           availableShippingMethods {
             ...ShippingMethod
-            __typename
           }
           shippingMethod {
             ...ShippingMethod
-            __typename
           }
           shippingPrice {
             ...Price
-            __typename
           }
           lines {
             ...CheckoutLine
-            __typename
           }
-          __typename
         }
 
         mutation updateCheckoutShippingOptions(
@@ -371,13 +320,10 @@ def test_add_shipping_to_checkout(
             errors {
               field
               message
-              __typename
             }
             checkout {
               ...Checkout
-              __typename
             }
-            __typename
           }
         }
     """
@@ -398,10 +344,8 @@ def test_add_billing_address_to_checkout(
           gross {
             amount
             localized
-            __typename
           }
           currency
-          __typename
         }
 
         fragment ProductVariant on ProductVariant {
@@ -411,7 +355,6 @@ def test_add_billing_address_to_checkout(
             amount
             currency
             localized
-            __typename
           }
           product {
             id
@@ -419,15 +362,11 @@ def test_add_billing_address_to_checkout(
             thumbnail {
               url
               alt
-              __typename
             }
             thumbnail2x: thumbnail(size: 510) {
               url
-              __typename
             }
-            __typename
           }
-          __typename
         }
 
         fragment CheckoutLine on CheckoutLine {
@@ -435,15 +374,12 @@ def test_add_billing_address_to_checkout(
           quantity
           totalPrice {
             ...Price
-            __typename
           }
           variant {
             stockQuantity
             ...ProductVariant
-            __typename
           }
           quantity
-          __typename
         }
 
         fragment Address on Address {
@@ -458,11 +394,9 @@ def test_add_billing_address_to_checkout(
           country {
             code
             country
-            __typename
           }
           countryArea
           phone
-          __typename
         }
 
         fragment ShippingMethod on ShippingMethod {
@@ -472,9 +406,7 @@ def test_add_billing_address_to_checkout(
             currency
             amount
             localized
-            __typename
           }
-          __typename
         }
 
         fragment Checkout on Checkout {
@@ -483,42 +415,32 @@ def test_add_billing_address_to_checkout(
           id
           user {
             email
-            __typename
           }
           totalPrice {
             ...Price
-            __typename
           }
           subtotalPrice {
             ...Price
-            __typename
           }
           billingAddress {
             ...Address
-            __typename
           }
           shippingAddress {
             ...Address
-            __typename
           }
           email
           availableShippingMethods {
             ...ShippingMethod
-            __typename
           }
           shippingMethod {
             ...ShippingMethod
-            __typename
           }
           shippingPrice {
             ...Price
-            __typename
           }
           lines {
             ...CheckoutLine
-            __typename
           }
-          __typename
         }
 
         mutation updateCheckoutBillingAddress(
@@ -532,13 +454,10 @@ def test_add_billing_address_to_checkout(
             errors {
               field
               message
-              __typename
             }
             checkout {
               ...Checkout
-              __typename
             }
-            __typename
           }
         }
     """
@@ -560,9 +479,7 @@ def test_checkout_payment_charge(
             errors {
               field
               message
-              __typename
             }
-            __typename
           }
         }
     """
@@ -588,14 +505,11 @@ def test_complete_checkout(api_client, checkout_with_charged_payment, count_quer
             errors {
               field
               message
-              __typename
             }
             order {
               id
               token
-              __typename
             }
-            __typename
           }
         }
     """
