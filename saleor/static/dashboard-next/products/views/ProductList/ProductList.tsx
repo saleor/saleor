@@ -4,23 +4,29 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
-import { StockAvailability } from "../../types/globalTypes";
-import ProductListCard from "../components/ProductListCard";
-import { getTabName } from "../misc";
+import ActionDialog from "../../../components/ActionDialog";
+import DeleteFilterTabDialog from "../../../components/DeleteFilterTabDialog";
+import SaveFilterTabDialog, {
+  SaveFilterTabDialogFormData
+} from "../../../components/SaveFilterTabDialog";
+import useBulkActions from "../../../hooks/useBulkActions";
+import useLocale from "../../../hooks/useLocale";
+import useNavigator from "../../../hooks/useNavigator";
+import useNotifier from "../../../hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "../../../hooks/usePaginator";
+import useShop from "../../../hooks/useShop";
+import i18n from "../../../i18n";
+import { getMutationState, maybe } from "../../../misc";
+import ProductListCard from "../../components/ProductListCard";
 import {
   TypedProductBulkDeleteMutation,
   TypedProductBulkPublishMutation
-} from "../mutations";
-import { TypedProductListQuery } from "../queries";
-import { productBulkDelete } from "../types/productBulkDelete";
-import { productBulkPublish } from "../types/productBulkPublish";
+} from "../../mutations";
+import { TypedProductListQuery } from "../../queries";
+import { productBulkDelete } from "../../types/productBulkDelete";
+import { productBulkPublish } from "../../types/productBulkPublish";
 import {
   productAddUrl,
   productListUrl,
@@ -28,7 +34,17 @@ import {
   ProductListUrlFilters,
   ProductListUrlQueryParams,
   productUrl
-} from "../urls";
+} from "../../urls";
+import {
+  areFiltersApplied,
+  createFilter,
+  createFilterChips,
+  deleteFilterTab,
+  getActiveFilters,
+  getFilterTabs,
+  getFilterVariables,
+  saveFilterTab
+} from "./filters";
 
 interface ProductListProps {
   params: ProductListUrlQueryParams;
@@ -39,12 +55,23 @@ const PAGINATE_BY = 20;
 export const ProductList: React.StatelessComponent<ProductListProps> = ({
   params
 }) => {
+  const locale = useLocale();
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
+  const shop = useShop();
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
+
+  const tabs = getFilterTabs();
+
+  const currentTab =
+    params.activeTab === undefined
+      ? areFiltersApplied(params)
+        ? tabs.length + 1
+        : 0
+      : parseInt(params.activeTab, 0);
 
   const closeModal = () =>
     navigate(
@@ -61,7 +88,18 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     navigate(productListUrl(filters));
   };
 
-  const openModal = (action: ProductListUrlDialog, ids: string[]) =>
+  const changeFilterField = (filter: ProductListUrlFilters) => {
+    reset();
+    navigate(
+      productListUrl({
+        ...getActiveFilters(params),
+        ...filter,
+        activeTab: undefined
+      })
+    );
+  };
+
+  const openModal = (action: ProductListUrlDialog, ids?: string[]) =>
     navigate(
       productListUrl({
         ...params,
@@ -70,18 +108,37 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       })
     );
 
+  const handleTabChange = (tab: number) =>
+    navigate(
+      productListUrl({
+        activeTab: tab.toString(),
+        ...getFilterTabs()[tab - 1].data
+      })
+    );
+
+  const handleFilterTabDelete = () => {
+    deleteFilterTab(currentTab);
+    reset();
+    navigate(productListUrl());
+  };
+
+  const handleFilterTabSave = (data: SaveFilterTabDialogFormData) => {
+    saveFilterTab(data.name, getActiveFilters(params));
+    handleTabChange(tabs.length + 1);
+  };
+
   const paginationState = createPaginationState(PAGINATE_BY, params);
+  const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
 
   return (
     <TypedProductListQuery
       displayLoader
       variables={{
         ...paginationState,
-        stockAvailability: params.status
+        filter: getFilterVariables(params)
       }}
     >
       {({ data, loading, refetch }) => {
-        const currentTab = getTabName(params);
         const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
           maybe(() => data.products.pageInfo),
           paginationState,
@@ -135,8 +192,16 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                   return (
                     <>
                       <ProductListCard
+                        currencySymbol={currencySymbol}
                         currentTab={currentTab}
-                        filtersList={[]}
+                        filtersList={createFilterChips(
+                          params,
+                          {
+                            currencySymbol,
+                            locale
+                          },
+                          changeFilterField
+                        )}
                         onAdd={() => navigate(productAddUrl)}
                         disabled={loading}
                         products={
@@ -153,17 +218,6 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         onAllProducts={() =>
                           changeFilters({
                             status: undefined
-                          })
-                        }
-                        onCustomFilter={() => undefined}
-                        onAvailable={() =>
-                          changeFilters({
-                            status: StockAvailability.IN_STOCK
-                          })
-                        }
-                        onOfStock={() =>
-                          changeFilters({
-                            status: StockAvailability.OUT_OF_STOCK
                           })
                         }
                         toolbar={
@@ -194,6 +248,14 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         selected={listElements.length}
                         toggle={toggle}
                         toggleAll={toggleAll}
+                        onSearchChange={query => changeFilterField({ query })}
+                        onFilterAdd={filter =>
+                          changeFilterField(createFilter(filter))
+                        }
+                        onFilterSave={() => openModal("save-search")}
+                        onFilterDelete={() => openModal("delete-search")}
+                        onTabChange={handleTabChange}
+                        initialSearch={params.query || ""}
                       />
                       <ActionDialog
                         open={params.action === "delete"}
@@ -275,6 +337,19 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                           }}
                         />
                       </ActionDialog>
+                      <SaveFilterTabDialog
+                        open={params.action === "save-search"}
+                        confirmButtonState="default"
+                        onClose={closeModal}
+                        onSubmit={handleFilterTabSave}
+                      />
+                      <DeleteFilterTabDialog
+                        open={params.action === "delete-search"}
+                        confirmButtonState="default"
+                        onClose={closeModal}
+                        onSubmit={handleFilterTabDelete}
+                        tabName={maybe(() => tabs[currentTab - 1].name, "...")}
+                      />
                     </>
                   );
                 }}

@@ -12,10 +12,12 @@ function loadStories() {
   require("./stories/components/Chip");
   require("./stories/components/Date");
   require("./stories/components/DateTime");
+  require("./stories/components/DeleteFilterTabDialog");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/ErrorPage");
   require("./stories/components/ExternalLink");
+  require("./stories/components/Filter");
   require("./stories/components/Money");
   require("./stories/components/MoneyRange");
   require("./stories/components/MultiAutocompleteSelectField");
@@ -27,6 +29,7 @@ function loadStories() {
   require("./stories/components/PriceField");
   require("./stories/components/RichTextEditor");
   require("./stories/components/SaveButtonBar");
+  require("./stories/components/SaveFilterTabDialog");
   require("./stories/components/SingleAutocompleteSelectField");
   require("./stories/components/SingleSelectField");
   require("./stories/components/Skeleton");
