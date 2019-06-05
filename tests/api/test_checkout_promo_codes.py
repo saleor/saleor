@@ -416,7 +416,7 @@ def test_checkout_add_gift_card_code_in_active_gift_card(
 def test_checkout_add_gift_card_code_in_expired_gift_card(
     api_client, checkout_with_item, gift_card
 ):
-    gift_card.expiration_date = date.today() - timedelta(days=1)
+    gift_card.end_date = date.today() - timedelta(days=1)
     gift_card.save()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)

@@ -33,7 +33,7 @@ class GiftCard(CountableDjangoObjectType):
             "creator",
             "created",
             "start_date",
-            "expiration_date",
+            "end_date",
             "last_used_on",
             "is_active",
             "initial_balance",
