@@ -5,15 +5,11 @@ import {
   ProductFilterInput,
   StockAvailability
 } from "../../../types/globalTypes";
+import { createFilterTabUtils } from "../../../utils/filters";
 import { ProductFilterKeys } from "../../components/ProductListFilter";
 import { ProductListUrlFilters, ProductListUrlQueryParams } from "../../urls";
 
 export const PRODUCT_FILTERS_KEY = "productFilters";
-
-export interface UserFilter {
-  name: string;
-  data: ProductListUrlFilters;
-}
 
 export function getFilterVariables(
   params: ProductListUrlFilters
@@ -77,10 +73,6 @@ export function createFilter(
   }
 }
 
-function exists(param: any): boolean {
-  return param !== undefined && param !== null;
-}
-
 interface ProductListChipFormatData {
   currencySymbol: string;
   locale: string;
@@ -92,7 +84,7 @@ export function createFilterChips(
 ): Filter[] {
   let filterChips: Filter[] = [];
 
-  if (exists(filters.priceFrom) || exists(filters.priceTo)) {
+  if (!!filters.priceFrom || !!filters.priceTo) {
     if (filters.priceFrom === filters.priceTo) {
       filterChips = [
         ...filterChips,
@@ -115,7 +107,7 @@ export function createFilterChips(
         }
       ];
     } else {
-      if (exists(filters.priceFrom)) {
+      if (!!filters.priceFrom) {
         filterChips = [
           ...filterChips,
           {
@@ -137,7 +129,7 @@ export function createFilterChips(
         ];
       }
 
-      if (exists(filters.priceTo)) {
+      if (!!filters.priceTo) {
         filterChips = [
           ...filterChips,
           {
@@ -161,7 +153,7 @@ export function createFilterChips(
     }
   }
 
-  if (exists(filters.status)) {
+  if (!!filters.status) {
     filterChips = [
       ...filterChips,
       {
@@ -178,7 +170,7 @@ export function createFilterChips(
     ];
   }
 
-  if (exists(filters.isPublished)) {
+  if (!!filters.isPublished) {
     filterChips = [
       ...filterChips,
       {
@@ -198,30 +190,8 @@ export function createFilterChips(
   return filterChips;
 }
 
-export function getFilterTabs(): UserFilter[] {
-  return JSON.parse(localStorage.getItem(PRODUCT_FILTERS_KEY)) || [];
-}
-
-export function saveFilterTab(name: string, data: ProductListUrlFilters) {
-  const userFilters = getFilterTabs();
-
-  localStorage.setItem(
-    PRODUCT_FILTERS_KEY,
-    JSON.stringify([
-      ...userFilters,
-      {
-        data,
-        name
-      }
-    ])
-  );
-}
-
-export function deleteFilterTab(id: number) {
-  const userFilters = getFilterTabs();
-
-  localStorage.setItem(
-    PRODUCT_FILTERS_KEY,
-    JSON.stringify([...userFilters.slice(0, id - 1), ...userFilters.slice(id)])
-  );
-}
+export const {
+  deleteFilterTab,
+  getFilterTabs,
+  saveFilterTab
+} = createFilterTabUtils<ProductListUrlFilters>(PRODUCT_FILTERS_KEY);
