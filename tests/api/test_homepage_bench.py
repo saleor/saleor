@@ -4,8 +4,8 @@ from tests.api.utils import get_graphql_content
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
-def test_retrieve_main_menu(api_client):
+@pytest.mark.count_queries(autouse=False)
+def test_retrieve_main_menu(api_client, count_queries):
     query = """
         fragment MainMenuSubItem on MenuItem {
           id
@@ -62,8 +62,8 @@ def test_retrieve_main_menu(api_client):
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
-def test_retrieve_secondary_menu(api_client):
+@pytest.mark.count_queries(autouse=False)
+def test_retrieve_secondary_menu(api_client, count_queries):
     query = """
         fragment SecondaryMenuSubItem on MenuItem {
           id
@@ -110,8 +110,8 @@ def test_retrieve_secondary_menu(api_client):
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
-def test_retrieve_shop(api_client):
+@pytest.mark.count_queries(autouse=False)
+def test_retrieve_shop(api_client, count_queries):
     query = """
         query getShop {
           shop {
@@ -142,8 +142,8 @@ def test_retrieve_shop(api_client):
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
-def test_retrieve_product_list(api_client):
+@pytest.mark.count_queries(autouse=False)
+def test_retrieve_product_list(api_client, count_queries):
     query = """
         query ProductsList {
           shop {
