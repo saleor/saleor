@@ -377,44 +377,6 @@ def test_update_gift_card_without_premissions(staff_api_client, gift_card):
     assert_no_permission(response)
 
 
-def test_update_gift_card_update_code_error(
-    staff_api_client, gift_card, permission_manage_gift_card
-):
-    query = """
-    mutation giftCardUpdate($id: ID!, $code: String!) {
-        giftCardUpdate(id: $id, input: { code: $code }) {
-            errors {
-                field
-                message
-            }
-            giftCard {
-                code
-                currentBalance {
-                    amount
-                }
-                user {
-                    email
-                }
-            }
-        }
-    }
-    """
-    variables = {
-        "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
-        "code": "new_code",
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_gift_card]
-    )
-    content = get_graphql_content(response)
-    assert content["data"]["giftCardUpdate"]["errors"]
-    errors = content["data"]["giftCardUpdate"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "code"
-    assert errors[0]["message"] == "Cannot update a gift card code."
-    assert not content["data"]["giftCardUpdate"]["giftCard"]
-
-
 DEACTIVATE_GIFT_CARD_MUTATION = """
 mutation giftCardDeactivate($id: ID!) {
     giftCardDeactivate(id: $id) {
