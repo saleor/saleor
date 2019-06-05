@@ -62,8 +62,8 @@ def checkout_with_charged_payment(checkout_with_billing_address):
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
-def test_create_checkout(api_client, graphql_address_data, variant):
+@pytest.mark.count_queries(autouse=False)
+def test_create_checkout(api_client, graphql_address_data, variant, count_queries):
     query = """
         fragment Price on TaxedMoney {
           gross {
@@ -223,9 +223,14 @@ def test_create_checkout(api_client, graphql_address_data, variant):
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
+@pytest.mark.count_queries(autouse=False)
 def test_add_shipping_to_checkout(
-    api_client, graphql_address_data, variant, checkout_with_variant, shipping_method
+    api_client,
+    graphql_address_data,
+    variant,
+    checkout_with_variant,
+    shipping_method,
+    count_queries,
 ):
     query = """
         fragment Price on TaxedMoney {
@@ -384,9 +389,9 @@ def test_add_shipping_to_checkout(
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
+@pytest.mark.count_queries(autouse=False)
 def test_add_billing_address_to_checkout(
-    api_client, graphql_address_data, checkout_with_shipping_method
+    api_client, graphql_address_data, checkout_with_shipping_method, count_queries
 ):
     query = """
         fragment Price on TaxedMoney {
@@ -545,9 +550,9 @@ def test_add_billing_address_to_checkout(
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
+@pytest.mark.count_queries(autouse=False)
 def test_checkout_payment_charge(
-    api_client, graphql_address_data, checkout_with_billing_address
+    api_client, graphql_address_data, checkout_with_billing_address, count_queries
 ):
     query = """
         mutation createPayment($input: PaymentInput!, $checkoutId: ID!) {
@@ -575,8 +580,8 @@ def test_checkout_payment_charge(
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries
-def test_complete_checkout(api_client, checkout_with_charged_payment):
+@pytest.mark.count_queries(autouse=False)
+def test_complete_checkout(api_client, checkout_with_charged_payment, count_queries):
     query = """
         mutation completeCheckout($checkoutId: ID!) {
           checkoutComplete(checkoutId: $checkoutId) {
