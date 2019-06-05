@@ -795,7 +795,7 @@ def add_promo_code_to_checkout(checkout: Checkout, promo_code: str):
     elif promo_code_is_gift_card(promo_code):
         add_gift_card_code_to_checkout(checkout, promo_code)
     else:
-        raise ValidationError({"promo_code": "Promo code does not exists."})
+        raise ValidationError({"promo_code": "Promo code does not exist."})
 
 
 def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str):
@@ -968,7 +968,7 @@ def validate_gift_cards(checkout: Checkout):
     ):
         msg = pgettext(
             "Gift card not applicable",
-            "Gift card expired in meantime. Order placement aborted.",
+            "Gift card has expired. Order placement cancelled.",
         )
         raise NotApplicable(msg)
 
