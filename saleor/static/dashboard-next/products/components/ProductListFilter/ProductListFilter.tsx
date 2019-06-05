@@ -14,9 +14,10 @@ import {
 import i18n from "../../../i18n";
 import { FilterProps } from "../../../types";
 import { StockAvailability } from "../../../types/globalTypes";
-import { getFilterTabs } from "../../views/ProductList/filters";
+import { ProductListUrlFilters } from "../../urls";
 
-interface ProductListFilterProps extends FilterProps<FilterContentSubmitData> {
+interface ProductListFilterProps
+  extends FilterProps<FilterContentSubmitData, ProductListUrlFilters> {
   currencySymbol: string;
 }
 
@@ -99,12 +100,16 @@ const filterMenu: IFilter = [
   }
 ];
 
-const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
+const ProductListFilter: React.FC<ProductListFilterProps> = ({
+  allTabLabel,
   currencySymbol,
+  filterLabel,
   filtersList,
+  filterTabs,
   currentTab,
   initialSearch,
-  onAllProducts,
+  searchPlaceholder,
+  onAll,
   onSearchChange,
   onFilterAdd,
   onFilterSave,
@@ -114,14 +119,12 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
   const [search, setSearch] = React.useState(initialSearch);
   React.useEffect(() => setSearch(initialSearch), [currentTab, initialSearch]);
 
-  const filterTabs = getFilterTabs();
-
   const isCustom = currentTab === filterTabs.length + 1;
 
   return (
     <>
       <FilterTabs currentTab={currentTab}>
-        <FilterTab label={i18n.t("All Products")} onClick={onAllProducts} />
+        <FilterTab label={allTabLabel} onClick={onAll} />
         {filterTabs.map((tab, tabIndex) => (
           <FilterTab
             onClick={() => onTabChange(tabIndex + 1)}
@@ -148,8 +151,8 @@ const ProductListFilter: React.StatelessComponent<ProductListFilterProps> = ({
               currencySymbol={currencySymbol}
               menu={filterMenu}
               filtersList={filtersList}
-              filterLabel={i18n.t("Select all products where:")}
-              placeholder={i18n.t("Search Products...")}
+              filterLabel={filterLabel}
+              placeholder={searchPlaceholder}
               search={search}
               onSearchChange={handleSearchChange}
               onFilterAdd={onFilterAdd}

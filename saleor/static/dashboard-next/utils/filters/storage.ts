@@ -3,9 +3,11 @@ interface UserFilter<TUrlFilters> {
   data: TUrlFilters;
 }
 
+export type GetFilterTabsOutput<TUrlFilters> = Array<UserFilter<TUrlFilters>>;
+
 function getFilterTabs<TUrlFilters>(
   key: string
-): Array<UserFilter<TUrlFilters>> {
+): GetFilterTabsOutput<TUrlFilters> {
   return JSON.parse(localStorage.getItem(key)) || [];
 }
 
