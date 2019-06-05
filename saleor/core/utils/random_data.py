@@ -811,7 +811,7 @@ def create_gift_card():
         [User.objects.filter(is_superuser=False).order_by("?").first()]
     )
     gift_card, created = GiftCard.objects.get_or_create(
-        code="Gift_card_10", buyer=user, initial_balance=10, current_balance=10
+        code="Gift_card_10", user=user, initial_balance=10, current_balance=10
     )
     if created:
         yield "Gift card #%d" % gift_card.id

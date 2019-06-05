@@ -15,5 +15,5 @@ def resolve_gift_card(info, gift_card_global_id):
         )
     gift_card_id = from_global_id_strict_type(info, gift_card_global_id, GiftCard)
     return get_node_optimized(
-        models.GiftCard.objects, {"pk": gift_card_id, "buyer": user}, info
+        models.GiftCard.objects, {"pk": gift_card_id, "user": user}, info
     )

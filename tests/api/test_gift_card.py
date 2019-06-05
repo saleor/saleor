@@ -46,7 +46,7 @@ def test_query_gift_card_with_premissions(
     query giftCard($id: ID!) {
         giftCard(id: $id){
             code
-            buyer {
+            user {
                 email
             }
         }
@@ -59,7 +59,7 @@ def test_query_gift_card_with_premissions(
     content = get_graphql_content(response)
     data = content["data"]["giftCard"]
     assert data["code"] == gift_card.code
-    assert data["buyer"]["email"] == gift_card.buyer.email
+    assert data["user"]["email"] == gift_card.user.email
 
 
 def test_query_gift_card_without_premissions(
@@ -127,18 +127,18 @@ def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_s
 CREATE_GIFT_CARD_MUTATION = """
 mutation giftCardCreate(
     $code: String, $startDate: Date, $endDate: Date,
-    $balance: Decimal!, $buyerEmail: String) {
+    $balance: Decimal!, $userEmail: String) {
         giftCardCreate(input: {
                 code: $code, startDate: $startDate,
                 endDate: $endDate,
-                balance: $balance, buyerEmail: $buyerEmail }) {
+                balance: $balance, userEmail: $userEmail }) {
             errors {
                 field
                 message
             }
             giftCard {
                 code
-                buyer {
+                user {
                     email
                 }
                 created
@@ -168,7 +168,7 @@ def test_create_gift_card(staff_api_client, customer_user, permission_manage_gif
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "balance": initial_balance,
-        "buyerEmail": customer_user.email,
+        "userEmail": customer_user.email,
     }
     response = staff_api_client.post_graphql(
         CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
@@ -176,7 +176,7 @@ def test_create_gift_card(staff_api_client, customer_user, permission_manage_gif
     content = get_graphql_content(response)
     data = content["data"]["giftCardCreate"]["giftCard"]
     assert data["code"] == code
-    assert data["buyer"]["email"] == customer_user.email
+    assert data["user"]["email"] == customer_user.email
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
     assert not data["lastUsedOn"]
@@ -196,7 +196,7 @@ def test_create_gift_card_with_empty_code(
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "balance": initial_balance,
-        "buyerEmail": staff_api_client.user.email,
+        "userEmail": staff_api_client.user.email,
     }
     response = staff_api_client.post_graphql(
         CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
@@ -214,7 +214,7 @@ def test_create_gift_card_without_code(staff_api_client, permission_manage_gift_
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "balance": initial_balance,
-        "buyerEmail": staff_api_client.user.email,
+        "userEmail": staff_api_client.user.email,
     }
     response = staff_api_client.post_graphql(
         CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
@@ -256,7 +256,7 @@ def test_create_gift_card_with_existing_gift_card_code(
     assert errors[0]["message"] == "Gift card with this code is not avaible."
 
 
-def test_create_gift_card_without_buyer(staff_api_client, permission_manage_gift_card):
+def test_create_gift_card_without_user(staff_api_client, permission_manage_gift_card):
     code = "mirumee1"
     start_date = date(day=1, month=1, year=2018)
     end_date = date(day=1, month=1, year=2019)
@@ -266,7 +266,7 @@ def test_create_gift_card_without_buyer(staff_api_client, permission_manage_gift
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "balance": initial_balance,
-        "buyerEmail": "",
+        "userEmail": "",
     }
     response = staff_api_client.post_graphql(
         CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
@@ -274,10 +274,10 @@ def test_create_gift_card_without_buyer(staff_api_client, permission_manage_gift
     content = get_graphql_content(response)
     data = content["data"]["giftCardCreate"]["giftCard"]
     assert data["code"] == code
-    assert not data["buyer"]
+    assert not data["user"]
 
 
-def test_create_gift_card_with_incorrect_buyer_email(
+def test_create_gift_card_with_incorrect_user_email(
     staff_api_client, permission_manage_gift_card
 ):
     code = "mirumee1"
@@ -289,7 +289,7 @@ def test_create_gift_card_with_incorrect_buyer_email(
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "balance": initial_balance,
-        "buyerEmail": "incorrecr@email.com",
+        "userEmail": "incorrecr@email.com",
     }
     response = staff_api_client.post_graphql(
         CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
@@ -312,7 +312,7 @@ def test_create_gift_card_without_premissions(staff_api_client):
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "balance": initial_balance,
-        "buyerEmail": staff_api_client.user.email,
+        "userEmail": staff_api_client.user.email,
     }
     response = staff_api_client.post_graphql(CREATE_GIFT_CARD_MUTATION, variables)
     assert_no_permission(response)
@@ -321,10 +321,10 @@ def test_create_gift_card_without_premissions(staff_api_client):
 UPDATE_GIFT_CARD_MUTATION = """
 mutation giftCardUpdate(
     $id: ID!, $startDate: Date, $endDate: Date,
-    $balance: Decimal, $buyerEmail: String!) {
+    $balance: Decimal, $userEmail: String!) {
         giftCardUpdate(id: $id, input: {startDate: $startDate,
                 endDate: $endDate,
-                balance: $balance, buyerEmail: $buyerEmail}) {
+                balance: $balance, userEmail: $userEmail}) {
             errors {
                 field
                 message
@@ -334,7 +334,7 @@ mutation giftCardUpdate(
                 currentBalance {
                     amount
                 }
-                buyer {
+                user {
                     email
                 }
             }
@@ -346,11 +346,11 @@ mutation giftCardUpdate(
 def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_card):
     balance = 150
     assert gift_card.current_balance != balance
-    assert gift_card.buyer != staff_api_client.user
+    assert gift_card.user != staff_api_client.user
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
         "balance": balance,
-        "buyerEmail": staff_api_client.user.email,
+        "userEmail": staff_api_client.user.email,
     }
     response = staff_api_client.post_graphql(
         UPDATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]
@@ -359,7 +359,7 @@ def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_ca
     data = content["data"]["giftCardUpdate"]["giftCard"]
     assert data["code"] == gift_card.code
     assert data["currentBalance"]["amount"] == balance
-    assert data["buyer"]["email"] == staff_api_client.user.email
+    assert data["user"]["email"] == staff_api_client.user.email
 
 
 def test_update_gift_card_without_premissions(staff_api_client, gift_card):
@@ -370,7 +370,7 @@ def test_update_gift_card_without_premissions(staff_api_client, gift_card):
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
         "balance": balance,
-        "buyerEmail": staff_api_client.user.email,
+        "userEmail": staff_api_client.user.email,
     }
 
     response = staff_api_client.post_graphql(UPDATE_GIFT_CARD_MUTATION, variables)
@@ -392,7 +392,7 @@ def test_update_gift_card_update_code_error(
                 currentBalance {
                     amount
                 }
-                buyer {
+                user {
                     email
                 }
             }

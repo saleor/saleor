@@ -627,7 +627,7 @@ def order_line(order, variant, vatlayer):
 def gift_card(customer_user, staff_user):
     return GiftCard.objects.create(
         code="mirumee_giftcard",
-        buyer=customer_user,
+        user=customer_user,
         initial_balance=10,
         current_balance=10,
     )
