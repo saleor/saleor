@@ -20,7 +20,7 @@ class GiftCardInput(graphene.InputObjectType):
         description="End date of the gift card in ISO 8601 format."
     )
     balance = Decimal(description="Value of the gift card.")
-    buyer_email = graphene.String(
+    user_email = graphene.String(
         required=False, description="The customer's email of the gift card buyer."
     )
 
@@ -48,10 +48,10 @@ class GiftCardCreate(ModelMutation):
         if balance:
             cleaned_input["current_balance"] = balance
             cleaned_input["initial_balance"] = balance
-        buyer_email = data.get("buyer_email", None)
-        if buyer_email:
+        user_email = data.get("user_email", None)
+        if user_email:
             try:
-                cleaned_input["buyer"] = User.objects.get(email=buyer_email)
+                cleaned_input["user"] = User.objects.get(email=user_email)
             except ObjectDoesNotExist:
                 raise ValidationError(
                     {"email": "Customer with this email doesn't exist."}

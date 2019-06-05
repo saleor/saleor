@@ -18,7 +18,7 @@ class GiftCardQueryset(models.QuerySet):
 
 class GiftCard(models.Model):
     code = models.CharField(max_length=16, unique=True, db_index=True)
-    buyer = models.ForeignKey(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
