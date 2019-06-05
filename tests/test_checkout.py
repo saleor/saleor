@@ -1290,7 +1290,7 @@ def test_get_prices_of_products_in_discounted_categories(checkout_with_item):
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
     assert checkout_with_item.voucher_code is None
-    add_voucher_to_checkout(voucher, checkout_with_item)
+    add_voucher_to_checkout(checkout_with_item, voucher)
 
     assert checkout_with_item.voucher_code == voucher.code
 
@@ -1299,6 +1299,6 @@ def test_add_voucher_to_checkout_fail(
     checkout_with_item, voucher_with_high_min_amount_spent
 ):
     with pytest.raises(NotApplicable):
-        add_voucher_to_checkout(voucher_with_high_min_amount_spent, checkout_with_item)
+        add_voucher_to_checkout(checkout_with_item, voucher_with_high_min_amount_spent)
 
     assert checkout_with_item.voucher_code is None

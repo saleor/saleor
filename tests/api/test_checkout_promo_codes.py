@@ -91,7 +91,7 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     voucher.min_amount_spent = checkout_with_item.get_subtotal().gross
     voucher.save(update_fields=["min_amount_spent"])
 
-    add_voucher_to_checkout(voucher, checkout_with_item)
+    add_voucher_to_checkout(checkout_with_item, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
     line = checkout_with_item.lines.first()
@@ -128,7 +128,7 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     voucher = voucher_shipping_type
     assert voucher.countries[0].code == address_other_country.country
 
-    add_voucher_to_checkout(voucher, checkout_with_item)
+    add_voucher_to_checkout(checkout_with_item, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)

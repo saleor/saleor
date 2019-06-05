@@ -553,7 +553,7 @@ class CheckoutUpdateVoucher(BaseMutation):
                 )
 
             try:
-                add_voucher_to_checkout(voucher, checkout)
+                add_voucher_to_checkout(checkout, voucher)
             except voucher_model.NotApplicable:
                 raise ValidationError(
                     {"voucher_code": "Voucher is not applicable to that checkout."}
