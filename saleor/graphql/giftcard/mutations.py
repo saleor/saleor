@@ -11,8 +11,7 @@ from ..core.scalars import Decimal
 from .types import GiftCard
 
 
-class GiftCardInput(graphene.InputObjectType):
-    code = graphene.String(required=False, decription="Code to use the gift card.")
+class GiftCardUpdateInput(graphene.InputObjectType):
     start_date = graphene.types.datetime.Date(
         description="Start date of the gift card in ISO 8601 format."
     )
@@ -25,9 +24,13 @@ class GiftCardInput(graphene.InputObjectType):
     )
 
 
+class GiftCardCreateInput(GiftCardUpdateInput):
+    code = graphene.String(required=False, decription="Code to use the gift card.")
+
+
 class GiftCardCreate(ModelMutation):
     class Arguments:
-        input = GiftCardInput(
+        input = GiftCardCreateInput(
             required=True, description="Fields required to create a gift card."
         )
 
@@ -64,7 +67,7 @@ class GiftCardCreate(ModelMutation):
 class GiftCardUpdate(GiftCardCreate):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a gift card to update.")
-        input = GiftCardInput(
+        input = GiftCardUpdateInput(
             required=True, description="Fields required to update a gift card."
         )
 
@@ -72,13 +75,6 @@ class GiftCardUpdate(GiftCardCreate):
         description = "Update a gift card."
         model = models.GiftCard
         permissions = ("giftcard.manage_gift_card",)
-
-    @classmethod
-    def clean_input(cls, info, instance, data):
-        code = data.get("code", None)
-        if code:
-            raise ValidationError({"code": "Cannot update a gift card code."})
-        return super().clean_input(info, instance, data)
 
 
 class GiftCardDeactivate(BaseMutation):

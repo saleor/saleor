@@ -585,9 +585,7 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
         add_promo_code_to_checkout(checkout, promo_code)
-
         return CheckoutAddPromoCode(checkout=checkout)
 
 
@@ -610,7 +608,5 @@ class CheckoutRemovePromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
         remove_promo_code_from_checkout(checkout, promo_code)
-
         return CheckoutUpdateVoucher(checkout=checkout)
