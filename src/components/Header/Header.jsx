@@ -288,7 +288,7 @@ class Header extends Component {
                   </a>
                 </li>
                 <li className="github-link">
-                  <GitHubLink owner="mirumee" name="saleor" />
+                  <GitHubLink />
                 </li>
                 <li>
                   <span className="count">07. </span>
@@ -306,7 +306,7 @@ class Header extends Component {
                     this.state.mobileMenu ? "github-link open" : "github-link"
                   }
                 >
-                  <GitHubLink owner="mirumee" name="saleor" />
+                  <GitHubLink />
                 </li>
                 <li
                   className={

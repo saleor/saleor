@@ -583,7 +583,7 @@ class Home extends Component {
                 </div>
               </div>
               <div className="image">
-                <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
+                <GitHubLink text="Github Stars" />
               </div>
             </div>
             <div className="community-links">
