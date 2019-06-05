@@ -16,7 +16,7 @@ class GiftCardInput(graphene.InputObjectType):
     start_date = graphene.types.datetime.Date(
         description="Start date of the gift card in ISO 8601 format."
     )
-    expiration_date = graphene.types.datetime.Date(
+    end_date = graphene.types.datetime.Date(
         description="End date of the gift card in ISO 8601 format."
     )
     balance = Decimal(description="Value of the gift card.")
@@ -148,6 +148,6 @@ class GiftCardVerify(BaseMutation):
         if gift_card:
             if not gift_card.is_active:
                 raise ValidationError({"is_active": "Gift card is inactive."})
-            if gift_card.expiration_date and date.today() > gift_card.expiration_date:
-                raise ValidationError({"expiration_date": "Gift card expired."})
+            if gift_card.end_date and date.today() > gift_card.end_date:
+                raise ValidationError({"end_date": "Gift card expired."})
         return GiftCardDeactivate(gift_card=gift_card)

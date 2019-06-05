@@ -13,7 +13,7 @@ def test_query_own_gift_card(user_api_client, staff_user, gift_card):
             code
             created
             startDate
-            expirationDate
+            endDate
             lastUsedOn
             isActive
             initialBalance {
@@ -33,7 +33,7 @@ def test_query_own_gift_card(user_api_client, staff_user, gift_card):
     assert data["code"] == gift_card.code
     assert data["created"] == gift_card.created.isoformat()
     assert data["startDate"] == gift_card.start_date.isoformat()
-    assert data["expirationDate"] == gift_card.expiration_date
+    assert data["endDate"] == gift_card.end_date
     assert data["isActive"] == gift_card.is_active
     assert data["initialBalance"]["amount"] == gift_card.initial_balance
     assert data["currentBalance"]["amount"] == gift_card.current_balance
@@ -126,11 +126,11 @@ def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_s
 
 CREATE_GIFT_CARD_MUTATION = """
 mutation giftCardCreate(
-    $code: String, $startDate: Date, $expirationDate: Date,
+    $code: String, $startDate: Date, $endDate: Date,
     $balance: Decimal!, $buyerEmail: String) {
         giftCardCreate(input: {
                 code: $code, startDate: $startDate,
-                expirationDate: $expirationDate,
+                endDate: $endDate,
                 balance: $balance, buyerEmail: $buyerEmail }) {
             errors {
                 field
@@ -146,7 +146,7 @@ mutation giftCardCreate(
                 }
                 created
                 startDate
-                expirationDate
+                endDate
                 lastUsedOn
                 isActive
                 initialBalance {
@@ -164,12 +164,12 @@ mutation giftCardCreate(
 def test_create_gift_card(staff_api_client, customer_user, permission_manage_gift_card):
     code = "mirumee"
     start_date = date(day=1, month=1, year=2018)
-    expiration_date = date(day=1, month=1, year=2019)
+    end_date = date(day=1, month=1, year=2019)
     initial_balance = 100
     variables = {
         "code": code,
         "startDate": start_date.isoformat(),
-        "expirationDate": expiration_date.isoformat(),
+        "endDate": end_date.isoformat(),
         "balance": initial_balance,
         "buyerEmail": customer_user.email,
     }
@@ -182,7 +182,7 @@ def test_create_gift_card(staff_api_client, customer_user, permission_manage_gif
     assert data["buyer"]["email"] == customer_user.email
     assert data["creator"]["email"] == staff_api_client.user.email
     assert data["startDate"] == start_date.isoformat()
-    assert data["expirationDate"] == expiration_date.isoformat()
+    assert data["endDate"] == end_date.isoformat()
     assert not data["lastUsedOn"]
     assert data["isActive"]
     assert data["initialBalance"]["amount"] == initial_balance
@@ -193,12 +193,12 @@ def test_create_gift_card_with_empty_code(
     staff_api_client, permission_manage_gift_card
 ):
     start_date = date(day=1, month=1, year=2018)
-    expiration_date = date(day=1, month=1, year=2019)
+    end_date = date(day=1, month=1, year=2019)
     initial_balance = 123
     variables = {
         "code": "",
         "startDate": start_date.isoformat(),
-        "expirationDate": expiration_date.isoformat(),
+        "endDate": end_date.isoformat(),
         "balance": initial_balance,
         "buyerEmail": staff_api_client.user.email,
     }
@@ -212,11 +212,11 @@ def test_create_gift_card_with_empty_code(
 
 def test_create_gift_card_without_code(staff_api_client, permission_manage_gift_card):
     start_date = date(day=1, month=1, year=2018)
-    expiration_date = date(day=1, month=1, year=2019)
+    end_date = date(day=1, month=1, year=2019)
     initial_balance = 123
     variables = {
         "startDate": start_date.isoformat(),
-        "expirationDate": expiration_date.isoformat(),
+        "endDate": end_date.isoformat(),
         "balance": initial_balance,
         "buyerEmail": staff_api_client.user.email,
     }
@@ -263,12 +263,12 @@ def test_create_gift_card_with_existing_gift_card_code(
 def test_create_gift_card_without_buyer(staff_api_client, permission_manage_gift_card):
     code = "mirumee1"
     start_date = date(day=1, month=1, year=2018)
-    expiration_date = date(day=1, month=1, year=2019)
+    end_date = date(day=1, month=1, year=2019)
     initial_balance = 123
     variables = {
         "code": code,
         "startDate": start_date.isoformat(),
-        "expirationDate": expiration_date.isoformat(),
+        "endDate": end_date.isoformat(),
         "balance": initial_balance,
         "buyerEmail": "",
     }
@@ -286,12 +286,12 @@ def test_create_gift_card_with_incorrect_buyer_email(
 ):
     code = "mirumee1"
     start_date = date(day=1, month=1, year=2018)
-    expiration_date = date(day=1, month=1, year=2019)
+    end_date = date(day=1, month=1, year=2019)
     initial_balance = 123
     variables = {
         "code": code,
         "startDate": start_date.isoformat(),
-        "expirationDate": expiration_date.isoformat(),
+        "endDate": end_date.isoformat(),
         "balance": initial_balance,
         "buyerEmail": "incorrecr@email.com",
     }
@@ -309,12 +309,12 @@ def test_create_gift_card_with_incorrect_buyer_email(
 def test_create_gift_card_without_premissions(staff_api_client):
     code = "mirumee"
     start_date = date(day=1, month=1, year=2018)
-    expiration_date = date(day=1, month=1, year=2019)
+    end_date = date(day=1, month=1, year=2019)
     initial_balance = 100
     variables = {
         "code": code,
         "startDate": start_date.isoformat(),
-        "expirationDate": expiration_date.isoformat(),
+        "endDate": end_date.isoformat(),
         "balance": initial_balance,
         "buyerEmail": staff_api_client.user.email,
     }
@@ -324,10 +324,10 @@ def test_create_gift_card_without_premissions(staff_api_client):
 
 UPDATE_GIFT_CARD_MUTATION = """
 mutation giftCardUpdate(
-    $id: ID!, $startDate: Date, $expirationDate: Date,
+    $id: ID!, $startDate: Date, $endDate: Date,
     $balance: Decimal, $buyerEmail: String!) {
         giftCardUpdate(id: $id, input: {startDate: $startDate,
-                expirationDate: $expirationDate,
+                endDate: $endDate,
                 balance: $balance, buyerEmail: $buyerEmail}) {
             errors {
                 field
@@ -575,14 +575,14 @@ def test_verify_gift_card_code_inactive_code(user_api_client, gift_card):
 
 
 def test_verify_gift_card_code_expired_code(user_api_client, gift_card):
-    gift_card.expiration_date = date.today() - timedelta(days=3)
-    gift_card.save(update_fields=["expiration_date"])
+    gift_card.end_date = date.today() - timedelta(days=3)
+    gift_card.save(update_fields=["end_date"])
     variables = {"code": gift_card.code}
     response = user_api_client.post_graphql(VERIFY_CODE_GIFT_CARD_MUTATION, variables)
     content = get_graphql_content(response)
     assert content["data"]["giftCardVerify"]["errors"]
     errors = content["data"]["giftCardVerify"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "expirationDate"
+    assert errors[0]["field"] == "endDate"
     assert errors[0]["message"] == "Gift card expired."
     assert not content["data"]["giftCardVerify"]["giftCard"]
