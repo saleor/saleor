@@ -1,15 +1,15 @@
 import Button from "@material-ui/core/Button";
 import * as React from "react";
 
-import useBulkActions from "../../../hooks/useBulkActions";
-import useNavigator from "../../../hooks/useNavigator";
-import useNotifier from "../../../hooks/useNotifier";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
-} from "../../../hooks/usePaginator";
-import i18n from "../../../i18n";
-import { getMutationState, maybe } from "../../../misc";
-import { OrderStatus, OrderStatusFilter } from "../../../types/globalTypes";
+} from "@saleor/hooks/usePaginator";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { OrderStatusFilter } from "@saleor/types/globalTypes";
 import OrderBulkCancelDialog from "../../components/OrderBulkCancelDialog";
 import OrderListPage from "../../components/OrderListPage/OrderListPage";
 import { getTabName } from "../../misc";
@@ -83,7 +83,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
           variables={{
             ...paginationState,
             filter: { customer: params.email },
-            status: OrderStatus[params.status]
+            status: params.status
           }}
         >
           {({ data, loading, refetch }) => {
