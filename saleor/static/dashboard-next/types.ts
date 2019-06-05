@@ -57,6 +57,9 @@ export type Dialog<TDialog extends string> = Partial<{
 export type ActiveTab<TTab extends string = string> = Partial<{
   activeTab: TTab;
 }>;
+export type Filters<TFilters extends string> = Partial<
+  Record<TFilters, string>
+>;
 export type SingleAction = Partial<{
   id: string;
 }>;
