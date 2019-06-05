@@ -21,6 +21,7 @@ class GiftCardQueries(graphene.ObjectType):
     )
     gift_cards = PrefetchingConnectionField(GiftCard, description="List of gift cards")
 
+    @permission_required("giftcard.manage_gift_card")
     def resolve_gift_card(self, info, **data):
         return resolve_gift_card(info, data.get("id"))
 
