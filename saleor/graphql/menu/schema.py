@@ -22,26 +22,28 @@ from .types import Menu, MenuItem
 class MenuQueries(graphene.ObjectType):
     menu = graphene.Field(
         Menu,
-        id=graphene.Argument(graphene.ID),
-        name=graphene.Argument(graphene.String, description="Menu name."),
-        description="Lookup a menu by ID or name.",
+        id=graphene.Argument(graphene.ID, description="ID of the menu."),
+        name=graphene.Argument(graphene.String, description="The menu's name."),
+        description="Lookup a navigation menu by ID or name.",
     )
     menus = FilterInputConnectionField(
         Menu,
         query=graphene.String(description=DESCRIPTIONS["menu"]),
         filter=MenuFilterInput(),
-        description="List of the shop's menus.",
+        description="List of the storefront's menus.",
     )
     menu_item = graphene.Field(
         MenuItem,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the menu item.", required=True
+        ),
         description="Lookup a menu item by ID.",
     )
     menu_items = FilterInputConnectionField(
         MenuItem,
         query=graphene.String(description=DESCRIPTIONS["menu_item"]),
         filter=MenuItemFilterInput(),
-        description="List of the shop's menu items.",
+        description="List of the storefronts's menu items.",
     )
 
     def resolve_menu(self, info, **data):

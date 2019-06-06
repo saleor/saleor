@@ -83,6 +83,7 @@ class ServiceAccountFilterInput(FilterInputObjectType):
 class AccountQueries(graphene.ObjectType):
     address_validation_rules = graphene.Field(
         AddressValidationData,
+        description="Returns address validation rules.",
         country_code=graphene.Argument(CountryCodeEnum, required=True),
         country_area=graphene.Argument(graphene.String),
         city=graphene.Argument(graphene.String),
@@ -94,7 +95,7 @@ class AccountQueries(graphene.ObjectType):
         description="List of the shop's customers.",
         query=graphene.String(description=DESCRIPTIONS["user"]),
     )
-    me = graphene.Field(User, description="Logged in user data.")
+    me = graphene.Field(User, description="Return the currently authenticated user.")
     staff_users = FilterInputConnectionField(
         User,
         filter=StaffUserInput(),
@@ -114,8 +115,8 @@ class AccountQueries(graphene.ObjectType):
 
     user = graphene.Field(
         User,
-        id=graphene.Argument(graphene.ID, required=True),
-        description="Lookup a user by ID.",
+        id=graphene.Argument(graphene.ID, description="ID of the user.", required=True),
+        description="Lookup an user by ID.",
     )
 
     def resolve_address_validation_rules(
