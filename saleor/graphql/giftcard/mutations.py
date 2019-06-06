@@ -1,5 +1,3 @@
-from datetime import date
-
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
