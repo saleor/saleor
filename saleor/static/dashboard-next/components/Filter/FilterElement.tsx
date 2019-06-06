@@ -188,6 +188,9 @@ const FilterElement: React.FC<FilterElementProps> = ({
         value={value as string}
       />
     );
+  } else if (filter.data.type === FieldType.hidden) {
+    onChange(filter.data.value);
+    return <input type="hidden" value={value} />;
   }
   return (
     <TextField

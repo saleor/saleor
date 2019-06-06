@@ -19,10 +19,10 @@ export interface FilterChoice {
 
 export interface FilterData {
   additionalText?: string;
-  eval?: () => string;
   fieldLabel: string;
   options?: FilterChoice[];
   type: FieldType;
+  value?: string;
 }
 
 export type IFilterItem = IMenuItem<FilterData>;
