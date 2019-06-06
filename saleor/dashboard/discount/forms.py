@@ -6,10 +6,10 @@ from django_countries import countries
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
+from ...core.utils.promo_code import generate_promo_code
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
-from ...core.utils.promo_code import generate_promo_code
 from ...product.models import Category, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 

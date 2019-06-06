@@ -1,5 +1,5 @@
 import graphene
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 
 from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...discount import models
