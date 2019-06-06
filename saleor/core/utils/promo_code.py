@@ -1,7 +1,16 @@
 import uuid
 
+from django.core.exceptions import ValidationError
+
 from ...discount.models import Voucher
 from ...giftcard.models import GiftCard
+
+
+class InvalidPromoCode(ValidationError):
+    def __init__(self, message=None, **kwargs):
+        if message is None:
+            message = {"promo_code": "Promo code is invalid"}
+        super().__init__(message, **kwargs)
 
 
 def generate_promo_code():

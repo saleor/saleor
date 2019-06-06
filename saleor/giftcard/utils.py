@@ -1,7 +1,6 @@
 from datetime import date
 
-from django.core.exceptions import ValidationError
-
+from ..core.utils.promo_code import InvalidPromoCode
 from ..checkout.models import Checkout
 from .models import GiftCard
 
@@ -9,12 +8,12 @@ from .models import GiftCard
 def add_gift_card_code_to_checkout(checkout: Checkout, promo_code: str):
     """Add gift card data to checkout by code.
 
-    Raise ValidationError if gift card cannot be applied.
+    Raise InvalidPromoCode if gift card cannot be applied.
     """
     try:
         gift_card = GiftCard.objects.active(date=date.today()).get(code=promo_code)
     except GiftCard.DoesNotExist:
-        raise ValidationError({"promo_code": "Gift card with given code is invalid."})
+        raise InvalidPromoCode()
     checkout.gift_cards.add(gift_card)
 
 
