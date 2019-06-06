@@ -18,6 +18,21 @@ import {
 
 export const ORDER_FILTERS_KEY = "orderFilters";
 
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case OrderStatusFilter.FULFILLED.toString():
+      return i18n.t("Fulfilled");
+
+    case OrderStatusFilter.PARTIALLY_FULFILLED.toString():
+      return i18n.t("Partially Fulfilled");
+
+    case OrderStatusFilter.UNFULFILLED.toString():
+      return i18n.t("Unfulfilled");
+  }
+
+  return "";
+}
+
 export function getFilterVariables(
   params: OrderListUrlFilters
 ): OrderFilterInput {
@@ -128,6 +143,20 @@ export function createFilterChips(
         ];
       }
     }
+  }
+
+  if (!!filters.status) {
+    filterChips = [
+      ...filterChips,
+      {
+        label: getStatusLabel(filters.status),
+        onClick: () =>
+          onFilterDelete({
+            ...filters,
+            status: undefined
+          })
+      }
+    ];
   }
 
   return filterChips;
