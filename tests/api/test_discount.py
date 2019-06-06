@@ -241,8 +241,7 @@ def test_create_voucher_with_existing_gift_card_code(
     assert content["data"]["voucherCreate"]["errors"]
     errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "code"
-    assert errors[0]["message"] == "Voucher with this code is not available."
+    assert errors[0]["field"] == "promoCode"
 
 
 def test_create_voucher_with_existing_voucher_code(
@@ -269,8 +268,7 @@ def test_create_voucher_with_existing_voucher_code(
     assert content["data"]["voucherCreate"]["errors"]
     errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "code"
-    assert errors[0]["message"] == "Voucher with this code is not available."
+    assert errors[0]["field"] == "promoCode"
 
 
 def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):

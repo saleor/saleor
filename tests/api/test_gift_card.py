@@ -214,8 +214,7 @@ def test_create_gift_card_with_existing_voucher_code(
     assert content["data"]["giftCardCreate"]["errors"]
     errors = content["data"]["giftCardCreate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "code"
-    assert errors[0]["message"] == "Gift card with this code is not available."
+    assert errors[0]["field"] == "promoCode"
 
 
 def test_create_gift_card_with_existing_gift_card_code(
@@ -230,8 +229,7 @@ def test_create_gift_card_with_existing_gift_card_code(
     assert content["data"]["giftCardCreate"]["errors"]
     errors = content["data"]["giftCardCreate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "code"
-    assert errors[0]["message"] == "Gift card with this code is not available."
+    assert errors[0]["field"] == "promoCode"
 
 
 def test_create_gift_card_without_user(staff_api_client, permission_manage_gift_card):
