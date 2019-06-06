@@ -124,12 +124,10 @@ class Checkout(models.Model):
 
     def get_total_gift_cards_balance(self):
         """Return the total balance of the gift cards assigned to the checkout."""
-        gift_cards_total_balance = self.gift_cards.aggregate(
-            models.Sum("current_balance")
-        )["current_balance__sum"]
-        if gift_cards_total_balance:
-            return gift_cards_total_balance
-        return ZERO_MONEY
+        balance = self.gift_cards.aggregate(models.Sum("current_balance"))[
+            "current_balance__sum"
+        ]
+        return balance or ZERO_MONEY
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int
