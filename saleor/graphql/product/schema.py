@@ -125,7 +125,11 @@ from .types.attributes import AttributeSortingInput
 
 class ProductQueries(graphene.ObjectType):
     digital_content = graphene.Field(
-        DigitalContent, id=graphene.Argument(graphene.ID, required=True)
+        DigitalContent,
+        description="Lookup a digital content by ID.",
+        id=graphene.Argument(
+            graphene.ID, description="ID of the digital content.", required=True
+        ),
     )
     digital_contents = PrefetchingConnectionField(
         DigitalContent,
@@ -166,12 +170,16 @@ class ProductQueries(graphene.ObjectType):
     )
     category = graphene.Field(
         Category,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, required=True, description="ID of the category."
+        ),
         description="Lookup a category by ID.",
     )
     collection = graphene.Field(
         Collection,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the collection.", required=True
+        ),
         description="Lookup a collection by ID.",
     )
     collections = FilterInputConnectionField(
@@ -182,7 +190,9 @@ class ProductQueries(graphene.ObjectType):
     )
     product = graphene.Field(
         Product,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the product.", required=True
+        ),
         description="Lookup a product by ID.",
     )
     products = FilterInputConnectionField(
@@ -218,7 +228,9 @@ class ProductQueries(graphene.ObjectType):
     )
     product_type = graphene.Field(
         ProductType,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the product type.", required=True
+        ),
         description="Lookup a product type by ID.",
     )
     product_types = FilterInputConnectionField(
@@ -229,8 +241,10 @@ class ProductQueries(graphene.ObjectType):
     )
     product_variant = graphene.Field(
         ProductVariant,
-        id=graphene.Argument(graphene.ID, required=True),
-        description="Lookup a variant by ID.",
+        id=graphene.Argument(
+            graphene.ID, description="ID of the product variant.", required=True
+        ),
+        description="Lookup a product variant by ID.",
     )
     product_variants = PrefetchingConnectionField(
         ProductVariant,

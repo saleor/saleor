@@ -13,9 +13,9 @@ from .types import Page
 class PageQueries(graphene.ObjectType):
     page = graphene.Field(
         Page,
-        id=graphene.Argument(graphene.ID),
-        slug=graphene.String(),
-        description="Lookup a page by ID or by slug.",
+        id=graphene.Argument(graphene.ID, description="ID of the page."),
+        slug=graphene.String(description="The slug of the page."),
+        description="Lookup a page by ID or slug.",
     )
     pages = FilterInputConnectionField(
         Page,

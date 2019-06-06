@@ -35,7 +35,7 @@ class SaleFilterInput(FilterInputObjectType):
 class DiscountQueries(graphene.ObjectType):
     sale = graphene.Field(
         Sale,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(graphene.ID, description="ID of the sale.", required=True),
         description="Lookup a sale by ID.",
     )
     sales = FilterInputConnectionField(
@@ -46,7 +46,9 @@ class DiscountQueries(graphene.ObjectType):
     )
     voucher = graphene.Field(
         Voucher,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the voucher.", required=True
+        ),
         description="Lookup a voucher by ID.",
     )
     vouchers = FilterInputConnectionField(
