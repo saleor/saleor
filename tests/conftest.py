@@ -636,7 +636,7 @@ def gift_card(customer_user, staff_user):
 @pytest.fixture
 def gift_card_used(staff_user):
     return GiftCard.objects.create(
-        code="used_gift_card",
+        code="gift_card_used",
         initial_balance=150,
         current_balance=100,
     )

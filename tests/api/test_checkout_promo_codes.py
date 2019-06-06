@@ -9,7 +9,6 @@ from tests.api.utils import get_graphql_content
 
 from saleor.checkout.utils import add_voucher_to_checkout
 
-
 MUTATION_CHECKOUT_UPDATE_VOUCHER = """
     mutation($checkoutId: ID!, $voucherCode: String) {
         checkoutUpdateVoucher(
@@ -268,7 +267,8 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 id,
                 voucherCode
                 giftCards {
-                    code
+                    id
+                    displayCode
                 }
                 totalPrice {
                     gross {
@@ -313,12 +313,14 @@ def test_checkout_add_voucher_code_not_applicable_voucher(
 
 def test_checkout_add_gift_card_code(api_client, checkout_with_item, gift_card):
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     assert not data["errors"]
     assert data["checkout"]["id"] == checkout_id
-    assert data["checkout"]["giftCards"][0]["code"] == gift_card.code
+    assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
+    assert data["checkout"]["giftCards"][0]["displayCode"] == gift_card.display_code
 
 
 def test_checkout_add_many_gift_card_code(
@@ -326,6 +328,7 @@ def test_checkout_add_many_gift_card_code(
 ):
     assert checkout_with_gift_card.gift_cards.count() > 0
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_gift_card.pk)
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card_created_by_staff.pk)
     variables = {
         "checkoutId": checkout_id,
         "promoCode": gift_card_created_by_staff.code,
@@ -334,7 +337,9 @@ def test_checkout_add_many_gift_card_code(
 
     assert not data["errors"]
     assert data["checkout"]["id"] == checkout_id
-    assert data["checkout"]["giftCards"][-1]["code"] == gift_card_created_by_staff.code
+    gift_card_data = data["checkout"]["giftCards"][-1]
+    assert gift_card_data["id"] == gift_card_id
+    assert gift_card_data["displayCode"] == gift_card_created_by_staff.display_code
 
 
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
@@ -388,6 +393,7 @@ def test_checkout_get_total_with_more_money_on_gift_card(
 
 def test_checkout_add_same_gift_card_code(api_client, checkout_with_gift_card):
     gift_card = checkout_with_gift_card.gift_cards.first()
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     gift_card_count = checkout_with_gift_card.gift_cards.count()
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_gift_card.pk)
     variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
@@ -395,7 +401,8 @@ def test_checkout_add_same_gift_card_code(api_client, checkout_with_gift_card):
 
     assert not data["errors"]
     assert data["checkout"]["id"] == checkout_id
-    assert data["checkout"]["giftCards"][0]["code"] == gift_card.code
+    assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
+    assert data["checkout"]["giftCards"][0]["displayCode"] == gift_card.display_code
     assert len(data["checkout"]["giftCards"]) == gift_card_count
 
 
@@ -456,7 +463,8 @@ MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
                 id,
                 voucherCode
                 giftCards {
-                    code
+                    id
+                    displayCode
                 }
             }
         }
