@@ -42,6 +42,20 @@ export function createFilter(
       dateFrom: value[0],
       dateTo: value[1]
     };
+  } else if (
+    [
+      OrderFilterKeys.dateLastWeek,
+      OrderFilterKeys.dateLastMonth,
+      OrderFilterKeys.dateLastYear
+    ]
+      .map(value => value.toString())
+      .includes(filterName)
+  ) {
+    const { value } = filter;
+    return {
+      dateFrom: value as string,
+      dateTo: undefined
+    };
   }
 }
 
@@ -51,7 +65,6 @@ interface OrderListChipFormatData {
 export function createFilterChips(
   filters: OrderListUrlFilters,
   formatData: OrderListChipFormatData,
-
   onFilterDelete: (filters: OrderListUrlFilters) => void
 ): Filter[] {
   let filterChips: Filter[] = [];
