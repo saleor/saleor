@@ -1,45 +1,56 @@
 import * as React from "react";
 
-import { Filter, FilterTab, FilterTabs } from "@saleor/components/TableFilter";
+import { FieldType, IFilter } from "@saleor/components/Filter";
+import FilterBar from "@saleor/components/FilterBar";
 import i18n from "../../../i18n";
+import { FilterProps } from "../../../types";
+import { OrderListUrlFilters } from "../../urls";
 
-export type OrderListFilterTabs = "all" | "toFulfill" | "toCapture" | "custom";
+type OrderListFilterProps = FilterProps<OrderListUrlFilters>;
 
-interface OrderListFilterProps {
-  currentTab: OrderListFilterTabs;
-  filtersList: Filter[];
-  onAllProducts: () => void;
-  onToFulfill: () => void;
-  onToCapture: () => void;
-  onCustomFilter: () => void;
+export enum OrderFilterKeys {
+  date,
+  dateEqual,
+  dateRange,
+  dateLastWeek,
+  dateLastMonth,
+  dateLastYear,
+  query
 }
+const filterMenu: IFilter = [
+  {
+    children: [
+      {
+        children: [],
+        data: {
+          additionalText: i18n.t("equals"),
+          fieldLabel: null,
+          type: FieldType.date
+        },
+        label: i18n.t("Specific Date"),
+        value: OrderFilterKeys.dateEqual.toString()
+      },
+      {
+        children: [],
+        data: {
+          fieldLabel: i18n.t("Range"),
+          type: FieldType.rangeDate
+        },
+        label: i18n.t("Range"),
+        value: OrderFilterKeys.dateRange.toString()
+      }
+    ],
+    data: {
+      fieldLabel: i18n.t("Date"),
+      type: FieldType.select
+    },
+    label: i18n.t("Date"),
+    value: OrderFilterKeys.date.toString()
+  }
+];
 
-const OrderListFilter: React.StatelessComponent<OrderListFilterProps> = ({
-  filtersList,
-  currentTab,
-  onAllProducts,
-  onToFulfill,
-  onToCapture,
-  onCustomFilter
-}) => (
-  <>
-    <FilterTabs
-      currentTab={["all", "toFulfill", "toCapture", "custom"].indexOf(
-        currentTab
-      )}
-    >
-      <FilterTab label={i18n.t("All Orders")} onClick={onAllProducts} />
-      <FilterTab label={i18n.t("Ready to fulfill")} onClick={onToFulfill} />
-      <FilterTab label={i18n.t("Ready to capture")} onClick={onToCapture} />
-      {currentTab === "custom" && filtersList && filtersList.length > 0 && (
-        <FilterTab
-          onClick={onCustomFilter}
-          value={0}
-          label={i18n.t("Custom Filter")}
-        />
-      )}
-    </FilterTabs>
-  </>
+const OrderListFilter: React.FC<OrderListFilterProps> = props => (
+  <FilterBar {...props} filterMenu={filterMenu} />
 );
 OrderListFilter.displayName = "OrderListFilter";
 export default OrderListFilter;
