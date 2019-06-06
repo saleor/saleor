@@ -1,4 +1,3 @@
-from decimal import Decimal
 from functools import wraps
 
 from django.conf import settings
@@ -9,7 +8,7 @@ from prices import Money, TaxedMoney
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.taxes import ZERO_MONEY
-from ..core.taxes.interface import refresh_order_line_unit_price
+from ..core.taxes.interface import apply_taxes_to_order_line_unit_price
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
@@ -156,7 +155,8 @@ def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
     for line in order:
         if line.variant:
-            price = refresh_order_line_unit_price(line, discounts)
+            unit_net_price = line.variant.get_price(discounts)
+            price = apply_taxes_to_order_line_unit_price(line, unit_net_price)
             line.unit_price = price
             line.tax_rate = 0  # Fixme we can calulcate tax_rate based on prices
             line.save()
@@ -252,10 +252,8 @@ def add_variant_to_order(
     variant,
     quantity,
     discounts=None,
-    taxes=None,
     allow_overselling=False,
     track_inventory=True,
-    unit_tax=Decimal("0.0"),
 ):
     """Add total_quantity of variant to order.
 
@@ -267,17 +265,12 @@ def add_variant_to_order(
     if not allow_overselling:
         variant.check_quantity(quantity)
 
-    # FIXME maybe something more prettier ?
-    unit_price_net = variant.get_price(discounts)
-    unit_price_gross = Money(
-        amount=unit_price_net.amount + unit_tax, currency=unit_price_net.currency
-    )
-    unit_price = TaxedMoney(net=unit_price_net, gross=unit_price_gross)
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
         line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
+        unit_price_net = variant.get_price(discounts)
         product_name = variant.display_product()
         translated_product_name = variant.display_product(translated=True)
         if translated_product_name == product_name:
@@ -288,10 +281,16 @@ def add_variant_to_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             quantity=quantity,
+            unit_price_net=unit_price_net,
+            unit_price_gross=unit_price_net,
             variant=variant,
-            unit_price=unit_price,
-            tax_rate=0,
         )
+
+        unit_price = apply_taxes_to_order_line_unit_price(line, unit_price_net)
+        line.unit_price_net = unit_price.net
+        line.unit_price_gross = unit_price.gross
+        line.tax_rate = unit_price.tax / unit_price.net
+        line.save(update_fields=["unit_price_net", "unit_price_gross", "tax_rate"])
 
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)

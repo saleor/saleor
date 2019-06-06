@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout, CheckoutLine
     from ...product.models import Product, ProductVariant
     from ...account.models import Address
-    from ...order.models import OrderLine
+    from ...order.models import OrderLine, Order
 
 
 def get_total_gross(checkout: "Checkout", discounts: "SaleQueryset") -> TaxedMoney:
@@ -55,13 +55,23 @@ def get_shipping_gross(checkout: "Checkout", discounts: "SaleQueryset") -> Taxed
     return TaxedMoney(net=total, gross=total)
 
 
-def get_lines_with_taxes(checkout: "Checkout", discounts):
+def calculate_order_shipping(order: "Order") -> TaxedMoney:
+    if settings.VATLAYER_ACCESS_KEY:
+        # FIXME
+        pass
+    elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        return avatax_interface.calculate_order_shipping(order)
+    price = order.shipping_method.price
+    return TaxedMoney(net=price, gross=price)
+
+
+def get_lines_with_unit_tax(checkout: "Checkout", discounts):
     lines_taxes = defaultdict(lambda: Decimal("0.0"))
 
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.get_lines_with_taxes(checkout, discounts)
+        return vatlayer_interface.get_lines_with_unit_tax(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.get_lines_with_taxes(checkout, discounts)
+        return avatax_interface.get_lines_with_unit_tax(checkout, discounts)
 
     return [(line, lines_taxes[line.variant.sku]) for line in checkout.lines.all()]
 
@@ -72,7 +82,9 @@ def apply_taxes_to_shipping(price: Money, shipping_address: "Address") -> TaxedM
         if settings.VATLAYER_ACCESS_KEY:
             return vatlayer_interface.apply_taxes_to_shipping(price, shipping_address)
         if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-            # FIXME
+            # For now we can't calculate product/shipping prices that are not directly
+            # assigned to order. Avatax has api only to calculate prices based on
+            # checkout/order data
             pass
     return TaxedMoney(net=price, gross=price)
 
@@ -87,25 +99,23 @@ def get_tax_rate_type_choices():
 
 def get_line_total_gross(checkout_line: "CheckoutLine", discounts: "SaleQueryset"):
     if settings.VATLAYER_ACCESS_KEY:
-        return checkout_line.get_total(discounts)  # FIXME
+        return vatlayer_interface.get_line_total_gross(checkout_line, discounts)
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         return avatax_interface.get_line_total_gross(checkout_line, discounts)
     total = checkout_line.get_total(discounts)
     return TaxedMoney(net=total, gross=total)
 
 
-def refresh_order_line_unit_price(order_line: "OrderLine", discounts: "SaleQueryset"):
+def apply_taxes_to_order_line_unit_price(order_line: "OrderLine", price: Money):
     """It updates unit_price for a given order line based on current price of variant"""
     if settings.VATLAYER_ACCESS_KEY:
+        # FIXME Should be inside vatlayer module
         address = order_line.order.shipping_address or order_line.order.billing_address
         country = address.country if address else None
         variant = order_line.variant
-        return vatlayer_interface.apply_taxes_to_variant(
-            variant, variant.get_price(discounts), country
-        )
+        return vatlayer_interface.apply_taxes_to_variant(variant, price, country)
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.refresh_order_line_unit_price(order_line, discounts)
-    price = order_line.variant.get_price(discounts)
+        return avatax_interface.apply_taxes_to_order_line_unit_price(order_line, price)
     return TaxedMoney(net=price, gross=price)
 
 
@@ -147,3 +157,10 @@ def apply_taxes_to_shipping_price_range(prices: MoneyRange, country: Country):
     start = TaxedMoney(net=prices.start, gross=prices.start)
     stop = TaxedMoney(net=prices.stop, gross=prices.stop)
     return TaxedMoneyRange(start=start, stop=stop)
+
+
+# FIXME this should be converted to the plugin action after we introduce plugin
+# architecture
+def postprocess_order_creation(order: "Order"):
+    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        avatax_interface.postprocess_order_creation_with_taxes(order)

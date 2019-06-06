@@ -318,7 +318,7 @@ class ProductVariant(models.Model):
         return images[0] if images else self.product.get_first_image()
 
     def get_ajax_label(self, discounts=None):
-        price = self.get_price(discounts).gross
+        price = self.get_price(discounts)
         return "%s, %s, %s" % (
             self.sku,
             self.display_product(),

@@ -11,7 +11,7 @@ from ...account.i18n import (
 from ...account.models import User
 from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.taxes import ZERO_TAXED_MONEY
+from ...core.taxes import ZERO_TAXED_MONEY, interface as tax_interface
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import OrderStatus, events
@@ -189,7 +189,6 @@ class OrderShippingForm(forms.ModelForm):
         fields = ["shipping_method"]
 
     def __init__(self, *args, **kwargs):
-        self.taxes = kwargs.pop("taxes")  # FIXME
         super().__init__(*args, **kwargs)
         method_field = self.fields["shipping_method"]
         fetch_data_url = reverse(
@@ -212,7 +211,9 @@ class OrderShippingForm(forms.ModelForm):
     def save(self, commit=True):
         method = self.instance.shipping_method
         self.instance.shipping_method_name = method.name
-        self.instance.shipping_price = method.get_total(self.taxes)  # FIXME
+        self.instance.shipping_price = tax_interface.calculate_order_shipping(
+            self.instance
+        )
         recalculate_order(self.instance)
         return super().save(commit)
 
@@ -632,9 +633,7 @@ class AddVariantToOrderForm(forms.Form):
         """
         variant = self.cleaned_data.get("variant")
         quantity = self.cleaned_data.get("quantity")
-        line = add_variant_to_order(
-            self.order, variant, quantity, self.discounts, self.taxes  # FIXME
-        )
+        line = add_variant_to_order(self.order, variant, quantity, self.discounts)
         events.draft_order_added_products_event(
             order=self.order, user=user, order_lines=[(line.quantity, line)]
         )

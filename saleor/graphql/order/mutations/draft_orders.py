@@ -12,6 +12,7 @@ from ....order.utils import (
     change_order_line_quantity,
     delete_order_line,
     recalculate_order,
+    update_order_prices,
 )
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -107,16 +108,20 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @staticmethod
-    def _save_addresses(instance, cleaned_input):
+    def _save_addresses(info, instance: models.Order, cleaned_input):
         # Create the draft creation event
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address:
             shipping_address.save()
             instance.shipping_address = shipping_address.get_copy()
+            if instance.is_shipping_required():
+                update_order_prices(instance, info.context.discounts)
         billing_address = cleaned_input.get("billing_address")
         if billing_address:
             billing_address.save()
             instance.billing_address = billing_address.get_copy()
+            if not instance.is_shipping_required():
+                update_order_prices(instance, info.context.discounts)
 
     @staticmethod
     def _save_lines(info, instance, quantities, variants):
@@ -151,7 +156,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         # Process addresses
-        cls._save_addresses(instance, cleaned_input)
+        cls._save_addresses(info, instance, cleaned_input)
 
         # Save any changes create/update the draft
         cls._commit_changes(info, instance, cleaned_input)

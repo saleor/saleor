@@ -16,13 +16,13 @@ from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import ZERO_MONEY
-from ..core.taxes.avatax.interface import postprocess_order_creation_with_taxes  # FIXME
 from ..core.taxes.interface import (
     get_line_total_gross,
-    get_lines_with_taxes,
     get_shipping_gross,
     get_subtotal_gross,
     get_total_gross,
+    postprocess_order_creation,
+    show_taxes_on_storefront,
 )
 from ..core.utils import to_local_currency
 from ..discount import VoucherType
@@ -655,7 +655,7 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
 
     context = {
         "checkout": checkout,
-        "checkout_are_taxes_handled": True,  # bool(taxes), #FIXME
+        "checkout_are_taxes_handled": show_taxes_on_storefront(),
         "checkout_lines": [
             (line, get_line_total_gross(line, discounts)) for line in checkout
         ],
@@ -943,17 +943,15 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, user: User):
 
     order = Order.objects.create(**order_data, checkout_token=checkout.token)
 
-    lines_with_taxes = get_lines_with_taxes(checkout, discounts)
+    lines = checkout.lines.prefetch_related("variant__product__product_type")
     # create order lines from checkout lines
-    for line, tax in lines_with_taxes:
-        add_variant_to_order(
-            order, line.variant, line.quantity, discounts, unit_tax=tax
-        )
+    for line in lines:
+        add_variant_to_order(order, line.variant, line.quantity, discounts)
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
-    postprocess_order_creation_with_taxes(order)
+    postprocess_order_creation(order)
 
     # remove checkout after order is created
     checkout.delete()
