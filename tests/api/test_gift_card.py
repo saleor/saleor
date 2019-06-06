@@ -12,7 +12,8 @@ def test_query_gift_card_with_premissions(
     query = """
     query giftCard($id: ID!) {
         giftCard(id: $id){
-            code
+            id
+            displayCode
             user {
                 email
             }
@@ -25,7 +26,8 @@ def test_query_gift_card_with_premissions(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["giftCard"]
-    assert data["code"] == gift_card.code
+    assert data["id"] == gift_card_id
+    assert data["displayCode"] == gift_card.display_code
     assert data["user"]["email"] == gift_card.user.email
 
 
@@ -35,7 +37,7 @@ def test_query_gift_card_without_premissions(
     query = """
     query giftCard($id: ID!) {
         giftCard(id: $id){
-            code
+            id
         }
     }
     """
@@ -53,19 +55,26 @@ def test_query_gift_cards(
         giftCards(first: 10) {
             edges {
                 node {
-                    code
+                    id
+                    displayCode
                 }
             }
         }
     }
     """
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+    gift_card_created_by_staff_id = graphene.Node.to_global_id(
+        "GiftCard", gift_card_created_by_staff.pk
+    )
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_gift_card]
     )
     content = get_graphql_content(response)
     data = content["data"]["giftCards"]["edges"]
-    assert data[0]["node"]["code"] == gift_card.code
-    assert data[1]["node"]["code"] == gift_card_created_by_staff.code
+    assert data[0]["node"]["id"] == gift_card_id
+    assert data[0]["node"]["displayCode"] == gift_card.display_code
+    assert data[1]["node"]["id"] == gift_card_created_by_staff_id
+    assert data[1]["node"]["displayCode"] == gift_card_created_by_staff.display_code
 
 
 def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_staff):
@@ -75,7 +84,8 @@ def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_s
             giftCards(first: 10) {
                 edges {
                     node {
-                        code
+                        id
+                        displayCode
                     }
                 }
                 totalCount
@@ -83,10 +93,12 @@ def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_s
         }
     }
     """
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["me"]["giftCards"]
-    assert data["edges"][0]["node"]["code"] == gift_card.code
+    assert data["edges"][0]["node"]["id"] == gift_card_id
+    assert data["edges"][0]["node"]["displayCode"] == gift_card.display_code
     assert data["totalCount"] == 1
 
 
@@ -103,7 +115,7 @@ mutation giftCardCreate(
                 message
             }
             giftCard {
-                code
+                displayCode
                 user {
                     email
                 }
@@ -141,7 +153,7 @@ def test_create_gift_card(staff_api_client, customer_user, permission_manage_gif
     )
     content = get_graphql_content(response)
     data = content["data"]["giftCardCreate"]["giftCard"]
-    assert data["code"] == code
+    assert data["displayCode"]
     assert data["user"]["email"] == customer_user.email
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
@@ -169,7 +181,7 @@ def test_create_gift_card_with_empty_code(
     )
     content = get_graphql_content(response)
     data = content["data"]["giftCardCreate"]["giftCard"]
-    assert data["code"] != ""
+    assert len(data["displayCode"]) > 4
 
 
 def test_create_gift_card_without_code(staff_api_client, permission_manage_gift_card):
@@ -187,7 +199,7 @@ def test_create_gift_card_without_code(staff_api_client, permission_manage_gift_
     )
     content = get_graphql_content(response)
     data = content["data"]["giftCardCreate"]["giftCard"]
-    assert data["code"] != ""
+    assert len(data["displayCode"]) > 4
 
 
 def test_create_gift_card_with_existing_voucher_code(
@@ -239,7 +251,8 @@ def test_create_gift_card_without_user(staff_api_client, permission_manage_gift_
     )
     content = get_graphql_content(response)
     data = content["data"]["giftCardCreate"]["giftCard"]
-    assert data["code"] == code
+    assert data["initialBalance"]["amount"] == initial_balance
+    assert data["currentBalance"]["amount"] == initial_balance
     assert not data["user"]
 
 
@@ -296,7 +309,8 @@ mutation giftCardUpdate(
                 message
             }
             giftCard {
-                code
+                id
+                displayCode
                 currentBalance {
                     amount
                 }
@@ -311,6 +325,7 @@ mutation giftCardUpdate(
 
 def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_card):
     balance = 150
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     assert gift_card.current_balance != balance
     assert gift_card.user != staff_api_client.user
     variables = {
@@ -323,7 +338,8 @@ def test_update_gift_card(staff_api_client, gift_card, permission_manage_gift_ca
     )
     content = get_graphql_content(response)
     data = content["data"]["giftCardUpdate"]["giftCard"]
-    assert data["code"] == gift_card.code
+    assert data["id"] == gift_card_id
+    assert data["displayCode"] == gift_card.display_code
     assert data["currentBalance"]["amount"] == balance
     assert data["user"]["email"] == staff_api_client.user.email
 

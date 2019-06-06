@@ -24,7 +24,6 @@ class GiftCard(CountableDjangoObjectType):
         card codes. """
         )
         only_fields = [
-            "code",
             "user",
             "created",
             "start_date",
@@ -37,9 +36,11 @@ class GiftCard(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         model = models.GiftCard
 
-    def resolve_display_code(self, _info):
-        return self.display_code
+    @staticmethod
+    def resolve_display_code(root: models.GiftCard, *_args, **_kwargs):
+        return root.display_code
 
+    @staticmethod
     @permission_required("giftcard.manage_gift_card")
-    def resolve_user(self, _info):
-        return self.user
+    def resolve_user(root: models.GiftCard, *_args, **_kwargs):
+        return root.user
