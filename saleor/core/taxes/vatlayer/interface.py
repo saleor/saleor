@@ -7,7 +7,6 @@ from django_prices_vatlayer.utils import get_tax_rate, get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....core import TaxRateType  # FIXME this should be placed in VatLayer module
-from ....discount.utils import calculate_discounted_price
 from .. import ZERO_TAXED_MONEY
 from . import (
     DEFAULT_TAX_RATE_NAME,
@@ -19,7 +18,7 @@ from . import (
 
 if TYPE_CHECKING:
     from ....discount.models import SaleQueryset
-    from ....checkout.models import Checkout
+    from ....checkout.models import Checkout, CheckoutLine
     from ....product.models import Product, ProductVariant
     from ....account.models import Address
 
@@ -53,15 +52,16 @@ def get_shipping_gross(checkout: "Checkout", _: "SaleQueryset") -> TaxedMoney:
     return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
 
 
-def get_lines_with_taxes(checkout: "Checkout", discounts: "SaleQueryset"):
+def get_lines_with_unit_tax(checkout: "Checkout", discounts: "SaleQueryset"):
     lines_taxes = defaultdict(lambda: Decimal("0.0"))
 
     address = checkout.shipping_address or checkout.billing_address
     taxes = get_taxes_for_address(address)
-    for line in checkout.lines.all():
-        price = calculate_discounted_price(
-            line.variant.product, line.variant.base_price, discounts
-        )
+    lines = checkout.lines.prefetch_related("variant__product__product_type")
+    for line in lines:
+        price = line.variant.get_price(discounts)
+
+        # FIXME tax_rate belongs to vatlayer. We should transfer it to metadata somehow
         tax_rate_name = (
             line.variant.product.tax_rate or line.variant.product.product_type.tax_rate
         )
@@ -72,6 +72,15 @@ def get_lines_with_taxes(checkout: "Checkout", discounts: "SaleQueryset"):
         lines_taxes[line.variant.sku] = price.amount * tax_rate
 
     return [(line, lines_taxes[line.variant.sku]) for line in checkout.lines.all()]
+
+
+def get_line_total_gross(checkout_line: "CheckoutLine", discounts: "SaleQueryset"):
+    address = (
+        checkout_line.checkout.shipping_address
+        or checkout_line.checkout.billing_address
+    )
+    price = checkout_line.variant.get_price(discounts) * checkout_line.quantity
+    return apply_taxes_to_variant(checkout_line.variant, price, address.country)
 
 
 def apply_taxes_to_shipping(price: Money, shipping_address: "Address"):

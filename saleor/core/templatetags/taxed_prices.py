@@ -1,8 +1,10 @@
 from django import template
-from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME  # FIXME
+# FIXME This const variable belongs to vatlayer, we shouldn't take it directly from
+# vatlayer module. This should be moved to plugin after we will introduce plugin
+# architecture
+from ...core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME
 
 register = template.Library()
 
@@ -16,7 +18,7 @@ def price_range(context, price_range):
 @register.simple_tag
 def tax_rate(taxes, rate_name):
     """Return tax rate value for given tax rate type in current country."""
-    if not taxes or not settings.VATLAYER_ACCESS_KEY:  # FIXME
+    if not taxes:
         return 0
     tax = taxes.get(rate_name) or taxes.get(DEFAULT_TAX_RATE_NAME)
     return tax["value"]

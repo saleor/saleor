@@ -432,8 +432,7 @@ def order_customer_remove(request, order_pk):
 @permission_required("order.manage_orders")
 def order_shipping_edit(request, order_pk):
     order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
-    taxes = None  # FIXME
-    form = OrderShippingForm(request.POST or None, instance=order, taxes=taxes)
+    form = OrderShippingForm(request.POST or None, instance=order)
     status = 200
     if form.is_valid():
         form.save()

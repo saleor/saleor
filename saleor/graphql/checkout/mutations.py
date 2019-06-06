@@ -243,9 +243,7 @@ class CheckoutLinesAdd(BaseMutation):
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_checkout(checkout, variant, quantity, replace=replace)
 
-        recalculate_checkout_discount(
-            checkout, info.context.discounts, info.context.taxes  # FIXME
-        )
+        recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutLinesAdd(checkout=checkout)
 
@@ -290,9 +288,7 @@ class CheckoutLineDelete(BaseMutation):
             discounts=info.context.discounts,
         )
 
-        recalculate_checkout_discount(
-            checkout, info.context.discounts, info.context.taxes  # FIXME
-        )
+        recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutLineDelete(checkout=checkout)
 
@@ -371,9 +367,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         with transaction.atomic():
             shipping_address.save()
             change_shipping_address_in_checkout(checkout, shipping_address)
-        recalculate_checkout_discount(
-            checkout, info.context.discounts, info.context.taxes  # FIXME
-        )
+        recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutShippingAddressUpdate(checkout=checkout)
 
@@ -461,9 +455,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method"])
-        recalculate_checkout_discount(
-            checkout, info.context.discounts, info.context.taxes  # FIXME
-        )
+        recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)
 

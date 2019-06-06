@@ -8,6 +8,7 @@ from prices import Money, TaxedMoney
 
 from ....checkout import models as checkout_models
 from ....discount.models import Sale
+from .. import ZERO_TAXED_MONEY
 from ..errors import TaxError
 from . import (
     TransactionType,
@@ -17,6 +18,7 @@ from . import (
     get_checkout_tax_data,
     get_order_tax_data,
     validate_checkout,
+    validate_order,
 )
 
 if TYPE_CHECKING:
@@ -69,7 +71,7 @@ def get_shipping_gross(checkout: "checkout_models.Checkout", discounts):
     return shipping_total
 
 
-def get_lines_with_taxes(checkout: "checkout_models.Checkout", discounts):
+def get_lines_with_unit_tax(checkout: "checkout_models.Checkout", discounts):
     """Calculate and return tuple (line, unit_tax)"""
     lines_taxes = defaultdict(lambda: Decimal("0.0"))
 
@@ -92,6 +94,7 @@ def postprocess_order_creation_with_taxes(order: "Order"):
     # FIXME this can be a celery task (?)
     # FIXME maybe we can figure out better name
 
+    # Fixme we can generate data directly from order
     checkout = checkout_models.Checkout.objects.get(token=order.checkout_token)
     discounts = Sale.objects.active(date.today()).prefetch_related(
         "products", "categories", "collections"
@@ -122,14 +125,30 @@ def get_line_total_gross(checkout_line: "checkout_models.CheckoutLine", discount
     return checkout_line.get_total(discounts).gross
 
 
-def refresh_order_line_unit_price(order_line: "OrderLine", discounts):
+def apply_taxes_to_order_line_unit_price(order_line: "OrderLine", price: Money):
     order = order_line.order
-    taxes_data = get_order_tax_data(order, discounts)
+    if validate_order(order):
+        taxes_data = get_order_tax_data(order)
+        for line in taxes_data.get("lines", []):
+            if line.get("itemCode") == order_line.variant.sku:
+                tax = Decimal(line.get("tax", "0.0"))
+                net = price
+                gross = Money(amount=net.amount + tax, currency=net.currency)
+                return TaxedMoney(net=net, gross=gross)
+    return TaxedMoney(net=price, gross=price)
+
+
+def calculate_order_shipping(order: "Order"):
+    if not validate_order(order) or not order.shipping_method:
+        return ZERO_TAXED_MONEY
+
+    taxes_data = get_order_tax_data(order, None)
     for line in taxes_data.get("lines", []):
-        if line.get("itemCode") == order_line.variant.sku:
+        if line["itemCode"] == "Shipping":
             tax = Decimal(line.get("tax", "0.0"))
-            net = order_line.variant.get_price(discounts)
+            net = order.shipping_method.price
             gross = Money(amount=net.amount + tax, currency=net.currency)
             return TaxedMoney(net=net, gross=gross)
-    price = order_line.variant.get_price(discounts)
-    return TaxedMoney(net=price, gross=price)
+    return TaxedMoney(
+        net=order.shipping_method.price, gross=order.shipping_method.price
+    )

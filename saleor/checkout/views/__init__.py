@@ -135,15 +135,13 @@ def checkout_index(request, checkout):
             initial=initial,
             discounts=discounts,
         )
-        variant_price = line.variant.get_price(discounts)
-
+        total_line = tax_interface.get_line_total_gross(line, discounts)
+        variant_price = total_line / line.quantity
         checkout_lines.append(
             {
                 "variant": line.variant,
-                "get_price": tax_interface.apply_taxes_to_variant(
-                    line.variant, variant_price, request.country
-                ),
-                "get_total": tax_interface.get_line_total_gross(line, discounts),
+                "get_price": variant_price,
+                "get_total": total_line,
                 "form": form,
             }
         )

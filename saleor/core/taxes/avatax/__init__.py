@@ -53,6 +53,22 @@ def api_get_request(
     return requests.get(url, auth=HTTPBasicAuth(username, password))
 
 
+def validate_order(order: "Order") -> bool:
+    """Validate if checkout object contains enough information to generate a request to
+    avatax"""
+    if not order.lines.count():
+        return False
+    shipping_address = order.shipping_address
+    is_shipping_required = order.is_shipping_required()
+    address = shipping_address or order.billing_address
+
+    if not is_shipping_required and not address:
+        return False
+    if not shipping_address:
+        return False
+    return True
+
+
 def validate_checkout(checkout: "Checkout") -> bool:
     """Validate if checkout object contains enough information to generate a request to
     avatax"""
@@ -110,7 +126,7 @@ def append_line_to_data(
     data.append(
         {
             "quantity": quantity,
-            "amount": amount,
+            "amount": str(amount),
             "taxCode": tax_code,
             # FIXME Should fetch taxcode from somewhere and save inside variant/product
             "itemCode": item_code,
@@ -129,6 +145,8 @@ def get_checkout_lines_data(
         "variant__product__product_type",
     )
     for line in lines:
+        if not line.variant.product.charge_taxes:
+            continue
         description = line.variant.product.description
         append_line_to_data(
             data=data,
@@ -151,7 +169,7 @@ def get_checkout_lines_data(
     return data
 
 
-def get_order_lines_data(order: "Order", discounts=None) -> List[Dict[str, str]]:
+def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
     data = []
     lines = order.lines.prefetch_related(
         "variant__product__category",
@@ -159,19 +177,21 @@ def get_order_lines_data(order: "Order", discounts=None) -> List[Dict[str, str]]
         "variant__product__product_type",
     )
     for line in lines:
+        if not line.variant.product.charge_taxes:
+            continue
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=line.variant.get_price(discounts),
+            amount=line.unit_price_net.amount * line.quantity,
             tax_code="PC040156",
             item_code=line.variant.sku,
             description=line.variant.product.description,
         )
-    if order.is_shipping_required():
+    if charge_taxes_on_shipping() and order.shipping_method:
         append_line_to_data(
             data,
             quantity=1,
-            amount=str(order.shipping_method.price.amount),
+            amount=order.shipping_method.price.amount,
             tax_code=common_carrier_code,
             item_code="Shipping",
         )
@@ -274,11 +294,14 @@ def get_checkout_tax_data(checkout: "Checkout", discounts) -> Dict[str, Any]:
     return get_cached_response_or_fetch(data, str(checkout.token))
 
 
-def get_order_tax_data(order: "Order", discounts, commit=False) -> Dict[str, Any]:
+def get_order_tax_data(order: "Order", commit=False) -> Dict[str, Any]:
     address = order.shipping_address or order.billing_address
-    lines = get_order_lines_data(order, discounts=discounts)
+    lines = get_order_lines_data(order)
+    transaction = (
+        TransactionType.INVOICE if not order.is_draft() else TransactionType.ORDER
+    )
     data = generate_request_data(
-        transaction_type=TransactionType.INVOICE,
+        transaction_type=transaction,
         lines=lines,
         transaction_token=order.token,
         address=address.as_data(),
