@@ -3,10 +3,10 @@ import ReactSVG from "react-svg";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import { Link } from "react-router-dom";
 import { GitHubLink } from "..";
-import { Lottie } from "..";
 import { isMobileOnly } from "react-device-detect";
 import { Helmet } from "react-helmet";
 import VisibilitySensor from "react-visibility-sensor";
+import Lottie from "react-lottie";
 
 import modernStack from "../../images/modernStack.json";
 import buildToScale from "../../images/buildToScale.json";
@@ -40,71 +40,48 @@ import timKalic from "../../images/pg-quote.png";
 import ogImage from "../../images/og-homepage.jpg";
 
 class Home extends Component {
-  constructor(props) {
-    super(props);
+  state = {
+    tabIndex: 0,
+    newsBar: true,
+    modernStack: {
+      isPaused: true,
+      direction: 1
+    },
+    buildToScale: {
+      isPaused: true,
+      direction: 1
+    },
+    buildToScaleBig: {
+      isPaused: true,
+      direction: 1
+    },
+    easyToCustomize: {
+      isPaused: true,
+      direction: 1
+    },
+    easyToCustomizeBig: {
+      isPaused: true,
+      direction: 1
+    },
+    greatExperience: {
+      isPaused: true,
+      direction: 1
+    },
+    parrot: {
+      isPaused: false,
+      direction: 1
+    }
+  };
 
-    this.toggleNewsBar = this.toggleNewsBar.bind(this);
-    this.modernStackEnter = this.modernStackEnter.bind(this);
-    this.modernStackLeave = this.modernStackLeave.bind(this);
-    this.buildToScaleEnter = this.buildToScaleEnter.bind(this);
-    this.buildToScaleLeave = this.buildToScaleLeave.bind(this);
-    this.easyToCustomizeEnter = this.easyToCustomizeEnter.bind(this);
-    this.easyToCustomizeLeave = this.easyToCustomizeLeave.bind(this);
-    this.greatExperienceEnter = this.greatExperienceEnter.bind(this);
-    this.greatExperienceLeave = this.greatExperienceLeave.bind(this);
-    this.isVisibleBuildToScale = this.isVisibleBuildToScale.bind(this);
-    this.isVisibleEasyToCustomize = this.isVisibleEasyToCustomize.bind(this);
-    this.parrotPlayAndStop = this.parrotPlayAndStop.bind(this);
+  parrotPlayAndStop = () =>
+    this.setState(prevState => ({
+      parrot: { ...prevState.parrot, isPaused: true, direction: 1 }
+    }));
 
-    this.state = {
-      tabIndex: 0,
-      newsBar: true,
-      modernStack: {
-        isPaused: true,
-        direction: 1
-      },
-      buildToScale: {
-        isPaused: true,
-        direction: 1
-      },
-      buildToScaleBig: {
-        isPaused: true,
-        direction: 1
-      },
-      easyToCustomize: {
-        isPaused: true,
-        direction: 1
-      },
-      easyToCustomizeBig: {
-        isPaused: true,
-        direction: 1
-      },
-      greatExperience: {
-        isPaused: true,
-        direction: 1
-      },
-      parrot: {
-        isPaused: true,
-        direction: 1
-      }
-    };
-  }
-
-  parrotPlayAndStop() {
-    setTimeout(
-      function() {
-        this.setState(prevState => ({
-          parrot: { ...prevState.parrot, isPaused: true, direction: 1 }
-        }));
-      }.bind(this),
-      2000
-    );
-  }
-
-  toggleNewsBar() {
+  toggleNewsBar = () => {
     const currentState = this.state.newsBar;
     this.setState({ newsBar: !currentState });
-  }
+  };
 
   isVisibleBuildToScale(isVisible) {
     if (isVisible) {
@@ -122,27 +99,27 @@ class Home extends Component {
     }
   }
 
-  modernStackEnter() {
+  modernStackEnter = () => {
     this.setState(prevState => ({
       modernStack: { ...prevState.modernStack, isPaused: false, direction: 1 }
     }));
-  }
-  modernStackLeave() {
+  };
+  modernStackLeave = () => {
     this.setState(prevState => ({
       modernStack: { ...prevState.modernStack, direction: -1 }
     }));
-  }
-  buildToScaleEnter() {
+  };
+  buildToScaleEnter = () => {
     this.setState(prevState => ({
       buildToScale: { ...prevState.buildToScale, isPaused: false, direction: 1 }
     }));
-  }
-  buildToScaleLeave() {
+  };
+  buildToScaleLeave = () => {
     this.setState(prevState => ({
       buildToScale: { ...prevState.buildToScale, direction: -1 }
     }));
-  }
-  easyToCustomizeEnter() {
+  };
+  easyToCustomizeEnter = () => {
     this.setState(prevState => ({
       easyToCustomize: {
         ...prevState.easyToCustomize,
@@ -150,13 +127,13 @@ class Home extends Component {
         direction: 1
       }
     }));
-  }
-  easyToCustomizeLeave() {
+  };
+  easyToCustomizeLeave = () => {
     this.setState(prevState => ({
       easyToCustomize: { ...prevState.easyToCustomize, direction: -1 }
     }));
-  }
-  greatExperienceEnter() {
+  };
+  greatExperienceEnter = () => {
     this.setState(prevState => ({
       greatExperience: {
         ...prevState.greatExperience,
@@ -164,19 +141,12 @@ class Home extends Component {
         direction: 1
       }
     }));
-  }
-  greatExperienceLeave() {
+  };
+  greatExperienceLeave = () => {
     this.setState(prevState => ({
       greatExperience: { ...prevState.greatExperience, direction: -1 }
     }));
-  }
-
-  componentDidMount() {
-    this.setState(prevState => ({
-      parrot: { ...prevState.parrot, isPaused: false, direction: 1 }
-    }));
-    this.parrotPlayAndStop();
-  }
+  };
 
   render() {
     const pirateRatio = {
@@ -220,7 +190,7 @@ class Home extends Component {
 
     const parrotOptions = {
       loop: false,
-      autoplay: false,
+      autoplay: true,
       animationData: parrot,
       rendererSettings: {
         preserveAspectRatio: "xMidYMid slice"
@@ -243,6 +213,13 @@ class Home extends Component {
               options={parrotOptions}
               isPaused={this.state.parrot.isPaused}
               direction={this.state.parrot.direction}
+              eventListeners={[
+                {
+                  eventName: "enterFrame",
+                  callback: data =>
+                    data.currentTime > 75 && this.parrotPlayAndStop()
+                }
+              ]}
             />
           </div>
           <div className="plane">

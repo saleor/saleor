@@ -9,4 +9,3 @@ export { default as PrivacyPolicy } from "./PrivacyPolicy/PrivacyPolicy";
 export { default as ScrollLink } from "./ScrollLink/ScrollLink";
 export { default as Roadmap } from "./Roadmap/Roadmap";
 export { default as ScrollToTop } from "./ScrollToTop/ScrollToTop";
-export { default as Lottie } from "./Lottie/Lottie";

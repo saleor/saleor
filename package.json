@@ -19,6 +19,7 @@
     "react-device-detect": "^1.5.9",
     "react-dom": "^16.4.1",
     "react-helmet": "^5.2.0",
+    "react-lottie": "^1.2.3",
     "react-reveal": "^1.2.2",
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
