@@ -8,11 +8,11 @@ import { isMobileOnly } from "react-device-detect";
 import { Helmet } from "react-helmet";
 import VisibilitySensor from "react-visibility-sensor";
 
-import * as modernStack from "../../images/modernStack.json";
-import * as buildToScale from "../../images/buildToScale.json";
-import * as easyToCustomize from "../../images/easyToCustomize.json";
-import * as greatExperience from "../../images/greatExperience.json";
-import * as parrot from "../../images/parrot.json";
+import modernStack from "../../images/modernStack.json";
+import buildToScale from "../../images/buildToScale.json";
+import easyToCustomize from "../../images/easyToCustomize.json";
+import greatExperience from "../../images/greatExperience.json";
+import parrot from "../../images/parrot.json";
 
 import Fade from "react-reveal/Fade";
 
