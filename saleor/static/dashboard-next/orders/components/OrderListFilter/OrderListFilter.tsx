@@ -7,6 +7,7 @@ import FilterBar from "@saleor/components/FilterBar";
 import TimezoneContext from "@saleor/components/Timezone";
 import i18n from "../../../i18n";
 import { FilterProps } from "../../../types";
+import { OrderStatusFilter } from "../../../types/globalTypes";
 import { OrderListUrlFilters } from "../../urls";
 
 type OrderListFilterProps = FilterProps<OrderListUrlFilters>;
@@ -18,7 +19,8 @@ export enum OrderFilterKeys {
   dateLastWeek,
   dateLastMonth,
   dateLastYear,
-  email
+  email,
+  fulfillment
 }
 
 const OrderListFilter: React.FC<OrderListFilterProps> = props => {
@@ -93,6 +95,30 @@ const OrderListFilter: React.FC<OrderListFilterProps> = props => {
       },
       label: i18n.t("Date"),
       value: OrderFilterKeys.date.toString()
+    },
+    {
+      children: [],
+      data: {
+        additionalText: i18n.t("is set as"),
+        fieldLabel: i18n.t("Status"),
+        options: [
+          {
+            label: i18n.t("Fulfilled"),
+            value: OrderStatusFilter.FULFILLED.toString()
+          },
+          {
+            label: i18n.t("Partially Fulfilled"),
+            value: OrderStatusFilter.PARTIALLY_FULFILLED.toString()
+          },
+          {
+            label: i18n.t("Unfulfilled"),
+            value: OrderStatusFilter.UNFULFILLED.toString()
+          }
+        ],
+        type: FieldType.select
+      },
+      label: i18n.t("Fulfillment Status"),
+      value: OrderFilterKeys.fulfillment.toString()
     }
   ];
 

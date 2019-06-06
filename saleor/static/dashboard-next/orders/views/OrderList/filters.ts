@@ -1,7 +1,10 @@
 import { FilterContentSubmitData } from "../../../components/Filter";
 import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
-import { OrderFilterInput } from "../../../types/globalTypes";
+import {
+  OrderFilterInput,
+  OrderStatusFilter
+} from "../../../types/globalTypes";
 import {
   createFilterTabUtils,
   createFilterUtils
@@ -23,7 +26,8 @@ export function getFilterVariables(
       gte: params.dateFrom,
       lte: params.dateTo
     },
-    customer: params.email
+    customer: params.email,
+    status: OrderStatusFilter[params.status]
   };
 }
 
@@ -56,6 +60,11 @@ export function createFilter(
     return {
       dateFrom: value as string,
       dateTo: undefined
+    };
+  } else if (filterName === OrderFilterKeys.fulfillment.toString()) {
+    const { value } = filter;
+    return {
+      status: value as string
     };
   }
 }
