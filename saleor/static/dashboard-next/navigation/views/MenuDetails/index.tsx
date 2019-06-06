@@ -4,14 +4,15 @@ import * as React from "react";
 import { categoryUrl } from "../../../categories/urls";
 import { collectionUrl } from "../../../collections/urls";
 import ActionDialog from "../../../components/ActionDialog";
-import { SearchPagesProvider } from "../../../containers/SearchPages";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../../config";
+import SearchCategories from "../../../containers/SearchCategories";
+import SearchCollections from "../../../containers/SearchCollections";
+import SearchPages from "../../../containers/SearchPages";
 import useNavigator from "../../../hooks/useNavigator";
 import useNotifier from "../../../hooks/useNotifier";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { pageUrl } from "../../../pages/urls";
-import { CategorySearchProvider } from "../../../products/containers/CategorySearch";
-import { CollectionSearchProvider } from "../../../products/containers/CollectionSearch";
 import MenuDetailsPage, {
   MenuDetailsSubmitData
 } from "../../components/MenuDetailsPage";
@@ -92,11 +93,11 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
   };
 
   return (
-    <SearchPagesProvider>
+    <SearchPages variables={DEFAULT_INITIAL_SEARCH_DATA}>
       {pageSearch => (
-        <CategorySearchProvider>
+        <SearchCategories variables={DEFAULT_INITIAL_SEARCH_DATA}>
           {categorySearch => (
-            <CollectionSearchProvider>
+            <SearchCollections variables={DEFAULT_INITIAL_SEARCH_DATA}>
               {collectionSearch => (
                 <MenuDetailsQuery displayLoader variables={{ id }}>
                   {({ data, loading, refetch }) => {
@@ -108,7 +109,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
 
                     const categories = maybe(
                       () =>
-                        categorySearch.searchOpts.data.categories.edges.map(
+                        categorySearch.result.data.categories.edges.map(
                           edge => edge.node
                         ),
                       []
@@ -116,7 +117,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
 
                     const collections = maybe(
                       () =>
-                        collectionSearch.searchOpts.data.collections.edges.map(
+                        collectionSearch.result.data.collections.edges.map(
                           edge => edge.node
                         ),
                       []
@@ -124,7 +125,7 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
 
                     const pages = maybe(
                       () =>
-                        pageSearch.searchOpts.data.pages.edges.map(
+                        pageSearch.result.data.pages.edges.map(
                           edge => edge.node
                         ),
                       []
@@ -287,8 +288,8 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                                           collections={collections}
                                           pages={pages}
                                           loading={
-                                            categorySearch.searchOpts.loading ||
-                                            collectionSearch.searchOpts.loading
+                                            categorySearch.result.loading ||
+                                            collectionSearch.result.loading
                                           }
                                           confirmButtonState={
                                             formTransitionState
@@ -360,8 +361,8 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                                             menuItem
                                           )}
                                           loading={
-                                            categorySearch.searchOpts.loading ||
-                                            collectionSearch.searchOpts.loading
+                                            categorySearch.result.loading ||
+                                            collectionSearch.result.loading
                                           }
                                           confirmButtonState={
                                             formTransitionState
@@ -384,11 +385,11 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                   }}
                 </MenuDetailsQuery>
               )}
-            </CollectionSearchProvider>
+            </SearchCollections>
           )}
-        </CategorySearchProvider>
+        </SearchCategories>
       )}
-    </SearchPagesProvider>
+    </SearchPages>
   );
 };
 MenuDetails.displayName = "MenuDetails";

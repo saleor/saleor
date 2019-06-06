@@ -1351,6 +1351,49 @@ exports[`Storyshots Generics / Autocomplete Menu error 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / Autocomplete Menu interactive 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    style="margin:auto;overflow:visible;width:400px"
+  >
+    <div
+      class="MuiCardContent-root-id"
+    >
+      <form>
+        <div
+          class="AutocompleteSelectMenu-container-id"
+        >
+          <div
+            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+          >
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+              data-shrink="true"
+            >
+              Autocomplete Menu
+            </label>
+            <div
+              class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+            >
+              <input
+                aria-invalid="false"
+                class="MuiInputBase-input-id MuiFilledInput-input-id"
+                placeholder="Start typing to search ..."
+                type="text"
+                value="Item 1.2"
+              />
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Generics / Autocomplete Menu loading 1`] = `
 <div
   style="padding:24px"
@@ -1736,6 +1779,12 @@ exports[`Storyshots Generics / DateTime plain 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / Delete filter tab default 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
 exports[`Storyshots Generics / EditableTableCell default 1`] = `
 <div
   style="padding:24px"
@@ -1878,6 +1927,64 @@ exports[`Storyshots Generics / External Link new tab 1`] = `
           Link to google.com
         </p>
       </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / Filter default 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    style="margin:auto;overflow:visible;width:400px"
+  >
+    <div
+      class="MuiCardContent-root-id"
+    >
+      <div
+        class="MuiFormControl-root-id SingleSelectField-formControl-id"
+      >
+        <label
+          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+          data-shrink="false"
+        />
+        <div
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+        >
+          <div
+            class="MuiSelect-root-id"
+          >
+            <div
+              aria-haspopup="true"
+              aria-pressed="false"
+              class="MuiSelect-select-id MuiSelect-selectMenu-id Hook-input-14is1qt MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id"
+              role="button"
+              tabindex="0"
+            >
+              <span>
+                ​
+              </span>
+            </div>
+            <input
+              type="hidden"
+              value=""
+            />
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSelect-icon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2910,10 +3017,10 @@ exports[`Storyshots Generics / Price input disabled 1`] = `
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="false"
@@ -2942,10 +3049,10 @@ exports[`Storyshots Generics / Price input with currency symbol 1`] = `
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="false"
@@ -2981,10 +3088,10 @@ exports[`Storyshots Generics / Price input with hint 1`] = `
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="false"
@@ -3017,7 +3124,7 @@ exports[`Storyshots Generics / Price input with label 1`] = `
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <label
           class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -3026,7 +3133,7 @@ exports[`Storyshots Generics / Price input with label 1`] = `
           Lorem ipsum
         </label>
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="false"
@@ -3054,7 +3161,7 @@ exports[`Storyshots Generics / Price input with label and hint 1`] = `
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <label
           class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -3063,7 +3170,7 @@ exports[`Storyshots Generics / Price input with label and hint 1`] = `
           Lorem
         </label>
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="false"
@@ -3096,10 +3203,10 @@ exports[`Storyshots Generics / Price input with no value 1`] = `
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="false"
@@ -3127,10 +3234,10 @@ exports[`Storyshots Generics / Price input with value 1`] = `
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="false"
@@ -3159,7 +3266,7 @@ exports[`Storyshots Generics / Price input with value, label, currency symbol an
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <label
           class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -3168,7 +3275,7 @@ exports[`Storyshots Generics / Price input with value, label, currency symbol an
           Lorem
         </label>
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="true"
@@ -3210,7 +3317,7 @@ exports[`Storyshots Generics / Price input with value, label, currency symbol an
       class="MuiCardContent-root-id"
     >
       <div
-        class="MuiFormControl-root-id"
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
       >
         <label
           class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -3219,7 +3326,7 @@ exports[`Storyshots Generics / Price input with value, label, currency symbol an
           Lorem
         </label>
         <div
-          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+          class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
         >
           <input
             aria-invalid="false"
@@ -3744,6 +3851,12 @@ Ctrl + K"
     </div>
   </div>
 </div>
+`;
+
+exports[`Storyshots Generics / Save filter tab default 1`] = `
+<div
+  style="padding:24px"
+/>
 `;
 
 exports[`Storyshots Generics / SaveButtonBar disabled 1`] = `
@@ -14171,7 +14284,7 @@ Ctrl + K"
                 <span
                   class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
                 >
-                  Availability
+                  Visibility
                 </span>
                 <div
                   class="CardTitle-toolbar-id"
@@ -14186,43 +14299,50 @@ Ctrl + K"
               <div
                 class="MuiCardContent-root-id"
               >
-                <label
-                  class="MuiFormControlLabel-root-id"
+                <div
+                  class="VisibilityCard-expandedSwitchContainer-id"
                 >
-                  <span
-                    class="MuiSwitch-root-id"
+                  <label
+                    class="MuiFormControlLabel-root-id"
                   >
                     <span
-                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                      class="MuiSwitch-root-id"
                     >
                       <span
-                        class="MuiIconButton-label-id"
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                       >
                         <span
-                          class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
-                        />
-                        <input
-                          checked=""
-                          class="MuiPrivateSwitchBase-input-id"
-                          name="isPublished"
-                          type="checkbox"
-                        />
+                          class="MuiIconButton-label-id"
+                        >
+                          <span
+                            class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                          />
+                          <input
+                            checked=""
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="isPublished"
+                            type="checkbox"
+                          />
+                        </span>
                       </span>
+                      <span
+                        class="MuiSwitch-bar-id"
+                      />
                     </span>
                     <span
-                      class="MuiSwitch-bar-id"
-                    />
-                  </span>
-                  <span
-                    class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
-                  >
-                    <div
-                      class="ControlledSwitch-label-id"
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
                     >
-                      Publish on storefront
-                    </div>
-                  </span>
-                </label>
+                      <div
+                        class="ControlledSwitch-label-id"
+                      >
+                        Visible
+                        <div>
+                          since Aug 25, 2018
+                        </div>
+                      </div>
+                    </span>
+                  </label>
+                </div>
                 <div
                   class="FormSpacer-spacer-id"
                 />
@@ -14260,6 +14380,7 @@ Ctrl + K"
                       class="ControlledSwitch-label-id"
                     >
                       Feature on Homepage
+                      <div />
                     </div>
                   </span>
                 </label>
@@ -15036,7 +15157,7 @@ Ctrl + K"
                 <span
                   class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
                 >
-                  Availability
+                  Visibility
                 </span>
                 <div
                   class="CardTitle-toolbar-id"
@@ -15051,44 +15172,71 @@ Ctrl + K"
               <div
                 class="MuiCardContent-root-id"
               >
-                <label
-                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                <div
+                  class="VisibilityCard-switchContainer-id"
                 >
-                  <span
-                    class="MuiSwitch-root-id"
+                  <label
+                    class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
                   >
                     <span
-                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
-                      tabindex="-1"
+                      class="MuiSwitch-root-id"
                     >
                       <span
-                        class="MuiIconButton-label-id"
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                        tabindex="-1"
                       >
                         <span
-                          class="MuiSwitch-icon-id"
-                        />
-                        <input
-                          class="MuiPrivateSwitchBase-input-id"
-                          disabled=""
-                          name="isPublished"
-                          type="checkbox"
-                        />
+                          class="MuiIconButton-label-id"
+                        >
+                          <span
+                            class="MuiSwitch-icon-id"
+                          />
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            disabled=""
+                            name="isPublished"
+                            type="checkbox"
+                          />
+                        </span>
                       </span>
+                      <span
+                        class="MuiSwitch-bar-id"
+                      />
                     </span>
                     <span
-                      class="MuiSwitch-bar-id"
-                    />
-                  </span>
-                  <span
-                    class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
-                  >
-                    <div
-                      class="ControlledSwitch-label-id"
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
                     >
-                      Publish on storefront
-                    </div>
-                  </span>
-                </label>
+                      <div
+                        class="ControlledSwitch-label-id"
+                      >
+                        Hidden
+                        <div />
+                      </div>
+                    </span>
+                  </label>
+                </div>
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
+                  >
+                    Publish on
+                  </label>
+                  <div
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  >
+                    <input
+                      aria-invalid="false"
+                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id"
+                      disabled=""
+                      name="publicationDate"
+                      type="date"
+                      value=""
+                    />
+                  </div>
+                </div>
                 <div
                   class="FormSpacer-spacer-id"
                 />
@@ -15128,6 +15276,7 @@ Ctrl + K"
                       class="ControlledSwitch-label-id"
                     >
                       Feature on Homepage
+                      <div />
                     </div>
                   </span>
                 </label>
@@ -16062,7 +16211,7 @@ Ctrl + K"
                 <span
                   class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
                 >
-                  Availability
+                  Visibility
                 </span>
                 <div
                   class="CardTitle-toolbar-id"
@@ -16077,45 +16226,52 @@ Ctrl + K"
               <div
                 class="MuiCardContent-root-id"
               >
-                <label
-                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                <div
+                  class="VisibilityCard-expandedSwitchContainer-id"
                 >
-                  <span
-                    class="MuiSwitch-root-id"
+                  <label
+                    class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
                   >
                     <span
-                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
-                      tabindex="-1"
+                      class="MuiSwitch-root-id"
                     >
                       <span
-                        class="MuiIconButton-label-id"
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                        tabindex="-1"
                       >
                         <span
-                          class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
-                        />
-                        <input
-                          checked=""
-                          class="MuiPrivateSwitchBase-input-id"
-                          disabled=""
-                          name="isPublished"
-                          type="checkbox"
-                        />
+                          class="MuiIconButton-label-id"
+                        >
+                          <span
+                            class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                          />
+                          <input
+                            checked=""
+                            class="MuiPrivateSwitchBase-input-id"
+                            disabled=""
+                            name="isPublished"
+                            type="checkbox"
+                          />
+                        </span>
                       </span>
+                      <span
+                        class="MuiSwitch-bar-id"
+                      />
                     </span>
                     <span
-                      class="MuiSwitch-bar-id"
-                    />
-                  </span>
-                  <span
-                    class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
-                  >
-                    <div
-                      class="ControlledSwitch-label-id"
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
                     >
-                      Publish on storefront
-                    </div>
-                  </span>
-                </label>
+                      <div
+                        class="ControlledSwitch-label-id"
+                      >
+                        Visible
+                        <div>
+                          since Aug 25, 2018
+                        </div>
+                      </div>
+                    </span>
+                  </label>
+                </div>
                 <div
                   class="FormSpacer-spacer-id"
                 />
@@ -16155,6 +16311,7 @@ Ctrl + K"
                       class="ControlledSwitch-label-id"
                     >
                       Feature on Homepage
+                      <div />
                     </div>
                   </span>
                 </label>
@@ -17193,42 +17350,97 @@ Ctrl + K"
               <div
                 class="MuiCardContent-root-id"
               >
-                <label
-                  class="MuiFormControlLabel-root-id"
+                <div
+                  class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
                 >
-                  <span
-                    class="MuiSwitch-root-id"
+                  <div
+                    class="CardTitle-root-id"
                   >
                     <span
-                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                      class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
                     >
-                      <span
-                        class="MuiIconButton-label-id"
-                      >
-                        <span
-                          class="MuiSwitch-icon-id"
-                        />
-                        <input
-                          class="MuiPrivateSwitchBase-input-id"
-                          name="isPublished"
-                          type="checkbox"
-                        />
-                      </span>
+                      Visibility
                     </span>
-                    <span
-                      class="MuiSwitch-bar-id"
+                    <div
+                      class="CardTitle-toolbar-id"
                     />
-                  </span>
-                  <span
-                    class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                  </div>
+                  <div
+                    class="CardTitle-children-id"
+                  />
+                  <hr
+                    class="CardTitle-hr-id"
+                  />
+                  <div
+                    class="MuiCardContent-root-id"
                   >
                     <div
-                      class="ControlledSwitch-label-id"
+                      class="VisibilityCard-switchContainer-id"
                     >
-                      Publish on storefront
+                      <label
+                        class="MuiFormControlLabel-root-id"
+                      >
+                        <span
+                          class="MuiSwitch-root-id"
+                        >
+                          <span
+                            class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                          >
+                            <span
+                              class="MuiIconButton-label-id"
+                            >
+                              <span
+                                class="MuiSwitch-icon-id"
+                              />
+                              <input
+                                class="MuiPrivateSwitchBase-input-id"
+                                name="isPublished"
+                                type="checkbox"
+                              />
+                            </span>
+                          </span>
+                          <span
+                            class="MuiSwitch-bar-id"
+                          />
+                        </span>
+                        <span
+                          class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                        >
+                          <div
+                            class="ControlledSwitch-label-id"
+                          >
+                            Hidden
+                            <div />
+                          </div>
+                        </span>
+                      </label>
                     </div>
-                  </span>
-                </label>
+                    <div
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+                    >
+                      <label
+                        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                        data-shrink="true"
+                      >
+                        Publish on
+                      </label>
+                      <div
+                        class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                      >
+                        <input
+                          aria-invalid="false"
+                          class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
+                          name="publicationDate"
+                          type="date"
+                          value=""
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="FormSpacer-spacer-id"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -17793,44 +18005,100 @@ Ctrl + K"
               <div
                 class="MuiCardContent-root-id"
               >
-                <label
-                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                <div
+                  class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
                 >
-                  <span
-                    class="MuiSwitch-root-id"
+                  <div
+                    class="CardTitle-root-id"
                   >
                     <span
-                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
-                      tabindex="-1"
+                      class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
                     >
-                      <span
-                        class="MuiIconButton-label-id"
-                      >
-                        <span
-                          class="MuiSwitch-icon-id"
-                        />
-                        <input
-                          class="MuiPrivateSwitchBase-input-id"
-                          disabled=""
-                          name="isPublished"
-                          type="checkbox"
-                        />
-                      </span>
+                      Visibility
                     </span>
-                    <span
-                      class="MuiSwitch-bar-id"
+                    <div
+                      class="CardTitle-toolbar-id"
                     />
-                  </span>
-                  <span
-                    class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  </div>
+                  <div
+                    class="CardTitle-children-id"
+                  />
+                  <hr
+                    class="CardTitle-hr-id"
+                  />
+                  <div
+                    class="MuiCardContent-root-id"
                   >
                     <div
-                      class="ControlledSwitch-label-id"
+                      class="VisibilityCard-switchContainer-id"
                     >
-                      Publish on storefront
+                      <label
+                        class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                      >
+                        <span
+                          class="MuiSwitch-root-id"
+                        >
+                          <span
+                            class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                            tabindex="-1"
+                          >
+                            <span
+                              class="MuiIconButton-label-id"
+                            >
+                              <span
+                                class="MuiSwitch-icon-id"
+                              />
+                              <input
+                                class="MuiPrivateSwitchBase-input-id"
+                                disabled=""
+                                name="isPublished"
+                                type="checkbox"
+                              />
+                            </span>
+                          </span>
+                          <span
+                            class="MuiSwitch-bar-id"
+                          />
+                        </span>
+                        <span
+                          class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                        >
+                          <div
+                            class="ControlledSwitch-label-id"
+                          >
+                            Hidden
+                            <div />
+                          </div>
+                        </span>
+                      </label>
                     </div>
-                  </span>
-                </label>
+                    <div
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+                    >
+                      <label
+                        class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                        data-shrink="true"
+                      >
+                        Publish on
+                      </label>
+                      <div
+                        class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                      >
+                        <input
+                          aria-invalid="false"
+                          class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id"
+                          disabled=""
+                          name="publicationDate"
+                          type="date"
+                          value=""
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="FormSpacer-spacer-id"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -30845,6 +31113,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                     >
                       If this option is disabled, discount will be counted for every eligible product
                     </span>
+                    <div />
                   </div>
                 </span>
               </label>
@@ -31265,6 +31534,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                     >
                       If this option is disabled, discount will be counted for every eligible product
                     </span>
+                    <div />
                   </div>
                 </span>
               </label>
@@ -31679,6 +31949,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                     >
                       If this option is disabled, discount will be counted for every eligible product
                     </span>
+                    <div />
                   </div>
                 </span>
               </label>
@@ -32230,6 +32501,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                     >
                       If this option is disabled, discount will be counted for every eligible product
                     </span>
+                    <div />
                   </div>
                 </span>
               </label>
@@ -32783,6 +33055,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                     >
                       If this option is disabled, discount will be counted for every eligible product
                     </span>
+                    <div />
                   </div>
                 </span>
               </label>
@@ -55560,106 +55833,6 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
           </div>
         </div>
       </div>
-      <div
-        class="FilterChips-filterContainer-id"
-      >
-        <div
-          class="FilterChips-filterButton-id"
-        >
-          <p
-            class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-id"
-          >
-            Gardner-Schultz
-          </p>
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id FilterChips-filterIcon-id"
-            focusable="false"
-            role="presentation"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-            <path
-              d="M0 0h24v24H0z"
-              fill="none"
-            />
-          </svg>
-        </div>
-        <div
-          class="FilterChips-filterButton-id"
-        >
-          <p
-            class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-id"
-          >
-            Davis, Brown and Ray
-          </p>
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id FilterChips-filterIcon-id"
-            focusable="false"
-            role="presentation"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-            <path
-              d="M0 0h24v24H0z"
-              fill="none"
-            />
-          </svg>
-        </div>
-        <div
-          class="FilterChips-filterButton-id"
-        >
-          <p
-            class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-id"
-          >
-            Franklin Inc
-          </p>
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id FilterChips-filterIcon-id"
-            focusable="false"
-            role="presentation"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-            <path
-              d="M0 0h24v24H0z"
-              fill="none"
-            />
-          </svg>
-        </div>
-        <div
-          class="FilterChips-filterButton-id FilterChips-addFilterButtonPrimary-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
-            focusable="false"
-            role="presentation"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-            />
-            <path
-              d="M0 0h24v24H0z"
-              fill="none"
-            />
-          </svg>
-          <p
-            class="MuiTypography-root-id MuiTypography-body2-id FilterChips-addFilterText-id"
-          >
-            Add Filter
-          </p>
-        </div>
-      </div>
       <table
         class="MuiTable-root-id"
       >
@@ -57779,7 +57952,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -57794,53 +57967,55 @@ Ctrl + K"
             <div
               class="MuiCardContent-root-id"
             >
-              <label
-                class="MuiFormControlLabel-root-id"
-              >
-                <span
-                  class="MuiSwitch-root-id"
-                >
-                  <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
-                  >
-                    <span
-                      class="MuiIconButton-label-id"
-                    >
-                      <span
-                        class="MuiSwitch-icon-id"
-                      />
-                      <input
-                        class="MuiPrivateSwitchBase-input-id"
-                        name="isPublished"
-                        type="checkbox"
-                      />
-                    </span>
-                  </span>
-                  <span
-                    class="MuiSwitch-bar-id"
-                  />
-                </span>
-                <span
-                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
-                >
-                  <div
-                    class="ControlledSwitch-label-id"
-                  >
-                    Hidden
-                  </div>
-                </span>
-              </label>
               <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="VisibilityCard-switchContainer-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                  data-shrink="false"
+                  class="MuiFormControlLabel-root-id"
                 >
-                  Publish page on
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id"
+                        />
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="isPublished"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                  >
+                    <div
+                      class="ControlledSwitch-label-id"
+                    >
+                      Hidden
+                      <div />
+                    </div>
+                  </span>
+                </label>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Publish on
                 </label>
                 <div
                   class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -57854,6 +58029,9 @@ Ctrl + K"
                   />
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -58536,7 +58714,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -58551,53 +58729,55 @@ Ctrl + K"
             <div
               class="MuiCardContent-root-id"
             >
-              <label
-                class="MuiFormControlLabel-root-id"
-              >
-                <span
-                  class="MuiSwitch-root-id"
-                >
-                  <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
-                  >
-                    <span
-                      class="MuiIconButton-label-id"
-                    >
-                      <span
-                        class="MuiSwitch-icon-id"
-                      />
-                      <input
-                        class="MuiPrivateSwitchBase-input-id"
-                        name="isPublished"
-                        type="checkbox"
-                      />
-                    </span>
-                  </span>
-                  <span
-                    class="MuiSwitch-bar-id"
-                  />
-                </span>
-                <span
-                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
-                >
-                  <div
-                    class="ControlledSwitch-label-id"
-                  >
-                    Hidden
-                  </div>
-                </span>
-              </label>
               <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="VisibilityCard-switchContainer-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                  data-shrink="false"
+                  class="MuiFormControlLabel-root-id"
                 >
-                  Publish page on
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id"
+                        />
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="isPublished"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                  >
+                    <div
+                      class="ControlledSwitch-label-id"
+                    >
+                      Hidden
+                      <div />
+                    </div>
+                  </span>
+                </label>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Publish on
                 </label>
                 <div
                   class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -58616,6 +58796,9 @@ Ctrl + K"
                   Generic form error
                 </p>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -59131,7 +59314,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -59146,55 +59329,57 @@ Ctrl + K"
             <div
               class="MuiCardContent-root-id"
             >
-              <label
-                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
-              >
-                <span
-                  class="MuiSwitch-root-id"
-                >
-                  <span
-                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
-                    tabindex="-1"
-                  >
-                    <span
-                      class="MuiIconButton-label-id"
-                    >
-                      <span
-                        class="MuiSwitch-icon-id"
-                      />
-                      <input
-                        class="MuiPrivateSwitchBase-input-id"
-                        disabled=""
-                        name="isPublished"
-                        type="checkbox"
-                      />
-                    </span>
-                  </span>
-                  <span
-                    class="MuiSwitch-bar-id"
-                  />
-                </span>
-                <span
-                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
-                >
-                  <div
-                    class="ControlledSwitch-label-id"
-                  >
-                    Hidden
-                  </div>
-                </span>
-              </label>
               <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="VisibilityCard-switchContainer-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                  data-shrink="false"
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
                 >
-                  Publish page on
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id"
+                        />
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          disabled=""
+                          name="isPublished"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    <div
+                      class="ControlledSwitch-label-id"
+                    >
+                      Hidden
+                      <div />
+                    </div>
+                  </span>
+                </label>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Publish on
                 </label>
                 <div
                   class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -59209,6 +59394,9 @@ Ctrl + K"
                   />
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -62165,7 +62353,7 @@ Ctrl + K"
                 class="ProductPricing-root-id"
               >
                 <div
-                  class="MuiFormControl-root-id"
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
                     class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -62174,7 +62362,7 @@ Ctrl + K"
                     Price
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                   >
                     <input
                       aria-invalid="false"
@@ -62507,7 +62695,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -62523,7 +62711,7 @@ Ctrl + K"
               class="MuiCardContent-root-id"
             >
               <div
-                class="ProductAvailabilityForm-switchContainer-id"
+                class="VisibilityCard-switchContainer-id"
               >
                 <label
                   class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
@@ -62544,7 +62732,7 @@ Ctrl + K"
                         <input
                           class="MuiPrivateSwitchBase-input-id"
                           disabled=""
-                          name="available"
+                          name="isPublished"
                           type="checkbox"
                         />
                       </span>
@@ -62559,11 +62747,37 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Published in storefront
+                      Hidden
+                      <div />
                     </div>
                   </span>
                 </label>
               </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Publish on
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id"
+                    disabled=""
+                    name="publicationDate"
+                    type="date"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -63017,7 +63231,7 @@ Ctrl + K"
                 class="ProductPricing-root-id"
               >
                 <div
-                  class="MuiFormControl-root-id"
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
                     class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -63026,7 +63240,7 @@ Ctrl + K"
                     Price
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                   >
                     <input
                       aria-invalid="false"
@@ -63354,7 +63568,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -63370,7 +63584,7 @@ Ctrl + K"
               class="MuiCardContent-root-id"
             >
               <div
-                class="ProductAvailabilityForm-switchContainer-id"
+                class="VisibilityCard-switchContainer-id"
               >
                 <label
                   class="MuiFormControlLabel-root-id"
@@ -63389,7 +63603,7 @@ Ctrl + K"
                         />
                         <input
                           class="MuiPrivateSwitchBase-input-id"
-                          name="available"
+                          name="isPublished"
                           type="checkbox"
                         />
                       </span>
@@ -63404,11 +63618,36 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Published in storefront
+                      Hidden
+                      <div />
                     </div>
                   </span>
                 </label>
               </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Publish on
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
+                    name="publicationDate"
+                    type="date"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -63867,7 +64106,7 @@ Ctrl + K"
                 class="ProductPricing-root-id"
               >
                 <div
-                  class="MuiFormControl-root-id"
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
                     class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -63876,7 +64115,7 @@ Ctrl + K"
                     Price
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                   >
                     <input
                       aria-invalid="false"
@@ -64219,7 +64458,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -64235,7 +64474,7 @@ Ctrl + K"
               class="MuiCardContent-root-id"
             >
               <div
-                class="ProductAvailabilityForm-switchContainer-id"
+                class="VisibilityCard-switchContainer-id"
               >
                 <label
                   class="MuiFormControlLabel-root-id"
@@ -64254,7 +64493,7 @@ Ctrl + K"
                         />
                         <input
                           class="MuiPrivateSwitchBase-input-id"
-                          name="available"
+                          name="isPublished"
                           type="checkbox"
                         />
                       </span>
@@ -64269,11 +64508,36 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Published in storefront
+                      Hidden
+                      <div />
                     </div>
                   </span>
                 </label>
               </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Publish on
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
+                    name="publicationDate"
+                    type="date"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -64529,7 +64793,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
               >
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -64538,7 +64802,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                       Selling price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="false"
@@ -64566,7 +64830,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                 </div>
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -64575,7 +64839,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                       Cost price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="false"
@@ -64892,7 +65156,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
               >
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -64901,7 +65165,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                       Selling price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="false"
@@ -64930,7 +65194,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                 </div>
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -64939,7 +65203,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                       Cost price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="false"
@@ -65303,7 +65567,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
               >
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -65312,7 +65576,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                       Selling price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="true"
@@ -65340,7 +65604,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                 </div>
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -65349,7 +65613,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                       Cost price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="true"
@@ -66268,7 +66532,7 @@ Ctrl + K"
                 class="ProductPricing-root-id"
               >
                 <div
-                  class="MuiFormControl-root-id"
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
                     class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -66277,7 +66541,7 @@ Ctrl + K"
                     Price
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                   >
                     <input
                       aria-invalid="false"
@@ -66820,7 +67084,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -66836,7 +67100,7 @@ Ctrl + K"
               class="MuiCardContent-root-id"
             >
               <div
-                class="ProductAvailabilityForm-expandedSwitchContainer-id"
+                class="VisibilityCard-expandedSwitchContainer-id"
               >
                 <label
                   class="MuiFormControlLabel-root-id"
@@ -66856,7 +67120,7 @@ Ctrl + K"
                         <input
                           checked=""
                           class="MuiPrivateSwitchBase-input-id"
-                          name="available"
+                          name="isPublished"
                           type="checkbox"
                         />
                       </span>
@@ -66871,32 +67135,17 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Published in storefront
+                      Visible
+                      <div>
+                        since Aug 25, 2018
+                      </div>
                     </div>
                   </span>
                 </label>
               </div>
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id ProductAvailabilityForm-date-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                  data-shrink="true"
-                >
-                  Publish product on
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                >
-                  <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    name="publicationDate"
-                    type="date"
-                    value="2018-08-25T18:45:54.125Z"
-                  />
-                </div>
-              </div>
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -67419,7 +67668,7 @@ Ctrl + K"
                 class="ProductPricing-root-id"
               >
                 <div
-                  class="MuiFormControl-root-id"
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
                     class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -67428,7 +67677,7 @@ Ctrl + K"
                     Price
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                   >
                     <input
                       aria-invalid="false"
@@ -67731,7 +67980,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -67747,7 +67996,7 @@ Ctrl + K"
               class="MuiCardContent-root-id"
             >
               <div
-                class="ProductAvailabilityForm-switchContainer-id"
+                class="VisibilityCard-switchContainer-id"
               >
                 <label
                   class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
@@ -67768,7 +68017,7 @@ Ctrl + K"
                         <input
                           class="MuiPrivateSwitchBase-input-id"
                           disabled=""
-                          name="available"
+                          name="isPublished"
                           type="checkbox"
                         />
                       </span>
@@ -67783,11 +68032,37 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Published in storefront
+                      Hidden
+                      <div />
                     </div>
                   </span>
                 </label>
               </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VisibilityCard-date-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Publish on
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id"
+                    disabled=""
+                    name="publicationDate"
+                    type="date"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -68508,7 +68783,7 @@ Ctrl + K"
                 class="ProductPricing-root-id"
               >
                 <div
-                  class="MuiFormControl-root-id"
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
                     class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -68517,7 +68792,7 @@ Ctrl + K"
                     Price
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                   >
                     <input
                       aria-invalid="false"
@@ -69060,7 +69335,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -69076,7 +69351,7 @@ Ctrl + K"
               class="MuiCardContent-root-id"
             >
               <div
-                class="ProductAvailabilityForm-expandedSwitchContainer-id"
+                class="VisibilityCard-expandedSwitchContainer-id"
               >
                 <label
                   class="MuiFormControlLabel-root-id"
@@ -69096,7 +69371,7 @@ Ctrl + K"
                         <input
                           checked=""
                           class="MuiPrivateSwitchBase-input-id"
-                          name="available"
+                          name="isPublished"
                           type="checkbox"
                         />
                       </span>
@@ -69111,32 +69386,17 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Published in storefront
+                      Visible
+                      <div>
+                        since Aug 25, 2018
+                      </div>
                     </div>
                   </span>
                 </label>
               </div>
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id ProductAvailabilityForm-date-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                  data-shrink="true"
-                >
-                  Publish product on
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                >
-                  <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    name="publicationDate"
-                    type="date"
-                    value="2018-08-25T18:45:54.125Z"
-                  />
-                </div>
-              </div>
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -69945,7 +70205,7 @@ Ctrl + K"
                 class="ProductPricing-root-id"
               >
                 <div
-                  class="MuiFormControl-root-id"
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
                     class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -69954,7 +70214,7 @@ Ctrl + K"
                     Price
                   </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                   >
                     <input
                       aria-invalid="false"
@@ -70394,7 +70654,7 @@ Ctrl + K"
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Availability
+                Visibility
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -70410,7 +70670,7 @@ Ctrl + K"
               class="MuiCardContent-root-id"
             >
               <div
-                class="ProductAvailabilityForm-expandedSwitchContainer-id"
+                class="VisibilityCard-expandedSwitchContainer-id"
               >
                 <label
                   class="MuiFormControlLabel-root-id"
@@ -70430,7 +70690,7 @@ Ctrl + K"
                         <input
                           checked=""
                           class="MuiPrivateSwitchBase-input-id"
-                          name="available"
+                          name="isPublished"
                           type="checkbox"
                         />
                       </span>
@@ -70445,32 +70705,17 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Published in storefront
+                      Visible
+                      <div>
+                        since Aug 25, 2018
+                      </div>
                     </div>
                   </span>
                 </label>
               </div>
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id ProductAvailabilityForm-date-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                  data-shrink="true"
-                >
-                  Publish product on
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                >
-                  <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    name="publicationDate"
-                    type="date"
-                    value="2018-08-25T18:45:54.125Z"
-                  />
-                </div>
-              </div>
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
         </div>
@@ -70964,50 +71209,60 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
                   </span>
                 </span>
               </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Available
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Out Of Stock
-                    </span>
-                  </span>
-                </span>
-              </button>
             </div>
           </div>
         </div>
       </div>
+      <div
+        class="FilterChips-actionContainer-1gvrafz"
+      >
+        <div>
+          <button
+            class="MuiButtonBase-root-id Filter-filterButton-id Filter-addFilterButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id Filter-addFilterText-id"
+            >
+              Add Filter
+            </p>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id Filter-addFilterIcon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id Hook-root-12fjiya"
+        >
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id Hook-input-14nw8ai"
+              placeholder="Search Products..."
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <hr
+        class="Hr-root-id"
+      />
       <table
         class="MuiTable-root-id"
       >
@@ -71781,50 +72036,60 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
                   </span>
                 </span>
               </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Available
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Out Of Stock
-                    </span>
-                  </span>
-                </span>
-              </button>
             </div>
           </div>
         </div>
       </div>
+      <div
+        class="FilterChips-actionContainer-1gvrafz"
+      >
+        <div>
+          <button
+            class="MuiButtonBase-root-id Filter-filterButton-id Filter-addFilterButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id Filter-addFilterText-id"
+            >
+              Add Filter
+            </p>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id Filter-addFilterIcon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id Hook-root-12fjiya"
+        >
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id Hook-input-14nw8ai"
+              placeholder="Search Products..."
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <hr
+        class="Hr-root-id"
+      />
       <table
         class="MuiTable-root-id"
       >
@@ -72117,50 +72382,60 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
                   </span>
                 </span>
               </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Available
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Out Of Stock
-                    </span>
-                  </span>
-                </span>
-              </button>
             </div>
           </div>
         </div>
       </div>
+      <div
+        class="FilterChips-actionContainer-1gvrafz"
+      >
+        <div>
+          <button
+            class="MuiButtonBase-root-id Filter-filterButton-id Filter-addFilterButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id Filter-addFilterText-id"
+            >
+              Add Filter
+            </p>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id Filter-addFilterIcon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id Hook-root-12fjiya"
+        >
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id Hook-input-14nw8ai"
+              placeholder="Search Products..."
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <hr
+        class="Hr-root-id"
+      />
       <table
         class="MuiTable-root-id"
       >
@@ -72375,69 +72650,9 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
                     class="MuiTab-labelContainer-id"
                   >
                     <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                      class="MuiTab-label-id FilterTab-tabLabel-id FilterTab-selectedTabLabel-id"
                     >
                       All Products
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Available
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Out Of Stock
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Custom Filter
                     </span>
                   </span>
                 </span>
@@ -72447,104 +72662,514 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-filterContainer-id"
+        class="FilterChips-actionContainer-1gvrafz"
+      >
+        <div>
+          <button
+            class="MuiButtonBase-root-id Filter-filterButton-id Filter-addFilterButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id Filter-addFilterText-id"
+            >
+              Add Filter
+            </p>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id Filter-addFilterIcon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id Hook-root-12fjiya"
+        >
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id Hook-input-14nw8ai"
+              placeholder="Search Products..."
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="FilterChips-filterContainer-1yn6kq2"
       >
         <div
-          class="FilterChips-filterButton-id"
+          class="FilterChips-filterChipContainer-sphkea"
         >
-          <p
-            class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-id"
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
           >
-            Gardner-Schultz
-          </p>
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id FilterChips-filterIcon-id"
-            focusable="false"
-            role="presentation"
-            viewBox="0 0 24 24"
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 0
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
           >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-            <path
-              d="M0 0h24v24H0z"
-              fill="none"
-            />
-          </svg>
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 1
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 2
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 3
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 4
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 5
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 6
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 7
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 8
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 9
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 10
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 11
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 12
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 13
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 14
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
-        <div
-          class="FilterChips-filterButton-id"
+        <a
+          class="MuiTypography-root-id MuiTypography-body2-id Link-root-id Link-primary-id"
         >
-          <p
-            class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-id"
-          >
-            Davis, Brown and Ray
-          </p>
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id FilterChips-filterIcon-id"
-            focusable="false"
-            role="presentation"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-            <path
-              d="M0 0h24v24H0z"
-              fill="none"
-            />
-          </svg>
-        </div>
-        <div
-          class="FilterChips-filterButton-id"
-        >
-          <p
-            class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-id"
-          >
-            Franklin Inc
-          </p>
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id FilterChips-filterIcon-id"
-            focusable="false"
-            role="presentation"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-            <path
-              d="M0 0h24v24H0z"
-              fill="none"
-            />
-          </svg>
-        </div>
-        <div
-          class="FilterChips-filterButton-id FilterChips-addFilterButtonPrimary-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
-            focusable="false"
-            role="presentation"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-            />
-            <path
-              d="M0 0h24v24H0z"
-              fill="none"
-            />
-          </svg>
-          <p
-            class="MuiTypography-root-id MuiTypography-body2-id FilterChips-addFilterText-id"
-          >
-            Add Filter
-          </p>
-        </div>
+          Delete Search
+        </a>
       </div>
       <table
         class="MuiTable-root-id"
@@ -73617,7 +74242,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
               >
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -73626,7 +74251,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       Selling price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="false"
@@ -73654,7 +74279,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                 </div>
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
@@ -73663,7 +74288,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       Cost price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="false"
@@ -74014,7 +74639,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
               >
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -74023,7 +74648,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                       Selling price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="false"
@@ -74043,7 +74668,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                 </div>
                 <div>
                   <div
-                    class="MuiFormControl-root-id"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
                       class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
@@ -74052,7 +74677,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                       Cost price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
                         aria-invalid="false"
@@ -81089,6 +81714,7 @@ exports[`Storyshots Views / Taxes / Country List default 1`] = `
                     class="ControlledSwitch-label-id"
                   >
                     All products prices are entered with tax included
+                    <div />
                   </div>
                 </span>
               </label>
@@ -81126,6 +81752,7 @@ exports[`Storyshots Views / Taxes / Country List default 1`] = `
                     class="ControlledSwitch-label-id"
                   >
                     Show gross prices to customers in the storefront
+                    <div />
                   </div>
                 </span>
               </label>
@@ -81162,6 +81789,7 @@ exports[`Storyshots Views / Taxes / Country List default 1`] = `
                     class="ControlledSwitch-label-id"
                   >
                     Charge taxes on shipping rates
+                    <div />
                   </div>
                 </span>
               </label>
@@ -81349,6 +81977,7 @@ exports[`Storyshots Views / Taxes / Country List loading 1`] = `
                     class="ControlledSwitch-label-id"
                   >
                     All products prices are entered with tax included
+                    <div />
                   </div>
                 </span>
               </label>
@@ -81387,6 +82016,7 @@ exports[`Storyshots Views / Taxes / Country List loading 1`] = `
                     class="ControlledSwitch-label-id"
                   >
                     Show gross prices to customers in the storefront
+                    <div />
                   </div>
                 </span>
               </label>
@@ -81425,6 +82055,7 @@ exports[`Storyshots Views / Taxes / Country List loading 1`] = `
                     class="ControlledSwitch-label-id"
                   >
                     Charge taxes on shipping rates
+                    <div />
                   </div>
                 </span>
               </label>

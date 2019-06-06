@@ -8,12 +8,12 @@ import { CardSpacer } from "../../../components/CardSpacer";
 import CardTitle from "../../../components/CardTitle";
 import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
 import { Container } from "../../../components/Container";
-import { ControlledSwitch } from "../../../components/ControlledSwitch";
 import Form from "../../../components/Form";
 import Grid from "../../../components/Grid";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
+import VisibilityCard from "../../../components/VisibilityCard";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
@@ -27,6 +27,7 @@ export interface CollectionCreatePageFormData {
   backgroundImageAlt: string;
   description: RawDraftContentState;
   name: string;
+  publicationDate: string;
   isPublished: boolean;
   seoDescription: string;
   seoTitle: string;
@@ -49,6 +50,7 @@ const initialForm: CollectionCreatePageFormData = {
   description: null,
   isPublished: false,
   name: "",
+  publicationDate: "",
   seoDescription: "",
   seoTitle: ""
 };
@@ -140,14 +142,11 @@ const CollectionCreatePage: React.StatelessComponent<
                   })}
                 />
                 <CardContent>
-                  <ControlledSwitch
-                    checked={data.isPublished}
+                  <VisibilityCard
+                    data={data}
+                    errors={formErrors}
                     disabled={disabled}
-                    name="isPublished"
                     onChange={change}
-                    label={i18n.t("Publish on storefront", {
-                      context: "button"
-                    })}
                   />
                 </CardContent>
               </Card>
