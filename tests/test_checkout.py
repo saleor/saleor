@@ -672,7 +672,11 @@ def test_create_order_with_gift_card(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    total_gross_without_gift_cards = checkout.get_total_without_gift_cards().gross
+    total_gross_without_gift_cards = (
+        checkout.get_subtotal()
+        + checkout.get_shipping_price(None)
+        - checkout.discount_amount
+    ).gross
     gift_cards_balance = checkout.get_total_gift_cards_balance()
 
     order = create_order(

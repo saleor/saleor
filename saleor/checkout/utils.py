@@ -1021,7 +1021,11 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user:
         add_variant_to_order(order, line.variant, line.quantity, discounts, taxes)
 
     # assign gift cards to the order
-    total_price_left = checkout.get_total_without_gift_cards().gross
+    total_price_left = (
+        checkout.get_subtotal(discounts, taxes)
+        + checkout.get_shipping_price(taxes)
+        - checkout.discount_amount
+    ).gross
     for gift_card in checkout.gift_cards.select_for_update():
         total_price_left = add_gift_card_to_order(order, gift_card, total_price_left)
 
