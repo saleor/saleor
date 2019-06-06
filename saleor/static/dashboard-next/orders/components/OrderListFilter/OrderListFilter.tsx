@@ -18,7 +18,7 @@ export enum OrderFilterKeys {
   dateLastWeek,
   dateLastMonth,
   dateLastYear,
-  query
+  email
 }
 
 const OrderListFilter: React.FC<OrderListFilterProps> = props => {

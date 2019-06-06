@@ -22,7 +22,8 @@ export function getFilterVariables(
     created: {
       gte: params.dateFrom,
       lte: params.dateTo
-    }
+    },
+    customer: params.email
   };
 }
 
