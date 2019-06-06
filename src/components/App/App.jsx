@@ -1,16 +1,18 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component, Fragment } from "react";
+import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
+import { CookiesProvider } from "react-cookie";
 import {
-  BrowserRouter as Router,
-  Route,
-  Link,
-  Switch
-} from 'react-router-dom';
-import { CookiesProvider } from 'react-cookie';
-import { Home, Header, Footer, PrivacyPolicy, Roadmap, Feature, ScrollToTop } from '..';
-import css from './css/index.css';
+  Home,
+  Header,
+  Footer,
+  PrivacyPolicy,
+  Roadmap,
+  Feature,
+  ScrollToTop
+} from "..";
+import css from "./css/index.css";
 
 class App extends Component {
-
   render() {
     return (
       <Router>
@@ -23,7 +25,10 @@ class App extends Component {
               <Switch>
                 <Route exact path="/" component={Home} />
                 <Route path="/features" component={Feature} />
-                <Route path="/privacy-policy-terms-and-conditions" component={PrivacyPolicy} />
+                <Route
+                  path="/privacy-policy-terms-and-conditions"
+                  component={PrivacyPolicy}
+                />
                 <Route path="/roadmap" component={Roadmap} />
               </Switch>
             </section>
