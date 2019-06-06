@@ -18,8 +18,7 @@ export enum OrderListUrlFiltersEnum {
   dateTo = "dateTo",
   status = "status",
   email = "email",
-  payment = "payment",
-  query = "query"
+  payment = "payment"
 }
 export type OrderListUrlFilters = Filters<OrderListUrlFiltersEnum>;
 export type OrderListUrlDialog = "cancel" | "save-search" | "delete-search";

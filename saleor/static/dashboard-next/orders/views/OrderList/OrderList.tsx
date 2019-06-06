@@ -140,10 +140,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
           displayLoader
           variables={{
             ...paginationState,
-            filter: {
-              ...getFilterVariables(params),
-              customer: params.email
-            }
+            filter: getFilterVariables(params)
           }}
         >
           {({ data, loading, refetch }) => {
@@ -217,14 +214,14 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                             })}
                           </Button>
                         }
-                        onSearchChange={query => changeFilterField({ query })}
+                        onSearchChange={email => changeFilterField({ email })}
                         onFilterAdd={filter =>
                           changeFilterField(createFilter(filter))
                         }
                         onFilterSave={() => openModal("save-search")}
                         onFilterDelete={() => openModal("delete-search")}
                         onTabChange={handleTabChange}
-                        initialSearch={params.query || ""}
+                        initialSearch={params.email || ""}
                         filterTabs={getFilterTabs()}
                         onAll={() =>
                           changeFilters({
