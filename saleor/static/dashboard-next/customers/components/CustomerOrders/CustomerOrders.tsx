@@ -8,11 +8,11 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { DateTime } from "../../../components/Date";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
+import CardTitle from "@components/CardTitle";
+import { DateTime } from "@components/Date";
+import Money from "@components/Money";
+import Skeleton from "@components/Skeleton";
+import StatusLabel from "@components/StatusLabel";
 import i18n from "../../../i18n";
 import { maybe, renderCollection, transformPaymentStatus } from "../../../misc";
 import { CustomerDetails_user_orders_edges_node } from "../../types/CustomerDetails";

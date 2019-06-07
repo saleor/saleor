@@ -11,10 +11,10 @@ import Typography from "@material-ui/core/Typography";
 import * as moment from "moment-timezone";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
-import { FormSpacer } from "../../../components/FormSpacer";
-import Skeleton from "../../../components/Skeleton";
+import CardTitle from "@components/CardTitle";
+import { ControlledCheckbox } from "@components/ControlledCheckbox";
+import { FormSpacer } from "@components/FormSpacer";
+import Skeleton from "@components/Skeleton";
 import i18n from "../../../i18n";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
 

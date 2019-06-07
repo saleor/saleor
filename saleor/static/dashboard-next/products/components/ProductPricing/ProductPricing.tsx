@@ -8,9 +8,9 @@ import {
 } from "@material-ui/core/styles";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import ControlledCheckbox from "../../../components/ControlledCheckbox";
-import PriceField from "../../../components/PriceField";
+import CardTitle from "@components/CardTitle";
+import ControlledCheckbox from "@components/ControlledCheckbox";
+import PriceField from "@components/PriceField";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>

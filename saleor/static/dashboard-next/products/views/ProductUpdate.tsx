@@ -4,9 +4,9 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
+import ActionDialog from "@components/ActionDialog";
+import { WindowTitle } from "@components/WindowTitle";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
-import ActionDialog from "../../components/ActionDialog";
-import { WindowTitle } from "../../components/WindowTitle";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
 import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";

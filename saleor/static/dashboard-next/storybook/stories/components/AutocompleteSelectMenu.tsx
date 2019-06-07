@@ -5,8 +5,8 @@ import * as React from "react";
 
 import AutocompleteSelectMenu, {
   AutocompleteSelectMenuProps
-} from "../../../components/AutocompleteSelectMenu";
-import Form from "../../../components/Form";
+} from "@components/AutocompleteSelectMenu";
+import Form from "@components/Form";
 import { getMenuItemByValue, IMenu } from "../../../utils/menu";
 import Decorator from "../../Decorator";
 

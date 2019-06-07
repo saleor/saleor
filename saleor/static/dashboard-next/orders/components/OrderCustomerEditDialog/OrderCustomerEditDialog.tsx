@@ -13,8 +13,8 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
+} from "@components/ConfirmButton";
+import { SingleAutocompleteSelectField } from "@components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>

@@ -7,7 +7,7 @@ import {
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import SingleSelectField from "../../components/SingleSelectField";
+import SingleSelectField from "@components/SingleSelectField";
 
 const styles = (theme: Theme) =>
   createStyles({

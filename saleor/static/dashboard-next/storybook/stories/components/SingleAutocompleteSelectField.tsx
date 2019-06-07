@@ -1,8 +1,8 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import Form from "../../../components/Form";
-import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
+import Form from "@components/Form";
+import SingleAutocompleteSelectField from "@components/SingleAutocompleteSelectField";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 import { ChoiceProvider } from "../../mock";

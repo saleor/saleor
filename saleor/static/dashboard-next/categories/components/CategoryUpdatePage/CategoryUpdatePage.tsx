@@ -1,16 +1,15 @@
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import { CardSpacer } from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
-import SeoForm from "../../../components/SeoForm";
-import { Tab } from "../../../components/Tab";
-import TabContainer from "../../../components/Tab/TabContainer";
+import AppHeader from "@components/AppHeader";
+import { CardSpacer } from "@components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@components/ConfirmButton";
+import Container from "@components/Container";
+import Form from "@components/Form";
+import PageHeader from "@components/PageHeader";
+import SaveButtonBar from "@components/SaveButtonBar";
+import SeoForm from "@components/SeoForm";
+import { Tab, TabContainer } from "@components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { TabListActions, UserError } from "../../../types";

@@ -2,7 +2,7 @@ import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
+import ActionDialog from "@components/ActionDialog";
 import { configurationMenuUrl } from "../../configuration";
 import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";

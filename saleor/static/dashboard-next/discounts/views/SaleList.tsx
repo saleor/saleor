@@ -3,8 +3,8 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import { WindowTitle } from "../../components/WindowTitle";
+import ActionDialog from "@components/ActionDialog";
+import { WindowTitle } from "@components/WindowTitle";
 import useBulkActions from "../../hooks/useBulkActions";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";

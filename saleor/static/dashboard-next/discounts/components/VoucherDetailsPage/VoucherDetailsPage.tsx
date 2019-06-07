@@ -1,17 +1,16 @@
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
-import Container from "../../../components/Container";
-import CountryList from "../../../components/CountryList";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
-import { Tab } from "../../../components/Tab";
-import TabContainer from "../../../components/Tab/TabContainer";
+import AppHeader from "@components/AppHeader";
+import CardSpacer from "@components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@components/ConfirmButton";
+import Container from "@components/Container";
+import CountryList from "@components/CountryList";
+import Form from "@components/Form";
+import Grid from "@components/Grid";
+import PageHeader from "@components/PageHeader";
+import SaveButtonBar from "@components/SaveButtonBar";
+import { Tab, TabContainer } from "@components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ListProps, TabListActions, UserError } from "../../../types";

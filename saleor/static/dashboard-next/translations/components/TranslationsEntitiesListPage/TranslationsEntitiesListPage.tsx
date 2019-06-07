@@ -1,11 +1,12 @@
 import Card from "@material-ui/core/Card";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
-import { ShopInfo_shop_languages } from "../../../components/Shop/types/ShopInfo";
-import FilterTabs, { FilterTab } from "../../../components/TableFilter";
+import AppHeader from "@components/AppHeader";
+import Container from "@components/Container";
+import PageHeader from "@components/PageHeader";
+// tslint:disable no-submodule-imports
+import { ShopInfo_shop_languages } from "@components/Shop/types/ShopInfo";
+import FilterTabs, { FilterTab } from "@components/TableFilter";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { TranslatableEntities } from "../../urls";

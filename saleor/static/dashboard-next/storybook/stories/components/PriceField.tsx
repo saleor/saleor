@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import PriceField from "../../../components/PriceField";
+import PriceField from "@components/PriceField";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 

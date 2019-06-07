@@ -15,11 +15,11 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Checkbox from "../../../components/Checkbox";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@components/CardTitle";
+import Checkbox from "@components/Checkbox";
+import Skeleton from "@components/Skeleton";
+import TableHead from "@components/TableHead";
+import TablePagination from "@components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ICONBUTTON_SIZE } from "../../../theme";

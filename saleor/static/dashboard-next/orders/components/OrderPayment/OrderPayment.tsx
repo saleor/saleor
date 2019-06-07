@@ -10,11 +10,11 @@ import {
 } from "@material-ui/core/styles";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { Hr } from "../../../components/Hr";
-import Money, { subtractMoney } from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
+import CardTitle from "@components/CardTitle";
+import { Hr } from "@components/Hr";
+import Money, { subtractMoney } from "@components/Money";
+import Skeleton from "@components/Skeleton";
+import StatusLabel from "@components/StatusLabel";
 import i18n from "../../../i18n";
 import { maybe, transformPaymentStatus } from "../../../misc";
 import { OrderAction, OrderStatus } from "../../../types/globalTypes";

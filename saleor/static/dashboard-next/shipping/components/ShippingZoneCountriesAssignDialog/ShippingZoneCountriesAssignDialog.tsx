@@ -18,14 +18,15 @@ import Typography from "@material-ui/core/Typography";
 import { filter } from "fuzzaldrin";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
+import Checkbox from "@components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import Form from "../../../components/Form";
-import FormSpacer from "../../../components/FormSpacer";
-import Hr from "../../../components/Hr";
-import { ShopInfo_shop_countries } from "../../../components/Shop/types/ShopInfo";
+} from "@components/ConfirmButton";
+import Form from "@components/Form";
+import FormSpacer from "@components/FormSpacer";
+import Hr from "@components/Hr";
+// tslint:disable no-submodule-imports
+import { ShopInfo_shop_countries } from "@components/Shop/types/ShopInfo";
 import i18n from "../../../i18n";
 
 interface FormData {

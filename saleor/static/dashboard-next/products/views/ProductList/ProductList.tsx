@@ -4,11 +4,12 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
-import DeleteFilterTabDialog from "../../../components/DeleteFilterTabDialog";
+import ActionDialog from "@components/ActionDialog";
+import DeleteFilterTabDialog from "@components/DeleteFilterTabDialog";
+import ProductListCard from "@components/ProductListCard";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
-} from "../../../components/SaveFilterTabDialog";
+} from "@components/SaveFilterTabDialog";
 import useBulkActions from "../../../hooks/useBulkActions";
 import useLocale from "../../../hooks/useLocale";
 import useNavigator from "../../../hooks/useNavigator";
@@ -19,7 +20,6 @@ import usePaginator, {
 import useShop from "../../../hooks/useShop";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
-import ProductListCard from "../../components/ProductListCard";
 import {
   TypedProductBulkDeleteMutation,
   TypedProductBulkPublishMutation

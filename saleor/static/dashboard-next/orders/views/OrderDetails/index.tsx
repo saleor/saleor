@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { WindowTitle } from "../../../components/WindowTitle";
+import { WindowTitle } from "@components/WindowTitle";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../../config";
 import SearchCustomers from "../../../containers/SearchCustomers";
 import { customerUrl } from "../../../customers/urls";

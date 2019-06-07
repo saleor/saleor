@@ -9,9 +9,9 @@ import {
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import CardTitle from "../../components/CardTitle";
-import ControlledSwitch from "../../components/ControlledSwitch";
-import { FormSpacer } from "../../components/FormSpacer";
+import CardTitle from "@components/CardTitle";
+import ControlledSwitch from "@components/ControlledSwitch";
+import { FormSpacer } from "@components/FormSpacer";
 import useDateLocalize from "../../hooks/useDateLocalize";
 import i18n from "../../i18n";
 import { DateContext } from "../Date/DateContext";

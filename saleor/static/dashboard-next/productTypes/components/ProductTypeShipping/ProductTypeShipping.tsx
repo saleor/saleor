@@ -3,8 +3,8 @@ import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
+import CardTitle from "@components/CardTitle";
+import { ControlledCheckbox } from "@components/ControlledCheckbox";
 import i18n from "../../../i18n";
 import { WeightUnitsEnum } from "../../../types/globalTypes";
 

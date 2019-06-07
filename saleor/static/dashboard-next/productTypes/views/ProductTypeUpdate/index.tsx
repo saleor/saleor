@@ -1,19 +1,19 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
-import { WindowTitle } from "../../../components/WindowTitle";
+import ActionDialog from "@components/ActionDialog";
+import ProductTypeAttributeEditDialog, {
+  FormData as AttributeForm
+} from "@components/ProductTypeAttributeEditDialog";
+import ProductTypeDetailsPage, {
+  ProductTypeForm
+} from "@components/ProductTypeDetailsPage";
+import { WindowTitle } from "@components/WindowTitle";
 import useNavigator from "../../../hooks/useNavigator";
 import useNotifier from "../../../hooks/useNotifier";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { AttributeTypeEnum } from "../../../types/globalTypes";
-import ProductTypeAttributeEditDialog, {
-  FormData as AttributeForm
-} from "../../components/ProductTypeAttributeEditDialog";
-import ProductTypeDetailsPage, {
-  ProductTypeForm
-} from "../../components/ProductTypeDetailsPage";
 import ProductTypeOperations from "../../containers/ProductTypeOperations";
 import { TypedProductTypeDetailsQuery } from "../../queries";
 import { AttributeCreate } from "../../types/AttributeCreate";

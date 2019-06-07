@@ -1,10 +1,10 @@
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardSpacer from "../../../components/CardSpacer";
-import Container from "../../../components/Container";
-import LanguageSwitch from "../../../components/LanguageSwitch";
-import PageHeader from "../../../components/PageHeader";
+import AppHeader from "@components/AppHeader";
+import CardSpacer from "@components/CardSpacer";
+import Container from "@components/Container";
+import LanguageSwitch from "@components/LanguageSwitch";
+import PageHeader from "@components/PageHeader";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { LanguageCodeEnum } from "../../../types/globalTypes";

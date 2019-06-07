@@ -6,9 +6,9 @@ import {
 } from "@material-ui/core/styles";
 import * as React from "react";
 
-import Link from "../../../components/Link";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
+import Link from "@components/Link";
+import Money from "@components/Money";
+import Skeleton from "@components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
