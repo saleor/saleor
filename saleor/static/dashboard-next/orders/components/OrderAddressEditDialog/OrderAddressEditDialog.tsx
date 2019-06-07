@@ -49,7 +49,7 @@ const OrderAddressEditDialog = withStyles(styles, {
     onClose,
     onConfirm
   }: OrderAddressEditDialogProps) => (
-    <Dialog open={open} classes={{ paper: classes.overflow }}>
+    <Dialog onClose={onClose} open={open} classes={{ paper: classes.overflow }}>
       <Form initial={address} errors={errors} onSubmit={onConfirm}>
         {({ change, data, errors, submit }) => (
           <>

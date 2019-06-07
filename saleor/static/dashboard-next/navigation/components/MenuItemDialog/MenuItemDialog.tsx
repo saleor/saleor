@@ -184,6 +184,7 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
 
   return (
     <Dialog
+      onClose={onClose}
       open={open}
       maxWidth="sm"
       fullWidth

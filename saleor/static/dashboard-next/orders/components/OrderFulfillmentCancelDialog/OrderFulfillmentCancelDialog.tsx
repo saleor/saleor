@@ -51,7 +51,7 @@ const OrderFulfillmentCancelDialog = withStyles(styles, {
     onConfirm,
     onClose
   }: OrderFulfillmentCancelDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <Form initial={{ restock: true }} onSubmit={onConfirm}>
         {({ change, data, submit }) => (
           <>

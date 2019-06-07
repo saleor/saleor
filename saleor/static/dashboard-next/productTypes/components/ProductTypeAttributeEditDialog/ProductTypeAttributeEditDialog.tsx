@@ -44,7 +44,7 @@ const ProductTypeAttributeEditDialog: React.StatelessComponent<
     values: values || []
   };
   return (
-    <Dialog open={opened}>
+    <Dialog onClose={onClose} open={opened}>
       <Form errors={errors} initial={initialForm} onSubmit={onConfirm}>
         {({ change, data, errors: formErrors }) => (
           <>
