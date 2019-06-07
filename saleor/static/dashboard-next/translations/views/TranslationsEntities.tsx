@@ -1,9 +1,9 @@
 import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
-import useNavigator from "../../hooks/useNavigator";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
-import useShop from "../../hooks/useShop";
+import useNavigator from "@hooks/useNavigator";
+import usePaginator, { createPaginationState } from "@hooks/usePaginator";
+import useShop from "@hooks/useShop";
 import { maybe } from "../../misc";
 import { Pagination } from "../../types";
 import TranslationsEntitiesList from "../components/TranslationsEntitiesList";

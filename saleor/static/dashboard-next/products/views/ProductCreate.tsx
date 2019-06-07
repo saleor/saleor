@@ -1,12 +1,12 @@
 import * as React from "react";
 
 import { WindowTitle } from "@components/WindowTitle";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
+import useShop from "@hooks/useShop";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
 import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import useShop from "../../hooks/useShop";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import ProductCreatePage, { FormData } from "../components/ProductCreatePage";

@@ -4,11 +4,11 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import ActionDialog from "@components/ActionDialog";
+import useBulkActions from "@hooks/useBulkActions";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
+import usePaginator, { createPaginationState } from "@hooks/usePaginator";
 import { configurationMenuUrl } from "../../configuration";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import ProductTypeListPage from "../components/ProductTypeListPage";

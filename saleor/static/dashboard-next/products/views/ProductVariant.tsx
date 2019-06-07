@@ -1,9 +1,9 @@
 import * as React from "react";
 
 import { WindowTitle } from "@components/WindowTitle";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import ProductVariantDeleteDialog from "../components/ProductVariantDeleteDialog";

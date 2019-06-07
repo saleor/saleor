@@ -9,14 +9,12 @@ import DeleteFilterTabDialog from "@components/DeleteFilterTabDialog";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
 } from "@components/SaveFilterTabDialog";
-import useBulkActions from "../../../hooks/useBulkActions";
-import useLocale from "../../../hooks/useLocale";
-import useNavigator from "../../../hooks/useNavigator";
-import useNotifier from "../../../hooks/useNotifier";
-import usePaginator, {
-  createPaginationState
-} from "../../../hooks/usePaginator";
-import useShop from "../../../hooks/useShop";
+import useBulkActions from "@hooks/useBulkActions";
+import useLocale from "@hooks/useLocale";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
+import usePaginator, { createPaginationState } from "@hooks/usePaginator";
+import useShop from "@hooks/useShop";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import ProductListCard from "../../components/ProductListCard";

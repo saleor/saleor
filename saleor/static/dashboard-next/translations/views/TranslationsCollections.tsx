@@ -1,9 +1,9 @@
 import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import useShop from "../../hooks/useShop";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
+import useShop from "@hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { LanguageCodeEnum, TranslationInput } from "../../types/globalTypes";

@@ -1,3 +1,4 @@
+import useTheme from "@hooks/useTheme";
 import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
@@ -10,7 +11,6 @@ import ArrowLeft from "@material-ui/icons/ArrowLeft";
 import ArrowRight from "@material-ui/icons/ArrowRight";
 import * as classNames from "classnames";
 import * as React from "react";
-import useTheme from "../../hooks/useTheme";
 
 const styles = (theme: Theme) =>
   createStyles({

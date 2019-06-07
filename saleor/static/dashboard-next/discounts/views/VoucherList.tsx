@@ -5,11 +5,11 @@ import * as React from "react";
 
 import ActionDialog from "@components/ActionDialog";
 import { WindowTitle } from "@components/WindowTitle";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
-import useShop from "../../hooks/useShop";
+import useBulkActions from "@hooks/useBulkActions";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
+import usePaginator, { createPaginationState } from "@hooks/usePaginator";
+import useShop from "@hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import VoucherListPage from "../components/VoucherListPage";

@@ -3,8 +3,8 @@ import * as React from "react";
 
 import ActionDialog from "@components/ActionDialog";
 import { WindowTitle } from "@components/WindowTitle";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { PageInput } from "../../types/globalTypes";
