@@ -7,8 +7,7 @@ from tests.api.utils import get_graphql_content
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
-from saleor.graphql.discount.enums import (DiscountValueTypeEnum,
-                                           VoucherTypeEnum)
+from saleor.graphql.discount.enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 @pytest.fixture
@@ -262,9 +261,7 @@ def test_create_voucher_with_existing_voucher_code(
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
-    from pprint import pprint
     content = get_graphql_content(response)
-    pprint(content)
     assert content["data"]["voucherCreate"]["errors"]
     errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
