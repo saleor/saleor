@@ -44,6 +44,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Default default PAGINATE_BY - #4238 by @dominik-zeglen
 - Add basic Gift Cards support in the backend - #4025 by @fowczarek
 - Create generic filtering interface - #4221 by @dominik-zeglen
+- Add order filtering - #4237 by @dominik-zeglen
 
 ## 2.6.0
 
