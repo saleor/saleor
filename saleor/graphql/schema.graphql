@@ -347,6 +347,7 @@ type Checkout implements Node {
   discountName: String
   translatedDiscountName: String
   voucherCode: String
+  giftCards: [GiftCard]
   id: ID!
   availableShippingMethods: [ShippingMethod]!
   availablePaymentGateways: [GatewaysEnum]!
@@ -356,6 +357,11 @@ type Checkout implements Node {
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
   totalPrice: TaxedMoney
+}
+
+type CheckoutAddPromoCode {
+  errors: [Error!]
+  checkout: Checkout
 }
 
 type CheckoutBillingAddressUpdate {
@@ -449,6 +455,11 @@ type CheckoutPaymentCreate {
   errors: [Error!]
   checkout: Checkout
   payment: Payment
+}
+
+type CheckoutRemovePromoCode {
+  errors: [Error!]
+  checkout: Checkout
 }
 
 type CheckoutShippingAddressUpdate {
@@ -1197,6 +1208,65 @@ type Geolocalization {
   country: CountryDisplay
 }
 
+type GiftCard implements Node {
+  user: User
+  created: DateTime!
+  startDate: Date!
+  endDate: Date
+  lastUsedOn: DateTime
+  isActive: Boolean!
+  initialBalance: Money
+  currentBalance: Money
+  id: ID!
+  displayCode: String
+}
+
+type GiftCardActivate {
+  errors: [Error!]
+  giftCard: GiftCard
+}
+
+type GiftCardCountableConnection {
+  pageInfo: PageInfo!
+  edges: [GiftCardCountableEdge!]!
+  totalCount: Int
+}
+
+type GiftCardCountableEdge {
+  node: GiftCard!
+  cursor: String!
+}
+
+type GiftCardCreate {
+  errors: [Error!]
+  giftCard: GiftCard
+}
+
+input GiftCardCreateInput {
+  startDate: Date
+  endDate: Date
+  balance: Decimal
+  userEmail: String
+  code: String
+}
+
+type GiftCardDeactivate {
+  errors: [Error!]
+  giftCard: GiftCard
+}
+
+type GiftCardUpdate {
+  errors: [Error!]
+  giftCard: GiftCard
+}
+
+input GiftCardUpdateInput {
+  startDate: Date
+  endDate: Date
+  balance: Decimal
+  userEmail: String
+}
+
 type HomepageCollectionUpdate {
   errors: [Error!]
   shop: Shop
@@ -1529,6 +1599,10 @@ type Mutations {
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
+  giftCardActivate(id: ID!): GiftCardActivate
+  giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
+  giftCardDeactivate(id: ID!): GiftCardDeactivate
+  giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -1546,6 +1620,7 @@ type Mutations {
   tokenCreate(email: String!, password: String!): CreateToken
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
+  checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
@@ -1555,6 +1630,7 @@ type Mutations {
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
   checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
+  checkoutRemovePromoCode(checkoutId: ID!, promoCode: String!): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
@@ -1615,6 +1691,7 @@ type Order implements Node {
   shippingMethodName: String
   token: String!
   voucher: Voucher
+  giftCards: [GiftCard]
   discountAmount: Money
   discountName: String!
   translatedDiscountName: String!
@@ -2018,6 +2095,7 @@ enum PermissionEnum {
   MANAGE_STAFF
   IMPERSONATE_USERS
   MANAGE_DISCOUNTS
+  MANAGE_GIFT_CARD
   MANAGE_MENUS
   MANAGE_ORDERS
   MANAGE_PAGES
@@ -2428,6 +2506,8 @@ type Query {
   menus(query: String, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  giftCard(id: ID!): GiftCard
+  giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   sale(id: ID!): Sale
   sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
@@ -2932,6 +3012,7 @@ type User implements Node {
   defaultBillingAddress: Address
   addresses: [Address]
   checkout: Checkout
+  giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [PermissionDisplay]
   avatar(size: Int): Image
