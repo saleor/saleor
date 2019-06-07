@@ -12,7 +12,7 @@ import { OrderListUrlFilters } from "../../urls";
 import OrderList from "../OrderList";
 import OrderListFilter from "../OrderListFilter";
 
-interface OrderListPageProps
+export interface OrderListPageProps
   extends PageListProps,
     ListActions,
     FilterPageProps<OrderListUrlFilters> {
@@ -42,7 +42,7 @@ const OrderListPage: React.FC<OrderListPageProps> = ({
     </PageHeader>
     <Card>
       <OrderListFilter
-        allTabLabel={i18n.t("All Products")}
+        allTabLabel={i18n.t("All Orders")}
         currencySymbol={currencySymbol}
         currentTab={currentTab}
         filterLabel={i18n.t("Select all orders where:")}
