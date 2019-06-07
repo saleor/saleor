@@ -6,7 +6,6 @@ import * as React from "react";
 
 import ActionDialog from "@components/ActionDialog";
 import DeleteFilterTabDialog from "@components/DeleteFilterTabDialog";
-import ProductListCard from "@components/ProductListCard";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
 } from "@components/SaveFilterTabDialog";
@@ -20,6 +19,7 @@ import usePaginator, {
 import useShop from "../../../hooks/useShop";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
+import ProductListCard from "../../components/ProductListCard";
 import {
   TypedProductBulkDeleteMutation,
   TypedProductBulkPublishMutation
