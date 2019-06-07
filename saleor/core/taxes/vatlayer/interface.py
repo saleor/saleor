@@ -1,9 +1,7 @@
-from collections import defaultdict
-from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django_countries.fields import Country
-from django_prices_vatlayer.utils import get_tax_rate, get_tax_rate_types
+from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....core import TaxRateType  # FIXME this should be placed in VatLayer module
@@ -50,28 +48,6 @@ def get_shipping_gross(checkout: "Checkout", _: "SaleQueryset") -> TaxedMoney:
     address = checkout.shipping_address or checkout.billing_address
     taxes = get_taxes_for_address(address)
     return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
-
-
-def get_lines_with_unit_tax(checkout: "Checkout", discounts: "SaleQueryset"):
-    lines_taxes = defaultdict(lambda: Decimal("0.0"))
-
-    address = checkout.shipping_address or checkout.billing_address
-    taxes = get_taxes_for_address(address)
-    lines = checkout.lines.prefetch_related("variant__product__product_type")
-    for line in lines:
-        price = line.variant.get_price(discounts)
-
-        # FIXME tax_rate belongs to vatlayer. We should transfer it to metadata somehow
-        tax_rate_name = (
-            line.variant.product.tax_rate or line.variant.product.product_type.tax_rate
-        )
-        tax_rate = get_tax_rate(taxes, tax_rate_name)
-        if not tax_rate:
-            continue
-        tax_rate = Decimal(tax_rate / 100)
-        lines_taxes[line.variant.sku] = price.amount * tax_rate
-
-    return [(line, lines_taxes[line.variant.sku]) for line in checkout.lines.all()]
 
 
 def get_line_total_gross(checkout_line: "CheckoutLine", discounts: "SaleQueryset"):

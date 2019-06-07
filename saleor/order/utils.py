@@ -9,8 +9,8 @@ from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.taxes import ZERO_MONEY
 from ..core.taxes.interface import (
-    apply_taxes_to_order_line_unit_price,
     calculate_order_shipping,
+    refresh_order_line_unit_price,
 )
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
@@ -158,8 +158,12 @@ def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
     for line in order:
         if line.variant:
-            unit_net_price = line.variant.get_price(discounts)
-            price = apply_taxes_to_order_line_unit_price(line, unit_net_price)
+            unit_price = line.variant.get_price(discounts)
+            line.unit_price_net = unit_price
+            line.unit_price_gross = unit_price
+            line.save(update_fields=["unit_price_net", "unit_price_gross"])
+
+            price = refresh_order_line_unit_price(line)
             line.unit_price = price
             line.tax_rate = 0  # Fixme we can calulcate tax_rate based on prices
             line.save()
@@ -289,7 +293,7 @@ def add_variant_to_order(
             variant=variant,
         )
 
-        unit_price = apply_taxes_to_order_line_unit_price(line, unit_price_net)
+        unit_price = refresh_order_line_unit_price(line)
         line.unit_price_net = unit_price.net
         line.unit_price_gross = unit_price.gross
         line.tax_rate = unit_price.tax / unit_price.net

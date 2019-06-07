@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
-from .. import charge_taxes_on_shipping
+from .. import charge_taxes_on_shipping, include_taxes_in_prices
 
 if TYPE_CHECKING:
     from ....checkout.models import Checkout
@@ -39,7 +39,7 @@ def api_post_request(
 ) -> Dict[str, Any]:
     try:
         auth = HTTPBasicAuth(username, password)
-        response = requests.post(url, auth=auth, data=json.dumps(data))
+        response = requests.post(url, auth=auth, data=json.dumps(data))  # FIXME timeout
     except requests.exceptions.RequestException:
         return {}
     return response.json()
@@ -128,6 +128,7 @@ def append_line_to_data(
             "quantity": quantity,
             "amount": str(amount),
             "taxCode": tax_code,
+            "taxIncluded": include_taxes_in_prices(),
             # FIXME Should fetch taxcode from somewhere and save inside variant/product
             "itemCode": item_code,
             "description": description[:2000] if description else "",
