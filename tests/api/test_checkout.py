@@ -1322,4 +1322,3 @@ def test_is_fully_paid_no_payment(checkout_with_item):
     checkout = checkout_with_item
     is_paid = is_fully_paid(checkout, None, None)
     assert not is_paid
-    
