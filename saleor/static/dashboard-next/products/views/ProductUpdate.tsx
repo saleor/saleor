@@ -6,13 +6,13 @@ import { arrayMove } from "react-sortable-hoc";
 
 import ActionDialog from "@components/ActionDialog";
 import { WindowTitle } from "@components/WindowTitle";
+import useBulkActions from "@hooks/useBulkActions";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
 import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import { productTypeUrl } from "../../productTypes/urls";

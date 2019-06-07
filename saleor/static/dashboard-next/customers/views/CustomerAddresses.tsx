@@ -3,9 +3,9 @@ import * as React from "react";
 
 import ActionDialog from "@components/ActionDialog";
 import { WindowTitle } from "@components/WindowTitle";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import useShop from "../../hooks/useShop";
+import useNavigator from "@hooks/useNavigator";
+import useNotifier from "@hooks/useNotifier";
+import useShop from "@hooks/useShop";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import CustomerAddressDialog from "../components/CustomerAddressDialog";

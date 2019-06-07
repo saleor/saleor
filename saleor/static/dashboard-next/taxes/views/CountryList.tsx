@@ -1,7 +1,7 @@
 import * as React from "react";
 
+import useNavigator from "@hooks/useNavigator";
 import { configurationMenuUrl } from "../../configuration";
-import useNavigator from "../../hooks/useNavigator";
 import { maybe } from "../../misc";
 import CountryListPage from "../components/CountryListPage";
 import { TypedFetchTaxes, TypedUpdateTaxSettings } from "../mutations";

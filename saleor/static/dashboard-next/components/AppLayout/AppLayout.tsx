@@ -18,11 +18,11 @@ import SVG from "react-inlinesvg";
 import { RouteComponentProps, withRouter } from "react-router";
 
 import AppProgressProvider from "@components/AppProgress";
+import useNavigator from "@hooks/useNavigator";
+import useTheme from "@hooks/useTheme";
+import useUser from "@hooks/useUser";
 import * as saleorDarkLogo from "../../../images/logo-dark.svg";
 import * as saleorLightLogo from "../../../images/logo-light.svg";
-import useNavigator from "../../hooks/useNavigator";
-import useTheme from "../../hooks/useTheme";
-import useUser from "../../hooks/useUser";
 import i18n from "../../i18n";
 import ArrowDropdown from "../../icons/ArrowDropdown";
 import Container from "../Container";

@@ -13,10 +13,10 @@ import SVG from "react-inlinesvg";
 import { ControlledCheckbox } from "@components/ControlledCheckbox";
 import Form from "@components/Form";
 import { FormSpacer } from "@components/FormSpacer";
+import useTheme from "@hooks/useTheme";
 import * as backgroundArt from "../../../../images/login-background.svg";
 import * as saleorDarkLogo from "../../../../images/logo-dark.svg";
 import * as saleorLightLogo from "../../../../images/logo-light.svg";
-import useTheme from "../../../hooks/useTheme";
 import i18n from "../../../i18n";
 
 export interface FormData {
