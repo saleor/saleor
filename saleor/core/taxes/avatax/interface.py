@@ -141,7 +141,6 @@ def apply_taxes_to_order_line_unit_price(order_line: "OrderLine", price: Money):
 def calculate_order_shipping(order: "Order"):
     if not validate_order(order) or not order.shipping_method:
         return ZERO_TAXED_MONEY
-
     taxes_data = get_order_tax_data(order, None)
     for line in taxes_data.get("lines", []):
         if line["itemCode"] == "Shipping":
