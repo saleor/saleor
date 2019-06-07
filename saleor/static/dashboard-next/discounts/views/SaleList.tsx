@@ -8,8 +8,11 @@ import { WindowTitle } from "@saleor/components/WindowTitle";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
 import useShop from "@saleor/hooks/useShop";
+import { PAGINATE_BY } from "../../config";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import SaleListPage from "../components/SaleListPage";
@@ -22,8 +25,6 @@ import {
   SaleListUrlQueryParams,
   saleUrl
 } from "../urls";
-
-const PAGINATE_BY = 20;
 
 interface SaleListProps {
   params: SaleListUrlQueryParams;

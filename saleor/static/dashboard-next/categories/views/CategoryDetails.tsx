@@ -5,10 +5,13 @@ import * as React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import { WindowTitle } from "@saleor/components/WindowTitle";
+import { PAGINATE_BY } from "../../config";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { TypedProductBulkDeleteMutation } from "../../products/mutations";
@@ -46,8 +49,6 @@ export function getActiveTab(tabName: string): CategoryPageTab {
     ? CategoryPageTab.products
     : CategoryPageTab.categories;
 }
-
-const PAGINATE_BY = 20;
 
 export const CategoryDetails: React.StatelessComponent<
   CategoryDetailsProps
