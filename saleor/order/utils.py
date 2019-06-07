@@ -8,7 +8,10 @@ from prices import Money, TaxedMoney
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.taxes import ZERO_MONEY
-from ..core.taxes.interface import apply_taxes_to_order_line_unit_price
+from ..core.taxes.interface import (
+    apply_taxes_to_order_line_unit_price,
+    calculate_order_shipping,
+)
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
@@ -162,7 +165,7 @@ def update_order_prices(order, discounts):
             line.save()
 
     if order.shipping_method:
-        order.shipping_price = order.shipping_method.get_total()
+        order.shipping_price = calculate_order_shipping(order)
         order.save()
 
     recalculate_order(order)
