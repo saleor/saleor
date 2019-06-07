@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import AppHeader from "@components/AppHeader";
-import Container from "@components/Container";
-import Grid from "@components/Grid";
-import PageHeader from "@components/PageHeader";
+import AppHeader from "@saleor-components/AppHeader";
+import Container from "@saleor-components/Container";
+import Grid from "@saleor-components/Grid";
+import PageHeader from "@saleor-components/PageHeader";
 import i18n from "../../../i18n";
 import { ListActions, PageListProps } from "../../../types";
 import { WeightUnitsEnum } from "../../../types/globalTypes";

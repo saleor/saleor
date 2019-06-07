@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import SingleSelectField from "@components/SingleSelectField";
+import SingleSelectField from "@saleor-components/SingleSelectField";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 

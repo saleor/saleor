@@ -3,9 +3,9 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import CardTitle from "@components/CardTitle";
-import Container from "@components/Container";
-import PageHeader from "@components/PageHeader";
+import CardTitle from "@saleor-components/CardTitle";
+import Container from "@saleor-components/Container";
+import PageHeader from "@saleor-components/PageHeader";
 import i18n from "../../i18n";
 
 interface HomeScreenProps {

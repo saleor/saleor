@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { WindowTitle } from "@components/WindowTitle";
-import useNavigator from "@hooks/useNavigator";
-import useNotifier from "@hooks/useNotifier";
+import { WindowTitle } from "@saleor-components/WindowTitle";
+import useNavigator from "@saleor-hooks/useNavigator";
+import useNotifier from "@saleor-hooks/useNotifier";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import CustomerCreatePage from "../components/CustomerCreatePage";
