@@ -7,8 +7,11 @@ import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
 import useShop from "@saleor/hooks/useShop";
+import { PAGINATE_BY } from "../../config";
 import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
@@ -32,8 +35,6 @@ import {
 interface ShippingZonesListProps {
   params: ShippingZonesListUrlQueryParams;
 }
-
-const PAGINATE_BY = 20;
 
 export const ShippingZonesList: React.StatelessComponent<
   ShippingZonesListProps
