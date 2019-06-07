@@ -68,6 +68,7 @@ const CustomerAddressDialog = withStyles(styles, {})(
     };
     return (
       <Dialog
+        onClose={onClose}
         open={open}
         classes={{ paper: classes.overflow }}
         fullWidth

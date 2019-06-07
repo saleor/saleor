@@ -35,7 +35,7 @@ export interface CategoryDeleteDialogProps extends WithStyles<typeof styles> {
 const CategoryDeleteDialog = withStyles(styles, {
   name: "CategoryDeleteDialog"
 })(({ classes, name, open, onConfirm, onClose }: CategoryDeleteDialogProps) => (
-  <Dialog open={open}>
+  <Dialog onClose={onClose} open={open}>
     <DialogTitle>{i18n.t("Delete category", { context: "title" })}</DialogTitle>
     <DialogContent>
       <DialogContentText

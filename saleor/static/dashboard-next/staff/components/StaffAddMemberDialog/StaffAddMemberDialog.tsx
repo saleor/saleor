@@ -75,7 +75,7 @@ const StaffAddMemberDialog = withStyles(styles, {
     onClose,
     onConfirm
   }: StaffAddMemberDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <Form errors={errors} initial={initialForm} onSubmit={onConfirm}>
         {({ change, data, errors: formErrors, hasChanged }) => (
           <>

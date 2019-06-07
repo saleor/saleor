@@ -21,9 +21,9 @@ export interface SiteSettingsKeyDialogForm {
 
 export interface SiteSettingsKeyDialogProps
   extends Pick<
-      FormProps<SiteSettingsKeyDialogForm>,
-      Exclude<keyof FormProps<SiteSettingsKeyDialogForm>, "children">
-    > {
+    FormProps<SiteSettingsKeyDialogForm>,
+    Exclude<keyof FormProps<SiteSettingsKeyDialogForm>, "children">
+  > {
   open: boolean;
   onClose: () => void;
 }
@@ -33,7 +33,7 @@ const SiteSettingsKeyDialog: React.StatelessComponent<
 > = ({ errors, initial, open, onClose, onSubmit }) => {
   const keyTypes = translatedAuthorizationKeyTypes();
   return (
-    <Dialog maxWidth="xs" open={open}>
+    <Dialog onClose={onClose} maxWidth="xs" open={open}>
       <Form initial={initial} onSubmit={onSubmit} errors={errors}>
         {({ change, data, errors }) => (
           <>

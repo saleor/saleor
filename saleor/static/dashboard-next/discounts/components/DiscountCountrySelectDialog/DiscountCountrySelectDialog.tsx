@@ -77,7 +77,7 @@ const DiscountCountrySelectDialog = withStyles(styles, {
       query: ""
     };
     return (
-      <Dialog open={open} fullWidth maxWidth="sm">
+      <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
         <Form initial={initialForm} onSubmit={onConfirm}>
           {({ data, change }) => {
             const countrySelectionMap = countries.reduce((acc, country) => {
