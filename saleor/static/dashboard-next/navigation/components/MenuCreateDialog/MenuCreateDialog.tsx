@@ -35,7 +35,7 @@ const MenuCreateDialog: React.FC<MenuCreateDialogProps> = ({
   onConfirm,
   open
 }) => (
-  <Dialog maxWidth="sm" fullWidth open={open}>
+  <Dialog onClose={onClose} maxWidth="sm" fullWidth open={open}>
     <DialogTitle>
       {i18n.t("Add Menu", {
         context: "create menu modal window title"

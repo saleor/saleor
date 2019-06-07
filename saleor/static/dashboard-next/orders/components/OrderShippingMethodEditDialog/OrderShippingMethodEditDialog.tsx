@@ -83,7 +83,7 @@ const OrderShippingMethodEditDialog = withStyles(styles, {
       shippingMethod
     };
     return (
-      <Dialog open={open} classes={{ paper: classes.dialog }}>
+      <Dialog onClose={onClose} open={open} classes={{ paper: classes.dialog }}>
         <DialogTitle>
           {i18n.t("Edit shipping method", { context: "title" })}
         </DialogTitle>

@@ -72,6 +72,7 @@ const AssignCategoriesDialog = withStyles(styles, {
   }: AssignCategoriesDialogProps) => (
     <Dialog
       open={open}
+      onClose={onClose}
       classes={{ paper: classes.overflow }}
       fullWidth
       maxWidth="sm"

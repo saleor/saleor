@@ -70,7 +70,7 @@ const ProductVariantImageSelectDialog = withStyles(styles, {
     onClose,
     onImageSelect
   }: ProductVariantImageSelectDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <DialogTitle>
         {i18n.t("Image selection", { context: "title" })}
       </DialogTitle>

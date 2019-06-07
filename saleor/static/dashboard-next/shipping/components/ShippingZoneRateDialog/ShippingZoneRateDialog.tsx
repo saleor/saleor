@@ -106,7 +106,7 @@ const ShippingZoneRateDialog = withStyles(styles, {
     }
 
     return (
-      <Dialog open={open} fullWidth maxWidth="sm">
+      <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
         <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
           {({ change, data, errors: formErrors, hasChanged }) => {
             const typedFormErrors: FormErrors<

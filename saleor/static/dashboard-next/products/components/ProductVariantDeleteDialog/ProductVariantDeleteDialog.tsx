@@ -48,7 +48,7 @@ const ProductVariantDeleteDialog = withStyles(styles, {
     onConfirm,
     onClose
   }: ProductVariantDeleteDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <DialogTitle>
         {i18n.t("Delete variant", { context: "title" })}
       </DialogTitle>

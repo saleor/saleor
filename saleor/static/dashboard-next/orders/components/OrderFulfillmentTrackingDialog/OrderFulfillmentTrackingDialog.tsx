@@ -27,7 +27,7 @@ interface OrderFulfillmentTrackingDialogProps {
 const OrderFulfillmentTrackingDialog: React.StatelessComponent<
   OrderFulfillmentTrackingDialogProps
 > = ({ confirmButtonState, open, trackingNumber, onConfirm, onClose }) => (
-  <Dialog open={open}>
+  <Dialog onClose={onClose} open={open}>
     <Form initial={{ trackingNumber }} onSubmit={onConfirm}>
       {({ change, data, submit }) => (
         <>
