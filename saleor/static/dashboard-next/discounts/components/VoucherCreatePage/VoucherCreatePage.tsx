@@ -1,13 +1,13 @@
 import * as React from "react";
 
-import AppHeader from "@saleor-components/AppHeader";
-import CardSpacer from "@saleor-components/CardSpacer";
-import { ConfirmButtonTransitionState } from "@saleor-components/ConfirmButton";
-import Container from "@saleor-components/Container";
-import Form from "@saleor-components/Form";
-import Grid from "@saleor-components/Grid";
-import PageHeader from "@saleor-components/PageHeader";
-import SaveButtonBar from "@saleor-components/SaveButtonBar";
+import AppHeader from "@saleor/components/AppHeader";
+import CardSpacer from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import {

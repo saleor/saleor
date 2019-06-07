@@ -6,9 +6,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import Form from "@saleor-components/Form";
-import { FormSpacer } from "@saleor-components/FormSpacer";
-import ListField from "@saleor-components/ListField";
+import Form from "@saleor/components/Form";
+import { FormSpacer } from "@saleor/components/FormSpacer";
+import ListField from "@saleor/components/ListField";
 import i18n from "../../../i18n";
 
 export interface FormData {

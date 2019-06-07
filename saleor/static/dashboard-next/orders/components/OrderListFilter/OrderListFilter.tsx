@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Filter, FilterTab, FilterTabs } from "@saleor-components/TableFilter";
+import { Filter, FilterTab, FilterTabs } from "@saleor/components/TableFilter";
 import i18n from "../../../i18n";
 
 export type OrderListFilterTabs = "all" | "toFulfill" | "toCapture" | "custom";

@@ -8,8 +8,8 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 // tslint:disable no-submodule-imports
-import { ShopInfo_shop_languages } from "@saleor-components/Shop/types/ShopInfo";
-import Skeleton from "@saleor-components/Skeleton";
+import { ShopInfo_shop_languages } from "@saleor/components/Shop/types/ShopInfo";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 

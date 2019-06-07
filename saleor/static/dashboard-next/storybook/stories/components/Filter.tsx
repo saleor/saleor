@@ -5,7 +5,7 @@ import {
   FieldType,
   FilterContent,
   FilterContentProps
-} from "@saleor-components/Filter";
+} from "@saleor/components/Filter";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 

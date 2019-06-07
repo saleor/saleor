@@ -2,7 +2,7 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import { Omit } from "@material-ui/core";
-import ErrorPage, { ErrorPageProps } from "@saleor-components/ErrorPage";
+import ErrorPage, { ErrorPageProps } from "@saleor/components/ErrorPage";
 import Decorator from "../../Decorator";
 
 const props: Omit<ErrorPageProps, "classes"> = {

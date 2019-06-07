@@ -9,10 +9,10 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import CardTitle from "@saleor-components/CardTitle";
-import { DateTime } from "@saleor-components/Date";
-import { Hr } from "@saleor-components/Hr";
-import Skeleton from "@saleor-components/Skeleton";
+import CardTitle from "@saleor/components/CardTitle";
+import { DateTime } from "@saleor/components/Date";
+import { Hr } from "@saleor/components/Hr";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { CustomerDetails_user } from "../../types/CustomerDetails";

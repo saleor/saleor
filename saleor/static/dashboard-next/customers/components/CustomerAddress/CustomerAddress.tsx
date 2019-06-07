@@ -6,10 +6,10 @@ import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import AddressFormatter from "@saleor-components/AddressFormatter";
-import CardMenu from "@saleor-components/CardMenu";
-import CardTitle from "@saleor-components/CardTitle";
-import Skeleton from "@saleor-components/Skeleton";
+import AddressFormatter from "@saleor/components/AddressFormatter";
+import CardMenu from "@saleor/components/CardMenu";
+import CardTitle from "@saleor/components/CardTitle";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { AddressTypeEnum } from "../../../types/globalTypes";
 import { CustomerAddresses_user_addresses } from "../../types/CustomerAddresses";

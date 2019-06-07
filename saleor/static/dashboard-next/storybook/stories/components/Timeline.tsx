@@ -4,7 +4,7 @@ import * as React from "react";
 import Timeline, {
   TimelineEvent,
   TimelineNote
-} from "@saleor-components/Timeline";
+} from "@saleor/components/Timeline";
 import Decorator from "../../Decorator";
 
 storiesOf("Generics / Timeline", module)

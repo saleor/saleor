@@ -2,7 +2,7 @@ import Button from "@material-ui/core/Button";
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import useNotifier from "@saleor-hooks/useNotifier";
+import useNotifier from "@saleor/hooks/useNotifier";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 

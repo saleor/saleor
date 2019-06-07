@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import WeightRange, { WeightRangeProps } from "@saleor-components/WeightRange";
+import WeightRange, { WeightRangeProps } from "@saleor/components/WeightRange";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 

@@ -13,10 +13,10 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "@saleor-components/ConfirmButton";
-import Form from "@saleor-components/Form";
-import Money from "@saleor-components/Money";
-import { SingleSelectField } from "@saleor-components/SingleSelectField";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
+import Money from "@saleor/components/Money";
+import { SingleSelectField } from "@saleor/components/SingleSelectField";
 import i18n from "../../../i18n";
 import { OrderDetails_order_availableShippingMethods } from "../../types/OrderDetails";
 

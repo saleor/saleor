@@ -15,12 +15,12 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import CardTitle from "@saleor-components/CardTitle";
-import Checkbox from "@saleor-components/Checkbox";
-import Money from "@saleor-components/Money";
-import Skeleton from "@saleor-components/Skeleton";
-import StatusLabel from "@saleor-components/StatusLabel";
-import TableHead from "@saleor-components/TableHead";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Money from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
+import TableHead from "@saleor/components/TableHead";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 import { ListActions } from "../../../types";

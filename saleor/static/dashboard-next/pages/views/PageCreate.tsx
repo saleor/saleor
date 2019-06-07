@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { WindowTitle } from "@saleor-components/WindowTitle";
-import useNavigator from "@saleor-hooks/useNavigator";
-import useNotifier from "@saleor-hooks/useNotifier";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import PageDetailsPage from "../components/PageDetailsPage";

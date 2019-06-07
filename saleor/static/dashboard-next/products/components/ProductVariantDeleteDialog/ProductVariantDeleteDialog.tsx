@@ -14,7 +14,7 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "@saleor-components/ConfirmButton";
+} from "@saleor/components/ConfirmButton";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>

@@ -1,8 +1,8 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import Form from "@saleor-components/Form";
-import MultiSelectField from "@saleor-components/MultiSelectField";
+import Form from "@saleor/components/Form";
+import MultiSelectField from "@saleor/components/MultiSelectField";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 
