@@ -8,8 +8,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
-      "@saleor-components/*": ["./saleor/static/dashboard-next/components/*"],
-      "@saleor-hooks/*": ["./saleor/static/dashboard-next/hooks/*"]
+      "@saleor/*": ["./saleor/static/dashboard-next/*"]
     }
   },
   "exclude": ["node_modules"]

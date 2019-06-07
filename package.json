@@ -196,7 +196,10 @@
       "jsx",
       "json",
       "node"
-    ]
+    ],
+    "moduleNameMapper": {
+      "@saleor(.*)$": "<rootDir>/saleor/static/dashboard-next/$1"
+    }
   },
   "scripts": {
     "build-assets": "webpack -p",
