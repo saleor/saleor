@@ -76,7 +76,7 @@ const OrderCustomerEditDialog = withStyles(styles, {
           }))
         : [];
     return (
-      <Dialog open={open} classes={{ paper: classes.dialog }}>
+      <Dialog onClose={onClose} open={open} classes={{ paper: classes.dialog }}>
         <DialogTitle>{i18n.t("Edit customer details")}</DialogTitle>
         <DialogContent className={classes.root}>
           <SingleAutocompleteSelectField

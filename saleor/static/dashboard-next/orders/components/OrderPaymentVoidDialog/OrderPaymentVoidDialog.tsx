@@ -21,7 +21,7 @@ interface OrderPaymentVoidDialogProps {
 const OrderPaymentVoidDialog: React.StatelessComponent<
   OrderPaymentVoidDialogProps
 > = ({ confirmButtonState, open, onConfirm, onClose }) => (
-  <Dialog open={open}>
+  <Dialog onClose={onClose} open={open}>
     <DialogTitle>{i18n.t("Void payment", { context: "title" })}</DialogTitle>
     <DialogContent>
       <DialogContentText>

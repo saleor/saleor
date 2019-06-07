@@ -31,7 +31,7 @@ const SaveFilterTabDialog: React.FC<SaveFilterTabDialogProps> = ({
   onSubmit,
   open
 }) => (
-  <Dialog open={open} fullWidth maxWidth="sm">
+  <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
     <DialogTitle>
       {i18n.t("Save Custom Search", {
         context: "save filter tab"
