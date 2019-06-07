@@ -7,8 +7,9 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { ShopInfo_shop_languages } from "../../../components/Shop/types/ShopInfo";
-import Skeleton from "../../../components/Skeleton";
+// tslint:disable no-submodule-imports
+import { ShopInfo_shop_languages } from "@components/Shop/types/ShopInfo";
+import Skeleton from "@components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 

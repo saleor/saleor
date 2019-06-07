@@ -2,10 +2,10 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import * as React from "react";
 
-import FormSpacer from "../../../components/FormSpacer";
-import MultiSelectField from "../../../components/MultiSelectField";
-import PageHeader from "../../../components/PageHeader";
-import SingleSelectField from "../../../components/SingleSelectField";
+import FormSpacer from "@components/FormSpacer";
+import MultiSelectField from "@components/MultiSelectField";
+import PageHeader from "@components/PageHeader";
+import SingleSelectField from "@components/SingleSelectField";
 import i18n from "../../../i18n";
 
 interface ProductCategoryAndCollectionsFormProps {

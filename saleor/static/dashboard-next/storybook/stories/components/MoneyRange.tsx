@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import MoneyRange, { MoneyRangeProps } from "../../../components/MoneyRange";
+import MoneyRange, { MoneyRangeProps } from "@components/MoneyRange";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 

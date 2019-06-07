@@ -1,14 +1,17 @@
 import * as React from "react";
 
-import Debounce from "../../../components/Debounce";
-import { FilterContentSubmitData } from "../../../components/Filter";
-import { FieldType, IFilter } from "../../../components/Filter/types";
+import Debounce from "@components/Debounce";
+import {
+  FieldType,
+  FilterContentSubmitData,
+  IFilter
+} from "@components/Filter";
 import {
   Filter,
   FilterChips,
   FilterTab,
   FilterTabs
-} from "../../../components/TableFilter";
+} from "@components/TableFilter";
 import i18n from "../../../i18n";
 import { StockAvailability } from "../../../types/globalTypes";
 import { getFilterTabs } from "../../views/ProductList/filters";

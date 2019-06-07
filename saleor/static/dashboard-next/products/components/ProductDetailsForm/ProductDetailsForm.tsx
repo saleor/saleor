@@ -9,9 +9,9 @@ import {
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import FormSpacer from "../../../components/FormSpacer";
-import RichTextEditor from "../../../components/RichTextEditor";
+import CardTitle from "@components/CardTitle";
+import FormSpacer from "@components/FormSpacer";
+import RichTextEditor from "@components/RichTextEditor";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductDetails_product } from "../../types/ProductDetails";

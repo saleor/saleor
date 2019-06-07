@@ -1,15 +1,15 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
+import ActionDialog from "@components/ActionDialog";
+import { ConfirmButtonTransitionState } from "@components/ConfirmButton";
+import ShippingZoneCountriesAssignDialog from "@components/ShippingZoneCountriesAssignDialog";
+import ShippingZoneRateDialog from "@components/ShippingZoneRateDialog";
 import useNavigator from "../../../hooks/useNavigator";
 import useShop from "../../../hooks/useShop";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ShippingMethodTypeEnum } from "../../../types/globalTypes";
-import ShippingZoneCountriesAssignDialog from "../../components/ShippingZoneCountriesAssignDialog";
-import ShippingZoneRateDialog from "../../components/ShippingZoneRateDialog";
 import { ShippingZoneDetailsFragment } from "../../types/ShippingZoneDetailsFragment";
 import { shippingZoneUrl, ShippingZoneUrlQueryParams } from "../../urls";
 import { ShippingZoneOperationsOutput } from "./ShippingZoneOperations";

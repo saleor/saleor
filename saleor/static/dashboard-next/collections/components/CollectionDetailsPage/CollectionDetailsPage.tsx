@@ -1,17 +1,17 @@
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import { CardSpacer } from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import { Container } from "../../../components/Container";
-import { ControlledSwitch } from "../../../components/ControlledSwitch";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
-import SeoForm from "../../../components/SeoForm";
-import VisibilityCard from "../../../components/VisibilityCard";
+import AppHeader from "@components/AppHeader";
+import { CardSpacer } from "@components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@components/ConfirmButton";
+import { Container } from "@components/Container";
+import { ControlledSwitch } from "@components/ControlledSwitch";
+import Form from "@components/Form";
+import Grid from "@components/Grid";
+import PageHeader from "@components/PageHeader";
+import SaveButtonBar from "@components/SaveButtonBar";
+import SeoForm from "@components/SeoForm";
+import VisibilityCard from "@components/VisibilityCard";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ListActions, PageListProps } from "../../../types";

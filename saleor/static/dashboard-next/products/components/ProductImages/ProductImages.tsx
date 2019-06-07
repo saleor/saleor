@@ -3,6 +3,9 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import classNames from "classnames";
 
+import CardTitle from "@components/CardTitle";
+import ImageTile from "@components/ImageTile";
+import ImageUpload from "@components/ImageUpload";
 import {
   createStyles,
   Theme,
@@ -11,9 +14,6 @@ import {
 } from "@material-ui/core/styles";
 import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
-import CardTitle from "../../../components/CardTitle";
-import ImageTile from "../../../components/ImageTile";
-import ImageUpload from "../../../components/ImageUpload";
 import i18n from "../../../i18n";
 import { ProductDetails_product_images } from "../../types/ProductDetails";
 

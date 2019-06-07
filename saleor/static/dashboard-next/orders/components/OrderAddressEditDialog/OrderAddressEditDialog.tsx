@@ -6,11 +6,11 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import AddressEdit from "../../../components/AddressEdit/AddressEdit";
+import AddressEdit from "@components/AddressEdit";
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import Form from "../../../components/Form";
+} from "@components/ConfirmButton";
+import Form from "@components/Form";
 import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";

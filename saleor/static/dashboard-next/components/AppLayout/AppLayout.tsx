@@ -17,16 +17,9 @@ import * as React from "react";
 import SVG from "react-inlinesvg";
 import { RouteComponentProps, withRouter } from "react-router";
 
+import AppProgressProvider from "@components/AppProgress";
 import * as saleorDarkLogo from "../../../images/logo-dark.svg";
 import * as saleorLightLogo from "../../../images/logo-light.svg";
-import {
-  appLoaderHeight,
-  drawerWidth
-} from "../../components/AppLayout/consts";
-import MenuList from "../../components/AppLayout/MenuList";
-import menuStructure from "../../components/AppLayout/menuStructure";
-import ResponsiveDrawer from "../../components/AppLayout/ResponsiveDrawer";
-import AppProgressProvider from "../../components/AppProgress";
 import useNavigator from "../../hooks/useNavigator";
 import useTheme from "../../hooks/useTheme";
 import useUser from "../../hooks/useUser";
@@ -35,6 +28,10 @@ import ArrowDropdown from "../../icons/ArrowDropdown";
 import Container from "../Container";
 import AppActionContext from "./AppActionContext";
 import AppHeaderContext from "./AppHeaderContext";
+import { appLoaderHeight, drawerWidth } from "./consts";
+import MenuList from "./MenuList";
+import menuStructure from "./menuStructure";
+import ResponsiveDrawer from "./ResponsiveDrawer";
 import ThemeSwitch from "./ThemeSwitch";
 
 const styles = (theme: Theme) =>

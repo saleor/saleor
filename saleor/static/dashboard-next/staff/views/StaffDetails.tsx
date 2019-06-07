@@ -1,8 +1,8 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import { WindowTitle } from "../../components/WindowTitle";
+import ActionDialog from "@components/ActionDialog";
+import { WindowTitle } from "@components/WindowTitle";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";
 import useUser from "../../hooks/useUser";

@@ -1,14 +1,14 @@
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import Container from "../../../components/Container";
-import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import AppHeader from "@components/AppHeader";
+import CardSpacer from "@components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@components/ConfirmButton";
+import Container from "@components/Container";
+import { ControlledCheckbox } from "@components/ControlledCheckbox";
+import Form from "@components/Form";
+import Grid from "@components/Grid";
+import PageHeader from "@components/PageHeader";
+import SaveButtonBar from "@components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import {

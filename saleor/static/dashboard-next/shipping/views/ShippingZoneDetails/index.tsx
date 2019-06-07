@@ -1,11 +1,11 @@
 import * as React from "react";
 
+import ShippingZoneDetailsPage from "@components/ShippingZoneDetailsPage";
 import useNavigator from "../../../hooks/useNavigator";
 import useNotifier from "../../../hooks/useNotifier";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { ShippingMethodTypeEnum } from "../../../types/globalTypes";
-import ShippingZoneDetailsPage from "../../components/ShippingZoneDetailsPage";
 import { TypedShippingZone } from "../../queries";
 import { CreateShippingRate } from "../../types/CreateShippingRate";
 import { DeleteShippingRate } from "../../types/DeleteShippingRate";

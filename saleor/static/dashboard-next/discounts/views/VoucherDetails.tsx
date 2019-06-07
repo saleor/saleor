@@ -2,13 +2,13 @@ import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
+import ActionDialog from "@components/ActionDialog";
+import AssignCategoriesDialog from "@components/AssignCategoryDialog";
+import AssignCollectionDialog from "@components/AssignCollectionDialog";
+import AssignProductDialog from "@components/AssignProductDialog";
+import { WindowTitle } from "@components/WindowTitle";
 import { categoryUrl } from "../../categories/urls";
 import { collectionUrl } from "../../collections/urls";
-import ActionDialog from "../../components/ActionDialog";
-import AssignCategoriesDialog from "../../components/AssignCategoryDialog";
-import AssignCollectionDialog from "../../components/AssignCollectionDialog";
-import AssignProductDialog from "../../components/AssignProductDialog";
-import { WindowTitle } from "../../components/WindowTitle";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
 import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";

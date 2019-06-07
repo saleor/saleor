@@ -11,12 +11,12 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
-import { DateTime } from "../../../components/Date";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import Checkbox from "@components/Checkbox";
+import { DateTime } from "@components/Date";
+import Money from "@components/Money";
+import Skeleton from "@components/Skeleton";
+import TableHead from "@components/TableHead";
+import TablePagination from "@components/TablePagination";
 import i18n from "../../../i18n";
 import {
   maybe,

@@ -18,13 +18,13 @@ import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 import * as InfiniteScroll from "react-infinite-scroller";
 
-import Checkbox from "../../../components/Checkbox";
+import Checkbox from "@components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton";
-import Form from "../../../components/Form";
-import Money from "../../../components/Money";
-import TableCellAvatar from "../../../components/TableCellAvatar";
+} from "@components/ConfirmButton";
+import Form from "@components/Form";
+import Money from "@components/Money";
+import TableCellAvatar from "@components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import {

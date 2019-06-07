@@ -13,9 +13,9 @@ import TableRow from "@material-ui/core/TableRow";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
-import TableCellAvatar from "../../../components/TableCellAvatar";
+import CardTitle from "@components/CardTitle";
+import Skeleton from "@components/Skeleton";
+import TableCellAvatar from "@components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ProductVariantCreateData_product_variants } from "../../types/ProductVariantCreateData";

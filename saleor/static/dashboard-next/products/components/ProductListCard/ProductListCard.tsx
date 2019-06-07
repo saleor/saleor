@@ -3,12 +3,12 @@ import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
+import Container from "@components/Container";
+import { FilterContentSubmitData } from "@components/Filter";
+import PageHeader from "@components/PageHeader";
+import ProductList from "@components/ProductList";
+import { Filter } from "@components/TableFilter";
 import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
-import Container from "../../../components/Container";
-import { FilterContentSubmitData } from "../../../components/Filter";
-import PageHeader from "../../../components/PageHeader";
-import ProductList from "../../../components/ProductList";
-import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
 import { ListActions, PageListProps } from "../../../types";
 import ProductListFilter from "../ProductListFilter";

@@ -7,15 +7,15 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardMenu from "../../../components/CardMenu";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import { Container } from "../../../components/Container";
-import { DateTime } from "../../../components/Date";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
-import Skeleton from "../../../components/Skeleton";
+import AppHeader from "@components/AppHeader";
+import CardMenu from "@components/CardMenu";
+import { ConfirmButtonTransitionState } from "@components/ConfirmButton";
+import { Container } from "@components/Container";
+import { DateTime } from "@components/Date";
+import Grid from "@components/Grid";
+import PageHeader from "@components/PageHeader";
+import SaveButtonBar from "@components/SaveButtonBar";
+import Skeleton from "@components/Skeleton";
 import { SearchCustomers_customers_edges_node } from "../../../containers/SearchCustomers/types/SearchCustomers";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";

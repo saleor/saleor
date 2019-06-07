@@ -14,9 +14,9 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../components/ConfirmButton/ConfirmButton";
-import Form from "../../components/Form";
-import FormSpacer from "../../components/FormSpacer";
+} from "@components/ConfirmButton";
+import Form from "@components/Form";
+import FormSpacer from "@components/FormSpacer";
 import { SearchCategories_categories_edges_node } from "../../containers/SearchCategories/types/SearchCategories";
 import i18n from "../../i18n";
 import Checkbox from "../Checkbox";

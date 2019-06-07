@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { WindowTitle } from "../../components/WindowTitle";
+import { WindowTitle } from "@components/WindowTitle";
 import { configurationMenuUrl } from "../../configuration";
 import useNavigator from "../../hooks/useNavigator";
 import useNotifier from "../../hooks/useNotifier";

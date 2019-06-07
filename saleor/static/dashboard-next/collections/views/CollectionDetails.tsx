@@ -2,9 +2,9 @@ import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import AssignProductDialog from "../../components/AssignProductDialog";
-import { WindowTitle } from "../../components/WindowTitle";
+import ActionDialog from "@components/ActionDialog";
+import AssignProductDialog from "@components/AssignProductDialog";
+import { WindowTitle } from "@components/WindowTitle";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
 import SearchProducts from "../../containers/SearchProducts";
 import useBulkActions from "../../hooks/useBulkActions";
