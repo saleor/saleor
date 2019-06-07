@@ -1,14 +1,11 @@
 {
-  "extends": [
-    "tslint:latest",
-    "tslint-config-prettier"
-  ],
+  "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
     "interface-name": false,
     "max-classes-per-file": false,
     "member-access": [true, "no-public"],
     "no-console": [true, "log"],
-    "no-implicit-dependencies": [true, "dev"],
+    "no-implicit-dependencies": false,
     "no-shadowed-variable": false,
     "no-submodule-imports": [true, "@material-ui"]
   }

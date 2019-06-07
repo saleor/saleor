@@ -1,10 +1,16 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "jsx": "react",
     "lib": ["es2017", "dom", "esnext"],
     "sourceMap": true,
     "target": "es5",
     "noUnusedLocals": true,
-    "noUnusedParameters": true
-  }
+    "noUnusedParameters": true,
+    "paths": {
+      "@components/*": ["./saleor/static/dashboard-next/components/*"],
+      "@hooks/*": ["./saleor/static/dashboard-next/hooks/*"]
+    }
+  },
+  "exclude": ["node_modules"]
 }
