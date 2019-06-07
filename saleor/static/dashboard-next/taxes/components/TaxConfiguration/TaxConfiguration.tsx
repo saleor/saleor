@@ -5,10 +5,10 @@ import CardContent from "@material-ui/core/CardContent";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import CardTitle from "@components/CardTitle";
-import ControlledSwitch from "@components/ControlledSwitch";
-import FormSpacer from "@components/FormSpacer";
-import Hr from "@components/Hr";
+import CardTitle from "@saleor-components/CardTitle";
+import ControlledSwitch from "@saleor-components/ControlledSwitch";
+import FormSpacer from "@saleor-components/FormSpacer";
+import Hr from "@saleor-components/Hr";
 import i18n from "../../../i18n";
 import { FormData } from "../CountryListPage";
 

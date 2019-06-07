@@ -7,14 +7,14 @@ import {
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import CardTitle from "@components/CardTitle";
-import Hr from "@components/Hr";
-import ImageTile from "@components/ImageTile";
-import ImageUpload from "@components/ImageUpload";
-import Skeleton from "@components/Skeleton";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import CardTitle from "@saleor-components/CardTitle";
+import Hr from "@saleor-components/Hr";
+import ImageTile from "@saleor-components/ImageTile";
+import ImageUpload from "@saleor-components/ImageUpload";
+import Skeleton from "@saleor-components/Skeleton";
 import i18n from "../../../i18n";
 import { CategoryDetails_category_backgroundImage } from "../../types/CategoryDetails";
 import { FormData } from "../CategoryUpdatePage";

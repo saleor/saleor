@@ -15,11 +15,11 @@ import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import { DebounceForm } from "@components/DebounceForm";
-import Form from "@components/Form";
-import Money from "@components/Money";
-import Skeleton from "@components/Skeleton";
-import TableCellAvatar from "@components/TableCellAvatar";
+import { DebounceForm } from "@saleor-components/DebounceForm";
+import Form from "@saleor-components/Form";
+import Money from "@saleor-components/Money";
+import Skeleton from "@saleor-components/Skeleton";
+import TableCellAvatar from "@saleor-components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { OrderDetails_order_lines } from "../../types/OrderDetails";

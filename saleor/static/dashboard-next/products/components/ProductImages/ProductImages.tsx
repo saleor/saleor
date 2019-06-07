@@ -3,15 +3,15 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import classNames from "classnames";
 
-import CardTitle from "@components/CardTitle";
-import ImageTile from "@components/ImageTile";
-import ImageUpload from "@components/ImageUpload";
 import {
   createStyles,
   Theme,
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
+import CardTitle from "@saleor-components/CardTitle";
+import ImageTile from "@saleor-components/ImageTile";
+import ImageUpload from "@saleor-components/ImageUpload";
 import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import i18n from "../../../i18n";

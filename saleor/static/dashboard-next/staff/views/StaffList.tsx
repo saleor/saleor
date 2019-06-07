@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import useNavigator from "@hooks/useNavigator";
-import useNotifier from "@hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@hooks/usePaginator";
+import useNavigator from "@saleor-hooks/useNavigator";
+import useNotifier from "@saleor-hooks/useNotifier";
+import usePaginator, { createPaginationState } from "@saleor-hooks/usePaginator";
 import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";

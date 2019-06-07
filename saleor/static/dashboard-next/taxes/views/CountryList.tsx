@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import useNavigator from "@hooks/useNavigator";
+import useNavigator from "@saleor-hooks/useNavigator";
 import { configurationMenuUrl } from "../../configuration";
 import { maybe } from "../../misc";
 import CountryListPage from "../components/CountryListPage";

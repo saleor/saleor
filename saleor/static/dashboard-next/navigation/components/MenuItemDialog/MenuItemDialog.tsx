@@ -7,12 +7,12 @@ import TextField from "@material-ui/core/TextField";
 import * as isUrl from "is-url";
 import * as React from "react";
 
-import AutocompleteSelectMenu from "@components/AutocompleteSelectMenu";
+import AutocompleteSelectMenu from "@saleor-components/AutocompleteSelectMenu";
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "@components/ConfirmButton";
-import Form from "@components/Form";
-import FormSpacer from "@components/FormSpacer";
+} from "@saleor-components/ConfirmButton";
+import Form from "@saleor-components/Form";
+import FormSpacer from "@saleor-components/FormSpacer";
 import { SearchCategories_categories_edges_node } from "../../../containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "../../../containers/SearchCollections/types/SearchCollections";
 import { SearchPages_pages_edges_node } from "../../../containers/SearchPages/types/SearchPages";

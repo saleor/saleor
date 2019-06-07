@@ -5,9 +5,9 @@ import TextField from "@material-ui/core/TextField";
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
-import CardTitle from "@components/CardTitle";
-import FormSpacer from "@components/FormSpacer";
-import RichTextEditor from "@components/RichTextEditor";
+import CardTitle from "@saleor-components/CardTitle";
+import FormSpacer from "@saleor-components/FormSpacer";
+import RichTextEditor from "@saleor-components/RichTextEditor";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { CategoryDetails_category } from "../../types/CategoryDetails";

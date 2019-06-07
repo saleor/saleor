@@ -1,17 +1,17 @@
 import * as React from "react";
 
-import Debounce from "@components/Debounce";
+import Debounce from "@saleor-components/Debounce";
 import {
   FieldType,
   FilterContentSubmitData,
   IFilter
-} from "@components/Filter";
+} from "@saleor-components/Filter";
 import {
   Filter,
   FilterChips,
   FilterTab,
   FilterTabs
-} from "@components/TableFilter";
+} from "@saleor-components/TableFilter";
 import i18n from "../../../i18n";
 import { StockAvailability } from "../../../types/globalTypes";
 import { getFilterTabs } from "../../views/ProductList/filters";

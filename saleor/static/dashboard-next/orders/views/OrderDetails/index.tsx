@@ -1,7 +1,7 @@
 import * as React from "react";
 
-import { WindowTitle } from "@components/WindowTitle";
-import useNavigator from "@hooks/useNavigator";
+import { WindowTitle } from "@saleor-components/WindowTitle";
+import useNavigator from "@saleor-hooks/useNavigator";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../../config";
 import SearchCustomers from "../../../containers/SearchCustomers";
 import { customerUrl } from "../../../customers/urls";

@@ -1,4 +1,3 @@
-import useTheme from "@hooks/useTheme";
 import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
@@ -9,6 +8,7 @@ import {
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import ArrowLeft from "@material-ui/icons/ArrowLeft";
 import ArrowRight from "@material-ui/icons/ArrowRight";
+import useTheme from "@saleor-hooks/useTheme";
 import * as classNames from "classnames";
 import * as React from "react";
 

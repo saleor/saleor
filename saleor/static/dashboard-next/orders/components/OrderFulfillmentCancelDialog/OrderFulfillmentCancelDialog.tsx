@@ -14,9 +14,9 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "@components/ConfirmButton";
-import { ControlledCheckbox } from "@components/ControlledCheckbox";
-import Form from "@components/Form";
+} from "@saleor-components/ConfirmButton";
+import { ControlledCheckbox } from "@saleor-components/ControlledCheckbox";
+import Form from "@saleor-components/Form";
 import i18n from "../../../i18n";
 
 export interface FormData {

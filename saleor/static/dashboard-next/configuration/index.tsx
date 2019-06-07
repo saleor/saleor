@@ -1,7 +1,7 @@
 import * as React from "react";
 
-import useNavigator from "@hooks/useNavigator";
-import useUser from "@hooks/useUser";
+import useNavigator from "@saleor-hooks/useNavigator";
+import useUser from "@saleor-hooks/useUser";
 import { WindowTitle } from "../components/WindowTitle";
 import i18n from "../i18n";
 import Navigation from "../icons/Navigation";
