@@ -11,7 +11,7 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import TableCellAvatar from "@saleor-components/TableCellAvatar";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
 import { CategoryDetails_category_products_edges_node } from "../../categories/types/CategoryDetails";
 import i18n from "../../i18n";
 import { maybe, renderCollection } from "../../misc";

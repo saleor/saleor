@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Route, RouteProps } from "react-router-dom";
 
-import AppLayout from "@saleor-components/AppLayout";
+import AppLayout from "@saleor/components/AppLayout";
 import { UserContext } from "..";
 import NotFound from "../../NotFound";
 import { PermissionEnum } from "../../types/globalTypes";

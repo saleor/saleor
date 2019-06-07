@@ -14,10 +14,10 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import CardTitle from "@saleor-components/CardTitle";
-import Skeleton from "@saleor-components/Skeleton";
-import TableCellAvatar from "@saleor-components/TableCellAvatar";
-import TablePagination from "@saleor-components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Skeleton from "@saleor/components/Skeleton";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 

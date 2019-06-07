@@ -3,8 +3,8 @@ import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import CardTitle from "@saleor-components/CardTitle";
-import FormSpacer from "@saleor-components/FormSpacer";
+import CardTitle from "@saleor/components/CardTitle";
+import FormSpacer from "@saleor/components/FormSpacer";
 import i18n from "../../../i18n";
 import { SiteSettingsPageFormData } from "../SiteSettingsPage";
 

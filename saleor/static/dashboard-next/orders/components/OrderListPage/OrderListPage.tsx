@@ -3,9 +3,9 @@ import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import Container from "@saleor-components/Container";
-import PageHeader from "@saleor-components/PageHeader";
-import { Filter } from "@saleor-components/TableFilter";
+import Container from "@saleor/components/Container";
+import PageHeader from "@saleor/components/PageHeader";
+import { Filter } from "@saleor/components/TableFilter";
 import i18n from "../../../i18n";
 import { ListActions, PageListProps } from "../../../types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";

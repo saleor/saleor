@@ -14,10 +14,10 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "@saleor-components/ConfirmButton";
-import Form from "@saleor-components/Form";
-import FormSpacer from "@saleor-components/FormSpacer";
-import TableCellAvatar from "@saleor-components/TableCellAvatar";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
+import FormSpacer from "@saleor/components/FormSpacer";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
 import { SearchProducts_products_edges_node } from "../../containers/SearchProducts/types/SearchProducts";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";

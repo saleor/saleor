@@ -1,6 +1,6 @@
 import { useContext } from "react";
 
-import { ThemeContext } from "@saleor-components/Theme";
+import { ThemeContext } from "@saleor/components/Theme";
 
 function useTheme() {
   const themeInfo = useContext(ThemeContext);

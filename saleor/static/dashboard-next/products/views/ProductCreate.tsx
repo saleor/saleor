@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import { WindowTitle } from "@saleor-components/WindowTitle";
-import useNavigator from "@saleor-hooks/useNavigator";
-import useNotifier from "@saleor-hooks/useNotifier";
-import useShop from "@saleor-hooks/useShop";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import useShop from "@saleor/hooks/useShop";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
 import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";

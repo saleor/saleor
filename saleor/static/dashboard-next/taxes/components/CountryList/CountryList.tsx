@@ -8,7 +8,7 @@ import TableRow from "@material-ui/core/TableRow";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import Skeleton from "@saleor-components/Skeleton";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { CountryList_shop_countries } from "../../types/CountryList";

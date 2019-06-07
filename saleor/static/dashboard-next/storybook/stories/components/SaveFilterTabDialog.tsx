@@ -3,7 +3,7 @@ import * as React from "react";
 
 import SaveFilterTabDialog, {
   SaveFilterTabDialogProps
-} from "@saleor-components/SaveFilterTabDialog";
+} from "@saleor/components/SaveFilterTabDialog";
 import Decorator from "../../Decorator";
 
 const props: SaveFilterTabDialogProps = {

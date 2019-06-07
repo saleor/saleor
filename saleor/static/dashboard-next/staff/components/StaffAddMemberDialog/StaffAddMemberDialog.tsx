@@ -15,10 +15,10 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "@saleor-components/ConfirmButton";
-import { ControlledCheckbox } from "@saleor-components/ControlledCheckbox";
-import Form from "@saleor-components/Form";
-import FormSpacer from "@saleor-components/FormSpacer";
+} from "@saleor/components/ConfirmButton";
+import { ControlledCheckbox } from "@saleor/components/ControlledCheckbox";
+import Form from "@saleor/components/Form";
+import FormSpacer from "@saleor/components/FormSpacer";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 

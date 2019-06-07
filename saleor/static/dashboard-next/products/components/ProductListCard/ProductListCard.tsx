@@ -3,11 +3,11 @@ import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import Container from "@saleor-components/Container";
-import { FilterContentSubmitData } from "@saleor-components/Filter";
-import PageHeader from "@saleor-components/PageHeader";
-import ProductList from "@saleor-components/ProductList";
-import { Filter } from "@saleor-components/TableFilter";
+import Container from "@saleor/components/Container";
+import { FilterContentSubmitData } from "@saleor/components/Filter";
+import PageHeader from "@saleor/components/PageHeader";
+import ProductList from "@saleor/components/ProductList";
+import { Filter } from "@saleor/components/TableFilter";
 import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
 import i18n from "../../../i18n";
 import { ListActions, PageListProps } from "../../../types";

@@ -1,11 +1,11 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "@saleor-components/ActionDialog";
-import { WindowTitle } from "@saleor-components/WindowTitle";
-import useNavigator from "@saleor-hooks/useNavigator";
-import useNotifier from "@saleor-hooks/useNotifier";
-import useUser from "@saleor-hooks/useUser";
+import ActionDialog from "@saleor/components/ActionDialog";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import useUser from "@saleor/hooks/useUser";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import StaffDetailsPage from "../components/StaffDetailsPage/StaffDetailsPage";

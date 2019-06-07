@@ -2,9 +2,9 @@ import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import AppHeader from "@saleor-components/AppHeader";
-import Container from "@saleor-components/Container";
-import PageHeader from "@saleor-components/PageHeader";
+import AppHeader from "@saleor/components/AppHeader";
+import Container from "@saleor/components/Container";
+import PageHeader from "@saleor/components/PageHeader";
 import i18n from "../../../i18n";
 import { ListActions, PageListProps } from "../../../types";
 import { ProductTypeList_productTypes_edges_node } from "../../types/ProductTypeList";

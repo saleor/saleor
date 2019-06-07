@@ -1,10 +1,10 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "@saleor-components/ActionDialog";
-import { ConfirmButtonTransitionState } from "@saleor-components/ConfirmButton";
-import useNavigator from "@saleor-hooks/useNavigator";
-import useShop from "@saleor-hooks/useShop";
+import ActionDialog from "@saleor/components/ActionDialog";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useShop from "@saleor/hooks/useShop";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ShippingMethodTypeEnum } from "../../../types/globalTypes";

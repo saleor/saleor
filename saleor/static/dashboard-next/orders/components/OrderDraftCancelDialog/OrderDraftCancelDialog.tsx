@@ -1,8 +1,8 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "@saleor-components/ActionDialog";
-import { ConfirmButtonTransitionState } from "@saleor-components/ConfirmButton";
+import ActionDialog from "@saleor/components/ActionDialog";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
 import i18n from "../../../i18n";
 
 export interface OrderDraftCancelDialogProps {

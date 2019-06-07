@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Helmet } from "react-helmet";
 
-import useShop from "@saleor-hooks/useShop";
+import useShop from "@saleor/hooks/useShop";
 
 interface WindowTitleProps {
   title: string;

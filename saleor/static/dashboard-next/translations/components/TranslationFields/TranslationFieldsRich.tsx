@@ -1,10 +1,10 @@
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { ConfirmButtonTransitionState } from "@saleor-components/ConfirmButton";
-import DraftRenderer from "@saleor-components/DraftRenderer";
-import Form from "@saleor-components/Form";
-import RichTextEditor from "@saleor-components/RichTextEditor";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import DraftRenderer from "@saleor/components/DraftRenderer";
+import Form from "@saleor/components/Form";
+import RichTextEditor from "@saleor/components/RichTextEditor";
 import i18n from "../../../i18n";
 import TranslationFieldsSave from "./TranslationFieldsSave";
 

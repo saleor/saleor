@@ -10,9 +10,9 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import AddressFormatter from "@saleor-components/AddressFormatter";
-import CardTitle from "@saleor-components/CardTitle";
-import { Hr } from "@saleor-components/Hr";
+import AddressFormatter from "@saleor/components/AddressFormatter";
+import CardTitle from "@saleor/components/CardTitle";
+import { Hr } from "@saleor/components/Hr";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { CustomerDetails_user } from "../../types/CustomerDetails";

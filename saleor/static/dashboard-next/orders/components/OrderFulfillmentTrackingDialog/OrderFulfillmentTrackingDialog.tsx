@@ -8,8 +8,8 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "@saleor-components/ConfirmButton";
-import Form from "@saleor-components/Form";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
 import i18n from "../../../i18n";
 
 export interface FormData {

@@ -4,11 +4,11 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "@saleor-components/ActionDialog";
-import useBulkActions from "@saleor-hooks/useBulkActions";
-import useNavigator from "@saleor-hooks/useNavigator";
-import useNotifier from "@saleor-hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor-hooks/usePaginator";
+import ActionDialog from "@saleor/components/ActionDialog";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
 import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
