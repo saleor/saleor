@@ -7,6 +7,6 @@
     "no-console": [true, "log"],
     "no-implicit-dependencies": false,
     "no-shadowed-variable": false,
-    "no-submodule-imports": [true, "@material-ui"]
+    "no-submodule-imports": [true, "@material-ui", "@saleor"]
   }
 }
