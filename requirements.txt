@@ -1,12 +1,12 @@
 -i https://pypi.python.org/simple
 amqp==2.5.0
-aniso8601==3.0.2
+aniso8601==5.1.0
 autopep8==1.4.4
 babel==2.7.0
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.158
-botocore==1.12.158
+boto3==1.9.163
+botocore==1.12.163
 braintree==3.49.0
 cachetools==3.1.1
 cairocffi==1.0.2
@@ -46,7 +46,7 @@ django-storages[google]==1.7.1
 django-templated-email==2.3.0
 django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
-django==2.2.1
+django==2.2.2
 docutils==0.14
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
@@ -55,7 +55,7 @@ freezegun==0.3.12
 google-api-core==1.11.1
 google-auth==1.6.3
 google-cloud-core==1.0.1
-google-cloud-storage==1.16.0
+google-cloud-storage==1.16.1
 google-i18n-address==2.3.4
 google-measurement-protocol==1.0.0
 google-resumable-media==0.3.2
@@ -63,8 +63,8 @@ googleapis-common-protos==1.6.0
 gprof2dot==2016.10.13
 graphene-django-optimizer==0.4.0
 graphene-django==2.2.0
-graphene==2.1.3
-graphql-core==2.1
+graphene==2.1.5
+graphql-core==2.2
 graphql-relay==0.4.5
 html5lib==1.0.1
 idna==2.8
@@ -72,7 +72,7 @@ ipaddress==1.0.22
 jinja2==2.10.1
 jmespath==0.9.4
 jsonfield==2.0.2
-kombu==4.6.0
+kombu==4.6.1
 markdown==3.1.1
 markupsafe==1.1.1
 maxminddb-geolite2==2018.703
@@ -80,7 +80,7 @@ maxminddb==1.4.1
 measurement==2.0.1
 mpmath==1.1.0
 oauthlib==3.0.1
-phonenumberslite==8.10.12
+phonenumberslite==8.10.13
 pillow==5.4.1
 prices==1.0.0
 promise==2.2.1
@@ -100,17 +100,18 @@ pytz==2019.1
 raven==6.9.0
 razorpay==1.2.0
 redis==3.2.1
+relativetimebuilder==1.0.0
 requests-oauthlib==1.2.0
 requests==2.22.0
 rsa==4.0
 rx==1.6.1
-s3transfer==0.2.0
+s3transfer==0.2.1
 singledispatch==3.4.0.3
 six==1.12.0
 social-auth-app-django==3.1.0
 social-auth-core==3.2.0
 sqlparse==0.3.0
-stripe==2.29.0
+stripe==2.29.4
 sympy==1.4
 text-unidecode==1.2
 tinycss2==1.0.2
