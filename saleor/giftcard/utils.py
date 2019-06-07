@@ -1,7 +1,7 @@
 from datetime import date
 
-from ..core.utils.promo_code import InvalidPromoCode
 from ..checkout.models import Checkout
+from ..core.utils.promo_code import InvalidPromoCode
 from .models import GiftCard
 
 
