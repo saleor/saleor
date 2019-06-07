@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from ...account.models import User
 from ...core.utils.promo_code import (
-    InvalidPromoCode,
+    PromoCodeAlreadyExists,
     generate_promo_code,
     is_available_promo_code,
 )
@@ -48,7 +48,7 @@ class GiftCardCreate(ModelMutation):
         if not code and not instance.pk:
             data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
-            raise InvalidPromoCode()
+            raise PromoCodeAlreadyExists()
         cleaned_input = super().clean_input(info, instance, data)
         balance = cleaned_input.get("balance", None)
         if balance:
