@@ -13,6 +13,13 @@ class InvalidPromoCode(ValidationError):
         super().__init__(message, **kwargs)
 
 
+class PromoCodeAlreadyExists(ValidationError):
+    def __init__(self, message=None, **kwargs):
+        if message is None:
+            message = {"promo_code": "Promo code already exists."}
+        super().__init__(message, **kwargs)
+
+
 def generate_promo_code():
     """Generate a promo unique code that can be used as a voucher or gift card code."""
     code = str(uuid.uuid4()).replace("-", "").upper()[:12]

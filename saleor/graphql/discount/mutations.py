@@ -1,8 +1,7 @@
 import graphene
-from django.core.exceptions import ValidationError
 
 from ...core.utils.promo_code import (
-    InvalidPromoCode,
+    PromoCodeAlreadyExists,
     generate_promo_code,
     is_available_promo_code,
 )
@@ -120,7 +119,7 @@ class VoucherCreate(ModelMutation):
         if code == "":
             data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
-            raise InvalidPromoCode()
+            raise PromoCodeAlreadyExists()
         cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
 
