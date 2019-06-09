@@ -31,7 +31,7 @@ Environment variables
 Data indexing
 -------------
 
-Saleor uses `Django Elasticsearch DSL <https://github.com/sabricot/django-elasticsearch-dsl>`_ as a wrapper for `Elasticsearch DSL <https://github.com/elastic/elasticsearch-dsl-py>`_ to enable automatic indexing and sync. Indexes are defined in `documents <https://github.com/saleor/saleor/search/documents.py>`_ file. Please refer to documentation of above projects for further help.
+Saleor uses `Django Elasticsearch DSL <https://github.com/sabricot/django-elasticsearch-dsl>`_ as a wrapper for `Elasticsearch DSL <https://github.com/elastic/elasticsearch-dsl-py>`_ to enable automatic indexing and sync. Indexes are defined in `documents <https://github.com/mirumee/saleor/search/documents.py>`_ file. Please refer to documentation of above projects for further help.
 
 Initial search index can be created with following command:
 
