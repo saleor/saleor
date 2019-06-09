@@ -51,7 +51,7 @@ const OrderCancelDialog = withStyles(styles, { name: "OrderCancelDialog" })(
     onSubmit,
     onClose
   }: OrderCancelDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <Form
         initial={{
           restock: true

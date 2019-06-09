@@ -34,7 +34,7 @@ export const ConfirmFormLeaveDialog = withStyles(styles, {
     {({ hasChanged: hasFormChanged }) => (
       <NavigationPrompt renderIfNotActive={true} when={hasFormChanged}>
         {({ isActive, onCancel, onConfirm }) => (
-          <Dialog open={isActive}>
+          <Dialog onClose={onCancel} open={isActive}>
             <DialogTitle>{i18n.t("Unsaved changes")}</DialogTitle>
             <DialogContent>
               <DialogContentText>

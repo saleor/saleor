@@ -73,7 +73,7 @@ const OrderFulfillmentDialog = withStyles(styles, {
     onClose,
     onSubmit
   }: OrderFulfillmentDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <Form
         initial={{
           lines: maybe(

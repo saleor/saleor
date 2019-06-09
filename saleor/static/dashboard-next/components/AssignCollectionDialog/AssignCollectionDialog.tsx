@@ -71,6 +71,7 @@ const AssignCollectionDialog = withStyles(styles, {
     onSubmit
   }: AssignCollectionDialogProps) => (
     <Dialog
+      onClose={onClose}
       open={open}
       classes={{ paper: classes.overflow }}
       fullWidth

@@ -73,6 +73,7 @@ const AssignProductDialog = withStyles(styles, {
     onSubmit
   }: AssignProductDialogProps) => (
     <Dialog
+      onClose={onClose}
       open={open}
       classes={{ paper: classes.overflow }}
       fullWidth
