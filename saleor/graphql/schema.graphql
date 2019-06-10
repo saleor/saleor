@@ -1209,6 +1209,7 @@ type Geolocalization {
 }
 
 type GiftCard implements Node {
+  code: String
   user: User
   created: DateTime!
   startDate: Date!
