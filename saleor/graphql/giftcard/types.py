@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from graphql_jwt.decorators import permission_required
 
@@ -11,24 +9,17 @@ class GiftCard(CountableDjangoObjectType):
     display_code = graphene.String(
         description="Code in format with allows displaying in a user interface."
     )
-    code = graphene.String(
-        description=dedent(
-            """Gift card code available for gift card owner or staff for gift card
-            without a customer."""
-        )
-    )
+    code = graphene.String(description="Gift card code.")
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description="The customer who bought a gift card.",
     )
 
     class Meta:
-        description = dedent(
-            """
+        description = """
         A gift card is a prepaid electronic payment card accepted in stores.
         They can be used during checkout by providing a valid gift
         card codes. """
-        )
         only_fields = [
             "user",
             "code",
@@ -55,8 +46,10 @@ class GiftCard(CountableDjangoObjectType):
     @staticmethod
     def resolve_code(root: models.GiftCard, info, **_kwargs):
         viewer = info.context.user
+        # Staff user has access to show gift card code only for gift card without user.
         if viewer.has_perm("giftcard.manage_gift_card") and not root.user:
             return root.code
+        # Only user associated with a gift card can see gift card code.
         if viewer == root.user:
             return root.code
         return None
