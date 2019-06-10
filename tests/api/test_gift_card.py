@@ -31,6 +31,61 @@ def test_query_gift_card_with_premissions(
     assert data["user"]["email"] == gift_card.user.email
 
 
+def test_query_gift_card_code_without_user(
+    staff_api_client, gift_card_created_by_staff, permission_manage_gift_card
+):
+    query = """
+    query giftCard($id: ID!) {
+        giftCard(id: $id){
+            id
+            displayCode
+            code
+            user{
+                email
+            }
+        }
+    }
+    """
+    gift_card = gift_card_created_by_staff
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+    variables = {"id": gift_card_id}
+    staff_api_client.user.user_permissions.add(permission_manage_gift_card)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["giftCard"]
+    assert data["id"] == gift_card_id
+    assert data["displayCode"] == gift_card.display_code
+    assert data["code"] == gift_card.code
+    assert not data["user"]
+
+
+def test_query_gift_card_code_with_user(
+    staff_api_client, gift_card, permission_manage_gift_card
+):
+    query = """
+    query giftCard($id: ID!) {
+        giftCard(id: $id){
+            id
+            displayCode
+            code
+            user{
+                email
+            }
+        }
+    }
+    """
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+    variables = {"id": gift_card_id}
+    staff_api_client.user.user_permissions.add(permission_manage_gift_card)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["giftCard"]
+    assert data["id"] == gift_card_id
+    assert data["displayCode"] == gift_card.display_code
+    assert data["user"]["email"]
+    assert not data["code"]
+
+
 def test_query_gift_card_without_premissions(
     user_api_client, gift_card_created_by_staff
 ):
@@ -86,6 +141,7 @@ def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_s
                     node {
                         id
                         displayCode
+                        code
                     }
                 }
                 totalCount
@@ -99,6 +155,7 @@ def test_query_own_gift_cards(user_api_client, gift_card, gift_card_created_by_s
     data = content["data"]["me"]["giftCards"]
     assert data["edges"][0]["node"]["id"] == gift_card_id
     assert data["edges"][0]["node"]["displayCode"] == gift_card.display_code
+    assert data["edges"][0]["node"]["code"] == gift_card.code
     assert data["totalCount"] == 1
 
 

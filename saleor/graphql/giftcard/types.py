@@ -11,6 +11,12 @@ class GiftCard(CountableDjangoObjectType):
     display_code = graphene.String(
         description="Code in format with allows displaying in a user interface."
     )
+    code = graphene.String(
+        description=dedent(
+            """Gift card code available for gift card owner or staff for gift card
+            without a customer."""
+        )
+    )
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description="The customer who bought a gift card.",
@@ -25,6 +31,7 @@ class GiftCard(CountableDjangoObjectType):
         )
         only_fields = [
             "user",
+            "code",
             "created",
             "start_date",
             "end_date",
@@ -44,3 +51,12 @@ class GiftCard(CountableDjangoObjectType):
     @permission_required("giftcard.manage_gift_card")
     def resolve_user(root: models.GiftCard, *_args, **_kwargs):
         return root.user
+
+    @staticmethod
+    def resolve_code(root: models.GiftCard, info, **_kwargs):
+        viewer = info.context.user
+        if viewer.has_perm("giftcard.manage_gift_card") and not root.user:
+            return root.code
+        if viewer == root.user:
+            return root.code
+        return None
