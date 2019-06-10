@@ -3,10 +3,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 
-from saleor.core.utils.taxes import price
-
 from ...account.forms import LoginForm
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
+from ...core.utils.taxes import get_display_price
 from ...shipping.utils import get_shipping_price_estimate
 from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm
 from ..models import Checkout
@@ -220,7 +219,7 @@ def update_checkout_line(request, checkout, variant_id):
         form.save()
         checkout.refresh_from_db()
         checkout_line.refresh_from_db()
-        subtotal = price(checkout_line.get_total(discounts, taxes))
+        subtotal = get_display_price(checkout_line.get_total(discounts, taxes))
         response = {
             "variantId": variant_id,
             "subtotal": format_money(subtotal),
@@ -228,7 +227,7 @@ def update_checkout_line(request, checkout, variant_id):
             "checkout": {"numItems": checkout.quantity, "numLines": len(checkout)},
         }
 
-        checkout_total = price(checkout.get_subtotal(discounts, taxes))
+        checkout_total = get_display_price(checkout.get_subtotal(discounts, taxes))
         response["total"] = format_money(checkout_total)
         local_checkout_total = to_local_currency(checkout_total, request.currency)
         if local_checkout_total is not None:
