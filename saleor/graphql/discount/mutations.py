@@ -1,7 +1,11 @@
 import graphene
 
+from ...core.utils.promo_code import (
+    PromoCodeAlreadyExists,
+    generate_promo_code,
+    is_available_promo_code,
+)
 from ...discount import models
-from ...discount.utils import generate_voucher_code
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
 from ..product.types import Category, Collection, Product
@@ -113,7 +117,9 @@ class VoucherCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         code = data.get("code", None)
         if code == "":
-            data["code"] = generate_voucher_code()
+            data["code"] = generate_promo_code()
+        elif not is_available_promo_code(code):
+            raise PromoCodeAlreadyExists()
         cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
 

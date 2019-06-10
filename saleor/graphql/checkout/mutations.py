@@ -7,6 +7,7 @@ from django.db import transaction
 
 from ...checkout import models
 from ...checkout.utils import (
+    add_promo_code_to_checkout,
     add_variant_to_checkout,
     add_voucher_to_checkout,
     change_billing_address_in_checkout,
@@ -17,6 +18,7 @@ from ...checkout.utils import (
     get_taxes_for_checkout,
     get_voucher_for_checkout,
     recalculate_checkout_discount,
+    remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
 )
 from ...core import analytics
@@ -529,6 +531,7 @@ class CheckoutUpdateVoucher(BaseMutation):
 
     class Meta:
         description = (
+            "DEPRECATED: Use CheckoutAddPromoCode or CheckoutRemovePromoCode instead. "
             "Adds voucher to the checkout. Query it without voucher_code "
             "field to remove voucher from checkout."
         )
@@ -550,7 +553,7 @@ class CheckoutUpdateVoucher(BaseMutation):
                 )
 
             try:
-                add_voucher_to_checkout(voucher, checkout)
+                add_voucher_to_checkout(checkout, voucher)
             except voucher_model.NotApplicable:
                 raise ValidationError(
                     {"voucher_code": "Voucher is not applicable to that checkout."}
@@ -560,4 +563,50 @@ class CheckoutUpdateVoucher(BaseMutation):
             if existing_voucher:
                 remove_voucher_from_checkout(checkout)
 
+        return CheckoutUpdateVoucher(checkout=checkout)
+
+
+class CheckoutAddPromoCode(BaseMutation):
+    checkout = graphene.Field(
+        Checkout, description="The checkout with the added gift card or voucher"
+    )
+
+    class Arguments:
+        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        promo_code = graphene.String(
+            description="Gift card code or voucher code", required=True
+        )
+
+    class Meta:
+        description = "Adds a gift card or a voucher to a checkout."
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, promo_code):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        add_promo_code_to_checkout(checkout, promo_code)
+        return CheckoutAddPromoCode(checkout=checkout)
+
+
+class CheckoutRemovePromoCode(BaseMutation):
+    checkout = graphene.Field(
+        Checkout, description="The checkout with the removed gift card or voucher"
+    )
+
+    class Arguments:
+        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        promo_code = graphene.String(
+            description="Gift card code or voucher code", required=True
+        )
+
+    class Meta:
+        description = "Remove a gift card or a voucher from a checkout."
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, promo_code):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        remove_promo_code_from_checkout(checkout, promo_code)
         return CheckoutUpdateVoucher(checkout=checkout)

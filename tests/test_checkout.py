@@ -660,6 +660,112 @@ def test_create_order_doesnt_duplicate_order(
         assert mocked_delete.call_count == 1
 
 
+@pytest.mark.parametrize("is_anonymous_user", (True, False))
+def test_create_order_with_gift_card(
+    checkout_with_gift_card, customer_user, shipping_method, is_anonymous_user
+):
+    checkout_user = None if is_anonymous_user else customer_user
+    checkout = checkout_with_gift_card
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+
+    total_gross_without_gift_cards = (
+        checkout.get_subtotal()
+        + checkout.get_shipping_price(None)
+        - checkout.discount_amount
+    ).gross
+    gift_cards_balance = checkout.get_total_gift_cards_balance()
+
+    order = create_order(
+        checkout=checkout,
+        tracking_code="tracking_code",
+        discounts=None,
+        taxes=None,
+        user=customer_user if not is_anonymous_user else AnonymousUser(),
+    )
+
+    assert order.gift_cards.count() > 0
+    assert order.gift_cards.first().current_balance.amount == 0
+    assert order.total.gross == (total_gross_without_gift_cards - gift_cards_balance)
+
+
+def test_create_order_with_gift_card_partial_use(
+    checkout_with_item, gift_card_used, customer_user, shipping_method
+):
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+
+    price_without_gift_card = checkout.get_total()
+    gift_card_balance_before_order = gift_card_used.current_balance
+
+    checkout.gift_cards.add(gift_card_used)
+    checkout.save()
+
+    order = create_order(
+        checkout=checkout,
+        tracking_code="tracking_code",
+        discounts=None,
+        taxes=None,
+        user=customer_user,
+    )
+
+    gift_card_used.refresh_from_db()
+    assert order.gift_cards.count() > 0
+    assert order.total == ZERO_TAXED_MONEY
+    assert (
+        gift_card_balance_before_order
+        == (price_without_gift_card + gift_card_used.current_balance).gross.amount
+    )
+
+
+def test_create_order_with_many_gift_cards(
+    checkout_with_item,
+    gift_card_created_by_staff,
+    gift_card,
+    customer_user,
+    shipping_method,
+):
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+
+    price_without_gift_card = checkout.get_total()
+    gift_cards_balance_befor_order = (
+        gift_card_created_by_staff.current_balance + gift_card.current_balance
+    )
+
+    checkout.gift_cards.add(gift_card_created_by_staff)
+    checkout.gift_cards.add(gift_card)
+    checkout.save()
+
+    order = create_order(
+        checkout=checkout,
+        tracking_code="tracking_code",
+        discounts=None,
+        taxes=None,
+        user=customer_user,
+    )
+
+    gift_card_created_by_staff.refresh_from_db()
+    gift_card.refresh_from_db()
+    assert order.gift_cards.count() > 0
+    assert gift_card_created_by_staff.current_balance == ZERO_MONEY
+    assert gift_card.current_balance == ZERO_MONEY
+    assert price_without_gift_card.gross.amount == (
+        gift_cards_balance_befor_order + order.total.gross.amount
+    )
+
+
 def test_note_in_created_order(request_checkout_with_item, address, customer_user):
     request_checkout_with_item.shipping_address = address
     request_checkout_with_item.note = "test_note"
@@ -1188,7 +1294,7 @@ def test_get_prices_of_products_in_discounted_categories(checkout_with_item):
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
     assert checkout_with_item.voucher_code is None
-    add_voucher_to_checkout(voucher, checkout_with_item)
+    add_voucher_to_checkout(checkout_with_item, voucher)
 
     assert checkout_with_item.voucher_code == voucher.code
 
@@ -1197,6 +1303,6 @@ def test_add_voucher_to_checkout_fail(
     checkout_with_item, voucher_with_high_min_amount_spent
 ):
     with pytest.raises(NotApplicable):
-        add_voucher_to_checkout(voucher_with_high_min_amount_spent, checkout_with_item)
+        add_voucher_to_checkout(checkout_with_item, voucher_with_high_min_amount_spent)
 
     assert checkout_with_item.voucher_code is None
