@@ -8,8 +8,10 @@ import { WindowTitle } from "@saleor/components/WindowTitle";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
-import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import { DEFAULT_INITIAL_SEARCH_DATA, PAGINATE_BY } from "../../config";
 import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
@@ -35,8 +37,6 @@ interface CollectionDetailsProps {
   id: string;
   params: CollectionUrlQueryParams;
 }
-
-const PAGINATE_BY = 20;
 
 export const CollectionDetails: React.StatelessComponent<
   CollectionDetailsProps
