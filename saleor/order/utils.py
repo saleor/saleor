@@ -3,6 +3,7 @@ from functools import wraps
 from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
@@ -300,11 +301,11 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
         if total_price_left < gift_card.current_balance:
             gift_card.current_balance = gift_card.current_balance - total_price_left
             total_price_left = ZERO_MONEY
-            gift_card.save(update_fields=["current_balance"])
         else:
             total_price_left = total_price_left - gift_card.current_balance
             gift_card.current_balance = 0
-            gift_card.save(update_fields=["current_balance"])
+        gift_card.last_used_on = timezone.now()
+        gift_card.save(update_fields=["current_balance", "last_used_on"])
     return total_price_left
 
 
