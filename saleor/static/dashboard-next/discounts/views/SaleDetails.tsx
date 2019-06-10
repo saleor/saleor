@@ -10,11 +10,13 @@ import { WindowTitle } from "@saleor/components/WindowTitle";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
 import useShop from "@saleor/hooks/useShop";
 import { categoryUrl } from "../../categories/urls";
 import { collectionUrl } from "../../collections/urls";
-import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
+import { DEFAULT_INITIAL_SEARCH_DATA, PAGINATE_BY } from "../../config";
 import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
 import SearchProducts from "../../containers/SearchProducts";
@@ -42,8 +44,6 @@ import {
   SaleUrlDialog,
   SaleUrlQueryParams
 } from "../urls";
-
-const PAGINATE_BY = 20;
 
 interface SaleDetailsProps {
   id: string;

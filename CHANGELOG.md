@@ -41,7 +41,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add filtering interface to product list - #4193 by @dominik-zeglen
 - Unify search API - #4200 by @dominik-zeglen
 - Close modals on click outside - #4236 - by @benekex2
-- Add Gift Cards - #4025 by @fowczarek
+- Default default PAGINATE_BY - #4238 by @dominik-zeglen
+- Add basic Gift Cards support in the backend - #4025 by @fowczarek
 
 ## 2.6.0
 

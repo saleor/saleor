@@ -7,7 +7,10 @@ import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import { PAGINATE_BY } from "../../config";
 import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
@@ -25,8 +28,6 @@ import {
 interface ProductTypeListProps {
   params: ProductTypeListUrlQueryParams;
 }
-
-const PAGINATE_BY = 20;
 
 export const ProductTypeList: React.StatelessComponent<
   ProductTypeListProps
