@@ -5,6 +5,7 @@ import DeleteFilterTabDialog from "@saleor/components/DeleteFilterTabDialog";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
 } from "@saleor/components/SaveFilterTabDialog";
+import { PAGINATE_BY } from "@saleor/config";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useDateLocalize from "@saleor/hooks/useDateLocalize";
 import useNavigator from "@saleor/hooks/useNavigator";
@@ -45,8 +46,6 @@ import {
 interface OrderListProps {
   params: OrderListUrlQueryParams;
 }
-
-const PAGINATE_BY = 20;
 
 export const OrderList: React.StatelessComponent<OrderListProps> = ({
   params
