@@ -26,6 +26,7 @@ from saleor.core.utils import (
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
+from saleor.giftcard.models import GiftCard
 from saleor.order.models import Order
 from saleor.product.models import ProductImage
 from saleor.shipping.models import ShippingZone
@@ -150,6 +151,13 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == 2
+
+
+def test_create_gift_card(db):
+    assert GiftCard.objects.count() == 0
+    for _ in random_data.create_gift_card():
+        pass
+    assert GiftCard.objects.count() == 1
 
 
 def test_manifest(client, site_settings):

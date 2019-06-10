@@ -24,6 +24,7 @@ from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
+from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.events import OrderEvents
@@ -100,6 +101,13 @@ def checkout_with_voucher(checkout, product, voucher):
     checkout.discount_amount = Money("20.00", "USD")
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_gift_card(checkout_with_item, gift_card):
+    checkout_with_item.gift_cards.add(gift_card)
+    checkout_with_item.save()
+    return checkout_with_item
 
 
 @pytest.fixture
@@ -344,6 +352,11 @@ def non_default_category(db):  # pylint: disable=W0613
 @pytest.fixture
 def permission_manage_discounts():
     return Permission.objects.get(codename="manage_discounts")
+
+
+@pytest.fixture
+def permission_manage_gift_card():
+    return Permission.objects.get(codename="manage_gift_card")
 
 
 @pytest.fixture
@@ -607,6 +620,30 @@ def order_line(order, variant, vatlayer):
         variant=variant,
         unit_price=variant.get_price(taxes=taxes),
         tax_rate=taxes["standard"]["value"],
+    )
+
+
+@pytest.fixture
+def gift_card(customer_user, staff_user):
+    return GiftCard.objects.create(
+        code="mirumee_giftcard",
+        user=customer_user,
+        initial_balance=10,
+        current_balance=10,
+    )
+
+
+@pytest.fixture
+def gift_card_used(staff_user):
+    return GiftCard.objects.create(
+        code="gift_card_used", initial_balance=150, current_balance=100
+    )
+
+
+@pytest.fixture
+def gift_card_created_by_staff(staff_user):
+    return GiftCard.objects.create(
+        code="mirumee_staff", initial_balance=5, current_balance=5
     )
 
 

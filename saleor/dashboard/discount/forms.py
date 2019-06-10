@@ -6,10 +6,10 @@ from django_countries import countries
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
+from ...core.utils.promo_code import generate_promo_code
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
-from ...discount.utils import generate_voucher_code
 from ...product.models import Category, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 
@@ -107,7 +107,7 @@ class VoucherForm(forms.ModelForm):
         initial = kwargs.get("initial", {})
         instance = kwargs.get("instance")
         if instance and instance.id is None and not initial.get("code"):
-            initial["code"] = generate_voucher_code()
+            initial["code"] = generate_promo_code()
         kwargs["initial"] = initial
         super().__init__(*args, **kwargs)
 
