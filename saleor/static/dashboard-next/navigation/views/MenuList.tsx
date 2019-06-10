@@ -6,7 +6,10 @@ import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import { PAGINATE_BY } from "../../config";
 import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
@@ -22,8 +25,6 @@ import { MenuBulkDelete } from "../types/MenuBulkDelete";
 import { MenuCreate } from "../types/MenuCreate";
 import { MenuDelete } from "../types/MenuDelete";
 import { menuListUrl, MenuListUrlQueryParams, menuUrl } from "../urls";
-
-const PAGINATE_BY = 20;
 
 interface MenuListProps {
   params: MenuListUrlQueryParams;

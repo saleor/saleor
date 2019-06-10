@@ -8,3 +8,5 @@ export const DEFAULT_INITIAL_SEARCH_DATA: SearchQueryVariables = {
   first: 5,
   query: ""
 };
+
+export const PAGINATE_BY = 20;

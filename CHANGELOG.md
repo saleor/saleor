@@ -41,6 +41,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add filtering interface to product list - #4193 by @dominik-zeglen
 - Unify search API - #4200 by @dominik-zeglen
 - Close modals on click outside - #4236 - by @benekex2
+- Default default PAGINATE_BY - #4238 by @dominik-zeglen
 
 ## 2.6.0
 

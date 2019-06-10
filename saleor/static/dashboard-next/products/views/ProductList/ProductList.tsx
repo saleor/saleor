@@ -13,8 +13,11 @@ import useBulkActions from "@saleor/hooks/useBulkActions";
 import useLocale from "@saleor/hooks/useLocale";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
 import useShop from "@saleor/hooks/useShop";
+import { PAGINATE_BY } from "../../../config";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import ProductListCard from "../../components/ProductListCard";
@@ -47,8 +50,6 @@ import {
 interface ProductListProps {
   params: ProductListUrlQueryParams;
 }
-
-const PAGINATE_BY = 20;
 
 export const ProductList: React.StatelessComponent<ProductListProps> = ({
   params
