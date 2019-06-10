@@ -20,16 +20,16 @@ from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from saleor.core.utils import build_absolute_uri
-
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
+from ..core.utils import build_absolute_uri
 from ..core.utils.taxes import apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+from . import AttributeInputType
 
 
 class Category(MPTTModel, SeoModel):
@@ -420,8 +420,16 @@ class DigitalContentUrl(models.Model):
 
 
 class Attribute(models.Model):
+    input_type = models.CharField(
+        max_length=50,
+        choices=AttributeInputType.CHOICES,
+        default=AttributeInputType.DROPDOWN,
+        blank=True,
+    )
+
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=50)
+
     product_type = models.ForeignKey(
         ProductType,
         related_name="product_attributes",
@@ -491,6 +499,10 @@ class AttributeValue(SortableModel):
 
     def __str__(self):
         return self.name
+
+    @property
+    def input_type(self):
+        return self.attribute.input_type
 
     def get_ordering_queryset(self):
         return self.attribute.values.all()

@@ -7,7 +7,7 @@ from ....product import models
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeTypeEnum
+from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute
 
 
@@ -17,6 +17,7 @@ class AttributeValueCreateInput(graphene.InputObjectType):
 
 
 class AttributeCreateInput(graphene.InputObjectType):
+    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
     values = graphene.List(
         AttributeValueCreateInput, description=AttributeDescriptions.VALUES
@@ -24,6 +25,7 @@ class AttributeCreateInput(graphene.InputObjectType):
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
+    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     name = graphene.String(description=AttributeDescriptions.NAME)
     remove_values = graphene.List(
         graphene.ID,

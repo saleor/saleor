@@ -2262,3 +2262,32 @@ def test_product_base_price_permission(
 
     assert "basePrice" in content["data"]["product"]
     assert content["data"]["product"]["basePrice"]["amount"] == product.price.amount
+
+
+def test_retrieve_product_attributes(api_client, product):
+    query = """
+        {
+          products(first: 10) {
+            edges {
+              node {
+                attributes {
+                  value {
+                    type
+                    name
+                    inputType
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+
+    found_products = get_graphql_content(api_client.post_graphql(query))["data"][
+        "products"
+    ]["edges"]
+    assert len(found_products) == 1
+
+    for gql_attr in found_products[0]["node"]["attributes"]:
+        assert gql_attr["value"]["type"] == "STRING"
+        assert gql_attr["value"]["inputType"] == "DROPDOWN"
