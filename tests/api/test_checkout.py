@@ -881,6 +881,8 @@ def test_checkout_complete(
     address,
     shipping_method,
 ):
+    assert not gift_card.last_used_on
+
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -924,8 +926,10 @@ def test_checkout_complete(
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 1
+
     gift_card.refresh_from_db()
     assert gift_card.current_balance == ZERO_MONEY
+    assert gift_card.last_used_on
 
     # assert that the checkout instance has been deleted after checkout
     with pytest.raises(Checkout.DoesNotExist):
