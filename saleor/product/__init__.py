@@ -39,3 +39,19 @@ class VariantAvailabilityStatus:
             return pgettext_lazy("Variant status", "out of stock")
         else:
             raise NotImplementedError("Unknown status: %s" % status)
+
+
+class AttributeInputType:
+    """The type that we expect to render the attribute's values as."""
+
+    DROPDOWN = "dropdown"
+    MULTISELECT = "multiselect"
+    CHECKLIST = "checklist"
+    NUMERIC = "numeric"
+
+    CHOICES = [
+        (DROPDOWN, pgettext_lazy("Attribute input type", "Dropdown")),
+        (MULTISELECT, pgettext_lazy("Attribute input type", "Multi Select")),
+        (CHECKLIST, pgettext_lazy("Attribute input type", "Checklist")),
+        (NUMERIC, pgettext_lazy("Attribute input type", "Numeric Values")),
+    ]

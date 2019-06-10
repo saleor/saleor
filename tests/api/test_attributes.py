@@ -938,3 +938,33 @@ def test_unassign_attributes_not_in_product_type(
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["productAttributes"]) == 0
     assert len(content["productType"]["variantAttributes"]) == 0
+
+
+def test_retrieve_product_attributes_input_type(
+    staff_api_client, product, permission_manage_products
+):
+    query = """
+        {
+          products(first: 10) {
+            edges {
+              node {
+                attributes {
+                  value {
+                    type
+                    inputType
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+
+    found_products = get_graphql_content(
+        staff_api_client.post_graphql(query, permissions=[permission_manage_products])
+    )["data"]["products"]["edges"]
+    assert len(found_products) == 1
+
+    for gql_attr in found_products[0]["node"]["attributes"]:
+        assert gql_attr["value"]["type"] == "STRING"
+        assert gql_attr["value"]["inputType"] == "DROPDOWN"

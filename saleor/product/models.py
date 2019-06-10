@@ -2,7 +2,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.fields import HStoreField, JSONField
+from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Q
@@ -20,16 +20,16 @@ from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from saleor.core.utils import build_absolute_uri
-
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
+from ..core.utils import build_absolute_uri
 from ..core.utils.taxes import apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+from . import AttributeInputType
 
 
 class Category(MPTTModel, SeoModel):
@@ -133,7 +133,7 @@ class Product(SeoModel, PublishableModel):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
-    attributes = HStoreField(default=dict, blank=True)
+    attributes = JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(max_length=128, blank=True, choices=TaxRateType.CHOICES)
@@ -242,7 +242,7 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
-    attributes = HStoreField(default=dict, blank=True)
+    attributes = JSONField(default=dict, blank=True)
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
     quantity = models.IntegerField(
@@ -454,6 +454,13 @@ class AttributeQuerySet(models.QuerySet):
 class Attribute(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
     name = models.CharField(max_length=50)
+
+    input_type = models.CharField(
+        max_length=50,
+        choices=AttributeInputType.CHOICES,
+        default=AttributeInputType.DROPDOWN,
+    )
+
     product_types = models.ManyToManyField(
         ProductType,
         blank=True,
@@ -524,6 +531,10 @@ class AttributeValue(SortableModel):
 
     def __str__(self):
         return self.name
+
+    @property
+    def input_type(self):
+        return self.attribute.input_type
 
     def get_ordering_queryset(self):
         return self.attribute.values.all()

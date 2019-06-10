@@ -487,7 +487,7 @@ class VariantImagesSelectForm(forms.Form):
 class AttributeForm(forms.ModelForm):
     class Meta:
         model = Attribute
-        exclude = []
+        exclude = ["input_type"]
         labels = {
             "name": pgettext_lazy("Product display name", "Display name"),
             "slug": pgettext_lazy("Product internal name", "Internal name"),

@@ -7,9 +7,9 @@ from django.template.defaultfilters import slugify
 from ....product import models
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.utils import from_global_id_strict_type
-from ...product.enums import AttributeTypeEnum
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
+from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute
 
 
@@ -19,6 +19,7 @@ class AttributeValueCreateInput(graphene.InputObjectType):
 
 
 class AttributeCreateInput(graphene.InputObjectType):
+    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     values = graphene.List(
@@ -27,6 +28,7 @@ class AttributeCreateInput(graphene.InputObjectType):
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
+    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     remove_values = graphene.List(
