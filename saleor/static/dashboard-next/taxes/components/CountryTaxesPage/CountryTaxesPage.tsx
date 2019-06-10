@@ -7,11 +7,11 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import { Container } from "../../../components/Container";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import Skeleton from "../../../components/Skeleton";
+import AppHeader from "@saleor/components/AppHeader";
+import { Container } from "@saleor/components/Container";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection, translatedTaxRates } from "../../../misc";
 import { CountryList_shop_countries_vat_reducedRates } from "../../types/CountryList";

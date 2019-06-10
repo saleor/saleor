@@ -6,9 +6,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import Form, { FormProps } from "../../../components/Form";
-import { FormSpacer } from "../../../components/FormSpacer";
-import SingleSelectField from "../../../components/SingleSelectField";
+import Form, { FormProps } from "@saleor/components/Form";
+import { FormSpacer } from "@saleor/components/FormSpacer";
+import SingleSelectField from "@saleor/components/SingleSelectField";
 import i18n from "../../../i18n";
 import { translatedAuthorizationKeyTypes } from "../../../misc";
 import { AuthorizationKeyType } from "../../../types/globalTypes";
