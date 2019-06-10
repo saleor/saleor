@@ -108,7 +108,9 @@ def get_taxed_shipping_price(shipping_price, taxes):
     return apply_tax_to_price(taxes, DEFAULT_TAX_RATE_NAME, shipping_price)
 
 
-def price(base: Union[TaxedMoney, TaxedMoneyRange], display_gross=None) -> Money:
+def get_display_price(
+    base: Union[TaxedMoney, TaxedMoneyRange], display_gross=None
+) -> Money:
     """Return price amount that should be displayed based on settings"""
     if not display_gross:
         display_gross = display_gross_prices()

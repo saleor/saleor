@@ -1,7 +1,7 @@
 from django import template
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, price as get_price
+from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, get_display_price
 
 register = template.Library()
 
@@ -28,7 +28,7 @@ def price(context, base, display_gross=None, html=True):
         if display_gross is None:
             display_gross = context["site"].settings.display_gross_prices
 
-        base = get_price(base, display_gross)
+        base = get_display_price(base, display_gross)
 
     is_range = isinstance(base, MoneyRange)
     return {"price": base, "is_range": is_range, "html": html}
