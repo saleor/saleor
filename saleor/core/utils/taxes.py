@@ -1,3 +1,5 @@
+from typing import Union
+
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django_countries.fields import Country
@@ -104,3 +106,20 @@ def get_taxed_shipping_price(shipping_price, taxes):
     if not charge_taxes_on_shipping():
         taxes = None
     return apply_tax_to_price(taxes, DEFAULT_TAX_RATE_NAME, shipping_price)
+
+
+def get_display_price(
+    base: Union[TaxedMoney, TaxedMoneyRange], display_gross=None
+) -> Money:
+    """Return price amount that should be displayed based on settings"""
+    if not display_gross:
+        display_gross = display_gross_prices()
+    if isinstance(base, TaxedMoneyRange):
+        if display_gross:
+            base = MoneyRange(start=base.start.gross, stop=base.stop.gross)
+        else:
+            base = MoneyRange(start=base.start.net, stop=base.stop.net)
+
+    if isinstance(base, TaxedMoney):
+        base = base.gross if display_gross else base.net
+    return base
