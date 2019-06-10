@@ -82,6 +82,8 @@ def validate_checkout(checkout: "Checkout") -> bool:
         return False
     if not shipping_address:
         return False
+    if not checkout.shipping_method:
+        return False
     return True
 
 
