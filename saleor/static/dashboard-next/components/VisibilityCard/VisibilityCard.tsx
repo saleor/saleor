@@ -9,10 +9,10 @@ import {
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import CardTitle from "../../components/CardTitle";
-import ControlledSwitch from "../../components/ControlledSwitch";
-import { FormSpacer } from "../../components/FormSpacer";
-import useDateLocalize from "../../hooks/useDateLocalize";
+import CardTitle from "@saleor/components/CardTitle";
+import ControlledSwitch from "@saleor/components/ControlledSwitch";
+import { FormSpacer } from "@saleor/components/FormSpacer";
+import useDateLocalize from "@saleor/hooks/useDateLocalize";
 import i18n from "../../i18n";
 import { DateContext } from "../Date/DateContext";
 

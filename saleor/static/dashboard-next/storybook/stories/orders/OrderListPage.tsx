@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { Filter } from "../../../components/TableFilter/";
+import { Filter } from "@saleor/components/TableFilter";
 import { listActionsProps, pageListProps } from "../../../fixtures";
 import OrderListPage from "../../../orders/components/OrderListPage";
 import { orders } from "../../../orders/fixtures";

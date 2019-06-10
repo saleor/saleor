@@ -11,7 +11,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 import SVG from "react-inlinesvg";
 
-import CardTitle from "../../../components/CardTitle";
+import CardTitle from "@saleor/components/CardTitle";
 import i18n from "../../../i18n";
 import { getUserInitials, maybe } from "../../../misc";
 import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";

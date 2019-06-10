@@ -1,8 +1,11 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { FilterContent, FilterContentProps } from "../../../components/Filter";
-import { FieldType } from "../../../components/Filter/types";
+import {
+  FieldType,
+  FilterContent,
+  FilterContentProps
+} from "@saleor/components/Filter";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 

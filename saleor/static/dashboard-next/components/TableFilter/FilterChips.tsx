@@ -8,8 +8,7 @@ import { createStyles, makeStyles, useTheme } from "@material-ui/styles";
 import * as React from "react";
 
 import i18n from "../../i18n";
-import Filter, { FilterContentSubmitData } from "../Filter";
-import { IFilter } from "../Filter/types";
+import Filter, { FilterContentSubmitData, IFilter } from "../Filter";
 import Hr from "../Hr";
 import Link from "../Link";
 

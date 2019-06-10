@@ -1,10 +1,10 @@
 import Button from "@material-ui/core/Button";
 import * as React from "react";
 
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { OrderStatusFilter } from "../../types/globalTypes";

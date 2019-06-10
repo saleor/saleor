@@ -4,19 +4,17 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
-import DeleteFilterTabDialog from "../../../components/DeleteFilterTabDialog";
+import ActionDialog from "@saleor/components/ActionDialog";
+import DeleteFilterTabDialog from "@saleor/components/DeleteFilterTabDialog";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
-} from "../../../components/SaveFilterTabDialog";
-import useBulkActions from "../../../hooks/useBulkActions";
-import useLocale from "../../../hooks/useLocale";
-import useNavigator from "../../../hooks/useNavigator";
-import useNotifier from "../../../hooks/useNotifier";
-import usePaginator, {
-  createPaginationState
-} from "../../../hooks/usePaginator";
-import useShop from "../../../hooks/useShop";
+} from "@saleor/components/SaveFilterTabDialog";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useLocale from "@saleor/hooks/useLocale";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, { createPaginationState } from "@saleor/hooks/usePaginator";
+import useShop from "@saleor/hooks/useShop";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import ProductListCard from "../../components/ProductListCard";

@@ -3,7 +3,7 @@ import * as React from "react";
 
 import DeleteFilterTabDialog, {
   DeleteFilterTabDialogProps
-} from "../../../components/DeleteFilterTabDialog";
+} from "@saleor/components/DeleteFilterTabDialog";
 import Decorator from "../../Decorator";
 
 const props: DeleteFilterTabDialogProps = {
