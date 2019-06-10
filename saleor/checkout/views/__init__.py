@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 
+from saleor.core.utils.taxes import price
+
 from ...account.forms import LoginForm
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
 from ...shipping.utils import get_shipping_price_estimate
@@ -171,7 +173,6 @@ def checkout_index(request, checkout):
             "shipping_price_range": shipping_price_range,
         }
     )
-
     return TemplateResponse(request, "checkout/index.html", context)
 
 
@@ -217,18 +218,21 @@ def update_checkout_line(request, checkout, variant_id):
     )
     if form.is_valid():
         form.save()
+        checkout.refresh_from_db()
+        checkout_line.refresh_from_db()
+        subtotal = price(checkout_line.get_total(discounts, taxes))
         response = {
             "variantId": variant_id,
-            "subtotal": format_money(checkout_line.get_total(discounts, taxes).gross),
+            "subtotal": format_money(subtotal),
             "total": 0,
             "checkout": {"numItems": checkout.quantity, "numLines": len(checkout)},
         }
 
-        checkout_total = checkout.get_subtotal(discounts, taxes)
-        response["total"] = format_money(checkout_total.gross)
+        checkout_total = price(checkout.get_subtotal(discounts, taxes))
+        response["total"] = format_money(checkout_total)
         local_checkout_total = to_local_currency(checkout_total, request.currency)
         if local_checkout_total is not None:
-            response["localTotal"] = format_money(local_checkout_total.gross)
+            response["localTotal"] = format_money(local_checkout_total)
 
         status = 200
     elif request.POST is not None:
