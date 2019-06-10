@@ -8,7 +8,7 @@ from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist
 from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import npgettext_lazy, pgettext_lazy
-from django_countries.fields import LazyTypedChoiceField
+from django_countries.fields import Country, LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import display_gross_prices
@@ -205,6 +205,8 @@ class CountryForm(forms.Form):
         country.
         """
         country = self.cleaned_data["country"]
+        if isinstance(country, str):
+            country = Country(country)
         return get_shipping_price_estimate(price, weight, country)
 
 

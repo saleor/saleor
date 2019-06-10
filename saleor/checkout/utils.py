@@ -17,12 +17,12 @@ from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import ZERO_MONEY
 from ..core.taxes.interface import (
+    checkout_are_taxes_handled,
     get_line_total_gross,
     get_shipping_gross,
     get_subtotal_gross,
     get_total_gross,
     postprocess_order_creation,
-    show_taxes_on_storefront,
 )
 from ..core.utils import to_local_currency
 from ..discount import VoucherType
@@ -655,7 +655,7 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
 
     context = {
         "checkout": checkout,
-        "checkout_are_taxes_handled": show_taxes_on_storefront(),
+        "checkout_are_taxes_handled": checkout_are_taxes_handled(),
         "checkout_lines": [
             (line, get_line_total_gross(line, discounts)) for line in checkout
         ],

@@ -134,6 +134,14 @@ def show_taxes_on_storefront() -> bool:
     return False
 
 
+def checkout_are_taxes_handled() -> bool:
+    if settings.VATLAYER_ACCESS_KEY:
+        return True
+    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        return True
+    return False
+
+
 def apply_taxes_to_shipping_price_range(prices: MoneyRange, country: Country):
     if country:
         if settings.VATLAYER_ACCESS_KEY:

@@ -47,6 +47,8 @@ def get_shipping_gross(checkout: "Checkout", _: "SaleQueryset") -> TaxedMoney:
     """Calculate shipping gross for checkout"""
     address = checkout.shipping_address or checkout.billing_address
     taxes = get_taxes_for_address(address)
+    if not checkout.shipping_method:
+        return ZERO_TAXED_MONEY
     return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
 
 
