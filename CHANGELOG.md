@@ -2,6 +2,15 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+## [Unreleased Changeset: Attributes]
+
+- The mutations `attributeCreate` and `attributeUpdate`:
+    - They no longer crash if no values were passed. - #4260 by @NyanKiyoshi
+    - They no longer accept the `productType` parameter and no longer return the attribute's `productType` in the root of the response; instead, you should query the attribute's `productType` manually. - #4260 by @NyanKiyoshi
+    - They now accept an optional `slug` input parameter for setting the internal representation of the attribute instead of always generating it. This allows users to have multiple attributes with the same name but that are different things or set of values. - #4260 by @NyanKiyoshi
+- The `Attribute` model:
+    - They now always unique, instead of being unique only into a given product type. - #4260 by @NyanKiyoshi
+
 ## [Unreleased]
 
 - Fix product type taxes select - #4453 by @benekex2
