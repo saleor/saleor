@@ -69,6 +69,7 @@ dataclasses = {version = "*",markers = "python_version < '3.7'"}
 [dev-packages]
 pytest = "*"
 pytest-django = "*"
+pytest-django-queries = "*"
 pytest-vcr = "*"
 pytest-mock = "*"
 pytest-xdist = "*"
