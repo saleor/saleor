@@ -1,3 +1,4 @@
+from decimal import Decimal
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
@@ -13,14 +14,14 @@ from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 from PIL import Image
-from prices import Money
+from prices import Money, TaxedMoney
 
 from saleor.account.backends import BaseBackend
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
+from saleor.core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
@@ -598,13 +599,15 @@ def voucher_shipping_type():
 @pytest.fixture()
 def order_line(order, variant, vatlayer):
     taxes = vatlayer
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     return order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=3,
         variant=variant,
-        unit_price=variant.get_price(taxes=taxes),
+        unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=taxes["standard"]["value"],
     )
 
@@ -625,13 +628,15 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
         quantity=5,
         quantity_allocated=3,
     )
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=3,
         variant=variant,
-        unit_price=variant.get_price(taxes=taxes),
+        unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=taxes["standard"]["value"],
     )
 
@@ -648,13 +653,16 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
         quantity=2,
         quantity_allocated=2,
     )
+
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=2,
         variant=variant,
-        unit_price=variant.get_price(taxes=taxes),
+        unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=taxes["standard"]["value"],
     )
 
@@ -662,7 +670,10 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
     method = shipping_zone.shipping_methods.get()
     order.shipping_method_name = method.name
     order.shipping_method = method
-    order.shipping_price = method.get_total(taxes)
+
+    net = method.get_total()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order.shipping_price = (TaxedMoney(net=net, gross=gross),)
     order.save()
 
     recalculate_order(order)
