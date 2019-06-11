@@ -872,7 +872,7 @@ def test_logged_customer_update(user_api_client, graphql_address_data):
     assert user.default_shipping_address.first_name == new_first_name
 
 
-def test_logged_customer_update_anonymus_user(api_client):
+def test_logged_customer_update_anonymous_user(api_client):
     response = api_client.post_graphql(UPDATE_LOGGED_CUSTOMER_QUERY, {})
     assert_no_permission(response)
 
@@ -928,7 +928,7 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
     msg = "Cannot delete a staff account."
     assert e.value.error_dict["id"][0].message == msg
 
-    # shuold not raise any errors
+    # should not raise any errors
     CustomerDelete.clean_instance(info, customer_user)
 
 
@@ -1083,7 +1083,7 @@ def test_staff_delete_errors(staff_user, customer_user, admin_user):
     msg = "Cannot delete a non-staff user."
     assert e.value.error_dict["id"][0].message == msg
 
-    # shuold not raise any errors
+    # should not raise any errors
     info = Mock(context=Mock(user=admin_user))
     StaffDelete.clean_instance(info, staff_user)
 
@@ -1101,7 +1101,7 @@ def test_staff_update_errors(staff_user, customer_user, admin_user):
     msg = "Cannot deactivate superuser's account."
     assert e.value.error_dict["is_active"][0].message == msg
 
-    # shuold not raise any errors
+    # should not raise any errors
     StaffUpdate.clean_is_active(False, customer_user, staff_user)
 
 
