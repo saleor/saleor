@@ -2776,6 +2776,7 @@ type Query {
   digitalContent(id: ID!): DigitalContent
   digitalContents(query: String, level: Int, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   attributes(query: String, inCategory: ID, inCollection: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attribute(id: ID!): Attribute
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
