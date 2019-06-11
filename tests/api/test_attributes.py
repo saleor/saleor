@@ -3,7 +3,7 @@ import pytest
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 
-from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
+from saleor.graphql.product.enums import AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.graphql.product.utils import attributes_to_hstore
 from saleor.product.models import Attribute, AttributeValue, Category
@@ -139,61 +139,103 @@ def test_attributes_in_collection_query(user_api_client, sale):
 
 
 CREATE_ATTRIBUTES_QUERY = """
-    mutation createAttribute(
-        $name: String!, $values: [AttributeValueCreateInput],
-        $id: ID!, $type: AttributeTypeEnum!) {
-    attributeCreate(
-            id: $id, type: $type, input: {name: $name, values: $values}) {
-        errors {
-            field
-            message
-        }
-        attribute {
-            name
-            slug
-            values {
+    mutation createAttribute($name: String!, $values: [AttributeValueCreateInput]) {
+        attributeCreate(input: {name: $name, values: $values}) {
+            errors {
+                field
+                message
+            }
+            attribute {
                 name
                 slug
+                values {
+                    name
+                    slug
+                }
+                productType {
+                    id
+                }
             }
         }
-        productType {
-            id
-            name
-        }
     }
-}
 """
 
 
 def test_create_attribute_and_attribute_values(
-    staff_api_client, permission_manage_products, product_type
+    staff_api_client, permission_manage_products
 ):
     query = CREATE_ATTRIBUTES_QUERY
-    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
 
     attribute_name = "Example name"
     name = "Value name"
-    variables = {
-        "name": attribute_name,
-        "id": node_id,
-        "type": AttributeTypeEnum.PRODUCT.name,
-        "values": [{"name": name, "value": "#1231"}],
-    }
+    variables = {"name": attribute_name, "values": [{"name": name, "value": "#1231"}]}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     assert not content["data"]["attributeCreate"]["errors"]
     data = content["data"]["attributeCreate"]
-    assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(attribute_name)
 
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(
+        attribute_name
+    ), "The default slug should be the slugified name"
+    assert (
+        data["attribute"]["productType"] is None
+    ), "The attribute should not have been assigned to a product type"
+
+    # Check if the attribute values were correctly created
     assert len(data["attribute"]["values"]) == 1
     assert data["attribute"]["values"][0]["name"] == name
     assert data["attribute"]["values"][0]["slug"] == slugify(name)
-    attribute = Attribute.objects.get(name=attribute_name)
-    assert attribute in product_type.product_attributes.all()
-    assert data["productType"]["name"] == product_type.name
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, expected_error",
+    (
+        ("my-slug", "my-slug", []),
+        (None, "my-name", []),
+        (
+            "",
+            None,
+            [{"field": "slug", "message": "The attribute's slug cannot be blank."}],
+        ),
+    ),
+)
+def test_create_attribute_with_given_slug(
+    staff_api_client,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    expected_error,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    query = """
+        mutation createAttribute(
+            $name: String!, $slug: String) {
+        attributeCreate(input: {name: $name, slug: $slug}) {
+            errors {
+                field
+                message
+            }
+            attribute {
+                slug
+            }
+        }
+    }
+    """
+
+    attribute_name = "My Name"
+    variables = {"name": attribute_name, "slug": input_slug}
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+    # Check if the error is as expected: null or something else
+    assert content["data"]["attributeCreate"]["errors"] == expected_error
+
+    # Check if the slug was correctly set if no error was expected
+    if expected_error is None:
+        assert content["data"]["attributeCreate"]["attribute"]["slug"] == expected_slug
 
 
 @pytest.mark.parametrize(
@@ -212,11 +254,8 @@ def test_create_attribute_and_attribute_values_errors(
     product_type,
 ):
     query = CREATE_ATTRIBUTES_QUERY
-    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
     variables = {
         "name": "Example name",
-        "id": node_id,
-        "type": AttributeTypeEnum.PRODUCT.name,
         "values": [
             {"name": name_1, "value": "#1231"},
             {"name": name_2, "value": "#121"},
@@ -230,48 +269,6 @@ def test_create_attribute_and_attribute_values_errors(
     assert errors
     assert errors[0]["field"] == "values"
     assert errors[0]["message"] == error_msg
-
-
-def test_create_variant_attribute(
-    staff_api_client, permission_manage_products, product_type
-):
-    product_type.has_variants = True
-    product_type.save()
-
-    query = CREATE_ATTRIBUTES_QUERY
-    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
-    attribute_name = "Example name"
-    variables = {
-        "name": attribute_name,
-        "id": node_id,
-        "type": AttributeTypeEnum.VARIANT.name,
-        "values": [],
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["errors"]
-    attribute = Attribute.objects.get(name=attribute_name)
-    assert attribute in product_type.variant_attributes.all()
-
-
-def test_create_attribute_incorrect_product_type_id(
-    staff_api_client, permission_manage_products, product_type
-):
-    query = CREATE_ATTRIBUTES_QUERY
-    variables = {
-        "name": "Example name",
-        "id": "incorrect-id",
-        "type": AttributeTypeEnum.PRODUCT.name,
-        "values": [],
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    errors = content["data"]["attributeCreate"]["errors"]
-    assert errors[0]["field"] == "id"
 
 
 UPDATE_ATTRIBUTE_QUERY = """
@@ -294,10 +291,9 @@ UPDATE_ATTRIBUTE_QUERY = """
                 name
                 slug
             }
-        }
-        productType {
-            id
-            name
+            productType {
+                id
+            }
         }
     }
 }
@@ -305,7 +301,7 @@ UPDATE_ATTRIBUTE_QUERY = """
 
 
 def test_update_attribute_name(
-    staff_api_client, color_attribute, product_type, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_products
 ):
     query = UPDATE_ATTRIBUTE_QUERY
     attribute = color_attribute
@@ -319,7 +315,7 @@ def test_update_attribute_name(
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
     assert data["attribute"]["name"] == name == attribute.name
-    assert data["productType"]["name"] == attribute.product_type.name
+    assert data["attribute"]["productType"] is None
 
 
 def test_update_attribute_remove_and_add_values(
