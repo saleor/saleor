@@ -1,15 +1,15 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
+import ActionDialog from "@saleor/components/ActionDialog";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
 import { categoryUrl } from "../../../categories/urls";
 import { collectionUrl } from "../../../collections/urls";
-import ActionDialog from "../../../components/ActionDialog";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../../config";
 import SearchCategories from "../../../containers/SearchCategories";
 import SearchCollections from "../../../containers/SearchCollections";
 import SearchPages from "../../../containers/SearchPages";
-import useNavigator from "../../../hooks/useNavigator";
-import useNotifier from "../../../hooks/useNotifier";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import { pageUrl } from "../../../pages/urls";

@@ -7,6 +7,7 @@ from django.db import transaction
 
 from ...checkout import models
 from ...checkout.utils import (
+    add_promo_code_to_checkout,
     add_variant_to_checkout,
     add_voucher_to_checkout,
     change_billing_address_in_checkout,
@@ -16,7 +17,9 @@ from ...checkout.utils import (
     get_or_create_user_checkout,
     get_taxes_for_checkout,
     get_voucher_for_checkout,
+    prepare_order_data,
     recalculate_checkout_discount,
+    remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
 )
 from ...core import analytics
@@ -24,6 +27,7 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...discount import models as voucher_model
 from ...payment import PaymentError
+from ...payment.interface import AddressData
 from ...payment.utils import gateway_process_payment
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
@@ -499,24 +503,38 @@ class CheckoutComplete(BaseMutation):
         payment = checkout.get_last_active_payment()
 
         try:
-            order = create_order(
+            order_data = prepare_order_data(
                 checkout=checkout,
                 tracking_code=analytics.get_client_id(info.context),
                 discounts=info.context.discounts,
-                taxes=get_taxes_for_checkout(checkout, info.context.taxes),
-                user=info.context.user,
+                taxes=taxes,
             )
-        except InsufficientStock:
-            raise ValidationError("Insufficient product stock.")
+        except InsufficientStock as e:
+            raise ValidationError(f"Insufficient product stock: {e.item}")
         except voucher_model.NotApplicable:
             raise ValidationError("Voucher not applicable")
 
-        payment.order = order
-
         try:
-            gateway_process_payment(payment=payment, payment_token=payment.token)
+            billing_address = order_data["billing_address"]  # type: models.Address
+            shipping_address = order_data["shipping_address"]  # type: models.Address
+            gateway_process_payment(
+                payment=payment,
+                payment_token=payment.token,
+                billing_address=AddressData(**billing_address.as_data()),
+                shipping_address=AddressData(**shipping_address.as_data()),
+            )
         except PaymentError as e:
             raise ValidationError(str(e))
+
+        # create the order into the database
+        order = create_order(
+            checkout=checkout, order_data=order_data, user=info.context.user
+        )
+
+        # remove checkout after order is successfully paid
+        checkout.delete()
+
+        # return the success response with the newly created order data
         return CheckoutComplete(order=order)
 
 
@@ -529,6 +547,7 @@ class CheckoutUpdateVoucher(BaseMutation):
 
     class Meta:
         description = (
+            "DEPRECATED: Use CheckoutAddPromoCode or CheckoutRemovePromoCode instead. "
             "Adds voucher to the checkout. Query it without voucher_code "
             "field to remove voucher from checkout."
         )
@@ -550,7 +569,7 @@ class CheckoutUpdateVoucher(BaseMutation):
                 )
 
             try:
-                add_voucher_to_checkout(voucher, checkout)
+                add_voucher_to_checkout(checkout, voucher)
             except voucher_model.NotApplicable:
                 raise ValidationError(
                     {"voucher_code": "Voucher is not applicable to that checkout."}
@@ -560,4 +579,50 @@ class CheckoutUpdateVoucher(BaseMutation):
             if existing_voucher:
                 remove_voucher_from_checkout(checkout)
 
+        return CheckoutUpdateVoucher(checkout=checkout)
+
+
+class CheckoutAddPromoCode(BaseMutation):
+    checkout = graphene.Field(
+        Checkout, description="The checkout with the added gift card or voucher"
+    )
+
+    class Arguments:
+        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        promo_code = graphene.String(
+            description="Gift card code or voucher code", required=True
+        )
+
+    class Meta:
+        description = "Adds a gift card or a voucher to a checkout."
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, promo_code):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        add_promo_code_to_checkout(checkout, promo_code)
+        return CheckoutAddPromoCode(checkout=checkout)
+
+
+class CheckoutRemovePromoCode(BaseMutation):
+    checkout = graphene.Field(
+        Checkout, description="The checkout with the removed gift card or voucher"
+    )
+
+    class Arguments:
+        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        promo_code = graphene.String(
+            description="Gift card code or voucher code", required=True
+        )
+
+    class Meta:
+        description = "Remove a gift card or a voucher from a checkout."
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, promo_code):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        remove_promo_code_from_checkout(checkout, promo_code)
         return CheckoutUpdateVoucher(checkout=checkout)

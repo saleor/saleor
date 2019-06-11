@@ -9,9 +9,9 @@ import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
+import AppHeader from "@saleor/components/AppHeader";
+import Container from "@saleor/components/Container";
+import PageHeader from "@saleor/components/PageHeader";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { AddressTypeEnum } from "../../../types/globalTypes";

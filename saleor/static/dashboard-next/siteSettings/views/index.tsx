@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import { WindowTitle } from "../../components/WindowTitle";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
 import { configurationMenuUrl } from "../../configuration";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { AuthorizationKeyType } from "../../types/globalTypes";

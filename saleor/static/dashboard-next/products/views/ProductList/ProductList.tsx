@@ -4,19 +4,20 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../../components/ActionDialog";
-import DeleteFilterTabDialog from "../../../components/DeleteFilterTabDialog";
+import ActionDialog from "@saleor/components/ActionDialog";
+import DeleteFilterTabDialog from "@saleor/components/DeleteFilterTabDialog";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
-} from "../../../components/SaveFilterTabDialog";
-import useBulkActions from "../../../hooks/useBulkActions";
-import useLocale from "../../../hooks/useLocale";
-import useNavigator from "../../../hooks/useNavigator";
-import useNotifier from "../../../hooks/useNotifier";
+} from "@saleor/components/SaveFilterTabDialog";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useLocale from "@saleor/hooks/useLocale";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
-} from "../../../hooks/usePaginator";
-import useShop from "../../../hooks/useShop";
+} from "@saleor/hooks/usePaginator";
+import useShop from "@saleor/hooks/useShop";
+import { PAGINATE_BY } from "../../../config";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import ProductListCard from "../../components/ProductListCard";
@@ -49,8 +50,6 @@ import {
 interface ProductListProps {
   params: ProductListUrlQueryParams;
 }
-
-const PAGINATE_BY = 20;
 
 export const ProductList: React.StatelessComponent<ProductListProps> = ({
   params
@@ -204,18 +203,14 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         )}
                         onAdd={() => navigate(productAddUrl)}
                         disabled={loading}
-                        products={
-                          data &&
-                          data.products !== undefined &&
-                          data.products !== null
-                            ? data.products.edges.map(p => p.node)
-                            : undefined
-                        }
+                        products={maybe(() =>
+                          data.products.edges.map(edge => edge.node)
+                        )}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
                         pageInfo={pageInfo}
                         onRowClick={id => () => navigate(productUrl(id))}
-                        onAllProducts={() =>
+                        onAll={() =>
                           changeFilters({
                             status: undefined
                           })
@@ -256,6 +251,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         onFilterDelete={() => openModal("delete-search")}
                         onTabChange={handleTabChange}
                         initialSearch={params.query || ""}
+                        filterTabs={getFilterTabs()}
                       />
                       <ActionDialog
                         open={params.action === "delete"}

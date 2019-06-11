@@ -10,6 +10,7 @@ from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
+from ..giftcard.types import GiftCard
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -290,6 +291,10 @@ class Order(CountableDjangoObjectType):
     subtotal = graphene.Field(
         TaxedMoney, description="The sum of line prices not including shipping."
     )
+    gift_cards = gql_optimizer.field(
+        graphene.List(GiftCard, description="List of userd gift cards"),
+        model_field="gift_cards",
+    )
     status_display = graphene.String(description="User-friendly order status.")
     can_finalize = graphene.Boolean(
         description=(
@@ -332,6 +337,7 @@ class Order(CountableDjangoObjectType):
             "discount_amount",
             "discount_name",
             "display_gross_prices",
+            "gift_cards",
             "id",
             "language_code",
             "shipping_address",
@@ -458,3 +464,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):
         return root.is_shipping_required()
+
+    @staticmethod
+    def resolve_gift_cards(root: models.Order, _info):
+        return root.gift_cards.all()

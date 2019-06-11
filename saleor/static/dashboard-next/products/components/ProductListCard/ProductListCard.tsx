@@ -3,28 +3,21 @@ import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
+import Container from "@saleor/components/Container";
+import PageHeader from "@saleor/components/PageHeader";
+import ProductList from "@saleor/components/ProductList";
 import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
-import Container from "../../../components/Container";
-import { FilterContentSubmitData } from "../../../components/Filter";
-import PageHeader from "../../../components/PageHeader";
-import ProductList from "../../../components/ProductList";
-import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
-import { ListActions, PageListProps } from "../../../types";
+import { FilterPageProps, ListActions, PageListProps } from "../../../types";
+import { ProductListUrlFilters } from "../../urls";
 import ProductListFilter from "../ProductListFilter";
 
-export interface ProductListCardProps extends PageListProps, ListActions {
+export interface ProductListCardProps
+  extends PageListProps,
+    ListActions,
+    FilterPageProps<ProductListUrlFilters> {
   currencySymbol: string;
-  currentTab: number;
-  filtersList: Filter[];
-  initialSearch: string;
   products: CategoryDetails_category_products_edges_node[];
-  onAllProducts: () => void;
-  onSearchChange: (value: string) => void;
-  onFilterAdd: (filter: FilterContentSubmitData) => void;
-  onFilterDelete: () => void;
-  onFilterSave: () => void;
-  onTabChange: (tab: number) => void;
 }
 
 export const ProductListCard: React.StatelessComponent<
@@ -32,26 +25,17 @@ export const ProductListCard: React.StatelessComponent<
 > = ({
   currencySymbol,
   currentTab,
-  disabled,
   filtersList,
+  filterTabs,
   initialSearch,
-  pageInfo,
-  products,
   onAdd,
-  onAllProducts,
-  onNextPage,
-  onPreviousPage,
-  onRowClick,
-  isChecked,
-  selected,
-  toggle,
-  toggleAll,
-  toolbar,
+  onAll,
   onSearchChange,
   onFilterAdd,
   onFilterSave,
   onTabChange,
-  onFilterDelete
+  onFilterDelete,
+  ...listProps
 }) => (
   <Container>
     <PageHeader title={i18n.t("Products")}>
@@ -61,30 +45,22 @@ export const ProductListCard: React.StatelessComponent<
     </PageHeader>
     <Card>
       <ProductListFilter
+        allTabLabel={i18n.t("All Products")}
         currencySymbol={currencySymbol}
         currentTab={currentTab}
+        filterLabel={i18n.t("Select all products where:")}
+        filterTabs={filterTabs}
         filtersList={filtersList}
         initialSearch={initialSearch}
-        onAllProducts={onAllProducts}
+        searchPlaceholder={i18n.t("Search Products...")}
+        onAll={onAll}
         onSearchChange={onSearchChange}
         onFilterAdd={onFilterAdd}
         onFilterSave={onFilterSave}
         onTabChange={onTabChange}
         onFilterDelete={onFilterDelete}
       />
-      <ProductList
-        products={products}
-        disabled={disabled}
-        pageInfo={pageInfo}
-        toolbar={toolbar}
-        selected={selected}
-        isChecked={isChecked}
-        toggle={toggle}
-        toggleAll={toggleAll}
-        onNextPage={onNextPage}
-        onPreviousPage={onPreviousPage}
-        onRowClick={onRowClick}
-      />
+      <ProductList {...listProps} />
     </Card>
   </Container>
 );

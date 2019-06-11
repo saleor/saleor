@@ -2,7 +2,7 @@ import { storiesOf } from "@storybook/react";
 import { RawDraftContentState } from "draft-js";
 import * as React from "react";
 
-import RichTextEditor from "../../../components/RichTextEditor";
+import RichTextEditor from "@saleor/components/RichTextEditor";
 import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 

@@ -17,7 +17,12 @@ from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
-from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
+from ..core.utils.promo_code import (
+    InvalidPromoCode,
+    promo_code_is_gift_card,
+    promo_code_is_voucher,
+)
+from ..core.utils.taxes import ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_country
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
@@ -26,9 +31,14 @@ from ..discount.utils import (
     get_value_voucher_discount,
     increase_voucher_usage,
 )
+from ..giftcard.utils import (
+    add_gift_card_code_to_checkout,
+    remove_gift_card_code_from_checkout,
+)
 from ..order import events
 from ..order.emails import send_order_confirmation
-from ..order.models import Order
+from ..order.models import Order, OrderLine
+from ..product.models import ProductVariant
 from ..shipping.models import ShippingMethod
 from . import AddressType, logger
 from .forms import (
@@ -37,7 +47,7 @@ from .forms import (
     AnonymousUserShippingForm,
     BillingAddressChoiceForm,
 )
-from .models import Checkout
+from .models import Checkout, CheckoutLine
 
 COOKIE_NAME = "checkout"
 
@@ -781,10 +791,41 @@ def recalculate_checkout_discount(checkout, discounts, taxes):
         remove_voucher_from_checkout(checkout)
 
 
-def add_voucher_to_checkout(voucher, checkout):
+def add_promo_code_to_checkout(checkout: Checkout, promo_code: str):
+    """Add gift card or voucher data to checkout.
+
+    Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
+    """
+    if promo_code_is_voucher(promo_code):
+        add_voucher_code_to_checkout(checkout, promo_code)
+    elif promo_code_is_gift_card(promo_code):
+        add_gift_card_code_to_checkout(checkout, promo_code)
+    else:
+        raise InvalidPromoCode()
+
+
+def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str):
+    """Add voucher data to checkout by code.
+
+    Raise InvalidPromoCode() if voucher of given type cannot be applied.
+    """
+    try:
+        voucher = Voucher.objects.active(date=date.today()).get(code=voucher_code)
+    except Voucher.DoesNotExist:
+        raise InvalidPromoCode()
+    try:
+        add_voucher_to_checkout(checkout, voucher)
+    except NotApplicable:
+        raise ValidationError(
+            {"promo_code": "Voucher is not applicable to that checkout."}
+        )
+
+
+def add_voucher_to_checkout(checkout: Checkout, voucher: Voucher):
     """Add voucher data to checkout.
 
-    Raise NotApplicable if voucher of given type cannot be applied."""
+    Raise NotApplicable if voucher of given type cannot be applied.
+    """
     discount_amount = get_voucher_discount_for_checkout(voucher, checkout)
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
@@ -802,7 +843,22 @@ def add_voucher_to_checkout(voucher, checkout):
     )
 
 
-def remove_voucher_from_checkout(checkout):
+def remove_promo_code_from_checkout(checkout: Checkout, promo_code: str):
+    """Remove gift card or voucher data from checkout."""
+    if promo_code_is_voucher(promo_code):
+        remove_voucher_code_from_checkout(checkout, promo_code)
+    elif promo_code_is_gift_card(promo_code):
+        remove_gift_card_code_from_checkout(checkout, promo_code)
+
+
+def remove_voucher_code_from_checkout(checkout: Checkout, voucher_code: str):
+    """Remove voucher data from checkout by code."""
+    existing_voucher = get_voucher_for_checkout(checkout)
+    if existing_voucher and existing_voucher.code == voucher_code:
+        remove_voucher_from_checkout(checkout)
+
+
+def remove_voucher_from_checkout(checkout: Checkout):
     """Remove voucher data from checkout."""
     checkout.voucher_code = None
     checkout.discount_name = None
@@ -851,7 +907,11 @@ def clear_shipping_method(checkout):
 
 
 def _process_voucher_data_for_order(checkout):
-    """Fetch, process and return voucher/discount data from checkout."""
+    """
+    Fetch, process and return voucher/discount data from checkout.
+
+    :raises NotApplicable: When the voucher is not applicable in the current checkout.
+    """
     vouchers = Voucher.objects.active(date=date.today()).select_for_update()
     voucher = get_voucher_for_checkout(checkout, vouchers)
 
@@ -912,26 +972,58 @@ def _process_user_data_for_order(checkout):
     }
 
 
-@transaction.atomic
-def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user: User):
-    """Create an order from the checkout.
+def validate_gift_cards(checkout: Checkout):
+    """Check if all gift cards assigned to checkout are available."""
+    if (
+        not checkout.gift_cards.count()
+        == checkout.gift_cards.active(date=date.today()).count()
+    ):
+        msg = pgettext(
+            "Gift card not applicable",
+            "Gift card has expired. Order placement cancelled.",
+        )
+        raise NotApplicable(msg)
 
-    Each order will get a private copy of both the billing and the shipping
-    address (if shipping).
 
-    If any of the addresses is new and the user is logged in the address
-    will also get saved to that user's address book.
-
-    Current user's language is saved in the order so we can later determine
-    which language to use when sending email.
+def create_line_for_order(
+    variant: ProductVariant, quantity: int, discounts, taxes
+) -> OrderLine:
     """
-    from ..order.utils import add_variant_to_order
+    :raises InsufficientStock: when there is not enough items in stock for this variant
+    """
 
-    order = Order.objects.filter(checkout_token=checkout.token).first()
-    if order is not None:
-        return order
+    variant.check_quantity(quantity)
 
+    product_name = variant.display_product()
+    translated_product_name = variant.display_product(translated=True)
+
+    if translated_product_name == product_name:
+        translated_product_name = ""
+
+    line = OrderLine(
+        product_name=product_name,
+        translated_product_name=translated_product_name,
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=variant.get_price(discounts, taxes),
+        tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes),
+    )
+
+    return line
+
+
+def prepare_order_data(
+    *, checkout: Checkout, tracking_code: str, discounts, taxes
+) -> dict:
+    """
+    Runs checks and returns all the data from a given checkout to create an order.
+
+    :raises NotApplicable InsufficientStock:
+    """
     order_data = {}
+
     order_data.update(_process_voucher_data_for_order(checkout))
     order_data.update(_process_shipping_data_for_order(checkout, taxes))
     order_data.update(_process_user_data_for_order(checkout))
@@ -943,17 +1035,66 @@ def create_order(checkout: Checkout, tracking_code: str, discounts, taxes, user:
         }
     )
 
-    order = Order.objects.create(**order_data, checkout_token=checkout.token)
+    order_data["lines"] = [
+        create_line_for_order(
+            variant=line.variant,
+            quantity=line.quantity,
+            discounts=discounts,
+            taxes=taxes,
+        )
+        for line in checkout  # type: CheckoutLine
+    ]
 
-    # create order lines from checkout lines
-    for line in checkout:
-        add_variant_to_order(order, line.variant, line.quantity, discounts, taxes)
+    # validate checkout gift cards
+    validate_gift_cards(checkout)
+
+    # assign gift cards to the order
+    order_data["total_price_left"] = (
+        checkout.get_subtotal(discounts, taxes)
+        + checkout.get_shipping_price(taxes)
+        - checkout.discount_amount
+    ).gross
+
+    return order_data
+
+
+@transaction.atomic
+def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
+    """Create an order from the checkout.
+
+    Each order will get a private copy of both the billing and the shipping
+    address (if shipping).
+
+    If any of the addresses is new and the user is logged in the address
+    will also get saved to that user's address book.
+
+    Current user's language is saved in the order so we can later determine
+    which language to use when sending email.
+    """
+    from ..product.utils import allocate_stock
+    from ..order.utils import add_gift_card_to_order
+
+    order = Order.objects.filter(checkout_token=checkout.token).first()
+    if order is not None:
+        return order
+
+    total_price_left = order_data.pop("total_price_left")
+    order_lines = order_data.pop("lines")
+    order = Order.objects.create(**order_data, checkout_token=checkout.token)
+    order.lines.set(order_lines, bulk=False)
+
+    # allocate stocks from the lines
+    for line in order_lines:  # type: OrderLine
+        variant = line.variant
+        if variant.track_inventory:
+            allocate_stock(variant, line.quantity)
+
+    # Add gift cards to the order
+    for gift_card in checkout.gift_cards.select_for_update():
+        total_price_left = add_gift_card_to_order(order, gift_card, total_price_left)
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
-
-    # remove checkout after order is created
-    checkout.delete()
 
     # Create the order placed
     events.order_created_event(order=order, user=user)

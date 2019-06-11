@@ -1,5 +1,9 @@
 import { MutationResult } from "react-apollo";
 
+import { FilterContentSubmitData } from "./components/Filter";
+import { Filter } from "./components/TableFilter";
+import { GetFilterTabsOutput } from "./utils/filters";
+
 export interface UserError {
   field: string;
   message: string;
@@ -31,6 +35,24 @@ export interface ListActions extends ListActionsWithoutToolbar {
 export interface PageListProps extends ListProps {
   onAdd: () => void;
 }
+export interface FilterPageProps<TUrlFilters> {
+  currencySymbol: string;
+  currentTab: number;
+  filterTabs: GetFilterTabsOutput<TUrlFilters>;
+  filtersList: Filter[];
+  initialSearch: string;
+  onAll: () => void;
+  onSearchChange: (value: string) => void;
+  onFilterAdd: (filter: FilterContentSubmitData) => void;
+  onFilterDelete: () => void;
+  onFilterSave: () => void;
+  onTabChange: (tab: number) => void;
+}
+export interface FilterProps<TUrlFilters> extends FilterPageProps<TUrlFilters> {
+  allTabLabel: string;
+  filterLabel: string;
+  searchPlaceholder: string;
+}
 
 export interface PartialMutationProviderOutput<
   TData extends {} = {},
@@ -57,6 +79,9 @@ export type Dialog<TDialog extends string> = Partial<{
 export type ActiveTab<TTab extends string = string> = Partial<{
   activeTab: TTab;
 }>;
+export type Filters<TFilters extends string> = Partial<
+  Record<TFilters, string>
+>;
 export type SingleAction = Partial<{
   id: string;
 }>;
