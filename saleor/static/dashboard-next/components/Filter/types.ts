@@ -2,6 +2,7 @@ import { IMenu, IMenuItem } from "../../utils/menu";
 
 export enum FieldType {
   date,
+  hidden,
   number,
   price,
   range,
@@ -21,6 +22,7 @@ export interface FilterData {
   fieldLabel: string;
   options?: FilterChoice[];
   type: FieldType;
+  value?: string;
 }
 
 export type IFilterItem = IMenuItem<FilterData>;

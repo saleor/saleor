@@ -42,7 +42,12 @@ export const countries = [
 export const filterPageProps: FilterPageProps<{}> = {
   currencySymbol: "USD",
   currentTab: 0,
-  filterTabs: [],
+  filterTabs: [
+    {
+      data: {},
+      name: "Tab X"
+    }
+  ],
   filtersList: [],
   initialSearch: "",
   onAll: () => undefined,

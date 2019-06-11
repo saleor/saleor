@@ -1,32 +1,47 @@
 import Button from "@material-ui/core/Button";
 import * as React from "react";
 
+import DeleteFilterTabDialog from "@saleor/components/DeleteFilterTabDialog";
+import SaveFilterTabDialog, {
+  SaveFilterTabDialogFormData
+} from "@saleor/components/SaveFilterTabDialog";
+import { PAGINATE_BY } from "@saleor/config";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useDateLocalize from "@saleor/hooks/useDateLocalize";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
-import { OrderStatusFilter } from "../../types/globalTypes";
-import OrderBulkCancelDialog from "../components/OrderBulkCancelDialog";
-import OrderListPage from "../components/OrderListPage/OrderListPage";
-import { getTabName } from "../misc";
+import useShop from "@saleor/hooks/useShop";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import OrderBulkCancelDialog from "../../components/OrderBulkCancelDialog";
+import OrderListPage from "../../components/OrderListPage/OrderListPage";
 import {
   TypedOrderBulkCancelMutation,
   TypedOrderDraftCreateMutation
-} from "../mutations";
-import { TypedOrderListQuery } from "../queries";
-import { OrderBulkCancel } from "../types/OrderBulkCancel";
-import { OrderDraftCreate } from "../types/OrderDraftCreate";
+} from "../../mutations";
+import { TypedOrderListQuery } from "../../queries";
+import { OrderBulkCancel } from "../../types/OrderBulkCancel";
+import { OrderDraftCreate } from "../../types/OrderDraftCreate";
 import {
   orderListUrl,
+  OrderListUrlDialog,
   OrderListUrlFilters,
   OrderListUrlQueryParams,
   orderUrl
-} from "../urls";
+} from "../../urls";
+import {
+  areFiltersApplied,
+  createFilter,
+  createFilterChips,
+  deleteFilterTab,
+  getActiveFilters,
+  getFilterTabs,
+  getFilterVariables,
+  saveFilterTab
+} from "./filters";
 
 interface OrderListProps {
   params: OrderListUrlQueryParams;
@@ -35,12 +50,23 @@ interface OrderListProps {
 export const OrderList: React.StatelessComponent<OrderListProps> = ({
   params
 }) => {
+  const formatDate = useDateLocalize();
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
+  const shop = useShop();
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
+
+  const tabs = getFilterTabs();
+
+  const currentTab =
+    params.activeTab === undefined
+      ? areFiltersApplied(params)
+        ? tabs.length + 1
+        : 0
+      : parseInt(params.activeTab, 0);
 
   const closeModal = () =>
     navigate(
@@ -52,27 +78,59 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
       true
     );
 
+  const changeFilters = (filters: OrderListUrlFilters) => {
+    reset();
+    navigate(orderListUrl(filters));
+  };
+
+  const changeFilterField = (filter: OrderListUrlFilters) => {
+    reset();
+    navigate(
+      orderListUrl({
+        ...getActiveFilters(params),
+        ...filter,
+        activeTab: undefined
+      })
+    );
+  };
+
+  const openModal = (action: OrderListUrlDialog, ids?: string[]) =>
+    navigate(
+      orderListUrl({
+        ...params,
+        action,
+        ids
+      })
+    );
+
+  const handleTabChange = (tab: number) =>
+    navigate(
+      orderListUrl({
+        activeTab: tab.toString(),
+        ...getFilterTabs()[tab - 1].data
+      })
+    );
+
+  const handleFilterTabDelete = () => {
+    deleteFilterTab(currentTab);
+    reset();
+    navigate(orderListUrl());
+  };
+
+  const handleFilterTabSave = (data: SaveFilterTabDialogFormData) => {
+    saveFilterTab(data.name, getActiveFilters(params));
+    handleTabChange(tabs.length + 1);
+  };
+
+  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
+
   const handleCreateOrderCreateSuccess = (data: OrderDraftCreate) => {
     notify({
       text: i18n.t("Order draft succesfully created")
     });
     navigate(orderUrl(data.draftOrderCreate.order.id));
   };
-
-  const changeFilters = (filters: OrderListUrlFilters) => {
-    reset();
-    navigate(
-      orderListUrl({
-        ...params,
-        ...filters,
-        after: undefined,
-        before: undefined
-      })
-    );
-  };
-
-  const paginationState = createPaginationState(PAGINATE_BY, params);
-  const currentTab = getTabName(params);
 
   return (
     <TypedOrderDraftCreateMutation onCompleted={handleCreateOrderCreateSuccess}>
@@ -81,8 +139,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
           displayLoader
           variables={{
             ...paginationState,
-            filter: { customer: params.email },
-            status: params.status
+            filter: getFilterVariables(params)
           }}
         >
           {({ data, loading, refetch }) => {
@@ -124,7 +181,14 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                   return (
                     <>
                       <OrderListPage
-                        filtersList={[]}
+                        currencySymbol={currencySymbol}
+                        filtersList={createFilterChips(
+                          params,
+                          {
+                            formatDate
+                          },
+                          changeFilterField
+                        )}
                         currentTab={currentTab}
                         disabled={loading}
                         orders={maybe(() =>
@@ -135,22 +199,6 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
                         onRowClick={id => () => navigate(orderUrl(id))}
-                        onAllProducts={() =>
-                          changeFilters({
-                            status: undefined
-                          })
-                        }
-                        onToFulfill={() =>
-                          changeFilters({
-                            status: OrderStatusFilter.READY_TO_FULFILL
-                          })
-                        }
-                        onToCapture={() =>
-                          changeFilters({
-                            status: OrderStatusFilter.READY_TO_CAPTURE
-                          })
-                        }
-                        onCustomFilter={() => undefined}
                         isChecked={isSelected}
                         selected={listElements.length}
                         toggle={toggle}
@@ -158,20 +206,26 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                         toolbar={
                           <Button
                             color="primary"
-                            onClick={() =>
-                              navigate(
-                                orderListUrl({
-                                  ...params,
-                                  action: "cancel",
-                                  ids: listElements
-                                })
-                              )
-                            }
+                            onClick={() => openModal("cancel", listElements)}
                           >
                             {i18n.t("Cancel", {
                               context: "cancel orders"
                             })}
                           </Button>
+                        }
+                        onSearchChange={email => changeFilterField({ email })}
+                        onFilterAdd={filter =>
+                          changeFilterField(createFilter(filter))
+                        }
+                        onFilterSave={() => openModal("save-search")}
+                        onFilterDelete={() => openModal("delete-search")}
+                        onTabChange={handleTabChange}
+                        initialSearch={params.email || ""}
+                        filterTabs={getFilterTabs()}
+                        onAll={() =>
+                          changeFilters({
+                            status: undefined
+                          })
                         }
                       />
                       <OrderBulkCancelDialog
@@ -183,6 +237,19 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                         onClose={closeModal}
                         onConfirm={onOrderBulkCancel}
                         open={params.action === "cancel"}
+                      />
+                      <SaveFilterTabDialog
+                        open={params.action === "save-search"}
+                        confirmButtonState="default"
+                        onClose={closeModal}
+                        onSubmit={handleFilterTabSave}
+                      />
+                      <DeleteFilterTabDialog
+                        open={params.action === "delete-search"}
+                        confirmButtonState="default"
+                        onClose={closeModal}
+                        onSubmit={handleFilterTabDelete}
+                        tabName={maybe(() => tabs[currentTab - 1].name, "...")}
                       />
                     </>
                   );

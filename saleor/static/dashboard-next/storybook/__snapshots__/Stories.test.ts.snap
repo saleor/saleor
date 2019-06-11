@@ -53635,27 +53635,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                     <span
                       class="MuiTab-label-id FilterTab-tabLabel-id"
                     >
-                      Ready to fulfill
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Ready to capture
+                      Tab X
                     </span>
                   </span>
                 </span>
@@ -53664,6 +53644,56 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
           </div>
         </div>
       </div>
+      <div
+        class="FilterChips-actionContainer-1gvrafz"
+      >
+        <div>
+          <button
+            class="MuiButtonBase-root-id Filter-filterButton-id Filter-addFilterButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id Filter-addFilterText-id"
+            >
+              Add Filter
+            </p>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id Filter-addFilterIcon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id Hook-root-12fjiya"
+        >
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id Hook-input-14nw8ai"
+              placeholder="Search Orders..."
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <hr
+        class="Hr-root-id"
+      />
       <table
         class="MuiTable-root-id"
       >
@@ -55091,9 +55121,8 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
         class="ExtendedPageHeader-action-id"
       >
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id MuiButton-disabled-id"
-          disabled=""
-          tabindex="-1"
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id"
+          tabindex="0"
           type="button"
         >
           <span
@@ -55171,27 +55200,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
                     <span
                       class="MuiTab-label-id FilterTab-tabLabel-id"
                     >
-                      Ready to fulfill
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Ready to capture
+                      Tab X
                     </span>
                   </span>
                 </span>
@@ -55200,6 +55209,56 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
           </div>
         </div>
       </div>
+      <div
+        class="FilterChips-actionContainer-1gvrafz"
+      >
+        <div>
+          <button
+            class="MuiButtonBase-root-id Filter-filterButton-id Filter-addFilterButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id Filter-addFilterText-id"
+            >
+              Add Filter
+            </p>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id Filter-addFilterIcon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id Hook-root-12fjiya"
+        >
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id Hook-input-14nw8ai"
+              placeholder="Search Orders..."
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <hr
+        class="Hr-root-id"
+      />
       <table
         class="MuiTable-root-id"
       >
@@ -55510,27 +55569,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
                     <span
                       class="MuiTab-label-id FilterTab-tabLabel-id"
                     >
-                      Ready to fulfill
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Ready to capture
+                      Tab X
                     </span>
                   </span>
                 </span>
@@ -55539,6 +55578,56 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
           </div>
         </div>
       </div>
+      <div
+        class="FilterChips-actionContainer-1gvrafz"
+      >
+        <div>
+          <button
+            class="MuiButtonBase-root-id Filter-filterButton-id Filter-addFilterButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id Filter-addFilterText-id"
+            >
+              Add Filter
+            </p>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id Filter-addFilterIcon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id Hook-root-12fjiya"
+        >
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id Hook-input-14nw8ai"
+              placeholder="Search Orders..."
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <hr
+        class="Hr-root-id"
+      />
       <table
         class="MuiTable-root-id"
       >
@@ -55704,9 +55793,8 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
         class="ExtendedPageHeader-action-id"
       >
         <button
-          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id MuiButton-disabled-id"
-          disabled=""
-          tabindex="-1"
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id"
+          tabindex="0"
           type="button"
         >
           <span
@@ -55762,7 +55850,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
                     class="MuiTab-labelContainer-id"
                   >
                     <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                      class="MuiTab-label-id FilterTab-tabLabel-id FilterTab-selectedTabLabel-id"
                     >
                       All Orders
                     </span>
@@ -55784,47 +55872,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
                     <span
                       class="MuiTab-label-id FilterTab-tabLabel-id"
                     >
-                      Ready to fulfill
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Ready to capture
-                    </span>
-                  </span>
-                </span>
-              </button>
-              <button
-                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
-                role="tab"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiTab-wrapper-id"
-                >
-                  <span
-                    class="MuiTab-labelContainer-id"
-                  >
-                    <span
-                      class="MuiTab-label-id FilterTab-tabLabel-id"
-                    >
-                      Custom Filter
+                      Tab X
                     </span>
                   </span>
                 </span>
@@ -55832,6 +55880,516 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </div>
           </div>
         </div>
+      </div>
+      <div
+        class="FilterChips-actionContainer-1gvrafz"
+      >
+        <div>
+          <button
+            class="MuiButtonBase-root-id Filter-filterButton-id Filter-addFilterButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id Filter-addFilterText-id"
+            >
+              Add Filter
+            </p>
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id Filter-addFilterIcon-id"
+              focusable="false"
+              role="presentation"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+              <path
+                d="M0 0h24v24H0z"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id Hook-root-12fjiya"
+        >
+          <div
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+          >
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input-id MuiFilledInput-input-id Hook-input-14nw8ai"
+              placeholder="Search Orders..."
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="FilterChips-filterContainer-1yn6kq2"
+      >
+        <div
+          class="FilterChips-filterChipContainer-sphkea"
+        >
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 0
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 1
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 2
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 3
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 4
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 5
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 6
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 7
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 8
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 9
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 10
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 11
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property X is 12
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Y is 13
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="FilterChips-filterButton-1tqc0w9"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+            >
+              Property Z is 14
+            </p>
+            <button
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                />
+                <path
+                  d="M0 0h24v24H0z"
+                  fill="none"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <a
+          class="MuiTypography-root-id MuiTypography-body2-id Link-root-id Link-primary-id"
+        >
+          Delete Search
+        </a>
       </div>
       <table
         class="MuiTable-root-id"
@@ -55847,14 +56405,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               scope="col"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -55944,9 +56500,8 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
                     </span>
                   </button>
                   <button
-                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id TablePaginationActions-iconButton-id TablePaginationActions-disabled-id"
-                    disabled=""
-                    tabindex="-1"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id TablePaginationActions-iconButton-id"
+                    tabindex="0"
                     type="button"
                   >
                     <span
@@ -55984,14 +56539,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56049,14 +56602,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56114,14 +56665,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56179,14 +56728,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56244,14 +56791,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56309,14 +56854,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56374,14 +56917,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56439,14 +56980,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56504,14 +57043,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56569,14 +57106,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56634,14 +57169,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56699,14 +57232,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56764,14 +57295,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56829,14 +57358,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56894,14 +57421,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -56959,14 +57484,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -57024,14 +57547,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -57089,14 +57610,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -57154,14 +57673,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -57219,14 +57736,12 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
             >
               <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
-                disabled=""
-                tabindex="-1"
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
                 type="button"
               >
                 <input
-                  class="Checkbox-box-id Checkbox-disabled-id"
-                  disabled=""
+                  class="Checkbox-box-id"
                   type="checkbox"
                   value="false"
                 />
@@ -71209,6 +71724,26 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
                   </span>
                 </span>
               </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Tab X
+                    </span>
+                  </span>
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -72036,6 +72571,26 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
                   </span>
                 </span>
               </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Tab X
+                    </span>
+                  </span>
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -72382,6 +72937,26 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
                   </span>
                 </span>
               </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Tab X
+                    </span>
+                  </span>
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -72653,6 +73228,26 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
                       class="MuiTab-label-id FilterTab-tabLabel-id FilterTab-selectedTabLabel-id"
                     >
                       All Products
+                    </span>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="MuiButtonBase-root-id MuiTab-root-id FilterTab-tabRoot-id MuiTab-textColorInherit-id"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper-id"
+                >
+                  <span
+                    class="MuiTab-labelContainer-id"
+                  >
+                    <span
+                      class="MuiTab-label-id FilterTab-tabLabel-id"
+                    >
+                      Tab X
                     </span>
                   </span>
                 </span>
