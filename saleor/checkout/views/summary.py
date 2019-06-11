@@ -12,6 +12,7 @@ from ..utils import (
     create_order,
     get_checkout_context,
     get_taxes_for_checkout,
+    prepare_order_data,
     update_billing_address_in_anonymous_checkout,
     update_billing_address_in_checkout,
     update_billing_address_in_checkout_with_shipping,
@@ -26,12 +27,12 @@ def _handle_order_placement(request, checkout):
     and creating order history events.
     """
     try:
-        order = create_order(
+        # Run checks an prepare the data for order creation
+        order_data = prepare_order_data(
             checkout=checkout,
             tracking_code=analytics.get_client_id(request),
             discounts=request.discounts,
             taxes=get_taxes_for_checkout(checkout, request.taxes),
-            user=request.user,
         )
     except InsufficientStock:
         return redirect("checkout:index")
@@ -40,6 +41,12 @@ def _handle_order_placement(request, checkout):
             request, pgettext("Checkout warning", "Please review your checkout.")
         )
         return redirect("checkout:summary")
+
+    # Push the order data into the database
+    order = create_order(checkout=checkout, order_data=order_data, user=request.user)
+
+    # remove checkout after order is created
+    checkout.delete()
 
     # Redirect the user to the payment page
     return redirect("order:payment", token=order.token)
