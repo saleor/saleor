@@ -81,12 +81,12 @@ def get_shipping_gross(checkout: "checkout_models.Checkout", discounts):
             shipping_tax = Decimal(line["tax"])
             break
 
-    shipping_gross = Money(shipping_net + shipping_tax, currency)
+    shipping_gross = Money(amount=shipping_net + shipping_tax, currency=currency)
     shipping_net = Money(amount=shipping_net, currency=currency)
     return TaxedMoney(net=shipping_net, gross=shipping_gross)
 
 
-def postprocess_order_creation_with_taxes(order: "Order"):
+def postprocess_order_creation(order: "Order"):
     # FIXME this can be a celery task (?)
     # FIXME maybe we can figure out better name
 
@@ -141,15 +141,16 @@ def refresh_order_line_unit_price(order_line: "OrderLine"):
 
 
 def calculate_order_shipping(order: "Order"):
-    if not validate_order(order) or not order.shipping_method:
+    if not validate_order(order):
         return ZERO_TAXED_MONEY
     taxes_data = get_order_tax_data(order, None)
+    currency = taxes_data.get("currencyCode")
     for line in taxes_data.get("lines", []):
         if line["itemCode"] == "Shipping":
             tax = Decimal(line.get("tax", "0.0"))
-            # FIXME
-            net = order.shipping_method.price
-            gross = Money(amount=net.amount + tax, currency=net.currency)
+            net = Decimal(line.get("lineAmount", "0.0"))
+            gross = Money(amount=net + tax, currency=currency)
+            net = Money(amount=net, currency=currency)
             return TaxedMoney(net=net, gross=gross)
     return TaxedMoney(
         net=order.shipping_method.price, gross=order.shipping_method.price

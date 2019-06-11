@@ -66,6 +66,8 @@ def validate_order(order: "Order") -> bool:
         return False
     if not shipping_address:
         return False
+    if not order.shipping_method:
+        return False
     return True
 
 
