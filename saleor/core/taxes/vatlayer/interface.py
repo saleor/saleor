@@ -104,3 +104,12 @@ def apply_taxes_to_shipping_price_range(
     if country:
         taxes = get_taxes_for_country(country)
     return get_taxed_shipping_price(prices, taxes)
+
+
+def assign_tax_code_to_product(product: "Product", tax_code: str) -> None:
+    if tax_code not in dict(TaxRateType.CHOICES):
+        return
+
+    if "taxes" in product.meta:
+        product.meta["taxes"] = {}
+    product.meta["taxes"]["vatlayer"] = tax_code

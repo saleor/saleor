@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from urllib.parse import urljoin
 
 import requests
@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
 common_carrier_code = "FR020100"  # FIXME
 cache_key = "avatax_request_id_"  # FIXME
+TAX_CODES_CACHE_KEY = "tax_codes_cache_key"
+COMMON_CARRIER_CODE = "FR000000"
 
 
 class TransactionType:
@@ -46,11 +48,16 @@ def api_post_request(
 
 
 def api_get_request(
-    url,
-    username=settings.AVATAX_USERNAME_OR_ACCOUNT,
-    password=settings.AVATAX_PASSWORD_OR_LICENSE,
+    url: str,
+    username: str = settings.AVATAX_USERNAME_OR_ACCOUNT,
+    password: str = settings.AVATAX_PASSWORD_OR_LICENSE,
 ):
-    return requests.get(url, auth=HTTPBasicAuth(username, password))
+    try:
+        auth = HTTPBasicAuth(username, password)
+        response = requests.get(url, auth=auth)
+    except requests.exceptions.RequestException:
+        return {}
+    return response.json()
 
 
 def validate_order(order: "Order") -> bool:
@@ -184,11 +191,12 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
     for line in lines:
         if not line.variant.product.charge_taxes:
             continue
+        tax_code = line.variant.product.meta.get("taxes", {}).get("avatax", "")
         append_line_to_data(
             data=data,
             quantity=line.quantity,
             amount=line.unit_price_net.amount * line.quantity,
-            tax_code="PC040156",
+            tax_code=tax_code,
             item_code=line.variant.sku,
             description=line.variant.product.description,
         )
@@ -316,3 +324,28 @@ def get_order_tax_data(order: "Order", commit=False) -> Dict[str, Any]:
     )
     response = get_cached_response_or_fetch(data, "order_%s" % order.token)
     return response
+
+
+def generate_tax_codes_dict(
+    response: Dict[str, Union[str, int, bool]]
+) -> Dict[str, str]:
+    tax_codes = {}
+    for line in response.get("value", []):
+        if line.get("isActive"):
+            tax_codes[line.get("description")] = line.get("taxCode")
+    return tax_codes
+
+
+def get_cached_tax_codes_or_fetch(
+    cache_time: int = settings.AVATAX_TAX_CODES_CACHE_TIME
+):
+    """Try to get cached tax codes. If cache is empty fetch the newest taxcodes from
+    avatax"""
+    tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
+    if not tax_codes:
+        tax_codes_url = urljoin(get_api_url(), "definitions/taxcodes")
+        response = api_get_request(tax_codes_url)
+        if response and "error" not in response:
+            tax_codes = generate_tax_codes_dict(response)
+            cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)
+    return tax_codes

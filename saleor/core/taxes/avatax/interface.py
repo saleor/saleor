@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
+from django.utils.translation import pgettext
 from prices import Money, TaxedMoney
 
 from ....checkout import models as checkout_models
@@ -14,6 +15,7 @@ from . import (
     api_post_request,
     generate_request_data_from_checkout,
     get_api_url,
+    get_cached_tax_codes_or_fetch,
     get_checkout_tax_data,
     get_order_tax_data,
     validate_checkout,
@@ -21,6 +23,7 @@ from . import (
 )
 
 if TYPE_CHECKING:
+    from ....product.models import Product
     from ....order.models import Order, OrderLine
 
 
@@ -155,3 +158,20 @@ def calculate_order_shipping(order: "Order"):
     return TaxedMoney(
         net=order.shipping_method.price, gross=order.shipping_method.price
     )
+
+
+def get_tax_rate_type_choices():
+    return [
+        (desc, pgettext("Avatax tax code", desc))
+        for desc, tax_code in get_cached_tax_codes_or_fetch().items()
+    ]
+
+
+def assign_tax_code_to_product(product: "Product", tax_code: str) -> None:
+    # FIXME confirm that tax_code exists in avatax
+    # if tax_code not in dict(TaxRateType.CHOICES):
+    #     return
+
+    if "taxes" in product.meta:
+        product.meta["taxes"] = {}
+    product.meta["taxes"]["avatax"] = tax_code
