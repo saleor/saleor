@@ -111,9 +111,8 @@ def apply_taxes_to_variant(variant: "ProductVariant", price: Money, country: Cou
     if settings.VATLAYER_ACCESS_KEY:
         return vatlayer_interface.apply_taxes_to_variant(variant, price, country)
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return TaxedMoney(
-            net=price, gross=price
-        )  # FIXME for know we don't know how to get product prices
+        # FIXME for know we don't know how to get product prices
+        return TaxedMoney(net=price, gross=price)
     return TaxedMoney(net=price, gross=price)
 
 
@@ -159,4 +158,4 @@ def apply_taxes_to_shipping_price_range(prices: MoneyRange, country: Country):
 # architecture
 def postprocess_order_creation(order: "Order"):
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.postprocess_order_creation_with_taxes(order)
+        return avatax_interface.postprocess_order_creation(order)
