@@ -444,6 +444,19 @@ def variant(product):
 
 
 @pytest.fixture
+def product_variant_list(product):
+    return list(
+        ProductVariant.objects.bulk_create(
+            [
+                ProductVariant(product=product, sku="1"),
+                ProductVariant(product=product, sku="2"),
+                ProductVariant(product=product, sku="3"),
+            ]
+        )
+    )
+
+
+@pytest.fixture
 def product_without_shipping(category):
     product_type = ProductType.objects.create(
         name="Type with no shipping", has_variants=False, is_shipping_required=False
