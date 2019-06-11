@@ -25,6 +25,7 @@ from saleor.checkout.utils import (
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_valid_shipping_method,
+    prepare_order_data,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
@@ -575,10 +576,10 @@ def test_create_order_creates_expected_events(
 
     # Place checkout
     order = create_order(
-        checkout,
-        "tracking_code",
-        discounts=None,
-        taxes=None,
+        checkout=checkout,
+        order_data=prepare_order_data(
+            checkout=checkout, tracking_code="tracking_code", discounts=None, taxes=None
+        ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
     )
 
@@ -627,12 +628,11 @@ def test_create_order_insufficient_stock(
     request_checkout.save()
 
     with pytest.raises(InsufficientStock):
-        create_order(
-            request_checkout,
-            "tracking_code",
+        prepare_order_data(
+            checkout=request_checkout,
+            tracking_code="tracking_code",
             discounts=None,
             taxes=None,
-            user=customer_user,
         )
 
 
@@ -646,18 +646,15 @@ def test_create_order_doesnt_duplicate_order(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    with patch.object(checkout, "delete") as mocked_delete:
-        order_1 = create_order(
-            checkout, tracking_code="", discounts=None, taxes=None, user=customer_user
-        )
-        assert order_1.checkout_token == checkout.token
+    order_data = prepare_order_data(
+        checkout=checkout, tracking_code="", discounts=None, taxes=None
+    )
 
-        order_2 = create_order(
-            checkout, tracking_code="", discounts=None, taxes=None, user=customer_user
-        )
-        assert order_1.pk == order_2.pk
+    order_1 = create_order(checkout=checkout, order_data=order_data, user=customer_user)
+    assert order_1.checkout_token == checkout.token
 
-        assert mocked_delete.call_count == 1
+    order_2 = create_order(checkout=checkout, order_data=order_data, user=customer_user)
+    assert order_1.pk == order_2.pk
 
 
 @pytest.mark.parametrize("is_anonymous_user", (True, False))
@@ -681,9 +678,9 @@ def test_create_order_with_gift_card(
 
     order = create_order(
         checkout=checkout,
-        tracking_code="tracking_code",
-        discounts=None,
-        taxes=None,
+        order_data=prepare_order_data(
+            checkout=checkout, tracking_code="tracking_code", discounts=None, taxes=None
+        ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
     )
 
@@ -710,9 +707,9 @@ def test_create_order_with_gift_card_partial_use(
 
     order = create_order(
         checkout=checkout,
-        tracking_code="tracking_code",
-        discounts=None,
-        taxes=None,
+        order_data=prepare_order_data(
+            checkout=checkout, tracking_code="tracking_code", discounts=None, taxes=None
+        ),
         user=customer_user,
     )
 
@@ -750,9 +747,9 @@ def test_create_order_with_many_gift_cards(
 
     order = create_order(
         checkout=checkout,
-        tracking_code="tracking_code",
-        discounts=None,
-        taxes=None,
+        order_data=prepare_order_data(
+            checkout=checkout, tracking_code="tracking_code", discounts=None, taxes=None
+        ),
         user=customer_user,
     )
 
@@ -771,10 +768,13 @@ def test_note_in_created_order(request_checkout_with_item, address, customer_use
     request_checkout_with_item.note = "test_note"
     request_checkout_with_item.save()
     order = create_order(
-        request_checkout_with_item,
-        "tracking_code",
-        discounts=None,
-        taxes=None,
+        checkout=request_checkout_with_item,
+        order_data=prepare_order_data(
+            checkout=request_checkout_with_item,
+            tracking_code="tracking_code",
+            discounts=None,
+            taxes=None,
+        ),
         user=customer_user,
     )
     assert order.customer_note == request_checkout_with_item.note
