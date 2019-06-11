@@ -3,7 +3,7 @@ import pytest
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 
-from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
+from saleor.graphql.product.enums import AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.graphql.product.utils import attributes_to_hstore
 from saleor.product.models import Attribute, AttributeValue, Category, ProductType
@@ -317,11 +317,11 @@ UPDATE_ATTRIBUTE_QUERY = """
                 name
                 slug
             }
-            productTypes(first: 10) {
-                edges {
-                    node {
-                        id
-                    }
+        }
+        productTypes(first: 10) {
+            edges {
+                node {
+                    id
                 }
             }
         }

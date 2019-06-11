@@ -2,7 +2,6 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from ....product import models
