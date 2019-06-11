@@ -19,11 +19,11 @@ from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from saleor.core.utils import build_absolute_uri
-
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, SortableModel
+from ..core.utils import build_absolute_uri
+from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
@@ -86,10 +86,12 @@ class ProductType(models.Model):
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
+    # FIXME This should be moved to meta
     tax_rate = models.CharField(max_length=128, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
+    meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         app_label = "product"
@@ -125,10 +127,12 @@ class Product(SeoModel, PublishableModel):
     attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
+    # FIXME This should be moved to meta
     tax_rate = models.CharField(max_length=128, blank=True, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     translated = TranslationProxy()
 
