@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from ....product import models
@@ -12,7 +11,6 @@ from ...core.mutations import (
 )
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeTypeEnum
 from ..types import Attribute
 
 
@@ -23,6 +21,7 @@ class AttributeValueCreateInput(graphene.InputObjectType):
 
 class AttributeCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
+    slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     values = graphene.List(
         AttributeValueCreateInput, description=AttributeDescriptions.VALUES
     )
@@ -30,6 +29,7 @@ class AttributeCreateInput(graphene.InputObjectType):
 
 class AttributeUpdateInput(graphene.InputObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
+    slug = graphene.String(description=AttributeDescriptions.SLUG)
     remove_values = graphene.List(
         graphene.ID,
         name="removeValues",
@@ -44,7 +44,7 @@ class AttributeUpdateInput(graphene.InputObjectType):
 
 class AttributeMixin:
     @classmethod
-    def check_unique_values(cls, values_input, attribute):
+    def check_values_are_unique(cls, values_input, attribute):
         # Check values uniqueness in case of creating new attribute.
         existing_values = attribute.values.values_list("slug", flat=True)
         for value_data in values_input:
@@ -70,7 +70,11 @@ class AttributeMixin:
         Slugs are created from given names and checked for uniqueness within
         an attribute.
         """
-        values_input = cleaned_input[cls.ATTRIBUTE_VALUES_FIELD]
+        values_input = cleaned_input.get(cls.ATTRIBUTE_VALUES_FIELD)
+
+        if values_input is None:
+            return
+
         for value_data in values_input:
             value_data["slug"] = slugify(value_data["name"])
             attribute_value = models.AttributeValue(**value_data, attribute=attribute)
@@ -82,29 +86,24 @@ class AttributeMixin:
                         continue
                     for msg in validation_errors.message_dict[field]:
                         raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: msg})
-        cls.check_unique_values(values_input, attribute)
+        cls.check_values_are_unique(values_input, attribute)
 
     @classmethod
-    def clean_attribute(cls, instance, cleaned_input, product_type=None):
-        if "name" in cleaned_input:
-            slug = slugify(cleaned_input["name"])
-        elif instance.pk:
-            slug = instance.slug
-        else:
-            raise ValidationError({"name": "This field cannot be blank."})
-        cleaned_input["slug"] = slug
+    def clean_attribute(cls, instance, cleaned_input):
+        input_slug = cleaned_input.get("slug", None)
+        if input_slug is None:
+            cleaned_input["slug"] = slugify(cleaned_input["name"])
+        elif input_slug == "":
+            raise ValidationError({"slug": "The attribute's slug cannot be blank."})
 
-        if not product_type:
-            product_type = instance.product_type
+        query = models.Attribute.objects.filter(slug=cleaned_input["slug"])
 
-        query = models.Attribute.objects.filter(slug=slug).filter(
-            Q(product_type=product_type) | Q(product_variant_type=product_type)
-        )
-        query = query.exclude(pk=getattr(instance, "pk", None))
+        if instance.pk:
+            query = query.exclude(pk=instance.pk)
+
         if query.exists():
-            raise ValidationError(
-                {"name": "Attribute already exists within this product type."}
-            )
+            raise ValidationError({"slug": "This attribute's slug already exists."})
+
         return cleaned_input
 
     @classmethod
@@ -116,60 +115,49 @@ class AttributeMixin:
 
 
 class AttributeCreate(AttributeMixin, ModelMutation):
+    # Needed by AttributeMixin,
+    # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "values"
 
-    attribute = graphene.Field(Attribute, description="A created Attribute.")
-    product_type = graphene.Field(
-        ProductType, description="A product type to which an attribute was added."
-    )
+    attribute = graphene.Field(Attribute, description="The created attribute.")
 
     class Arguments:
-        id = graphene.ID(
-            required=True,
-            description="ID of the ProductType to create an attribute for.",
-        )
-        type = AttributeTypeEnum(
-            required=True,
-            description=(
-                "Type of an Attribute, if should be created for Products "
-                "or Variants of this ProductType."
-            ),
-        )
         input = AttributeCreateInput(
             required=True, description="Fields required to create an attribute."
         )
 
     class Meta:
-        description = "Creates an attribute."
         model = models.Attribute
+        description = "Creates an attribute."
         permissions = ("product.manage_products",)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        product_type = cls.get_node_or_error(
-            info, data.get("id"), only_type=ProductType
-        )
         instance = models.Attribute()
 
+        # Do cleaning and uniqueness checks
         cleaned_input = cls.clean_input(info, instance, data.get("input"))
-        cls.clean_attribute(instance, cleaned_input, product_type=product_type)
+        cls.clean_attribute(instance, cleaned_input)
         cls.clean_values(cleaned_input, instance)
+
+        # Construct the attribute
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance)
 
+        # Commit it
         instance.save()
-        if data.get("type") == AttributeTypeEnum.VARIANT.name:
-            product_type.variant_attributes.add(instance)
-        else:
-            product_type.product_attributes.add(instance)
         cls._save_m2m(info, instance, cleaned_input)
-        return AttributeCreate(attribute=instance, product_type=product_type)
+
+        # Return the attribute that was created
+        return AttributeCreate(attribute=instance)
 
 
 class AttributeUpdate(AttributeMixin, ModelMutation):
+    # Needed by AttributeMixin,
+    # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "add_values"
 
-    product_type = graphene.Field(ProductType, description="A related product type.")
+    attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of an attribute to update.")
@@ -178,8 +166,8 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         )
 
     class Meta:
-        description = "Updates attribute."
         model = models.Attribute
+        description = "Updates attribute."
         permissions = ("product.manage_products",)
 
     @classmethod
@@ -202,17 +190,22 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     def perform_mutation(cls, _root, info, id, input):
         instance = cls.get_node_or_error(info, id, only_type=Attribute)
 
+        # Do cleaning and uniqueness checks
         cleaned_input = cls.clean_input(info, instance, input)
-        product_type = instance.product_type
-        cls.clean_attribute(instance, cleaned_input, product_type=product_type)
+        cls.clean_attribute(instance, cleaned_input)
         cls.clean_values(cleaned_input, instance)
         cls.clean_remove_values(cleaned_input, instance)
+
+        # Construct the attribute
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance)
 
+        # Commit it
         instance.save()
         cls._save_m2m(info, instance, cleaned_input)
-        return AttributeUpdate(attribute=instance, product_type=product_type)
+
+        # Return the attribute that was created
+        return AttributeUpdate(attribute=instance)
 
 
 class AttributeDelete(ModelDeleteMutation):
@@ -222,8 +215,8 @@ class AttributeDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of an attribute to delete.")
 
     class Meta:
-        description = "Deletes an attribute."
         model = models.Attribute
+        description = "Deletes an attribute."
         permissions = ("product.manage_products",)
 
     @classmethod
@@ -266,7 +259,7 @@ class AttributeClearPrivateMeta(ClearMetaBaseMutation):
 
 
 class AttributeValueCreate(ModelMutation):
-    attribute = graphene.Field(Attribute, description="A related Attribute.")
+    attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
         attribute_id = graphene.ID(
@@ -279,8 +272,8 @@ class AttributeValueCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a value for an attribute."
         model = models.AttributeValue
+        description = "Creates a value for an attribute."
         permissions = ("product.manage_products",)
 
     @classmethod
@@ -304,7 +297,7 @@ class AttributeValueCreate(ModelMutation):
 
 
 class AttributeValueUpdate(ModelMutation):
-    attribute = graphene.Field(Attribute, description="A related Attribute.")
+    attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
         id = graphene.ID(
@@ -315,8 +308,8 @@ class AttributeValueUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Updates value of an attribute."
         model = models.AttributeValue
+        description = "Updates value of an attribute."
         permissions = ("product.manage_products",)
 
     @classmethod
@@ -334,14 +327,14 @@ class AttributeValueUpdate(ModelMutation):
 
 
 class AttributeValueDelete(ModelDeleteMutation):
-    attribute = graphene.Field(Attribute, description="A related Attribute.")
+    attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a value to delete.")
 
     class Meta:
-        description = "Deletes a value of an attribute."
         model = models.AttributeValue
+        description = "Deletes a value of an attribute."
         permissions = ("product.manage_products",)
 
     @classmethod

@@ -182,11 +182,11 @@ type AttributeCountableEdge {
 type AttributeCreate {
   errors: [Error!]
   attribute: Attribute
-  productType: ProductType
 }
 
 input AttributeCreateInput {
   name: String!
+  slug: String
   values: [AttributeValueCreateInput]
 }
 
@@ -214,19 +214,14 @@ type AttributeTranslation implements Node {
   language: LanguageDisplay!
 }
 
-enum AttributeTypeEnum {
-  PRODUCT
-  VARIANT
-}
-
 type AttributeUpdate {
   errors: [Error!]
-  productType: ProductType
   attribute: Attribute
 }
 
 input AttributeUpdateInput {
   name: String
+  slug: String
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
 }
@@ -1691,7 +1686,7 @@ type Mutations {
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
-  attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
+  attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
