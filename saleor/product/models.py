@@ -426,7 +426,7 @@ class DigitalContentUrl(models.Model):
 
 
 class Attribute(ModelWithMetadata):
-    slug = models.SlugField(max_length=50)
+    slug = models.SlugField(max_length=50, unique=True)
     name = models.CharField(max_length=50)
     product_type = models.ForeignKey(
         ProductType,
