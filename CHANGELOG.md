@@ -44,6 +44,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Default default PAGINATE_BY - #4238 by @dominik-zeglen
 - Add basic Gift Cards support in the backend - #4025 by @fowczarek
 - Create generic filtering interface - #4221 by @dominik-zeglen
+- API checkout payment can fail without creating an order and deleting checkout - #4154 by @NyanKiyoshi
+- Payment gateways are now optionally receiving the `order_id` field from the `PaymentData` object. Thus should not rely on that information. - #4154 by @NyanKiyoshi
 
 ## 2.6.0
 

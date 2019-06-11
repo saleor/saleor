@@ -56,7 +56,11 @@ def get_gateway_operation_func(gateway, operation_type):
 
 
 def create_payment_information(
-    payment: Payment, payment_token: str = None, amount: Decimal = None
+    payment: Payment,
+    payment_token: str = None,
+    amount: Decimal = None,
+    billing_address: AddressData = None,
+    shipping_address: AddressData = None,
 ) -> PaymentData:
     """Extracts order information along with payment details.
 
@@ -65,11 +69,13 @@ def create_payment_information(
     """
     billing, shipping = None, None
 
-    if payment.order.billing_address:
+    if billing_address is None and payment.order.billing_address:
         billing = AddressData(**payment.order.billing_address.as_data())
 
-    if payment.order.shipping_address:
+    if shipping_address is None and payment.order.shipping_address:
         shipping = AddressData(**payment.order.shipping_address.as_data())
+
+    order_id = payment.order.pk if payment.order else None
 
     return PaymentData(
         token=payment_token,
@@ -77,7 +83,7 @@ def create_payment_information(
         currency=payment.currency,
         billing=billing,
         shipping=shipping,
-        order_id=payment.order.id,
+        order_id=order_id,
         customer_ip_address=payment.customer_ip_address,
         customer_email=payment.billing_email,
     )
@@ -381,13 +387,16 @@ def _gateway_postprocess(transaction, payment):
 
 
 @require_active_payment
-def gateway_process_payment(payment: Payment, payment_token: str) -> Transaction:
+def gateway_process_payment(
+    payment: Payment, payment_token: str, **extras
+) -> Transaction:
     """Performs whole payment process on a gateway."""
     transaction = call_gateway(
         operation_type=OperationType.PROCESS_PAYMENT,
         payment=payment,
         payment_token=payment_token,
         amount=payment.total,
+        **extras,
     )
 
     _gateway_postprocess(transaction, payment)
