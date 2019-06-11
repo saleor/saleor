@@ -79,7 +79,8 @@ def get_tax_rate_type_choices():
     if settings.VATLAYER_ACCESS_KEY:
         return vatlayer_interface.get_tax_rate_type_choices()
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return []
+        # FIXME shouldn't use description as a id for tax rates.
+        return avatax_interface.get_tax_rate_type_choices()
     return []
 
 
@@ -159,3 +160,10 @@ def apply_taxes_to_shipping_price_range(prices: MoneyRange, country: Country):
 def postprocess_order_creation(order: "Order"):
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         return avatax_interface.postprocess_order_creation(order)
+
+
+def assign_tax_code_to_product(product: "Product", tax_code: str):
+    if settings.VATLAYER_ACCESS_KEY:
+        vatlayer_interface.assign_tax_code_to_product(product, tax_code)
+    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        avatax_interface.assign_tax_code_to_product(product, tax_code)
