@@ -10,6 +10,7 @@ from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.utils.taxes import ZERO_MONEY
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
+from saleor.payment import PaymentError
 from tests.api.utils import get_graphql_content
 
 MUTATION_CHECKOUT_CREATE = """
@@ -931,9 +932,58 @@ def test_checkout_complete(
     assert gift_card.current_balance == ZERO_MONEY
     assert gift_card.last_used_on
 
-    # assert that the checkout instance has been deleted after checkout
-    with pytest.raises(Checkout.DoesNotExist):
-        checkout.refresh_from_db()
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+
+
+@patch("saleor.graphql.checkout.mutations.gateway_process_payment")
+def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
+    mocked_process_payment,
+    user_api_client,
+    checkout_with_item,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    def _process_payment(*args, **kwargs):
+        raise PaymentError("Oops! Something went wrong.")
+
+    mocked_process_payment.side_effect = _process_payment
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    total = checkout.get_total()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["errors"] == [{"field": None, "message": "Oops! Something went wrong."}]
+
+    assert Order.objects.count() == orders_count
+
+    payment.refresh_from_db(fields=["order"])
+    assert payment.transactions.count() == 0
+    assert payment.order is None
+
+    assert Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should not have been deleted"
 
 
 def test_checkout_complete_invalid_checkout_id(user_api_client):
@@ -964,7 +1014,7 @@ def test_checkout_complete_no_payment(
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert data["errors"][0]["message"] == (
-        "Provided payment methods can not " "cover the checkout's total amount"
+        "Provided payment methods can not cover the checkout's total amount"
     )
     assert orders_count == Order.objects.count()
 
@@ -995,7 +1045,7 @@ def test_checkout_complete_insufficient_stock(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert data["errors"][0]["message"] == "Insufficient product stock."
+    assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
 

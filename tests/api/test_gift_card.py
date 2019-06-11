@@ -323,7 +323,7 @@ def test_create_gift_card_with_incorrect_user_email(
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "balance": initial_balance,
-        "userEmail": "incorrecr@email.com",
+        "userEmail": "incorrect@email.com",
     }
     response = staff_api_client.post_graphql(
         CREATE_GIFT_CARD_MUTATION, variables, permissions=[permission_manage_gift_card]

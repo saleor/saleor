@@ -17,6 +17,7 @@ from ...checkout.utils import (
     get_or_create_user_checkout,
     get_taxes_for_checkout,
     get_voucher_for_checkout,
+    prepare_order_data,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
@@ -26,6 +27,7 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
 from ...discount import models as voucher_model
 from ...payment import PaymentError
+from ...payment.interface import AddressData
 from ...payment.utils import gateway_process_payment
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
@@ -501,24 +503,38 @@ class CheckoutComplete(BaseMutation):
         payment = checkout.get_last_active_payment()
 
         try:
-            order = create_order(
+            order_data = prepare_order_data(
                 checkout=checkout,
                 tracking_code=analytics.get_client_id(info.context),
                 discounts=info.context.discounts,
-                taxes=get_taxes_for_checkout(checkout, info.context.taxes),
-                user=info.context.user,
+                taxes=taxes,
             )
-        except InsufficientStock:
-            raise ValidationError("Insufficient product stock.")
+        except InsufficientStock as e:
+            raise ValidationError(f"Insufficient product stock: {e.item}")
         except voucher_model.NotApplicable:
             raise ValidationError("Voucher not applicable")
 
-        payment.order = order
-
         try:
-            gateway_process_payment(payment=payment, payment_token=payment.token)
+            billing_address = order_data["billing_address"]  # type: models.Address
+            shipping_address = order_data["shipping_address"]  # type: models.Address
+            gateway_process_payment(
+                payment=payment,
+                payment_token=payment.token,
+                billing_address=AddressData(**billing_address.as_data()),
+                shipping_address=AddressData(**shipping_address.as_data()),
+            )
         except PaymentError as e:
             raise ValidationError(str(e))
+
+        # create the order into the database
+        order = create_order(
+            checkout=checkout, order_data=order_data, user=info.context.user
+        )
+
+        # remove checkout after order is successfully paid
+        checkout.delete()
+
+        # return the success response with the newly created order data
         return CheckoutComplete(order=order)
 
 

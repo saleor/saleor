@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney
 
 from saleor.account import events as account_events
 from saleor.account.models import User
-from saleor.checkout.utils import create_order
+from saleor.checkout.utils import create_order, prepare_order_data
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME,
@@ -459,10 +459,13 @@ def test_order_payment_flow(
     request_checkout_with_item.save()
 
     order = create_order(
-        request_checkout_with_item,
-        "tracking_code",
-        discounts=None,
-        taxes=None,
+        checkout=request_checkout_with_item,
+        order_data=prepare_order_data(
+            checkout=request_checkout_with_item,
+            tracking_code="tracking_code",
+            discounts=None,
+            taxes=None,
+        ),
         user=customer_user,
     )
 
