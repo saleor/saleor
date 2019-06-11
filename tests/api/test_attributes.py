@@ -52,6 +52,27 @@ def test_attributes_to_hstore_duplicated_slug(product, color_attribute, size_att
     assert ids[str(color_attribute.pk)] == str(color_value.pk)
 
 
+def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_values):
+    attribute_gql_id = graphene.Node.to_global_id(
+        "Attribute", color_attribute_without_values.id
+    )
+    query = """
+    query($id: ID!) {
+        attribute(id: $id) {
+            id
+            slug
+        }
+    }
+    """
+    content = get_graphql_content(
+        user_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["slug"] == color_attribute_without_values.slug
+
+
 def test_attributes_query(user_api_client, product):
     attributes = Attribute.objects.prefetch_related("values")
     query = """
