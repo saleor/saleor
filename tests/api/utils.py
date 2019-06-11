@@ -10,7 +10,7 @@ def _get_graphql_content_from_response(response):
 
 
 def get_graphql_content(response):
-    """Get's GraphQL content from the response, and optionally checks if it
+    """Gets GraphQL content from the response, and optionally checks if it
     contains any operating-related errors, eg. schema errors or lack of
     permissions.
     """
