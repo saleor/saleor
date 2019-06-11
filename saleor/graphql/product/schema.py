@@ -153,6 +153,11 @@ class ProductQueries(graphene.ObjectType):
             belonging to the given collection.""",
         ),
     )
+    attribute = graphene.Field(
+        Attribute,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup an attribute by ID.",
+    )
     categories = PrefetchingConnectionField(
         Category,
         query=graphene.String(description=DESCRIPTIONS["category"]),
@@ -237,6 +242,9 @@ class ProductQueries(graphene.ObjectType):
         self, info, in_category=None, in_collection=None, query=None, **_kwargs
     ):
         return resolve_attributes(info, in_category, in_collection, query)
+
+    def resolve_attribute(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Attribute)
 
     def resolve_categories(self, info, level=None, query=None, **_kwargs):
         return resolve_categories(info, level=level, query=query)
