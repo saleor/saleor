@@ -107,13 +107,15 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
       })
     );
 
-  const handleTabChange = (tab: number) =>
+  const handleTabChange = (tab: number) => {
+    reset();
     navigate(
       productListUrl({
         activeTab: tab.toString(),
         ...getFilterTabs()[tab - 1].data
       })
     );
+  };
 
   const handleFilterTabDelete = () => {
     deleteFilterTab(currentTab);
