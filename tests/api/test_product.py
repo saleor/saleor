@@ -247,9 +247,8 @@ def test_products_query_with_filter_attributes(
     product_type = ProductType.objects.create(
         name="Custom Type", has_variants=True, is_shipping_required=True
     )
-    attribute = Attribute.objects.create(
-        slug="new_attr", name="Attr", product_type=product_type
-    )
+    attribute = Attribute.objects.create(slug="new_attr", name="Attr")
+    attribute.product_types.add(product_type)
     attr_value = AttributeValue.objects.create(
         attribute=attribute, name="First", slug="first"
     )
