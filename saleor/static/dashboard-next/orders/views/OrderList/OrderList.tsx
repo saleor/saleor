@@ -134,16 +134,18 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
     navigate(orderUrl(data.draftOrderCreate.order.id));
   };
 
+  const queryVariables = React.useMemo(
+    () => ({
+      ...paginationState,
+      filter: getFilterVariables(params)
+    }),
+    [params]
+  );
+
   return (
     <TypedOrderDraftCreateMutation onCompleted={handleCreateOrderCreateSuccess}>
       {createOrder => (
-        <TypedOrderListQuery
-          displayLoader
-          variables={{
-            ...paginationState,
-            filter: getFilterVariables(params)
-          }}
-        >
+        <TypedOrderListQuery displayLoader variables={queryVariables}>
           {({ data, loading, refetch }) => {
             const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
               maybe(() => data.orders.pageInfo),

@@ -130,15 +130,16 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
   const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
+  const queryVariables = React.useMemo(
+    () => ({
+      ...paginationState,
+      filter: getFilterVariables(params)
+    }),
+    [params]
+  );
 
   return (
-    <TypedProductListQuery
-      displayLoader
-      variables={{
-        ...paginationState,
-        filter: getFilterVariables(params)
-      }}
-    >
+    <TypedProductListQuery displayLoader variables={queryVariables}>
       {({ data, loading, refetch }) => {
         const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
           maybe(() => data.products.pageInfo),
