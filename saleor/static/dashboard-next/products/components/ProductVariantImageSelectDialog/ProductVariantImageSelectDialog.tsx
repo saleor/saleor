@@ -84,7 +84,7 @@ const ProductVariantImageSelectDialog = withStyles(styles, {
                   classes.imageContainer,
                   {
                     [classes.selectedImageContainer]:
-                      selectedImages.indexOf(tile.id) === -1
+                      selectedImages.indexOf(tile.id) !== -1
                   }
                 ])}
                 onClick={onImageSelect(tile.id)}
