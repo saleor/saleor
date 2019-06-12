@@ -130,7 +130,8 @@ def test_attributes_in_category_query(user_api_client, product):
 def test_attributes_in_collection_query(user_api_client, sale):
     product_types = set(sale.products.all().values_list("product_type_id", flat=True))
     expected_attrs = Attribute.objects.filter(
-        Q(product_type__in=product_types) | Q(product_variant_type__in=product_types)
+        Q(attributeproduct__product_type_id__in=product_types)
+        | Q(attributevariant__product_type_id__in=product_types)
     )
 
     query = """
@@ -173,8 +174,12 @@ CREATE_ATTRIBUTES_QUERY = """
                     name
                     slug
                 }
-                productType {
-                    id
+                productTypes(first: 10) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
                 }
             }
         }
@@ -203,7 +208,7 @@ def test_create_attribute_and_attribute_values(
         attribute_name
     ), "The default slug should be the slugified name"
     assert (
-        data["attribute"]["productType"] is None
+        data["attribute"]["productTypes"]["edges"] == []
     ), "The attribute should not have been assigned to a product type"
 
     # Check if the attribute values were correctly created
@@ -312,8 +317,12 @@ UPDATE_ATTRIBUTE_QUERY = """
                 name
                 slug
             }
-            productType {
-                id
+            productTypes(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
             }
         }
     }
@@ -336,7 +345,7 @@ def test_update_attribute_name(
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
     assert data["attribute"]["name"] == name == attribute.name
-    assert data["attribute"]["productType"] is None
+    assert data["attribute"]["productTypes"]["edges"] == []
 
 
 def test_update_attribute_remove_and_add_values(
@@ -464,9 +473,6 @@ def test_delete_attribute(
             attribute {
                 id
             }
-            productType {
-                name
-            }
         }
     }
     """
@@ -477,7 +483,7 @@ def test_delete_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeDelete"]
-    assert data["productType"]["name"] == attribute.product_type.name
+    assert data["attribute"]["id"] == variables["id"]
     with pytest.raises(attribute._meta.model.DoesNotExist):
         attribute.refresh_from_db()
 

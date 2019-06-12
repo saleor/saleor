@@ -41,20 +41,20 @@
                 <tr>
                   {% trans "Name" context "Dashboard attributes list table header name" as label %}
                   {% sorting_header 'name' label %}
-                  <th>{% trans "Product type" context "Name of product type related to the attribute" %}</th>
+                  <th>{% trans "Product types" context "Name of product types related to the attribute" %}</th>
                   <th>
                     {% trans "Values" context "Dashboard attributes list table header values" %}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {% for pk, name, product_type, values in attributes %}
+                {% for pk, name, product_types, values in attributes %}
                   <tr data-action-go="{% url 'dashboard:attribute-details' pk=pk %}">
                     <td>
                       {{ name }}
                     </td>
                     <td>
-                      {{ product_type|default:'-' }}
+                      {{ product_types|join:","|default:'-' }}
                     </td>
                     <td>
                       {% if values %}{{ values|join:", " }}{% else %}-{% endif %}
