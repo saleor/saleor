@@ -103,13 +103,15 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
       })
     );
 
-  const handleTabChange = (tab: number) =>
+  const handleTabChange = (tab: number) => {
+    reset();
     navigate(
       orderListUrl({
         activeTab: tab.toString(),
         ...getFilterTabs()[tab - 1].data
       })
     );
+  };
 
   const handleFilterTabDelete = () => {
     deleteFilterTab(currentTab);

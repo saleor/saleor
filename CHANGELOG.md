@@ -49,6 +49,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add order filtering - #4237 by @dominik-zeglen
 - Fix query refetch after selecting an object in list - #4272 by @dominik-zeglen
 - Fix image selection in variants - #4270 by @benekex2
+- Reset selected items when tab switch - #4268 by @benekex2
 
 ## 2.6.0
 
