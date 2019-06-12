@@ -33,7 +33,13 @@ function BaseSearch<TQuery, TQueryVariables extends SearchQueryVariables>(
       query: this.props.variables.query
     };
 
-    search = (query: string) => this.setState({ query });
+    search = (query: string) => {
+      if (query === undefined) {
+        this.setState({ query: "" });
+      } else {
+        this.setState({ query });
+      }
+    };
 
     render() {
       const { children, variables } = this.props;
