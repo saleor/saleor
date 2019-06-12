@@ -103,13 +103,15 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
       })
     );
 
-  const handleTabChange = (tab: number) =>
+  const handleTabChange = (tab: number) => {
+    reset();
     navigate(
       orderListUrl({
         activeTab: tab.toString(),
         ...getFilterTabs()[tab - 1].data
       })
     );
+  };
 
   const handleFilterTabDelete = () => {
     deleteFilterTab(currentTab);
@@ -132,16 +134,18 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
     navigate(orderUrl(data.draftOrderCreate.order.id));
   };
 
+  const queryVariables = React.useMemo(
+    () => ({
+      ...paginationState,
+      filter: getFilterVariables(params)
+    }),
+    [params]
+  );
+
   return (
     <TypedOrderDraftCreateMutation onCompleted={handleCreateOrderCreateSuccess}>
       {createOrder => (
-        <TypedOrderListQuery
-          displayLoader
-          variables={{
-            ...paginationState,
-            filter: getFilterVariables(params)
-          }}
-        >
+        <TypedOrderListQuery displayLoader variables={queryVariables}>
           {({ data, loading, refetch }) => {
             const { loadNextPage, loadPreviousPage, pageInfo } = paginate(
               maybe(() => data.orders.pageInfo),
