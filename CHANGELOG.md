@@ -50,6 +50,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix query refetch after selecting an object in list - #4272 by @dominik-zeglen
 - Fix image selection in variants - #4270 by @benekex2
 - Reset selected items when tab switch - #4268 by @benekex2
+- Fix collection search - #4267 by @dominik-zeglen
 
 ## 2.6.0
 
