@@ -2043,7 +2043,7 @@ type Product implements Node {
   isAvailable: Boolean
   basePrice: Money
   price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
-  taxRate: TaxRateType
+  taxType: TaxType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
   margin: Margin
@@ -2093,7 +2093,7 @@ input ProductCreateInput {
   name: String
   price: Decimal
   basePrice: Decimal
-  taxRate: TaxRateType
+  taxRate: String
   seo: SeoInput
   weight: WeightScalar
   sku: String
@@ -2176,7 +2176,7 @@ input ProductInput {
   name: String
   price: Decimal
   basePrice: Decimal
-  taxRate: TaxRateType
+  taxRate: String
   seo: SeoInput
   weight: WeightScalar
   sku: String
@@ -2421,6 +2421,7 @@ type Query {
   sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
   vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
@@ -2821,6 +2822,11 @@ enum TaxRateType {
   STANDARD
   WATER
   WINE
+}
+
+type TaxType {
+  description: String
+  taxCode: String
 }
 
 type TaxedMoney {

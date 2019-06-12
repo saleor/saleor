@@ -5,6 +5,7 @@ from graphene import relay
 from graphql.error import GraphQLError
 from graphql_jwt.decorators import permission_required
 
+from ....core.taxes import interface as tax_interface
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
@@ -19,7 +20,7 @@ from ....product.utils.costs import get_margin_for_variant, get_product_costs_da
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import PrefetchingConnectionField
-from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxType
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import (
@@ -349,7 +350,9 @@ class Product(CountableDjangoObjectType):
         description="The product's default base price.",
         deprecation_reason=("Has been replaced by 'basePrice'"),
     )
-    tax_rate = TaxRateType(description="A type of tax rate.")
+    tax_type = graphene.Field(
+        TaxType, description="A type of tax. Assigned by enabled tax gateway"
+    )
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute),
         required=True,
@@ -412,6 +415,10 @@ class Product(CountableDjangoObjectType):
             "updated_at",
             "weight",
         ]
+
+    def resolve_tax_type(self, _info):
+        tax_data = tax_interface.get_tax_from_object_meta(self)
+        return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @gql_optimizer.resolver_hints(prefetch_related="images")
     def resolve_thumbnail_url(self, info, *, size=None):

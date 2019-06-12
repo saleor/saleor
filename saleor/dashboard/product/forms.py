@@ -106,7 +106,9 @@ class ProductTypeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["tax_rate"].choices = get_tax_rate_type_choices()
+        self.fields["tax_rate"].choices = [
+            (tax.code, tax.description) for tax in get_tax_rate_type_choices()
+        ]
         unassigned_attrs_q = Q(
             product_type__isnull=True, product_variant_type__isnull=True
         )
@@ -293,7 +295,9 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         self.fields["seo_title"] = SeoTitleField(
             extra_attrs={"data-bind": self["name"].auto_id}
         )
-        self.fields["tax_rate"].choices = get_tax_rate_type_choices()
+        self.fields["tax_rate"].choices = [
+            (tax.code, tax.description) for tax in get_tax_rate_type_choices()
+        ]
         if include_taxes_in_prices():
             self.fields["price"].label = pgettext_lazy(
                 "Currency gross amount", "Gross price"

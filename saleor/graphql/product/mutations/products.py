@@ -4,6 +4,7 @@ from django.db import transaction
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 
+from ....core.taxes import interface as tax_interface
 from ....product import models
 from ....product.tasks import update_variants_names
 from ....product.thumbnails import (
@@ -275,7 +276,7 @@ class ProductInput(graphene.InputObjectType):
         Product price. Note: this field is deprecated, use basePrice instead."""
     )
     base_price = Decimal(description="Product price.")
-    tax_rate = TaxRateType(description="Tax rate.")
+    tax_rate = graphene.String(description="Tax rate for enabled tax gateway")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     sku = graphene.String(
@@ -332,6 +333,10 @@ class ProductCreate(ModelMutation):
         price = data.get("base_price", data.get("price"))
         if price is not None:
             cleaned_input["price"] = price
+
+        tax_rate = cleaned_input.pop("tax_rate", "")
+        if tax_rate:
+            tax_interface.assign_tax_to_object_meta(instance, tax_rate)
 
         if attributes and product_type:
             qs = product_type.product_attributes.prefetch_related("values")

@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from django.conf import settings
 from django.contrib.sites.models import Site
 from prices import Money, TaxedMoney
@@ -22,3 +24,11 @@ def display_gross_prices():
 
 def charge_taxes_on_shipping():
     return Site.objects.get_current().settings.charge_taxes_on_shipping
+
+
+@dataclass
+class TaxType:
+    """Dataclass for unifying tax type object that comes from tax gateway"""
+
+    code: str
+    description: str
