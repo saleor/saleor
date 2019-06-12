@@ -38,8 +38,8 @@ const styles = (theme: Theme) =>
     },
     quantityField: {
       "& input": {
-        textAlign: "right",
-        padding: "12px 12px 10px"
+        padding: "12px 12px 10px",
+        textAlign: "right"
       },
       width: 60
     },
