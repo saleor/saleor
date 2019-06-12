@@ -8,9 +8,9 @@ import {
 } from "@material-ui/core/styles";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
-import Skeleton from "../../../components/Skeleton";
+import CardTitle from "@saleor/components/CardTitle";
+import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { ProductVariant_attributes_attribute } from "../../types/ProductVariant";
 

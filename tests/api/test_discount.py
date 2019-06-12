@@ -206,6 +206,49 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
     assert_read_only_mode(response)
 
 
+def test_create_voucher_with_existing_gift_card_code(
+    staff_api_client, gift_card, permission_manage_discounts
+):
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
+    variables = {
+        "name": "test voucher",
+        "type": VoucherTypeEnum.VALUE.name,
+        "code": gift_card.code,
+        "discountValueType": DiscountValueTypeEnum.FIXED.name,
+        "discountValue": 10.12,
+        "minAmountSpent": 1.12,
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+    }
+
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    assert_read_only_mode(response)
+
+
+def test_create_voucher_with_existing_voucher_code(
+    staff_api_client, voucher_shipping_type, permission_manage_discounts
+):
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
+    variables = {
+        "name": "test voucher",
+        "type": VoucherTypeEnum.VALUE.name,
+        "code": voucher_shipping_type.code,
+        "discountValueType": DiscountValueTypeEnum.FIXED.name,
+        "discountValue": 10.12,
+        "minAmountSpent": 1.12,
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+    }
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    assert_read_only_mode(response)
+
+
 def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     query = """
     mutation  voucherUpdate($code: String,

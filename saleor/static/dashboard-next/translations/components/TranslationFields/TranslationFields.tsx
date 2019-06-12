@@ -10,13 +10,13 @@ import {
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import ArrowIcon from "@material-ui/icons/ArrowDropDown";
+import CardTitle from "@saleor/components/CardTitle";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Grid from "@saleor/components/Grid";
+import Hr from "@saleor/components/Hr";
+import Skeleton from "@saleor/components/Skeleton";
 import classNames from "classnames";
 import * as React from "react";
-import CardTitle from "../../../components/CardTitle";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
-import Grid from "../../../components/Grid";
-import Hr from "../../../components/Hr";
-import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import TranslationFieldsLong from "./TranslationFieldsLong";
 import TranslationFieldsRich from "./TranslationFieldsRich";

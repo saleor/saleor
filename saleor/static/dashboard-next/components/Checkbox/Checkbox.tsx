@@ -12,8 +12,15 @@ import * as React from "react";
 
 export type CheckboxProps = Omit<
   MuiCheckboxProps,
-  "checkedIcon" | "color" | "icon" | "indeterminateIcon" | "classes"
->;
+  | "checkedIcon"
+  | "color"
+  | "icon"
+  | "indeterminateIcon"
+  | "classes"
+  | "onChange"
+> & {
+  onChange?: () => void;
+};
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -103,7 +110,7 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
           name={name}
           value={checked !== undefined && checked.toString()}
           ref={inputRef}
-          onChange={event => onChange(event, !inputRef.current.checked)}
+          onChange={onChange}
         />
       </ButtonBase>
     );

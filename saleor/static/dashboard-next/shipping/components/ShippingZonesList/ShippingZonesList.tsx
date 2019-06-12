@@ -15,11 +15,11 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Checkbox from "../../../components/Checkbox";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ICONBUTTON_SIZE } from "../../../theme";
@@ -64,6 +64,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: ShippingZonesListProps & WithStyles<typeof styles>) => (
     <Card>
@@ -79,17 +80,19 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Name", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colCountries}>
-              {i18n.t("Countries", { context: "object" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={shippingZones}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Name", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colCountries}>
+            {i18n.t("Countries", { context: "object" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

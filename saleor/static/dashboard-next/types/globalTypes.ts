@@ -244,6 +244,11 @@ export interface AttributeCreateInput {
   values?: (AttributeValueCreateInput | null)[] | null;
 }
 
+export interface AttributeInput {
+  slug: string;
+  value: string;
+}
+
 export interface AttributeUpdateInput {
   name?: string | null;
   removeValues?: (string | null)[] | null;
@@ -316,6 +321,11 @@ export interface CustomerInput {
   note?: string | null;
 }
 
+export interface DateRangeInput {
+  gte?: any | null;
+  lte?: any | null;
+}
+
 export interface DraftOrderInput {
   billingAddress?: AddressInput | null;
   user?: string | null;
@@ -383,6 +393,13 @@ export interface OrderAddNoteInput {
   message?: string | null;
 }
 
+export interface OrderFilterInput {
+  paymentStatus?: (PaymentChargeStatusEnum | null)[] | null;
+  status?: (OrderStatusFilter | null)[] | null;
+  customer?: string | null;
+  created?: DateRangeInput | null;
+}
+
 export interface OrderLineCreateInput {
   quantity: number;
   variantId: string;
@@ -418,6 +435,22 @@ export interface PageTranslationInput {
   title?: string | null;
   content?: string | null;
   contentJson?: any | null;
+}
+
+export interface PriceRangeInput {
+  gte?: number | null;
+  lte?: number | null;
+}
+
+export interface ProductFilterInput {
+  isPublished?: boolean | null;
+  collections?: (string | null)[] | null;
+  categories?: (string | null)[] | null;
+  price?: PriceRangeInput | null;
+  attributes?: (AttributeInput | null)[] | null;
+  stockAvailability?: StockAvailability | null;
+  productType?: string | null;
+  search?: string | null;
 }
 
 export interface ProductTypeInput {

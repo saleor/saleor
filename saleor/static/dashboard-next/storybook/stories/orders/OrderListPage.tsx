@@ -1,78 +1,37 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import { Filter } from "../../../components/TableFilter/";
-import { listActionsProps, pageListProps } from "../../../fixtures";
-import OrderListPage from "../../../orders/components/OrderListPage";
+import OrderListPage, {
+  OrderListPageProps
+} from "@saleor/orders/components/OrderListPage";
+import {
+  filterPageProps,
+  filters,
+  listActionsProps,
+  pageListProps
+} from "../../../fixtures";
 import { orders } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
-const filtersList: Filter[] = [
-  {
-    label: "Gardner-Schultz",
-    onClick: () => undefined
-  },
-  {
-    label: "Davis, Brown and Ray",
-    onClick: () => undefined
-  },
-  {
-    label: "Franklin Inc",
-    onClick: () => undefined
-  }
-];
+const props: OrderListPageProps = {
+  ...listActionsProps,
+  ...pageListProps.default,
+  ...filterPageProps,
+  orders
+};
 
 storiesOf("Views / Orders / Order list", module)
   .addDecorator(Decorator)
-  .add("default", () => (
-    <OrderListPage
-      orders={orders}
-      {...listActionsProps}
-      {...pageListProps.default}
-      filtersList={[]}
-      onAllProducts={() => undefined}
-      currentTab="all"
-      onToFulfill={() => undefined}
-      onToCapture={() => undefined}
-      onCustomFilter={() => undefined}
-    />
-  ))
+  .add("default", () => <OrderListPage {...props} />)
   .add("with custom filters", () => (
-    <OrderListPage
-      orders={orders}
-      {...listActionsProps}
-      {...pageListProps.loading}
-      filtersList={filtersList}
-      currentTab="custom"
-      onAllProducts={() => undefined}
-      onToFulfill={() => undefined}
-      onToCapture={() => undefined}
-      onCustomFilter={() => undefined}
-    />
+    <OrderListPage {...props} filtersList={filters} />
   ))
   .add("loading", () => (
     <OrderListPage
+      {...props}
       orders={undefined}
-      {...listActionsProps}
-      {...pageListProps.loading}
-      filtersList={undefined}
       currentTab={undefined}
-      onAllProducts={() => undefined}
-      onToFulfill={() => undefined}
-      onToCapture={() => undefined}
-      onCustomFilter={() => undefined}
+      disabled={true}
     />
   ))
-  .add("when no data", () => (
-    <OrderListPage
-      orders={[]}
-      {...listActionsProps}
-      {...pageListProps.default}
-      filtersList={[]}
-      currentTab="all"
-      onAllProducts={() => undefined}
-      onToFulfill={() => undefined}
-      onToCapture={() => undefined}
-      onCustomFilter={() => undefined}
-    />
-  ));
+  .add("when no data", () => <OrderListPage {...props} orders={[]} />);

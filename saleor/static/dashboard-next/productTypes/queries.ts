@@ -10,10 +10,6 @@ import {
   ProductTypeList,
   ProductTypeListVariables
 } from "./types/ProductTypeList";
-import {
-  SearchAttribute,
-  SearchAttributeVariables
-} from "./types/SearchAttribute";
 
 export const attributeFragment = gql`
   fragment AttributeFragment on Attribute {
@@ -110,20 +106,3 @@ export const TypedProductTypeCreateDataQuery = TypedQuery<
   ProductTypeCreateData,
   {}
 >(productTypeCreateDataQuery);
-
-export const searchAttributeQuery = gql`
-  ${attributeFragment}
-  query SearchAttribute($search: String!) {
-    attributes(query: $search, first: 5) {
-      edges {
-        node {
-          ...AttributeFragment
-        }
-      }
-    }
-  }
-`;
-export const TypedSearchAttributeQuery = TypedQuery<
-  SearchAttribute,
-  SearchAttributeVariables
->(searchAttributeQuery);

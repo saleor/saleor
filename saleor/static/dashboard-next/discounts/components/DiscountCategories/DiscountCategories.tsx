@@ -15,11 +15,11 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Checkbox from "../../../components/Checkbox";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
@@ -65,6 +65,7 @@ const DiscountCategories = withStyles(styles, {
     onNextPage,
     toolbar,
     toggle,
+    toggleAll,
     selected,
     isChecked
   }: DiscountCategoriesProps & WithStyles<typeof styles>) => (
@@ -80,8 +81,14 @@ const DiscountCategories = withStyles(styles, {
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => sale.categories.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <>
             <TableCell />
             <TableCell className={classes.wideColumn}>
               {i18n.t("Category name")}
@@ -90,7 +97,7 @@ const DiscountCategories = withStyles(styles, {
               {i18n.t("Products")}
             </TableCell>
             <TableCell />
-          </TableRow>
+          </>
         </TableHead>
         <TableFooter>
           <TableRow>

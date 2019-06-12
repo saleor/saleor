@@ -12,10 +12,10 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { getUserName, maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
@@ -58,24 +58,28 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
     onRowClick,
     toolbar,
     toggle,
+    toggleAll,
     selected,
     isChecked
   }: CustomerListProps) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Customer Name", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colEmail}>
-              {i18n.t("Customer e-mail", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colOrders}>
-              {i18n.t("Orders", { context: "table header" })}
-            </TableCell>
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={customers}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Customer Name", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colEmail}>
+            {i18n.t("Customer e-mail", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colOrders}>
+            {i18n.t("Orders", { context: "table header" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

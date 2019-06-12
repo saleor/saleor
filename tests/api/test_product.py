@@ -108,7 +108,8 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                             name
                             stockQuantity
                         }
-                        availability {
+                        isAvailable
+                        pricing {
                             available,
                             priceRange {
                                 start {
@@ -155,13 +156,15 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     product_data = product_edges_data[0]["node"]
     assert product_data["name"] == product.name
     assert product_data["url"] == product.get_absolute_url()
-    gross = product_data["availability"]["priceRange"]["start"]["gross"]
+    gross = product_data["pricing"]["priceRange"]["start"]["gross"]
     assert float(gross["amount"]) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
 
     purchase_cost, margin = get_product_costs_data(product)
     assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
     assert purchase_cost.stop.amount == product_data["purchaseCost"]["stop"]["amount"]
+    assert product_data["isAvailable"] is product.is_visible
+    assert product_data["pricing"]["available"] is product.is_visible
     assert margin[0] == product_data["margin"]["start"]
     assert margin[1] == product_data["margin"]["stop"]
 
@@ -461,7 +464,7 @@ def test_create_product(
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: TaxRateType!,
-            $price: Decimal!,
+            $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productCreate(
                     input: {
@@ -473,7 +476,7 @@ def test_create_product(
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
                         taxRate: $taxRate,
-                        price: $price,
+                        basePrice: $basePrice,
                         attributes: $attributes
                     }) {
                         product {
@@ -486,7 +489,7 @@ def test_create_product(
                             chargeTaxes
                             taxRate
                             name
-                            price {
+                            basePrice {
                                 amount
                             }
                             productType {
@@ -539,7 +542,7 @@ def test_create_product(
         "isPublished": product_is_published,
         "chargeTaxes": product_charge_taxes,
         "taxRate": product_tax_rate,
-        "price": product_price,
+        "basePrice": product_price,
         "attributes": [
             {"slug": color_attr_slug, "value": color_value_slug},
             {"slug": size_attr_slug, "value": non_existent_attr_value},
@@ -558,7 +561,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
         $categoryId: ID!
         $name: String!,
         $description: String!,
-        $price: Decimal!,
+        $basePrice: Decimal!,
         $sku: String,
         $quantity: Int,
         $trackInventory: Boolean)
@@ -569,7 +572,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
                 productType: $productTypeId,
                 name: $name,
                 description: $description,
-                price: $price,
+                basePrice: $basePrice,
                 sku: $sku,
                 quantity: $quantity,
                 trackInventory: $trackInventory
@@ -620,7 +623,7 @@ def test_create_product_without_variants(
         "categoryId": category_id,
         "name": product_name,
         "description": product_description,
-        "price": product_price,
+        "basePrice": product_price,
         "sku": sku,
         "quantity": quantity,
         "trackInventory": track_inventory,
@@ -651,7 +654,7 @@ def test_create_product_without_variants_sku_validation(
         "categoryId": category_id,
         "name": product_name,
         "description": product_description,
-        "price": product_price,
+        "basePrice": product_price,
         "sku": None,
         "quantity": quantity,
         "trackInventory": track_inventory,
@@ -687,7 +690,7 @@ def test_create_product_without_variants_sku_duplication(
         "categoryId": category_id,
         "name": product_name,
         "description": product_description,
-        "price": product_price,
+        "basePrice": product_price,
         "sku": sku,
         "quantity": quantity,
         "trackInventory": track_inventory,
@@ -706,7 +709,7 @@ def test_product_create_without_product_type(
     mutation createProduct($categoryId: ID!) {
         productCreate(input: {
                 name: "Product",
-                price: "2.5",
+                basePrice: "2.5",
                 productType: "",
                 category: $categoryId}) {
             product {
@@ -743,7 +746,7 @@ def test_update_product(
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: TaxRateType!,
-            $price: Decimal!,
+            $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
                     id: $productId,
@@ -754,7 +757,7 @@ def test_update_product(
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
                         taxRate: $taxRate,
-                        price: $price,
+                        basePrice: $basePrice,
                         attributes: $attributes
                     }) {
                         product {
@@ -766,7 +769,7 @@ def test_update_product(
                             chargeTaxes
                             taxRate
                             name
-                            price {
+                            basePrice {
                                 amount
                             }
                             productType {
@@ -805,7 +808,7 @@ def test_update_product(
         "isPublished": product_isPublished,
         "chargeTaxes": product_chargeTaxes,
         "taxRate": product_taxRate,
-        "price": product_price,
+        "basePrice": product_price,
     }
 
     response = staff_api_client.post_graphql(
@@ -1512,8 +1515,12 @@ def test_product_variant_price(
         query getProductVariants($id: ID!) {
             product(id: $id) {
                 variants {
-                    price {
-                        amount
+                    pricing {
+                        priceUndiscounted {
+                            gross {
+                                amount
+                            }
+                        }
                     }
                 }
             }
@@ -1524,7 +1531,7 @@ def test_product_variant_price(
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["product"]
-    variant_price = data["variants"][0]["price"]
+    variant_price = data["variants"][0]["pricing"]["priceUndiscounted"]["gross"]
     assert variant_price["amount"] == api_variant_price
 
 

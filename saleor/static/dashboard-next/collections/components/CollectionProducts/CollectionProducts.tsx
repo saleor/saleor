@@ -15,13 +15,13 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Checkbox from "../../../components/Checkbox";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
-import TableCellAvatar from "../../../components/TableCellAvatar";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, PageListProps } from "../../../types";
@@ -62,6 +62,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: CollectionProductsProps) => (
     <Card>
@@ -89,17 +90,18 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
         }
       />
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell />
-            <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
-            <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
-            <TableCell>
-              {i18n.t("Published", { context: "table header" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => collection.products.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
+          <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
+          <TableCell>
+            {i18n.t("Published", { context: "table header" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

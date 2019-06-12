@@ -10,18 +10,18 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import ExternalLink from "../../../components/ExternalLink";
-import Form from "../../../components/Form";
-import Hr from "../../../components/Hr";
-import Link from "../../../components/Link";
-import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
-import Skeleton from "../../../components/Skeleton";
+import CardTitle from "@saleor/components/CardTitle";
+import ExternalLink from "@saleor/components/ExternalLink";
+import Form from "@saleor/components/Form";
+import Hr from "@saleor/components/Hr";
+import Link from "@saleor/components/Link";
+import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
+import Skeleton from "@saleor/components/Skeleton";
+import { SearchCustomers_customers_edges_node } from "../../../containers/SearchCustomers/types/SearchCustomers";
 import { customerUrl } from "../../../customers/urls";
 import i18n from "../../../i18n";
 import { createHref, maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
-import { UserSearch_customers_edges_node } from "../../types/UserSearch";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -47,7 +47,7 @@ const styles = (theme: Theme) =>
 
 export interface OrderCustomerProps extends WithStyles<typeof styles> {
   order: OrderDetails_order;
-  users?: UserSearch_customers_edges_node[];
+  users?: SearchCustomers_customers_edges_node[];
   loading?: boolean;
   canEditAddresses: boolean;
   canEditCustomer: boolean;

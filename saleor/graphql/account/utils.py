@@ -1,5 +1,7 @@
 from django.core.exceptions import ValidationError
 
+from ...account import events as account_events
+
 
 class UserDeleteMixin:
     class Meta:
@@ -23,6 +25,12 @@ class CustomerDeleteMixin(UserDeleteMixin):
         super().clean_instance(info, instance)
         if instance.is_staff:
             raise ValidationError({"id": "Cannot delete a staff account."})
+
+    @classmethod
+    def post_process(cls, info, deleted_count=1):
+        account_events.staff_user_deleted_a_customer_event(
+            staff_user=info.context.user, deleted_count=deleted_count
+        )
 
 
 class StaffDeleteMixin(UserDeleteMixin):

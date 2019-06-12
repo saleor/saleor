@@ -15,12 +15,12 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import CardMenu from "../../../components/CardMenu";
-import CardTitle from "../../../components/CardTitle";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel/StatusLabel";
-import TableCellAvatar from "../../../components/TableCellAvatar";
+import CardMenu from "@saleor/components/CardMenu";
+import CardTitle from "@saleor/components/CardTitle";
+import Money from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { FulfillmentStatus } from "../../../types/globalTypes";
@@ -140,7 +140,7 @@ const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
                 key={maybe(() => line.id)}
               >
                 <TableCellAvatar
-                  thumbnail={maybe(() => line.orderLine.thumbnailUrl)}
+                  thumbnail={maybe(() => line.orderLine.thumbnail.url)}
                 />
                 <TableCell>
                   {maybe(() => line.orderLine.productName) || <Skeleton />}

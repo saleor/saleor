@@ -4,16 +4,16 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Mikkel Scheike <scheike@outlook.com>, 2018
+# Mikkel, 2018
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2019-05-13 03:43-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Mikkel Scheike <scheike@outlook.com>, 2018\n"
+"Last-Translator: Mikkel, 2018\n"
 "Language-Team: Danish (https://www.transifex.com/mirumee/teams/34782/da/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -372,5 +372,5 @@ msgstr "Kvantitet"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to cart"
-msgstr "Tilføj til kurv"
+msgid "Add to checkout"
+msgstr ""

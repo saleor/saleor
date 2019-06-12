@@ -38,7 +38,7 @@ class Sale(CountableDjangoObjectType):
             description="A language code to return the translation for.",
             required=True,
         ),
-        description=("Returns translated sale fields for the given language code."),
+        description="Returns translated sale fields for the given language code.",
         resolver=resolve_translation,
     )
 
@@ -50,14 +50,17 @@ class Sale(CountableDjangoObjectType):
         model = models.Sale
         only_fields = ["end_date", "id", "name", "start_date", "type", "value"]
 
-    def resolve_categories(self, *_args, **_kwargs):
-        return self.categories.all()
+    @staticmethod
+    def resolve_categories(root: models.Sale, *_args, **_kwargs):
+        return root.categories.all()
 
-    def resolve_collections(self, info, **_kwargs):
-        return self.collections.visible_to_user(info.context.user)
+    @staticmethod
+    def resolve_collections(root: models.Sale, info, **_kwargs):
+        return root.collections.visible_to_user(info.context.user)
 
-    def resolve_products(self, info, **_kwargs):
-        return self.products.visible_to_user(info.context.user)
+    @staticmethod
+    def resolve_products(root: models.Sale, info, **_kwargs):
+        return root.products.visible_to_user(info.context.user)
 
 
 class Voucher(CountableDjangoObjectType):
@@ -90,7 +93,7 @@ class Voucher(CountableDjangoObjectType):
             description="A language code to return the translation for.",
             required=True,
         ),
-        description=("Returns translated Voucher fields for the given language code."),
+        description="Returns translated Voucher fields for the given language code.",
         resolver=resolve_translation,
     )
 
@@ -116,17 +119,21 @@ class Voucher(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Voucher
 
-    def resolve_categories(self, *_args, **_kwargs):
-        return self.categories.all()
+    @staticmethod
+    def resolve_categories(root: models.Voucher, *_args, **_kwargs):
+        return root.categories.all()
 
-    def resolve_collections(self, info, **_kwargs):
-        return self.collections.visible_to_user(info.context.user)
+    @staticmethod
+    def resolve_collections(root: models.Voucher, info, **_kwargs):
+        return root.collections.visible_to_user(info.context.user)
 
-    def resolve_products(self, info, **_kwargs):
-        return self.products.visible_to_user(info.context.user)
+    @staticmethod
+    def resolve_products(root: models.Voucher, info, **_kwargs):
+        return root.products.visible_to_user(info.context.user)
 
-    def resolve_countries(self, *_args, **_kwargs):
+    @staticmethod
+    def resolve_countries(root: models.Voucher, *_args, **_kwargs):
         return [
             CountryDisplay(code=country.code, country=country.name)
-            for country in self.countries
+            for country in root.countries
         ]

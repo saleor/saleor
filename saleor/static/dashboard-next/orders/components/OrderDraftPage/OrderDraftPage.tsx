@@ -7,20 +7,20 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardMenu from "../../../components/CardMenu";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import { Container } from "../../../components/Container";
-import { DateTime } from "../../../components/Date";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
-import Skeleton from "../../../components/Skeleton";
+import AppHeader from "@saleor/components/AppHeader";
+import CardMenu from "@saleor/components/CardMenu";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import { Container } from "@saleor/components/Container";
+import { DateTime } from "@saleor/components/Date";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import Skeleton from "@saleor/components/Skeleton";
+import { SearchCustomers_customers_edges_node } from "../../../containers/SearchCustomers/types/SearchCustomers";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { DraftOrderInput } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
-import { UserSearch_customers_edges_node } from "../../types/UserSearch";
 import OrderCustomer from "../OrderCustomer";
 import OrderDraftDetails from "../OrderDraftDetails/OrderDraftDetails";
 import { FormData as OrderDraftDetailsProductsFormData } from "../OrderDraftDetailsProducts";
@@ -40,7 +40,7 @@ const styles = (theme: Theme) =>
 export interface OrderDraftPageProps extends WithStyles<typeof styles> {
   disabled: boolean;
   order: OrderDetails_order;
-  users: UserSearch_customers_edges_node[];
+  users: SearchCustomers_customers_edges_node[];
   usersLoading: boolean;
   countries: Array<{
     code: string;

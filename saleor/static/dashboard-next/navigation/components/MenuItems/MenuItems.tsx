@@ -16,9 +16,9 @@ import classNames from "classnames";
 import * as React from "react";
 import SortableTree, { NodeRendererProps, TreeItem } from "react-sortable-tree";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
-import useTheme from "../../../hooks/useTheme";
+import CardTitle from "@saleor/components/CardTitle";
+import Skeleton from "@saleor/components/Skeleton";
+import useTheme from "@saleor/hooks/useTheme";
 import i18n from "../../../i18n";
 import Draggable from "../../../icons/Draggable";
 import { MenuDetails_menu_items } from "../../types/MenuDetails";

@@ -4,9 +4,9 @@ import { createStyles, WithStyles, withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import AddressEdit from "../../../components/AddressEdit/AddressEdit";
-import CardTitle from "../../../components/CardTitle";
-import { FormSpacer } from "../../../components/FormSpacer";
+import AddressEdit from "@saleor/components/AddressEdit";
+import CardTitle from "@saleor/components/CardTitle";
+import { FormSpacer } from "@saleor/components/FormSpacer";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
 import { AddressTypeInput } from "../../types";

@@ -14,10 +14,9 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../components/ConfirmButton/ConfirmButton";
-import Debounce from "../../components/Debounce";
-import Form from "../../components/Form";
-import FormSpacer from "../../components/FormSpacer";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
+import FormSpacer from "@saleor/components/FormSpacer";
 import { SearchCategories_categories_edges_node } from "../../containers/SearchCategories/types/SearchCategories";
 import i18n from "../../i18n";
 import Checkbox from "../Checkbox";
@@ -73,6 +72,7 @@ const AssignCategoriesDialog = withStyles(styles, {
   }: AssignCategoriesDialogProps) => (
     <Dialog
       open={open}
+      onClose={onClose}
       classes={{ paper: classes.overflow }}
       fullWidth
       maxWidth="sm"
@@ -82,29 +82,25 @@ const AssignCategoriesDialog = withStyles(styles, {
           <>
             <DialogTitle>{i18n.t("Assign Categories")}</DialogTitle>
             <DialogContent className={classes.overflow}>
-              <Debounce debounceFn={onFetch}>
-                {fetch => (
-                  <TextField
-                    name="query"
-                    value={data.query}
-                    onChange={event => change(event, () => fetch(data.query))}
-                    label={i18n.t("Search Categories", {
-                      context: "product search input label"
-                    })}
-                    placeholder={i18n.t(
-                      "Search by product name, attribute, product type etc...",
-                      {
-                        context: "product search input placeholder"
-                      }
-                    )}
-                    fullWidth
-                    InputProps={{
-                      autoComplete: "off",
-                      endAdornment: loading && <CircularProgress size={16} />
-                    }}
-                  />
+              <TextField
+                name="query"
+                value={data.query}
+                onChange={event => change(event, () => onFetch(data.query))}
+                label={i18n.t("Search Categories", {
+                  context: "product search input label"
+                })}
+                placeholder={i18n.t(
+                  "Search by product name, attribute, product type etc...",
+                  {
+                    context: "product search input placeholder"
+                  }
                 )}
-              </Debounce>
+                fullWidth
+                InputProps={{
+                  autoComplete: "off",
+                  endAdornment: loading && <CircularProgress size={16} />
+                }}
+              />
               <FormSpacer />
               <Table>
                 <TableBody>

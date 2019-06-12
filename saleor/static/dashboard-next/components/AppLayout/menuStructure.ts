@@ -41,7 +41,7 @@ const menuStructure: IMenuItem[] = [
         url: collectionListUrl()
       }
     ],
-    label: i18n.t("Catalogue", { context: "Menu label" }),
+    label: i18n.t("Catalog", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_PRODUCTS
   },
   {
@@ -49,13 +49,13 @@ const menuStructure: IMenuItem[] = [
     children: [
       {
         ariaLabel: "orders",
-        label: i18n.t("All Orders", { context: "Menu label" }),
+        label: i18n.t("Orders", { context: "Menu label" }),
         permission: PermissionEnum.MANAGE_ORDERS,
         url: orderListUrl()
       },
       {
         ariaLabel: "order drafts",
-        label: i18n.t("Draft Orders", { context: "Menu label" }),
+        label: i18n.t("Drafts", { context: "Menu label" }),
         permission: PermissionEnum.MANAGE_ORDERS,
         url: orderDraftListUrl()
       }

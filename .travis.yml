@@ -1,38 +1,51 @@
 dist: xenial
 language: python
 sudo: false
+
 python:
   - "3.6"
   - "3.7"
+
+branches:
+  only:
+    - master
+    - /next\/.*/
 
 cache:
   pip: true
   directories:
     - node_modules
     - $HOME/.cache/pip
+
 install:
   - pip install -U pip setuptools wheel
-  - pip install tox-travis
+  - pip install tox-travis pytest-django-queries
+  - git clone https://github.com/NyanKiyoshi/pytest-django-queries-ci-tools.git --depth 1 ../queries-ci-tools
   - >
-    if [ ! -z "$DJANGO" ]; then
+    if [ -n "$DJANGO" ]; then
       nvm install 10 \
         && npm i \
         && npm run build-assets --production \
         && npm run build-emails
     fi
+
 script:
   - >
-    if [ ! -z "$DJANGO" ]; then
+    if [ -n "$DJANGO" ]; then
       npm run test
     fi
   - tox
+
 env:
   global:
     - DATABASE_URL="postgres://postgres@localhost:5432/saleor"
     - SECRET_KEY="irrelevant"
+    - DIFF_RESULTS_BASE_URL="http://dhrwmpu5reeyd.cloudfront.net"
+    - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:
   - DJANGO="2.2"
   - DJANGO="master"
+
 matrix:
   fast_finish: true
   include:
@@ -49,7 +62,12 @@ matrix:
       env: DJANGO="master"
     - python: "3.7"
       env: DJANGO="master"
+
 services:
   - postgresql
+
 addons:
   postgresql: 9.4
+
+after_success:
+  - ../queries-ci-tools/handle-event.sh

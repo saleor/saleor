@@ -3,11 +3,14 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
+import ActionDialog from "@saleor/components/ActionDialog";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import { PAGINATE_BY } from "../../config";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import CustomerListPage from "../components/CustomerListPage";
@@ -21,8 +24,6 @@ import {
   customerUrl
 } from "../urls";
 
-const PAGINATE_BY = 20;
-
 interface CustomerListProps {
   params: CustomerListUrlQueryParams;
 }
@@ -33,7 +34,7 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -110,6 +111,7 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
                     isChecked={isSelected}
                     selected={listElements.length}
                     toggle={toggle}
+                    toggleAll={toggleAll}
                   />
                   <ActionDialog
                     open={params.action === "remove"}

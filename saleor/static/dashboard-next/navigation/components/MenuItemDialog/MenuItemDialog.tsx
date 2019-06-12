@@ -7,18 +7,17 @@ import TextField from "@material-ui/core/TextField";
 import * as isUrl from "is-url";
 import * as React from "react";
 
-import AutocompleteSelectMenu, {
-  SelectMenuItem
-} from "../../../components/AutocompleteSelectMenu";
+import AutocompleteSelectMenu from "@saleor/components/AutocompleteSelectMenu";
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton";
-import Form from "../../../components/Form";
-import FormSpacer from "../../../components/FormSpacer";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
+import FormSpacer from "@saleor/components/FormSpacer";
 import { SearchCategories_categories_edges_node } from "../../../containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "../../../containers/SearchCollections/types/SearchCollections";
 import { SearchPages_pages_edges_node } from "../../../containers/SearchPages/types/SearchPages";
 import i18n from "../../../i18n";
+import { IMenu, IMenuItem } from "../../../utils/menu";
 
 export type MenuItemType = "category" | "collection" | "link" | "page";
 export interface MenuItemData {
@@ -51,7 +50,7 @@ const defaultInitial: MenuItemDialogFormData = {
   type: "category"
 };
 
-function findMenuItem(menu: SelectMenuItem[], value: string): SelectMenuItem {
+function findMenuItem(menu: IMenu, value: string): IMenuItem {
   const matches = menu.map(menuItem =>
     menuItem.children
       ? findMenuItem(menuItem.children, value)
@@ -70,7 +69,7 @@ function getMenuItemData(value: string): MenuItemData {
   };
 }
 
-function getDisplayValue(menu: SelectMenuItem[], value: string): string {
+function getDisplayValue(menu: IMenu, value: string): string {
   const menuItemData = getMenuItemData(value);
   if (menuItemData.type === "link") {
     return menuItemData.id;
@@ -102,16 +101,19 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
     initialDisplayValue
   ]);
 
-  let options: SelectMenuItem[] = [];
+  let options: IMenu = [];
 
   if (categories.length > 0) {
     options = [
       ...options,
       {
         children: categories.map(category => ({
+          children: [],
+          data: {},
           label: category.name,
           value: "category:" + category.id
         })),
+        data: {},
         label: i18n.t("Categories")
       }
     ];
@@ -122,9 +124,12 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
       ...options,
       {
         children: collections.map(collection => ({
+          children: [],
+          data: {},
           label: collection.name,
           value: "collection:" + collection.id
         })),
+        data: {},
         label: i18n.t("Collections")
       }
     ];
@@ -135,9 +140,12 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
       ...options,
       {
         children: pages.map(page => ({
+          children: [],
+          data: {},
           label: page.title,
           value: "page:" + page.id
         })),
+        data: {},
         label: i18n.t("Pages")
       }
     ];
@@ -146,6 +154,8 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
   if (url) {
     options = [
       {
+        children: [],
+        data: {},
         label: (
           <div
             dangerouslySetInnerHTML={{
@@ -174,6 +184,7 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
 
   return (
     <Dialog
+      onClose={onClose}
       open={open}
       maxWidth="sm"
       fullWidth

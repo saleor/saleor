@@ -1,15 +1,14 @@
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
-import { Tab } from "../../../components/Tab";
-import TabContainer from "../../../components/Tab/TabContainer";
+import AppHeader from "@saleor/components/AppHeader";
+import CardSpacer from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import { Tab, TabContainer } from "@saleor/components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ListProps, TabListActions, UserError } from "../../../types";
@@ -100,7 +99,8 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
   productListToolbar,
   isChecked,
   selected,
-  toggle
+  toggle,
+  toggleAll
 }) => {
   const initialForm: FormData = {
     endDate: maybe(() => (sale.endDate ? sale.endDate : ""), ""),
@@ -181,6 +181,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   isChecked={isChecked}
                   selected={selected}
                   toggle={toggle}
+                  toggleAll={toggleAll}
                   toolbar={categoryListToolbar}
                 />
               ) : activeTab === SaleDetailsPageTab.collections ? (
@@ -196,6 +197,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   isChecked={isChecked}
                   selected={selected}
                   toggle={toggle}
+                  toggleAll={toggleAll}
                   toolbar={collectionListToolbar}
                 />
               ) : (
@@ -211,6 +213,7 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   isChecked={isChecked}
                   selected={selected}
                   toggle={toggle}
+                  toggleAll={toggleAll}
                   toolbar={productListToolbar}
                 />
               )}

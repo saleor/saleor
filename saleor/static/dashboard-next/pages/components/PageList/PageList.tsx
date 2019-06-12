@@ -12,11 +12,11 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
@@ -56,23 +56,27 @@ const PageList = withStyles(styles, { name: "PageList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: PageListProps & WithStyles<typeof styles>) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colTitle} padding="dense">
-              {i18n.t("Title", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colSlug} padding="dense">
-              {i18n.t("Slug", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colVisibility} padding="dense">
-              {i18n.t("Visibility", { context: "table header" })}
-            </TableCell>
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={pages}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colTitle} padding="dense">
+            {i18n.t("Title", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colSlug} padding="dense">
+            {i18n.t("Slug", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colVisibility} padding="dense">
+            {i18n.t("Visibility", { context: "table header" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>
@@ -122,11 +126,11 @@ const PageList = withStyles(styles, { name: "PageList" })(
                       () => (
                         <StatusLabel
                           label={
-                            page.isVisible
+                            page.isPublished
                               ? i18n.t("Published")
                               : i18n.t("Not Published")
                           }
-                          status={page.isVisible ? "success" : "error"}
+                          status={page.isPublished ? "success" : "error"}
                         />
                       ),
                       <Skeleton />

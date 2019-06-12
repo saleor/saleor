@@ -8,8 +8,8 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton";
-import Form from "../../../components/Form";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
 import i18n from "../../../i18n";
 
 export interface MenuCreateDialogFormData {
@@ -35,7 +35,7 @@ const MenuCreateDialog: React.FC<MenuCreateDialogProps> = ({
   onConfirm,
   open
 }) => (
-  <Dialog maxWidth="sm" fullWidth open={open}>
+  <Dialog onClose={onClose} maxWidth="sm" fullWidth open={open}>
     <DialogTitle>
       {i18n.t("Add Menu", {
         context: "create menu modal window title"

@@ -3,13 +3,16 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import { WindowTitle } from "../../components/WindowTitle";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
-import useShop from "../../hooks/useShop";
+import ActionDialog from "@saleor/components/ActionDialog";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import useShop from "@saleor/hooks/useShop";
+import { PAGINATE_BY } from "../../config";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import SaleListPage from "../components/SaleListPage";
@@ -23,8 +26,6 @@ import {
   saleUrl
 } from "../urls";
 
-const PAGINATE_BY = 20;
-
 interface SaleListProps {
   params: SaleListUrlQueryParams;
 }
@@ -36,7 +37,7 @@ export const SaleList: React.StatelessComponent<SaleListProps> = ({
   const notify = useNotifier();
   const paginate = usePaginator();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -94,6 +95,7 @@ export const SaleList: React.StatelessComponent<SaleListProps> = ({
                     isChecked={isSelected}
                     selected={listElements.length}
                     toggle={toggle}
+                    toggleAll={toggleAll}
                     toolbar={
                       <IconButton
                         color="primary"

@@ -15,12 +15,12 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Checkbox from "../../../components/Checkbox";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
-import TableHead from "../../../components/TableHead";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Money from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
+import TableHead from "@saleor/components/TableHead";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 import { ListActions } from "../../../types";
@@ -84,6 +84,7 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: ProductVariantsProps) => (
     <Card>
@@ -103,25 +104,28 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
       <CardContent>
         <Typography>
           {i18n.t(
-            "Use variants for products that come in a variety of version for example different sizes or colors"
+            "Use variants for products that come in a variety of versions for example different sizes or colors"
           )}
         </Typography>
       </CardContent>
       <Table className={classes.denseTable}>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
-            <TableCell className={classes.colStatus}>
-              {i18n.t("Status")}
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={variants}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>{i18n.t("Name")}</TableCell>
+          <TableCell className={classes.colStatus}>
+            {i18n.t("Status")}
+          </TableCell>
+          <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
+          <Hidden smDown>
+            <TableCell className={classes.colPrice}>
+              {i18n.t("Price")}
             </TableCell>
-            <TableCell className={classes.colSku}>{i18n.t("SKU")}</TableCell>
-            <Hidden smDown>
-              <TableCell className={classes.colPrice}>
-                {i18n.t("Price")}
-              </TableCell>
-            </Hidden>
-          </TableRow>
+          </Hidden>
         </TableHead>
         <TableBody>
           {renderCollection(

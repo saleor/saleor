@@ -195,9 +195,9 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
+    "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.django_session_middleware",
     "saleor.core.middleware.django_security_middleware",
-    "saleor.core.middleware.django_common_middleware",
     "saleor.core.middleware.django_csrf_view_middleware",
     "saleor.core.middleware.django_auth_middleware",
     "saleor.core.middleware.django_messages_middleware",
@@ -230,6 +230,7 @@ INSTALLED_APPS = [
     # Local apps
     "saleor.account",
     "saleor.discount",
+    "saleor.giftcard",
     "saleor.product",
     "saleor.checkout",
     "saleor.core",
@@ -258,7 +259,6 @@ INSTALLED_APPS = [
     "social_django",
     "django_countries",
     "django_filters",
-    "django_celery_results",
     "impersonate",
     "phonenumber_field",
     "captcha",
@@ -411,11 +411,27 @@ AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", None)
 
+# Google Cloud Storage configuration
+GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
+GS_STORAGE_BUCKET_NAME = os.environ.get("GS_STORAGE_BUCKET_NAME")
+GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
+GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
+
+# If GOOGLE_APPLICATION_CREDENTIALS is set there is no need to load OAuth token
+# See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
+if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+    GS_CREDENTIALS = os.environ.get("GS_CREDENTIALS")
+
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+elif GS_STORAGE_BUCKET_NAME:
+    STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 
 if AWS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.S3MediaStorage"
+    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
+elif GS_MEDIA_BUCKET_NAME:
+    DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
@@ -514,7 +530,7 @@ CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_RESULT_BACKEND = "django-db"
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
 
 # Impersonate module settings
 IMPERSONATE = {

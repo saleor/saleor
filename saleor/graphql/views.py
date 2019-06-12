@@ -1,7 +1,8 @@
-import graphene
 import json
+import logging
 import traceback
 
+import graphene
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render_to_response, reverse
@@ -17,6 +18,8 @@ from graphql.error import (
 from graphql.execution import ExecutionResult
 
 from ..product.models import Product
+
+logger = logging.getLogger(__name__)
 
 # DEMO: render the default query in Playground
 DEFAULT_QUERY = """# Welcome to Saleor GraphQL API!
@@ -221,10 +224,14 @@ class GraphQLView(View):
             result = format_graphql_error(error)
         else:
             result = {"message": str(error)}
+
+        exc = error
+        while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
+            exc = exc.original_error
+
+        logger.error("Exception information:", exc_info=exc)
+
         if settings.DEBUG:
-            exc = error
-            while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
-                exc = exc.original_error
             lines = []
             for line in traceback.format_exception(type(exc), exc, exc.__traceback__):
                 lines.extend(line.rstrip().splitlines())

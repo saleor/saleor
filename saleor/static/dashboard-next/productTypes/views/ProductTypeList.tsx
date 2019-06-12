@@ -3,12 +3,15 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
+import ActionDialog from "@saleor/components/ActionDialog";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import { PAGINATE_BY } from "../../config";
 import { configurationMenuUrl } from "../../configuration";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import ProductTypeListPage from "../components/ProductTypeListPage";
@@ -26,15 +29,13 @@ interface ProductTypeListProps {
   params: ProductTypeListUrlQueryParams;
 }
 
-const PAGINATE_BY = 20;
-
 export const ProductTypeList: React.StatelessComponent<
   ProductTypeListProps
 > = ({ params }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -103,6 +104,7 @@ export const ProductTypeList: React.StatelessComponent<
                     isChecked={isSelected}
                     selected={listElements.length}
                     toggle={toggle}
+                    toggleAll={toggleAll}
                     toolbar={
                       <IconButton
                         color="primary"
