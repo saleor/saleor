@@ -47,6 +47,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - API checkout payment can fail without creating an order and deleting checkout - #4154 by @NyanKiyoshi
 - Payment gateways are now optionally receiving the `order_id` field from the `PaymentData` object. Thus should not rely on that information. - #4154 by @NyanKiyoshi
 - Add order filtering - #4237 by @dominik-zeglen
+- Add filter tab name as required - #4269 by @benekex2
 
 ## 2.6.0
 
