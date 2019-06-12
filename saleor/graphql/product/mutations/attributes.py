@@ -9,7 +9,6 @@ from ...core.mutations import (
     ModelMutation,
     UpdateMetaBaseMutation,
 )
-from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
 
@@ -209,8 +208,6 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
 
 class AttributeDelete(ModelDeleteMutation):
-    product_type = graphene.Field(ProductType, description="A related product type.")
-
     class Arguments:
         id = graphene.ID(required=True, description="ID of an attribute to delete.")
 
@@ -218,12 +215,6 @@ class AttributeDelete(ModelDeleteMutation):
         model = models.Attribute
         description = "Deletes an attribute."
         permissions = ("product.manage_products",)
-
-    @classmethod
-    def success_response(cls, instance):
-        response = super().success_response(instance)
-        response.product_type = instance.product_type or instance.product_variant_type
-        return response
 
 
 class AttributeUpdateMeta(UpdateMetaBaseMutation):

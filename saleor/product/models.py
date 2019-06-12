@@ -425,22 +425,40 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
+class AttributeProduct(models.Model):
+    attribute = models.ForeignKey(
+        "Attribute", related_name="attributeproduct", on_delete=models.CASCADE
+    )
+    product_type = models.ForeignKey(
+        ProductType, related_name="attributeproduct", on_delete=models.CASCADE
+    )
+
+
+class AttributeVariant(models.Model):
+    attribute = models.ForeignKey(
+        "Attribute", related_name="attributevariant", on_delete=models.CASCADE
+    )
+    product_type = models.ForeignKey(
+        ProductType, related_name="attributevariant", on_delete=models.CASCADE
+    )
+
+
 class Attribute(ModelWithMetadata):
     slug = models.SlugField(max_length=50, unique=True)
     name = models.CharField(max_length=50)
-    product_type = models.ForeignKey(
+    product_types = models.ManyToManyField(
         ProductType,
+        blank=True,
         related_name="product_attributes",
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
+        through=AttributeProduct,
+        through_fields=["attribute", "product_type"],
     )
-    product_variant_type = models.ForeignKey(
+    product_variant_types = models.ManyToManyField(
         ProductType,
-        related_name="variant_attributes",
         blank=True,
-        null=True,
-        on_delete=models.CASCADE,
+        related_name="variant_attributes",
+        through=AttributeVariant,
+        through_fields=["attribute", "product_type"],
     )
 
     translated = TranslationProxy()
