@@ -42,8 +42,12 @@
           <span class="card-title">
             {{ attribute.name }}
           </span>
-          {% if product_type %}
-            {% trans "Product type" %}: <a href="{% url "dashboard:product-type-update" pk=product_type.pk %}">{{ product_type }}</a>
+          {% if product_types %}
+            {% trans "Product types" %}:
+            {% for product_type in product_types %}
+              <a href="{% url "dashboard:product-type-update" pk=product_type.pk %}">{{ product_type }}</a>
+              {% if not forloop.last %},{% endif %}
+            {% endfor %}
           {% elif attribute.pk %}
             <a href="{% url "dashboard:product-type-list" %}">Assign to a product type</a>
           {% endif %}

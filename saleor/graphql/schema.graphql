@@ -89,8 +89,8 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  productType: ProductType
-  productVariantType: ProductType
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   name: String
   slug: String
   values: [AttributeValue]
@@ -126,7 +126,6 @@ input AttributeCreateInput {
 
 type AttributeDelete {
   errors: [Error!]
-  productType: ProductType
   attribute: Attribute
 }
 

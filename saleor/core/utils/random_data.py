@@ -165,9 +165,15 @@ def create_attributes(attributes_data):
     for attribute in attributes_data:
         pk = attribute["pk"]
         defaults = attribute["fields"]
-        defaults["product_type_id"] = defaults.pop("product_type")
-        defaults["product_variant_type_id"] = defaults.pop("product_variant_type")
-        Attribute.objects.update_or_create(pk=pk, defaults=defaults)
+        product_type_id = defaults.pop("product_type")
+        product_variant_type_id = defaults.pop("product_variant_type")
+        attr, _ = Attribute.objects.update_or_create(pk=pk, defaults=defaults)
+
+        if product_type_id:
+            attr.product_types.add(product_type_id)
+
+        if product_variant_type_id:
+            attr.product_variant_types.add(product_variant_type_id)
 
 
 def create_attributes_values(values_data):

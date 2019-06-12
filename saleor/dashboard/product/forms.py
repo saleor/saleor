@@ -120,15 +120,17 @@ class ProductTypeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["tax_rate"].choices = get_tax_rate_type_choices()
         unassigned_attrs_q = Q(
-            product_type__isnull=True, product_variant_type__isnull=True
+            product_types__isnull=True, product_variant_types__isnull=True
         )
 
         if self.instance.pk:
             product_attrs_qs = Attribute.objects.filter(
-                Q(product_type=self.instance) | unassigned_attrs_q
+                Q(attributeproduct__product_type_id=self.instance.pk)
+                | unassigned_attrs_q
             )
             variant_attrs_qs = Attribute.objects.filter(
-                Q(product_variant_type=self.instance) | unassigned_attrs_q
+                Q(attributevariant__product_type_id=self.instance.pk)
+                | unassigned_attrs_q
             )
             product_attrs_initial = self.instance.product_attributes.all()
             variant_attrs_initial = self.instance.variant_attributes.all()

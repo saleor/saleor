@@ -25,7 +25,7 @@ ATTRIBUTES_SEARCH_FIELDS = ("name", "slug")
 def _filter_attributes_by_product_types(attribute_qs, product_qs):
     product_types = set(product_qs.values_list("product_type_id", flat=True))
     return attribute_qs.filter(
-        Q(product_type__in=product_types) | Q(product_variant_type__in=product_types)
+        Q(product_types__in=product_types) | Q(product_variant_types__in=product_types)
     )
 
 
