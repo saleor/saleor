@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 common_carrier_code = "FR020100"  # FIXME
 cache_key = "avatax_request_id_"  # FIXME
-TAX_CODES_CACHE_KEY = "tax_codes_cache_key"
+TAX_CODES_CACHE_KEY = "avatax_tax_codes_cache_key"
 COMMON_CARRIER_CODE = "FR000000"
 
 
@@ -332,7 +332,7 @@ def generate_tax_codes_dict(
     tax_codes = {}
     for line in response.get("value", []):
         if line.get("isActive"):
-            tax_codes[line.get("description")] = line.get("taxCode")
+            tax_codes[line.get("taxCode")] = line.get("description")
     return tax_codes
 
 

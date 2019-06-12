@@ -6,6 +6,7 @@ from .common import (
     LanguageDisplay,
     PermissionDisplay,
     SeoInput,
+    TaxType,
     Weight,
 )
 from .filter_input import FilterInputObjectType

@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Union
 
 from django.conf import settings
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from . import ZERO_TAXED_MONEY
+from . import ZERO_TAXED_MONEY, TaxType
 from .avatax import interface as avatax_interface
 from .vatlayer import interface as vatlayer_interface
 
@@ -75,7 +75,7 @@ def apply_taxes_to_shipping(price: Money, shipping_address: "Address") -> TaxedM
     return TaxedMoney(net=price, gross=price)
 
 
-def get_tax_rate_type_choices():
+def get_tax_rate_type_choices() -> List[TaxType]:
     if settings.VATLAYER_ACCESS_KEY:
         return vatlayer_interface.get_tax_rate_type_choices()
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
@@ -162,8 +162,16 @@ def postprocess_order_creation(order: "Order"):
         return avatax_interface.postprocess_order_creation(order)
 
 
-def assign_tax_code_to_product(product: "Product", tax_code: str):
+def assign_tax_to_object_meta(obj: Union["Product", "ProductType"], tax_code: str):
     if settings.VATLAYER_ACCESS_KEY:
-        vatlayer_interface.assign_tax_code_to_product(product, tax_code)
+        vatlayer_interface.assign_tax_to_object_meta(obj, tax_code)
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        avatax_interface.assign_tax_code_to_product(product, tax_code)
+        avatax_interface.assign_tax_to_object_meta(obj, tax_code)
+
+
+def get_tax_from_object_meta(obj: Union["Product", "ProductType"],) -> TaxType:
+    if settings.VATLAYER_ACCESS_KEY:
+        return vatlayer_interface.get_tax_from_object_meta(obj)
+    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        return avatax_interface.get_tax_from_object_meta(obj)
+    return TaxType(code="", description="")

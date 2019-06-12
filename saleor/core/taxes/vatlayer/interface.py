@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Union
 
 from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....core import TaxRateType  # FIXME this should be placed in VatLayer module
-from .. import ZERO_TAXED_MONEY
+from .. import ZERO_TAXED_MONEY, TaxType
 from . import (
     DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
@@ -19,6 +19,9 @@ if TYPE_CHECKING:
     from ....checkout.models import Checkout, CheckoutLine
     from ....product.models import Product, ProductVariant
     from ....account.models import Address
+
+
+META_FIELD = "vatlayer"
 
 
 def get_total_gross(checkout: "Checkout", discounts: "SaleQueryset") -> TaxedMoney:
@@ -66,15 +69,13 @@ def apply_taxes_to_shipping(price: Money, shipping_address: "Address"):
     return get_taxed_shipping_price(price, taxes)
 
 
-def get_tax_rate_type_choices():
+def get_tax_rate_type_choices() -> List[TaxType]:
     rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME]
-    translations = dict(TaxRateType.CHOICES)
     choices = [
-        (rate_name, translations.get(rate_name, "---------"))
-        for rate_name in rate_types
+        TaxType(code=rate_name, description=rate_name) for rate_name in rate_types
     ]
     # sort choices alphabetically by translations
-    return sorted(choices, key=lambda x: x[1])
+    return sorted(choices, key=lambda x: x.code)
 
 
 def apply_taxes_to_variant(
@@ -106,10 +107,19 @@ def apply_taxes_to_shipping_price_range(
     return get_taxed_shipping_price(prices, taxes)
 
 
-def assign_tax_code_to_product(product: "Product", tax_code: str) -> None:
+def assign_tax_to_object_meta(obj: Union["Product", "ProductType"], tax_code: str):
     if tax_code not in dict(TaxRateType.CHOICES):
         return
+    if not hasattr(obj, "meta"):
+        return
+    if "taxes" not in obj.meta:
+        obj.meta["taxes"] = {}
+    obj.meta["taxes"][META_FIELD] = {"code": tax_code, "description": tax_code}
 
-    if "taxes" in product.meta:
-        product.meta["taxes"] = {}
-    product.meta["taxes"]["vatlayer"] = tax_code
+
+def get_tax_from_object_meta(obj: Union["Product", "ProductType"]) -> TaxType:
+    if not hasattr(obj, "meta"):
+        return TaxType(code="", description="")
+    tax = obj.meta.get("taxes", {}).get(META_FIELD)
+
+    return TaxType(code=tax.get("code", ""), description=tax.get("description"))

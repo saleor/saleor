@@ -89,3 +89,12 @@ class DateRangeInput(graphene.InputObjectType):
 class IntRangeInput(graphene.InputObjectType):
     gte = graphene.Int(description="Value greater than or equal", required=False)
     lte = graphene.Int(description="Value less than or equal", required=False)
+
+
+class TaxType(graphene.ObjectType):
+    """Representation of tax types fetched from tax gateway"""
+
+    description = graphene.String(description="Description of the tax type")
+    tax_code = graphene.String(
+        description="External tax code used to identify given tax group"
+    )

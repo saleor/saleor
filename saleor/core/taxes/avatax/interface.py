@@ -1,14 +1,13 @@
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Union
 from urllib.parse import urljoin
 
-from django.utils.translation import pgettext
 from prices import Money, TaxedMoney
 
 from ....checkout import models as checkout_models
 from ....discount.models import Sale
-from .. import ZERO_TAXED_MONEY
+from .. import ZERO_TAXED_MONEY, TaxType
 from ..errors import TaxError
 from . import (
     TransactionType,
@@ -23,8 +22,9 @@ from . import (
 )
 
 if TYPE_CHECKING:
-    from ....product.models import Product
     from ....order.models import Order, OrderLine
+
+META_FIELD = "avatax"
 
 
 def get_total_gross(checkout: "checkout_models.Checkout", discounts):
@@ -160,18 +160,29 @@ def calculate_order_shipping(order: "Order"):
     )
 
 
-def get_tax_rate_type_choices():
+def get_tax_rate_type_choices() -> List[TaxType]:
     return [
-        (desc, pgettext("Avatax tax code", desc))
-        for desc, tax_code in get_cached_tax_codes_or_fetch().items()
+        TaxType(code=tax_code, description=desc)
+        for tax_code, desc in get_cached_tax_codes_or_fetch().items()
     ]
 
 
-def assign_tax_code_to_product(product: "Product", tax_code: str) -> None:
-    # FIXME confirm that tax_code exists in avatax
-    # if tax_code not in dict(TaxRateType.CHOICES):
-    #     return
+def assign_tax_to_object_meta(obj: Union["Product", "ProductType"], tax_code: str):
+    codes = get_cached_tax_codes_or_fetch()
+    if tax_code not in codes:
+        return
 
-    if "taxes" in product.meta:
-        product.meta["taxes"] = {}
-    product.meta["taxes"]["avatax"] = tax_code
+    tax_description = codes[tax_code]
+    if not hasattr(obj, "meta"):
+        return
+    if "taxes" not in obj.meta:
+        obj.meta["taxes"] = {}
+    obj.meta["taxes"]["avatax"] = {"code": tax_code, "description": tax_description}
+
+
+def get_tax_from_object_meta(obj: Union["Product", "ProductType"]) -> TaxType:
+    if not hasattr(obj, "meta"):
+        return TaxType(code="", description="")
+
+    tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
+    return TaxType(code=tax.get("code", ""), description=tax.get("description"))
