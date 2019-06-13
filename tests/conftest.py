@@ -93,6 +93,14 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_single_item(checkout, product):
+    variant = product.variants.get()
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 3)
@@ -613,8 +621,7 @@ def order_line(order, variant, vatlayer):
 
 
 @pytest.fixture()
-def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
-    taxes = vatlayer
+def order_with_lines(order, product_type, category, shipping_zone):
     product = Product.objects.create(
         name="Test product",
         price=Money("10.00", "USD"),
@@ -637,7 +644,7 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
         quantity=3,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=taxes["standard"]["value"],
+        tax_rate=0.23,
     )
 
     product = Product.objects.create(
@@ -663,7 +670,7 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
         quantity=2,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=taxes["standard"]["value"],
+        tax_rate=0.23,
     )
 
     order.shipping_address = order.billing_address.get_copy()
@@ -673,7 +680,7 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
 
     net = method.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
-    order.shipping_price = (TaxedMoney(net=net, gross=gross),)
+    order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.save()
 
     recalculate_order(order)

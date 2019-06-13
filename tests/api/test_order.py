@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from saleor.account.models import CustomerEvent
-from saleor.core.utils.taxes import ZERO_TAXED_MONEY
+from saleor.core.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
