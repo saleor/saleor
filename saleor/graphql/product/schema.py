@@ -30,7 +30,7 @@ from .mutations.attributes import (
     AttributeAssign,
     AttributeCreate,
     AttributeDelete,
-    AttributeUnAssign,
+    AttributeUnassign,
     AttributeUpdate,
     AttributeValueCreate,
     AttributeValueDelete,
@@ -272,7 +272,7 @@ class ProductMutations(graphene.ObjectType):
     attribute_delete = AttributeDelete.Field()
     attribute_bulk_delete = AttributeBulkDelete.Field()
     attribute_assign = AttributeAssign.Field()
-    attribute_un_assign = AttributeUnAssign.Field()
+    attribute_unassign = AttributeUnassign.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
 
