@@ -53,6 +53,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix collection search - #4267 by @dominik-zeglen
 - Fix quantity height in draft order edit - #4273 by @benekex2
 - Fix checkbox clickable area size - #4280 by @dominik-zeglen
+- Fix exploding object select in menu section - #4282 by @dominik-zeglen
 
 
 ## 2.6.0
