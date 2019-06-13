@@ -19,7 +19,7 @@ import Skeleton from "@saleor/components/Skeleton";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection, stopPropagation } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 import { MenuList_menus_edges_node } from "../../types/MenuList";
 
