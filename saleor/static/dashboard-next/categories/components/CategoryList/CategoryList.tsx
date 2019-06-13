@@ -13,11 +13,11 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Checkbox from "../../../components/Checkbox";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
@@ -35,7 +35,9 @@ const styles = (theme: Theme) =>
         width: 160
       }
     },
-    colName: {},
+    colName: {
+      paddingLeft: "0 !important"
+    },
     colProducts: {
       textAlign: "center"
     },
@@ -75,6 +77,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar,
     onAdd,
     onNextPage,
@@ -93,21 +96,22 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
         />
       )}
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Category Name", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colSubcategories}>
-              {i18n.t("Subcategories", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colProducts}>
-              {i18n
-                .t("No. Products", { context: "object" })
-                .replace(" ", "\xa0")}
-            </TableCell>
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={categories}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Category Name", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colSubcategories}>
+            {i18n.t("Subcategories", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colProducts}>
+            {i18n.t("No. Products", { context: "object" }).replace(" ", "\xa0")}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

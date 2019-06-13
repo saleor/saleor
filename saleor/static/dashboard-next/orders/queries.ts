@@ -1,5 +1,6 @@
 import gql from "graphql-tag";
 
+import BaseSearch from "../containers/BaseSearch";
 import { TypedQuery } from "../queries";
 import { OrderDetails, OrderDetailsVariables } from "./types/OrderDetails";
 import {
@@ -8,10 +9,9 @@ import {
 } from "./types/OrderDraftList";
 import { OrderList, OrderListVariables } from "./types/OrderList";
 import {
-  OrderVariantSearch,
-  OrderVariantSearchVariables
-} from "./types/OrderVariantSearch";
-import { UserSearch, UserSearchVariables } from "./types/UserSearch";
+  SearchOrderVariant as SearchOrderVariantType,
+  SearchOrderVariantVariables
+} from "./types/SearchOrderVariant";
 
 export const fragmentOrderEvent = gql`
   fragment OrderEventFragment on OrderEvent {
@@ -67,7 +67,9 @@ export const fragmentOrderLine = gql`
         currency
       }
     }
-    thumbnailUrl
+    thumbnail {
+      url
+    }
   }
 `;
 
@@ -167,6 +169,7 @@ export const orderListQuery = gql`
     $last: Int
     $before: String
     $status: OrderStatusFilter
+    $filter: OrderFilterInput
   ) {
     orders(
       before: $before
@@ -174,6 +177,7 @@ export const orderListQuery = gql`
       first: $first
       last: $last
       status: $status
+      filter: $filter
     ) {
       edges {
         node {
@@ -275,9 +279,9 @@ export const TypedOrderDetailsQuery = TypedQuery<
   OrderDetailsVariables
 >(orderDetailsQuery);
 
-export const orderVariantSearchQuery = gql`
-  query OrderVariantSearch($search: String!, $after: String) {
-    products(query: $search, first: 5, after: $after) {
+export const searchOrderVariant = gql`
+  query SearchOrderVariant($first: Int!, $query: String!, $after: String) {
+    products(query: $query, first: $first, after: $after) {
       edges {
         node {
           id
@@ -305,23 +309,7 @@ export const orderVariantSearchQuery = gql`
     }
   }
 `;
-export const TypedOrderVariantSearch = TypedQuery<
-  OrderVariantSearch,
-  OrderVariantSearchVariables
->(orderVariantSearchQuery);
-
-export const userSearchQuery = gql`
-  query UserSearch($search: String!) {
-    customers(query: $search, first: 5) {
-      edges {
-        node {
-          id
-          email
-        }
-      }
-    }
-  }
-`;
-export const TypedUserSearch = TypedQuery<UserSearch, UserSearchVariables>(
-  userSearchQuery
-);
+export const SearchOrderVariant = BaseSearch<
+  SearchOrderVariantType,
+  SearchOrderVariantVariables
+>(searchOrderVariant);

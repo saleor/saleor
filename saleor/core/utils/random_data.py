@@ -11,8 +11,8 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django_countries.fields import Country
 from django.shortcuts import reverse
+from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
@@ -28,6 +28,7 @@ from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
+from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
@@ -815,6 +816,19 @@ def create_vouchers():
         yield "Voucher #%d" % voucher.id
     else:
         yield "Value voucher already exists"
+
+
+def create_gift_card():
+    user = random.choice(
+        [User.objects.filter(is_superuser=False).order_by("?").first()]
+    )
+    gift_card, created = GiftCard.objects.get_or_create(
+        code="Gift_card_10", user=user, initial_balance=10, current_balance=10
+    )
+    if created:
+        yield "Gift card #%d" % gift_card.id
+    else:
+        yield "Gift card already exists"
 
 
 def set_homepage_collection():

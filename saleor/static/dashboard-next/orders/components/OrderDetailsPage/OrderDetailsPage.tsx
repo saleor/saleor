@@ -7,14 +7,14 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardMenu from "../../../components/CardMenu";
-import { CardSpacer } from "../../../components/CardSpacer";
-import { Container } from "../../../components/Container";
-import { DateTime } from "../../../components/Date";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import Skeleton from "../../../components/Skeleton";
+import AppHeader from "@saleor/components/AppHeader";
+import CardMenu from "@saleor/components/CardMenu";
+import { CardSpacer } from "@saleor/components/CardSpacer";
+import { Container } from "@saleor/components/Container";
+import { DateTime } from "@saleor/components/Date";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { OrderStatus } from "../../../types/globalTypes";

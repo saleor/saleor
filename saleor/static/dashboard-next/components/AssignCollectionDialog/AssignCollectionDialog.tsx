@@ -18,7 +18,6 @@ import Checkbox from "../Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "../ConfirmButton/ConfirmButton";
-import Debounce from "../Debounce";
 import Form from "../Form";
 import FormSpacer from "../FormSpacer";
 
@@ -72,6 +71,7 @@ const AssignCollectionDialog = withStyles(styles, {
     onSubmit
   }: AssignCollectionDialogProps) => (
     <Dialog
+      onClose={onClose}
       open={open}
       classes={{ paper: classes.overflow }}
       fullWidth
@@ -82,29 +82,25 @@ const AssignCollectionDialog = withStyles(styles, {
           <>
             <DialogTitle>{i18n.t("Assign Collection")}</DialogTitle>
             <DialogContent className={classes.overflow}>
-              <Debounce debounceFn={onFetch}>
-                {fetch => (
-                  <TextField
-                    name="query"
-                    value={data.query}
-                    onChange={event => change(event, () => fetch(data.query))}
-                    label={i18n.t("Search Collection", {
-                      context: "product search input label"
-                    })}
-                    placeholder={i18n.t(
-                      "Search by product name, attribute, product type etc...",
-                      {
-                        context: "product search input placeholder"
-                      }
-                    )}
-                    fullWidth
-                    InputProps={{
-                      autoComplete: "off",
-                      endAdornment: loading && <CircularProgress size={16} />
-                    }}
-                  />
+              <TextField
+                name="query"
+                value={data.query}
+                onChange={event => change(event, () => onFetch(data.query))}
+                label={i18n.t("Search Collection", {
+                  context: "product search input label"
+                })}
+                placeholder={i18n.t(
+                  "Search by product name, attribute, product type etc...",
+                  {
+                    context: "product search input placeholder"
+                  }
                 )}
-              </Debounce>
+                fullWidth
+                InputProps={{
+                  autoComplete: "off",
+                  endAdornment: loading && <CircularProgress size={16} />
+                }}
+              />
               <FormSpacer />
               <Table>
                 <TableBody>

@@ -10,7 +10,7 @@ def _get_graphql_content_from_response(response):
 
 
 def get_graphql_content(response):
-    """Get's GraphQL content from the response, and optionally checks if it
+    """Gets GraphQL content from the response, and optionally checks if it
     contains any operating-related errors, eg. schema errors or lack of
     permissions.
     """
@@ -22,7 +22,7 @@ def get_graphql_content(response):
 
 def assert_no_permission(response):
     content = _get_graphql_content_from_response(response)
-    assert "errors" in content
+    assert "errors" in content, content
     assert content["errors"][0]["message"] == (
         "You do not have permission to perform this action"
     ), content["errors"]

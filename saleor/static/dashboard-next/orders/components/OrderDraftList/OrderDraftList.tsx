@@ -11,12 +11,12 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
-import { DateTime } from "../../../components/Date";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import Checkbox from "@saleor/components/Checkbox";
+import { DateTime } from "@saleor/components/Date";
+import Money from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import {
   maybe,
@@ -71,6 +71,7 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: OrderDraftListProps) => {
     const orderDraftList = orders
@@ -82,22 +83,25 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
       : undefined;
     return (
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell padding="dense" className={classes.colNumber}>
-              {i18n.t("No. of Order", { context: "table header" })}
-            </TableCell>
-            <TableCell padding="dense" className={classes.colDate}>
-              {i18n.t("Date", { context: "table header" })}
-            </TableCell>
-            <TableCell padding="dense" className={classes.colCustomer}>
-              {i18n.t("Customer", { context: "table header" })}
-            </TableCell>
-            <TableCell className={classes.colTotal} padding="dense">
-              {i18n.t("Total", { context: "table header" })}
-            </TableCell>
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={orders}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell padding="dense" className={classes.colNumber}>
+            {i18n.t("No. of Order", { context: "table header" })}
+          </TableCell>
+          <TableCell padding="dense" className={classes.colDate}>
+            {i18n.t("Date", { context: "table header" })}
+          </TableCell>
+          <TableCell padding="dense" className={classes.colCustomer}>
+            {i18n.t("Customer", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colTotal} padding="dense">
+            {i18n.t("Total", { context: "table header" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

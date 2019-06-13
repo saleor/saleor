@@ -1,3 +1,4 @@
+import { SearchCustomers_customers_edges_node } from "../containers/SearchCustomers/types/SearchCustomers";
 import { transformOrderStatus, transformPaymentStatus } from "../misc";
 import {
   FulfillmentStatus,
@@ -8,9 +9,8 @@ import {
 } from "../types/globalTypes";
 import { OrderDetails_order } from "./types/OrderDetails";
 import { OrderList_orders_edges_node } from "./types/OrderList";
-import { UserSearch_customers_edges_node } from "./types/UserSearch";
 
-export const clients: UserSearch_customers_edges_node[] = [
+export const clients: SearchCustomers_customers_edges_node[] = [
   {
     __typename: "User" as "User",
     email: "test.client1@example.com",
@@ -833,7 +833,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
             productSku: "5-1337",
             quantity: 2,
             quantityFulfilled: 2,
-            thumbnailUrl: placeholder,
+            thumbnail: {
+              __typename: "Image" as "Image",
+              url: placeholder
+            },
             unitPrice: {
               __typename: "TaxedMoney",
               gross: {
@@ -870,7 +873,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
             productSku: "5-1337",
             quantity: 2,
             quantityFulfilled: 2,
-            thumbnailUrl: placeholder,
+            thumbnail: {
+              __typename: "Image" as "Image",
+              url: placeholder
+            },
             unitPrice: {
               __typename: "TaxedMoney",
               gross: {
@@ -902,7 +908,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
       productSku: "59-1337",
       quantity: 3,
       quantityFulfilled: 0,
-      thumbnailUrl: placeholder,
+      thumbnail: {
+        __typename: "Image" as "Image",
+        url: placeholder
+      },
       unitPrice: {
         __typename: "TaxedMoney",
         gross: {
@@ -925,7 +934,10 @@ export const order = (placeholder: string): OrderDetails_order => ({
       productSku: "5-1337",
       quantity: 2,
       quantityFulfilled: 2,
-      thumbnailUrl: placeholder,
+      thumbnail: {
+        __typename: "Image" as "Image",
+        url: placeholder
+      },
       unitPrice: {
         __typename: "TaxedMoney",
         gross: {
@@ -1027,7 +1039,10 @@ export const draftOrder = (placeholder: string): OrderDetails_order => ({
       productSku: "58-1338",
       quantity: 2,
       quantityFulfilled: 0,
-      thumbnailUrl: placeholder,
+      thumbnail: {
+        __typename: "Image" as "Image",
+        url: placeholder
+      },
       unitPrice: {
         __typename: "TaxedMoney" as "TaxedMoney",
         gross: {
@@ -1050,7 +1065,10 @@ export const draftOrder = (placeholder: string): OrderDetails_order => ({
       productSku: "15-1337",
       quantity: 2,
       quantityFulfilled: 0,
-      thumbnailUrl: placeholder,
+      thumbnail: {
+        __typename: "Image" as "Image",
+        url: placeholder
+      },
       unitPrice: {
         __typename: "TaxedMoney" as "TaxedMoney",
         gross: {

@@ -2,21 +2,24 @@ import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
+import ActionDialog from "@saleor/components/ActionDialog";
+import AssignCategoriesDialog from "@saleor/components/AssignCategoryDialog";
+import AssignCollectionDialog from "@saleor/components/AssignCollectionDialog";
+import AssignProductDialog from "@saleor/components/AssignProductDialog";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import useShop from "@saleor/hooks/useShop";
 import { categoryUrl } from "../../categories/urls";
 import { collectionUrl } from "../../collections/urls";
-import ActionDialog from "../../components/ActionDialog";
-import AssignCategoriesDialog from "../../components/AssignCategoryDialog";
-import AssignCollectionDialog from "../../components/AssignCollectionDialog";
-import AssignProductDialog from "../../components/AssignProductDialog";
-import { WindowTitle } from "../../components/WindowTitle";
-import { SearchCategoriesProvider } from "../../containers/SearchCategories";
-import { SearchCollectionsProvider } from "../../containers/SearchCollections";
-import { SearchProductsProvider } from "../../containers/SearchProducts";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
-import useShop from "../../hooks/useShop";
+import { DEFAULT_INITIAL_SEARCH_DATA, PAGINATE_BY } from "../../config";
+import SearchCategories from "../../containers/SearchCategories";
+import SearchCollections from "../../containers/SearchCollections";
+import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
@@ -46,8 +49,6 @@ import {
   VoucherUrlQueryParams
 } from "../urls";
 
-const PAGINATE_BY = 20;
-
 interface VoucherDetailsProps {
   id: string;
   params: VoucherUrlQueryParams;
@@ -69,7 +70,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
   const paginate = usePaginator();
   const notify = useNotifier();
   const shop = useShop();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -377,9 +378,15 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               isChecked={isSelected}
                               selected={listElements.length}
                               toggle={toggle}
+                              toggleAll={toggleAll}
                             />
-                            <SearchCategoriesProvider>
-                              {(searchCategories, searchCategoriesOpts) => (
+                            <SearchCategories
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchCategories,
+                                result: searchCategoriesOpts
+                              }) => (
                                 <AssignCategoriesDialog
                                   categories={maybe(() =>
                                     searchCategoriesOpts.data.categories.edges
@@ -409,9 +416,14 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   }
                                 />
                               )}
-                            </SearchCategoriesProvider>
-                            <SearchCollectionsProvider>
-                              {(searchCollections, searchCollectionsOpts) => (
+                            </SearchCategories>
+                            <SearchCollections
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchCollections,
+                                result: searchCollectionsOpts
+                              }) => (
                                 <AssignCollectionDialog
                                   collections={maybe(() =>
                                     searchCollectionsOpts.data.collections.edges
@@ -441,7 +453,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   }
                                 />
                               )}
-                            </SearchCollectionsProvider>
+                            </SearchCollections>
                             <DiscountCountrySelectDialog
                               confirmButtonState={formTransitionState}
                               countries={maybe(() => shop.countries, [])}
@@ -465,8 +477,13 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                 []
                               )}
                             />
-                            <SearchProductsProvider>
-                              {(searchProducts, searchProductsOpts) => (
+                            <SearchProducts
+                              variables={DEFAULT_INITIAL_SEARCH_DATA}
+                            >
+                              {({
+                                search: searchProducts,
+                                result: searchProductsOpts
+                              }) => (
                                 <AssignProductDialog
                                   confirmButtonState={assignTransitionState}
                                   open={params.action === "assign-product"}
@@ -495,7 +512,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   )}
                                 />
                               )}
-                            </SearchProductsProvider>
+                            </SearchProducts>
                             <ActionDialog
                               open={params.action === "unassign-category"}
                               title={i18n.t("Unassign Categories From Sale")}

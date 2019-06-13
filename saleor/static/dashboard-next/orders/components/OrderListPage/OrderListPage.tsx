@@ -3,57 +3,61 @@ import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
-import { Filter } from "../../../components/TableFilter";
-import i18n from "../../../i18n";
-import { ListActions, PageListProps } from "../../../types";
+import Container from "@saleor/components/Container";
+import PageHeader from "@saleor/components/PageHeader";
+import i18n from "@saleor/i18n";
+import { FilterPageProps, ListActions, PageListProps } from "@saleor/types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
+import { OrderListUrlFilters } from "../../urls";
 import OrderList from "../OrderList";
-import OrderListFilter, { OrderListFilterTabs } from "../OrderListFilter";
+import OrderListFilter from "../OrderListFilter";
 
-interface OrderListPageProps extends PageListProps, ListActions {
+export interface OrderListPageProps
+  extends PageListProps,
+    ListActions,
+    FilterPageProps<OrderListUrlFilters> {
   orders: OrderList_orders_edges_node[];
-  currentTab: OrderListFilterTabs;
-  filtersList: Filter[];
-  onAllProducts: () => void;
-  onToFulfill: () => void;
-  onToCapture: () => void;
-  onCustomFilter: () => void;
 }
 
-const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
-  disabled,
-  onAdd,
+const OrderListPage: React.FC<OrderListPageProps> = ({
+  currencySymbol,
   currentTab,
   filtersList,
-  onAllProducts,
-  onToFulfill,
-  onToCapture,
-  onCustomFilter,
+  filterTabs,
+  initialSearch,
+  onAdd,
+  onAll,
+  onSearchChange,
+  onFilterAdd,
+  onFilterSave,
+  onTabChange,
+  onFilterDelete,
   ...listProps
 }) => (
   <Container>
     <PageHeader title={i18n.t("Orders")}>
-      <Button
-        color="primary"
-        variant="contained"
-        disabled={disabled}
-        onClick={onAdd}
-      >
+      <Button color="primary" variant="contained" onClick={onAdd}>
         {i18n.t("Create order", { context: "button" })} <AddIcon />
       </Button>
     </PageHeader>
     <Card>
       <OrderListFilter
+        allTabLabel={i18n.t("All Orders")}
+        currencySymbol={currencySymbol}
         currentTab={currentTab}
+        filterLabel={i18n.t("Select all orders where:")}
+        filterTabs={filterTabs}
         filtersList={filtersList}
-        onAllProducts={onAllProducts}
-        onToFulfill={onToFulfill}
-        onToCapture={onToCapture}
-        onCustomFilter={onCustomFilter}
+        initialSearch={initialSearch}
+        searchPlaceholder={i18n.t("Search Orders...")}
+        onAll={onAll}
+        onSearchChange={onSearchChange}
+        onFilterAdd={onFilterAdd}
+        onFilterSave={onFilterSave}
+        onTabChange={onTabChange}
+        onFilterDelete={onFilterDelete}
       />
-      <OrderList disabled={disabled} {...listProps} />
+      <OrderList {...listProps} />
     </Card>
   </Container>
 );

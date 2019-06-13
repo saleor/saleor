@@ -1,9 +1,12 @@
 import * as React from "react";
 
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import { PAGINATE_BY } from "../../config";
 import { configurationMenuUrl } from "../../configuration";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import StaffAddMemberDialog, {
@@ -22,8 +25,6 @@ import {
 interface StaffListProps {
   params: StaffListUrlQueryParams;
 }
-
-const PAGINATE_BY = 20;
 
 export const StaffList: React.StatelessComponent<StaffListProps> = ({
   params

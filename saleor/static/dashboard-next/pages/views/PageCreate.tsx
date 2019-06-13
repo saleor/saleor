@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { WindowTitle } from "../../components/WindowTitle";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import PageDetailsPage from "../components/PageDetailsPage";
@@ -53,16 +53,16 @@ export const PageCreate: React.StatelessComponent<PageCreateProps> = () => {
                   variables: {
                     input: {
                       contentJson: JSON.stringify(formData.content),
-                      isPublished: formData.isVisible
+                      isPublished: formData.isPublished
                         ? true
-                        : formData.availableOn === ""
+                        : formData.publicationDate === ""
                         ? false
                         : true,
-                      publicationDate: formData.isVisible
+                      publicationDate: formData.isPublished
                         ? null
-                        : formData.availableOn === ""
+                        : formData.publicationDate === ""
                         ? null
-                        : formData.availableOn,
+                        : formData.publicationDate,
                       seo: {
                         description: formData.seoDescription,
                         title: formData.seoTitle

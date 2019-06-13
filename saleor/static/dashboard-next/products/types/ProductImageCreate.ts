@@ -24,7 +24,7 @@ export interface ProductImageCreate_productImageCreate_product_collections {
   name: string;
 }
 
-export interface ProductImageCreate_productImageCreate_product_price {
+export interface ProductImageCreate_productImageCreate_product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -81,45 +81,44 @@ export interface ProductImageCreate_productImageCreate_product_attributes {
   value: ProductImageCreate_productImageCreate_product_attributes_value;
 }
 
-export interface ProductImageCreate_productImageCreate_product_availability_priceRange_start_net {
+export interface ProductImageCreate_productImageCreate_product_pricing_priceRange_start_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductImageCreate_productImageCreate_product_availability_priceRange_start {
+export interface ProductImageCreate_productImageCreate_product_pricing_priceRange_start {
   __typename: "TaxedMoney";
-  net: ProductImageCreate_productImageCreate_product_availability_priceRange_start_net;
+  net: ProductImageCreate_productImageCreate_product_pricing_priceRange_start_net;
 }
 
-export interface ProductImageCreate_productImageCreate_product_availability_priceRange_stop_net {
+export interface ProductImageCreate_productImageCreate_product_pricing_priceRange_stop_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductImageCreate_productImageCreate_product_availability_priceRange_stop {
+export interface ProductImageCreate_productImageCreate_product_pricing_priceRange_stop {
   __typename: "TaxedMoney";
-  net: ProductImageCreate_productImageCreate_product_availability_priceRange_stop_net;
+  net: ProductImageCreate_productImageCreate_product_pricing_priceRange_stop_net;
 }
 
-export interface ProductImageCreate_productImageCreate_product_availability_priceRange {
+export interface ProductImageCreate_productImageCreate_product_pricing_priceRange {
   __typename: "TaxedMoneyRange";
-  start: ProductImageCreate_productImageCreate_product_availability_priceRange_start | null;
-  stop: ProductImageCreate_productImageCreate_product_availability_priceRange_stop | null;
+  start: ProductImageCreate_productImageCreate_product_pricing_priceRange_start | null;
+  stop: ProductImageCreate_productImageCreate_product_pricing_priceRange_stop | null;
 }
 
-export interface ProductImageCreate_productImageCreate_product_availability {
+export interface ProductImageCreate_productImageCreate_product_pricing {
   __typename: "ProductPricingInfo";
-  available: boolean | null;
-  priceRange: ProductImageCreate_productImageCreate_product_availability_priceRange | null;
+  priceRange: ProductImageCreate_productImageCreate_product_pricing_priceRange | null;
 }
 
 export interface ProductImageCreate_productImageCreate_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string;
 }
 
@@ -157,14 +156,15 @@ export interface ProductImageCreate_productImageCreate_product {
   seoDescription: string | null;
   category: ProductImageCreate_productImageCreate_product_category;
   collections: (ProductImageCreate_productImageCreate_product_collections | null)[] | null;
-  price: ProductImageCreate_productImageCreate_product_price | null;
+  basePrice: ProductImageCreate_productImageCreate_product_basePrice | null;
   margin: ProductImageCreate_productImageCreate_product_margin | null;
   purchaseCost: ProductImageCreate_productImageCreate_product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;
   attributes: ProductImageCreate_productImageCreate_product_attributes[];
-  availability: ProductImageCreate_productImageCreate_product_availability | null;
+  pricing: ProductImageCreate_productImageCreate_product_pricing | null;
   images: (ProductImageCreate_productImageCreate_product_images | null)[] | null;
   variants: (ProductImageCreate_productImageCreate_product_variants | null)[] | null;
   productType: ProductImageCreate_productImageCreate_product_productType;

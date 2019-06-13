@@ -7,6 +7,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
+from saleor.account.models import CustomerEvent
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
@@ -16,13 +17,7 @@ from saleor.graphql.order.mutations.orders import (
 )
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.order import OrderStatus
-from saleor.order.events import (
-    OrderEvents,
-    OrderEventsEmails,
-    fulfillment_fulfilled_items_event,
-    payment_captured_event,
-)
+from saleor.order import OrderStatus, events as order_events
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
@@ -229,6 +224,35 @@ def test_order_query_customer(api_client):
     assert_no_permission(response)
 
 
+def test_order_query_gift_cards(
+    staff_api_client, permission_manage_orders, order_with_lines, gift_card
+):
+    query = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            giftCards {
+                displayCode
+                currentBalance {
+                    amount
+                }
+            }
+        }
+    }
+    """
+
+    order_with_lines.gift_cards.add(gift_card)
+
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    gift_card_data = content["data"]["order"]["giftCards"][0]
+
+    assert gift_card.display_code == gift_card_data["displayCode"]
+    assert gift_card.current_balance == gift_card_data["currentBalance"]["amount"]
+
+
 def test_order_query_draft_excluded(staff_api_client, permission_manage_orders, orders):
     query = """
     query OrdersQuery {
@@ -270,7 +294,7 @@ def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
 
 
 def test_nested_order_events_query(
-    staff_api_client, permission_manage_orders, fulfilled_order, staff_user
+    staff_api_client, permission_manage_orders, fulfilled_order, fulfillment, staff_user
 ):
     query = """
         query OrdersQuery {
@@ -290,9 +314,11 @@ def test_nested_order_events_query(
                             quantity
                             composedId
                             orderNumber
-                            lines {
+                            fulfilledItems {
                                 quantity
-                                item
+                                orderLine {
+                                    productName
+                                }
                             }
                             paymentId
                             paymentGateway
@@ -302,18 +328,16 @@ def test_nested_order_events_query(
             }
         }
     """
-    line = fulfilled_order.lines.first()
 
-    event = fulfillment_fulfilled_items_event(
+    event = order_events.fulfillment_fulfilled_items_event(
         order=fulfilled_order,
         user=staff_user,
-        quantities=[line.quantity],
-        order_lines=[line],
+        fulfillment_lines=fulfillment.lines.all(),
     )
     event.parameters.update(
         {
             "message": "Example note",
-            "email_type": OrderEventsEmails.PAYMENT,
+            "email_type": order_events.OrderEventsEmails.PAYMENT,
             "amount": "80.00",
             "quantity": "10",
             "composed_id": "10-10",
@@ -334,7 +358,13 @@ def test_nested_order_events_query(
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
     assert data["orderNumber"] == str(fulfilled_order.pk)
-    assert data["lines"] == [{"quantity": line.quantity, "item": str(line)}]
+    assert data["fulfilledItems"] == [
+        {
+            "quantity": line.quantity,
+            "orderLine": {"productName": line.order_line.product_name},
+        }
+        for line in fulfillment.lines.all()
+    ]
     assert data["paymentId"] is None
     assert data["paymentGateway"] is None
 
@@ -360,7 +390,7 @@ def test_payment_information_order_events_query(
                             composedId
                             orderNumber
                             lines {
-                                item
+                                quantity
                             }
                             paymentId
                             paymentGateway
@@ -373,7 +403,7 @@ def test_payment_information_order_events_query(
 
     amount = order.total.gross.amount
 
-    payment_captured_event(
+    order_events.payment_captured_event(
         order=order, user=staff_user, amount=amount, payment=payment_dummy
     )
 
@@ -857,6 +887,93 @@ def test_require_draft_order_when_updating_lines(
     assert_read_only_mode(response)
 
 
+QUERY_GET_FIRST_EVENT = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        events {
+                            lines {
+                                quantity
+                                orderLine {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+
+def test_retrieving_event_lines_with_deleted_line(
+    staff_api_client, order_with_lines, staff_user, permission_manage_orders
+):
+    order = order_with_lines
+    lines = order_with_lines.lines.all()
+    quantities_per_lines = [(line.quantity, line) for line in lines]
+
+    # Create the test event
+    order_events.draft_order_added_products_event(
+        order=order, user=staff_user, order_lines=quantities_per_lines
+    )
+
+    # Delete a line
+    deleted_line = lines.first()
+    deleted_line.delete()
+
+    # Prepare the query
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # Send the query and retrieve the data
+    content = get_graphql_content(staff_api_client.post_graphql(QUERY_GET_FIRST_EVENT))
+    data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
+
+    # Check every line is returned and the one deleted is None
+    assert len(data["lines"]) == len(quantities_per_lines)
+    for expected_data, received_line in zip(quantities_per_lines, data["lines"]):
+        quantity, line = expected_data
+
+        if line is deleted_line:
+            assert received_line["orderLine"] is None
+        else:
+            assert received_line["orderLine"] is not None
+            assert received_line["orderLine"]["id"] == graphene.Node.to_global_id(
+                "OrderLine", line.pk
+            )
+
+        assert received_line["quantity"] == quantity
+
+
+def test_retrieving_event_lines_with_missing_line_pk_in_data(
+    staff_api_client, order_with_lines, staff_user, permission_manage_orders
+):
+    order = order_with_lines
+    line = order_with_lines.lines.first()
+    quantities_per_lines = [(line.quantity, line)]
+
+    # Create the test event
+    event = order_events.draft_order_added_products_event(
+        order=order, user=staff_user, order_lines=quantities_per_lines
+    )
+    del event.parameters["lines"][0]["line_pk"]
+    event.save(update_fields=["parameters"])
+
+    # Prepare the query
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # Send the query and retrieve the data
+    content = get_graphql_content(staff_api_client.post_graphql(QUERY_GET_FIRST_EVENT))
+    data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
+
+    # Check every line is returned and the one deleted is None
+    received_line = data["lines"][0]
+    assert len(data["lines"]) == 1
+    assert received_line["quantity"] == line.quantity
+    assert received_line["orderLine"] is None
+
+
 DRAFT_ORDER_LINE_DELETE_MUTATION = """
     mutation DraftOrderLineDelete($id: ID!) {
         draftOrderLineDelete(id: $id) {
@@ -1008,9 +1125,11 @@ def test_order_update_user_email_existing_user(
     assert_read_only_mode(response)
 
 
-def test_order_add_note(
+def test_order_add_note_as_staff_user(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
+    """We are testing that adding a note to an order as a staff user is doing the
+    expected behaviors."""
     order = order_with_lines
     query = """
         mutation addNote($id: ID!, $message: String) {
@@ -1039,6 +1158,9 @@ def test_order_add_note(
         query, variables, permissions=[permission_manage_orders]
     )
     assert_read_only_mode(response)
+
+    # Ensure not customer events were created as it was a staff action
+    assert not CustomerEvent.objects.exists()
 
 
 CANCEL_ORDER_QUERY = """
@@ -1270,7 +1392,7 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
         )
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
-    assert error_event.type == OrderEvents.PAYMENT_FAILED
+    assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
     assert error_event.user == staff_user
     assert error_event.parameters == {
         "message": message,

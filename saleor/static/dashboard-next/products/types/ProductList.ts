@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { StockAvailability } from "./../../types/globalTypes";
+import { ProductFilterInput } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: ProductList
@@ -13,12 +13,7 @@ export interface ProductList_products_edges_node_thumbnail {
   url: string;
 }
 
-export interface ProductList_products_edges_node_availability {
-  __typename: "ProductPricingInfo";
-  available: boolean | null;
-}
-
-export interface ProductList_products_edges_node_price {
+export interface ProductList_products_edges_node_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -35,8 +30,8 @@ export interface ProductList_products_edges_node {
   id: string;
   name: string;
   thumbnail: ProductList_products_edges_node_thumbnail | null;
-  availability: ProductList_products_edges_node_availability | null;
-  price: ProductList_products_edges_node_price | null;
+  isAvailable: boolean | null;
+  basePrice: ProductList_products_edges_node_basePrice | null;
   productType: ProductList_products_edges_node_productType;
 }
 
@@ -68,5 +63,5 @@ export interface ProductListVariables {
   after?: string | null;
   last?: number | null;
   before?: string | null;
-  stockAvailability?: StockAvailability | null;
+  filter?: ProductFilterInput | null;
 }

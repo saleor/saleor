@@ -1,16 +1,12 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 
 from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu
 from saleor.order import OrderStatus
-from saleor.product.models import (
-    Attribute,
-    AttributeValue,
-    Category,
-    ProductType,
-    ProductVariant,
-)
+from saleor.product.models import Attribute, AttributeValue, Category, ProductType
 from saleor.shipping.models import ShippingMethod, ShippingZone
 
 from .utils import assert_read_only_mode
@@ -72,14 +68,6 @@ def product_type_list():
     product_type_2 = ProductType.objects.create(name="Type 2")
     product_type_3 = ProductType.objects.create(name="Type 3")
     return product_type_1, product_type_2, product_type_3
-
-
-@pytest.fixture
-def product_variant_list(product):
-    product_variant_1 = ProductVariant.objects.create(product=product, sku="1")
-    product_variant_2 = ProductVariant.objects.create(product=product, sku="2")
-    product_variant_3 = ProductVariant.objects.create(product=product, sku="3")
-    return product_variant_1, product_variant_2, product_variant_3
 
 
 @pytest.fixture
@@ -209,7 +197,16 @@ def test_delete_collections(
     assert_read_only_mode(response)
 
 
-def test_delete_customers(staff_api_client, user_list, permission_manage_users):
+@patch(
+    "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
+)
+def test_delete_customers(
+    mocked_deletion_event,
+    staff_api_client,
+    staff_user,
+    user_list,
+    permission_manage_users,
+):
     user_1, user_2, *users = user_list
 
     query = """

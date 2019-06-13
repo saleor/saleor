@@ -1,20 +1,32 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { BulkAction, Dialog, Pagination, SingleAction } from "../types";
-import { OrderStatusFilter } from "../types/globalTypes";
+import {
+  ActiveTab,
+  BulkAction,
+  Dialog,
+  Filters,
+  Pagination,
+  SingleAction
+} from "../types";
 
 const orderSectionUrl = "/orders";
 
 export const orderListPath = orderSectionUrl;
-export type OrderListUrlFilters = Partial<{
-  status: OrderStatusFilter;
-}>;
-export type OrderListUrlDialog = "cancel";
+export enum OrderListUrlFiltersEnum {
+  dateFrom = "dateFrom",
+  dateTo = "dateTo",
+  status = "status",
+  email = "email",
+  payment = "payment"
+}
+export type OrderListUrlFilters = Filters<OrderListUrlFiltersEnum>;
+export type OrderListUrlDialog = "cancel" | "save-search" | "delete-search";
 export type OrderListUrlQueryParams = BulkAction &
   Dialog<OrderListUrlDialog> &
   OrderListUrlFilters &
-  Pagination;
+  Pagination &
+  ActiveTab;
 export const orderListUrl = (params?: OrderListUrlQueryParams): string => {
   const orderList = orderListPath;
   if (params === undefined) {

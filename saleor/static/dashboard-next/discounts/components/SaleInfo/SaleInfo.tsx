@@ -9,7 +9,7 @@ import {
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
+import CardTitle from "@saleor/components/CardTitle";
 import i18n from "../../../i18n";
 import { FormData } from "../SaleDetailsPage";
 
@@ -42,7 +42,7 @@ const SaleInfo = withStyles(styles, {
     onChange
   }: SaleInfoProps & WithStyles<typeof styles>) => (
     <Card>
-      <CardTitle title={i18n.t("General Informations")} />
+      <CardTitle title={i18n.t("General Information")} />
       <CardContent className={classes.root}>
         <TextField
           disabled={disabled}

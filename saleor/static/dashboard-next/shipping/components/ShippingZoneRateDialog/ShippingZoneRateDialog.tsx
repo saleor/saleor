@@ -15,12 +15,12 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton";
-import ControlledSwitch from "../../../components/ControlledSwitch";
-import Form from "../../../components/Form";
-import FormSpacer from "../../../components/FormSpacer";
-import Hr from "../../../components/Hr";
-import Skeleton from "../../../components/Skeleton";
+} from "@saleor/components/ConfirmButton";
+import ControlledSwitch from "@saleor/components/ControlledSwitch";
+import Form from "@saleor/components/Form";
+import FormSpacer from "@saleor/components/FormSpacer";
+import Hr from "@saleor/components/Hr";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { FormErrors, UserError } from "../../../types";
@@ -106,7 +106,7 @@ const ShippingZoneRateDialog = withStyles(styles, {
     }
 
     return (
-      <Dialog open={open} fullWidth maxWidth="sm">
+      <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
         <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
           {({ change, data, errors: formErrors, hasChanged }) => {
             const typedFormErrors: FormErrors<

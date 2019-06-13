@@ -6,6 +6,7 @@ from ...checkout import models
 from ...core.utils.taxes import get_taxes_for_address
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
+from ..giftcard.types import GiftCard
 from ..order.utils import applicable_shipping_methods
 from ..payment.enums import PaymentGatewayEnum
 from ..shipping.types import ShippingMethod
@@ -14,7 +15,7 @@ from ..shipping.types import ShippingMethod
 class CheckoutLine(CountableDjangoObjectType):
     total_price = graphene.Field(
         TaxedMoney,
-        description=("The sum of the checkout line price, taxes and discounts."),
+        description="The sum of the checkout line price, taxes and discounts.",
     )
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered."
@@ -27,12 +28,14 @@ class CheckoutLine(CountableDjangoObjectType):
         model = models.CheckoutLine
         filter_fields = ["id"]
 
-    def resolve_total_price(self, info):
-        taxes = get_taxes_for_address(self.checkout.shipping_address)
-        return self.get_total(discounts=info.context.discounts, taxes=taxes)
+    @staticmethod
+    def resolve_total_price(root: models.CheckoutLine, info):
+        taxes = get_taxes_for_address(root.checkout.shipping_address)
+        return root.get_total(discounts=info.context.discounts, taxes=taxes)
 
-    def resolve_requires_shipping(self, *_args):
-        return self.is_shipping_required()
+    @staticmethod
+    def resolve_requires_shipping(root: models.CheckoutLine, *_args):
+        return root.is_shipping_required()
 
 
 class Checkout(CountableDjangoObjectType):
@@ -47,6 +50,12 @@ class Checkout(CountableDjangoObjectType):
         required=True,
     )
     email = graphene.String(description="Email of a customer", required=True)
+    gift_cards = gql_optimizer.field(
+        graphene.List(
+            GiftCard, description="List of gift cards associated with this checkout"
+        ),
+        model_field="gift_cards",
+    )
     is_shipping_required = graphene.Boolean(
         description="Returns True, if checkout requires shipping.", required=True
     )
@@ -66,7 +75,7 @@ class Checkout(CountableDjangoObjectType):
     )
     subtotal_price = graphene.Field(
         TaxedMoney,
-        description=("The price of the checkout before shipping, with taxes included."),
+        description="The price of the checkout before shipping, with taxes included.",
     )
     total_price = graphene.Field(
         TaxedMoney,
@@ -82,6 +91,7 @@ class Checkout(CountableDjangoObjectType):
             "created",
             "discount_amount",
             "discount_name",
+            "gift_cards",
             "is_shipping_required",
             "last_change",
             "note",
@@ -98,28 +108,39 @@ class Checkout(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         filter_fields = ["token"]
 
-    def resolve_total_price(self, info):
-        taxes = get_taxes_for_address(self.shipping_address)
-        return self.get_total(discounts=info.context.discounts, taxes=taxes)
+    @staticmethod
+    def resolve_total_price(root: models.Checkout, info):
+        taxes = get_taxes_for_address(root.shipping_address)
+        return root.get_total(discounts=info.context.discounts, taxes=taxes)
 
-    def resolve_subtotal_price(self, *_args):
-        taxes = get_taxes_for_address(self.shipping_address)
-        return self.get_subtotal(taxes=taxes)
+    @staticmethod
+    def resolve_subtotal_price(root: models.Checkout, info):
+        taxes = get_taxes_for_address(root.shipping_address)
+        return root.get_subtotal(discounts=info.context.discounts, taxes=taxes)
 
-    def resolve_shipping_price(self, *_args):
-        taxes = get_taxes_for_address(self.shipping_address)
-        return self.get_shipping_price(taxes=taxes)
+    @staticmethod
+    def resolve_shipping_price(root: models.Checkout, *_args):
+        taxes = get_taxes_for_address(root.shipping_address)
+        return root.get_shipping_price(taxes=taxes)
 
-    def resolve_lines(self, *_args):
-        return self.lines.prefetch_related("variant")
+    @staticmethod
+    def resolve_lines(root: models.Checkout, *_args):
+        return root.lines.prefetch_related("variant")
 
-    def resolve_available_shipping_methods(self, info):
-        taxes = get_taxes_for_address(self.shipping_address)
-        price = self.get_subtotal(taxes=taxes, discounts=info.context.discounts)
-        return applicable_shipping_methods(self, price.gross.amount)
+    @staticmethod
+    def resolve_available_shipping_methods(root: models.Checkout, info):
+        taxes = get_taxes_for_address(root.shipping_address)
+        price = root.get_subtotal(taxes=taxes, discounts=info.context.discounts)
+        return applicable_shipping_methods(root, price.gross.amount)
 
-    def resolve_available_payment_gateways(self, _info):
+    @staticmethod
+    def resolve_available_payment_gateways(_: models.Checkout, _info):
         return settings.CHECKOUT_PAYMENT_GATEWAYS.keys()
 
-    def resolve_is_shipping_required(self, _info):
-        return self.is_shipping_required()
+    @staticmethod
+    def resolve_gift_cards(root: models.Checkout, _info):
+        return root.gift_cards.all()
+
+    @staticmethod
+    def resolve_is_shipping_required(root: models.Checkout, _info):
+        return root.is_shipping_required()

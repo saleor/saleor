@@ -18,14 +18,15 @@ import Typography from "@material-ui/core/Typography";
 import { filter } from "fuzzaldrin";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
+import Checkbox from "@saleor/components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import Form from "../../../components/Form";
-import FormSpacer from "../../../components/FormSpacer";
-import Hr from "../../../components/Hr";
-import { ShopInfo_shop_countries } from "../../../components/Shop/types/ShopInfo";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
+import FormSpacer from "@saleor/components/FormSpacer";
+import Hr from "@saleor/components/Hr";
+// tslint:disable no-submodule-imports
+import { ShopInfo_shop_countries } from "@saleor/components/Shop/types/ShopInfo";
 import i18n from "../../../i18n";
 
 interface FormData {
@@ -82,7 +83,7 @@ const ShippingZoneCountriesAssignDialog = withStyles(styles, {
       restOfTheWorld: isDefault
     };
     return (
-      <Dialog open={open} fullWidth maxWidth="sm">
+      <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
         <Form initial={initialForm} onSubmit={onConfirm}>
           {({ data, change }) => {
             const countrySelectionMap = countries.reduce((acc, country) => {

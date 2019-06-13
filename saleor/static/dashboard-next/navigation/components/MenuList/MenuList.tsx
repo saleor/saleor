@@ -13,11 +13,11 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
-import IconButtonTableCell from "../../../components/IconButtonTableCell";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import Checkbox from "@saleor/components/Checkbox";
+import IconButtonTableCell from "@saleor/components/IconButtonTableCell";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection, stopPropagation } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
@@ -57,21 +57,24 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     pageInfo,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: MenuListProps & WithStyles<typeof styles>) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell padding="checkbox" />
-            <TableCell className={classes.colTitle}>
-              {i18n.t("Menu Title", { context: "object" })}
-            </TableCell>
-            <TableCell className={classes.colItems}>
-              {i18n.t("Items", { context: "number of menu items" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={menus}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colTitle}>
+            {i18n.t("Menu Title", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.colItems}>
+            {i18n.t("Items", { context: "number of menu items" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

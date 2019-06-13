@@ -42,7 +42,7 @@ def details(request, token):
         note_form = CustomerNoteForm(request.POST or None, instance=order)
         if request.method == "POST":
             if note_form.is_valid():
-                note_form.save()
+                note_form.save(user=request.user)
                 return redirect("order:details", token=order.token)
     fulfillments = order.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
     ctx = {"order": order, "fulfillments": fulfillments, "note_form": note_form}
@@ -131,7 +131,7 @@ def start_payment(request, order, gateway):
                     return redirect("order:payment-success", token=order.token)
                 return redirect(order.get_absolute_url())
 
-    client_token = payment_gateway.get_client_token(connection_params=connection_params)
+    client_token = payment_gateway.get_client_token(config=gateway_config)
     ctx = {
         "form": form,
         "payment": payment,

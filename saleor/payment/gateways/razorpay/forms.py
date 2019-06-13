@@ -10,10 +10,10 @@ from .utils import get_amount_for_razorpay
 CHECKOUT_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js"
 
 PRIMARY_BTN_TEXT = pgettext_lazy(
-    "Rozorpay payment gateway primary button", "Pay now with Razorpay"
+    "Razorpay payment gateway primary button", "Pay now with Razorpay"
 )
 SECONDARY_TITLE = pgettext_lazy(
-    "Rozorpay payment gateway secondary title", "Total payment"
+    "Razorpay payment gateway secondary title", "Total payment"
 )
 
 

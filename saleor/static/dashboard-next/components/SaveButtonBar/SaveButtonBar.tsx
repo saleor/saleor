@@ -9,7 +9,7 @@ import {
 import classNames from "classnames";
 import * as React from "react";
 
-import useScroll from "../../hooks/useScroll";
+import useScroll from "@saleor/hooks/useScroll";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import AppActionContext from "../AppLayout/AppActionContext";

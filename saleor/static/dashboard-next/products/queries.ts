@@ -1,14 +1,6 @@
 import gql from "graphql-tag";
 
 import { TypedQuery } from "../queries";
-import {
-  CategorySearch,
-  CategorySearchVariables
-} from "./types/CategorySearch";
-import {
-  CollectionSearch,
-  CollectionSearchVariables
-} from "./types/CollectionSearch";
 import { ProductCreateData } from "./types/ProductCreateData";
 import {
   ProductDetails,
@@ -52,10 +44,8 @@ export const productFragment = gql`
     thumbnail {
       url
     }
-    availability {
-      available
-    }
-    price {
+    isAvailable
+    basePrice {
       ...Money
     }
     productType {
@@ -81,7 +71,7 @@ export const productFragmentDetails = gql`
       id
       name
     }
-    price {
+    basePrice {
       ...Money
     }
     margin {
@@ -96,6 +86,7 @@ export const productFragmentDetails = gql`
         ...Money
       }
     }
+    isAvailable
     isPublished
     chargeTaxes
     publicationDate
@@ -115,8 +106,7 @@ export const productFragmentDetails = gql`
         slug
       }
     }
-    availability {
-      available
+    pricing {
       priceRange {
         start {
           net {
@@ -219,14 +209,14 @@ const productListQuery = gql`
     $after: String
     $last: Int
     $before: String
-    $stockAvailability: StockAvailability
+    $filter: ProductFilterInput
   ) {
     products(
       before: $before
       after: $after
       first: $first
       last: $last
-      stockAvailability: $stockAvailability
+      filter: $filter
     ) {
       edges {
         node {
@@ -366,37 +356,3 @@ export const TypedProductImageQuery = TypedQuery<
   ProductImageById,
   ProductImageByIdVariables
 >(productImageQuery);
-
-const categorySearch = gql`
-  query CategorySearch($query: String) {
-    categories(first: 5, query: $query) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
-export const TypedCategorySearchQuery = TypedQuery<
-  CategorySearch,
-  CategorySearchVariables
->(categorySearch);
-
-const collectionSearch = gql`
-  query CollectionSearch($query: String) {
-    collections(first: 5, query: $query) {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
-export const TypedCollectionSearchQuery = TypedQuery<
-  CollectionSearch,
-  CollectionSearchVariables
->(collectionSearch);

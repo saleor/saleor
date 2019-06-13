@@ -12,13 +12,13 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
-import Date from "../../../components/Date";
-import Money from "../../../components/Money";
-import Percent from "../../../components/Percent";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import Checkbox from "@saleor/components/Checkbox";
+import Date from "@saleor/components/Date";
+import Money from "@saleor/components/Money";
+import Percent from "@saleor/components/Percent";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
@@ -89,44 +89,48 @@ const VoucherList = withStyles(styles, {
     isChecked,
     selected,
     toggle,
+    toggleAll,
     toolbar
   }: VoucherListProps & WithStyles<typeof styles>) => (
     <Card>
       <Table>
-        <TableHead selected={selected} toolbar={toolbar}>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.colName}>
-              {i18n.t("Name", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colMinSpent}>
-              {i18n.t("Min. Spent", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colStart}>
-              {i18n.t("Starts", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colEnd}>
-              {i18n.t("Ends", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colValue}>
-              {i18n.t("Value", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-            <TableCell className={classes.colUses}>
-              {i18n.t("Uses", {
-                context: "voucher list table header"
-              })}
-            </TableCell>
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={vouchers}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.colName}>
+            {i18n.t("Name", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colMinSpent}>
+            {i18n.t("Min. Spent", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colStart}>
+            {i18n.t("Starts", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colEnd}>
+            {i18n.t("Ends", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colValue}>
+            {i18n.t("Value", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
+          <TableCell className={classes.colUses}>
+            {i18n.t("Uses", {
+              context: "voucher list table header"
+            })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>

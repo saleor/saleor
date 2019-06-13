@@ -40,8 +40,7 @@ def resolve_staff_users(info, query):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_address_validator(info, data):
-    country_code = data["country_code"]
+def resolve_address_validator(info, country_code, country_area, city_area):
     if not country_code:
         client_ip = get_client_ip(info.context)
         country = get_country_by_ip(client_ip)
@@ -51,8 +50,8 @@ def resolve_address_validator(info, data):
             return None
     params = {
         "country_code": country_code,
-        "country_area": data["country_area"],
-        "city_area": data["city_area"],
+        "country_area": country_area,
+        "city_area": city_area,
     }
     rules = get_validation_rules(params)
     return AddressValidationData(

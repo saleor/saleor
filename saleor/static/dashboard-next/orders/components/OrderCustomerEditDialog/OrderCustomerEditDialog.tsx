@@ -13,8 +13,8 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
+} from "@saleor/components/ConfirmButton";
+import { SingleAutocompleteSelectField } from "@saleor/components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>
@@ -76,7 +76,7 @@ const OrderCustomerEditDialog = withStyles(styles, {
           }))
         : [];
     return (
-      <Dialog open={open} classes={{ paper: classes.dialog }}>
+      <Dialog onClose={onClose} open={open} classes={{ paper: classes.dialog }}>
         <DialogTitle>{i18n.t("Edit customer details")}</DialogTitle>
         <DialogContent className={classes.root}>
           <SingleAutocompleteSelectField

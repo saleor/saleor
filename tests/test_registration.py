@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 
+from saleor.account import events as account_events
 from saleor.account.forms import LoginForm, SignupForm
 
 from .utils import get_redirect_location
@@ -120,12 +121,17 @@ def test_signup_view_fail(client, db, customer_user):
     assert User.objects.count() == 1
 
 
-def test_password_reset_view_post(client, db):
+def test_password_reset_view_post(client, db, customer_user):
     url = reverse("account:reset-password")
-    data = {"email": "test@examle.com"}
+    data = {"email": customer_user.email}
     response = client.post(url, data)
     redirect_location = get_redirect_location(response)
     assert redirect_location == reverse("account:reset-password-done")
+
+    # Retrieve the event and ensure it was properly generated
+    event = account_events.CustomerEvent.objects.get()
+    assert event.type == account_events.CustomerEvents.PASSWORD_RESET_LINK_SENT
+    assert event.user == customer_user
 
 
 def test_password_reset_view_get(client, db):

@@ -3,12 +3,15 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import { WindowTitle } from "../../components/WindowTitle";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
+import ActionDialog from "@saleor/components/ActionDialog";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import { PAGINATE_BY } from "../../config";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { TypedProductBulkDeleteMutation } from "../../products/mutations";
@@ -47,15 +50,13 @@ export function getActiveTab(tabName: string): CategoryPageTab {
     : CategoryPageTab.categories;
 }
 
-const PAGINATE_BY = 20;
-
 export const CategoryDetails: React.StatelessComponent<
   CategoryDetailsProps
 > = ({ id, params }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
-  const { isSelected, listElements, reset, toggle } = useBulkActions(
+  const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
 
@@ -307,12 +308,13 @@ export const CategoryDetails: React.StatelessComponent<
                                     isChecked={isSelected}
                                     selected={listElements.length}
                                     toggle={toggle}
+                                    toggleAll={toggleAll}
                                   />
                                   <ActionDialog
                                     confirmButtonState={
                                       removeDialogTransitionState
                                     }
-                                    onClose={() => closeModal}
+                                    onClose={closeModal}
                                     onConfirm={() =>
                                       deleteCategory({ variables: { id } })
                                     }
@@ -325,7 +327,7 @@ export const CategoryDetails: React.StatelessComponent<
                                     <DialogContentText
                                       dangerouslySetInnerHTML={{
                                         __html: i18n.t(
-                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>?",
+                                          "Are you sure you want to remove <strong>{{ categoryName }}</strong>? <br /> ",
                                           {
                                             categoryName: maybe(
                                               () => data.category.name
@@ -335,6 +337,11 @@ export const CategoryDetails: React.StatelessComponent<
                                         )
                                       }}
                                     />
+                                    <DialogContentText>
+                                      {i18n.t(
+                                        "Remember that this will also remove all products assigned to this category."
+                                      )}
+                                    </DialogContentText>
                                   </ActionDialog>
                                   <ActionDialog
                                     open={params.action === "delete-categories"}
@@ -364,6 +371,11 @@ export const CategoryDetails: React.StatelessComponent<
                                         )
                                       }}
                                     />
+                                    <DialogContentText>
+                                      {i18n.t(
+                                        "Remember that this will also remove all products assigned to this category."
+                                      )}
+                                    </DialogContentText>
                                   </ActionDialog>
                                   <ActionDialog
                                     open={params.action === "delete-products"}
