@@ -437,6 +437,20 @@ class AttributeVariant(models.Model):
     )
 
 
+class AttributeQuerySet(models.QuerySet):
+    def get_unassigned_attributes(self, product_type_pk: int):
+        return self.exclude(
+            Q(attributeproduct__product_type_id=product_type_pk)
+            | Q(attributevariant__product_type_id=product_type_pk)
+        )
+
+    def get_assigned_attributes(self, product_type_pk: int):
+        return self.filter(
+            Q(attributeproduct__product_type_id=product_type_pk)
+            | Q(attributevariant__product_type_id=product_type_pk)
+        )
+
+
 class Attribute(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
     name = models.CharField(max_length=50)
@@ -455,6 +469,7 @@ class Attribute(models.Model):
         through_fields=["attribute", "product_type"],
     )
 
+    objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
@@ -462,20 +477,6 @@ class Attribute(models.Model):
 
     def __str__(self):
         return self.name
-
-    @classmethod
-    def get_unassigned_attributes(cls, product_type_pk: int):
-        return cls.objects.exclude(
-            attributeproduct__product_type_id=product_type_pk,
-            attributevariant__product_type_id=product_type_pk,
-        )
-
-    @classmethod
-    def get_assigned_attributes(cls, product_type_pk: int):
-        return cls.objects.filter(
-            Q(attributeproduct__product_type_id=product_type_pk)
-            | Q(attributevariant__product_type_id=product_type_pk)
-        )
 
     def get_formfield_name(self):
         return slugify("attribute-%s-%s" % (self.slug, self.pk), allow_unicode=True)

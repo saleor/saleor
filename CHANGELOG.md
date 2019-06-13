@@ -10,6 +10,9 @@ All notable, unreleased changes to this project will be documented in this file.
     - They now accept an optional `slug` input parameter for setting the internal representation of the attribute instead of always generating it. This allows users to have multiple attributes with the same name but that are different things or set of values. - #4260 by @NyanKiyoshi
 - The `Attribute` model:
     - They now always unique, instead of being unique only into a given product type. - #4260 by @NyanKiyoshi
+- Attributes can now be associated to multiple product types. - #4266 by @NyanKiyoshi
+- The `Attribute` model's `product_type` field was renamed to `product_types` (M2M related manager). - #4266 by @NyanKiyoshi
+- Added `attributeAssign(...)` and `attributeUnassign(...)` mutations in the GraphQL API. - #4266 by @NyanKiyoshi
 
 ## [Unreleased]
 

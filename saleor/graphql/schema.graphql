@@ -162,7 +162,7 @@ enum AttributeTypeEnum {
   VARIANT
 }
 
-type AttributeUnAssign {
+type AttributeUnassign {
   errors: [Error!]
   productType: ProductType
 }
@@ -1527,7 +1527,7 @@ type Mutations {
   attributeDelete(id: ID!): AttributeDelete
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
   attributeAssign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeAssign
-  attributeUnAssign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeUnAssign
+  attributeUnassign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeUnassign
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
@@ -2337,6 +2337,7 @@ type ProductType implements Node {
   taxRate: TaxRateType
   variantAttributes: [Attribute]
   productAttributes: [Attribute]
+  availableAttributes(before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
 
 type ProductTypeBulkDelete {
