@@ -1,4 +1,4 @@
-import { RawDraftContentState } from "draft-js";
+import { ContentState, convertToRaw, RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import AppHeader from "@saleor/components/AppHeader";
@@ -21,7 +21,7 @@ interface FormData {
 }
 
 const initialData: FormData = {
-  description: null,
+  description: convertToRaw(ContentState.createFromText("")),
   name: "",
   seoDescription: "",
   seoTitle: ""
