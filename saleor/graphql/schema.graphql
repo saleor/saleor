@@ -97,6 +97,16 @@ type Attribute implements Node {
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
 }
 
+type AttributeAssign {
+  errors: [Error!]
+  productType: ProductType
+}
+
+input AttributeAssignInput {
+  attributeId: ID!
+  attributeType: AttributeTypeEnum!
+}
+
 type AttributeBulkDelete {
   errors: [Error!]
   count: Int!
@@ -145,6 +155,16 @@ type AttributeTranslation implements Node {
   id: ID!
   name: String!
   language: LanguageDisplay!
+}
+
+enum AttributeTypeEnum {
+  PRODUCT
+  VARIANT
+}
+
+type AttributeUnAssign {
+  errors: [Error!]
+  productType: ProductType
 }
 
 type AttributeUpdate {
@@ -1506,6 +1526,8 @@ type Mutations {
   attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
+  attributeAssign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeAssign
+  attributeUnAssign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeUnAssign
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
