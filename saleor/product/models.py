@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import HStoreField, JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.html import strip_tags
@@ -468,6 +468,20 @@ class Attribute(ModelWithMetadata):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_unassigned_attributes(cls, product_type_pk: int):
+        return cls.objects.exclude(
+            attributeproduct__product_type_id=product_type_pk,
+            attributevariant__product_type_id=product_type_pk,
+        )
+
+    @classmethod
+    def get_assigned_attributes(cls, product_type_pk: int):
+        return cls.objects.filter(
+            Q(attributeproduct__product_type_id=product_type_pk)
+            | Q(attributevariant__product_type_id=product_type_pk)
+        )
 
     def get_formfield_name(self):
         return slugify("attribute-%s-%s" % (self.slug, self.pk), allow_unicode=True)
