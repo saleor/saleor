@@ -2301,3 +2301,75 @@ def test_product_base_price_permission(
 
     assert "basePrice" in content["data"]["product"]
     assert content["data"]["product"]["basePrice"]["amount"] == product.price.amount
+
+
+def test_product_type_get_unassigned_attributes(
+    staff_api_client, permission_manage_products
+):
+    query = """
+        query($productTypeId:ID!) {
+          productType(id: $productTypeId) {
+            availableAttributes(first: 10) {
+              edges {
+                node {
+                  id
+                  slug
+                }
+              }
+            }
+          }
+        }
+    """
+
+    target_product_type, ignored_product_type = ProductType.objects.bulk_create(
+        [ProductType(name="Type 1"), ProductType(name="Type 2")]
+    )
+
+    unassigned_attributes = list(
+        Attribute.objects.bulk_create(
+            [
+                Attribute(slug="size", name="Size"),
+                Attribute(slug="weight", name="Weight"),
+                Attribute(slug="thickness", name="Thickness"),
+            ]
+        )
+    )
+
+    assigned_attributes = list(
+        Attribute.objects.bulk_create(
+            [Attribute(slug="color", name="Color"), Attribute(slug="type", name="Type")]
+        )
+    )
+
+    # Ensure that assigning them to another product type
+    # doesn't return an invalid response
+    ignored_product_type.product_attributes.add(*unassigned_attributes)
+
+    # Assign the other attributes to the target product type
+    target_product_type.product_attributes.add(*assigned_attributes)
+
+    gql_unassigned_attributes = get_graphql_content(
+        staff_api_client.post_graphql(
+            query,
+            {
+                "productTypeId": graphene.Node.to_global_id(
+                    "ProductType", target_product_type.pk
+                )
+            },
+            permissions=[permission_manage_products],
+        )
+    )["data"]["productType"]["availableAttributes"]["edges"]
+
+    assert len(gql_unassigned_attributes) == len(
+        unassigned_attributes
+    ), gql_unassigned_attributes
+
+    received_ids = sorted((attr["node"]["id"] for attr in gql_unassigned_attributes))
+    expected_ids = sorted(
+        (
+            graphene.Node.to_global_id("Attribute", attr.pk)
+            for attr in unassigned_attributes
+        )
+    )
+
+    assert received_ids == expected_ids
