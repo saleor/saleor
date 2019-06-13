@@ -36,14 +36,6 @@ MUTATION_DELETE_ORDER_LINES = """
 
 
 @pytest.fixture
-def attribute_list():
-    attribute_1 = Attribute.objects.create(slug="size", name="Size")
-    attribute_2 = Attribute.objects.create(slug="weight", name="Weight")
-    attribute_3 = Attribute.objects.create(slug="thickness", name="Thickness")
-    return attribute_1, attribute_2, attribute_3
-
-
-@pytest.fixture
 def attribute_value_list(color_attribute):
     value_1 = AttributeValue.objects.create(
         slug="pink", name="Pink", attribute=color_attribute, value="#FF69B4"

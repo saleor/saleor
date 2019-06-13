@@ -3,10 +3,10 @@ import pytest
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 
-from saleor.graphql.product.enums import AttributeValueType
+from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.graphql.product.utils import attributes_to_hstore
-from saleor.product.models import Attribute, AttributeValue, Category
+from saleor.product.models import Attribute, AttributeValue, Category, ProductType
 from tests.api.utils import get_graphql_content
 
 
@@ -681,3 +681,260 @@ def test_delete_attribute_value(
 )
 def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
+
+
+ASSIGN_ATTR_QUERY = """
+    mutation assign($productTypeId: ID!, $operations: [AttributeAssignInput]!) {
+      attributeAssign(productTypeId: $productTypeId, operations: $operations) {
+        errors {
+          field
+          message
+        }
+        productType {
+          id
+          productAttributes {
+            id
+          }
+          variantAttributes {
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+def test_assign_attributes_to_product_type(
+    staff_api_client, permission_manage_products, attribute_list
+):
+    product_type = ProductType.objects.create(name="Default Type", has_variants=True)
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = ASSIGN_ATTR_QUERY
+    operations = []
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    product_attributes = attribute_list[:2]
+    variant_attributes = attribute_list[2:]
+
+    for attr in product_attributes:
+        operations.append(
+            {
+                "attributeType": "PRODUCT",
+                "attributeId": graphene.Node.to_global_id("Attribute", attr.pk),
+            }
+        )
+
+    for attr in variant_attributes:
+        operations.append(
+            {
+                "attributeType": "VARIANT",
+                "attributeId": graphene.Node.to_global_id("Attribute", attr.pk),
+            }
+        )
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
+    )["data"]["attributeAssign"]
+    assert not content["errors"], "Should have succeeded"
+
+    assert content["productType"]["id"] == product_type_global_id
+    assert len(content["productType"]["productAttributes"]) == len(product_attributes)
+    assert len(content["productType"]["variantAttributes"]) == len(variant_attributes)
+
+    for attr, gql_attr in zip(
+        product_attributes, content["productType"]["productAttributes"]
+    ):
+        assert gql_attr["id"] == graphene.Node.to_global_id("Attribute", attr.pk)
+
+    for attr, gql_attr in zip(
+        variant_attributes, content["productType"]["variantAttributes"]
+    ):
+        assert gql_attr["id"] == graphene.Node.to_global_id("Attribute", attr.pk)
+
+
+def test_assign_variant_attribute_to_product_type_with_disabled_variants(
+    staff_api_client,
+    permission_manage_products,
+    product_type_without_variant,
+    color_attribute_without_values,
+):
+    """The assignAttribute mutation should raise an error when trying
+    to add an attribute as a variant attribute when
+    the product type doesn't support variants"""
+
+    product_type = product_type_without_variant
+    attribute = color_attribute_without_values
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = ASSIGN_ATTR_QUERY
+    operations = [
+        {
+            "attributeType": "VARIANT",
+            "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["attributeAssign"]
+    assert content["errors"] == [
+        {
+            "field": "operations",
+            "message": "Variants are disabled in this product type.",
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    "product_type_attribute_type, gql_attribute_type",
+    (
+        (AttributeTypeEnum.PRODUCT, AttributeTypeEnum.VARIANT),
+        (AttributeTypeEnum.VARIANT, AttributeTypeEnum.PRODUCT),
+        (AttributeTypeEnum.PRODUCT, AttributeTypeEnum.PRODUCT),
+        (AttributeTypeEnum.VARIANT, AttributeTypeEnum.VARIANT),
+    ),
+)
+def test_assign_attribute_to_product_type_having_already_that_attribute(
+    staff_api_client,
+    permission_manage_products,
+    color_attribute_without_values,
+    product_type_attribute_type,
+    gql_attribute_type,
+):
+    """The assignAttribute mutation should raise an error when trying
+    to add an attribute already contained in the product type."""
+
+    product_type = ProductType.objects.create(name="Type")
+    attribute = color_attribute_without_values
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    if product_type_attribute_type == AttributeTypeEnum.PRODUCT:
+        product_type.product_attributes.add(attribute)
+    elif product_type_attribute_type == AttributeTypeEnum.VARIANT:
+        product_type.variant_attributes.add(attribute)
+    else:
+        raise ValueError(f"Unknown: {product_type}")
+
+    query = ASSIGN_ATTR_QUERY
+    operations = [
+        {
+            "attributeType": gql_attribute_type.value,
+            "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["attributeAssign"]
+    assert content["errors"] == [
+        {
+            "field": "operations",
+            "message": "Color (color) have already been assigned to this product type.",
+        }
+    ]
+
+
+UNASSIGN_ATTR_QUERY = """
+    mutation unAssignAttribute(
+      $productTypeId: ID!, $operations: [AttributeAssignInput]!
+    ) {
+      attributeUnAssign(productTypeId: $productTypeId, operations: $operations) {
+        errors {
+          field
+          message
+        }
+        productType {
+          id
+          variantAttributes {
+            id
+          }
+          productAttributes {
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+def test_unassign_attributes_from_product_type(
+    staff_api_client, permission_manage_products, attribute_list
+):
+    product_type = ProductType.objects.create(name="Type")
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    variant_attribute, *product_attributes = attribute_list
+    product_type.product_attributes.add(*product_attributes)
+    product_type.variant_attributes.add(variant_attribute)
+
+    remaining_attribute_global_id = graphene.Node.to_global_id(
+        "Attribute", product_attributes[1].pk
+    )
+
+    query = UNASSIGN_ATTR_QUERY
+    operations = [
+        {
+            "attributeType": "PRODUCT",
+            "attributeId": graphene.Node.to_global_id(
+                "Attribute", product_attributes[0].pk
+            ),
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
+    )["data"]["attributeUnAssign"]
+    assert not content["errors"]
+
+    assert content["productType"]["id"] == product_type_global_id
+    assert len(content["productType"]["productAttributes"]) == 1
+    assert len(content["productType"]["variantAttributes"]) == 1
+
+    assert (
+        content["productType"]["productAttributes"][0]["id"]
+        == remaining_attribute_global_id
+    )
+
+
+def test_unassign_attributes_not_in_product_type(
+    staff_api_client, permission_manage_products, color_attribute_without_values
+):
+    """The unAssignAttribute mutation should not raise any error when trying
+    to remove an attribute that is not/no longer in the product type."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(name="Type")
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = UNASSIGN_ATTR_QUERY
+    operations = [
+        {
+            "attributeType": "VARIANT",
+            "attributeId": graphene.Node.to_global_id(
+                "Attribute", color_attribute_without_values.pk
+            ),
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["attributeUnAssign"]
+    assert not content["errors"]
+
+    assert content["productType"]["id"] == product_type_global_id
+    assert len(content["productType"]["productAttributes"]) == 0
+    assert len(content["productType"]["variantAttributes"]) == 0
