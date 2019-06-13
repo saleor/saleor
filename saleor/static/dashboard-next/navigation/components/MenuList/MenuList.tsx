@@ -105,8 +105,9 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
+                      checked={isSelected}
                       disabled={disabled}
-                      onClick={stopPropagation(() => toggle(menu.id))}
+                      onChange={() => toggle(menu.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colTitle}>
