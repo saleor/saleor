@@ -41,7 +41,7 @@ def get_subtotal_gross(checkout: "Checkout", discounts: "SaleQueryset") -> Taxed
     for line in lines:
         price = line.variant.get_price(discounts)
         lines_total += line.quantity * apply_taxes_to_variant(
-            line.variant, price, address.country
+            line.variant, price, address.country if address else None
         )
     return lines_total
 
@@ -61,7 +61,8 @@ def get_line_total_gross(checkout_line: "CheckoutLine", discounts: "SaleQueryset
         or checkout_line.checkout.billing_address
     )
     price = checkout_line.variant.get_price(discounts) * checkout_line.quantity
-    return apply_taxes_to_variant(checkout_line.variant, price, address.country)
+    country = address.country if address else None
+    return apply_taxes_to_variant(checkout_line.variant, price, country)
 
 
 def apply_taxes_to_shipping(price: Money, shipping_address: "Address"):
