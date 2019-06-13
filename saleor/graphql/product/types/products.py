@@ -631,6 +631,12 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
     )
+    available_attributes = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Attribute,
+            description="List of attributes that are available for assignment.",
+        )
+    )
 
     class Meta:
         description = """Represents a type of product. It defines what
@@ -675,6 +681,12 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         if hasattr(root, "prefetched_products"):
             return root.prefetched_products
         qs = root.products.visible_to_user(info.context.user)
+        return gql_optimizer.query(qs, info)
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_available_attributes(root: models.ProductType, info, **_kwargs):
+        qs = models.Attribute.objects.get_unassigned_attributes(root.pk)
         return gql_optimizer.query(qs, info)
 
     @staticmethod

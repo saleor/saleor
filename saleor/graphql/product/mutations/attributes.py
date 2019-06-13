@@ -271,7 +271,7 @@ class AttributeAssign(BaseAttributeAssignmentMutation):
         """Ensures the requested attributes are not already assigned
         to that product type."""
         qs = (
-            models.Attribute.get_assigned_attributes(product_type.pk)
+            models.Attribute.objects.get_assigned_attributes(product_type.pk)
             .values_list("name", "slug")
             .filter(Q(pk__in=product_attrs_pks) | Q(pk__in=variant_attrs_pks))
         )
@@ -319,7 +319,7 @@ class AttributeAssign(BaseAttributeAssignmentMutation):
         return cls(product_type=product_type)
 
 
-class AttributeUnAssign(BaseAttributeAssignmentMutation):
+class AttributeUnassign(BaseAttributeAssignmentMutation):
     class Meta:
         description = "Un-assign attributes from a given product type."
 
