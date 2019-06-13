@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from prices import TaxedMoney
 
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_voucher_to_checkout, clean_checkout, is_fully_paid
@@ -863,6 +864,7 @@ def test_checkout_complete(
     checkout_line_variant = checkout_line.variant
 
     total = checkout.get_total()
+    total = TaxedMoney(total, total)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -947,6 +949,7 @@ def test_checkout_complete_insufficient_stock(
     checkout.billing_address = address
     checkout.save()
     total = checkout.get_total()
+    total = TaxedMoney(total, total)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1036,11 +1039,13 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     data = content["data"]["checkout"]
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
+    total = checkout_with_item.get_total()
     assert data["totalPrice"]["gross"]["amount"] == (
-        checkout_with_item.get_total().gross.amount
+        TaxedMoney(total, total).gross.amount
     )
+    subtotal = checkout_with_item.get_subtotal()
     assert data["subtotalPrice"]["gross"]["amount"] == (
-        checkout_with_item.get_subtotal().gross.amount
+        TaxedMoney(subtotal, subtotal).gross.amount
     )
 
 
@@ -1076,11 +1081,7 @@ def test_checkout_shipping_method_update(
     checkout.refresh_from_db()
     assert checkout.shipping_method == shipping_method
     mock_clean_shipping.assert_called_once_with(
-        checkout=checkout,
-        method=shipping_method,
-        discounts=ANY,
-        taxes=ANY,
-        remove=False,
+        checkout=checkout, method=shipping_method, discounts=ANY, remove=False
     )
 
 
@@ -1159,6 +1160,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     checkout.billing_address = address
     checkout.save()
     total = checkout.get_total()
+    total = TaxedMoney(total, total)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1167,7 +1169,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     payment.checkout = checkout
     payment.save()
     # Shouldn't raise any errors
-    clean_checkout(checkout, None, None)
+    clean_checkout(checkout, None)
 
 
 def test_clean_checkout_no_shipping_method(checkout_with_item, address):
@@ -1176,7 +1178,7 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, None, None)
+        clean_checkout(checkout, None)
 
     msg = "Shipping method is not set"
     assert e.value.error_list[0].message == msg
@@ -1188,7 +1190,7 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, None, None)
+        clean_checkout(checkout, None)
     msg = "Shipping address is not set"
     assert e.value.error_list[0].message == msg
 
@@ -1203,7 +1205,7 @@ def test_clean_checkout_invalid_shipping_method(
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, None, None)
+        clean_checkout(checkout, None)
 
     msg = "Shipping method is not valid for your shipping address"
     assert e.value.error_list[0].message == msg
@@ -1218,7 +1220,7 @@ def test_clean_checkout_no_billing_address(
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, None, None)
+        clean_checkout(checkout, None)
     msg = "Billing address is not set"
     assert e.value.error_list[0].message == msg
 
@@ -1231,7 +1233,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, None, None)
+        clean_checkout(checkout, None)
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
@@ -1240,6 +1242,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 def test_is_fully_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     total = checkout.get_total()
+    total = TaxedMoney(total, total)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1247,13 +1250,14 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(checkout, None, None)
+    is_paid = is_fully_paid(checkout, None)
     assert is_paid
 
 
 def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     total = checkout.get_total()
+    total = TaxedMoney(total, total)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1269,13 +1273,14 @@ def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     payment2.currency = total.gross.currency
     payment2.checkout = checkout
     payment2.save()
-    is_paid = is_fully_paid(checkout, None, None)
+    is_paid = is_fully_paid(checkout, None)
     assert is_paid
 
 
 def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     total = checkout.get_total()
+    total = TaxedMoney(total, total)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1283,13 +1288,13 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(checkout, None, None)
+    is_paid = is_fully_paid(checkout, None)
     assert not is_paid
 
 
 def test_is_fully_paid_no_payment(checkout_with_item):
     checkout = checkout_with_item
-    is_paid = is_fully_paid(checkout, None, None)
+    is_paid = is_fully_paid(checkout, None)
     assert not is_paid
 
 
@@ -1371,7 +1376,8 @@ def test_checkout_add_voucher_not_applicable_voucher(
 def test_checkout_lines_delete_with_not_applicable_voucher(
     user_api_client, checkout_with_item, voucher
 ):
-    voucher.min_amount_spent = checkout_with_item.get_subtotal().gross
+    subtotal = checkout_with_item.get_subtotal()
+    voucher.min_amount_spent = TaxedMoney(subtotal, subtotal).gross
     voucher.save(update_fields=["min_amount_spent"])
 
     add_voucher_to_checkout(voucher, checkout_with_item)
