@@ -847,7 +847,7 @@ UNASSIGN_ATTR_QUERY = """
     mutation unAssignAttribute(
       $productTypeId: ID!, $operations: [AttributeAssignInput]!
     ) {
-      attributeUnAssign(productTypeId: $productTypeId, operations: $operations) {
+      attributeUnassign(productTypeId: $productTypeId, operations: $operations) {
         errors {
           field
           message
@@ -895,7 +895,7 @@ def test_unassign_attributes_from_product_type(
         staff_api_client.post_graphql(
             query, variables, permissions=[permission_manage_products]
         )
-    )["data"]["attributeUnAssign"]
+    )["data"]["attributeUnassign"]
     assert not content["errors"]
 
     assert content["productType"]["id"] == product_type_global_id
@@ -932,7 +932,7 @@ def test_unassign_attributes_not_in_product_type(
 
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
-    ]["attributeUnAssign"]
+    ]["attributeUnassign"]
     assert not content["errors"]
 
     assert content["productType"]["id"] == product_type_global_id
