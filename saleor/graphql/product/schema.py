@@ -27,8 +27,10 @@ from .bulk_mutations.products import (
 from .enums import StockAvailability
 from .filters import CollectionFilter, ProductFilter, ProductTypeFilter
 from .mutations.attributes import (
+    AttributeAssign,
     AttributeCreate,
     AttributeDelete,
+    AttributeUnAssign,
     AttributeUpdate,
     AttributeValueCreate,
     AttributeValueDelete,
@@ -269,6 +271,8 @@ class ProductMutations(graphene.ObjectType):
     attribute_create = AttributeCreate.Field()
     attribute_delete = AttributeDelete.Field()
     attribute_bulk_delete = AttributeBulkDelete.Field()
+    attribute_assign = AttributeAssign.Field()
+    attribute_un_assign = AttributeUnAssign.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
 
