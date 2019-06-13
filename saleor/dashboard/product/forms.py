@@ -1,7 +1,7 @@
 import bleach
 from django import forms
 from django.conf import settings
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.forms.models import ModelChoiceIterator
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
@@ -110,25 +110,12 @@ class ProductTypeForm(forms.ModelForm):
         self.fields["tax_rate"].choices = [
             (tax.code, tax.description) for tax in manager.get_tax_rate_type_choices()
         ]
-        unassigned_attrs_q = Q(
-            product_types__isnull=True, product_variant_types__isnull=True
-        )
+        variant_attrs_qs = product_attrs_qs = Attribute.objects.all()
 
         if self.instance.pk:
-            product_attrs_qs = Attribute.objects.filter(
-                Q(attributeproduct__product_type_id=self.instance.pk)
-                | unassigned_attrs_q
-            )
-            variant_attrs_qs = Attribute.objects.filter(
-                Q(attributevariant__product_type_id=self.instance.pk)
-                | unassigned_attrs_q
-            )
             product_attrs_initial = self.instance.product_attributes.all()
             variant_attrs_initial = self.instance.variant_attributes.all()
         else:
-            unassigned_attrs = Attribute.objects.filter(unassigned_attrs_q)
-            product_attrs_qs = unassigned_attrs
-            variant_attrs_qs = unassigned_attrs
             product_attrs_initial = []
             variant_attrs_initial = []
 
