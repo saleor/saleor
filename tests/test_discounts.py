@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 import pytest
-from prices import Money, TaxedMoney
+from prices import Money
 
 from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.discount import DiscountValueType, VoucherType
@@ -27,7 +27,7 @@ def get_min_amount_spent(min_amount_spent):
     "min_amount_spent, value",
     [(Money(5, "USD"), Money(10, "USD")), (Money(10, "USD"), Money(10, "USD"))],
 )
-def test_valid_voucher_min_amount_spent(settings, min_amount_spent, value):
+def test_valid_voucher_min_amount_spent(min_amount_spent, value):
     voucher = Voucher(
         code="unique",
         type=VoucherType.SHIPPING,
@@ -35,7 +35,7 @@ def test_valid_voucher_min_amount_spent(settings, min_amount_spent, value):
         discount_value=Money(10, "USD"),
         min_amount_spent=min_amount_spent,
     )
-    voucher.validate_min_amount_spent(TaxedMoney(net=value, gross=value))
+    voucher.validate_min_amount_spent(value)
 
 
 @pytest.mark.integration
@@ -49,7 +49,7 @@ def test_variant_discounts(product):
     high_discount = Sale.objects.create(type=DiscountValueType.FIXED, value=50)
     high_discount.products.add(product)
     final_price = variant.get_price(discounts=Sale.objects.all())
-    assert final_price.gross == Money(0, "USD")
+    assert final_price == Money(0, "USD")
 
 
 @pytest.mark.integration
@@ -59,7 +59,7 @@ def test_percentage_discounts(product):
     discount = Sale.objects.create(type=DiscountValueType.PERCENTAGE, value=50)
     discount.products.add(product)
     final_price = variant.get_price(discounts=[discount])
-    assert final_price.gross == Money(5, "USD")
+    assert final_price == Money(5, "USD")
 
 
 def test_voucher_queryset_active(voucher):
@@ -82,7 +82,6 @@ def test_voucher_queryset_active(voucher):
     ],
 )
 def test_products_voucher_checkout_discount_not(
-    settings,
     monkeypatch,
     prices,
     discount_value,
@@ -93,10 +92,7 @@ def test_products_voucher_checkout_discount_not(
 ):
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_products",
-        lambda lines, discounted_products: (
-            TaxedMoney(net=Money(price, "USD"), gross=Money(price, "USD"))
-            for price in prices
-        ),
+        lambda lines, discounted_products: (Money(price, "USD") for price in prices),
     )
     voucher = Voucher(
         code="unique",
@@ -186,7 +182,7 @@ def test_get_value_voucher_discount(
         min_amount_spent=get_min_amount_spent(min_amount_spent),
     )
     voucher.save()
-    total_price = TaxedMoney(net=Money(total, "USD"), gross=Money(total, "USD"))
+    total_price = Money(total, "USD")
     discount = get_value_voucher_discount(voucher, total_price)
     assert discount == Money(expected_value, "USD")
 
@@ -217,10 +213,8 @@ def test_get_shipping_voucher_discount(
         min_amount_spent=get_min_amount_spent(min_amount_spent),
     )
     voucher.save()
-    total = TaxedMoney(net=Money(total, "USD"), gross=Money(total, "USD"))
-    shipping_price = TaxedMoney(
-        net=Money(shipping_price, "USD"), gross=Money(shipping_price, "USD")
-    )
+    total = Money(total, "USD")
+    shipping_price = Money(shipping_price, "USD")
     discount = get_shipping_voucher_discount(voucher, total, shipping_price)
     assert discount == Money(expected_value, "USD")
 
@@ -236,10 +230,7 @@ def test_get_shipping_voucher_discount(
 def test_get_voucher_discount_all_products(
     prices, discount_value_type, discount_value, voucher_type, expected_value
 ):
-    prices = [
-        TaxedMoney(net=Money(price, "USD"), gross=Money(price, "USD"))
-        for price in prices
-    ]
+    prices = [Money(price, "USD") for price in prices]
     voucher = Voucher(
         code="unique",
         type=voucher_type,
