@@ -51,6 +51,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix image selection in variants - #4270 by @benekex2
 - Reset selected items when tab switch - #4268 by @benekex2
 - Fix collection search - #4267 by @dominik-zeglen
+- Fix quantity height in draft order edit - #4273 by @benekex2
+
 
 ## 2.6.0
 
