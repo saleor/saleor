@@ -218,6 +218,7 @@ def update_checkout_line(request, checkout, variant_id):
     if form.is_valid():
         form.save()
         checkout.refresh_from_db()
+        # Refresh obj from db and confirm that checkout still has this line
         checkout_line = checkout.lines.filter(variant_id=variant_id).first()
         line_total = ZERO_TAXED_MONEY
         if checkout_line:
