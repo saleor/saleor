@@ -646,6 +646,28 @@ def test_update_view_must_be_ajax(customer_user, rf):
     assert result.status_code == 302
 
 
+def test_update_checkout_line_qunatity_zero(
+    request_checkout_with_item, client, product
+):
+    variant = product.variants.filter().first()
+    data = {"quantity": 0}
+    # response = client.post(API_PATH, data, content_type="application/json")
+    response = client.post(
+        reverse("checkout:update-line", kwargs={"variant_id": variant.id}),
+        data=data,
+        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+    )
+    assert response.status_code == 200
+    expected_response = {
+        "variantId": str(variant.id),
+        "subtotal": "$0.00",
+        "total": "$0.00",
+        "checkout": {"numItems": 0, "numLines": 0},
+    }
+    data = response.json()
+    assert data == expected_response
+
+
 def test_get_checkout_context(request_checkout_with_item, shipping_zone, vatlayer):
     checkout = request_checkout_with_item
     shipment_option = get_shipping_price_estimate(
