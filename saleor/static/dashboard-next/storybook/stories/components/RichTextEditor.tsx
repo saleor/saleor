@@ -100,7 +100,7 @@ export const content: RawDraftContentState = {
     }
   ],
   entityMap: {
-    "0": { type: "LINK", mutability: "MUTABLE", data: { href: "#" } }
+    "0": { type: "LINK", mutability: "MUTABLE", data: { url: "#" } }
   }
 };
 storiesOf("Generics / Rich text editor", module)

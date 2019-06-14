@@ -306,7 +306,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
           enableLineBreak
           entityTypes={[
             {
-              attributes: ["href"],
+              attributes: ["url"],
               decorator: LinkEntity,
               icon: <LinkIcon className={classes.linkIcon} />,
               source: LinkSource,
