@@ -941,7 +941,8 @@ def test_checkout_complete(
 def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     mocked_process_payment,
     user_api_client,
-    checkout_with_item,
+    checkout_with_voucher,
+    voucher,
     payment_dummy,
     address,
     shipping_method,
@@ -949,9 +950,10 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     def _process_payment(*args, **kwargs):
         raise PaymentError("Oops! Something went wrong.")
 
+    expected_voucher_usage_count = voucher.used
     mocked_process_payment.side_effect = _process_payment
 
-    checkout = checkout_with_item
+    checkout = checkout_with_voucher
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
@@ -980,6 +982,10 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     payment.refresh_from_db(fields=["order"])
     assert payment.transactions.count() == 0
     assert payment.order is None
+
+    # ensure the voucher usage count was not incremented
+    voucher.refresh_from_db(fields=["used"])
+    assert voucher.used == expected_voucher_usage_count
 
     assert Checkout.objects.filter(
         pk=checkout.pk
