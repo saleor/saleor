@@ -30,6 +30,24 @@ export const content: RawDraftContentState = {
       data: {},
       depth: 0,
       entityRanges: [],
+      inlineStyleRanges: [{ offset: 0, length: 13, style: "STRIKETHROUGH" }],
+      key: "1p044",
+      text: "strikethrough",
+      type: "unstyled"
+    },
+    {
+      data: {},
+      depth: 0,
+      entityRanges: [],
+      inlineStyleRanges: [],
+      key: "aven6",
+      text: "h1",
+      type: "header-one"
+    },
+    {
+      data: {},
+      depth: 0,
+      entityRanges: [],
       inlineStyleRanges: [],
       key: "9rabl",
       text: "h2",
@@ -86,8 +104,8 @@ export const content: RawDraftContentState = {
   }
 };
 storiesOf("Generics / Rich text editor", module)
-.addDecorator(CardDecorator)
-.addDecorator(Decorator)
+  .addDecorator(CardDecorator)
+  .addDecorator(Decorator)
   .add("default", () => (
     <RichTextEditor
       disabled={false}
