@@ -7,6 +7,7 @@ from django.db import transaction
 
 from ...checkout import models
 from ...checkout.utils import (
+    abort_order_data,
     add_promo_code_to_checkout,
     add_variant_to_checkout,
     add_voucher_to_checkout,
@@ -502,17 +503,18 @@ class CheckoutComplete(BaseMutation):
 
         payment = checkout.get_last_active_payment()
 
-        try:
-            order_data = prepare_order_data(
-                checkout=checkout,
-                tracking_code=analytics.get_client_id(info.context),
-                discounts=info.context.discounts,
-                taxes=taxes,
-            )
-        except InsufficientStock as e:
-            raise ValidationError(f"Insufficient product stock: {e.item}")
-        except voucher_model.NotApplicable:
-            raise ValidationError("Voucher not applicable")
+        with transaction.atomic():
+            try:
+                order_data = prepare_order_data(
+                    checkout=checkout,
+                    tracking_code=analytics.get_client_id(info.context),
+                    discounts=info.context.discounts,
+                    taxes=taxes,
+                )
+            except InsufficientStock as e:
+                raise ValidationError(f"Insufficient product stock: {e.item}")
+            except voucher_model.NotApplicable:
+                raise ValidationError("Voucher not applicable")
 
         try:
             billing_address = order_data["billing_address"]  # type: models.Address
@@ -524,6 +526,7 @@ class CheckoutComplete(BaseMutation):
                 shipping_address=AddressData(**shipping_address.as_data()),
             )
         except PaymentError as e:
+            abort_order_data(order_data)
             raise ValidationError(str(e))
 
         # create the order into the database
