@@ -277,7 +277,7 @@ def add_variant_to_order(
         line.quantity += quantity
         line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
-        unit_price_net = variant.get_price(discounts)
+        unit_price = variant.get_price(discounts)
         product_name = variant.display_product()
         translated_product_name = variant.display_product(translated=True)
         if translated_product_name == product_name:
@@ -288,8 +288,8 @@ def add_variant_to_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             quantity=quantity,
-            unit_price_net=unit_price_net,
-            unit_price_gross=unit_price_net,
+            unit_price_net=unit_price,
+            unit_price_gross=unit_price,
             variant=variant,
         )
 
