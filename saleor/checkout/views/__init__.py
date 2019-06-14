@@ -5,7 +5,7 @@ from django.template.response import TemplateResponse
 
 from ...account.forms import LoginForm
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
-from ...core.utils.taxes import get_display_price
+from ...core.utils.taxes import ZERO_TAXED_MONEY, get_display_price
 from ...shipping.utils import get_shipping_price_estimate
 from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm
 from ..models import Checkout
@@ -218,8 +218,11 @@ def update_checkout_line(request, checkout, variant_id):
     if form.is_valid():
         form.save()
         checkout.refresh_from_db()
-        checkout_line.refresh_from_db()
-        subtotal = get_display_price(checkout_line.get_total(discounts, taxes))
+        checkout_line = checkout.lines.filter(variant_id=variant_id).first()
+        line_total = ZERO_TAXED_MONEY
+        if checkout_line:
+            line_total = checkout_line.get_total(discounts, taxes)
+        subtotal = get_display_price(line_total)
         response = {
             "variantId": variant_id,
             "subtotal": format_money(subtotal),
