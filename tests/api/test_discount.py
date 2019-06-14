@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 import graphene
 import pytest
+from django.utils import timezone
 from django_countries import countries
 
 from saleor.discount import DiscountValueType, VoucherType
@@ -139,7 +140,8 @@ mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum,
     $discountValue: Decimal, $minAmountSpent: Decimal,
-    $startDate: Date, $endDate: Date, $applyOncePerOrder: Boolean) {
+    $startDate: Date, $endDate: Date, ) {
+    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean) {
         voucherCreate(input: {
                 name: $name, type: $type, code: $code,
                 discountValueType: $discountValueType,
@@ -169,8 +171,8 @@ mutation  voucherCreate(
 
 
 def test_create_voucher(staff_api_client, permission_manage_discounts):
-    start_date = date(day=1, month=1, year=2018)
-    end_date = date(day=1, month=1, year=2019)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.VALUE.name,
@@ -199,8 +201,8 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
-    start_date = date(day=1, month=1, year=2018)
-    end_date = date(day=1, month=1, year=2019)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.VALUE.name,
@@ -224,8 +226,8 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
 def test_create_voucher_with_existing_gift_card_code(
     staff_api_client, gift_card, permission_manage_discounts
 ):
-    start_date = date(day=1, month=1, year=2018)
-    end_date = date(day=1, month=1, year=2019)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.VALUE.name,
@@ -250,8 +252,8 @@ def test_create_voucher_with_existing_gift_card_code(
 def test_create_voucher_with_existing_voucher_code(
     staff_api_client, voucher_shipping_type, permission_manage_discounts
 ):
-    start_date = date(day=1, month=1, year=2018)
-    end_date = date(day=1, month=1, year=2019)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.VALUE.name,
@@ -742,12 +744,22 @@ def test_sale_remove_no_catalogues(
 @pytest.mark.parametrize(
     "voucher_filter, start_date, end_date, count",
     [
-        ({"status": "ACTIVE"}, date(2015, 1, 1), date(2020, 1, 1), 2),
-        ({"status": "EXPIRED"}, date(2015, 1, 1), date(2018, 1, 1), 1),
+        (
+            {"status": "ACTIVE"},
+            timezone.now().replace(year=2015, month=1, day=1),
+            timezone.now().replace(year=2020, month=1, day=1),
+            2,
+        ),
+        (
+            {"status": "EXPIRED"},
+            timezone.now().replace(year=2015, month=1, day=1),
+            timezone.now().replace(year=2018, month=1, day=1),
+            1,
+        ),
         (
             {"status": "SCHEDULED"},
-            date.today() + timedelta(days=3),
-            date.today() + timedelta(days=10),
+            timezone.now() + timedelta(days=3),
+            timezone.now() + timedelta(days=10),
             1,
         ),
     ],
@@ -764,7 +776,10 @@ def test_query_vouchers_with_filter_status(
     Voucher.objects.bulk_create(
         [
             Voucher(
-                name="Voucher1", discount_value=123, code="abc", start_date=date.today()
+                name="Voucher1",
+                discount_value=123,
+                code="abc",
+                start_date=timezone.now(),
             ),
             Voucher(
                 name="Voucher2",
@@ -817,10 +832,18 @@ def test_query_vouchers_with_filter_times_used(
 @pytest.mark.parametrize(
     "voucher_filter, count",
     [
-        ({"started": {"gte": "2019-04-18"}}, 1),
-        ({"started": {"lte": "2012-01-14"}}, 1),
-        ({"started": {"lte": "2012-01-15", "gte": "2012-01-01"}}, 1),
-        ({"started": {"gte": "2012-01-03"}}, 2),
+        ({"started": {"gte": "2019-04-18T00:00:00+00:00"}}, 1),
+        ({"started": {"lte": "2012-01-14T00:00:00+00:00"}}, 1),
+        (
+            {
+                "started": {
+                    "lte": "2012-01-15T00:00:00+00:00",
+                    "gte": "2012-01-01T00:00:00+00:00",
+                }
+            },
+            1,
+        ),
+        ({"started": {"gte": "2012-01-03T00:00:00+00:00"}}, 2),
     ],
 )
 def test_query_vouchers_with_filter_started(
@@ -837,7 +860,7 @@ def test_query_vouchers_with_filter_started(
                 name="Voucher2",
                 discount_value=123,
                 code="123",
-                start_date=date(2012, 1, 5),
+                start_date=timezone.now().replace(year=2012, month=1, day=5),
             ),
         ]
     )
