@@ -188,7 +188,11 @@ const styles = (theme: Theme) =>
           background: theme.palette.background.default,
           border: `1px ${theme.overrides.MuiCard.root.borderColor} solid`,
           display: "inline-flex",
-          marginBottom: theme.spacing.unit
+          flexWrap: "wrap",
+          marginBottom: theme.spacing.unit,
+          [theme.breakpoints.down(460)]: {
+            width: "min-content"
+          }
         },
         "&-block": {
           "&--blockquote": {
