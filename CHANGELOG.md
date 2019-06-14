@@ -54,7 +54,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix quantity height in draft order edit - #4273 by @benekex2
 - Fix checkbox clickable area size - #4280 by @dominik-zeglen
 - Fix exploding object select in menu section - #4282 by @dominik-zeglen
-- Add default state to rich text editor = #4281 by @dominik-zeglen
+- Add default state to rich text editor - #4281 by @dominik-zeglen
+- Fixed internal error when creating a checkout with a voucher code - #4292 by @NyanKiyoshi
 
 
 ## 2.6.0
