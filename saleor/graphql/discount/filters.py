@@ -1,13 +1,13 @@
-from datetime import date
 from typing import List
 
 import django_filters
 from django.db.models import Q
+from django.utils import timezone
 
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher, VoucherQueryset
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types.common import DateRangeInput, IntRangeInput
+from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..utils import filter_by_query_param
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 
@@ -18,13 +18,13 @@ def filter_status(
     if not value:
         return qs
     query_objects = qs.none()
-    today = date.today()
+    now = timezone.now()
     if DiscountStatusEnum.ACTIVE in value:
-        query_objects |= qs.active(today)
+        query_objects |= qs.active(now)
     if DiscountStatusEnum.EXPIRED in value:
-        query_objects |= qs.expired(today)
+        query_objects |= qs.expired(now)
     if DiscountStatusEnum.SCHEDULED in value:
-        query_objects |= qs.filter(start_date__gt=today)
+        query_objects |= qs.filter(start_date__gt=now)
     return qs & query_objects
 
 
@@ -90,7 +90,7 @@ class VoucherFilter(django_filters.FilterSet):
     discount_type = ListObjectTypeFilter(
         input_class=VoucherDiscountType, method=filter_discount_type
     )
-    started = ObjectTypeFilter(input_class=DateRangeInput, method=filter_started)
+    started = ObjectTypeFilter(input_class=DateTimeRangeInput, method=filter_started)
     search = django_filters.CharFilter(method=filter_voucher_search)
 
     class Meta:

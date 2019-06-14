@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Sum
+from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
 from prices import TaxedMoneyRange
@@ -752,7 +753,7 @@ def get_voucher_for_checkout(checkout, vouchers=None, with_lock=False):
     """Return voucher with voucher code saved in checkout if active or None."""
     if checkout.voucher_code is not None:
         if vouchers is None:
-            vouchers = Voucher.objects.active(date=date.today())
+            vouchers = Voucher.objects.active(date=timezone.now())
         try:
             qs = vouchers
             if with_lock:
@@ -814,7 +815,7 @@ def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str):
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
     try:
-        voucher = Voucher.objects.active(date=date.today()).get(code=voucher_code)
+        voucher = Voucher.objects.active(date=timezone.now()).get(code=voucher_code)
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:

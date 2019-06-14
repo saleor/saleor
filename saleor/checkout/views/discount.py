@@ -1,9 +1,9 @@
-from datetime import date
 from functools import wraps
 
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.utils import timezone
 from django.utils.translation import pgettext
 from django.views.decorators.http import require_POST
 
@@ -59,7 +59,7 @@ def validate_voucher(view):
     def func(request, checkout):
         if checkout.voucher_code:
             try:
-                Voucher.objects.active(date=date.today()).get(
+                Voucher.objects.active(date=timezone.now()).get(
                     code=checkout.voucher_code
                 )
             except Voucher.DoesNotExist:
