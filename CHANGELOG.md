@@ -56,6 +56,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix exploding object select in menu section - #4282 by @dominik-zeglen
 - Add default state to rich text editor = #4281 by @dominik-zeglen
 - Fix ajax request for removing item from bag - ##4294 by @korycins
+- Add default state to rich text editor - #4281 by @dominik-zeglen
+- Fixed internal error when creating a checkout with a voucher code - #4292 by @NyanKiyoshi
+
 
 ## 2.6.0
 
