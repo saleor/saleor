@@ -21,15 +21,15 @@ interface LinkSourceProps {
 }
 
 class LinkSource extends React.Component<LinkSourceProps> {
-  submit = (href: string) => {
+  submit = (url: string) => {
     const { editorState, entityType, onComplete } = this.props;
 
-    if (href) {
+    if (url) {
       const content = editorState.getCurrentContent();
       const contentWithEntity = content.createEntity(
         entityType.type,
         "MUTABLE",
-        { href }
+        { url }
       );
       const entityKey = contentWithEntity.getLastCreatedEntityKey();
       const newEditorState = EditorState.set(editorState, {
@@ -49,23 +49,23 @@ class LinkSource extends React.Component<LinkSourceProps> {
 
   render() {
     const { entity, onClose } = this.props;
-    const initial = entity ? entity.getData().href : "";
+    const initial = entity ? entity.getData().url : "";
 
     return (
       <Dialog onClose={onClose} open={true} fullWidth maxWidth="sm">
         <Form
-          initial={{ href: initial }}
-          onSubmit={({ href }) => this.submit(href)}
+          initial={{ url: initial }}
+          onSubmit={({ url }) => this.submit(url)}
         >
           {({ data, change, submit }) => (
             <>
               <DialogTitle>{i18n.t("Add or Edit Link")}</DialogTitle>
               <DialogContent>
                 <TextField
-                  name="href"
+                  name="url"
                   fullWidth
                   label={i18n.t("URL Linked")}
-                  value={data.href}
+                  value={data.url}
                   onChange={change}
                 />
               </DialogContent>
