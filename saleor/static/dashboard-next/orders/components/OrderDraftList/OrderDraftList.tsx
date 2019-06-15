@@ -134,10 +134,7 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(order.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(order.id)}
                     />
                   </TableCell>
                   <TableCell padding="dense" className={classes.colNumber}>

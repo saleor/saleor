@@ -145,10 +145,7 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(variant.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(variant.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>
