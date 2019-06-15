@@ -291,7 +291,7 @@ def test_view_checkout_summary_finalize_with_voucher(
     assert response.status_code == 200
 
     order = response.context["order"]
-    assert order.user_email == "test@example.com"
+    assert order.user_email == demo_obfuscators.obfuscate_email("test@example.com")
     redirect_url = reverse("order:payment", kwargs={"token": order.token})
     assert response.request["PATH_INFO"] == redirect_url
 
