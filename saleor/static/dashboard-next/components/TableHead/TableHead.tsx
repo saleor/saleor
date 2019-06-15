@@ -101,10 +101,7 @@ const TableHead = withStyles(styles, {
                 })}
                 checked={selected === 0 ? false : true}
                 disabled={disabled}
-                onClick={event => {
-                  toggleAll(items, selected);
-                  event.stopPropagation();
-                }}
+                onChange={() => toggleAll(items, selected)}
               />
             ) : null}
           </TableCell>

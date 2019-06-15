@@ -9,6 +9,7 @@ import {
 } from "@material-ui/core/styles";
 import classNames from "classnames";
 import * as React from "react";
+import { stopPropagation } from "../../misc";
 
 export type CheckboxProps = Omit<
   MuiCheckboxProps,
@@ -19,7 +20,7 @@ export type CheckboxProps = Omit<
   | "classes"
   | "onChange"
 > & {
-  onChange?: () => void;
+  onChange?: (event: React.ChangeEvent<any>) => void;
 };
 
 const styles = (theme: Theme) =>
@@ -97,7 +98,7 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
         centerRipple
         className={classNames(classes.root, className)}
         disabled={disabled}
-        onClick={() => inputRef.current.click()}
+        onClick={stopPropagation(() => inputRef.current.click())}
       >
         <input
           className={classNames(classes.box, {

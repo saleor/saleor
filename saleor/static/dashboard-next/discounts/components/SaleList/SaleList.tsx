@@ -138,10 +138,7 @@ const SaleList = withStyles(styles, {
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(sale.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(sale.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>
