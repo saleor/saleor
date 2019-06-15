@@ -120,7 +120,7 @@ export interface SimpleProductUpdate_productUpdate_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string;
 }
 
@@ -235,7 +235,7 @@ export interface SimpleProductUpdate_productVariantUpdate_productVariant_product
   __typename: "ProductImage";
   id: string;
   alt: string;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string;
 }
 

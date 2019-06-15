@@ -8,14 +8,14 @@
         <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
       </div>
       <div class="col-4">
-        <h3 class="text-right checkout-preview-subtotal" data-value="{% price checkout_total.gross html=False %}" {% if local_checkout_total is not None %}data-value-local="{% price local_checkout_total.gross html=False %}"{% endif %}>
+        <h3 class="text-right checkout-preview-subtotal" data-value="{% price checkout_subtotal.gross html=False %}" {% if local_checkout_subtotal is not None %}data-value-local="{% price local_checkout_subtotal.gross html=False %}"{% endif %}>
           {% spaceless %}
-            {% price checkout_total %}
-            {% if local_checkout_total is not None and local_checkout_total.gross %}
+            {% price checkout_subtotal %}
+            {% if local_checkout_subtotal is not None and local_checkout_subtotal.gross %}
               <br>
               <small>
                 &asymp;
-                {% price local_checkout_total %}
+                {% price local_checkout_subtotal %}
               </small>
             {% endif %}
           {% endspaceless %}

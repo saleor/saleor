@@ -20,7 +20,8 @@ const styles = (theme: Theme) =>
         color: theme.typography.body2.color
       },
       color: theme.typography.caption.color,
-      fontSize: "0.875rem"
+      fontSize: "1rem",
+      fontWeight: 400
     },
     tabRoot: {
       minWidth: "80px",

@@ -11,6 +11,21 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name="CollectionProduct",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                )
+            ],
+            options={"db_table": "product_collection_products"},
+        ),
+        migrations.CreateModel(
             name="Collection",
             fields=[
                 (
@@ -27,9 +42,26 @@ class Migration(migrations.Migration):
                 (
                     "products",
                     models.ManyToManyField(
-                        blank=True, related_name="collections", to="product.Product"
+                        blank=True,
+                        related_name="collections",
+                        through="product.CollectionProduct",
+                        to="product.Product",
                     ),
                 ),
             ],
-        )
+        ),
+        migrations.AddField(
+            model_name="collectionproduct",
+            name="collection",
+            field=models.ForeignKey(
+                on_delete=models.deletion.CASCADE, to="product.Collection"
+            ),
+        ),
+        migrations.AddField(
+            model_name="collectionproduct",
+            name="product",
+            field=models.ForeignKey(
+                on_delete=models.deletion.CASCADE, to="product.Product"
+            ),
+        ),
     ]

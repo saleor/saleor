@@ -1,3 +1,4 @@
+import { InputProps } from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import {
   createStyles,
@@ -31,6 +32,7 @@ const styles = (theme: Theme) =>
   });
 
 interface PriceFieldProps extends WithStyles<typeof styles> {
+  className?: string;
   currencySymbol?: string;
   disabled?: boolean;
   error?: boolean;
@@ -38,11 +40,13 @@ interface PriceFieldProps extends WithStyles<typeof styles> {
   label?: string;
   name?: string;
   value?: string | number;
+  InputProps?: InputProps;
   onChange(event: any);
 }
 
 export const PriceField = withStyles(styles, { name: "PriceField" })(
   ({
+    className,
     disabled,
     error,
     label,
@@ -51,14 +55,18 @@ export const PriceField = withStyles(styles, { name: "PriceField" })(
     name,
     classes,
     onChange,
-    value
+    value,
+    InputProps
   }: PriceFieldProps) => (
     <TextField
+      className={className}
       error={error}
       helperText={hint}
       label={label}
+      fullWidth
       value={value}
       InputProps={{
+        ...InputProps,
         endAdornment: currencySymbol ? (
           <InputAdornment position="end" className={classes.currencySymbol}>
             {currencySymbol}

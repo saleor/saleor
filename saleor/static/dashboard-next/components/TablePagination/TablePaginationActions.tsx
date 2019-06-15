@@ -8,9 +8,9 @@ import {
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import ArrowLeft from "@material-ui/icons/ArrowLeft";
 import ArrowRight from "@material-ui/icons/ArrowRight";
+import useTheme from "@saleor/hooks/useTheme";
 import * as classNames from "classnames";
 import * as React from "react";
-import useTheme from "../../hooks/useTheme";
 
 const styles = (theme: Theme) =>
   createStyles({

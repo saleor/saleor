@@ -27,5 +27,7 @@ export interface SearchCategories {
 }
 
 export interface SearchCategoriesVariables {
+  after?: string | null;
+  first: number;
   query: string;
 }

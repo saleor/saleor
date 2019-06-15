@@ -6,9 +6,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import Form, { FormProps } from "../../../components/Form";
-import { FormSpacer } from "../../../components/FormSpacer";
-import SingleSelectField from "../../../components/SingleSelectField";
+import Form, { FormProps } from "@saleor/components/Form";
+import { FormSpacer } from "@saleor/components/FormSpacer";
+import SingleSelectField from "@saleor/components/SingleSelectField";
 import i18n from "../../../i18n";
 import { translatedAuthorizationKeyTypes } from "../../../misc";
 import { AuthorizationKeyType } from "../../../types/globalTypes";
@@ -21,9 +21,9 @@ export interface SiteSettingsKeyDialogForm {
 
 export interface SiteSettingsKeyDialogProps
   extends Pick<
-      FormProps<SiteSettingsKeyDialogForm>,
-      Exclude<keyof FormProps<SiteSettingsKeyDialogForm>, "children">
-    > {
+    FormProps<SiteSettingsKeyDialogForm>,
+    Exclude<keyof FormProps<SiteSettingsKeyDialogForm>, "children">
+  > {
   open: boolean;
   onClose: () => void;
 }
@@ -33,7 +33,7 @@ const SiteSettingsKeyDialog: React.StatelessComponent<
 > = ({ errors, initial, open, onClose, onSubmit }) => {
   const keyTypes = translatedAuthorizationKeyTypes();
   return (
-    <Dialog maxWidth="xs" open={open}>
+    <Dialog onClose={onClose} maxWidth="xs" open={open}>
       <Form initial={initial} onSubmit={onSubmit} errors={errors}>
         {({ change, data, errors }) => (
           <>

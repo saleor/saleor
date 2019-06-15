@@ -51,7 +51,7 @@ const ActionDialog = withStyles(styles, { name: "ActionDialog" })(
     onConfirm,
     onClose
   }: ActionDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>{children}</DialogContent>
       <DialogActions>

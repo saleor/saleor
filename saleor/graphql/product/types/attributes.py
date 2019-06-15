@@ -50,8 +50,9 @@ class AttributeValue(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.AttributeValue
 
-    def resolve_type(self, *_args):
-        return resolve_attribute_value_type(self.value)
+    @staticmethod
+    def resolve_type(root: models.AttributeValue, *_args):
+        return resolve_attribute_value_type(root.value)
 
 
 class Attribute(CountableDjangoObjectType):
@@ -82,8 +83,9 @@ class Attribute(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Attribute
 
-    def resolve_values(self, *_args):
-        return self.values.all()
+    @staticmethod
+    def resolve_values(root: models.Attribute, *_args):
+        return root.values.all()
 
 
 class SelectedAttribute(graphene.ObjectType):

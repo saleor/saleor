@@ -5,6 +5,7 @@ from django.template.response import TemplateResponse
 
 from ...account.forms import LoginForm
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
+from ...core.utils.taxes import ZERO_TAXED_MONEY, get_display_price
 from ...shipping.utils import get_shipping_price_estimate
 from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm
 from ..models import Checkout
@@ -171,7 +172,6 @@ def checkout_index(request, checkout):
             "shipping_price_range": shipping_price_range,
         }
     )
-
     return TemplateResponse(request, "checkout/index.html", context)
 
 
@@ -217,18 +217,25 @@ def update_checkout_line(request, checkout, variant_id):
     )
     if form.is_valid():
         form.save()
+        checkout.refresh_from_db()
+        # Refresh obj from db and confirm that checkout still has this line
+        checkout_line = checkout.lines.filter(variant_id=variant_id).first()
+        line_total = ZERO_TAXED_MONEY
+        if checkout_line:
+            line_total = checkout_line.get_total(discounts, taxes)
+        subtotal = get_display_price(line_total)
         response = {
             "variantId": variant_id,
-            "subtotal": format_money(checkout_line.get_total(discounts, taxes).gross),
+            "subtotal": format_money(subtotal),
             "total": 0,
             "checkout": {"numItems": checkout.quantity, "numLines": len(checkout)},
         }
 
-        checkout_total = checkout.get_subtotal(discounts, taxes)
-        response["total"] = format_money(checkout_total.gross)
+        checkout_total = get_display_price(checkout.get_subtotal(discounts, taxes))
+        response["total"] = format_money(checkout_total)
         local_checkout_total = to_local_currency(checkout_total, request.currency)
         if local_checkout_total is not None:
-            response["localTotal"] = format_money(local_checkout_total.gross)
+            response["localTotal"] = format_money(local_checkout_total)
 
         status = 200
     elif request.POST is not None:

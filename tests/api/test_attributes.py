@@ -34,6 +34,24 @@ def test_attributes_to_hstore(product, color_attribute):
         attributes_to_hstore(input_data, attrs_qs)
 
 
+def test_attributes_to_hstore_duplicated_slug(product, color_attribute, size_attribute):
+    # It's possible to have a value with the same slug but for a different attribute.
+    # Ensure that `attributes_to_hstore` works in that case.
+
+    color_value = color_attribute.values.first()
+
+    # Create a fake duplicated value.
+    AttributeValue.objects.create(
+        slug=color_value.slug, name="Duplicated value", attribute=size_attribute
+    )
+
+    input_data = [{"slug": color_attribute.slug, "value": color_value.slug}]
+    attrs_qs = product.product_type.product_attributes.all()
+    ids = attributes_to_hstore(input_data, attrs_qs)
+    assert str(color_attribute.pk) in ids
+    assert ids[str(color_attribute.pk)] == str(color_value.pk)
+
+
 def test_attributes_query(user_api_client, product):
     attributes = Attribute.objects.prefetch_related("values")
     query = """

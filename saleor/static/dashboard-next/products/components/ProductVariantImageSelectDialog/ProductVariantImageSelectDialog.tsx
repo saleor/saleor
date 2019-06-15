@@ -70,7 +70,7 @@ const ProductVariantImageSelectDialog = withStyles(styles, {
     onClose,
     onImageSelect
   }: ProductVariantImageSelectDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <DialogTitle>
         {i18n.t("Image selection", { context: "title" })}
       </DialogTitle>
@@ -84,7 +84,7 @@ const ProductVariantImageSelectDialog = withStyles(styles, {
                   classes.imageContainer,
                   {
                     [classes.selectedImageContainer]:
-                      selectedImages.indexOf(tile.id) === -1
+                      selectedImages.indexOf(tile.id) !== -1
                   }
                 ])}
                 onClick={onImageSelect(tile.id)}

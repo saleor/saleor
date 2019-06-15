@@ -4,18 +4,19 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
+import ActionDialog from "@saleor/components/ActionDialog";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
-import ActionDialog from "../../components/ActionDialog";
-import { WindowTitle } from "../../components/WindowTitle";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
+import SearchCategories from "../../containers/SearchCategories";
+import SearchCollections from "../../containers/SearchCollections";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import { productTypeUrl } from "../../productTypes/urls";
 import ProductUpdatePage, { FormData } from "../components/ProductUpdatePage";
-import { CategorySearchProvider } from "../containers/CategorySearch";
-import { CollectionSearchProvider } from "../containers/CollectionSearch";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import { TypedProductDetailsQuery } from "../queries";
 import {
@@ -48,13 +49,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   );
 
   return (
-    <CategorySearchProvider>
-      {({ search: searchCategories, searchOpts: searchCategoriesOpts }) => (
-        <CollectionSearchProvider>
-          {({
-            search: searchCollections,
-            searchOpts: searchCollectionsOpts
-          }) => (
+    <SearchCategories variables={DEFAULT_INITIAL_SEARCH_DATA}>
+      {({ search: searchCategories, result: searchCategoriesOpts }) => (
+        <SearchCollections variables={DEFAULT_INITIAL_SEARCH_DATA}>
+          {({ search: searchCollections, result: searchCollectionsOpts }) => (
             <TypedProductDetailsQuery
               displayLoader
               require={["product"]}
@@ -132,7 +130,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               ),
                               descriptionJson: JSON.stringify(data.description),
                               id: product.id,
-                              isPublished: data.available,
+                              isPublished: data.isPublished,
                               name: data.name,
                               publicationDate:
                                 data.publicationDate !== ""
@@ -150,7 +148,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               ),
                               descriptionJson: JSON.stringify(data.description),
                               id: product.id,
-                              isPublished: data.available,
+                              isPublished: data.isPublished,
                               name: data.name,
                               productVariantId: product.variants[0].id,
                               productVariantInput: {
@@ -360,9 +358,9 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
               }}
             </TypedProductDetailsQuery>
           )}
-        </CollectionSearchProvider>
+        </SearchCollections>
       )}
-    </CategorySearchProvider>
+    </SearchCategories>
   );
 };
 export default ProductUpdate;

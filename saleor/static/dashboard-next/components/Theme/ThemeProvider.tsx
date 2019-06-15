@@ -1,10 +1,11 @@
-import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
+// FIXME: https://github.com/mirumee/saleor/issues/4174
+import OldMuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
+import MuiThemeProvider from "@material-ui/styles/ThemeProvider";
 import * as React from "react";
 
 import Baseline from "../../Baseline";
 import createTheme, { IThemeColors } from "../../theme";
 
-// TODO: fix secondary buttons
 const dark: IThemeColors = {
   autofill: "#5D5881",
   background: {
@@ -83,10 +84,12 @@ const ThemeProvider: React.FC<ThemeProviderProps> = ({
         toggleTheme
       }}
     >
-      <MuiThemeProvider theme={createTheme(isDark ? dark : light)}>
-        <Baseline />
-        {children}
-      </MuiThemeProvider>
+      <OldMuiThemeProvider theme={createTheme(isDark ? dark : light)}>
+        <MuiThemeProvider theme={createTheme(isDark ? dark : light)}>
+          <Baseline />
+          {children}
+        </MuiThemeProvider>
+      </OldMuiThemeProvider>
     </ThemeContext.Provider>
   );
 };

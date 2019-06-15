@@ -13,10 +13,10 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton";
-import Form from "../../../components/Form";
-import Money from "../../../components/Money";
-import { SingleSelectField } from "../../../components/SingleSelectField";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
+import Money from "@saleor/components/Money";
+import { SingleSelectField } from "@saleor/components/SingleSelectField";
 import i18n from "../../../i18n";
 import { OrderDetails_order_availableShippingMethods } from "../../types/OrderDetails";
 
@@ -83,7 +83,7 @@ const OrderShippingMethodEditDialog = withStyles(styles, {
       shippingMethod
     };
     return (
-      <Dialog open={open} classes={{ paper: classes.dialog }}>
+      <Dialog onClose={onClose} open={open} classes={{ paper: classes.dialog }}>
         <DialogTitle>
           {i18n.t("Edit shipping method", { context: "title" })}
         </DialogTitle>

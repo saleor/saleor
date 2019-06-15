@@ -14,8 +14,9 @@ class DigitalContentUrl(CountableDjangoObjectType):
         only_fields = ["content", "created", "download_num", "token", "url"]
         interfaces = (relay.Node,)
 
-    def resolve_url(self, *_args):
-        return self.get_absolute_url()
+    @staticmethod
+    def resolve_url(root: models.DigitalContentUrl, *_args):
+        return root.get_absolute_url()
 
 
 class DigitalContent(CountableDjangoObjectType):
@@ -40,6 +41,7 @@ class DigitalContent(CountableDjangoObjectType):
         ]
         interfaces = (relay.Node,)
 
-    def resolve_urls(self, info, **_kwargs):
-        qs = self.urls.all()
+    @staticmethod
+    def resolve_urls(root: models.DigitalContent, info, **_kwargs):
+        qs = root.urls.all()
         return gql_optimizer.query(qs, info)

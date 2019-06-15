@@ -29,8 +29,9 @@ class Transaction(CountableDjangoObjectType):
             "gateway_response",
         ]
 
-    def resolve_amount(self, _info):
-        return self.get_amount()
+    @staticmethod
+    def resolve_amount(root: models.Transaction, _info):
+        return root.get_amount()
 
 
 class CreditCard(graphene.ObjectType):
@@ -98,61 +99,69 @@ class Payment(CountableDjangoObjectType):
             "extra_data",
         ]
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="transactions")
-    def resolve_actions(self, _info):
+    def resolve_actions(root: models.Payment, _info):
         actions = []
-        if self.can_capture():
+        if root.can_capture():
             actions.append(OrderAction.CAPTURE)
-        if self.can_refund():
+        if root.can_refund():
             actions.append(OrderAction.REFUND)
-        if self.can_void():
+        if root.can_void():
             actions.append(OrderAction.VOID)
         return actions
 
-    def resolve_total(self, _info):
-        return self.get_total()
+    @staticmethod
+    def resolve_total(root: models.Payment, _info):
+        return root.get_total()
 
-    def resolve_captured_amount(self, _info):
-        return self.get_captured_amount()
+    @staticmethod
+    def resolve_captured_amount(root: models.Payment, _info):
+        return root.get_captured_amount()
 
-    def resolve_billing_address(self, _info):
+    @staticmethod
+    def resolve_billing_address(root: models.Payment, _info):
         return Address(
-            first_name=self.billing_first_name,
-            last_name=self.billing_last_name,
-            company_name=self.billing_company_name,
-            street_address_1=self.billing_address_1,
-            street_address_2=self.billing_address_2,
-            city=self.billing_city,
-            city_area=self.billing_city_area,
-            postal_code=self.billing_postal_code,
-            country=Country(self.billing_country_code),
-            country_area=self.billing_country_area,
+            first_name=root.billing_first_name,
+            last_name=root.billing_last_name,
+            company_name=root.billing_company_name,
+            street_address_1=root.billing_address_1,
+            street_address_2=root.billing_address_2,
+            city=root.billing_city,
+            city_area=root.billing_city_area,
+            postal_code=root.billing_postal_code,
+            country=Country(root.billing_country_code),
+            country_area=root.billing_country_area,
         )
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="transactions")
-    def resolve_transactions(self, _info):
-        return self.transactions.all()
+    def resolve_transactions(root: models.Payment, _info):
+        return root.transactions.all()
 
-    def resolve_available_refund_amount(self, _info):
+    @staticmethod
+    def resolve_available_refund_amount(root: models.Payment, _info):
         # FIXME TESTME
-        if not self.can_refund():
+        if not root.can_refund():
             return None
-        return self.get_captured_amount()
+        return root.get_captured_amount()
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="transactions")
-    def resolve_available_capture_amount(self, _info):
+    def resolve_available_capture_amount(root: models.Payment, _info):
         # FIXME TESTME
-        if not self.can_capture():
+        if not root.can_capture():
             return None
-        return self.get_charge_amount()
+        return root.get_charge_amount()
 
-    def resolve_credit_card(self, _info):
+    @staticmethod
+    def resolve_credit_card(root: models.Payment, _info):
         data = {
-            "first_digits": self.cc_first_digits,
-            "last_digits": self.cc_last_digits,
-            "brand": self.cc_brand,
-            "exp_month": self.cc_exp_month,
-            "exp_year": self.cc_exp_year,
+            "first_digits": root.cc_first_digits,
+            "last_digits": root.cc_last_digits,
+            "brand": root.cc_brand,
+            "exp_month": root.cc_exp_month,
+            "exp_year": root.cc_exp_year,
         }
         if not any(data.values()):
             return None

@@ -17,24 +17,21 @@ import * as React from "react";
 import SVG from "react-inlinesvg";
 import { RouteComponentProps, withRouter } from "react-router";
 
+import AppProgressProvider from "@saleor/components/AppProgress";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useTheme from "@saleor/hooks/useTheme";
+import useUser from "@saleor/hooks/useUser";
 import * as saleorDarkLogo from "../../../images/logo-dark.svg";
 import * as saleorLightLogo from "../../../images/logo-light.svg";
-import {
-  appLoaderHeight,
-  drawerWidth
-} from "../../components/AppLayout/consts";
-import MenuList from "../../components/AppLayout/MenuList";
-import menuStructure from "../../components/AppLayout/menuStructure";
-import ResponsiveDrawer from "../../components/AppLayout/ResponsiveDrawer";
-import AppProgressProvider from "../../components/AppProgress";
-import useNavigator from "../../hooks/useNavigator";
-import useTheme from "../../hooks/useTheme";
-import useUser from "../../hooks/useUser";
 import i18n from "../../i18n";
 import ArrowDropdown from "../../icons/ArrowDropdown";
 import Container from "../Container";
 import AppActionContext from "./AppActionContext";
 import AppHeaderContext from "./AppHeaderContext";
+import { appLoaderHeight, drawerWidth } from "./consts";
+import MenuList from "./MenuList";
+import menuStructure from "./menuStructure";
+import ResponsiveDrawer from "./ResponsiveDrawer";
 import ThemeSwitch from "./ThemeSwitch";
 
 const styles = (theme: Theme) =>

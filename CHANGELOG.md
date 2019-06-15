@@ -13,23 +13,52 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add navigation section - #4012 by @dominik-zeglen
 - Order Events containing order lines or fulfillment lines now return the line object in the GraphQL API - #4114 by @NyanKiyoshi
 - Migrate deprecated fields in Dashboard 2.0 - #4121 by @benekex2
-- Implement events for customers in backend for the customers actions:
-    - placing an order,
-    - adding a note to an order,
-    - downloading a digital good,
-    - asking for password reset,
-    - resetting the password.
-
-  For staff actions over customers:
-    - deleting a customer,
-    - assigning a new name to a customer,
-    - assigning a new email to a customer,
-    - adding a note to a customer,
-    - deleting a customer.
-
-  -- #4094 by @NyanKiyoshi
+- Implement customer events - #4094 by @NyanKiyoshi
 - Fix draftail options and icons - #4132 by @benekex2
 - Add multiple select checkbox - #4133 by @benekex2
+- Add support for Google Cloud Storage - #4127 by @chetabahana
+- Fix wrong calculation of subtotal in cart page - #4145 by @korycins
+- Fix multiple checkbox selected behavior - #4146 by @benekex2
+- GraphQL now prints exceptions to stderr as well as returning them or not - #4148 by @NyanKiyoshi
+- Refactored API resolvers to staticmethods with root typing - #4155 by @NyanKiyoshi
+- Users can how add multiple "Add to Cart" forms in a single page - #4165 by @NyanKiyoshi
+- Disabled by default the storage of celery results - #4169 by @NyanKiyoshi
+- Fix typos and messages in Dashboard 2.0 - #4168 by @benekex2
+- Rename menu items in Dashboard 2.0 - #4172 by @benekex2
+- Adding a non existent variant to a checkout no longer crashes - #4166 by @NyanKiyoshi
+- Category delete modal improvements - #4171 by @benekex2
+- Products are now sortable within collections - #4123 by @NyanKiyoshi
+- Restore Django's common middleware as a default middleware - #4186 by @cmiacz
+- Fix incorrect argument in `get_client_token` in Braintree integration - #4182 by @maarcingebala
+- Fix resolving attribute values when transforming them to HStore - #4161 by @maarcingebala
+- Fix margin calculations when product/variant price is set to zero - #4170 by @MahmoudRizk
+- Disable polling in Playgroud by default - #4188 by @maarcingebala
+- Add phone validation in the GraphQL API to handle the library upgrade - #4156 by @NyanKiyoshi
+- Fix view all orders button - #4173 by @benekex2
+- Fix applying discounts in checkout's subtotal calculation in API - #4192 by @maarcingebala
+- Fix visibility card view - #4198 by @benekex2
+- Use date localize hook in translations - #4202 by @dominik-zeglen
+- Add filtering interface to product list - #4193 by @dominik-zeglen
+- Unify search API - #4200 by @dominik-zeglen
+- Close modals on click outside - #4236 - by @benekex2
+- Default default PAGINATE_BY - #4238 by @dominik-zeglen
+- Add basic Gift Cards support in the backend - #4025 by @fowczarek
+- Create generic filtering interface - #4221 by @dominik-zeglen
+- API checkout payment can fail without creating an order and deleting checkout - #4154 by @NyanKiyoshi
+- Payment gateways are now optionally receiving the `order_id` field from the `PaymentData` object. Thus should not rely on that information. - #4154 by @NyanKiyoshi
+- Add order filtering - #4237 by @dominik-zeglen
+- Fix query refetch after selecting an object in list - #4272 by @dominik-zeglen
+- Fix image selection in variants - #4270 by @benekex2
+- Reset selected items when tab switch - #4268 by @benekex2
+- Fix collection search - #4267 by @dominik-zeglen
+- Fix quantity height in draft order edit - #4273 by @benekex2
+- Fix checkbox clickable area size - #4280 by @dominik-zeglen
+- Fix exploding object select in menu section - #4282 by @dominik-zeglen
+- Add default state to rich text editor = #4281 by @dominik-zeglen
+- Fix ajax request for removing item from bag - ##4294 by @korycins
+- Add default state to rich text editor - #4281 by @dominik-zeglen
+- Fixed internal error when creating a checkout with a voucher code - #4292 by @NyanKiyoshi
+
 
 ## 2.6.0
 

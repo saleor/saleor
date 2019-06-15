@@ -2,8 +2,8 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import ProductList from "../../../components/ProductList";
+import CardTitle from "@saleor/components/CardTitle";
+import ProductList from "@saleor/components/ProductList";
 import i18n from "../../../i18n";
 import { ListActions, PageListProps } from "../../../types";
 import { CategoryDetails_category_products_edges_node } from "../../types/CategoryDetails";
