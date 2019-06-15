@@ -127,10 +127,7 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(shippingZone.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(shippingZone.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>
