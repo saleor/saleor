@@ -116,10 +116,7 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(collection.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(collection.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>
