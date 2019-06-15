@@ -163,10 +163,7 @@ const VoucherList = withStyles(styles, {
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(voucher.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(voucher.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>
