@@ -21,8 +21,8 @@
         transition: 0.3s;
         text-transform: uppercase;
         display: inline-block;
-        padding: $global-padding * 1.5;
-        font-size: 1.5rem;
+        padding: $global-padding * 1.0;
+        font-size: 1.0rem;
         &:hover {
           color: rgba($body-color, 0.6);
         }
@@ -281,7 +281,7 @@
           position: absolute;
           right: 10px;
           top: 30px;
-          background-color: $light-turquoise;
+          background-color: $light-mercurie-blue;
           border-radius: 100px;
           color: $white;
           width: 30px;

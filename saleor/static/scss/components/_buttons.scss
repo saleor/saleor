@@ -28,16 +28,17 @@ a.btn {
     color: $white;
     padding: $global-padding $global-padding * 4;
     &:hover {
-      background-color: #42beab;
+      // background-color: #3B8BD3;
+      background-color: $light-mercurie-blue;
       border: none;
       color: $white;
     }
   }
   &.secondary {
-    border: 1px solid $light-turquoise;
+    border: 1px solid $light-mercurie-blue;
     padding: $global-padding $global-padding * 2;
     background-color: $white;
-    color: $light-turquoise;
+    color: $light-mercurie-blue;
     &:hover {
       border-color: #42beab;
       color: #42beab;

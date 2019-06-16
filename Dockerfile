@@ -10,6 +10,7 @@ RUN apt-get -y update \
 # Install Python dependencies
 RUN pip install pipenv
 COPY Pipfile Pipfile.lock /app/
+
 WORKDIR /app
 RUN pipenv install --system --deploy --dev
 
@@ -64,9 +65,12 @@ RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/
 
-EXPOSE 8000
-ENV PORT 8000
+ENV PORT 8080
 ENV PYTHONUNBUFFERED 1
 ENV PROCESSES 4
+EXPOSE 8080
+
+# RUN python manage.py migrate && python manage.py collectstatic && python manage.py populatedb --createsuperuser
 
 CMD ["uwsgi", "--ini", "/app/saleor/wsgi/uwsgi.ini"]
+

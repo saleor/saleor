@@ -1,0 +1,31 @@
+<form>
+    <script src="{{js_url}}"></script>
+    <button class="{{button_class}}" id="{{button_id}}" type="button" onclick="payWithPaystack()"> Pay </button>
+</form>
+
+<script>
+    function payWithPaystack() {
+        let currency = "{{currency}}"
+        let plan = "{{plan}}"
+        let ref = "{{ref}}"
+        let obj = {
+            key: '{{key}}',
+            email: '{{email}}',
+            amount: {{amount }},
+            ref:ref,    
+            callback: function (response) {
+                window.location.href = "{{redirect_url}}&trxref=" + response.trxref
+            }
+        }      
+        
+        if(Boolean(currency)){
+            obj.currency = currency.toUpperCase()
+        }
+        if(Boolean(plan)){
+            obj.plan = plan
+        }
+        var handler = PaystackPop.setup(obj);
+        handler.openIframe();
+        console.log({currency,plan,ref})
+    }
+</script>
