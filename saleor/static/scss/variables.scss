@@ -18,7 +18,11 @@ $dark-red: #c53636;
 $green: #27ae60;
 $beige: #fffaec;
 $turquoise: #13bebb;
-$light-turquoise: #3ee7cd;
+// $light-turquoise: #3ee7cd;
+$mercurie-blue: #235C8C;
+// $mercurie-blue: #3B8BD3;
+// $light-turquoise: lighten($mercurie-blue, 10%);
+$light-mercurie-blue: #3B8BD3;
 
 // TYPOGRAPHY
 $font-family-sans-serif: "Lato", sans-serif;
@@ -27,10 +31,11 @@ $h2-font-size: 1.3rem;
 $h3-font-size: 1rem;
 
 $theme-colors: (
-  primary: $light-turquoise,
+  primary: $mercurie-blue,
+  // primary: $green,
   secondary: $white,
   success: $green,
-  info: $turquoise,
+  info: $mercurie-blue,
   warning: #ffc107,
   danger: $red,
   light: #f8f9fa,

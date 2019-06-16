@@ -10,6 +10,9 @@
   {% endblocktrans %} — {{ block.super }}
 {% endblock %}
 
+# Paystack
+{% load paystack %}
+
 {% block breadcrumb %}
   {% if order.user == user %}
     <ul class="breadcrumbs list-unstyled">
@@ -70,7 +73,7 @@
           {% elif payment_form %}
             <h1>
               {% blocktrans trimmed context "Payment details title" %}
-                Pay for order {{ order }}
+                Pay  order {{ order }}
               {% endblocktrans %}
             </h1>
             <h3>
@@ -97,7 +100,9 @@
                     {% trans "Proceed to payment" context "Payment details primary action" %}
                   </button>
                 {% endblock %}
+
               </form>
+
             </div>
           {% else %}
             <p>{% trans "You've authorized transaction. Order is in processing" context "Payment details text" %}</p>
