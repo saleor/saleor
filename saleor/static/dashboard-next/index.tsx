@@ -28,14 +28,11 @@ import { MessageManager } from "./components/messages";
 import { ShopProvider } from "./components/Shop";
 import ThemeProvider from "./components/Theme";
 import { WindowTitle } from "./components/WindowTitle";
-import { API_URI, APP_MOUNT_URI } from "./config";
 import ConfigurationSection, { configurationMenu } from "./configuration";
 import { CustomerSection } from "./customers";
 import DiscountSection from "./discounts";
 import HomePage from "./home";
 import i18n from "./i18n";
-import NavigationSection from "./navigation";
-import { navigationSection } from "./navigation/urls";
 import { NotFound } from "./NotFound";
 import OrdersSection from "./orders";
 import PageSection from "./pages";
@@ -79,7 +76,7 @@ const linkOptions = {
   headers: {
     "X-CSRFToken": cookies.get("csrftoken")
   },
-  uri: API_URI
+  uri: "/graphql/"
 };
 const uploadLink = createUploadLink(linkOptions);
 const batchLink = new BatchHttpLink(linkOptions);
@@ -104,13 +101,16 @@ const apolloClient = new ApolloClient({
   link: invalidTokenLink.concat(authLink.concat(link))
 });
 
+export const appMountPoint = "/dashboard/";
+// export const appMountPoint = "/dashboard/next/";
+
 const App: React.FC = () => {
   const isDark = localStorage.getItem("theme") === "true";
 
   return (
     <FormProvider>
       <ApolloProvider client={apolloClient}>
-        <BrowserRouter basename={APP_MOUNT_URI}>
+        <BrowserRouter basename={appMountPoint}>
           <ThemeProvider isDefaultDark={isDark}>
             <DateProvider>
               <LocaleProvider>
@@ -203,11 +203,6 @@ const App: React.FC = () => {
                                 ]}
                                 path="/translations"
                                 component={TranslationsSection}
-                              />
-                              <SectionRoute
-                                permissions={[PermissionEnum.MANAGE_MENUS]}
-                                path={navigationSection}
-                                component={NavigationSection}
                               />
                               {configurationMenu.filter(menuItem =>
                                 hasPermission(menuItem.permission, user)
