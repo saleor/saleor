@@ -127,6 +127,7 @@ export default (colors: IThemeColors): Theme =>
           color: colors.input.text
         },
         shrink: {
+          // Negates x0.75 scale
           width: "133%"
         }
       },
