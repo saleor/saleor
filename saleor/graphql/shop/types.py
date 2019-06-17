@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
@@ -11,7 +10,9 @@ from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
 from ...site import models as site_models
+from ..account.types import Address
 from ..core.enums import WeightUnitsEnum
+from ..core.types import get_node_optimized
 from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
 from ..core.utils import str_to_enum
 from ..menu.types import Menu
@@ -134,6 +135,9 @@ class Shop(graphene.ObjectType):
     default_digital_url_valid_days = graphene.Int(
         description=("Default number of days which digital content url will be valid")
     )
+    company_address = graphene.Field(
+        Address, description="Company address", required=False
+    )
 
     class Meta:
         description = """
@@ -240,6 +244,9 @@ class Shop(graphene.ObjectType):
             default_country = None
         return default_country
 
+    def resolve_company_address(self, info):
+        return info.context.site.settings.company_address
+
     def resolve_translation(self, info, language_code):
         return resolve_translation(info.context.site.settings, info, language_code)
 
@@ -255,9 +262,3 @@ class Shop(graphene.ObjectType):
     @permission_required("site.manage_settings")
     def resolve_default_digital_url_valid_days(self, info):
         return info.context.site.settings.default_digital_url_valid_days
-
-
-def get_node_optimized(qs, lookup, info):
-    qs = qs.filter(**lookup)
-    qs = gql_optimizer.query(qs, info)
-    return qs[0] if qs else None
