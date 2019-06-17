@@ -30,6 +30,16 @@ def get_bool_from_env(name, default_value):
 
 DEBUG = get_bool_from_env('DEBUG', True)
 
+
+# Google Cloud Storage
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = os.environ.get('BUCKET_NAME', 'mercuriemartstorage')
+
+DATABASE_URL = 'dummy'
+# Set GS if DB is ready
+if os.environ.get(DATABASE_URL) != 'dummy':
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_info(ast.literal_eval(os.environ.get('GS_CREDENTIALS')))
+
 SITE_ID = 1
 
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
@@ -641,14 +651,6 @@ GRAPHENE = {
 }
 
 
-# Google Cloud Storage
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_BUCKET_NAME = os.environ.get('BUCKET_NAME', 'mercuriemartstorage')
-
-DATABASE_URL = 'dummy'
-# Set GS if DB is ready
-if os.environ.get(DATABASE_URL) != 'dummy':
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_info(ast.literal_eval(os.environ.get('GS_CREDENTIALS')))
 
 # Paystack
 PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
