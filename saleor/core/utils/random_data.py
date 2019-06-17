@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import random
@@ -10,6 +9,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
+from django.utils import timezone
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
@@ -445,7 +445,7 @@ def create_users(how_many=10):
 
 def create_orders(how_many=10):
     taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
-    discounts = fetch_discounts(datetime.date.today())
+    discounts = fetch_discounts(timezone.now())
     for dummy in range(how_many):
         order = create_fake_order(discounts, taxes)
         yield "Order: %s" % (order,)
