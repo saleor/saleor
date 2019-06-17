@@ -80,11 +80,12 @@ def get_voucher_discount_for_order(order):
     """
     if not order.voucher:
         return ZERO_MONEY
+    subtotal = order.get_subtotal()
     if order.voucher.type == VoucherType.VALUE:
-        return get_value_voucher_discount(order.voucher, order.get_subtotal())
+        return get_value_voucher_discount(order.voucher, subtotal.gross)
     if order.voucher.type == VoucherType.SHIPPING:
         return get_shipping_voucher_discount(
-            order.voucher, order.get_subtotal(), order.shipping_price
+            order.voucher, subtotal.gross, order.shipping_price
         )
     if order.voucher.type in (
         VoucherType.PRODUCT,
