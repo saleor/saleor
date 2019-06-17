@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 from django.urls import reverse
-from prices import Money
+from prices import Money, TaxedMoney
 
 from saleor.dashboard.order.utils import get_voucher_discount_for_order
 from saleor.discount import DiscountValueType, VoucherType
@@ -122,6 +122,7 @@ def test_value_voucher_order_discount(
         else None,
     )
     subtotal = Money(subtotal, "USD")
+    subtotal = TaxedMoney(net=subtotal, gross=subtotal)
     order = Mock(get_subtotal=Mock(return_value=subtotal), voucher=voucher)
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
@@ -142,6 +143,7 @@ def test_shipping_voucher_order_discount(
         min_amount_spent=None,
     )
     subtotal = Money(100, "USD")
+    subtotal = TaxedMoney(net=subtotal, gross=subtotal)
     shipping_total = Money(shipping_cost, "USD")
     order = Mock(
         get_subtotal=Mock(return_value=subtotal),
@@ -161,6 +163,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero():
         min_amount_spent=Money(20, "USD"),
     )
     price = Money(10, "USD")
+    price = TaxedMoney(net=price, gross=price)
     order = Mock(
         get_subtotal=Mock(return_value=price), shipping_price=price, voucher=voucher
     )
