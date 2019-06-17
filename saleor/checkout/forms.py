@@ -1,5 +1,4 @@
 """Checkout-related forms and fields."""
-from datetime import date
 from typing import Any
 
 from django import forms
