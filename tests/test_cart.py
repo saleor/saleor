@@ -45,14 +45,6 @@ def anonymous_checkout(db):
     return Checkout.objects.get_or_create(user=None)[0]
 
 
-@pytest.fixture()
-def local_currency(monkeypatch):
-    def side_effect(price, currency):
-        return price
-
-    monkeypatch.setattr("saleor.checkout.views.to_local_currency", side_effect)
-
-
 def test_get_or_create_anonymous_checkout_from_token(anonymous_checkout, user_checkout):
     queryset = Checkout.objects.all()
     checkouts = list(queryset)
@@ -467,9 +459,10 @@ def test_view_checkout(client, request_checkout_with_item):
     assert response_checkout_line["get_total"] == TaxedMoney(total, total)
 
 
-def test_view_update_checkout_quantity(
-    client, local_currency, request_checkout_with_item
-):
+def test_view_update_checkout_quantity(client, request_checkout_with_item, monkeypatch):
+    monkeypatch.setattr(
+        "saleor.checkout.views.to_local_currency", lambda price, currency: price
+    )
     variant = request_checkout_with_item.lines.get().variant
     response = client.post(
         reverse("checkout:update-line", kwargs={"variant_id": variant.pk}),

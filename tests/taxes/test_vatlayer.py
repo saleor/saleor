@@ -70,8 +70,11 @@ def test_view_checkout_with_taxes(
 
 
 def test_view_update_checkout_quantity_with_taxes(
-    client, local_currency, request_checkout_with_item, vatlayer
+    client, request_checkout_with_item, vatlayer, monkeypatch
 ):
+    monkeypatch.setattr(
+        "saleor.checkout.views.to_local_currency", lambda price, currency: price
+    )
     variant = request_checkout_with_item.lines.get().variant
     response = client.post(
         reverse("checkout:update-line", kwargs={"variant_id": variant.id}),
