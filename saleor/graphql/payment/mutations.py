@@ -78,8 +78,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             raise ValidationError(
                 {"billing_address": "No billing address associated with this checkout."}
             )
-        checkout_total = get_total_gross(discounts=info.context.discounts)
-        amount = data.get("amount", checkout_total)
+        checkout_total = get_total_gross(checkout, discounts=info.context.discounts)
+        amount = data.get("amount", checkout_total.gross.amount)
         if amount < checkout_total.gross.amount:
             raise ValidationError(
                 {
