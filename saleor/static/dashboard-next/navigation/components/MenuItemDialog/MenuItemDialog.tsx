@@ -17,7 +17,7 @@ import { SearchCategories_categories_edges_node } from "../../../containers/Sear
 import { SearchCollections_collections_edges_node } from "../../../containers/SearchCollections/types/SearchCollections";
 import { SearchPages_pages_edges_node } from "../../../containers/SearchPages/types/SearchPages";
 import i18n from "../../../i18n";
-import { IMenu, IMenuItem } from "../../../utils/menu";
+import { getMenuItemByValue, IMenu } from "../../../utils/menu";
 
 export type MenuItemType = "category" | "collection" | "link" | "page";
 export interface MenuItemData {
@@ -50,17 +50,6 @@ const defaultInitial: MenuItemDialogFormData = {
   type: "category"
 };
 
-function findMenuItem(menu: IMenu, value: string): IMenuItem {
-  const matches = menu.map(menuItem =>
-    menuItem.children
-      ? findMenuItem(menuItem.children, value)
-      : menuItem.value === value
-      ? menuItem
-      : undefined
-  );
-  return matches.find(match => match !== undefined);
-}
-
 function getMenuItemData(value: string): MenuItemData {
   const [type, ...idParts] = value.split(":");
   return {
@@ -74,7 +63,7 @@ function getDisplayValue(menu: IMenu, value: string): string {
   if (menuItemData.type === "link") {
     return menuItemData.id;
   }
-  return findMenuItem(menu, value).label.toString();
+  return getMenuItemByValue(menu, value).label.toString();
 }
 
 const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
@@ -100,6 +89,12 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
   React.useEffect(() => setDisplayValue(initialDisplayValue), [
     initialDisplayValue
   ]);
+
+  // Reset input state after closing dialog
+  React.useEffect(() => {
+    setDisplayValue(initialDisplayValue);
+    setUrl(undefined);
+  }, [open]);
 
   let options: IMenu = [];
 
