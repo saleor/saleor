@@ -22,7 +22,7 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
-from saleor.discount import VoucherType
+from saleor.discount import DiscountInfo, VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
@@ -166,7 +166,7 @@ def customer_user(address):  # pylint: disable=W0613
     return user
 
 
-@pytest.fixture()
+@pytest.fixture
 def user_checkout(customer_user):
     return Checkout.objects.get_or_create(user=customer_user)[0]
 
@@ -197,13 +197,13 @@ def order(customer_user):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def admin_user(db):
     """Return a Django admin user."""
     return User.objects.create_superuser("admin@example.com", "password")
 
 
-@pytest.fixture()
+@pytest.fixture
 def admin_client(admin_user):
     """Return a Django test client logged in as an admin user."""
     client = Client()
@@ -211,7 +211,7 @@ def admin_client(admin_user):
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def staff_user(db):
     """Return a staff member."""
     return User.objects.create_user(
@@ -222,14 +222,14 @@ def staff_user(db):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def staff_client(client, staff_user):
     """Return a Django test client logged in as an staff member."""
     client.login(username=staff_user.email, password="password")
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def authorized_client(client, customer_user):
     client.login(username=customer_user.email, password="password")
     return client
@@ -622,7 +622,7 @@ def voucher_shipping_type():
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def order_line(order, variant, vatlayer):
     taxes = vatlayer
     return order.lines.create(
@@ -660,7 +660,7 @@ def gift_card_created_by_staff(staff_user):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
     taxes = vatlayer
     product = Product.objects.create(
@@ -722,13 +722,13 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
     return order
 
 
-@pytest.fixture()
+@pytest.fixture
 def order_events(order):
     for event_type, _ in OrderEvents.CHOICES:
         OrderEvent.objects.create(type=event_type, order=order)
 
 
-@pytest.fixture()
+@pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
     fulfillment = order.fulfillments.create()
@@ -743,7 +743,7 @@ def fulfilled_order(order_with_lines):
     return order
 
 
-@pytest.fixture()
+@pytest.fixture
 def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.create()
     line_1 = fulfilled_order.lines.first()
@@ -767,7 +767,7 @@ def draft_order(order_with_lines):
     return order_with_lines
 
 
-@pytest.fixture()
+@pytest.fixture
 def payment_txn_preauth(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
@@ -783,7 +783,7 @@ def payment_txn_preauth(order_with_lines, payment_dummy):
     return payment
 
 
-@pytest.fixture()
+@pytest.fixture
 def payment_txn_captured(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
@@ -801,7 +801,7 @@ def payment_txn_captured(order_with_lines, payment_dummy):
     return payment
 
 
-@pytest.fixture()
+@pytest.fixture
 def payment_txn_refunded(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
@@ -819,19 +819,29 @@ def payment_txn_refunded(order_with_lines, payment_dummy):
     return payment
 
 
-@pytest.fixture()
+@pytest.fixture
 def payment_not_authorized(payment_dummy):
     payment_dummy.is_active = False
     payment_dummy.save()
     return payment_dummy
 
 
-@pytest.fixture()
+@pytest.fixture
 def sale(category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(category)
     sale.collections.add(collection)
     return sale
+
+
+@pytest.fixture
+def discount_info(category, collection, sale):
+    return DiscountInfo(
+        sale=sale,
+        product_ids=set(),
+        category_ids={category.id},  # assumes this category does not have children
+        collection_ids={collection.id},
+    )
 
 
 @pytest.fixture
@@ -1187,11 +1197,11 @@ def digital_content(category, media_root):
     return d_content
 
 
-@pytest.fixture()
+@pytest.fixture
 def digital_content_url(digital_content, order_line):
     return DigitalContentUrl.objects.create(content=digital_content, line=order_line)
 
 
-@pytest.fixture()
+@pytest.fixture
 def media_root(tmpdir, settings):
     settings.MEDIA_ROOT = str(tmpdir.mkdir("media"))
