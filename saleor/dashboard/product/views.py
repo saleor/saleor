@@ -153,11 +153,7 @@ def product_create(request, type_pk):
 @permission_required("product.manage_products")
 def product_edit(request, pk):
     product = get_object_or_404(Product.objects.prefetch_related("variants"), pk=pk)
-    for k, v in product.attributes.items():
-        product.attributes[k] = [v]
-    product.save()
     form = forms.ProductForm(request.POST or None, instance=product)
-
     edit_variant = not product.product_type.has_variants
     if edit_variant:
         variant = product.variants.first()

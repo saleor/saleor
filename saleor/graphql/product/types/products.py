@@ -76,11 +76,15 @@ def resolve_attribute_list(attributes_hstore, attributes_qs):
             values_map[val.pk] = val
 
     attributes_list = []
-    for k, v in attributes_hstore.items():
+    for k, values in attributes_hstore.items():
         attribute = attributes_map.get(int(k))
-        value = values_map.get(int(v))
-        if attribute and value:
-            attributes_list.append(SelectedAttribute(attribute=attribute, value=value))
+
+        for v_pk in values:
+            value = values_map.get(int(v_pk))
+            if attribute and value:
+                attributes_list.append(
+                    SelectedAttribute(attribute=attribute, value=value)
+                )
     return attributes_list
 
 

@@ -227,7 +227,7 @@ class AttributesMixin:
                         attribute_id=attr.pk, name=value, slug=slugify(value)
                     )
                     value.save()
-                attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                attributes[smart_text(attr.pk)] = [smart_text(value.pk)]
         return attributes
 
 
