@@ -91,7 +91,7 @@ class ProductType(models.Model):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
-    meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         app_label = "product"
@@ -132,7 +132,7 @@ class Product(SeoModel, PublishableModel):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
-    meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     translated = TranslationProxy()
 
