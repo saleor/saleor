@@ -262,6 +262,50 @@ def test_view_checkout_shipping_method_without_address(
 
 
 @patch("saleor.checkout.utils.send_order_confirmation")
+def test_view_checkout_summary_finalize_with_voucher(
+    mock_send_confirmation,
+    client,
+    shipping_zone,
+    address,
+    request_checkout_with_item,
+    voucher,
+):
+    checkout = request_checkout_with_item
+    expected_voucher_usage_count = voucher.used + 1
+
+    checkout.shipping_address = address
+    checkout.voucher_code = voucher.code
+    checkout.email = "test@example.com"
+    checkout.shipping_method = shipping_zone.shipping_methods.first()
+    checkout.save()
+
+    url = reverse("checkout:summary")
+    data = {"address": "shipping_address"}
+
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.request["PATH_INFO"] == url
+
+    response = client.post(url, data, follow=True)
+    assert response.status_code == 200
+
+    order = response.context["order"]
+    assert order.user_email == "test@example.com"
+    redirect_url = reverse("order:payment", kwargs={"token": order.token})
+    assert response.request["PATH_INFO"] == redirect_url
+
+    # we expect the user to be anonymous, thus None
+    mock_send_confirmation.delay.assert_called_once_with(order.pk, None)
+
+    # checkout should be deleted after order is created
+    assert checkout.pk is None
+
+    # Ensure the voucher was updated
+    voucher.refresh_from_db(fields=["used"])
+    assert voucher.used == expected_voucher_usage_count
+
+
+@patch("saleor.checkout.utils.send_order_confirmation")
 def test_view_checkout_summary_anonymous_user(
     mock_send_confirmation, client, shipping_zone, address, request_checkout_with_item
 ):

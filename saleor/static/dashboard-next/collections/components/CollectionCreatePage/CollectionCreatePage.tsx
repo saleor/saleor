@@ -1,6 +1,6 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { RawDraftContentState } from "draft-js";
+import { ContentState, convertToRaw, RawDraftContentState } from "draft-js";
 import * as React from "react";
 
 import AppHeader from "@saleor/components/AppHeader";
@@ -47,7 +47,7 @@ const initialForm: CollectionCreatePageFormData = {
     value: null
   },
   backgroundImageAlt: "",
-  description: null,
+  description: convertToRaw(ContentState.createFromText("")),
   isPublished: false,
   name: "",
   publicationDate: "",

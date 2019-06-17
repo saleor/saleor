@@ -68,7 +68,8 @@ const styles = (theme: Theme) =>
       textAlign: "right"
     },
     variantCheckbox: {
-      paddingLeft: theme.spacing.unit
+      left: theme.spacing.unit,
+      position: "relative"
     },
     wideCell: {
       width: "100%"
