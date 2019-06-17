@@ -3,6 +3,7 @@
 from django.db import migrations, models
 
 from saleor.core.fields import FilterableJSONBField
+from saleor.product.models import validate_attribute_json
 
 
 def migrate_attributes_to_list(model_name):
@@ -46,12 +47,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="product",
             name="attributes",
-            field=FilterableJSONBField(blank=True, default=dict),
+            field=FilterableJSONBField(
+                blank=True, default=dict, validators=[validate_attribute_json]
+            ),
         ),
         migrations.AlterField(
             model_name="productvariant",
             name="attributes",
-            field=FilterableJSONBField(blank=True, default=dict),
+            field=FilterableJSONBField(
+                blank=True, default=dict, validators=[validate_attribute_json]
+            ),
         ),
         migrations.RunPython(migrate_attributes_to_list("Product")),
         migrations.RunPython(migrate_attributes_to_list("ProductVariant")),

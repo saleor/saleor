@@ -66,17 +66,17 @@ def query_collections_with_filter():
 
 def test_resolve_attribute_list(color_attribute):
     value = color_attribute.values.first()
-    attributes_hstore = {str(color_attribute.pk): str(value.pk)}
-    res = resolve_attribute_list(attributes_hstore, Attribute.objects.all())
+    attributes_json = {str(color_attribute.pk): [str(value.pk)]}
+    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
     assert len(res) == 1
     assert res[0].attribute.name == color_attribute.name
     assert res[0].value.name == value.name
 
-    # test passing invalid hstore should resolve to empty list
+    # test passing invalid json should resolve to empty list
     attr_pk = str(Attribute.objects.order_by("pk").last().pk + 1)
     val_pk = str(AttributeValue.objects.order_by("pk").last().pk + 1)
-    attributes_hstore = {attr_pk: val_pk}
-    res = resolve_attribute_list(attributes_hstore, Attribute.objects.all())
+    attributes_json = {attr_pk: [val_pk]}
+    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
     assert res == []
 
 
@@ -754,8 +754,8 @@ def test_create_product(
         "taxRate": product_tax_rate,
         "basePrice": product_price,
         "attributes": [
-            {"slug": color_attr_slug, "value": color_value_slug},
-            {"slug": size_attr_slug, "value": non_existent_attr_value},
+            {"slug": color_attr_slug, "values": [color_value_slug]},
+            {"slug": size_attr_slug, "values": [non_existent_attr_value]},
         ],
     }
 

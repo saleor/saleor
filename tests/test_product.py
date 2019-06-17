@@ -940,14 +940,21 @@ def test_costs_get_margin_for_variant(variant, price, cost):
 @pytest.mark.parametrize(
     "value, error",
     (
-        ({123: []}, "The key 123 should be of type str (got int)"),
-        ({"123": 111}, "The values of '123' should be of type list (got int)"),
-        ({"123": [111]}, "The values inside '123' should be of type str (got int)"),
+        ({123: []}, ["The key 123 should be of type str (got <class 'int'>)"]),
+        (
+            {"123": 111},
+            ["The values of '123' should be of type list (got <class 'int'>)"],
+        ),
+        (
+            {"123": [111]},
+            ["The values inside 111 should be of type str (got <class 'int'>)"],
+        ),
     ),
 )
 def test_product_attributes_validator_invalid_values(value, error):
-    with pytest.raises(ValidationError, message=error):
+    with pytest.raises(ValidationError) as exc_info:
         validate_attribute_json(value)
+        assert exc_info.value.args[0] == error
 
 
 @pytest.mark.parametrize("value", ({"123": []}, {"123": ["111"]}))

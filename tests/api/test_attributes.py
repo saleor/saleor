@@ -5,38 +5,38 @@ from django.template.defaultfilters import slugify
 
 from saleor.graphql.product.enums import AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
-from saleor.graphql.product.utils import attributes_to_hstore
+from saleor.graphql.product.utils import attributes_to_json
 from saleor.product.models import Attribute, AttributeValue, Category, ProductType
 from tests.api.utils import get_graphql_content
 
 
-def test_attributes_to_hstore(product, color_attribute):
+def test_attributes_to_json(product, color_attribute):
     color_value = color_attribute.values.first()
 
     # test transforming slugs of existing attributes to IDs
-    input_data = [{"slug": color_attribute.slug, "value": color_value.slug}]
+    input_data = [{"slug": color_attribute.slug, "values": [color_value.slug]}]
     attrs_qs = product.product_type.product_attributes.all()
-    ids = attributes_to_hstore(input_data, attrs_qs)
+    ids = attributes_to_json(input_data, attrs_qs)
     assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == str(color_value.pk)
+    assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
 
     # test creating a new attribute value
-    input_data = [{"slug": color_attribute.slug, "value": "Space Grey"}]
-    ids = attributes_to_hstore(input_data, attrs_qs)
+    input_data = [{"slug": color_attribute.slug, "values": ["Space Grey"]}]
+    ids = attributes_to_json(input_data, attrs_qs)
     new_value = AttributeValue.objects.get(slug="space-grey")
     assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == str(new_value.pk)
+    assert ids[str(color_attribute.pk)] == [str(new_value.pk)]
 
     # test passing an attribute that doesn't belong to this product raises
     # an error
-    input_data = [{"slug": "not-an-attribute", "value": "not-a-value"}]
+    input_data = [{"slug": "not-an-attribute", "values": ["not-a-value"]}]
     with pytest.raises(ValueError):
-        attributes_to_hstore(input_data, attrs_qs)
+        attributes_to_json(input_data, attrs_qs)
 
 
-def test_attributes_to_hstore_duplicated_slug(product, color_attribute, size_attribute):
+def test_attributes_to_json_duplicated_slug(product, color_attribute, size_attribute):
     # It's possible to have a value with the same slug but for a different attribute.
-    # Ensure that `attributes_to_hstore` works in that case.
+    # Ensure that `attributes_to_json` works in that case.
 
     color_value = color_attribute.values.first()
 
@@ -45,11 +45,11 @@ def test_attributes_to_hstore_duplicated_slug(product, color_attribute, size_att
         slug=color_value.slug, name="Duplicated value", attribute=size_attribute
     )
 
-    input_data = [{"slug": color_attribute.slug, "value": color_value.slug}]
+    input_data = [{"slug": color_attribute.slug, "values": [color_value.slug]}]
     attrs_qs = product.product_type.product_attributes.all()
-    ids = attributes_to_hstore(input_data, attrs_qs)
+    ids = attributes_to_json(input_data, attrs_qs)
     assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == str(color_value.pk)
+    assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
 
 
 def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_values):

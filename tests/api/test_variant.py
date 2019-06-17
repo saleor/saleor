@@ -126,7 +126,7 @@ def test_create_variant(
         "costPrice": cost_price,
         "priceOverride": price_override,
         "weight": weight,
-        "attributes": [{"slug": variant_slug, "value": variant_value}],
+        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
         "trackInventory": True,
     }
     response = staff_api_client.post_graphql(
@@ -176,7 +176,7 @@ def test_create_product_variant_not_all_attributes(
     variables = {
         "productId": product_id,
         "sku": sku,
-        "attributes": [{"slug": variant_slug, "value": variant_value}],
+        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -277,7 +277,7 @@ def test_update_product_variant_not_all_attributes(
     variables = {
         "id": variant_id,
         "sku": sku,
-        "attributes": [{"slug": variant_slug, "value": variant_value}],
+        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
     }
 
     response = staff_api_client.post_graphql(

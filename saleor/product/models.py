@@ -38,19 +38,19 @@ def validate_attribute_json(value):
     for k, values in value.items():
         if not isinstance(k, str):
             raise exceptions.ValidationError(
-                f"The key {k} should be of type str (got {type(k)})",
+                f"The key {k!r} should be of type str (got {type(k)})",
                 params={"k": k, "values": values},
             )
         if not isinstance(values, list):
             raise exceptions.ValidationError(
-                f"The values of {k} should be of type list (got {type(values)})",
+                f"The values of {k!r} should be of type list (got {type(values)})",
                 params={"k": k, "values": values},
             )
 
         for value_pk in values:
             if not isinstance(value_pk, str):
                 raise exceptions.ValidationError(
-                    f"The values inside {value_pk} should be of type str "
+                    f"The values inside {value_pk!r} should be of type str "
                     f"(got {type(value_pk)})",
                     params={"k": k, "values": values, "value_pk": value_pk},
                 )
