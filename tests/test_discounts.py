@@ -300,7 +300,4 @@ def test_sale_active(current_date, start_date, end_date, is_active):
         type=DiscountValueType.FIXED, value=5, start_date=start_date, end_date=end_date
     )
     sale_is_active = Sale.objects.active(date=current_date).exists()
-    if not is_active == sale_is_active:
-        print(current_date.isoformat())
-        print(start_date.isoformat())
     assert is_active == sale_is_active

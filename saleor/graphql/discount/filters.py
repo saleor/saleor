@@ -7,7 +7,7 @@ from django.utils import timezone
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher, VoucherQueryset
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
+from ..core.types.common import DateTimeRangeInput, IntRangeInput
 from ..utils import filter_by_query_param
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 
@@ -103,7 +103,7 @@ class SaleFilter(django_filters.FilterSet):
     sale_type = ObjectTypeFilter(
         input_class=DiscountValueTypeEnum, method=filter_sale_type
     )
-    started = ObjectTypeFilter(input_class=DateRangeInput, method=filter_started)
+    started = ObjectTypeFilter(input_class=DateTimeRangeInput, method=filter_started)
     search = django_filters.CharFilter(method=filter_sale_search)
 
     class Meta:

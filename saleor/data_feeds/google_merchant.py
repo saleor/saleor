@@ -1,5 +1,4 @@
 import csv
-import datetime
 import gzip
 from typing import Iterable
 
@@ -7,6 +6,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
+from django.utils import timezone
 from django.utils.encoding import smart_text
 
 from ..discount import DiscountInfo
@@ -222,7 +222,7 @@ def write_feed(file_obj):
     writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
     writer.writeheader()
     categories = Category.objects.all()
-    discounts = fetch_discounts(datetime.date.today())
+    discounts = fetch_discounts(timezone.now())
     attributes_dict = {a.slug: a.pk for a in Attribute.objects.all()}
     attribute_values_dict = {
         smart_text(a.pk): smart_text(a) for a in AttributeValue.objects.all()
