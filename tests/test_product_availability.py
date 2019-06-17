@@ -1,6 +1,8 @@
 import datetime
 from unittest.mock import Mock
 
+from prices import Money, TaxedMoney, TaxedMoneyRange
+
 from saleor.product import ProductAvailabilityStatus, VariantAvailabilityStatus, models
 from saleor.product.utils.availability import (
     get_product_availability,
@@ -66,12 +68,18 @@ def test_variant_availability_status(unavailable_product):
 
     variant.quantity = 5
     variant.save()
-    status = get_variant_availability_status(variant)
+    get_variant_availability_status(variant)
 
 
 def test_availability(product, monkeypatch, settings, taxes):
+    taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
+    monkeypatch.setattr(
+        "saleor.product.utils.availability.apply_taxes_to_product",
+        Mock(return_value=taxed_price),
+    )
     availability = get_product_availability(product)
-    assert availability.price_range == product.get_price_range()
+    taxed_price_range = TaxedMoneyRange(start=taxed_price, stop=taxed_price)
+    assert availability.price_range == taxed_price_range
     assert availability.price_range_local_currency is None
 
     monkeypatch.setattr(
@@ -84,7 +92,7 @@ def test_availability(product, monkeypatch, settings, taxes):
     assert availability.price_range_local_currency.start.currency == "PLN"
     assert availability.available
 
-    availability = get_product_availability(product, taxes=taxes)
+    availability = get_product_availability(product)
     assert availability.price_range.start.tax.amount
     assert availability.price_range.stop.tax.amount
     assert availability.price_range_undiscounted.start.tax.amount
