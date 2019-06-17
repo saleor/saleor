@@ -563,11 +563,10 @@ def test_checkout_summary_page_empty_checkout(client, request_checkout):
 
 
 def test_checkout_line_total_with_discount_and_taxes(
-    sale, request_checkout_with_item, taxes
+    discount_info, request_checkout_with_item, taxes
 ):
-    sales = Sale.objects.all()
     line = request_checkout_with_item.lines.first()
-    assert line.get_total(discounts=sales, taxes=taxes) == TaxedMoney(
+    assert line.get_total(discounts=[discount_info], taxes=taxes) == TaxedMoney(
         net=Money("4.07", "USD"), gross=Money("5.00", "USD")
     )
 
@@ -699,8 +698,12 @@ def test_get_checkout_context_no_shipping(request_checkout_with_item, vatlayer):
     assert checkout_data["total_with_shipping"].start == checkout_total
 
 
-def test_checkout_total_with_discount(request_checkout_with_item, sale, vatlayer):
-    total = request_checkout_with_item.get_total(discounts=(sale,), taxes=vatlayer)
+def test_checkout_total_with_discount(
+    request_checkout_with_item, discount_info, vatlayer
+):
+    total = request_checkout_with_item.get_total(
+        discounts=[discount_info], taxes=vatlayer
+    )
     assert total == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
 
 

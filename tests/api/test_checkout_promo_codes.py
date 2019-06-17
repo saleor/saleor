@@ -8,6 +8,8 @@ from tests.api.test_checkout import (
 from tests.api.utils import get_graphql_content
 
 from saleor.checkout.utils import add_voucher_to_checkout
+from saleor.discount import DiscountInfo
+
 
 MUTATION_CHECKOUT_UPDATE_VOUCHER = """
     mutation($checkoutId: ID!, $voucherCode: String) {
@@ -182,7 +184,14 @@ def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    discounts = [sale]
+    discounts = [
+        DiscountInfo(
+            sale=sale,
+            product_ids={product.id},
+            category_ids=set(),
+            collection_ids=set(),
+        )
+    ]
     assert (
         data["totalPrice"]["gross"]["amount"]
         == checkout.get_total(discounts=discounts).gross.amount
