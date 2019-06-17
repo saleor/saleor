@@ -15,6 +15,7 @@ export const attributeListUrl = (params?: AttributeListUrlQueryParams) =>
 
 export type AttributeAddUrlDialog =
   | "add-value"
+  | "edit-value"
   | "remove-value"
   | "remove-values";
 export type AttributeAddUrlQueryParams = Dialog<AttributeAddUrlDialog>;
@@ -22,6 +23,13 @@ export const attributeAddPath = urlJoin(attributeSection, "add");
 export const attributeAddUrl = (params?: AttributeAddUrlQueryParams) =>
   attributeAddPath + "?" + stringifyQs(params);
 
+export type AttributeUrlDialog =
+  | "add-value"
+  | "edit-value"
+  | "remove"
+  | "remove-value"
+  | "remove-values";
+export type AttributeUrlQueryParams = BulkAction & Dialog<AttributeUrlDialog>;
 export const attributePath = (id: string) => urlJoin(attributeSection, id);
-export const attributeUrl = (id: string) =>
-  attributePath(encodeURIComponent(id));
+export const attributeUrl = (id: string, params?: AttributeUrlQueryParams) =>
+  attributePath(encodeURIComponent(id)) + "?" + stringifyQs(params);
