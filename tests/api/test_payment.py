@@ -1,6 +1,8 @@
+from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
+from prices import TaxedMoney
 
 from saleor.core.utils import get_country_name_by_code
 from saleor.graphql.payment.enums import (
@@ -94,12 +96,14 @@ def test_checkout_add_payment(
 ):
     checkout = checkout_with_item
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    total = checkout.get_total()
+    total = TaxedMoney(net=total, gross=total)
     variables = {
         "checkoutId": checkout_id,
         "input": {
             "gateway": "DUMMY",
             "token": "sample-token",
-            "amount": str(checkout.get_total().gross.amount),
+            "amount": total.gross.amount,
             "billingAddress": graphql_address_data,
         },
     }
@@ -113,9 +117,8 @@ def test_checkout_add_payment(
     assert payment.checkout == checkout
     assert payment.is_active
     assert payment.token == "sample-token"
-    total = checkout.get_total().gross
-    assert payment.total == total.amount
-    assert payment.currency == total.currency
+    assert payment.total == total.gross.amount
+    assert payment.currency == total.gross.currency
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
@@ -124,12 +127,14 @@ def test_use_checkout_billing_address_as_payment_billing(
 ):
     checkout = checkout_with_item
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    total = checkout.get_total()
+    total = TaxedMoney(net=total, gross=total)
     variables = {
         "checkoutId": checkout_id,
         "input": {
             "gateway": "DUMMY",
             "token": "sample-token",
-            "amount": str(checkout.get_total().gross.amount),
+            "amount": total.gross.amount,
         },
     }
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
@@ -145,8 +150,7 @@ def test_use_checkout_billing_address_as_payment_billing(
     checkout.billing_address = address
     checkout.save()
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["checkoutPaymentCreate"]
+    get_graphql_content(response)
 
     checkout.refresh_from_db()
     assert checkout.payments.count() == 1
@@ -377,11 +381,12 @@ def test_payments_query(
     data = content["data"]["payments"]["edges"][0]["node"]
     pay = payment_txn_captured
     assert data["gateway"] == pay.gateway
-    assert data["capturedAmount"] == {
-        "amount": pay.captured_amount,
-        "currency": pay.currency,
-    }
-    assert data["total"] == {"amount": pay.total, "currency": pay.currency}
+    amount = str(data["capturedAmount"]["amount"])
+    assert Decimal(amount) == pay.captured_amount
+    assert data["capturedAmount"]["currency"] == pay.currency
+    total = str(data["total"]["amount"])
+    assert Decimal(total) == pay.total
+    assert data["total"]["currency"] == pay.currency
     assert data["chargeStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
     assert data["billingAddress"] == {
         "firstName": pay.billing_first_name,
