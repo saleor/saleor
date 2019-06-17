@@ -11,9 +11,11 @@ export enum AddressTypeEnum {
   SHIPPING = "SHIPPING",
 }
 
-export enum AttributeTypeEnum {
-  PRODUCT = "PRODUCT",
-  VARIANT = "VARIANT",
+export enum AttributeValueType {
+  COLOR = "COLOR",
+  GRADIENT = "GRADIENT",
+  STRING = "STRING",
+  URL = "URL",
 }
 
 export enum AuthorizationKeyType {
@@ -143,6 +145,7 @@ export enum PaymentChargeStatusEnum {
 export enum PermissionEnum {
   IMPERSONATE_USERS = "IMPERSONATE_USERS",
   MANAGE_DISCOUNTS = "MANAGE_DISCOUNTS",
+  MANAGE_GIFT_CARD = "MANAGE_GIFT_CARD",
   MANAGE_MENUS = "MANAGE_MENUS",
   MANAGE_ORDERS = "MANAGE_ORDERS",
   MANAGE_PAGES = "MANAGE_PAGES",
@@ -239,11 +242,6 @@ export interface AddressInput {
   phone?: string | null;
 }
 
-export interface AttributeCreateInput {
-  name: string;
-  values?: (AttributeValueCreateInput | null)[] | null;
-}
-
 export interface AttributeInput {
   slug: string;
   value: string;
@@ -251,6 +249,7 @@ export interface AttributeInput {
 
 export interface AttributeUpdateInput {
   name?: string | null;
+  slug?: string | null;
   removeValues?: (string | null)[] | null;
   addValues?: (AttributeValueCreateInput | null)[] | null;
 }

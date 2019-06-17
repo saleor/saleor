@@ -44,6 +44,10 @@ function loadStories() {
   require("./stories/auth/LoginPage");
   require("./stories/auth/LoginLoading");
 
+  // Attributes
+  require("./stories/attributes/AttributePage");
+  require("./stories/attributes/AttributeListPage");
+
   // Categories
   require("./stories/categories/CategoryProducts");
   require("./stories/categories/CategoryCreatePage");
