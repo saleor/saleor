@@ -476,6 +476,21 @@ def test_get_variant_picker_data_proper_variant_count(product):
     assert len(data["variantAttributes"][0]["values"]) == 1
 
 
+def test_get_variant_picker_data_no_nested_attributes(
+    variant_with_multiple_values_attributes
+):
+    """Ensures that if someone bypassed variant attributes checks (e.g. a raw SQL query)
+    and inserted an attribute with multiple values, it doesn't return invalid data
+    to the storefront that would crash it."""
+    product = variant_with_multiple_values_attributes.product
+    data = get_variant_picker_data(
+        product, discounts=None, taxes=None, local_currency=None
+    )
+
+    assert len(data["variantAttributes"]) == 1
+    assert len(data["variants"][0]["attributes"]) == 0
+
+
 def test_render_product_page_with_no_variant(unavailable_product, admin_client):
     product = unavailable_product
     product.is_published = True
