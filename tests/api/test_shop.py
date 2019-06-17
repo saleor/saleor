@@ -134,6 +134,29 @@ def test_query_name(user_api_client, site_settings):
     assert data["name"] == site_settings.site.name
 
 
+def test_query_company_address(user_api_client, site_settings, address):
+    query = """
+    query {
+        shop{
+            companyAddress{
+                city
+                streetAddress1
+                postalCode
+            }
+        }
+    }
+    """
+    site_settings.company_address = address
+    site_settings.save()
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]
+    company_address = data["companyAddress"]
+    assert company_address["city"] == address.city
+    assert company_address["streetAddress1"] == address.street_address_1
+    assert company_address["postalCode"] == address.postal_code
+
+
 def test_query_domain(user_api_client, site_settings, settings):
     query = """
     query {
@@ -578,3 +601,41 @@ def test_shop_fetch_tax_rates(
     response = staff_api_client.post_graphql(MUTATION_SHOP_FETCH_TAX_RATES)
     get_graphql_content(response)
     mock_call_command.assert_called_once_with("get_vat_rates")
+
+
+def test_mutation_update_company_address(
+    staff_api_client,
+    authorization_key,
+    permission_manage_settings,
+    address,
+    site_settings,
+):
+    query = """
+    mutation updateShopAddress($input: AddressInput!){
+        shopAddressUpdate(input: $input){
+            errors{
+                field
+                message
+            }
+        }
+    }
+    """
+    variables = {
+        "input": {
+            "streetAddress1": address.street_address_1,
+            "city": address.city,
+            "country": address.country.code,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    assert "errors" not in content["data"]
+
+    site_settings.refresh_from_db()
+    assert site_settings.company_address
+    assert site_settings.company_address.street_address_1 == address.street_address_1
+    assert site_settings.company_address.city == address.city
+    assert site_settings.company_address.country.code == address.country.code
