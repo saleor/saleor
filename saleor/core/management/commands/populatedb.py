@@ -45,6 +45,7 @@ class Command(BaseCommand):
 
     def make_database_faster(self):
         """Sacrifice some of the safeguards of sqlite3 for speed.
+
         Users are not likely to run this command in a production environment.
         They are even less likely to run it in production while using sqlite3.
         """
@@ -59,6 +60,7 @@ class Command(BaseCommand):
 
     def sequence_reset(self):
         """Runs SQL sequence reset on all saleor.* apps.
+
         When a value is manually assigned to an auto-incrementing field
         it doesn't update the field's sequence, which might cause a conflict
         later on.
@@ -75,8 +77,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.make_database_faster()
         create_images = not options['withoutimages']
-        # for msg in create_shipping_zones():
-        #     self.stdout.write(msg)
+        for msg in create_shipping_zones():
+            self.stdout.write(msg)
         create_products_by_schema(self.placeholders_dir, create_images)
         self.stdout.write('Created products')
         # for msg in create_product_sales(5):
@@ -103,4 +105,4 @@ class Command(BaseCommand):
         if not options['withoutsearch']:
             self.populate_search_index()
         if not options['skipsequencereset']:
-self.sequence_reset()
+            self.sequence_reset()
