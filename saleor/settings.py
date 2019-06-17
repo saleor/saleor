@@ -644,8 +644,10 @@ GRAPHENE = {
 # Google Cloud Storage
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.environ.get('BUCKET_NAME', 'mercuriemartstorage')
+
+DATABASE_URL = 'dummy'
 # Set GS if DB is ready
-if os.environ.get(DATABASE_URL):
+if os.environ.get(DATABASE_URL) != 'dummy':
     GS_CREDENTIALS = service_account.Credentials.from_service_account_info(ast.literal_eval(os.environ.get('GS_CREDENTIALS')))
 
 # Paystack
