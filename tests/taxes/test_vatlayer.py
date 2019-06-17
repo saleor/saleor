@@ -56,16 +56,19 @@ def test_get_tax_rate_by_name_empty_taxes(product):
 
 
 def test_view_checkout_with_taxes(
-    settings, client, request_checkout_with_item, vatlayer
+    settings, client, request_checkout_with_item, vatlayer, address
 ):
     settings.DEFAULT_COUNTRY = "PL"
+    checkout = request_checkout_with_item
+    checkout.shipping_address = address
+    checkout.save()
     response = client.get(reverse("checkout:index"))
     response_checkout_line = response.context[0]["checkout_lines"][0]
-    checkout_line = request_checkout_with_item.lines.first()
+    line_net = Money(amount="8.13", currency="USD")
+    line_gross = Money(amount="10.00", currency="USD")
+
     assert response_checkout_line["get_total"].tax.amount
-    assert response_checkout_line["get_total"] == checkout_line.get_total(
-        taxes=vatlayer
-    )
+    assert response_checkout_line["get_total"] == TaxedMoney(line_net, line_gross)
     assert response.status_code == 200
 
 
@@ -242,18 +245,18 @@ def test_get_country_choices_for_vat(vatlayer):
     assert choices == expected_choices
 
 
-def test_get_taxes_for_address(address, vatlayer):
+def test_get_taxes_for_address(address, vatlayer, compare_taxes):
     taxes = get_taxes_for_address(address)
     compare_taxes(taxes, vatlayer)
 
 
-def test_get_taxes_for_address_fallback_default(settings, vatlayer):
+def test_get_taxes_for_address_fallback_default(settings, vatlayer, compare_taxes):
     settings.DEFAULT_COUNTRY = "PL"
     taxes = get_taxes_for_address(None)
     compare_taxes(taxes, vatlayer)
 
 
-def test_get_taxes_for_address_other_country(address, vatlayer):
+def test_get_taxes_for_address_other_country(address, vatlayer, compare_taxes):
     address.country = "DE"
     address.save()
     tax_rates = get_taxes_for_country(Country("DE"))
@@ -262,7 +265,7 @@ def test_get_taxes_for_address_other_country(address, vatlayer):
     compare_taxes(taxes, tax_rates)
 
 
-def test_get_taxes_for_country(vatlayer):
+def test_get_taxes_for_country(vatlayer, compare_taxes):
     taxes = get_taxes_for_country(Country("PL"))
     compare_taxes(taxes, vatlayer)
 
