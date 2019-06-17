@@ -747,7 +747,7 @@ def test_sale_remove_no_catalogues(
         (
             {"status": "ACTIVE"},
             timezone.now().replace(year=2015, month=1, day=1),
-            timezone.now().replace(year=2020, month=1, day=1),
+            timezone.now() + timedelta(days=365),
             2,
         ),
         (

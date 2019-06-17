@@ -1,4 +1,3 @@
-from datetime import date
 from decimal import Decimal
 from functools import partial
 
@@ -186,8 +185,8 @@ class Sale(models.Model):
     products = models.ManyToManyField("product.Product", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
     collections = models.ManyToManyField("product.Collection", blank=True)
-    start_date = models.DateField(default=date.today)
-    end_date = models.DateField(null=True, blank=True)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(null=True, blank=True)
 
     objects = SaleQueryset.as_manager()
     translated = TranslationProxy()
