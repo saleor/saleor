@@ -76,7 +76,9 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
         </TableHead>
         <TableBody>
           {renderCollection(
-            values.sort((a, b) => (a.sortOrder > b.sortOrder ? 1 : -1)),
+            values
+              ? values.sort((a, b) => (a.sortOrder > b.sortOrder ? 1 : -1))
+              : undefined,
             value => (
               <TableRow
                 className={!!value ? classes.link : undefined}
