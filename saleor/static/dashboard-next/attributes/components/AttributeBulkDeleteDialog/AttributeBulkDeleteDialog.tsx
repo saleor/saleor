@@ -27,7 +27,7 @@ const AttributeBulkDeleteDialog: React.StatelessComponent<
     <DialogContentText
       dangerouslySetInnerHTML={{
         __html: i18n.t(
-          "Are you sure you want to remove <strong>{{ number }}</strong> attributes?",
+          "Are you sure you want to remove <strong>{{ quantity }}</strong> attributes?",
           {
             quantity
           }
