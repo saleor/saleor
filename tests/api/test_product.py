@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import graphene
@@ -10,6 +11,7 @@ from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
 
+from saleor.core.taxes import TaxType
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.graphql.product.types.products import resolve_attribute_list
@@ -663,7 +665,12 @@ def test_sort_products(user_api_client, product):
 
 
 def test_create_product(
-    staff_api_client, product_type, category, size_attribute, permission_manage_products
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    permission_manage_products,
+    monkeypatch,
 ):
     query = """
         mutation createProduct(
@@ -674,7 +681,7 @@ def test_create_product(
             $descriptionJson: JSONString!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $taxRate: TaxRateType!,
+            $taxRate: String!,
             $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productCreate(
@@ -698,7 +705,10 @@ def test_create_product(
                             descriptionJson
                             isPublished
                             chargeTaxes
-                            taxRate
+                            taxType {
+                                taxCode
+                                description
+                            }
                             name
                             basePrice {
                                 amount
@@ -732,6 +742,12 @@ def test_create_product(
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
     product_price = 22.33
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        "saleor.graphql.product.types.products.tax_interface.get_tax_from_object_meta",
+        lambda x: TaxType(description="", code=product_tax_rate),
+    )
 
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name="Color")
@@ -771,7 +787,7 @@ def test_create_product(
     assert data["product"]["descriptionJson"] == product_description_json
     assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
-    assert data["product"]["taxRate"] == product_tax_rate
+    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     values = (
@@ -980,6 +996,7 @@ def test_update_product(
     non_default_category,
     product,
     permission_manage_products,
+    monkeypatch,
 ):
     query = """
         mutation updateProduct(
@@ -989,7 +1006,7 @@ def test_update_product(
             $description: String!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $taxRate: TaxRateType!,
+            $taxRate: String!,
             $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
@@ -1011,7 +1028,10 @@ def test_update_product(
                             description
                             isPublished
                             chargeTaxes
-                            taxRate
+                            taxType {
+                                taxCode
+                                description
+                            }
                             name
                             basePrice {
                                 amount
@@ -1039,19 +1059,25 @@ def test_update_product(
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_description = "updated description"
     product_name = "updated name"
-    product_isPublished = True
-    product_chargeTaxes = True
-    product_taxRate = "STANDARD"
+    product_is_published = True
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
     product_price = "33.12"
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        "saleor.graphql.product.types.products.tax_interface.get_tax_from_object_meta",
+        lambda x: TaxType(description="", code=product_tax_rate),
+    )
 
     variables = {
         "productId": product_id,
         "categoryId": category_id,
         "name": product_name,
         "description": product_description,
-        "isPublished": product_isPublished,
-        "chargeTaxes": product_chargeTaxes,
-        "taxRate": product_taxRate,
+        "isPublished": product_is_published,
+        "chargeTaxes": product_charge_taxes,
+        "taxRate": product_tax_rate,
         "basePrice": product_price,
     }
 
@@ -1063,9 +1089,9 @@ def test_update_product(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["description"] == product_description
-    assert data["product"]["isPublished"] == product_isPublished
-    assert data["product"]["chargeTaxes"] == product_chargeTaxes
-    assert data["product"]["taxRate"] == product_taxRate
+    assert data["product"]["isPublished"] == product_is_published
+    assert data["product"]["chargeTaxes"] == product_charge_taxes
+    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
 
 
@@ -1944,18 +1970,14 @@ def test_report_product_sales(
     node_a = edges[0]["node"]
     line_a = order_with_lines.lines.get(product_sku=node_a["sku"])
     assert node_a["quantityOrdered"] == line_a.quantity
-    assert (
-        node_a["revenue"]["gross"]["amount"]
-        == line_a.quantity * line_a.unit_price_gross.amount
-    )
+    amount = str(node_a["revenue"]["gross"]["amount"])
+    assert Decimal(amount) == line_a.quantity * line_a.unit_price_gross.amount
 
     node_b = edges[1]["node"]
     line_b = order_with_lines.lines.get(product_sku=node_b["sku"])
     assert node_b["quantityOrdered"] == line_b.quantity
-    assert (
-        node_b["revenue"]["gross"]["amount"]
-        == line_b.quantity * line_b.unit_price_gross.amount
-    )
+    amount = str(node_b["revenue"]["gross"]["amount"])
+    assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross.amount
 
 
 def test_variant_revenue_permissions(
