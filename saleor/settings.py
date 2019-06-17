@@ -321,6 +321,8 @@ LOGGING = {
     },
 }
 
+INSTALLED_APPS.append("django_extensions")
+
 AUTH_USER_MODEL = "account.User"
 
 LOGIN_URL = "/account/login/"

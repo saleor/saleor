@@ -22,6 +22,7 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
+from ..core.fields import FilterableJSONBField
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils import build_absolute_uri
 from ..core.utils.taxes import apply_tax_to_price
@@ -133,7 +134,7 @@ class Product(SeoModel, PublishableModel):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
-    attributes = JSONField(default=dict, blank=True)
+    attributes = FilterableJSONBField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(max_length=128, blank=True, choices=TaxRateType.CHOICES)
@@ -242,7 +243,7 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
-    attributes = JSONField(default=dict, blank=True)
+    attributes = FilterableJSONBField(default=dict, blank=True)
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
     quantity = models.IntegerField(
