@@ -68,6 +68,12 @@ export default (colors: IThemeColors): Theme =>
           flexDirection: "row-reverse" as "row-reverse"
         }
       },
+      MuiCardContent: {
+        root: {
+          paddingLeft: 24,
+          paddingRight: 24
+        }
+      },
       MuiFilledInput: {
         root: {
           "&$disabled": {

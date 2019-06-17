@@ -102,24 +102,7 @@ export const TypedProductTypeCreateMutation = TypedMutation<
   ProductTypeCreateVariables
 >(productTypeCreateMutation);
 
-export const attributeCreateMutation = gql`
-  ${productTypeDetailsFragment}
-  mutation AttributeCreate(
-    $id: ID!
-    $input: AttributeCreateInput!
-    $type: AttributeTypeEnum!
-  ) {
-    attributeCreate(id: $id, input: $input, type: $type) {
-      errors {
-        field
-        message
-      }
-      productType {
-        ...ProductTypeDetailsFragment
-      }
-    }
-  }
-`;
+export const attributeCreateMutation = "";
 export const TypedAttributeCreateMutation = TypedMutation<
   AttributeCreate,
   AttributeCreateVariables
@@ -145,15 +128,11 @@ export const TypedAttributeUpdateMutation = TypedMutation<
 >(attributeUpdateMutation);
 
 export const attributeDeleteMutation = gql`
-  ${productTypeDetailsFragment}
   mutation AttributeDelete($id: ID!) {
     attributeDelete(id: $id) {
       errors {
         field
         message
-      }
-      productType {
-        ...ProductTypeDetailsFragment
       }
     }
   }
