@@ -233,6 +233,12 @@ export interface AddressInput {
   phone?: string | null;
 }
 
+export interface AttributeCreateInput {
+  name: string;
+  slug?: string | null;
+  values?: (AttributeValueCreateInput | null)[] | null;
+}
+
 export interface AttributeInput {
   slug: string;
   value: string;
