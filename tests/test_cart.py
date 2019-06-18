@@ -5,7 +5,6 @@ from uuid import uuid4
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
-from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -373,20 +372,6 @@ def test_add_to_checkout_form(checkout, product):
     assert not form.is_valid()
 
 
-def test_form_when_variant_does_not_exist():
-    checkout_lines = []
-    checkout = Mock(
-        add=lambda variant, quantity: checkout_lines.append(Mock()),
-        get_line=Mock(return_value=Mock(quantity=1)),
-    )
-
-    form = forms.AddToCheckoutForm(
-        data={"quantity": 1}, checkout=checkout, product=Mock()
-    )
-    form.get_variant = Mock(side_effect=ObjectDoesNotExist)
-    assert not form.is_valid()
-
-
 @pytest.mark.parametrize("track_inventory", (True, False))
 def test_add_to_checkout_form_when_insufficient_stock(product, track_inventory):
     variant = product.variants.first()
@@ -610,6 +595,28 @@ def test_update_view_must_be_ajax(customer_user, rf):
     request.discounts = None
     result = update_checkout_line(request, 1)
     assert result.status_code == 302
+
+
+def test_update_checkout_line_qunatity_zero(
+    request_checkout_with_item, client, product
+):
+    variant = product.variants.filter().first()
+    data = {"quantity": 0}
+    # response = client.post(API_PATH, data, content_type="application/json")
+    response = client.post(
+        reverse("checkout:update-line", kwargs={"variant_id": variant.id}),
+        data=data,
+        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+    )
+    assert response.status_code == 200
+    expected_response = {
+        "variantId": str(variant.id),
+        "subtotal": "$0.00",
+        "total": "$0.00",
+        "checkout": {"numItems": 0, "numLines": 0},
+    }
+    data = response.json()
+    assert data == expected_response
 
 
 def test_get_checkout_context(checkout_with_single_item, shipping_zone):

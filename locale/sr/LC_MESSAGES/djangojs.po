@@ -4,16 +4,16 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Bogdan Djukic <bogdan.djukic@yahoo.com>, 2018
+# Bogdan Đukić <bogdan.djukic@yahoo.com>, 2018
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-18 08:53-0600\n"
+"POT-Creation-Date: 2019-05-13 03:43-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Bogdan Djukic <bogdan.djukic@yahoo.com>, 2018\n"
+"Last-Translator: Bogdan Đukić <bogdan.djukic@yahoo.com>, 2018\n"
 "Language-Team: Serbian (https://www.transifex.com/mirumee/teams/34782/sr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -372,5 +372,5 @@ msgstr "Količina"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to cart"
+msgid "Add to checkout"
 msgstr ""

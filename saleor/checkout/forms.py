@@ -4,7 +4,7 @@ from typing import Any
 
 from django import forms
 from django.conf import settings
-from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist
+from django.core.exceptions import NON_FIELD_ERRORS
 from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import npgettext_lazy, pgettext_lazy
@@ -86,9 +86,8 @@ class AddToCheckoutForm(forms.Form):
         quantity = cleaned_data.get("quantity")
         if quantity is None:
             return cleaned_data
-        try:
-            variant = self.get_variant(cleaned_data)
-        except ObjectDoesNotExist:
+        variant = self.get_variant(cleaned_data)
+        if variant is None:
             self.add_error_i18n(NON_FIELD_ERRORS, "variant-does-not-exists")
         else:
             line = self.checkout.get_line(variant)

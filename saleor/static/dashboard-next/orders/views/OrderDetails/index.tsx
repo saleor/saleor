@@ -1,8 +1,10 @@
 import * as React from "react";
 
-import { WindowTitle } from "../../../components/WindowTitle";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useNavigator from "@saleor/hooks/useNavigator";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../../config";
+import SearchCustomers from "../../../containers/SearchCustomers";
 import { customerUrl } from "../../../customers/urls";
-import useNavigator from "../../../hooks/useNavigator";
 import { getMutationState, maybe, transformAddressToForm } from "../../../misc";
 import { productUrl } from "../../../products/urls";
 import { OrderStatus } from "../../../types/globalTypes";
@@ -23,9 +25,7 @@ import OrderPaymentVoidDialog from "../../components/OrderPaymentVoidDialog";
 import OrderProductAddDialog from "../../components/OrderProductAddDialog";
 import OrderShippingMethodEditDialog from "../../components/OrderShippingMethodEditDialog";
 import OrderOperations from "../../containers/OrderOperations";
-import { OrderVariantSearchProvider } from "../../containers/OrderVariantSearch";
-import { UserSearchProvider } from "../../containers/UserSearch";
-import { TypedOrderDetailsQuery } from "../../queries";
+import { SearchOrderVariant, TypedOrderDetailsQuery } from "../../queries";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import {
   orderListUrl,
@@ -92,8 +92,8 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
             })
           );
         return (
-          <UserSearchProvider>
-            {users => (
+          <SearchCustomers variables={DEFAULT_INITIAL_SEARCH_DATA}>
+            {({ search: searchUsers, result: users }) => (
               <OrderDetailsMessages>
                 {orderMessages => (
                   <OrderOperations
@@ -400,13 +400,13 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                 }
                                 users={maybe(
                                   () =>
-                                    users.searchOpts.data.customers.edges.map(
+                                    users.data.customers.edges.map(
                                       edge => edge.node
                                     ),
                                   []
                                 )}
-                                fetchUsers={users.search}
-                                usersLoading={users.searchOpts.loading}
+                                fetchUsers={searchUsers}
+                                usersLoading={users.loading}
                                 onCustomerEdit={data =>
                                   orderDraftUpdate.mutate({
                                     id,
@@ -507,12 +507,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   })
                                 }
                               />
-                              <OrderVariantSearchProvider>
+                              <SearchOrderVariant
+                                variables={DEFAULT_INITIAL_SEARCH_DATA}
+                              >
                                 {({
-                                  variants: {
-                                    search: variantSearch,
-                                    searchOpts: variantSearchOpts
-                                  }
+                                  search: variantSearch,
+                                  result: variantSearchOpts
                                 }) => {
                                   const fetchMore = () =>
                                     variantSearchOpts.loadMore(
@@ -581,7 +581,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     />
                                   );
                                 }}
-                              </OrderVariantSearchProvider>
+                              </SearchOrderVariant>
                             </>
                           )}
                           <OrderAddressEditDialog
@@ -663,7 +663,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                 )}
               </OrderDetailsMessages>
             )}
-          </UserSearchProvider>
+          </SearchCustomers>
         );
       }}
     </TypedOrderDetailsQuery>

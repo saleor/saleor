@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -17,8 +19,19 @@ from ...core.enums import TaxRateType
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
-from ...core.utils import clean_seo_fields, validate_image_file
-from ..types import Category, Collection, Product, ProductImage, ProductVariant
+from ...core.utils import (
+    clean_seo_fields,
+    from_global_id_strict_type,
+    validate_image_file,
+)
+from ..types import (
+    Category,
+    Collection,
+    MoveProductInput,
+    Product,
+    ProductImage,
+    ProductVariant,
+)
 from ..utils import attributes_to_hstore
 
 
@@ -190,6 +203,76 @@ class CollectionDelete(ModelDeleteMutation):
         description = "Deletes a collection."
         model = models.Collection
         permissions = ("product.manage_products",)
+
+
+class CollectionReorderProducts(BaseMutation):
+    collection = graphene.Field(
+        Collection, description="Collection from which products are reordered."
+    )
+
+    class Meta:
+        description = "Reorder the products of a collection"
+        permissions = ("product.manage_products",)
+
+    class Arguments:
+        collection_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of a collection."
+        )
+        moves = graphene.List(
+            MoveProductInput,
+            required=True,
+            description="The collection products position operations.",
+        )
+
+    @classmethod
+    def get_operations(
+        cls, info, collection_id: int, moves: List[MoveProductInput]
+    ) -> List[Tuple[models.CollectionProduct, int]]:
+        operations = []
+        current_rel_pos = None
+
+        for move_info in moves:
+            product_id = from_global_id_strict_type(
+                info, move_info.product_id, only_type=Product, field="moves"
+            )
+
+            try:
+                node = models.CollectionProduct.objects.get(
+                    product_id=product_id, collection_id=collection_id
+                )
+            except models.CollectionProduct.DoesNotExist:
+                raise ValidationError(
+                    {"moves": "Couldn't resolve to a product: %s" % product_id}
+                )
+
+            if current_rel_pos is None:
+                # This case happens when products created using a bulk_creation
+                # e.g., bulk_create or collections.add
+                if node.sort_order is None:
+                    current_rel_pos = (
+                        node.get_max_sort_order(node.get_ordering_queryset()) or 0
+                    )
+                else:
+                    current_rel_pos = node.sort_order
+            else:
+                current_rel_pos += 1
+
+            sort_position = max(0, current_rel_pos + move_info.sort_order)
+            operations.append((node, sort_position))
+
+        return operations
+
+    @classmethod
+    def perform_mutation(cls, _root, info, collection_id, moves):
+        collection = cls.get_node_or_error(
+            info, collection_id, field="collection_id", only_type=Collection
+        )
+
+        for node, new_position in cls.get_operations(info, collection.id, moves):
+            node.sort_order = new_position
+            node.save(update_fields=["sort_order"])
+
+        return CollectionReorderProducts(collection=collection)
 
 
 class CollectionAddProducts(BaseMutation):
@@ -523,7 +606,9 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        attributes = instance.product.product_type.variant_attributes.all()
+        attributes = instance.product.product_type.variant_attributes.prefetch_related(
+            "values__translations"
+        )
         instance.name = get_name_from_attributes(instance, attributes)
         instance.save()
 

@@ -12,13 +12,13 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
-import Date from "../../../components/Date";
-import Money from "../../../components/Money";
-import Percent from "../../../components/Percent";
-import Skeleton from "../../../components/Skeleton";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import Checkbox from "@saleor/components/Checkbox";
+import Date from "@saleor/components/Date";
+import Money from "@saleor/components/Money";
+import Percent from "@saleor/components/Percent";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
@@ -163,10 +163,7 @@ const VoucherList = withStyles(styles, {
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(voucher.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(voucher.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>

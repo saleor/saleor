@@ -31,6 +31,7 @@ from saleor.product.utils import (
 )
 from saleor.product.utils.attributes import get_product_attributes_data
 from saleor.product.utils.availability import get_product_availability_status
+from saleor.product.utils.costs import get_margin_for_variant
 from saleor.product.utils.digital_products import increment_download_count
 from saleor.product.utils.variants_picker import get_variant_picker_data
 
@@ -207,6 +208,19 @@ def test_view_invalid_add_to_checkout(client, product, request_checkout):
     )
     assert response.status_code == 200
     assert request_checkout.quantity == 2
+
+
+def test_view_add_to_checkout_invalid_variant(client, product, request_checkout):
+    response = client.post(
+        reverse(
+            "product:add-to-checkout",
+            kwargs={"slug": product.get_slug(), "product_id": product.pk},
+        ),
+        {"variant": 1234, "quantity": 1},
+        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+    )
+    assert response.status_code == 400
+    assert request_checkout.quantity == 0
 
 
 def test_view_add_to_checkout(authorized_client, product, user_checkout):
@@ -836,3 +850,12 @@ def test_variant_picker_data_price_range(product_type, taxes, category):
 
     assert min_price == start
     assert max_price == stop
+
+
+@pytest.mark.parametrize(
+    "price, cost", [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)]
+)
+def test_costs_get_margin_for_variant(variant, price, cost):
+    variant.cost_price = cost
+    variant.price_override = price
+    assert not get_margin_for_variant(variant)

@@ -5,7 +5,7 @@ from django.db.models import F, Max, Q
 
 
 class SortableModel(models.Model):
-    sort_order = models.PositiveIntegerField(editable=False, db_index=True)
+    sort_order = models.PositiveIntegerField(editable=False, db_index=True, null=True)
 
     class Meta:
         abstract = True
@@ -13,11 +13,15 @@ class SortableModel(models.Model):
     def get_ordering_queryset(self):
         raise NotImplementedError("Unknown ordering queryset")
 
+    def get_max_sort_order(self, qs):
+        existing_max = qs.aggregate(Max("sort_order"))
+        existing_max = existing_max.get("sort_order__max")
+        return existing_max
+
     def save(self, *args, **kwargs):
         if self.sort_order is None:
             qs = self.get_ordering_queryset()
-            existing_max = qs.aggregate(Max("sort_order"))
-            existing_max = existing_max.get("sort_order__max")
+            existing_max = self.get_max_sort_order(qs)
             self.sort_order = 0 if existing_max is None else existing_max + 1
         super().save(*args, **kwargs)
 

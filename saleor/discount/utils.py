@@ -1,5 +1,3 @@
-import uuid
-
 from django.db.models import F
 from django.utils.translation import pgettext
 
@@ -87,8 +85,3 @@ def get_products_voucher_discount(voucher, prices):
     discounts = (voucher.get_discount_amount_for(price) for price in prices)
     total_amount = sum(discounts, ZERO_MONEY)
     return total_amount
-
-
-def generate_voucher_code():
-    """Generate new unique voucher code."""
-    return str(uuid.uuid4()).replace("-", "").upper()[:12]

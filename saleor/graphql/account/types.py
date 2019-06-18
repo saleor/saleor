@@ -11,7 +11,8 @@ from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import CountryDisplay, Image, PermissionDisplay, get_node_optimized
+from ..core.types import CountryDisplay, Image, PermissionDisplay
+from ..core.utils import get_node_optimized
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum
 
@@ -60,40 +61,43 @@ class Address(CountableDjangoObjectType):
             "street_address_2",
         ]
 
-    def resolve_country(self, _info):
-        return CountryDisplay(code=self.country.code, country=self.country.name)
+    @staticmethod
+    def resolve_country(root: models.Address, _info):
+        return CountryDisplay(code=root.country.code, country=root.country.name)
 
-    def resolve_is_default_shipping_address(self, _info):
+    @staticmethod
+    def resolve_is_default_shipping_address(root: models.Address, _info):
         """
         This field is added through annotation when using the
         `resolve_addresses` resolver. It's invalid for
         `resolve_default_shipping_address` and
         `resolve_default_billing_address`
         """
-        if not hasattr(self, "user_default_shipping_address_pk"):
+        if not hasattr(root, "user_default_shipping_address_pk"):
             return None
 
         user_default_shipping_address_pk = getattr(
-            self, "user_default_shipping_address_pk"
+            root, "user_default_shipping_address_pk"
         )
-        if user_default_shipping_address_pk == self.pk:
+        if user_default_shipping_address_pk == root.pk:
             return True
         return False
 
-    def resolve_is_default_billing_address(self, _info):
+    @staticmethod
+    def resolve_is_default_billing_address(root: models.Address, _info):
         """
         This field is added through annotation when using the
         `resolve_addresses` resolver. It's invalid for
         `resolve_default_shipping_address` and
         `resolve_default_billing_address`
         """
-        if not hasattr(self, "user_default_billing_address_pk"):
+        if not hasattr(root, "user_default_billing_address_pk"):
             return None
 
         user_default_billing_address_pk = getattr(
-            self, "user_default_billing_address_pk"
+            root, "user_default_billing_address_pk"
         )
-        if user_default_billing_address_pk == self.pk:
+        if user_default_billing_address_pk == root.pk:
             return True
         return False
 
@@ -127,19 +131,19 @@ class CustomerEvent(CountableDjangoObjectType):
         only_fields = ["id"]
 
     @staticmethod
-    def resolve_message(node, _info):
-        return node.parameters.get("message", None)
+    def resolve_message(root: models.CustomerEvent, _info):
+        return root.parameters.get("message", None)
 
     @staticmethod
-    def resolve_count(node, _info):
-        return node.parameters.get("count", None)
+    def resolve_count(root: models.CustomerEvent, _info):
+        return root.parameters.get("count", None)
 
     @staticmethod
-    def resolve_order_line(node, info):
-        if "order_line_pk" in node.parameters:
+    def resolve_order_line(root: models.CustomerEvent, info):
+        if "order_line_pk" in root.parameters:
             try:
                 qs = order_models.OrderLine.objects
-                order_line_pk = node.parameters["order_line_pk"]
+                order_line_pk = root.parameters["order_line_pk"]
                 return get_node_optimized(qs, {"pk": order_line_pk}, info)
             except order_models.OrderLine.DoesNotExist:
                 pass
@@ -153,6 +157,13 @@ class User(CountableDjangoObjectType):
     )
     checkout = graphene.Field(
         Checkout, description="Returns the last open checkout of this user."
+    )
+    gift_cards = gql_optimizer.field(
+        PrefetchingConnectionField(
+            "saleor.graphql.giftcard.types.GiftCard",
+            description="List of the user gift cards.",
+        ),
+        model_field="gift_cards",
     )
     note = graphene.String(description="A note about the customer")
     orders = gql_optimizer.field(
@@ -191,39 +202,50 @@ class User(CountableDjangoObjectType):
             "token",
         ]
 
-    def resolve_addresses(self, _info, **_kwargs):
-        return self.addresses.annotate_default(self).all()
+    @staticmethod
+    def resolve_addresses(root: models.User, _info, **_kwargs):
+        return root.addresses.annotate_default(root).all()
 
-    def resolve_checkout(self, _info, **_kwargs):
-        return get_user_checkout(self)
+    @staticmethod
+    def resolve_checkout(root: models.User, _info, **_kwargs):
+        return get_user_checkout(root)
 
-    def resolve_permissions(self, _info, **_kwargs):
-        if self.is_superuser:
+    @staticmethod
+    def resolve_gift_cards(root: models.User, info, **_kwargs):
+        return root.gift_cards.all()
+
+    @staticmethod
+    def resolve_permissions(root: models.User, _info, **_kwargs):
+        if root.is_superuser:
             permissions = get_permissions()
         else:
-            permissions = self.user_permissions.prefetch_related(
+            permissions = root.user_permissions.prefetch_related(
                 "content_type"
             ).order_by("codename")
         return format_permissions_for_display(permissions)
 
+    @staticmethod
     @permission_required("account.manage_users")
-    def resolve_note(self, _info):
-        return self.note
+    def resolve_note(root: models.User, _info):
+        return root.note
 
+    @staticmethod
     @permission_required("account.manage_users")
-    def resolve_events(self, _info):
-        return self.events.all()
+    def resolve_events(root: models.User, _info):
+        return root.events.all()
 
-    def resolve_orders(self, info, **_kwargs):
+    @staticmethod
+    def resolve_orders(root: models.User, info, **_kwargs):
         viewer = info.context.user
         if viewer.has_perm("order.manage_orders"):
-            return self.orders.all()
-        return self.orders.confirmed()
+            return root.orders.all()
+        return root.orders.confirmed()
 
-    def resolve_avatar(self, info, size=None, **_kwargs):
-        if self.avatar:
+    @staticmethod
+    def resolve_avatar(root: models.User, info, size=None, **_kwargs):
+        if root.avatar:
             return Image.get_adjusted(
-                image=self.avatar,
+                image=root.avatar,
                 alt=None,
                 size=size,
                 rendition_key_set="user_avatars",

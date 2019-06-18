@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
@@ -12,12 +13,14 @@ from ..forms import CheckoutNoteForm
 from ..utils import (
     create_order,
     get_checkout_context,
+    prepare_order_data,
     update_billing_address_in_anonymous_checkout,
     update_billing_address_in_checkout,
     update_billing_address_in_checkout_with_shipping,
 )
 
 
+@transaction.atomic()
 def _handle_order_placement(request, checkout):
     """Try to create an order and redirect the user as necessary.
 
@@ -26,11 +29,11 @@ def _handle_order_placement(request, checkout):
     and creating order history events.
     """
     try:
-        order = create_order(
+        # Run checks an prepare the data for order creation
+        order_data = prepare_order_data(
             checkout=checkout,
             tracking_code=analytics.get_client_id(request),
             discounts=request.discounts,
-            user=request.user,
         )
     except InsufficientStock:
         return redirect("checkout:index")
@@ -47,6 +50,12 @@ def _handle_order_placement(request, checkout):
             ),
         )
         return redirect("checkout:summary")
+
+    # Push the order data into the database
+    order = create_order(checkout=checkout, order_data=order_data, user=request.user)
+
+    # remove checkout after order is created
+    checkout.delete()
 
     # Redirect the user to the payment page
     return redirect("order:payment", token=order.token)

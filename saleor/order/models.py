@@ -20,6 +20,7 @@ from ..core.taxes import ZERO_TAXED_MONEY, zero_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
+from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
@@ -126,6 +127,7 @@ class Order(models.Model):
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
+    gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
     discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,

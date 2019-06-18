@@ -10,6 +10,7 @@ from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
+from ..giftcard.types import GiftCard
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -60,40 +61,51 @@ class OrderEvent(CountableDjangoObjectType):
         interfaces = [relay.Node]
         only_fields = ["id"]
 
-    def resolve_email(self, _info):
-        return self.parameters.get("email", None)
+    @staticmethod
+    def resolve_email(root: models.OrderEvent, _info):
+        return root.parameters.get("email", None)
 
-    def resolve_email_type(self, _info):
-        return self.parameters.get("email_type", None)
+    @staticmethod
+    def resolve_email_type(root: models.OrderEvent, _info):
+        return root.parameters.get("email_type", None)
 
-    def resolve_amount(self, _info):
-        amount = self.parameters.get("amount", None)
+    @staticmethod
+    def resolve_amount(root: models.OrderEvent, _info):
+        amount = root.parameters.get("amount", None)
         return float(amount) if amount else None
 
-    def resolve_payment_id(self, _info):
-        return self.parameters.get("payment_id", None)
+    @staticmethod
+    def resolve_payment_id(root: models.OrderEvent, _info):
+        return root.parameters.get("payment_id", None)
 
-    def resolve_payment_gateway(self, _info):
-        return self.parameters.get("payment_gateway", None)
+    @staticmethod
+    def resolve_payment_gateway(root: models.OrderEvent, _info):
+        return root.parameters.get("payment_gateway", None)
 
-    def resolve_quantity(self, _info):
-        quantity = self.parameters.get("quantity", None)
+    @staticmethod
+    def resolve_quantity(root: models.OrderEvent, _info):
+        quantity = root.parameters.get("quantity", None)
         return int(quantity) if quantity else None
 
-    def resolve_message(self, _info):
-        return self.parameters.get("message", None)
+    @staticmethod
+    def resolve_message(root: models.OrderEvent, _info):
+        return root.parameters.get("message", None)
 
-    def resolve_composed_id(self, _info):
-        return self.parameters.get("composed_id", None)
+    @staticmethod
+    def resolve_composed_id(root: models.OrderEvent, _info):
+        return root.parameters.get("composed_id", None)
 
-    def resolve_oversold_items(self, _info):
-        return self.parameters.get("oversold_items", None)
+    @staticmethod
+    def resolve_oversold_items(root: models.OrderEvent, _info):
+        return root.parameters.get("oversold_items", None)
 
-    def resolve_order_number(self, _info):
-        return self.order_id
+    @staticmethod
+    def resolve_order_number(root: models.OrderEvent, _info):
+        return root.order_id
 
-    def resolve_lines(self, _info):
-        raw_lines = self.parameters.get("lines", None)
+    @staticmethod
+    def resolve_lines(root: models.OrderEvent, _info):
+        raw_lines = root.parameters.get("lines", None)
 
         if not raw_lines:
             return None
@@ -120,8 +132,9 @@ class OrderEvent(CountableDjangoObjectType):
 
         return results
 
-    def resolve_fulfilled_items(self, _info):
-        lines = self.parameters.get("fulfilled_items", None)
+    @staticmethod
+    def resolve_fulfilled_items(root: models.OrderEvent, _info):
+        lines = root.parameters.get("fulfilled_items", None)
         return models.FulfillmentLine.objects.filter(pk__in=lines)
 
 
@@ -134,9 +147,10 @@ class FulfillmentLine(CountableDjangoObjectType):
         model = models.FulfillmentLine
         only_fields = ["id", "quantity"]
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="order_line")
-    def resolve_order_line(self, _info):
-        return self.order_line
+    def resolve_order_line(root: models.FulfillmentLine, _info):
+        return root.order_line
 
 
 class Fulfillment(CountableDjangoObjectType):
@@ -158,18 +172,20 @@ class Fulfillment(CountableDjangoObjectType):
             "tracking_number",
         ]
 
-    def resolve_lines(self, _info):
-        return self.lines.all()
+    @staticmethod
+    def resolve_lines(root: models.Fulfillment, _info):
+        return root.lines.all()
 
-    def resolve_status_display(self, _info):
-        return self.get_status_display()
+    @staticmethod
+    def resolve_status_display(root: models.Fulfillment, _info):
+        return root.get_status_display()
 
 
 class OrderLine(CountableDjangoObjectType):
     thumbnail_url = graphene.String(
         description="The URL of a main thumbnail for the ordered product.",
         size=graphene.Int(description="Size of the image"),
-        deprecation_reason=("thumbnailUrl is deprecated, use thumbnail instead"),
+        deprecation_reason="thumbnailUrl is deprecated, use thumbnail instead",
     )
     thumbnail = graphene.Field(
         Image,
@@ -203,34 +219,37 @@ class OrderLine(CountableDjangoObjectType):
             "translated_product_name",
         ]
 
+    @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=["variant__images", "variant__product__images"]
     )
-    def resolve_thumbnail_url(self, info, size=None):
-        if not self.variant_id:
+    def resolve_thumbnail_url(root: models.OrderLine, info, size=None):
+        if not root.variant_id:
             return None
         if not size:
             size = 255
         url = get_product_image_thumbnail(
-            self.variant.get_first_image(), size, method="thumbnail"
+            root.variant.get_first_image(), size, method="thumbnail"
         )
         return info.context.build_absolute_uri(url)
 
+    @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=["variant__images", "variant__product__images"]
     )
-    def resolve_thumbnail(self, info, *, size=None):
-        if not self.variant_id:
+    def resolve_thumbnail(root: models.OrderLine, info, *, size=None):
+        if not root.variant_id:
             return None
         if not size:
             size = 255
-        image = self.variant.get_first_image()
+        image = root.variant.get_first_image()
         url = get_product_image_thumbnail(image, size, method="thumbnail")
         alt = image.alt if image else None
         return Image(alt=alt, url=info.context.build_absolute_uri(url))
 
-    def resolve_unit_price(self, _info):
-        return self.unit_price
+    @staticmethod
+    def resolve_unit_price(root: models.OrderLine, _info):
+        return root.unit_price
 
 
 class Order(CountableDjangoObjectType):
@@ -271,6 +290,10 @@ class Order(CountableDjangoObjectType):
     shipping_price = graphene.Field(TaxedMoney, description="Total price of shipping.")
     subtotal = graphene.Field(
         TaxedMoney, description="The sum of line prices not including shipping."
+    )
+    gift_cards = gql_optimizer.field(
+        graphene.List(GiftCard, description="List of userd gift cards"),
+        model_field="gift_cards",
     )
     status_display = graphene.String(description="User-friendly order status.")
     can_finalize = graphene.Boolean(
@@ -314,6 +337,7 @@ class Order(CountableDjangoObjectType):
             "discount_amount",
             "discount_name",
             "display_gross_prices",
+            "gift_cards",
             "id",
             "language_code",
             "shipping_address",
@@ -329,94 +353,118 @@ class Order(CountableDjangoObjectType):
             "weight",
         ]
 
-    def resolve_shipping_price(self, _info):
-        return self.shipping_price
+    @staticmethod
+    def resolve_shipping_price(root: models.Order, _info):
+        return root.shipping_price
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="payments__transactions")
-    def resolve_actions(self, _info):
+    def resolve_actions(root: models.Order, _info):
         actions = []
-        payment = self.get_last_payment()
-        if self.can_capture(payment):
+        payment = root.get_last_payment()
+        if root.can_capture(payment):
             actions.append(OrderAction.CAPTURE)
-        if self.can_mark_as_paid():
+        if root.can_mark_as_paid():
             actions.append(OrderAction.MARK_AS_PAID)
-        if self.can_refund(payment):
+        if root.can_refund(payment):
             actions.append(OrderAction.REFUND)
-        if self.can_void(payment):
+        if root.can_void(payment):
             actions.append(OrderAction.VOID)
         return actions
 
-    def resolve_subtotal(self, _info):
-        return self.get_subtotal()
+    @staticmethod
+    def resolve_subtotal(root: models.Order, _info):
+        return root.get_subtotal()
 
-    def resolve_total(self, _info):
-        return self.total
+    @staticmethod
+    def resolve_total(root: models.Order, _info):
+        return root.total
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="payments__transactions")
-    def resolve_total_authorized(self, _info):
+    def resolve_total_authorized(root: models.Order, _info):
         # FIXME adjust to multiple payments in the future
-        return self.total_authorized
+        return root.total_authorized
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="payments")
-    def resolve_total_captured(self, _info):
+    def resolve_total_captured(root: models.Order, _info):
         # FIXME adjust to multiple payments in the future
-        return self.total_captured
+        return root.total_captured
 
-    def resolve_total_balance(self, _info):
-        return self.total_balance
+    @staticmethod
+    def resolve_total_balance(root: models.Order, _info):
+        return root.total_balance
 
-    def resolve_fulfillments(self, info):
+    @staticmethod
+    def resolve_fulfillments(root: models.Order, info):
         user = info.context.user
         if user.is_staff:
-            qs = self.fulfillments.all()
+            qs = root.fulfillments.all()
         else:
-            qs = self.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
+            qs = root.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
         return qs.order_by("pk")
 
-    def resolve_lines(self, _info):
-        return self.lines.all().order_by("pk")
+    @staticmethod
+    def resolve_lines(root: models.Order, _info):
+        return root.lines.all().order_by("pk")
 
-    def resolve_events(self, _info):
-        return self.events.all().order_by("pk")
+    @staticmethod
+    def resolve_events(root: models.Order, _info):
+        return root.events.all().order_by("pk")
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="payments")
-    def resolve_is_paid(self, _info):
-        return self.is_fully_paid()
+    def resolve_is_paid(root: models.Order, _info):
+        return root.is_fully_paid()
 
-    def resolve_number(self, _info):
-        return str(self.pk)
+    @staticmethod
+    def resolve_number(root: models.Order, _info):
+        return str(root.pk)
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="payments")
-    def resolve_payment_status(self, _info):
-        return self.get_payment_status()
+    def resolve_payment_status(root: models.Order, _info):
+        return root.get_payment_status()
 
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="payments")
-    def resolve_payment_status_display(self, _info):
-        return self.get_payment_status_display()
+    def resolve_payment_status_display(root: models.Order, _info):
+        return root.get_payment_status_display()
 
-    def resolve_payments(self, _info):
-        return self.payments.all()
+    @staticmethod
+    def resolve_payments(root: models.Order, _info):
+        return root.payments.all()
 
-    def resolve_status_display(self, _info):
-        return self.get_status_display()
+    @staticmethod
+    def resolve_status_display(root: models.Order, _info):
+        return root.get_status_display()
 
-    def resolve_can_finalize(self, _info):
+    @staticmethod
+    def resolve_can_finalize(root: models.Order, _info):
         try:
-            validate_draft_order(self)
+            validate_draft_order(root)
         except ValidationError:
             return False
         return True
 
+    @staticmethod
     @gql_optimizer.resolver_hints(select_related="user")
-    def resolve_user_email(self, _info):
-        if self.user_email:
-            return self.user_email
-        if self.user_id:
-            return self.user.email
+    def resolve_user_email(root: models.Order, _info):
+        if root.user_email:
+            return root.user_email
+        if root.user_id:
+            return root.user.email
         return None
 
-    def resolve_available_shipping_methods(self, _info):
-        return applicable_shipping_methods(self, self.get_subtotal().gross.amount)
+    @staticmethod
+    def resolve_available_shipping_methods(root: models.Order, _info):
+        return applicable_shipping_methods(root, root.get_subtotal().gross.amount)
 
-    def resolve_is_shipping_required(self, _info):
-        return self.is_shipping_required()
+    @staticmethod
+    def resolve_is_shipping_required(root: models.Order, _info):
+        return root.is_shipping_required()
+
+    @staticmethod
+    def resolve_gift_cards(root: models.Order, _info):
+        return root.gift_cards.all()

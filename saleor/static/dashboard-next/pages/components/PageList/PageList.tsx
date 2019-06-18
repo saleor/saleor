@@ -12,11 +12,11 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import Checkbox from "../../../components/Checkbox";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
-import TableHead from "../../../components/TableHead";
-import TablePagination from "../../../components/TablePagination";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
@@ -109,10 +109,7 @@ const PageList = withStyles(styles, { name: "PageList" })(
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(page.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(page.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colTitle}>

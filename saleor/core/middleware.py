@@ -70,9 +70,6 @@ django_auth_middleware = django_only_middleware(
 django_csrf_view_middleware = django_only_middleware(
     django.middleware.csrf.CsrfViewMiddleware
 )
-django_common_middleware = django_only_middleware(
-    django.middleware.common.CommonMiddleware
-)
 django_security_middleware = django_only_middleware(
     django.middleware.security.SecurityMiddleware
 )
