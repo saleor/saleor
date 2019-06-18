@@ -3,10 +3,24 @@ import * as React from "react";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "@saleor/i18n";
-import { maybe } from "@saleor/misc";
+import { getMutationState, maybe } from "@saleor/misc";
 import AttributeDeleteDialog from "../../components/AttributeDeleteDialog";
 import AttributePage from "../../components/AttributePage";
+import AttributeValueDeleteDialog from "../../components/AttributeValueDeleteDialog";
+import AttributeValueEditDialog from "../../components/AttributeValueEditDialog";
+import {
+  AttributeDeleteMutation,
+  AttributeUpdateMutation,
+  AttributeValueCreateMutation,
+  AttributeValueDeleteMutation,
+  AttributeValueUpdateMutation
+} from "../../mutations";
 import { AttributeDetailsQuery } from "../../queries";
+import { AttributeDelete } from "../../types/AttributeDelete";
+import { AttributeUpdate } from "../../types/AttributeUpdate";
+import { AttributeValueCreate } from "../../types/AttributeValueCreate";
+import { AttributeValueDelete } from "../../types/AttributeValueDelete";
+import { AttributeValueUpdate } from "../../types/AttributeValueUpdate";
 import {
   attributeListUrl,
   attributeUrl,
@@ -27,49 +41,232 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
     navigate(
       attributeUrl(id, {
         ...params,
-        action: undefined
+        action: undefined,
+        id: undefined,
+        ids: undefined
       }),
       true
     );
 
-  const openModal = (action: AttributeUrlDialog) =>
+  const openModal = (action: AttributeUrlDialog, valueId?: string) =>
     navigate(
       attributeUrl(id, {
         ...params,
-        action
+        action,
+        id: valueId
       })
     );
 
-  const handleDelete = () => {
-    notify({ text: i18n.t("Product removed") });
-    navigate(attributeListUrl());
+  const handleDelete = (data: AttributeDelete) => {
+    if (data.attributeDelete.errors.length === 0) {
+      notify({ text: i18n.t("Attribute removed") });
+      navigate(attributeListUrl());
+    }
   };
-  const handleUpdate = () => notify({ text: i18n.t("Saved changes") });
+  const handleValueDelete = (data: AttributeValueDelete) => {
+    if (data.attributeValueDelete.errors.length === 0) {
+      notify({ text: i18n.t("Value removed") });
+      closeModal();
+    }
+  };
+  const handleUpdate = (data: AttributeUpdate) => {
+    if (data.attributeUpdate.errors.length === 0) {
+      notify({ text: i18n.t("Saved changes") });
+    }
+  };
+  const handleValueUpdate = (data: AttributeValueUpdate) => {
+    if (data.attributeValueUpdate.errors.length === 0) {
+      notify({ text: i18n.t("Saved changes") });
+      closeModal();
+    }
+  };
+  const handleValueCreate = (data: AttributeValueCreate) => {
+    if (data.attributeValueCreate.errors.length === 0) {
+      notify({ text: i18n.t("Added new value") });
+      closeModal();
+    }
+  };
 
   return (
     <AttributeDetailsQuery variables={{ id }}>
       {({ data, loading }) => (
-        <>
-          <AttributePage
-            attribute={maybe(() => data.attribute)}
-            disabled={loading}
-            onBack={() => navigate(attributeListUrl())}
-            onDelete={() => openModal("remove")}
-            onSubmit={() => undefined}
-            onValueAdd={() => openModal("add-value")}
-            onValueDelete={() => openModal("remove-value")}
-            onValueUpdate={() => openModal("edit-value")}
-            saveButtonBarState={"default"}
-            values={maybe(() => data.attribute.values)}
-          />
-          <AttributeDeleteDialog
-            open={params.action === "remove"}
-            name={maybe(() => data.attribute.name, "...")}
-            confirmButtonState="default"
-            onClose={closeModal}
-            onConfirm={() => undefined}
-          />
-        </>
+        <AttributeDeleteMutation onCompleted={handleDelete}>
+          {(attributeDelete, attributeDeleteOpts) => (
+            <AttributeValueDeleteMutation onCompleted={handleValueDelete}>
+              {(attributeValueDelete, attributeValueDeleteOpts) => (
+                <AttributeUpdateMutation onCompleted={handleUpdate}>
+                  {(attributeUpdate, attributeUpdateOpts) => (
+                    <AttributeValueUpdateMutation
+                      onCompleted={handleValueUpdate}
+                    >
+                      {(attributeValueUpdate, attributeValueUpdateOpts) => (
+                        <AttributeValueCreateMutation
+                          onCompleted={handleValueCreate}
+                        >
+                          {(attributeValueCreate, attributeValueCreateOpts) => {
+                            const deleteTransitionState = getMutationState(
+                              attributeDeleteOpts.called,
+                              attributeDeleteOpts.loading,
+                              maybe(
+                                () =>
+                                  attributeDeleteOpts.data.attributeDelete
+                                    .errors
+                              )
+                            );
+                            const deleteValueTransitionState = getMutationState(
+                              attributeValueDeleteOpts.called,
+                              attributeValueDeleteOpts.loading,
+                              maybe(
+                                () =>
+                                  attributeValueDeleteOpts.data
+                                    .attributeValueDelete.errors
+                              )
+                            );
+                            const updateTransitionState = getMutationState(
+                              attributeUpdateOpts.called,
+                              attributeUpdateOpts.loading,
+                              maybe(
+                                () =>
+                                  attributeUpdateOpts.data.attributeUpdate
+                                    .errors
+                              )
+                            );
+                            const updateValueTransitionState = getMutationState(
+                              attributeValueUpdateOpts.called,
+                              attributeValueUpdateOpts.loading,
+                              maybe(
+                                () =>
+                                  attributeValueUpdateOpts.data
+                                    .attributeValueUpdate.errors
+                              )
+                            );
+                            const createValueTransitionState = getMutationState(
+                              attributeValueCreateOpts.called,
+                              attributeValueCreateOpts.loading,
+                              maybe(
+                                () =>
+                                  attributeValueCreateOpts.data
+                                    .attributeValueCreate.errors
+                              )
+                            );
+
+                            return (
+                              <>
+                                <AttributePage
+                                  attribute={maybe(() => data.attribute)}
+                                  disabled={loading}
+                                  onBack={() => navigate(attributeListUrl())}
+                                  onDelete={() => openModal("remove")}
+                                  onSubmit={input =>
+                                    attributeUpdate({
+                                      variables: {
+                                        id,
+                                        input
+                                      }
+                                    })
+                                  }
+                                  onValueAdd={() => openModal("add-value")}
+                                  onValueDelete={id =>
+                                    openModal("remove-value", id)
+                                  }
+                                  onValueUpdate={id =>
+                                    openModal("edit-value", id)
+                                  }
+                                  saveButtonBarState={updateTransitionState}
+                                  values={maybe(() => data.attribute.values)}
+                                />
+                                <AttributeDeleteDialog
+                                  open={params.action === "remove"}
+                                  name={maybe(() => data.attribute.name, "...")}
+                                  confirmButtonState={deleteTransitionState}
+                                  onClose={closeModal}
+                                  onConfirm={() =>
+                                    attributeDelete({
+                                      variables: {
+                                        id
+                                      }
+                                    })
+                                  }
+                                />
+                                <AttributeValueDeleteDialog
+                                  open={params.action === "remove-value"}
+                                  name={maybe(
+                                    () =>
+                                      data.attribute.values.find(
+                                        value => params.id === value.id
+                                      ).name,
+                                    "..."
+                                  )}
+                                  confirmButtonState={
+                                    deleteValueTransitionState
+                                  }
+                                  onClose={closeModal}
+                                  onConfirm={() =>
+                                    attributeValueDelete({
+                                      variables: {
+                                        id: params.id
+                                      }
+                                    })
+                                  }
+                                />
+                                <AttributeValueEditDialog
+                                  attributeValue={null}
+                                  confirmButtonState={
+                                    createValueTransitionState
+                                  }
+                                  disabled={loading}
+                                  open={params.action === "add-value"}
+                                  onClose={closeModal}
+                                  onSubmit={input =>
+                                    attributeValueCreate({
+                                      variables: {
+                                        id,
+                                        input: {
+                                          name: input.name,
+                                          value: input.slug
+                                        }
+                                      }
+                                    })
+                                  }
+                                />
+                                <AttributeValueEditDialog
+                                  attributeValue={maybe(() =>
+                                    data.attribute.values.find(
+                                      value => params.id === value.id
+                                    )
+                                  )}
+                                  confirmButtonState={
+                                    updateValueTransitionState
+                                  }
+                                  disabled={loading}
+                                  open={params.action === "edit-value"}
+                                  onClose={closeModal}
+                                  onSubmit={input =>
+                                    attributeValueUpdate({
+                                      variables: {
+                                        id: data.attribute.values.find(
+                                          value => params.id === value.id
+                                        ).id,
+                                        input: {
+                                          name: input.name,
+                                          value: input.slug
+                                        }
+                                      }
+                                    })
+                                  }
+                                />
+                              </>
+                            );
+                          }}
+                        </AttributeValueCreateMutation>
+                      )}
+                    </AttributeValueUpdateMutation>
+                  )}
+                </AttributeUpdateMutation>
+              )}
+            </AttributeValueDeleteMutation>
+          )}
+        </AttributeDeleteMutation>
       )}
     </AttributeDetailsQuery>
   );
