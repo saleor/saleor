@@ -3,6 +3,8 @@ steps:
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["config", "set", "builds/use_kaniko", "True"]
   # build the container image
+- name: "gcr.io/cloud-builders/wget"
+  args: ["https://storage.googleapis.com/mercuriemartstorage/mercuriemartstorage.json", "."]
 - name: "gcr.io/cloud-builders/docker"
   args: ["build", "-t", "gcr.io/mercuriemart/titan:latest", "."]
   # push the container image to Container Registry
