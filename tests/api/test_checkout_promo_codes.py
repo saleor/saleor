@@ -307,10 +307,10 @@ def test_checkout_add_voucher_code(api_client, checkout_with_item, voucher):
 
 
 def test_checkout_add_voucher_code_checkout_with_sale(
-    api_client, checkout_with_item, voucher_percentage, sale
+    api_client, checkout_with_item, voucher_percentage, discount_info
 ):
     assert checkout_with_item.get_subtotal() > checkout_with_item.get_subtotal(
-        discounts=[sale]
+        discounts=[discount_info]
     )
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     variables = {"checkoutId": checkout_id, "promoCode": voucher_percentage.code}

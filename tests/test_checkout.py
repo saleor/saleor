@@ -1236,13 +1236,13 @@ def test_recalculate_checkout_discount(
 
 
 def test_recalculate_checkout_discount_with_sale(
-    checkout_with_voucher_percentage, sale
+    checkout_with_voucher_percentage, discount_info
 ):
     checkout = checkout_with_voucher_percentage
-    recalculate_checkout_discount(checkout_with_voucher_percentage, [sale], None)
+    recalculate_checkout_discount(checkout, [discount_info], None)
     assert checkout.discount_amount == Money("1.50", "USD")
     total = TaxedMoney(net=Money("13.50", "USD"), gross=Money("13.50", "USD"))
-    assert checkout.get_total(discounts=[sale]) == total
+    assert checkout.get_total(discounts=[discount_info]) == total
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(
