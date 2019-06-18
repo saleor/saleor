@@ -5,12 +5,9 @@ steps:
   # Download MM GCS Json Key
 - name: "gcr.io/cloud-builders/gsutil"
   args: ["cp", "gs://mercuriemartstorage/mercuriemartstorage.json", "."]
-  # build the container image
+  # build & push the container image
 - name: "gcr.io/kaniko-project/executor:latest"
   args: ["--cache=true", "--cache-ttl=6h", "--destination=gcr.io/mercuriemart/titan:latest"]
-  # push the container image to Container Registry
-- name: "gcr.io/cloud-builders/docker"
-  args: ["push", "gcr.io/mercuriemart/titan:latest"]
   # Deploy container image to Cloud Run
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["beta", "run", "deploy", "titan-master", "--image", "gcr.io/mercuriemart/titan:latest", "--region", "us-central1"]
