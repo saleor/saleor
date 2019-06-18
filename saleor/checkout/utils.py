@@ -681,7 +681,9 @@ def get_checkout_context(
     return context
 
 
-def _get_shipping_voucher_discount_for_checkout(voucher, checkout):
+def _get_shipping_voucher_discount_for_checkout(
+    voucher, checkout, discounts=None, taxes=None
+):
     """Calculate discount value for a voucher of shipping type."""
     if not checkout.is_shipping_required():
         msg = pgettext(
@@ -704,7 +706,7 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout):
         raise NotApplicable(msg)
 
     return get_shipping_voucher_discount(
-        voucher, checkout.get_subtotal(), shipping_method.get_total()
+        voucher, checkout.get_subtotal(discounts, taxes), shipping_method.get_total()
     )
 
 
@@ -731,15 +733,19 @@ def _get_products_voucher_discount(order_or_checkout, voucher):
     return get_products_voucher_discount(voucher, prices)
 
 
-def get_voucher_discount_for_checkout(voucher, checkout):
+def get_voucher_discount_for_checkout(voucher, checkout, discounts=None, taxes=None):
     """Calculate discount value depending on voucher and discount types.
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if voucher.type == VoucherType.VALUE:
-        return get_value_voucher_discount(voucher, checkout.get_subtotal())
+        return get_value_voucher_discount(
+            voucher, checkout.get_subtotal(discounts, taxes)
+        )
     if voucher.type == VoucherType.SHIPPING:
-        return _get_shipping_voucher_discount_for_checkout(voucher, checkout)
+        return _get_shipping_voucher_discount_for_checkout(
+            voucher, checkout, discounts, taxes
+        )
     if voucher.type in (
         VoucherType.PRODUCT,
         VoucherType.COLLECTION,
@@ -773,7 +779,9 @@ def recalculate_checkout_discount(checkout, discounts, taxes):
     voucher = get_voucher_for_checkout(checkout)
     if voucher is not None:
         try:
-            discount = get_voucher_discount_for_checkout(voucher, checkout)
+            discount = get_voucher_discount_for_checkout(
+                voucher, checkout, discounts, taxes
+            )
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
@@ -796,20 +804,24 @@ def recalculate_checkout_discount(checkout, discounts, taxes):
         remove_voucher_from_checkout(checkout)
 
 
-def add_promo_code_to_checkout(checkout: Checkout, promo_code: str):
+def add_promo_code_to_checkout(
+    checkout: Checkout, promo_code: str, discounts=None, taxes=None
+):
     """Add gift card or voucher data to checkout.
 
     Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
     """
     if promo_code_is_voucher(promo_code):
-        add_voucher_code_to_checkout(checkout, promo_code)
+        add_voucher_code_to_checkout(checkout, promo_code, discounts, taxes)
     elif promo_code_is_gift_card(promo_code):
         add_gift_card_code_to_checkout(checkout, promo_code)
     else:
         raise InvalidPromoCode()
 
 
-def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str):
+def add_voucher_code_to_checkout(
+    checkout: Checkout, voucher_code: str, discounts=None, taxes=None
+):
     """Add voucher data to checkout by code.
 
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
@@ -819,19 +831,23 @@ def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str):
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:
-        add_voucher_to_checkout(checkout, voucher)
+        add_voucher_to_checkout(checkout, voucher, discounts, taxes)
     except NotApplicable:
         raise ValidationError(
             {"promo_code": "Voucher is not applicable to that checkout."}
         )
 
 
-def add_voucher_to_checkout(checkout: Checkout, voucher: Voucher):
+def add_voucher_to_checkout(
+    checkout: Checkout, voucher: Voucher, discounts=None, taxes=None
+):
     """Add voucher data to checkout.
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    discount_amount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount_amount = get_voucher_discount_for_checkout(
+        voucher, checkout, discounts, taxes
+    )
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
     checkout.translated_discount_name = (

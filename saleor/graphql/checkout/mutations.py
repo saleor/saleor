@@ -603,7 +603,9 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        add_promo_code_to_checkout(checkout, promo_code)
+        add_promo_code_to_checkout(
+            checkout, promo_code, info.context.discounts, info.context.taxes
+        )
         return CheckoutAddPromoCode(checkout=checkout)
 
 
