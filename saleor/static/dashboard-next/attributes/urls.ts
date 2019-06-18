@@ -18,7 +18,8 @@ export type AttributeAddUrlDialog =
   | "edit-value"
   | "remove-value"
   | "remove-values";
-export type AttributeAddUrlQueryParams = Dialog<AttributeAddUrlDialog>;
+export type AttributeAddUrlQueryParams = Dialog<AttributeAddUrlDialog> &
+  SingleAction;
 export const attributeAddPath = urlJoin(attributeSection, "add");
 export const attributeAddUrl = (params?: AttributeAddUrlQueryParams) =>
   attributeAddPath + "?" + stringifyQs(params);
