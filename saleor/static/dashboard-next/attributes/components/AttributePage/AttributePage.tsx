@@ -26,7 +26,7 @@ export interface AttributePageProps {
   onDelete: () => void;
   onSubmit: (data: AttributePageFormData) => void;
   onValueAdd: () => void;
-  onValueDelete: (id: string, event: React.MouseEvent<any>) => void;
+  onValueDelete: (id: string) => void;
   onValueUpdate: (id: string) => void;
 }
 
