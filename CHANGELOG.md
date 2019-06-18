@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Attributes can now be associated to multiple product types. - #4266 by @NyanKiyoshi
 - The `Attribute` model's `product_type` field was renamed to `product_types` (M2M related manager). - #4266 by @NyanKiyoshi
 - Added `attributeAssign(...)` and `attributeUnassign(...)` mutations in the GraphQL API. - #4266 by @NyanKiyoshi
+- Implemented a `input_type` field into the attribute models and refactored the product attributes to be able to store more than one value per attribute per product. - #4255 by @NyanKiyoshi.
 
 ## [Unreleased]
 

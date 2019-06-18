@@ -42,7 +42,7 @@ Describes common details of a few *product variants*. When the shop displays the
 
 
 Product Types
----------------
+-------------
 
 Think about types as templates for your products. Multiple *products* can use the same product type.
 
@@ -120,8 +120,6 @@ Attributes
 *Attributes* can help you better describe your products. Also, the can be used to filter items in category views.
 
 The attribute values display in the storefront in the order that they are listed in the list in attribute details view. You can reorder them by handling an icon on the left to the values and dragging them to another position.
-
-There are 2 types of *attributes* - choice type and text type. If you don't provide choice values, then attribute is text type.
 
 Examples
 ~~~~~~~~

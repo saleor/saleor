@@ -445,10 +445,12 @@ def variant_with_multiple_values_attributes(
 
     product_type.variant_attributes.add(variant_attr)
 
-    variant.attributes[smart_text(variant_attr.pk)] = [
-        smart_text(attr_val_1.pk),
-        smart_text(attr_val_2.pk),
-    ]
+    variant.attributes = {
+        smart_text(variant_attr.pk): [
+            smart_text(attr_val_1.pk),
+            smart_text(attr_val_2.pk),
+        ]
+    }
     variant.save(update_fields=["attributes"])
     return variant
 
