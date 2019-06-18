@@ -28,7 +28,6 @@ class AttributeCreateInput(graphene.InputObjectType):
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
-    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     remove_values = graphene.List(

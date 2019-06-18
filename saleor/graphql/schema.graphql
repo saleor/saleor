@@ -180,7 +180,6 @@ type AttributeUpdate {
 }
 
 input AttributeUpdateInput {
-  inputType: AttributeInputTypeEnum
   name: String
   slug: String
   removeValues: [ID]
