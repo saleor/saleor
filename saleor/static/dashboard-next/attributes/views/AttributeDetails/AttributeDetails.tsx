@@ -3,7 +3,8 @@ import * as React from "react";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "@saleor/i18n";
-import { maybe } from "../../../misc";
+import { maybe } from "@saleor/misc";
+import AttributeDeleteDialog from "../../components/AttributeDeleteDialog";
 import AttributePage from "../../components/AttributePage";
 import { AttributeDetailsQuery } from "../../queries";
 import {
@@ -24,10 +25,9 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
 
   const closeModal = () =>
     navigate(
-      attributeListUrl({
+      attributeUrl(id, {
         ...params,
-        action: undefined,
-        ids: undefined
+        action: undefined
       }),
       true
     );
@@ -61,6 +61,13 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
             onValueUpdate={() => openModal("edit-value")}
             saveButtonBarState={"default"}
             values={maybe(() => data.attribute.values)}
+          />
+          <AttributeDeleteDialog
+            open={params.action === "remove"}
+            name={maybe(() => data.attribute.name, "...")}
+            confirmButtonState="default"
+            onClose={closeModal}
+            onConfirm={() => undefined}
           />
         </>
       )}
