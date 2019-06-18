@@ -39,3 +39,4 @@ webpack-bundle.json
 # Exported results file
 django-queries-results.html
 saleor/mercuriemart.json
+mercuriemartstorage.json
