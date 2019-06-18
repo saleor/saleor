@@ -971,6 +971,11 @@ input DateRangeInput {
 
 scalar DateTime
 
+input DateTimeRangeInput {
+  gte: DateTime
+  lte: DateTime
+}
+
 scalar Decimal
 
 type DigitalContent implements Node {
@@ -2545,8 +2550,8 @@ type Sale implements Node {
   name: String!
   type: SaleType!
   value: Float!
-  startDate: Date!
-  endDate: Date
+  startDate: DateTime!
+  endDate: DateTime
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -2587,7 +2592,7 @@ type SaleDelete {
 input SaleFilterInput {
   status: [DiscountStatusEnum]
   saleType: DiscountValueTypeEnum
-  started: DateRangeInput
+  started: DateTimeRangeInput
   search: String
 }
 
@@ -2598,8 +2603,8 @@ input SaleInput {
   products: [ID]
   categories: [ID]
   collections: [ID]
-  startDate: Date
-  endDate: Date
+  startDate: DateTime
+  endDate: DateTime
 }
 
 type SaleRemoveCatalogues {
@@ -3102,8 +3107,8 @@ type Voucher implements Node {
   code: String!
   usageLimit: Int
   used: Int!
-  startDate: Date!
-  endDate: Date
+  startDate: DateTime!
+  endDate: DateTime
   applyOncePerOrder: Boolean!
   discountValueType: VoucherDiscountValueType!
   discountValue: Float!
@@ -3161,7 +3166,7 @@ input VoucherFilterInput {
   status: [DiscountStatusEnum]
   timesUsed: IntRangeInput
   discountType: [VoucherDiscountType]
-  started: DateRangeInput
+  started: DateTimeRangeInput
   search: String
 }
 
@@ -3169,8 +3174,8 @@ input VoucherInput {
   type: VoucherTypeEnum
   name: String
   code: String
-  startDate: Date
-  endDate: Date
+  startDate: DateTime
+  endDate: DateTime
   discountValueType: DiscountValueTypeEnum
   discountValue: Decimal
   products: [ID]
