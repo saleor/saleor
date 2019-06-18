@@ -10,24 +10,30 @@ export interface AttributeDeleteDialogProps {
   open: boolean;
   onConfirm: () => void;
   onClose: () => void;
-  attributeName: string;
+  name: string;
 }
 
-const AttributeDeleteDialog: React.FC<AttributeDeleteDialogProps> = () => (
+const AttributeDeleteDialog: React.FC<AttributeDeleteDialogProps> = ({
+  name,
+  confirmButtonState,
+  onClose,
+  onConfirm,
+  open
+}) => (
   <ActionDialog
-    open={params.action === "remove"}
-    onClose={() => navigate(productUrl(id), true)}
-    confirmButtonState={deleteTransitionState}
-    onConfirm={() => deleteProduct.mutate({ id })}
+    open={open}
+    onClose={onClose}
+    confirmButtonState={confirmButtonState}
+    onConfirm={onConfirm}
     variant="delete"
-    title={i18n.t("Remove product")}
+    title={i18n.t("Remove attribute")}
   >
     <DialogContentText
       dangerouslySetInnerHTML={{
         __html: i18n.t(
           "Are you sure you want to remove <strong>{{ name }}</strong>?",
           {
-            name: product ? product.name : undefined
+            name
           }
         )
       }}
