@@ -6,11 +6,11 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import AddressEdit from "../../../components/AddressEdit/AddressEdit";
+import AddressEdit from "@saleor/components/AddressEdit";
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import Form from "../../../components/Form";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
 import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
@@ -49,7 +49,7 @@ const OrderAddressEditDialog = withStyles(styles, {
     onClose,
     onConfirm
   }: OrderAddressEditDialogProps) => (
-    <Dialog open={open} classes={{ paper: classes.overflow }}>
+    <Dialog onClose={onClose} open={open} classes={{ paper: classes.overflow }}>
       <Form initial={address} errors={errors} onSubmit={onConfirm}>
         {({ change, data, errors, submit }) => (
           <>

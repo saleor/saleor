@@ -11,8 +11,8 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
 import { CategoryDetails_category_products_edges_node } from "../../categories/types/CategoryDetails";
-import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
 import { maybe, renderCollection } from "../../misc";
 import { ListActions, ListProps } from "../../types";
@@ -136,10 +136,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
                   <Checkbox
                     checked={isSelected}
                     disabled={disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      toggle(product.id);
-                    }}
+                    onChange={() => toggle(product.id)}
                   />
                 </TableCell>
                 <TableCellAvatar

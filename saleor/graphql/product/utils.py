@@ -1,6 +1,6 @@
 from django.utils.text import slugify
 
-from ...product.models import Attribute, AttributeValue
+from ...product.models import Attribute
 
 
 def attributes_to_hstore(attribute_value_input, attributes_queryset):
@@ -13,7 +13,11 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
     attributes_map = {attr.slug: attr.id for attr in attributes_queryset}
 
     attributes_hstore = {}
-    values_map = dict(AttributeValue.objects.values_list("slug", "id"))
+
+    values_map = {}
+    for attr in attributes_queryset:
+        for value in attr.values.all():
+            values_map[value.slug] = value.id
 
     for attribute in attribute_value_input:
         attr_slug = attribute.get("slug")

@@ -3,6 +3,7 @@ from functools import wraps
 from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
@@ -302,6 +303,24 @@ def add_variant_to_order(
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
     return line
+
+
+def add_gift_card_to_order(order, gift_card, total_price_left):
+    """Add gift card to order.
+
+    Return a total price left after applying the gift cards.
+    """
+    if total_price_left > ZERO_MONEY:
+        order.gift_cards.add(gift_card)
+        if total_price_left < gift_card.current_balance:
+            gift_card.current_balance = gift_card.current_balance - total_price_left
+            total_price_left = ZERO_MONEY
+        else:
+            total_price_left = total_price_left - gift_card.current_balance
+            gift_card.current_balance = 0
+        gift_card.last_used_on = timezone.now()
+        gift_card.save(update_fields=["current_balance", "last_used_on"])
+    return total_price_left
 
 
 def change_order_line_quantity(user, line, old_quantity, new_quantity):

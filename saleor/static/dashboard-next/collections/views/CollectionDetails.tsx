@@ -2,14 +2,17 @@ import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
-import ActionDialog from "../../components/ActionDialog";
-import AssignProductDialog from "../../components/AssignProductDialog";
-import { WindowTitle } from "../../components/WindowTitle";
-import { SearchProductsProvider } from "../../containers/SearchProducts";
-import useBulkActions from "../../hooks/useBulkActions";
-import useNavigator from "../../hooks/useNavigator";
-import useNotifier from "../../hooks/useNotifier";
-import usePaginator, { createPaginationState } from "../../hooks/usePaginator";
+import ActionDialog from "@saleor/components/ActionDialog";
+import AssignProductDialog from "@saleor/components/AssignProductDialog";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useBulkActions from "@saleor/hooks/useBulkActions";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import usePaginator, {
+  createPaginationState
+} from "@saleor/hooks/usePaginator";
+import { DEFAULT_INITIAL_SEARCH_DATA, PAGINATE_BY } from "../../config";
+import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
@@ -34,8 +37,6 @@ interface CollectionDetailsProps {
   id: string;
   params: CollectionUrlQueryParams;
 }
-
-const PAGINATE_BY = 20;
 
 export const CollectionDetails: React.StatelessComponent<
   CollectionDetailsProps
@@ -144,11 +145,12 @@ export const CollectionDetails: React.StatelessComponent<
               const handleSubmit = (
                 formData: CollectionDetailsPageFormData
               ) => {
-                const input = {
+                const input: CollectionInput = {
                   backgroundImageAlt: formData.backgroundImageAlt,
                   descriptionJson: JSON.stringify(formData.description),
                   isPublished: formData.isPublished,
                   name: formData.name,
+                  publicationDate: formData.publicationDate,
                   seo: {
                     description: formData.seoDescription,
                     title: formData.seoTitle
@@ -278,13 +280,13 @@ export const CollectionDetails: React.StatelessComponent<
                     toggle={toggle}
                     toggleAll={toggleAll}
                   />
-                  <SearchProductsProvider>
-                    {(searchProducts, searchProductsOpts) => (
+                  <SearchProducts variables={DEFAULT_INITIAL_SEARCH_DATA}>
+                    {({ search, result }) => (
                       <AssignProductDialog
                         confirmButtonState={assignTransitionState}
                         open={params.action === "assign"}
-                        onFetch={searchProducts}
-                        loading={searchProductsOpts.loading}
+                        onFetch={search}
+                        loading={result.loading}
                         onClose={() => navigate(collectionUrl(id), true, true)}
                         onSubmit={formData =>
                           assignProduct.mutate({
@@ -296,13 +298,13 @@ export const CollectionDetails: React.StatelessComponent<
                           })
                         }
                         products={maybe(() =>
-                          searchProductsOpts.data.products.edges
+                          result.data.products.edges
                             .map(edge => edge.node)
                             .filter(suggestedProduct => suggestedProduct.id)
                         )}
                       />
                     )}
-                  </SearchProductsProvider>
+                  </SearchProducts>
                   <ActionDialog
                     confirmButtonState={removeTransitionState}
                     onClose={closeModal}

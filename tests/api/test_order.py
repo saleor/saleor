@@ -228,6 +228,35 @@ def test_order_query_customer(api_client):
     assert_no_permission(response)
 
 
+def test_order_query_gift_cards(
+    staff_api_client, permission_manage_orders, order_with_lines, gift_card
+):
+    query = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            giftCards {
+                displayCode
+                currentBalance {
+                    amount
+                }
+            }
+        }
+    }
+    """
+
+    order_with_lines.gift_cards.add(gift_card)
+
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    gift_card_data = content["data"]["order"]["giftCards"][0]
+
+    assert gift_card.display_code == gift_card_data["displayCode"]
+    assert gift_card.current_balance == gift_card_data["currentBalance"]["amount"]
+
+
 def test_order_query_draft_excluded(staff_api_client, permission_manage_orders, orders):
     query = """
     query OrdersQuery {

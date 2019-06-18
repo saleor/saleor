@@ -10,11 +10,11 @@ import {
 } from "@material-ui/core/styles";
 import * as React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { Hr } from "../../../components/Hr";
-import Money, { subtractMoney } from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
+import CardTitle from "@saleor/components/CardTitle";
+import { Hr } from "@saleor/components/Hr";
+import Money, { subtractMoney } from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
 import i18n from "../../../i18n";
 import { maybe, transformPaymentStatus } from "../../../misc";
 import { OrderAction, OrderStatus } from "../../../types/globalTypes";
@@ -176,7 +176,7 @@ const OrderPayment = withStyles(styles, { name: "OrderPayment" })(
                 </td>
               </tr>
               <tr className={classes.totalRow}>
-                <td>{i18n.t("Balance")}</td>
+                <td>{i18n.t("Outstanding Balance")}</td>
                 <td className={classes.textRight}>
                   {maybe(
                     () => order.total.gross.amount && order.totalCaptured.amount

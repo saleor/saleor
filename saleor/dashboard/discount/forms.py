@@ -7,9 +7,9 @@ from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
 from ...core.taxes import ZERO_MONEY
+from ...core.utils.promo_code import generate_promo_code
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
-from ...discount.utils import generate_voucher_code
 from ...product.models import Category, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 
@@ -107,7 +107,7 @@ class VoucherForm(forms.ModelForm):
         initial = kwargs.get("initial", {})
         instance = kwargs.get("instance")
         if instance and instance.id is None and not initial.get("code"):
-            initial["code"] = generate_voucher_code()
+            initial["code"] = generate_promo_code()
         kwargs["initial"] = initial
         super().__init__(*args, **kwargs)
 
@@ -169,7 +169,7 @@ class ProductVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
-        fields = ["products", "apply_once_per_order"]
+        fields = ["products", "apply_once_per_order", "min_amount_spent"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -180,7 +180,7 @@ class ProductVoucherForm(CommonVoucherForm):
 class CollectionVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
-        fields = ["collections", "apply_once_per_order"]
+        fields = ["collections", "apply_once_per_order", "min_amount_spent"]
         labels = {"collections": pgettext_lazy("Collections", "Collections")}
 
     def __init__(self, *args, **kwargs):
@@ -197,4 +197,4 @@ class CategoryVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
-        fields = ["categories", "apply_once_per_order"]
+        fields = ["categories", "apply_once_per_order", "min_amount_spent"]

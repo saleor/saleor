@@ -7,7 +7,7 @@ import {
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import Skeleton from "../../../components/Skeleton";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>
@@ -40,7 +40,7 @@ const HomeOrdersCard = withStyles(styles, { name: "HomeOrdersCard" })(
         </Typography>
         <Typography className={classes.subtitle}>
           {userName ? (
-            i18n.t("Here are some information we gathered about your store")
+            i18n.t("Here is some information we gathered about your store")
           ) : (
             <Skeleton style={{ width: "10em" }} />
           )}

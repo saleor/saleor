@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import HStoreField, JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import F
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -21,7 +22,7 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
-from ..core.models import PublishableModel, SortableModel
+from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils import build_absolute_uri
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
@@ -109,6 +110,15 @@ class ProductType(models.Model):
         )
 
 
+class ProductsQueryset(PublishedQuerySet):
+    def collection_sorted(self, user):
+        qs = self.visible_to_user(user).prefetch_related(
+            "collections__products__collectionproduct"
+        )
+        qs = qs.order_by(F("collectionproduct__sort_order").asc(nulls_last=True))
+        return qs
+
+
 class Product(SeoModel, PublishableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
@@ -134,6 +144,7 @@ class Product(SeoModel, PublishableModel):
     )
     meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
+    objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 
     class Meta:
@@ -526,10 +537,28 @@ class VariantImage(models.Model):
     )
 
 
+class CollectionProduct(SortableModel):
+    collection = models.ForeignKey(
+        "Collection", related_name="collectionproduct", on_delete=models.CASCADE
+    )
+    product = models.ForeignKey(
+        Product, related_name="collectionproduct", on_delete=models.CASCADE
+    )
+
+    def get_ordering_queryset(self):
+        return self.product.collectionproduct.all()
+
+
 class Collection(SeoModel, PublishableModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
-    products = models.ManyToManyField(Product, blank=True, related_name="collections")
+    products = models.ManyToManyField(
+        Product,
+        blank=True,
+        related_name="collections",
+        through=CollectionProduct,
+        through_fields=["collection", "product"],
+    )
     background_image = VersatileImageField(
         upload_to="collection-backgrounds", blank=True, null=True
     )

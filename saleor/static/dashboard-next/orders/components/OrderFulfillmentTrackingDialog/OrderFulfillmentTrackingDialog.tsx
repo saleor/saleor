@@ -8,8 +8,8 @@ import * as React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton";
-import Form from "../../../components/Form";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
 import i18n from "../../../i18n";
 
 export interface FormData {
@@ -27,7 +27,7 @@ interface OrderFulfillmentTrackingDialogProps {
 const OrderFulfillmentTrackingDialog: React.StatelessComponent<
   OrderFulfillmentTrackingDialogProps
 > = ({ confirmButtonState, open, trackingNumber, onConfirm, onClose }) => (
-  <Dialog open={open}>
+  <Dialog onClose={onClose} open={open}>
     <Form initial={{ trackingNumber }} onSubmit={onConfirm}>
       {({ change, data, submit }) => (
         <>

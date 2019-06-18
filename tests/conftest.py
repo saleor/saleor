@@ -25,6 +25,7 @@ from saleor.core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
+from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.events import OrderEvents
@@ -39,6 +40,7 @@ from saleor.product.models import (
     AttributeValue,
     Category,
     Collection,
+    CollectionProduct,
     DigitalContent,
     DigitalContentUrl,
     Product,
@@ -108,6 +110,13 @@ def checkout_with_voucher(checkout, product, voucher):
     checkout.discount_amount = Money("20.00", "USD")
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_gift_card(checkout_with_item, gift_card):
+    checkout_with_item.gift_cards.add(gift_card)
+    checkout_with_item.save()
+    return checkout_with_item
 
 
 @pytest.fixture
@@ -355,6 +364,11 @@ def permission_manage_discounts():
 
 
 @pytest.fixture
+def permission_manage_gift_card():
+    return Permission.objects.get(codename="manage_gift_card")
+
+
+@pytest.fixture
 def permission_manage_orders():
     return Permission.objects.get(codename="manage_orders")
 
@@ -436,6 +450,19 @@ def variant(product):
         quantity_allocated=3,
     )
     return product_variant
+
+
+@pytest.fixture
+def product_variant_list(product):
+    return list(
+        ProductVariant.objects.bulk_create(
+            [
+                ProductVariant(product=product, sku="1"),
+                ProductVariant(product=product, sku="2"),
+                ProductVariant(product=product, sku="3"),
+            ]
+        )
+    )
 
 
 @pytest.fixture
@@ -617,6 +644,30 @@ def order_line(order, variant, vatlayer):
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=taxes["standard"]["value"],
+    )
+
+
+@pytest.fixture
+def gift_card(customer_user, staff_user):
+    return GiftCard.objects.create(
+        code="mirumee_giftcard",
+        user=customer_user,
+        initial_balance=10,
+        current_balance=10,
+    )
+
+
+@pytest.fixture
+def gift_card_used(staff_user):
+    return GiftCard.objects.create(
+        code="gift_card_used", initial_balance=150, current_balance=100
+    )
+
+
+@pytest.fixture
+def gift_card_created_by_staff(staff_user):
+    return GiftCard.objects.create(
+        code="mirumee_staff", initial_balance=5, current_balance=5
     )
 
 
@@ -877,6 +928,15 @@ def collection(db):
         description="Test description",
     )
     return collection
+
+
+@pytest.fixture
+def collection_with_products(db, collection, product_list_published):
+    for sort_order, product in enumerate(product_list_published):
+        CollectionProduct(
+            collection=collection, product=product, sort_order=sort_order
+        ).save()
+    return product_list_published
 
 
 @pytest.fixture

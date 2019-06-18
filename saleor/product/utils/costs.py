@@ -57,6 +57,8 @@ def get_margin_for_variant(variant):
     if variant.cost_price is None:
         return None
     base_price = variant.base_price
+    if not base_price:
+        return None
     margin = base_price - variant.cost_price
     percent = round((margin / base_price) * 100, 0)
     return percent
