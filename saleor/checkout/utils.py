@@ -48,7 +48,7 @@ from .forms import (
     AnonymousUserShippingForm,
     BillingAddressChoiceForm,
 )
-from .models import Checkout, CheckoutLine
+from .models import Checkout
 
 COOKIE_NAME = "checkout"
 
@@ -1046,7 +1046,7 @@ def prepare_order_data(
             discounts=discounts,
             taxes=taxes,
         )
-        for line in checkout  # type: CheckoutLine
+        for line in checkout
     ]
 
     # validate checkout gift cards

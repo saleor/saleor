@@ -18,7 +18,6 @@ from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.dashboard.menu.utils import update_menu
-from saleor.discount.models import Sale
 from saleor.menu.models import MenuItemTranslation
 from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.models import DigitalContentUrl
@@ -534,7 +533,7 @@ def test_get_price(
     product_type,
     category,
     taxes,
-    sale,
+    discount_info,
     product_price,
     include_taxes_in_prices,
     include_taxes,
@@ -552,7 +551,7 @@ def test_get_price(
 
     price = variant.get_price(
         taxes=taxes if include_taxes else None,
-        discounts=Sale.objects.all() if include_discounts else None,
+        discounts=[discount_info] if include_discounts else [],
     )
 
     assert price == TaxedMoney(
@@ -624,7 +623,9 @@ def test_product_get_price_range_no_variants(
     assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
 
 
-def test_product_get_price_do_not_charge_taxes(product_type, category, taxes, sale):
+def test_product_get_price_do_not_charge_taxes(
+    product_type, category, taxes, discount_info
+):
     product = models.Product.objects.create(
         product_type=product_type,
         category=category,
@@ -633,13 +634,13 @@ def test_product_get_price_do_not_charge_taxes(product_type, category, taxes, sa
     )
     variant = product.variants.create()
 
-    price = variant.get_price(taxes=taxes, discounts=Sale.objects.all())
+    price = variant.get_price(taxes=taxes, discounts=[discount_info])
 
     assert price == TaxedMoney(net=Money("5.00", "USD"), gross=Money("5.00", "USD"))
 
 
 def test_product_get_price_range_do_not_charge_taxes(
-    product_type, category, taxes, sale
+    product_type, category, taxes, discount_info
 ):
     product = models.Product.objects.create(
         product_type=product_type,
@@ -648,7 +649,7 @@ def test_product_get_price_range_do_not_charge_taxes(
         charge_taxes=False,
     )
 
-    price = product.get_price_range(taxes=taxes, discounts=Sale.objects.all())
+    price = product.get_price_range(taxes=taxes, discounts=[discount_info])
 
     expected_price = TaxedMoney(net=Money("5.00", "USD"), gross=Money("5.00", "USD"))
     assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
