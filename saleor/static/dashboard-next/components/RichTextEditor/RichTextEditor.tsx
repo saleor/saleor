@@ -188,7 +188,11 @@ const styles = (theme: Theme) =>
           background: theme.palette.background.default,
           border: `1px ${theme.overrides.MuiCard.root.borderColor} solid`,
           display: "inline-flex",
-          marginBottom: theme.spacing.unit
+          flexWrap: "wrap",
+          marginBottom: theme.spacing.unit,
+          [theme.breakpoints.down(460)]: {
+            width: "min-content"
+          }
         },
         "&-block": {
           "&--blockquote": {
@@ -302,7 +306,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
           enableLineBreak
           entityTypes={[
             {
-              attributes: ["href"],
+              attributes: ["url"],
               decorator: LinkEntity,
               icon: <LinkIcon className={classes.linkIcon} />,
               source: LinkSource,
