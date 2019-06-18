@@ -7,6 +7,10 @@ import {
   AttributeBulkDeleteVariables
 } from "./types/AttributeBulkDelete";
 import {
+  AttributeCreate,
+  AttributeCreateVariables
+} from "./types/AttributeCreate";
+import {
   AttributeDelete,
   AttributeDeleteVariables
 } from "./types/AttributeDelete";
@@ -132,3 +136,22 @@ export const AttributeValueCreateMutation = TypedMutation<
   AttributeValueCreate,
   AttributeValueCreateVariables
 >(attributeValueCreateMutation);
+
+export const attributeCreateMutation = gql`
+  ${attributeDetailsFragment}
+  mutation AttributeCreate($input: AttributeCreateInput!) {
+    attributeCreate(input: $input) {
+      errors {
+        field
+        message
+      }
+      attribute {
+        ...AttributeDetailsFragment
+      }
+    }
+  }
+`;
+export const AttributeCreateMutation = TypedMutation<
+  AttributeCreate,
+  AttributeCreateVariables
+>(attributeCreateMutation);
