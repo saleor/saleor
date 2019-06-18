@@ -4,7 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 
-from ....product import models
+from ....product import AttributeInputType, models
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.utils import from_global_id_strict_type
 from ...product.types import ProductType
@@ -280,6 +280,23 @@ class AttributeAssign(BaseAttributeAssignmentMutation):
                 {
                     "operations": (
                         f"{msg} have already been assigned to this product type."
+                    )
+                }
+            )
+
+        # check if attributes' input type is assignable to variants
+        is_not_assignable_to_variant = models.Attribute.objects.filter(
+            Q(pk__in=variant_attrs_pks)
+            & Q(input_type__in=AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS)
+        ).exists()
+
+        if is_not_assignable_to_variant:
+            raise ValidationError(
+                {
+                    "operations": (
+                        f"Attributes having for input types "
+                        f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
+                        f"cannot be assigned as variant attributes"
                     )
                 }
             )

@@ -34,12 +34,7 @@ class Migration(migrations.Migration):
             model_name="attribute",
             name="input_type",
             field=models.CharField(
-                choices=[
-                    ("dropdown", "Dropdown"),
-                    ("multiselect", "Multi Select"),
-                    ("checklist", "Checklist"),
-                    ("numeric", "Numeric Values"),
-                ],
+                choices=[("dropdown", "Dropdown"), ("multiselect", "Multi Select")],
                 default="dropdown",
                 max_length=50,
             ),

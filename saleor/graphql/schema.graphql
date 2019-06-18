@@ -149,8 +149,6 @@ input AttributeInput {
 enum AttributeInputTypeEnum {
   DROPDOWN
   MULTISELECT
-  CHECKLIST
-  NUMERIC
 }
 
 scalar AttributeScalar

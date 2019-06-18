@@ -13,6 +13,7 @@ from prices import Money
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.graphql.product.types.products import resolve_attribute_list
+from saleor.product import AttributeInputType
 from saleor.product.models import (
     Attribute,
     AttributeValue,
@@ -1066,6 +1067,55 @@ def test_update_product(
     assert data["product"]["chargeTaxes"] == product_chargeTaxes
     assert data["product"]["taxRate"] == product_taxRate
     assert not data["product"]["category"]["name"] == category.name
+
+
+SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
+    mutation updateProduct($productId: ID!, $attributes: [AttributeValueInput!]) {
+      productUpdate(id: $productId, input: { attributes: $attributes }) {
+        errors {
+          message
+          field
+        }
+      }
+    }
+"""
+
+
+def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensures you cannot assign multiple values to input types
+    that are not multi-select. This also ensures multi-select types
+    can be assigned multiple values as intended."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    multi_values_attr = Attribute.objects.create(
+        name="multi", slug="multi-vals", input_type=AttributeInputType.MULTISELECT
+    )
+    multi_values_attr.product_types.add(product.product_type)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"slug": color_attribute.slug, "values": ["red", "blue"]}],
+    }
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["errors"] == [
+        {
+            "field": "attributes",
+            "message": "A dropdown attribute must take only one value",
+        }
+    ]
+
+    # Try to assign multiple values from a valid attribute
+    variables["attributes"] = [{"slug": multi_values_attr.slug, "values": ["a", "b"]}]
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["errors"] == []
 
 
 def test_update_product_without_variants(

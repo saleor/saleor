@@ -46,12 +46,11 @@ class AttributeInputType:
 
     DROPDOWN = "dropdown"
     MULTISELECT = "multiselect"
-    CHECKLIST = "checklist"
-    NUMERIC = "numeric"
 
     CHOICES = [
         (DROPDOWN, pgettext_lazy("Attribute input type", "Dropdown")),
         (MULTISELECT, pgettext_lazy("Attribute input type", "Multi Select")),
-        (CHECKLIST, pgettext_lazy("Attribute input type", "Checklist")),
-        (NUMERIC, pgettext_lazy("Attribute input type", "Numeric Values")),
     ]
+
+    # list the input types that cannot be assigned to a variant
+    NON_ASSIGNABLE_TO_VARIANTS = [MULTISELECT]

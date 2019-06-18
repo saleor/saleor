@@ -6,6 +6,7 @@ from django.template.defaultfilters import slugify
 from saleor.graphql.product.enums import AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.graphql.product.utils import attributes_to_json
+from saleor.product import AttributeInputType
 from saleor.product.models import Attribute, AttributeValue, Category, ProductType
 from tests.api.utils import get_graphql_content
 
@@ -787,6 +788,45 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
         {
             "field": "operations",
             "message": "Variants are disabled in this product type.",
+        }
+    ]
+
+
+def test_assign_variant_attribute_having_unsupported_input_type(
+    staff_api_client, permission_manage_products, product_type, size_attribute
+):
+    """The assignAttribute mutation should raise an error when trying
+    to use an attribute as a variant attribute when
+    the attribute's input type doesn't support variants"""
+
+    attribute = size_attribute
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.save(update_fields=["input_type"])
+    product_type.variant_attributes.clear()
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = ASSIGN_ATTR_QUERY
+    operations = [
+        {
+            "attributeType": "VARIANT",
+            "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["attributeAssign"]
+    assert content["errors"] == [
+        {
+            "field": "operations",
+            "message": (
+                "Attributes having for input types ['multiselect'] cannot be assigned "
+                "as variant attributes"
+            ),
         }
     ]
 
