@@ -14,14 +14,14 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import { maybe, renderCollection, stopPropagation } from "../../../misc";
 import { AttributeDetailsFragment_values } from "../../types/AttributeDetailsFragment";
 
 export interface AttributeValuesProps {
   disabled: boolean;
   values: AttributeDetailsFragment_values[];
   onValueAdd: () => void;
-  onValueDelete: (id: string, event: React.MouseEvent<any>) => void;
+  onValueDelete: (id: string) => void;
   onValueUpdate: (id: string) => void;
 }
 
@@ -95,7 +95,7 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
                 <TableCell className={classes.iconCell}>
                   <IconButton
                     disabled={disabled}
-                    onClick={event => onValueDelete(value.id, event)}
+                    onClick={stopPropagation(() => onValueDelete(value.id))}
                   >
                     <DeleteIcon color="primary" />
                   </IconButton>
