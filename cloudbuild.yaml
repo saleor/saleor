@@ -2,11 +2,12 @@ steps:
   # Use Kaniko Build
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["config", "set", "builds/use_kaniko", "True"]
+  # Download MM GCS Json Key
+- name: "gcr.io/cloud-builders/gsutil"
+  args: ["cp", "gs://mercuriemartstorage/mercuriemartstorage.json", "."]
   # build the container image
-- name: "gcr.io/cloud-builders/wget"
-  args: ["https://storage.googleapis.com/mercuriemartstorage/mercuriemartstorage.json"]
-- name: "gcr.io/cloud-builders/docker"
-  args: ["build", "-t", "gcr.io/mercuriemart/titan:latest", "."]
+- name: "gcr.io/kaniko-project/executor:latest"
+  args: ["--cache=true", "--cache-ttl=6h", "--destination=gcr.io/mercuriemart/titan:latest"]
   # push the container image to Container Registry
 - name: "gcr.io/cloud-builders/docker"
   args: ["push", "gcr.io/mercuriemart/titan:latest"]
