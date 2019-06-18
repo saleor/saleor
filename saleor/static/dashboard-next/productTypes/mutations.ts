@@ -1,19 +1,7 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-import { attributeFragment, productTypeDetailsFragment } from "./queries";
-import {
-  AttributeCreate,
-  AttributeCreateVariables
-} from "./types/AttributeCreate";
-import {
-  AttributeDelete,
-  AttributeDeleteVariables
-} from "./types/AttributeDelete";
-import {
-  AttributeUpdate,
-  AttributeUpdateVariables
-} from "./types/AttributeUpdate";
+import { productTypeDetailsFragment } from "./queries";
 import {
   ProductTypeBulkDelete,
   ProductTypeBulkDeleteVariables
@@ -101,9 +89,3 @@ export const TypedProductTypeCreateMutation = TypedMutation<
   ProductTypeCreate,
   ProductTypeCreateVariables
 >(productTypeCreateMutation);
-
-export const attributeCreateMutation = "";
-export const TypedAttributeCreateMutation = TypedMutation<
-  AttributeCreate,
-  AttributeCreateVariables
->(attributeCreateMutation);
