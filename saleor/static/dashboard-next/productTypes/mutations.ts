@@ -107,37 +107,3 @@ export const TypedAttributeCreateMutation = TypedMutation<
   AttributeCreate,
   AttributeCreateVariables
 >(attributeCreateMutation);
-
-export const attributeUpdateMutation = gql`
-  ${attributeFragment}
-  mutation AttributeUpdate($id: ID!, $input: AttributeUpdateInput!) {
-    attributeUpdate(id: $id, input: $input) {
-      errors {
-        field
-        message
-      }
-      attribute {
-        ...AttributeFragment
-      }
-    }
-  }
-`;
-export const TypedAttributeUpdateMutation = TypedMutation<
-  AttributeUpdate,
-  AttributeUpdateVariables
->(attributeUpdateMutation);
-
-export const attributeDeleteMutation = gql`
-  mutation AttributeDelete($id: ID!) {
-    attributeDelete(id: $id) {
-      errors {
-        field
-        message
-      }
-    }
-  }
-`;
-export const TypedAttributeDeleteMutation = TypedMutation<
-  AttributeDelete,
-  AttributeDeleteVariables
->(attributeDeleteMutation);

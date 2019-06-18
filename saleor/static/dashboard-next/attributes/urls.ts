@@ -1,7 +1,7 @@
 import { stringify as stringifyQs } from "qs";
 import * as urlJoin from "url-join";
 
-import { BulkAction, Dialog, Pagination } from "../types";
+import { BulkAction, Dialog, Pagination, SingleAction } from "../types";
 
 export const attributeSection = "/attributes/";
 
@@ -29,7 +29,9 @@ export type AttributeUrlDialog =
   | "remove"
   | "remove-value"
   | "remove-values";
-export type AttributeUrlQueryParams = BulkAction & Dialog<AttributeUrlDialog>;
+export type AttributeUrlQueryParams = BulkAction &
+  Dialog<AttributeUrlDialog> &
+  SingleAction;
 export const attributePath = (id: string) => urlJoin(attributeSection, id);
 export const attributeUrl = (id: string, params?: AttributeUrlQueryParams) =>
   attributePath(encodeURIComponent(id)) + "?" + stringifyQs(params);
