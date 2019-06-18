@@ -114,10 +114,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
-                      onClick={event => {
-                        toggle(productType.id);
-                        event.stopPropagation();
-                      }}
+                      onChange={() => toggle(productType.id)}
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>

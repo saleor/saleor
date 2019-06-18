@@ -26,6 +26,7 @@ from ..core.utils.taxes import ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_c
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
+    decrease_voucher_usage,
     get_products_voucher_discount,
     get_shipping_voucher_discount,
     get_value_voucher_discount,
@@ -747,13 +748,16 @@ def get_voucher_discount_for_checkout(voucher, checkout):
     raise NotImplementedError("Unknown discount type")
 
 
-def get_voucher_for_checkout(checkout, vouchers=None):
+def get_voucher_for_checkout(checkout, vouchers=None, with_lock=False):
     """Return voucher with voucher code saved in checkout if active or None."""
     if checkout.voucher_code is not None:
         if vouchers is None:
             vouchers = Voucher.objects.active(date=date.today())
         try:
-            return vouchers.get(code=checkout.voucher_code)
+            qs = vouchers
+            if with_lock:
+                qs = vouchers.select_for_update()
+            return qs.get(code=checkout.voucher_code)
         except Voucher.DoesNotExist:
             return None
     return None
@@ -906,14 +910,15 @@ def clear_shipping_method(checkout):
     checkout.save(update_fields=["shipping_method"])
 
 
-def _process_voucher_data_for_order(checkout):
+def _get_voucher_data_for_order(checkout):
     """
     Fetch, process and return voucher/discount data from checkout.
 
+    Careful! It should be called inside a transaction.
+
     :raises NotApplicable: When the voucher is not applicable in the current checkout.
     """
-    vouchers = Voucher.objects.active(date=date.today()).select_for_update()
-    voucher = get_voucher_for_checkout(checkout, vouchers)
+    voucher = get_voucher_for_checkout(checkout, with_lock=True)
 
     if checkout.voucher_code and not voucher:
         msg = pgettext(
@@ -1024,7 +1029,6 @@ def prepare_order_data(
     """
     order_data = {}
 
-    order_data.update(_process_voucher_data_for_order(checkout))
     order_data.update(_process_shipping_data_for_order(checkout, taxes))
     order_data.update(_process_user_data_for_order(checkout))
     order_data.update(
@@ -1048,6 +1052,9 @@ def prepare_order_data(
     # validate checkout gift cards
     validate_gift_cards(checkout)
 
+    # Get voucher data (last) as they require a transaction
+    order_data.update(_get_voucher_data_for_order(checkout))
+
     # assign gift cards to the order
     order_data["total_price_left"] = (
         checkout.get_subtotal(discounts, taxes)
@@ -1056,6 +1063,11 @@ def prepare_order_data(
     ).gross
 
     return order_data
+
+
+def abort_order_data(order_data: dict):
+    if "voucher" in order_data:
+        decrease_voucher_usage(order_data["voucher"])
 
 
 @transaction.atomic
@@ -1080,6 +1092,7 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
     total_price_left = order_data.pop("total_price_left")
     order_lines = order_data.pop("lines")
+
     order = Order.objects.create(**order_data, checkout_token=checkout.token)
     order.lines.set(order_lines, bulk=False)
 

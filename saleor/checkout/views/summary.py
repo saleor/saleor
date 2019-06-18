@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
@@ -19,6 +20,7 @@ from ..utils import (
 )
 
 
+@transaction.atomic()
 def _handle_order_placement(request, checkout):
     """Try to create an order and redirect the user as necessary.
 
