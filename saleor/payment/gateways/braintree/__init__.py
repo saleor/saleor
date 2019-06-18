@@ -120,7 +120,10 @@ def authorize(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
     try:
-        result = transaction_for_new_customer(payment_information, config)
+        if not payment_information.customer_id:
+            result = transaction_for_new_customer(payment_information, config)
+        else:
+            result = transaction_for_existing_customer(payment_information, config)
     except braintree_sdk.exceptions.NotFoundError:
         raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
@@ -152,6 +155,16 @@ def transaction_for_new_customer(payment_information: PaymentData, config: Gatew
                 "three_d_secure": {"required": THREE_D_SECURE_REQUIRED},
             },
             **get_customer_data(payment_information),
+        }
+    )
+
+
+def transaction_for_existing_customer(payment_information: PaymentData, config: GatewayConfig):
+    gateway = get_braintree_gateway(**config.connection_params)
+    return gateway.transaction.sale(
+        {
+            "amount": str(payment_information.amount),
+            "customer_id": payment_information.customer_id,
         }
     )
 
