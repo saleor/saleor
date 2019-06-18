@@ -50,7 +50,7 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
   onValueUpdate,
   values
 }) => {
-  const classes = useStyles();
+  const classes = useStyles({});
 
   return (
     <Card>
