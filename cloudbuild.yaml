@@ -11,6 +11,4 @@ steps:
   # Deploy container image to Cloud Run
 - name: "gcr.io/cloud-builders/gcloud"
   args: ["beta", "run", "deploy", "titan-master", "--image", "gcr.io/mercuriemart/titan:latest", "--region", "us-central1"]
-images:
-- gcr.io/mercuriemart/titan:latest
 timeout: 1200s
