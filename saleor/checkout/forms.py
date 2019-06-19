@@ -12,7 +12,7 @@ from django_countries.fields import Country, LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import display_gross_prices
-from ..core.taxes.interface import apply_taxes_to_shipping, get_subtotal_gross
+from ..core.taxes.interface import apply_taxes_to_shipping, calculate_checkout_subtotal
 from ..core.utils import format_money
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod, ShippingZone
@@ -324,7 +324,7 @@ class CheckoutShippingMethodForm(forms.ModelForm):
         shipping_address = self.instance.shipping_address
         country_code = shipping_address.country.code
         qs = ShippingMethod.objects.applicable_shipping_methods(
-            price=get_subtotal_gross(self.instance, discounts).gross,
+            price=calculate_checkout_subtotal(self.instance, discounts).gross,
             weight=self.instance.get_total_weight(),
             country_code=country_code,
         )

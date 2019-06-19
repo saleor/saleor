@@ -139,7 +139,7 @@ def checkout_index(request, checkout):
             initial=initial,
             discounts=discounts,
         )
-        total_line = tax_interface.get_line_total_gross(line, discounts)
+        total_line = tax_interface.calculate_checkout_line_total(line, discounts)
         variant_price = total_line / line.quantity
         checkout_lines.append(
             {
@@ -153,7 +153,7 @@ def checkout_index(request, checkout):
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={"country": default_country})
     shipping_price_range = get_shipping_price_estimate(
-        price=tax_interface.get_subtotal_gross(checkout, discounts).gross,
+        price=tax_interface.calculate_checkout_subtotal(checkout, discounts).gross,
         weight=checkout.get_total_weight(),
         country_code=default_country,
     )
@@ -180,7 +180,9 @@ def checkout_shipping_options(request, checkout):
     country_form = CountryForm(request.POST or None)
     if country_form.is_valid():
         shipping_price_range = country_form.get_shipping_price_estimate(
-            price=tax_interface.get_subtotal_gross(checkout, request.discounts).gross,
+            price=tax_interface.calculate_checkout_subtotal(
+                checkout, request.discounts
+            ).gross,
             weight=checkout.get_total_weight(),
         )
     else:
@@ -218,7 +220,9 @@ def update_checkout_line(request, checkout, variant_id):
         checkout_line = checkout.lines.filter(variant_id=variant_id).first()
         line_total = ZERO_TAXED_MONEY
         if checkout_line:
-            line_total = tax_interface.get_line_total_gross(checkout_line, discounts)
+            line_total = tax_interface.calculate_checkout_line_total(
+                checkout_line, discounts
+            )
         subtotal = get_display_price(line_total)
         response = {
             "variantId": variant_id,
@@ -227,7 +231,7 @@ def update_checkout_line(request, checkout, variant_id):
             "checkout": {"numItems": checkout.quantity, "numLines": len(checkout)},
         }
 
-        checkout_total = tax_interface.get_subtotal_gross(checkout, discounts)
+        checkout_total = tax_interface.calculate_checkout_subtotal(checkout, discounts)
         checkout_total = get_display_price(checkout_total)
         response["total"] = format_money(checkout_total)
         local_checkout_total = to_local_currency(checkout_total, request.currency)
@@ -266,7 +270,7 @@ def checkout_dropdown(request, checkout):
             "variant": line.variant,
             "quantity": line.quantity,
             "image": first_image,
-            "line_total": tax_interface.get_line_total_gross(line, discounts),
+            "line_total": tax_interface.calculate_checkout_line_total(line, discounts),
             "variant_url": line.variant.get_absolute_url(),
         }
 
@@ -275,7 +279,7 @@ def checkout_dropdown(request, checkout):
     else:
         data = {
             "quantity": checkout.quantity,
-            "total": tax_interface.get_subtotal_gross(checkout, discounts),
+            "total": tax_interface.calculate_checkout_subtotal(checkout, discounts),
             "lines": [prepare_line_data(line) for line in checkout],
         }
 

@@ -16,7 +16,9 @@ if TYPE_CHECKING:
     from ...order.models import OrderLine, Order
 
 
-def get_total_gross(checkout: "Checkout", discounts: "SaleQueryset") -> TaxedMoney:
+def calculate_checkout_total(
+    checkout: "Checkout", discounts: "SaleQueryset"
+) -> TaxedMoney:
     """Calculate total gross for checkout"""
 
     if settings.VATLAYER_ACCESS_KEY:
@@ -28,7 +30,9 @@ def get_total_gross(checkout: "Checkout", discounts: "SaleQueryset") -> TaxedMon
     return TaxedMoney(net=total, gross=total)
 
 
-def get_subtotal_gross(checkout: "Checkout", discounts: "SaleQueryset") -> TaxedMoney:
+def calculate_checkout_subtotal(
+    checkout: "Checkout", discounts: "SaleQueryset"
+) -> TaxedMoney:
     """Calculate subtotal gross for checkout"""
 
     if settings.VATLAYER_ACCESS_KEY:
@@ -40,7 +44,9 @@ def get_subtotal_gross(checkout: "Checkout", discounts: "SaleQueryset") -> Taxed
     return TaxedMoney(net=subtotal, gross=subtotal)
 
 
-def get_shipping_gross(checkout: "Checkout", discounts: "SaleQueryset") -> TaxedMoney:
+def calculate_checkout_shipping(
+    checkout: "Checkout", discounts: "SaleQueryset"
+) -> TaxedMoney:
     """Calculate shipping gross for checkout"""
     if not checkout.shipping_method:
         return ZERO_TAXED_MONEY
@@ -84,7 +90,9 @@ def get_tax_rate_type_choices() -> List[TaxType]:
     return []
 
 
-def get_line_total_gross(checkout_line: "CheckoutLine", discounts: "SaleQueryset"):
+def calculate_checkout_line_total(
+    checkout_line: "CheckoutLine", discounts: "SaleQueryset"
+):
     if settings.VATLAYER_ACCESS_KEY:
         return vatlayer_interface.get_line_total_gross(checkout_line, discounts)
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
