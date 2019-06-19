@@ -45,8 +45,12 @@ function loadStories() {
   require("./stories/auth/LoginLoading");
 
   // Attributes
-  require("./stories/attributes/AttributePage");
+  require("./stories/attributes/AttributeBulkDeleteDialog");
+  require("./stories/attributes/AttributeDeleteDialog");
   require("./stories/attributes/AttributeListPage");
+  require("./stories/attributes/AttributePage");
+  require("./stories/attributes/AttributeValueDeleteDialog");
+  require("./stories/attributes/AttributeValueEditDialog");
 
   // Categories
   require("./stories/categories/CategoryProducts");
