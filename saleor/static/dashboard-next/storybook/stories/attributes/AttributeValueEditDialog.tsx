@@ -3,6 +3,7 @@ import * as React from "react";
 
 import { attributes } from "@saleor/attributes/fixtures";
 import { formError } from "@saleor/storybook/misc";
+import { AttributeValueType } from "@saleor/types/globalTypes";
 import AttributeValueEditDialog, {
   AttributeValueEditDialogProps
 } from "../../../attributes/components/AttributeValueEditDialog";
@@ -12,7 +13,7 @@ const props: AttributeValueEditDialogProps = {
   attributeValue: {
     ...attributes[0].values[0],
     sortOrder: 0,
-    type: "STRING",
+    type: AttributeValueType.STRING,
     value: ""
   },
   confirmButtonState: "default",
