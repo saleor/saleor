@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import date
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from urllib.parse import urljoin
@@ -17,6 +18,8 @@ if TYPE_CHECKING:
     from ....order.models import Order
 
 META_FIELD = "avatax"
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionType:
@@ -225,6 +228,15 @@ def generate_request_data(
     commit=False,
 ):
     company_address = get_company_address()
+    if company_address:
+        company_address = company_address.as_data()
+    else:
+        logging.warning(
+            "To correct calculate taxes by Avatax, company address should be provided "
+            "in dashboard.settings."
+        )
+        company_address = {}
+
     data = {
         "companyCode": settings.AVATAX_COMPANY_NAME,
         "type": transaction_type,
@@ -241,12 +253,12 @@ def generate_request_data(
         "addresses": {
             # FIXME we should put company address here
             "shipFrom": {  # warehouse
-                "line1": company_address.street_address_1,
-                "line2": company_address.street_address_2,
-                "city": company_address.city,
-                "region": company_address.country_area,
-                "country": company_address.country,
-                "postalCode": company_address.postal_code,
+                "line1": company_address.get("street_address_1"),
+                "line2": company_address.get("street_address_2"),
+                "city": company_address.get("city"),
+                "region": company_address.get("country_area"),
+                "country": company_address.get("country"),
+                "postalCode": company_address.get("postal_code"),
             },
             "shipTo": {
                 "line1": address.get("street_address_1"),
@@ -302,6 +314,9 @@ def get_cached_response_or_fetch(data, token_in_cache):
         response = api_post_request(transaction_url, data)
         if response and "error" not in response:
             cache.set(data_cache_key, (data, response), settings.AVATAX_CACHE_TIME)
+        else:
+            # cache failed response to limit hits to avatax.
+            cache.set(data_cache_key, (data, response), 10)
     else:
         _, response = cache.get(data_cache_key)
 
@@ -347,18 +362,18 @@ def get_cached_tax_codes_or_fetch(
 ):
     """Try to get cached tax codes. If cache is empty fetch the newest taxcodes from
     avatax"""
-    tax_codes = cache.get(settings.TAX_CODES_CACHE_KEY, {})
+    tax_codes = cache.get(settings.AVATAX_TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(), "definitions/taxcodes")
         response = api_get_request(tax_codes_url)
         if response and "error" not in response:
             tax_codes = generate_tax_codes_dict(response)
-            cache.set(settings.TAX_CODES_CACHE_KEY, tax_codes, cache_time)
+            cache.set(settings.AVATAX_TAX_CODES_CACHE_KEY, tax_codes, cache_time)
     return tax_codes
 
 
 def retrieve_tax_code_from_meta(obj: Union["Product", "ProductVariant"]):
     if not hasattr(obj, "meta"):
-        return ""
+        return "O9999999"  # "Temporary Unmapped Other SKU - taxable default"
     tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
-    return tax.get("code", "")
+    return tax.get("code", "O9999999")

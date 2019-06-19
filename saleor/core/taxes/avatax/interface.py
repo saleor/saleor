@@ -23,6 +23,7 @@ from . import (
 )
 
 if TYPE_CHECKING:
+    from ....checkout.models import Checkout
     from ....order.models import Order, OrderLine
 
 
@@ -88,9 +89,29 @@ def get_shipping_gross(checkout: "checkout_models.Checkout", discounts):
     return TaxedMoney(net=shipping_net, gross=shipping_gross)
 
 
+def preprocess_order_creation(checkout: "Checkout"):
+    """Confirm that all data is correct and we can proceed with creation of order.
+    Raise error when can't receive taxes"""
+
+    discounts = Sale.objects.active(date.today()).prefetch_related(
+        "products", "categories", "collections"
+    )
+    data = generate_request_data_from_checkout(
+        checkout,
+        transaction_token=str(checkout.token),
+        transaction_type=TransactionType.INVOICE,
+        discounts=discounts,
+    )
+    transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
+    response = api_post_request(transaction_url, data)
+    # FIXME errors for users (?)
+    if not response or "error" in response:
+        raise TaxError(response.get("error", {}).get("message", ""))
+
+
 def postprocess_order_creation(order: "Order"):
-    # FIXME this can be a celery task (?)
-    # FIXME maybe we can figure out better name
+    # FIXME this should be a celery task. it should retry to send an order in case
+    # of fail
 
     # Fixme we can generate data directly from order
     checkout = checkout_models.Checkout.objects.get(token=order.checkout_token)
@@ -104,10 +125,7 @@ def postprocess_order_creation(order: "Order"):
         discounts=discounts,
     )
     transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
-    response = api_post_request(transaction_url, data)
-    # FIXME errors for users (?)
-    if not response or "error" in response:
-        raise TaxError(response.get("error", {}).get("message", ""))
+    api_post_request(transaction_url, data)
 
 
 def get_line_total_gross(checkout_line: "checkout_models.CheckoutLine", discounts):
