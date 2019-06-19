@@ -1,5 +1,6 @@
 import { AttributeValueType } from "@saleor/types/globalTypes";
 import { AttributeList_attributes_edges_node } from "./types/AttributeList";
+import { AttributeValueType } from "@saleor/types/globalTypes";
 
 export const attribute = {
   __typename: "Attribute" as "Attribute",
