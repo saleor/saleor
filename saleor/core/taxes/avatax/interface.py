@@ -185,4 +185,4 @@ def get_tax_from_object_meta(obj: Union["Product", "ProductType"]) -> TaxType:
         return TaxType(code="", description="")
 
     tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
-    return TaxType(code=tax.get("code", ""), description=tax.get("description"))
+    return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))

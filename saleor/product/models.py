@@ -20,7 +20,6 @@ from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils import build_absolute_uri
@@ -88,7 +87,6 @@ class ProductType(models.Model):
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
     # FIXME This should be moved to meta
-    tax_rate = models.CharField(max_length=128, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
@@ -138,7 +136,6 @@ class Product(SeoModel, PublishableModel):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     # FIXME This should be moved to meta
-    tax_rate = models.CharField(max_length=128, blank=True, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
