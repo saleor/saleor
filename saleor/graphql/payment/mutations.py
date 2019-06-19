@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...core.taxes import ZERO_TAXED_MONEY
-from ...core.taxes.interface import get_total_gross
+from ...core.taxes.interface import calculate_checkout_total
 from ...core.utils import get_client_ip
 from ...payment import PaymentError, models
 from ...payment.utils import (
@@ -80,7 +80,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 {"billing_address": "No billing address associated with this checkout."}
             )
         checkout_total = (
-            get_total_gross(checkout, discounts=info.context.discounts)
+            calculate_checkout_total(checkout, discounts=info.context.discounts)
             - checkout.get_total_gift_cards_balance()
         )
         checkout_total = max(checkout_total, ZERO_TAXED_MONEY)

@@ -25,7 +25,7 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.taxes.errors import TaxError
-from ...core.taxes.interface import get_subtotal_gross
+from ...core.taxes.interface import calculate_checkout_subtotal
 from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.interface import AddressData
@@ -56,7 +56,7 @@ def clean_shipping_method(checkout, method, discounts, country_code=None, remove
         )
 
     valid_methods = ShippingMethodModel.objects.applicable_shipping_methods(
-        price=get_subtotal_gross(checkout, discounts).gross.amount,
+        price=calculate_checkout_subtotal(checkout, discounts).gross.amount,
         weight=checkout.get_total_weight(),
         country_code=country_code or checkout.shipping_address.country.code,
     )

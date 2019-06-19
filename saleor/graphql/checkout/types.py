@@ -5,10 +5,10 @@ from django.conf import settings
 from ...checkout import models
 from ...core.taxes import ZERO_TAXED_MONEY
 from ...core.taxes.interface import (
-    get_line_total_gross,
-    get_shipping_gross,
-    get_subtotal_gross,
-    get_total_gross,
+    calculate_checkout_line_total,
+    calculate_checkout_shipping,
+    calculate_checkout_subtotal,
+    calculate_checkout_total,
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
@@ -36,7 +36,7 @@ class CheckoutLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(self, info):
-        return get_line_total_gross(
+        return calculate_checkout_line_total(
             checkout_line=self, discounts=info.context.discounts
         )
 
@@ -118,18 +118,22 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_total_price(root: models.Checkout, info):
         taxed_total = (
-            get_total_gross(checkout=root, discounts=info.context.discounts)
+            calculate_checkout_total(checkout=root, discounts=info.context.discounts)
             - root.get_total_gift_cards_balance()
         )
         return max(taxed_total, ZERO_TAXED_MONEY)
 
     @staticmethod
     def resolve_subtotal_price(root: models.Checkout, info):
-        return get_subtotal_gross(checkout=root, discounts=info.context.discounts)
+        return calculate_checkout_subtotal(
+            checkout=root, discounts=info.context.discounts
+        )
 
     @staticmethod
     def resolve_shipping_price(root: models.Checkout, info):
-        return get_shipping_gross(checkout=root, discounts=info.context.discounts)
+        return calculate_checkout_shipping(
+            checkout=root, discounts=info.context.discounts
+        )
 
     @staticmethod
     def resolve_lines(root: models.Checkout, *_args):
@@ -137,7 +141,9 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Checkout, info):
-        price = get_subtotal_gross(checkout=root, discounts=info.context.discounts)
+        price = calculate_checkout_subtotal(
+            checkout=root, discounts=info.context.discounts
+        )
         return applicable_shipping_methods(root, price.gross.amount)
 
     @staticmethod

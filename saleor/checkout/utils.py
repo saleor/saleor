@@ -17,11 +17,11 @@ from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from ..core.taxes.interface import (
+    calculate_checkout_line_total,
+    calculate_checkout_shipping,
+    calculate_checkout_subtotal,
+    calculate_checkout_total,
     checkout_are_taxes_handled,
-    get_line_total_gross,
-    get_shipping_gross,
-    get_subtotal_gross,
-    get_total_gross,
     postprocess_order_creation,
     preprocess_order_creation,
 )
@@ -654,12 +654,12 @@ def change_shipping_address_in_checkout(checkout, address):
 def get_checkout_context(checkout, discounts, currency=None, shipping_range=None):
     """Data shared between views in checkout process."""
     checkout_total = (
-        get_total_gross(checkout=checkout, discounts=discounts)
+        calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     checkout_total = max(checkout_total, ZERO_TAXED_MONEY)
-    checkout_subtotal = get_subtotal_gross(checkout, discounts)
-    shipping_price = get_shipping_gross(checkout, discounts)
+    checkout_subtotal = calculate_checkout_subtotal(checkout, discounts)
+    shipping_price = calculate_checkout_shipping(checkout, discounts)
 
     shipping_required = checkout.is_shipping_required()
     total_with_shipping = TaxedMoneyRange(
@@ -672,7 +672,7 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
         "checkout": checkout,
         "checkout_are_taxes_handled": checkout_are_taxes_handled(),
         "checkout_lines": [
-            (line, get_line_total_gross(line, discounts)) for line in checkout
+            (line, calculate_checkout_line_total(line, discounts)) for line in checkout
         ],
         "checkout_shipping_price": shipping_price,
         "checkout_subtotal": checkout_subtotal,
@@ -787,7 +787,7 @@ def recalculate_checkout_discount(checkout, discounts):
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
-            subtotal = get_subtotal_gross(checkout, discounts).gross
+            subtotal = calculate_checkout_subtotal(checkout, discounts).gross
             checkout.discount_amount = min(discount, subtotal)
             checkout.discount_name = str(voucher)
             checkout.translated_discount_name = (
@@ -895,7 +895,7 @@ def is_valid_shipping_method(checkout, discounts):
         return False
 
     valid_methods = ShippingMethod.objects.applicable_shipping_methods(
-        price=get_subtotal_gross(checkout, discounts).gross,
+        price=calculate_checkout_subtotal(checkout, discounts).gross,
         weight=checkout.get_total_weight(),
         country_code=checkout.shipping_address.country.code,
     )
@@ -1005,7 +1005,7 @@ def create_line_for_order(checkout_line: CheckoutLine, discounts) -> OrderLine:
     if translated_product_name == product_name:
         translated_product_name = ""
 
-    total_line_price = get_line_total_gross(checkout_line, discounts)
+    total_line_price = calculate_checkout_line_total(checkout_line, discounts)
     unit_price = total_line_price / checkout_line.quantity
     line = OrderLine(
         product_name=product_name,
@@ -1030,12 +1030,12 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
     order_data = {}
 
     total = (
-        get_total_gross(checkout=checkout, discounts=discounts)
+        calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     total = max(total, ZERO_TAXED_MONEY)
 
-    shipping_total = get_shipping_gross(checkout, discounts)
+    shipping_total = calculate_checkout_shipping(checkout, discounts)
     order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
     order_data.update(_process_user_data_for_order(checkout))
     order_data.update(
@@ -1059,7 +1059,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
 
     # assign gift cards to the order
     order_data["total_price_left"] = (
-        get_subtotal_gross(checkout, discounts)
+        calculate_checkout_subtotal(checkout, discounts)
         + shipping_total
         - checkout.discount_amount
     ).gross
@@ -1128,7 +1128,7 @@ def is_fully_paid(checkout: Checkout, discounts):
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
     checkout_total = (
-        get_total_gross(checkout=checkout, discounts=discounts)
+        calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     checkout_total = max(checkout_total, ZERO_TAXED_MONEY).gross
