@@ -147,6 +147,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix checkbox clickable area size - #4280 by @dominik-zeglen
 - Fix breaking object selection in menu section - #4282 by @dominik-zeglen
 - Reset selected items when tab switch - #4268 by @benekex2
+- Add attribute section - #4305 by @dominik-zeglen
 
 ### Other notable changes
 
