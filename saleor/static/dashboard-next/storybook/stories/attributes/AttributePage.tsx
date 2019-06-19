@@ -2,6 +2,7 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import { attribute } from "@saleor/attributes/fixtures";
+import { formError } from "@saleor/storybook/misc";
 import AttributePage, {
   AttributePageProps
 } from "../../../attributes/components/AttributePage";
@@ -10,6 +11,7 @@ import Decorator from "../../Decorator";
 const props: AttributePageProps = {
   attribute,
   disabled: false,
+  errors: [],
   onBack: () => undefined,
   onDelete: () => undefined,
   onSubmit: () => undefined,
@@ -32,4 +34,7 @@ storiesOf("Views / Attributes / Attribute details", module)
     />
   ))
   .add("no values", () => <AttributePage {...props} values={undefined} />)
+  .add("form errors", () => (
+    <AttributePage {...props} errors={["name", "slug"].map(formError)} />
+  ))
   .add("create", () => <AttributePage {...props} attribute={null} />);
