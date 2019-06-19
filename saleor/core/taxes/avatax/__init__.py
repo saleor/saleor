@@ -15,12 +15,6 @@ if TYPE_CHECKING:
     from ....order.models import Order
 
 
-common_carrier_code = "FR020100"  # FIXME
-cache_key = "avatax_request_id_"  # FIXME
-TAX_CODES_CACHE_KEY = "avatax_tax_codes_cache_key"
-COMMON_CARRIER_CODE = "FR000000"
-
-
 class TransactionType:
     INVOICE = "SalesInvoice"
     ORDER = "SalesOrder"
@@ -99,7 +93,7 @@ def validate_checkout(checkout: "Checkout") -> bool:
 def checkout_needs_new_fetch(data, checkout_token: str) -> bool:
     """We store the response from avatax for checkout object for given time. If object
     doesn't exist in cache or something has changed, then we fetch data from avatax."""
-    checkout_cache_key = cache_key + checkout_token
+    checkout_cache_key = settings.AVATAX_CACHE_KEY + checkout_token
     cached_checkout = cache.get(checkout_cache_key)
 
     if not cached_checkout:
@@ -114,7 +108,7 @@ def checkout_needs_new_fetch(data, checkout_token: str) -> bool:
 def taxes_need_new_fetch(data: Dict[str, Any], taxes_token: str) -> bool:
     """We store the response from avatax. If object doesn't exist in cache or
     something has changed, then we fetch data from avatax."""
-    taxes_cache_key = cache_key + taxes_token
+    taxes_cache_key = settings.AVATAX_CACHE_KEY + taxes_token
     cached_data = cache.get(taxes_cache_key)
 
     if not cached_data:
@@ -175,7 +169,7 @@ def get_checkout_lines_data(
             data,
             quantity=1,
             amount=str(checkout.shipping_method.price.amount),
-            tax_code=common_carrier_code,
+            tax_code=settings.AVATAX_COMMON_CARRIER_CODE,
             item_code="Shipping",
         )
     return data
@@ -205,7 +199,7 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
             data,
             quantity=1,
             amount=order.shipping_method.price.amount,
-            tax_code=common_carrier_code,
+            tax_code=settings.AVATAX_COMMON_CARRIER_CODE,
             item_code="Shipping",
         )
     return data
@@ -289,7 +283,7 @@ def generate_request_data_from_checkout(
 def get_cached_response_or_fetch(data, token_in_cache):
     """Try to find response in cache. Return cached response if requests data are
     the same. Fetch new data in other cases"""
-    data_cache_key = cache_key + token_in_cache
+    data_cache_key = settings.AVATAX_CACHE_KEY + token_in_cache
     if taxes_need_new_fetch(data, token_in_cache):
         transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
         print("HIT TO API")
@@ -341,11 +335,11 @@ def get_cached_tax_codes_or_fetch(
 ):
     """Try to get cached tax codes. If cache is empty fetch the newest taxcodes from
     avatax"""
-    tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
+    tax_codes = cache.get(settings.TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(), "definitions/taxcodes")
         response = api_get_request(tax_codes_url)
         if response and "error" not in response:
             tax_codes = generate_tax_codes_dict(response)
-            cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)
+            cache.set(settings.TAX_CODES_CACHE_KEY, tax_codes, cache_time)
     return tax_codes
