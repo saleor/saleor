@@ -11,11 +11,7 @@ import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import {
-  AttributeTypeEnum,
-  TaxRateType,
-  WeightUnitsEnum
-} from "../../../types/globalTypes";
+import { TaxRateType, WeightUnitsEnum } from "../../../types/globalTypes";
 import { ProductTypeDetails_productType } from "../../types/ProductTypeDetails";
 import ProductTypeAttributes from "../ProductTypeAttributes/ProductTypeAttributes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
@@ -47,7 +43,7 @@ export interface ProductTypeDetailsPageProps {
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: ConfirmButtonTransitionState;
-  onAttributeAdd: (type: AttributeTypeEnum) => void;
+  onAttributeAdd: (type: string) => void;
   onAttributeDelete: (id: string, event: React.MouseEvent<any>) => void;
   onAttributeUpdate: (id: string) => void;
   onBack: () => void;
@@ -122,7 +118,7 @@ const ProductTypeDetailsPage: React.StatelessComponent<
               <CardSpacer />
               <ProductTypeAttributes
                 attributes={maybe(() => productType.productAttributes)}
-                type={AttributeTypeEnum.PRODUCT}
+                type="PRODUCT"
                 onAttributeAdd={onAttributeAdd}
                 onAttributeDelete={onAttributeDelete}
                 onAttributeUpdate={onAttributeUpdate}
@@ -140,7 +136,7 @@ const ProductTypeDetailsPage: React.StatelessComponent<
                   <CardSpacer />
                   <ProductTypeAttributes
                     attributes={maybe(() => productType.variantAttributes)}
-                    type={AttributeTypeEnum.VARIANT}
+                    type="VARIANT"
                     onAttributeAdd={onAttributeAdd}
                     onAttributeDelete={onAttributeDelete}
                     onAttributeUpdate={onAttributeUpdate}
