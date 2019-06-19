@@ -23,6 +23,7 @@ from ..core.taxes.interface import (
     get_subtotal_gross,
     get_total_gross,
     postprocess_order_creation,
+    preprocess_order_creation,
 )
 from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
@@ -1063,6 +1064,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
         - checkout.discount_amount
     ).gross
 
+    preprocess_order_creation(checkout)
     return order_data
 
 

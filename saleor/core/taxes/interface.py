@@ -155,6 +155,11 @@ def apply_taxes_to_shipping_price_range(prices: MoneyRange, country: Country):
     return TaxedMoneyRange(start=start, stop=stop)
 
 
+def preprocess_order_creation(checkout: "Checkout"):
+    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        return avatax_interface.preprocess_order_creation(checkout)
+
+
 # FIXME this should be converted to the plugin action after we introduce plugin
 # architecture
 def postprocess_order_creation(order: "Order"):
