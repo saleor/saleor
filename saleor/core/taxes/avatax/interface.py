@@ -10,6 +10,7 @@ from ....discount.models import Sale
 from .. import ZERO_TAXED_MONEY, TaxType
 from ..errors import TaxError
 from . import (
+    META_FIELD,
     TransactionType,
     api_post_request,
     generate_request_data_from_checkout,
@@ -23,8 +24,6 @@ from . import (
 
 if TYPE_CHECKING:
     from ....order.models import Order, OrderLine
-
-META_FIELD = "avatax"
 
 
 def get_total_gross(checkout: "checkout_models.Checkout", discounts):

@@ -8,11 +8,15 @@ from django.conf import settings
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
+from saleor.core.utils import get_company_address
+
 from .. import charge_taxes_on_shipping, include_taxes_in_prices
 
 if TYPE_CHECKING:
     from ....checkout.models import Checkout
     from ....order.models import Order
+
+META_FIELD = "avatax"
 
 
 class TransactionType:
@@ -35,7 +39,7 @@ def api_post_request(
 ) -> Dict[str, Any]:
     try:
         auth = HTTPBasicAuth(username, password)
-        response = requests.post(url, auth=auth, data=json.dumps(data))  # FIXME timeout
+        response = requests.post(url, auth=auth, data=json.dumps(data), timeout=2)
     except requests.exceptions.RequestException:
         return {}
     return response.json()
@@ -48,7 +52,7 @@ def api_get_request(
 ):
     try:
         auth = HTTPBasicAuth(username, password)
-        response = requests.get(url, auth=auth)
+        response = requests.get(url, auth=auth, timeout=2)
     except requests.exceptions.RequestException:
         return {}
     return response.json()
@@ -154,12 +158,15 @@ def get_checkout_lines_data(
         if not line.variant.product.charge_taxes:
             continue
         description = line.variant.product.description
+        product = line.variant.product
+        product_type = line.variant.product.product_type
+        tax_code = retrieve_tax_code_from_meta(product)
+        tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         append_line_to_data(
             data=data,
             quantity=line.quantity,
             amount=str(line.get_total(discounts).amount),
-            # FIXME Should fetch taxcode from somewhere and save inside variant/product
-            tax_code="PC040156",
+            tax_code=tax_code,
             item_code=line.variant.sku,
             description=description,
         )
@@ -185,7 +192,10 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
     for line in lines:
         if not line.variant.product.charge_taxes:
             continue
-        tax_code = line.variant.product.meta.get("taxes", {}).get("avatax", "")
+        product = line.variant.product
+        product_type = line.variant.product.product_type
+        tax_code = retrieve_tax_code_from_meta(product)
+        tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         append_line_to_data(
             data=data,
             quantity=line.quantity,
@@ -214,6 +224,7 @@ def generate_request_data(
     customer_email: str,
     commit=False,
 ):
+    company_address = get_company_address()
     data = {
         "companyCode": settings.AVATAX_COMPANY_NAME,
         "type": transaction_type,
@@ -230,11 +241,12 @@ def generate_request_data(
         "addresses": {
             # FIXME we should put company address here
             "shipFrom": {  # warehouse
-                "line1": "2000 Main Street",
-                "city": "Irvine",
-                "region": "CA",
-                "country": "US",
-                "postalCode": "92614",
+                "line1": company_address.street_address_1,
+                "line2": company_address.street_address_2,
+                "city": company_address.city,
+                "region": company_address.country_area,
+                "country": company_address.country,
+                "postalCode": company_address.postal_code,
             },
             "shipTo": {
                 "line1": address.get("street_address_1"),
@@ -343,3 +355,10 @@ def get_cached_tax_codes_or_fetch(
             tax_codes = generate_tax_codes_dict(response)
             cache.set(settings.TAX_CODES_CACHE_KEY, tax_codes, cache_time)
     return tax_codes
+
+
+def retrieve_tax_code_from_meta(obj: Union["Product", "ProductVariant"]):
+    if not hasattr(obj, "meta"):
+        return ""
+    tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
+    return tax.get("code", "")
