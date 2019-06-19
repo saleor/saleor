@@ -88,6 +88,10 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
             <AttributePage
               attribute={null}
               disabled={false}
+              errors={maybe(
+                () => attributeCreateOpts.data.attributeCreate.errors,
+                []
+              )}
               onBack={() => navigate(attributeListUrl())}
               onDelete={undefined}
               onSubmit={input =>
@@ -120,6 +124,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
               attributeValue={null}
               confirmButtonState="default"
               disabled={false}
+              errors={[]}
               open={params.action === "add-value"}
               onClose={closeModal}
               onSubmit={handleValueCreate}
@@ -137,6 +142,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
                   attributeValue={maybe(() => values[params.id])}
                   confirmButtonState="default"
                   disabled={false}
+                  errors={[]}
                   open={params.action === "edit-value"}
                   onClose={closeModal}
                   onSubmit={handleValueUpdate}

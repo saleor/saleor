@@ -13,6 +13,7 @@ import Form from "@saleor/components/Form";
 import FormSpacer from "@saleor/components/FormSpacer";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
+import { UserError } from "@saleor/types";
 import { AttributeDetails_attribute_values } from "../../types/AttributeDetails";
 
 export interface AttributeValueEditDialogFormData {
@@ -23,6 +24,7 @@ export interface AttributeValueEditDialogProps {
   attributeValue: AttributeDetails_attribute_values | null;
   confirmButtonState: ConfirmButtonTransitionState;
   disabled: boolean;
+  errors: UserError[];
   open: boolean;
   onSubmit: (data: AttributeValueEditDialogFormData) => void;
   onClose: () => void;
@@ -34,6 +36,7 @@ const AttributeValueEditDialog: React.StatelessComponent<
   attributeValue,
   confirmButtonState,
   disabled,
+  errors,
   onClose,
   onSubmit,
   open
@@ -54,12 +57,13 @@ const AttributeValueEditDialog: React.StatelessComponent<
               context: "edit attribute value"
             })}
       </DialogTitle>
-      <Form initial={initialForm} onSubmit={onSubmit}>
-        {({ change, data, submit }) => (
+      <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+        {({ change, data, errors: formErrors, submit }) => (
           <>
             <DialogContent>
               <TextField
                 disabled={disabled}
+                error={!!formErrors.slug}
                 fullWidth
                 name={"slug" as keyof AttributeValueEditDialogFormData}
                 label={i18n.t("Admin name", {
@@ -71,6 +75,7 @@ const AttributeValueEditDialog: React.StatelessComponent<
               <FormSpacer />
               <TextField
                 disabled={disabled}
+                error={!!formErrors.name}
                 fullWidth
                 name={"name" as keyof AttributeValueEditDialogFormData}
                 label={i18n.t("Default Storefront Name", {
