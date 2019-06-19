@@ -19,7 +19,6 @@ import CardTitle from "@saleor/components/CardTitle";
 import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { AttributeTypeEnum } from "../../../types/globalTypes";
 import {
   ProductTypeDetails_productType_productAttributes,
   ProductTypeDetails_productType_variantAttributes
@@ -45,8 +44,8 @@ interface ProductTypeAttributesProps extends WithStyles<typeof styles> {
   attributes:
     | ProductTypeDetails_productType_productAttributes[]
     | ProductTypeDetails_productType_variantAttributes[];
-  type: AttributeTypeEnum;
-  onAttributeAdd: (type: AttributeTypeEnum) => void;
+  type: string;
+  onAttributeAdd: (type: string) => void;
   onAttributeDelete: (id: string, event: React.MouseEvent<any>) => void;
   onAttributeUpdate: (id: string) => void;
 }
@@ -65,7 +64,7 @@ const ProductTypeAttributes = withStyles(styles, {
     <Card>
       <CardTitle
         title={
-          type === AttributeTypeEnum.PRODUCT
+          type === "PRODUCT"
             ? i18n.t("Product Attributes")
             : i18n.t("Variant Attributes")
         }
