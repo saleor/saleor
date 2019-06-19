@@ -222,16 +222,19 @@ def fulfillment_tracking_updated_event(
 
 
 def order_note_added_event(*, order: Order, user: UserType, message: str) -> OrderEvent:
-    if order.user.pk == user.pk:
-        account_events.customer_added_to_note_order_event(
-            user=user, order=order, message=message
-        )
+    kwargs = {}
+    if user is not None and not user.is_anonymous:
+        if order.user is not None and order.user.pk == user.pk:
+            account_events.customer_added_to_note_order_event(
+                user=user, order=order, message=message
+            )
+        kwargs["user"] = user
 
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.NOTE_ADDED,
-        user=user,
         parameters={"message": message},
+        **kwargs,
     )
 
 
