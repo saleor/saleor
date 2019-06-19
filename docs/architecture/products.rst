@@ -19,9 +19,7 @@ Class Diagram
     - brew install graphviz
     - pip3 install --install-option="--include-path=/usr/local/include/" --install-option="--library-path=/usr/local/lib/" pygraphviz
     - pip install django-extensions
-    - INSTALLED_APPS = [
-          'django_extensions',
-      ]
+    - Append 'django_extensions' to `INSTALL_APPS` in your settings
     - ./manage.py graph_models product -X '*Translation*,*Model' --pygraphviz -g -o product_class_tree.png
 
 .. image:: ../img/product_class_tree.png

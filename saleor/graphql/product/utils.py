@@ -11,7 +11,7 @@ def validate_attribute_input(instance: models.Attribute, values: List[str]):
         raise ValueError(f"A {instance.input_type} attribute must take only one value")
 
 
-def attributes_to_json(attribute_value_input, attributes_queryset):
+def attributes_to_json(attribute_value_input: List[dict], attributes_queryset):
     """Transform attributes to the HStore representation.
 
     Attributes configuration per product is stored in a HStore field as
@@ -26,7 +26,7 @@ def attributes_to_json(attribute_value_input, attributes_queryset):
         for value in attr.values.all():
             values_map[value.slug] = value.id
 
-    for attribute_input in attribute_value_input:  # type: dict
+    for attribute_input in attribute_value_input:
         attr_slug = attribute_input.get("slug")
         if attr_slug not in attributes_map:
             raise ValueError(

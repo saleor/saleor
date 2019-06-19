@@ -33,6 +33,7 @@ from saleor.order.utils import fulfill_order_line, recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
+from saleor.product import AttributeInputType
 from saleor.product.models import (
     Attribute,
     AttributeTranslation,
@@ -434,7 +435,9 @@ def product(product_type, category):
 def variant_with_multiple_values_attributes(
     variant, product_type, category
 ) -> ProductVariant:
-    variant_attr = Attribute.objects.create(slug="modes", name="Available Modes")
+    variant_attr = Attribute.objects.create(
+        slug="modes", name="Available Modes", input_type=AttributeInputType.MULTISELECT
+    )
 
     attr_val_1 = AttributeValue.objects.create(
         attribute=variant_attr, name="Eco Mode", slug="eco"
@@ -443,6 +446,7 @@ def variant_with_multiple_values_attributes(
         attribute=variant_attr, name="Performance Mode", slug="power"
     )
 
+    product_type.variant_attributes.clear()
     product_type.variant_attributes.add(variant_attr)
 
     variant.attributes = {

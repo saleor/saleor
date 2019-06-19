@@ -488,8 +488,7 @@ def test_get_variant_picker_data_no_nested_attributes(
         product, discounts=None, taxes=None, local_currency=None
     )
 
-    assert len(data["variantAttributes"]) == 1
-    assert len(data["variants"][0]["attributes"]) == 0
+    assert len(data["variantAttributes"]) == 0
 
 
 def test_render_product_page_with_no_variant(unavailable_product, admin_client):

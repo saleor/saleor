@@ -1,5 +1,5 @@
 class AttributeDescriptions:
-    INPUT_TYPE = "The type of rendering for this attribute and its values."
+    INPUT_TYPE = "The input type to use for entering attribute values in the dashboard."
     NAME = "Name of an attribute displayed in the interface."
     SLUG = "Internal representation of an attribute name."
     VALUES = "List of attribute's values."
