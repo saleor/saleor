@@ -65,6 +65,7 @@ const AttributeValueEditDialog: React.StatelessComponent<
                 disabled={disabled}
                 error={!!formErrors.slug}
                 fullWidth
+                helperText={formErrors.slug}
                 name={"slug" as keyof AttributeValueEditDialogFormData}
                 label={i18n.t("Admin name", {
                   context: "attribute slug"
@@ -77,6 +78,7 @@ const AttributeValueEditDialog: React.StatelessComponent<
                 disabled={disabled}
                 error={!!formErrors.name}
                 fullWidth
+                helperText={formErrors.name}
                 name={"name" as keyof AttributeValueEditDialogFormData}
                 label={i18n.t("Default Storefront Name", {
                   context: "attribute name"
