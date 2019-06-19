@@ -96,7 +96,9 @@ class Command(BaseCommand):
         # for msg in create_menus():
         #     self.stdout.write(msg)
 
-        email = "admin@{}.com".format(os.environ.get('STORENAME', 'example'))
+        # Create Super User
+        storename = os.environ.get('STORENAME', 'example')
+        email = "admin@{}.com".format(storename)
         if options['createsuperuser']:
             credentials = {'email': email, 'password': 'admin'}
             msg = create_superuser(credentials)
@@ -106,3 +108,11 @@ class Command(BaseCommand):
             self.populate_search_index()
         if not options['skipsequencereset']:
             self.sequence_reset()
+        
+        # Modify Site Settings
+        domain = "{}.mercuriemart.com".format(storename)
+        site =  Site.objects.get_current()
+        site.domain = domain
+        site.name = storename
+        site.header_text = "{} e-Commerce".format(storename)
+        site.save()
