@@ -155,6 +155,12 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                 <AttributePage
                                   attribute={maybe(() => data.attribute)}
                                   disabled={loading}
+                                  errors={maybe(
+                                    () =>
+                                      attributeUpdateOpts.data.attributeUpdate
+                                        .errors,
+                                    []
+                                  )}
                                   onBack={() => navigate(attributeListUrl())}
                                   onDelete={() => openModal("remove")}
                                   onSubmit={input =>
@@ -215,6 +221,12 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                     createValueTransitionState
                                   }
                                   disabled={loading}
+                                  errors={maybe(
+                                    () =>
+                                      attributeValueCreateOpts.data
+                                        .attributeValueCreate.errors,
+                                    []
+                                  )}
                                   open={params.action === "add-value"}
                                   onClose={closeModal}
                                   onSubmit={input =>
@@ -239,6 +251,12 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                     updateValueTransitionState
                                   }
                                   disabled={loading}
+                                  errors={maybe(
+                                    () =>
+                                      attributeValueUpdateOpts.data
+                                        .attributeValueUpdate.errors,
+                                    []
+                                  )}
                                   open={params.action === "edit-value"}
                                   onClose={closeModal}
                                   onSubmit={input =>
