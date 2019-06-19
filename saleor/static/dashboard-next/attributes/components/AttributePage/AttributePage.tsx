@@ -1,15 +1,16 @@
 import * as React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
-import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import AppHeader from "@saleor/components/AppHeader";
+import CardSpacer from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import i18n from "@saleor/i18n";
+import { maybe } from "@saleor/misc";
+import { UserError } from "@saleor/types";
 import {
   AttributeDetailsFragment,
   AttributeDetailsFragment_values
@@ -20,6 +21,7 @@ import AttributeValues from "../AttributeValues";
 export interface AttributePageProps {
   attribute: AttributeDetailsFragment | null;
   disabled: boolean;
+  errors: UserError[];
   saveButtonBarState: ConfirmButtonTransitionState;
   values: AttributeDetailsFragment_values[];
   onBack: () => void;
@@ -38,6 +40,7 @@ export interface AttributePageFormData {
 const AttributePage: React.FC<AttributePageProps> = ({
   attribute,
   disabled,
+  errors,
   saveButtonBarState,
   values,
   onBack,
@@ -59,8 +62,8 @@ const AttributePage: React.FC<AttributePageProps> = ({
         };
 
   return (
-    <Form initial={initialForm} onSubmit={onSubmit}>
-      {({ change, data, submit }) => (
+    <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+      {({ change, errors: formErrors, data, submit }) => (
         <Container>
           <AppHeader onBack={onBack}>{i18n.t("Attributes")}</AppHeader>
           <PageHeader
@@ -77,6 +80,7 @@ const AttributePage: React.FC<AttributePageProps> = ({
               <AttributeDetails
                 data={data}
                 disabled={disabled}
+                errors={formErrors}
                 onChange={change}
               />
               <CardSpacer />
