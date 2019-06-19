@@ -2134,6 +2134,7 @@ type Product implements Node {
   isAvailable: Boolean
   basePrice: Money
   price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
+  taxRate: TaxRateType @deprecated(reason: "taxRate is deprecated. Use tax_type to obtain tax_code for given tax gateway")
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
@@ -2184,7 +2185,8 @@ input ProductCreateInput {
   name: String
   price: Decimal
   basePrice: Decimal
-  taxRate: String
+  taxRate: TaxRateType
+  taxCode: String
   seo: SeoInput
   weight: WeightScalar
   sku: String
@@ -2267,7 +2269,8 @@ input ProductInput {
   name: String
   price: Decimal
   basePrice: Decimal
-  taxRate: String
+  taxRate: TaxRateType
+  taxCode: String
   seo: SeoInput
   weight: WeightScalar
   sku: String
@@ -2374,6 +2377,7 @@ input ProductTypeInput {
   isDigital: Boolean
   weight: WeightScalar
   taxRate: TaxRateType
+  taxCode: String
 }
 
 type ProductTypeUpdate {

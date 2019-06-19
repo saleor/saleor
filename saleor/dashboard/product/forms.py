@@ -10,7 +10,7 @@ from django.utils.translation import pgettext_lazy
 from mptt.forms import TreeNodeChoiceField
 
 from ...core.taxes import include_taxes_in_prices
-from ...core.taxes.interface import get_tax_rate_type_choices
+from ...core.taxes.interface import get_tax_from_object_meta, get_tax_rate_type_choices
 from ...core.weight import WeightField
 from ...product.models import (
     Attribute,
@@ -278,7 +278,10 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         product_type = self.instance.product_type
-        self.initial["tax_rate"] = self.instance.tax_rate or product_type.tax_rate
+        product_tax_rate = get_tax_from_object_meta(self.instance).code
+        self.initial["tax_rate"] = (
+            product_tax_rate or get_tax_from_object_meta(product_type).code
+        )
         self.available_attributes = product_type.product_attributes.prefetch_related(
             "values"
         ).all()

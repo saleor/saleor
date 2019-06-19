@@ -62,6 +62,9 @@ def test_view_checkout_with_taxes(
     checkout = request_checkout_with_item
     checkout.shipping_address = address
     checkout.save()
+    product = checkout.lines.first().variant.product
+    product.meta = {"taxes": {"vatlayer": {"code": "standard", "description": ""}}}
+    product.save()
     response = client.get(reverse("checkout:index"))
     response_checkout_line = response.context[0]["checkout_lines"][0]
     line_net = Money(amount="8.13", currency="USD")

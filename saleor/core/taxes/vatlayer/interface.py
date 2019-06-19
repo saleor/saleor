@@ -85,7 +85,10 @@ def apply_taxes_to_variant(
     taxes = None
     if variant.product.charge_taxes and country:
         taxes = get_taxes_for_country(country)
-    tax_rate = variant.product.tax_rate or variant.product.product_type.tax_rate
+    product_tax_rate = get_tax_from_object_meta(variant.product).code
+    tax_rate = (
+        product_tax_rate or get_tax_from_object_meta(variant.product.product_type).code
+    )
     return apply_tax_to_price(taxes, tax_rate, price)
 
 
@@ -95,7 +98,8 @@ def apply_taxes_to_product(
     taxes = None
     if product.charge_taxes and country:
         taxes = get_taxes_for_country(country)
-    tax_rate = product.tax_rate or product.product_type.tax_rate
+    product_tax_rate = get_tax_from_object_meta(product).code
+    tax_rate = product_tax_rate or get_tax_from_object_meta(product.product_type).code
     return apply_tax_to_price(taxes, tax_rate, price)
 
 
@@ -121,6 +125,6 @@ def assign_tax_to_object_meta(obj: Union["Product", "ProductType"], tax_code: st
 def get_tax_from_object_meta(obj: Union["Product", "ProductType"]) -> TaxType:
     if not hasattr(obj, "meta"):
         return TaxType(code="", description="")
-    tax = obj.meta.get("taxes", {}).get(META_FIELD)
+    tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
 
-    return TaxType(code=tax.get("code", ""), description=tax.get("description"))
+    return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))
