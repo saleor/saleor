@@ -49,7 +49,7 @@ const AttributeList: React.StatelessComponent<AttributeListProps> = ({
   toggleAll,
   toolbar
 }) => {
-  const classes = useStyles();
+  const classes = useStyles({});
 
   return (
     <Table>
