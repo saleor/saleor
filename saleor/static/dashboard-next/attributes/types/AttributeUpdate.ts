@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { AttributeUpdateInput } from "./../../types/globalTypes";
+import { AttributeUpdateInput, AttributeValueType } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: AttributeUpdate
@@ -19,6 +19,9 @@ export interface AttributeUpdate_attributeUpdate_attribute_values {
   id: string;
   name: string | null;
   slug: string | null;
+  sortOrder: number | null;
+  type: AttributeValueType | null;
+  value: string | null;
 }
 
 export interface AttributeUpdate_attributeUpdate_attribute {

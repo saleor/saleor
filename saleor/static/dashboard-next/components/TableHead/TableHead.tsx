@@ -34,7 +34,7 @@ const styles = (theme: Theme) =>
     },
     checkboxPartialSelect: {
       "&:after": {
-        background: "#fff",
+        background: theme.palette.common.white,
         content: "''",
         height: 2,
         position: "absolute",
@@ -57,7 +57,6 @@ const styles = (theme: Theme) =>
     },
     root: {
       backgroundColor: fade(theme.palette.primary.main, 0.05),
-      borderBottom: "1px solid rgba(224, 224, 224, 1)",
       paddingLeft: 0,
       paddingRight: 24
     },

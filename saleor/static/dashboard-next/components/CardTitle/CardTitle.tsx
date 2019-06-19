@@ -32,7 +32,7 @@ const styles = (theme: Theme) =>
       lineHeight: 1
     },
     toolbar: {
-      marginRight: -theme.spacing.unit * 2
+      marginRight: -theme.spacing.unit
     }
   });
 
