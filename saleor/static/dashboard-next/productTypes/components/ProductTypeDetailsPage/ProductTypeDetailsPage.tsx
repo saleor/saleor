@@ -11,8 +11,11 @@ import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { AttributeTypeEnum, WeightUnitsEnum } from "../../../types/globalTypes";
-import { ProductTypeDetails_productType } from "../../types/ProductTypeDetails";
+import { WeightUnitsEnum } from "../../../types/globalTypes";
+import {
+  ProductTypeDetails_productType,
+  ProductTypeDetails_taxTypes
+} from "../../types/ProductTypeDetails";
 import ProductTypeAttributes from "../ProductTypeAttributes/ProductTypeAttributes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeShipping from "../ProductTypeShipping/ProductTypeShipping";
@@ -46,11 +49,8 @@ export interface ProductTypeDetailsPageProps {
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: ConfirmButtonTransitionState;
-  taxTypes: Array<{
-    description: string;
-    taxCode: string;
-  }>;
-  onAttributeAdd: (type: AttributeTypeEnum) => void;
+  taxTypes: ProductTypeDetails_taxTypes[];
+  onAttributeAdd: (type: string) => void;
   onAttributeDelete: (id: string, event: React.MouseEvent<any>) => void;
   onAttributeUpdate: (id: string) => void;
   onBack: () => void;
@@ -118,75 +118,71 @@ const ProductTypeDetailsPage: React.StatelessComponent<
       onSubmit={onSubmit}
       confirmLeave
     >
-      {({ change, data, hasChanged, submit }) => {
-        return (
-          <Container>
-            <AppHeader onBack={onBack}>{i18n.t("Product Types")}</AppHeader>
-            <PageHeader title={pageTitle} />
-            <Grid>
-              <div>
-                <ProductTypeDetails
-                  data={data}
-                  disabled={disabled}
-                  onChange={change}
-                />
-                <CardSpacer />
-                <ProductTypeTaxes
-                  disabled={disabled}
-                  data={data}
-                  taxTypes={maybe(() => taxTypes, [
-                    { description: "", taxCode: "" }
-                  ])}
-                  onChange={change}
-                />
-                <CardSpacer />
-                <ProductTypeAttributes
-                  attributes={maybe(() => productType.productAttributes)}
-                  type={AttributeTypeEnum.PRODUCT}
-                  onAttributeAdd={onAttributeAdd}
-                  onAttributeDelete={onAttributeDelete}
-                  onAttributeUpdate={onAttributeUpdate}
-                />
-                <CardSpacer />
-                <ControlledCheckbox
-                  checked={data.hasVariants}
-                  disabled={disabled}
-                  label={i18n.t("This product type has variants")}
-                  name="hasVariants"
-                  onChange={change}
-                />
-                {data.hasVariants && (
-                  <>
-                    <CardSpacer />
-                    <ProductTypeAttributes
-                      attributes={maybe(() => productType.variantAttributes)}
-                      type={AttributeTypeEnum.VARIANT}
-                      onAttributeAdd={onAttributeAdd}
-                      onAttributeDelete={onAttributeDelete}
-                      onAttributeUpdate={onAttributeUpdate}
-                    />
-                  </>
-                )}
-              </div>
-              <div>
-                <ProductTypeShipping
-                  disabled={disabled}
-                  data={data}
-                  defaultWeightUnit={defaultWeightUnit}
-                  onChange={change}
-                />
-              </div>
-            </Grid>
-            <SaveButtonBar
-              onCancel={onBack}
-              onDelete={onDelete}
-              onSave={submit}
-              disabled={disabled || !hasChanged}
-              state={saveButtonBarState}
-            />
-          </Container>
-        );
-      }}
+      {({ change, data, hasChanged, submit }) => (
+        <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Product Types")}</AppHeader>
+          <PageHeader title={pageTitle} />
+          <Grid>
+            <div>
+              <ProductTypeDetails
+                data={data}
+                disabled={disabled}
+                onChange={change}
+              />
+              <ProductTypeTaxes
+                disabled={disabled}
+                data={data}
+                taxTypes={maybe(() => taxTypes, [])}
+                onChange={change}
+              />
+              <CardSpacer />
+              <CardSpacer />
+              <ProductTypeAttributes
+                attributes={maybe(() => productType.productAttributes)}
+                type="PRODUCT"
+                onAttributeAdd={onAttributeAdd}
+                onAttributeDelete={onAttributeDelete}
+                onAttributeUpdate={onAttributeUpdate}
+              />
+              <CardSpacer />
+              <ControlledCheckbox
+                checked={data.hasVariants}
+                disabled={disabled}
+                label={i18n.t("This product type has variants")}
+                name="hasVariants"
+                onChange={change}
+              />
+              {data.hasVariants && (
+                <>
+                  <CardSpacer />
+                  <ProductTypeAttributes
+                    attributes={maybe(() => productType.variantAttributes)}
+                    type="VARIANT"
+                    onAttributeAdd={onAttributeAdd}
+                    onAttributeDelete={onAttributeDelete}
+                    onAttributeUpdate={onAttributeUpdate}
+                  />
+                </>
+              )}
+            </div>
+            <div>
+              <ProductTypeShipping
+                disabled={disabled}
+                data={data}
+                defaultWeightUnit={defaultWeightUnit}
+                onChange={change}
+              />
+            </div>
+          </Grid>
+          <SaveButtonBar
+            onCancel={onBack}
+            onDelete={onDelete}
+            onSave={submit}
+            disabled={disabled || !hasChanged}
+            state={saveButtonBarState}
+          />
+        </Container>
+      )}
     </Form>
   );
 };
