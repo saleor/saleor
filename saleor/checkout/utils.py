@@ -706,7 +706,9 @@ def _get_shipping_voucher_discount_for_checkout(
         raise NotApplicable(msg)
 
     return get_shipping_voucher_discount(
-        voucher, checkout.get_subtotal(discounts, taxes), shipping_method.get_total()
+        voucher,
+        checkout.get_subtotal(discounts, taxes),
+        shipping_method.get_total(taxes),
     )
 
 
