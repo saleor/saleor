@@ -1,10 +1,10 @@
+import datetime
 import json
 import os
 import random
 import unicodedata
 import uuid
 from collections import defaultdict
-from datetime import date
 from unittest.mock import patch
 
 from django.conf import settings
@@ -25,6 +25,7 @@ from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
+from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
@@ -444,9 +445,7 @@ def create_users(how_many=10):
 
 def create_orders(how_many=10):
     taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
-    discounts = Sale.objects.active(date.today()).prefetch_related(
-        "products", "categories", "collections"
-    )
+    discounts = fetch_discounts(datetime.date.today())
     for dummy in range(how_many):
         order = create_fake_order(discounts, taxes)
         yield "Order: %s" % (order,)

@@ -1,5 +1,3 @@
-from datetime import date
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -11,7 +9,6 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
-from ...discount.models import Sale
 from ...product.models import (
     Attribute,
     AttributeValue,
@@ -313,9 +310,7 @@ def variant_details(request, product_pk, variant_pk):
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
-    discounted_price = variant.get_price(
-        discounts=Sale.objects.active(date.today())
-    ).gross
+    discounted_price = variant.get_price(discounts=request.discounts).gross
     ctx = {
         "images": images,
         "product": product,
