@@ -223,7 +223,7 @@ def get_in_default_currency(defaults, field, currency):
 
 
 def create_products_by_schema(placeholder_dir, create_images):
-    filename = "{}_data.json".format(os.environ.get('STORE_CATEGORY', 'populatedb'))
+    filename = "{}_data.json".format(os.environ.get('STORECATEGORY', 'populatedb'))
     path = os.path.join(
         settings.PROJECT_ROOT, 'saleor', 'static', filename)
     with open(path) as f:
