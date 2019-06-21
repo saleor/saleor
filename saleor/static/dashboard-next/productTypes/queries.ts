@@ -1,5 +1,6 @@
 import gql from "graphql-tag";
 
+import { attributeFragment } from "@saleor/attributes/queries";
 import { TypedQuery } from "../queries";
 import { ProductTypeCreateData } from "./types/ProductTypeCreateData";
 import {
@@ -11,18 +12,6 @@ import {
   ProductTypeListVariables
 } from "./types/ProductTypeList";
 
-export const attributeFragment = gql`
-  fragment AttributeFragment on Attribute {
-    id
-    name
-    slug
-    values {
-      id
-      name
-      slug
-    }
-  }
-`;
 export const productTypeFragment = gql`
   fragment ProductTypeFragment on ProductType {
     id

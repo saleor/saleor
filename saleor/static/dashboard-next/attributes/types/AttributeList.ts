@@ -6,19 +6,11 @@
 // GraphQL query operation: AttributeList
 // ====================================================
 
-export interface AttributeList_attributes_edges_node_values {
-  __typename: "AttributeValue";
-  id: string;
-  name: string | null;
-  slug: string | null;
-}
-
 export interface AttributeList_attributes_edges_node {
   __typename: "Attribute";
   id: string;
   name: string | null;
   slug: string | null;
-  values: (AttributeList_attributes_edges_node_values | null)[] | null;
 }
 
 export interface AttributeList_attributes_edges {

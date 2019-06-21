@@ -45,7 +45,6 @@ const styles = (theme: Theme) =>
       },
       "&:before": {
         background: "rgba(0, 0, 0, 0)",
-        borderRadius: 2,
         content: '""',
         height: 8,
         left: 2,
@@ -56,7 +55,6 @@ const styles = (theme: Theme) =>
       },
       WebkitAppearance: "none",
       border: `1px solid ${theme.palette.grey[500]}`,
-      borderRadius: 4,
       boxSizing: "border-box",
       cursor: "pointer",
       height: 14,

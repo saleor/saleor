@@ -2,6 +2,7 @@ import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
 import React from "react";
 
+import { listActionsProps } from "@saleor/fixtures";
 import ProductTypeDetailsPage, {
   ProductTypeDetailsPageProps
 } from "../../../productTypes/components/ProductTypeDetailsPage";
@@ -20,8 +21,10 @@ const props: Omit<ProductTypeDetailsPageProps, "classes"> = {
   onDelete: () => undefined,
   onSubmit: () => undefined,
   pageTitle: productType.name,
+  productAttributeList: listActionsProps,
   productType,
-  saveButtonBarState: "default"
+  saveButtonBarState: "default",
+  variantAttributeList: listActionsProps
 };
 
 storiesOf("Views / Product types / Product type details", module)
