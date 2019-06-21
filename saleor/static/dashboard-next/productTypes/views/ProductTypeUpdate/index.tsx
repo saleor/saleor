@@ -10,20 +10,20 @@ import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "@saleor/i18n";
-import { getMutationState, maybe, stopPropagation } from "@saleor/misc";
-import ProductTypeAttributeUnassignDialog from "@saleor/productTypes/components/ProductTypeAttributeUnassignDialog";
-import ProductTypeBulkAttributeUnassignDialog from "@saleor/productTypes/components/ProductTypeBulkAttributeUnassignDialog";
-import ProductTypeDeleteDialog from "@saleor/productTypes/components/ProductTypeDeleteDialog";
-import { AssignAttribute } from "@saleor/productTypes/types/AssignAttribute";
-import { UnassignAttribute } from "@saleor/productTypes/types/UnassignAttribute";
+import { getMutationState, maybe } from "@saleor/misc";
 import { AttributeTypeEnum } from "@saleor/types/globalTypes";
+import ProductTypeAttributeUnassignDialog from "../../components/ProductTypeAttributeUnassignDialog";
+import ProductTypeBulkAttributeUnassignDialog from "../../components/ProductTypeBulkAttributeUnassignDialog";
+import ProductTypeDeleteDialog from "../../components/ProductTypeDeleteDialog";
 import ProductTypeDetailsPage, {
   ProductTypeForm
 } from "../../components/ProductTypeDetailsPage";
 import ProductTypeOperations from "../../containers/ProductTypeOperations";
 import { TypedProductTypeDetailsQuery } from "../../queries";
+import { AssignAttribute } from "../../types/AssignAttribute";
 import { ProductTypeDelete } from "../../types/ProductTypeDelete";
 import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../../types/ProductTypeUpdate";
+import { UnassignAttribute } from "../../types/UnassignAttribute";
 import {
   productTypeListUrl,
   productTypeUrl,
