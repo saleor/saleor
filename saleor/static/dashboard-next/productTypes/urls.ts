@@ -18,10 +18,12 @@ export const productTypeAddUrl = productTypeAddPath;
 
 export const productTypePath = (id: string) => urlJoin(productTypeSection, id);
 export type ProductTypeUrlDialog =
-  | "add-attribute"
-  | "edit-attribute"
+  | "assign-attribute"
+  | "unassign-attribute"
+  | "unassign-attributes"
   | "remove";
-export type ProductTypeUrlQueryParams = Dialog<ProductTypeUrlDialog> &
+export type ProductTypeUrlQueryParams = BulkAction &
+  Dialog<ProductTypeUrlDialog> &
   SingleAction & {
     type?: string;
   };
