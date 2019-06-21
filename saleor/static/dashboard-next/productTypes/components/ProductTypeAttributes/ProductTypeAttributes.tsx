@@ -10,15 +10,18 @@ import {
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
 import Skeleton from "@saleor/components/Skeleton";
-import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import TableHead from "@saleor/components/TableHead";
+import i18n from "@saleor/i18n";
+import { maybe, renderCollection, stopPropagation } from "@saleor/misc";
+import { ListActions } from "@saleor/types";
+import { AttributeTypeEnum } from "@saleor/types/globalTypes";
 import {
   ProductTypeDetails_productType_productAttributes,
   ProductTypeDetails_productType_variantAttributes
@@ -40,14 +43,15 @@ const styles = (theme: Theme) =>
     }
   });
 
-interface ProductTypeAttributesProps extends WithStyles<typeof styles> {
+interface ProductTypeAttributesProps extends ListActions {
   attributes:
     | ProductTypeDetails_productType_productAttributes[]
     | ProductTypeDetails_productType_variantAttributes[];
+  disabled: boolean;
   type: string;
-  onAttributeAdd: (type: string) => void;
-  onAttributeDelete: (id: string, event: React.MouseEvent<any>) => void;
-  onAttributeUpdate: (id: string) => void;
+  onAttributeAssign: (type: AttributeTypeEnum) => void;
+  onAttributeClick: (id: string) => void;
+  onAttributeUnassign: (id: string) => void;
 }
 
 const ProductTypeAttributes = withStyles(styles, {
@@ -56,15 +60,21 @@ const ProductTypeAttributes = withStyles(styles, {
   ({
     attributes,
     classes,
+    disabled,
+    isChecked,
+    selected,
+    toggle,
+    toggleAll,
+    toolbar,
     type,
-    onAttributeAdd,
-    onAttributeDelete,
-    onAttributeUpdate
-  }: ProductTypeAttributesProps) => (
+    onAttributeAssign,
+    onAttributeClick,
+    onAttributeUnassign
+  }: ProductTypeAttributesProps & WithStyles<typeof styles>) => (
     <Card>
       <CardTitle
         title={
-          type === "PRODUCT"
+          type === AttributeTypeEnum.PRODUCT
             ? i18n.t("Product Attributes")
             : i18n.t("Variant Attributes")
         }
@@ -72,55 +82,67 @@ const ProductTypeAttributes = withStyles(styles, {
           <Button
             color="primary"
             variant="text"
-            onClick={() => onAttributeAdd(type)}
+            onClick={() => onAttributeAssign(AttributeTypeEnum[type])}
           >
-            {i18n.t("Add attribute", { context: "button" })}
+            {i18n.t("Assign attribute", { context: "button" })}
           </Button>
         }
       />
       <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>{i18n.t("Attribute name")}</TableCell>
-            <TableCell className={classes.textLeft}>
-              {i18n.t("Values")}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          disabled={disabled}
+          selected={selected}
+          items={attributes}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell>{i18n.t("Attribute name")}</TableCell>
+          <TableCell />
         </TableHead>
         <TableBody>
           {renderCollection(
             attributes,
-            attribute => (
-              <TableRow
-                className={!!attribute ? classes.link : undefined}
-                hover={!!attribute}
-                onClick={
-                  !!attribute
-                    ? () => onAttributeUpdate(attribute.id)
-                    : undefined
-                }
-                key={maybe(() => attribute.id)}
-              >
-                <TableCell>
-                  {maybe(() => attribute.name) ? attribute.name : <Skeleton />}
-                </TableCell>
-                <TableCell className={classes.textLeft}>
-                  {maybe(() => attribute.values) !== undefined ? (
-                    attribute.values.map(value => value.name).join(", ")
-                  ) : (
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell className={classes.iconCell}>
-                  <IconButton
-                    onClick={event => onAttributeDelete(attribute.id, event)}
-                  >
-                    <DeleteIcon color="primary" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ),
+            attribute => {
+              const isSelected = attribute ? isChecked(attribute.id) : false;
+
+              return (
+                <TableRow
+                  selected={isSelected}
+                  className={!!attribute ? classes.link : undefined}
+                  hover={!!attribute}
+                  onClick={
+                    !!attribute
+                      ? () => onAttributeClick(attribute.id)
+                      : undefined
+                  }
+                  key={maybe(() => attribute.id)}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={isSelected}
+                      disabled={disabled}
+                      onChange={() => toggle(attribute.id)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {maybe(() => attribute.name) ? (
+                      attribute.name
+                    ) : (
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.iconCell}>
+                    <IconButton
+                      onClick={stopPropagation(() =>
+                        onAttributeUnassign(attribute.id)
+                      )}
+                    >
+                      <DeleteIcon color="primary" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            },
             () => (
               <TableRow>
                 <TableCell colSpan={2}>

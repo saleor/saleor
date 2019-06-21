@@ -20,23 +20,8 @@ export interface ProductTypeCreate_productTypeCreate_productType_taxType {
   taxCode: string | null;
 }
 
-export interface ProductTypeCreate_productTypeCreate_productType_productAttributes_values {
-  __typename: "AttributeValue";
-  id: string;
-  name: string | null;
-  slug: string | null;
-}
-
 export interface ProductTypeCreate_productTypeCreate_productType_productAttributes {
   __typename: "Attribute";
-  id: string;
-  name: string | null;
-  slug: string | null;
-  values: (ProductTypeCreate_productTypeCreate_productType_productAttributes_values | null)[] | null;
-}
-
-export interface ProductTypeCreate_productTypeCreate_productType_variantAttributes_values {
-  __typename: "AttributeValue";
   id: string;
   name: string | null;
   slug: string | null;
@@ -47,7 +32,6 @@ export interface ProductTypeCreate_productTypeCreate_productType_variantAttribut
   id: string;
   name: string | null;
   slug: string | null;
-  values: (ProductTypeCreate_productTypeCreate_productType_variantAttributes_values | null)[] | null;
 }
 
 export interface ProductTypeCreate_productTypeCreate_productType_weight {
