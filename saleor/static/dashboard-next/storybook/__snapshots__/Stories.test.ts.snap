@@ -1434,6 +1434,18 @@ exports[`Storyshots Generics / AddressFormatter when loading 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / Assign attributes dialog default 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
+exports[`Storyshots Generics / Assign attributes dialog loading 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
 exports[`Storyshots Generics / Autocomplete Menu default 1`] = `
 <div
   style="padding:24px"
@@ -6992,19 +7004,7 @@ exports[`Storyshots Orders / OrderShippingMethodEditDialog default 1`] = `
 />
 `;
 
-exports[`Storyshots Product types / Edit attribute default 1`] = `
-<div
-  style="padding:24px"
-/>
-`;
-
-exports[`Storyshots Product types / Edit attribute form errors 1`] = `
-<div
-  style="padding:24px"
-/>
-`;
-
-exports[`Storyshots Product types / Edit attribute loading 1`] = `
+exports[`Storyshots Product types / ProductTypeDeleteDialog default 1`] = `
 <div
   style="padding:24px"
 />
@@ -69416,7 +69416,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                   <span
                     class="MuiButton-label-id"
                   >
-                    Add attribute
+                    Assign attribute
                   </span>
                 </button>
               </div>
@@ -69437,16 +69437,26 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
+                    scope="col"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id Checkbox-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id"
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </th>
+                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
                   >
                     Attribute name
-                  </th>
-                  <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-textLeft-id"
-                    scope="col"
-                  >
-                    Values
                   </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
@@ -69461,14 +69471,24 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
                 >
                   <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id Checkbox-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id"
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </td>
+                  <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     Author
-                  </td>
-                  <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-textLeft-id"
-                  >
-                    John Doe, Milionare Pirate
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
@@ -69503,17 +69523,27 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                 <tr
                   class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
                 >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id Checkbox-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id"
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     Language
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-textLeft-id"
-                  >
-                    English, Pirate
-                  </td>
-                  <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
                   >
                     <button
@@ -69547,14 +69577,24 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
                 >
                   <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id Checkbox-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id"
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </td>
+                  <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     Publisher
-                  </td>
-                  <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-textLeft-id"
-                  >
-                    Mirumee Press, Saleor Publishing
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
@@ -69872,7 +69912,7 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                   <span
                     class="MuiButton-label-id"
                   >
-                    Add attribute
+                    Assign attribute
                   </span>
                 </button>
               </div>
@@ -69893,16 +69933,14 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
+                    scope="col"
+                  />
+                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
                   >
                     Attribute name
-                  </th>
-                  <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-textLeft-id"
-                    scope="col"
-                  >
-                    Values
                   </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
@@ -69917,16 +69955,24 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
                   >
-                    <span
-                      class="Skeleton-skeleton-id"
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
                     >
-                      ‌
-                    </span>
+                      <input
+                        class="Checkbox-box-id Checkbox-disabled-id"
+                        disabled=""
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-textLeft-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -70640,6 +70686,18 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
     </div>
   </div>
 </div>
+`;
+
+exports[`Storyshots Views / Product types / Unassign attribute default 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
+exports[`Storyshots Views / Product types / Unassign multiple attributes default 1`] = `
+<div
+  style="padding:24px"
+/>
 `;
 
 exports[`Storyshots Views / Products / Create product When loading 1`] = `
