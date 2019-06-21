@@ -532,61 +532,19 @@ export const productType: ProductTypeDetails_productType = {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo5",
       name: "Author",
-      slug: "author",
-      values: [
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI0",
-          name: "John Doe",
-          slug: "john-doe"
-        },
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI1",
-          name: "Milionare Pirate",
-          slug: "milionare-pirate"
-        }
-      ]
+      slug: "author"
     },
     {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMQ==",
       name: "Language",
-      slug: "language",
-      values: [
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI4",
-          name: "English",
-          slug: "english"
-        },
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI5",
-          name: "Pirate",
-          slug: "pirate"
-        }
-      ]
+      slug: "language"
     },
     {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMA==",
       name: "Publisher",
-      slug: "publisher",
-      values: [
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI2",
-          name: "Mirumee Press",
-          slug: "mirumee-press"
-        },
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI3",
-          name: "Saleor Publishing",
-          slug: "saleor-publishing"
-        }
-      ]
+      slug: "publisher"
     }
   ],
   taxType: {

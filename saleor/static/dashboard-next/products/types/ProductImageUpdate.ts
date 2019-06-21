@@ -78,7 +78,7 @@ export interface ProductImageUpdate_productImageUpdate_product_attributes_value 
 export interface ProductImageUpdate_productImageUpdate_product_attributes {
   __typename: "SelectedAttribute";
   attribute: ProductImageUpdate_productImageUpdate_product_attributes_attribute;
-  value: ProductImageUpdate_productImageUpdate_product_attributes_value;
+  value: ProductImageUpdate_productImageUpdate_product_attributes_value | null;
 }
 
 export interface ProductImageUpdate_productImageUpdate_product_pricing_priceRange_start_net {

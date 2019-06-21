@@ -72,7 +72,7 @@ export interface Product_attributes_value {
 export interface Product_attributes {
   __typename: "SelectedAttribute";
   attribute: Product_attributes_attribute;
-  value: Product_attributes_value;
+  value: Product_attributes_value | null;
 }
 
 export interface Product_pricing_priceRange_start_net {

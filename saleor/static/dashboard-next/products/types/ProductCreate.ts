@@ -80,7 +80,7 @@ export interface ProductCreate_productCreate_product_attributes_value {
 export interface ProductCreate_productCreate_product_attributes {
   __typename: "SelectedAttribute";
   attribute: ProductCreate_productCreate_product_attributes_attribute;
-  value: ProductCreate_productCreate_product_attributes_value;
+  value: ProductCreate_productCreate_product_attributes_value | null;
 }
 
 export interface ProductCreate_productCreate_product_pricing_priceRange_start_net {
