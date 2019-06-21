@@ -80,7 +80,7 @@ export interface ProductUpdate_productUpdate_product_attributes_value {
 export interface ProductUpdate_productUpdate_product_attributes {
   __typename: "SelectedAttribute";
   attribute: ProductUpdate_productUpdate_product_attributes_attribute;
-  value: ProductUpdate_productUpdate_product_attributes_value;
+  value: ProductUpdate_productUpdate_product_attributes_value | null;
 }
 
 export interface ProductUpdate_productUpdate_product_pricing_priceRange_start_net {

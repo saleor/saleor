@@ -9,9 +9,10 @@ import Form from "@saleor/components/Form";
 import Grid from "@saleor/components/Grid";
 import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
-import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
-import { WeightUnitsEnum } from "../../../types/globalTypes";
+import i18n from "@saleor/i18n";
+import { maybe } from "@saleor/misc";
+import { ListActions, UserError } from "@saleor/types";
+import { AttributeTypeEnum, WeightUnitsEnum } from "@saleor/types/globalTypes";
 import {
   ProductTypeDetails_productType,
   ProductTypeDetails_taxTypes
@@ -40,19 +41,18 @@ export interface ProductTypeForm {
 }
 
 export interface ProductTypeDetailsPageProps {
-  errors: Array<{
-    field: string;
-    message: string;
-  }>;
+  errors: UserError[];
   productType: ProductTypeDetails_productType;
   defaultWeightUnit: WeightUnitsEnum;
   disabled: boolean;
   pageTitle: string;
+  productAttributeList: ListActions;
   saveButtonBarState: ConfirmButtonTransitionState;
   taxTypes: ProductTypeDetails_taxTypes[];
-  onAttributeAdd: (type: string) => void;
-  onAttributeDelete: (id: string, event: React.MouseEvent<any>) => void;
-  onAttributeUpdate: (id: string) => void;
+  variantAttributeList: ListActions;
+  onAttributeAdd: (type: AttributeTypeEnum) => void;
+  onAttributeClick: (id: string) => void;
+  onAttributeUnassign: (id: string) => void;
   onBack: () => void;
   onDelete: () => void;
   onSubmit: (data: ProductTypeForm) => void;
@@ -66,11 +66,13 @@ const ProductTypeDetailsPage: React.StatelessComponent<
   errors,
   pageTitle,
   productType,
+  productAttributeList,
   saveButtonBarState,
   taxTypes,
+  variantAttributeList,
   onAttributeAdd,
-  onAttributeDelete,
-  onAttributeUpdate,
+  onAttributeUnassign,
+  onAttributeClick,
   onBack,
   onDelete,
   onSubmit
@@ -139,10 +141,12 @@ const ProductTypeDetailsPage: React.StatelessComponent<
               <CardSpacer />
               <ProductTypeAttributes
                 attributes={maybe(() => productType.productAttributes)}
-                type="PRODUCT"
-                onAttributeAdd={onAttributeAdd}
-                onAttributeDelete={onAttributeDelete}
-                onAttributeUpdate={onAttributeUpdate}
+                disabled={disabled}
+                type={AttributeTypeEnum.PRODUCT}
+                onAttributeAssign={onAttributeAdd}
+                onAttributeClick={onAttributeClick}
+                onAttributeUnassign={onAttributeUnassign}
+                {...productAttributeList}
               />
               <CardSpacer />
               <ControlledCheckbox
@@ -157,10 +161,12 @@ const ProductTypeDetailsPage: React.StatelessComponent<
                   <CardSpacer />
                   <ProductTypeAttributes
                     attributes={maybe(() => productType.variantAttributes)}
-                    type="VARIANT"
-                    onAttributeAdd={onAttributeAdd}
-                    onAttributeDelete={onAttributeDelete}
-                    onAttributeUpdate={onAttributeUpdate}
+                    disabled={disabled}
+                    type={AttributeTypeEnum.VARIANT}
+                    onAttributeAssign={onAttributeAdd}
+                    onAttributeClick={onAttributeClick}
+                    onAttributeUnassign={onAttributeUnassign}
+                    {...variantAttributeList}
                   />
                 </>
               )}

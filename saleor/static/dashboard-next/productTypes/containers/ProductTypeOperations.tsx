@@ -3,24 +3,15 @@ import React from "react";
 import { getMutationProviderData } from "../../misc";
 import { PartialMutationProviderOutput } from "../../types";
 import {
-  TypedAttributeCreateMutation,
-  TypedAttributeDeleteMutation,
-  TypedAttributeUpdateMutation,
+  TypedAssignAttributeMutation,
   TypedProductTypeDeleteMutation,
-  TypedProductTypeUpdateMutation
+  TypedProductTypeUpdateMutation,
+  TypedUnassignAttributeMutation
 } from "../mutations";
 import {
-  AttributeCreate,
-  AttributeCreateVariables
-} from "../types/AttributeCreate";
-import {
-  AttributeDelete,
-  AttributeDeleteVariables
-} from "../types/AttributeDelete";
-import {
-  AttributeUpdate,
-  AttributeUpdateVariables
-} from "../types/AttributeUpdate";
+  AssignAttribute,
+  AssignAttributeVariables
+} from "../types/AssignAttribute";
 import {
   ProductTypeDelete,
   ProductTypeDeleteVariables
@@ -29,35 +20,32 @@ import {
   ProductTypeUpdate,
   ProductTypeUpdateVariables
 } from "../types/ProductTypeUpdate";
+import {
+  UnassignAttribute,
+  UnassignAttributeVariables
+} from "../types/UnassignAttribute";
 
 interface ProductTypeOperationsProps {
-  children: (
-    props: {
-      attributeCreate: PartialMutationProviderOutput<
-        AttributeCreate,
-        AttributeCreateVariables
-      >;
-      deleteAttribute: PartialMutationProviderOutput<
-        AttributeDelete,
-        AttributeDeleteVariables
-      >;
-      deleteProductType: PartialMutationProviderOutput<
-        ProductTypeDelete,
-        ProductTypeDeleteVariables
-      >;
-      updateAttribute: PartialMutationProviderOutput<
-        AttributeUpdate,
-        AttributeUpdateVariables
-      >;
-      updateProductType: PartialMutationProviderOutput<
-        ProductTypeUpdate,
-        ProductTypeUpdateVariables
-      >;
-    }
-  ) => React.ReactNode;
-  onAttributeCreate: (data: AttributeCreate) => void;
-  onAttributeDelete: (data: AttributeDelete) => void;
-  onAttributeUpdate: (data: AttributeUpdate) => void;
+  children: (props: {
+    assignAttribute: PartialMutationProviderOutput<
+      AssignAttribute,
+      AssignAttributeVariables
+    >;
+    unassignAttribute: PartialMutationProviderOutput<
+      UnassignAttribute,
+      UnassignAttributeVariables
+    >;
+    deleteProductType: PartialMutationProviderOutput<
+      ProductTypeDelete,
+      ProductTypeDeleteVariables
+    >;
+    updateProductType: PartialMutationProviderOutput<
+      ProductTypeUpdate,
+      ProductTypeUpdateVariables
+    >;
+  }) => React.ReactNode;
+  onAssignAttribute: (data: AssignAttribute) => void;
+  onUnassignAttribute: (data: UnassignAttribute) => void;
   onProductTypeDelete: (data: ProductTypeDelete) => void;
   onProductTypeUpdate: (data: ProductTypeUpdate) => void;
 }
@@ -66,9 +54,8 @@ const ProductTypeOperations: React.StatelessComponent<
   ProductTypeOperationsProps
 > = ({
   children,
-  onAttributeCreate,
-  onAttributeDelete,
-  onAttributeUpdate,
+  onAssignAttribute,
+  onUnassignAttribute,
   onProductTypeDelete,
   onProductTypeUpdate
 }) => {
@@ -77,37 +64,30 @@ const ProductTypeOperations: React.StatelessComponent<
       {(...deleteProductType) => (
         <TypedProductTypeUpdateMutation onCompleted={onProductTypeUpdate}>
           {(...updateProductType) => (
-            <TypedAttributeCreateMutation onCompleted={onAttributeCreate}>
-              {(...createAttribute) => (
-                <TypedAttributeDeleteMutation onCompleted={onAttributeDelete}>
-                  {(...deleteAttribute) => (
-                    <TypedAttributeUpdateMutation
-                      onCompleted={onAttributeUpdate}
-                    >
-                      {(...updateAttribute) =>
-                        children({
-                          attributeCreate: getMutationProviderData(
-                            ...createAttribute
-                          ),
-                          deleteAttribute: getMutationProviderData(
-                            ...deleteAttribute
-                          ),
-                          deleteProductType: getMutationProviderData(
-                            ...deleteProductType
-                          ),
-                          updateAttribute: getMutationProviderData(
-                            ...updateAttribute
-                          ),
-                          updateProductType: getMutationProviderData(
-                            ...updateProductType
-                          )
-                        })
-                      }
-                    </TypedAttributeUpdateMutation>
-                  )}
-                </TypedAttributeDeleteMutation>
+            <TypedAssignAttributeMutation onCompleted={onAssignAttribute}>
+              {(...assignAttribute) => (
+                <TypedUnassignAttributeMutation
+                  onCompleted={onUnassignAttribute}
+                >
+                  {(...unassignAttribute) =>
+                    children({
+                      assignAttribute: getMutationProviderData(
+                        ...assignAttribute
+                      ),
+                      deleteProductType: getMutationProviderData(
+                        ...deleteProductType
+                      ),
+                      unassignAttribute: getMutationProviderData(
+                        ...unassignAttribute
+                      ),
+                      updateProductType: getMutationProviderData(
+                        ...updateProductType
+                      )
+                    })
+                  }
+                </TypedUnassignAttributeMutation>
               )}
-            </TypedAttributeCreateMutation>
+            </TypedAssignAttributeMutation>
           )}
         </TypedProductTypeUpdateMutation>
       )}

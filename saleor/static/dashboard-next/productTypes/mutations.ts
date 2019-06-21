@@ -3,6 +3,10 @@ import gql from "graphql-tag";
 import { TypedMutation } from "../mutations";
 import { productTypeDetailsFragment } from "./queries";
 import {
+  AssignAttribute,
+  AssignAttributeVariables
+} from "./types/AssignAttribute";
+import {
   ProductTypeBulkDelete,
   ProductTypeBulkDeleteVariables
 } from "./types/ProductTypeBulkDelete";
@@ -18,6 +22,10 @@ import {
   ProductTypeUpdate,
   ProductTypeUpdateVariables
 } from "./types/ProductTypeUpdate";
+import {
+  UnassignAttribute,
+  UnassignAttributeVariables
+} from "./types/UnassignAttribute";
 
 export const productTypeDeleteMutation = gql`
   mutation ProductTypeDelete($id: ID!) {
@@ -70,6 +78,44 @@ export const TypedProductTypeUpdateMutation = TypedMutation<
   ProductTypeUpdate,
   ProductTypeUpdateVariables
 >(productTypeUpdateMutation);
+
+export const assignAttributeMutation = gql`
+  ${productTypeDetailsFragment}
+  mutation AssignAttribute($id: ID!, $operations: [AttributeAssignInput!]!) {
+    attributeAssign(productTypeId: $id, operations: $operations) {
+      errors {
+        field
+        message
+      }
+      productType {
+        ...ProductTypeDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedAssignAttributeMutation = TypedMutation<
+  AssignAttribute,
+  AssignAttributeVariables
+>(assignAttributeMutation);
+
+export const unassignAttributeMutation = gql`
+  ${productTypeDetailsFragment}
+  mutation UnassignAttribute($id: ID!, $ids: [ID]!) {
+    attributeUnassign(productTypeId: $id, attributeIds: $ids) {
+      errors {
+        field
+        message
+      }
+      productType {
+        ...ProductTypeDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedUnassignAttributeMutation = TypedMutation<
+  UnassignAttribute,
+  UnassignAttributeVariables
+>(unassignAttributeMutation);
 
 export const productTypeCreateMutation = gql`
   ${productTypeDetailsFragment}

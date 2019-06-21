@@ -39,7 +39,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_attributes_va
 export interface VariantUpdate_productVariantUpdate_productVariant_attributes {
   __typename: "SelectedAttribute";
   attribute: VariantUpdate_productVariantUpdate_productVariant_attributes_attribute;
-  value: VariantUpdate_productVariantUpdate_productVariant_attributes_value;
+  value: VariantUpdate_productVariantUpdate_productVariant_attributes_value | null;
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_costPrice {
