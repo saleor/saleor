@@ -24,6 +24,11 @@ class Migration(migrations.Migration):
     dependencies = [("product", "0095_auto_20190618_0842")]
 
     operations = [
+        migrations.AddField(
+            model_name="attribute",
+            name="is_variant_only",
+            field=models.BooleanField(default=False),
+        ),
         # Rename the foreign keys to backup them before overriding and processing them
         migrations.RenameField(
             model_name="attribute", old_name="product_type", new_name="product_type_old"

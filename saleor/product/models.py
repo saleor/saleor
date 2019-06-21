@@ -510,6 +510,8 @@ class Attribute(ModelWithMetadata):
         through_fields=["attribute", "product_type"],
     )
 
+    is_variant_only = models.BooleanField(default=False)
+
     objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()
 

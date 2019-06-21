@@ -32,6 +32,9 @@ class AttributeCreateInput(graphene.InputObjectType):
     values = graphene.List(
         AttributeValueCreateInput, description=AttributeDescriptions.VALUES
     )
+    is_variant_only = graphene.Boolean(
+        required=False, description=AttributeDescriptions.IS_VARIANT_ONLY
+    )
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
@@ -47,13 +50,14 @@ class AttributeUpdateInput(graphene.InputObjectType):
         name="addValues",
         description="New values to be created for this attribute.",
     )
+    is_variant_only = graphene.Boolean(
+        required=False, description=AttributeDescriptions.IS_VARIANT_ONLY
+    )
 
 
 class AttributeAssignInput(graphene.InputObjectType):
-    attribute_id = graphene.ID(
-        required=True, description="The ID of the attribute to assign"
-    )
-    attribute_type = AttributeTypeEnum(
+    id = graphene.ID(required=True, description="The ID of the attribute to assign")
+    type = AttributeTypeEnum(
         required=True, description="The attribute type to be assigned as."
     )
 
@@ -224,7 +228,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         return AttributeUpdate(attribute=instance)
 
 
-class BaseAttributeAssignmentMutation(BaseMutation):
+class AttributeAssign(BaseMutation):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
     class Arguments:
@@ -239,7 +243,7 @@ class BaseAttributeAssignmentMutation(BaseMutation):
         )
 
     class Meta:
-        abstract = True
+        description = "Assign attributes to a given product type."
 
     @classmethod
     def check_permissions(cls, user):
@@ -253,24 +257,19 @@ class BaseAttributeAssignmentMutation(BaseMutation):
 
         for operation in operations:
             pk = from_global_id_strict_type(
-                info, operation.attribute_id, only_type=Attribute, field="operations"
+                info, operation.id, only_type=Attribute, field="operations"
             )
-            if operation.attribute_type == AttributeTypeEnum.PRODUCT:
+            if operation.type == AttributeTypeEnum.PRODUCT:
                 product_attrs_pks.append(pk)
             else:
                 variant_attrs_pks.append(pk)
 
         return product_attrs_pks, variant_attrs_pks
 
-
-class AttributeAssign(BaseAttributeAssignmentMutation):
-    class Meta:
-        description = "Assign attributes to a given product type."
-
     @classmethod
-    def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
-        """Ensures the requested attributes are not already assigned
-        to that product type."""
+    def check_operations_not_assigned_already(
+        cls, product_type, product_attrs_pks, variant_attrs_pks
+    ):
         qs = (
             models.Attribute.objects.get_assigned_attributes(product_type.pk)
             .values_list("name", "slug")
@@ -306,6 +305,26 @@ class AttributeAssign(BaseAttributeAssignmentMutation):
             )
 
     @classmethod
+    def check_product_operations_are_assignable(cls, product_attrs_pks):
+        contains_restricted_attributes = models.Attribute.objects.filter(
+            pk__in=product_attrs_pks, is_variant_only=True
+        ).exists()
+
+        if contains_restricted_attributes:
+            raise ValidationError(
+                {"operations": ("Cannot assign variant only attributes.")}
+            )
+
+    @classmethod
+    def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
+        """Ensures the requested attributes are not already assigned
+        to that product type."""
+        cls.check_product_operations_are_assignable(product_attrs_pks)
+        cls.check_operations_not_assigned_already(
+            product_type, product_attrs_pks, variant_attrs_pks
+        )
+
+    @classmethod
     def save_field_values(cls, product_type, field, pks):
         """Add in bulk the PKs to assign to a given product type."""
         getattr(product_type, field).add(*pks)
@@ -337,9 +356,26 @@ class AttributeAssign(BaseAttributeAssignmentMutation):
         return cls(product_type=product_type)
 
 
-class AttributeUnassign(BaseAttributeAssignmentMutation):
+class AttributeUnassign(BaseMutation):
+    product_type = graphene.Field(ProductType, description="The updated product type.")
+
+    class Arguments:
+        product_type_id = graphene.ID(
+            required=True,
+            description="ID of the product type to assign the attributes into.",
+        )
+        attribute_ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description="The IDs of the attributes to assign",
+        )
+
     class Meta:
         description = "Un-assign attributes from a given product type."
+
+    @classmethod
+    def check_permissions(cls, user):
+        return user.has_perm("product.manage_products")
 
     @classmethod
     def save_field_values(cls, product_type, field, pks):
@@ -348,7 +384,7 @@ class AttributeUnassign(BaseAttributeAssignmentMutation):
 
     @classmethod
     def perform_mutation(
-        cls, _root, info, product_type_id: str, operations: List[AttributeAssignInput]
+        cls, _root, info, product_type_id: str, attribute_ids: List[str]
     ):
         # Retrieve the requested product type
         product_type = graphene.Node.get_node_from_global_id(
@@ -356,11 +392,16 @@ class AttributeUnassign(BaseAttributeAssignmentMutation):
         )  # type: models.ProductType
 
         # Resolve all the passed IDs to ints
-        product_attrs_pks, variant_attrs_pks = cls.get_operations(info, operations)
+        attribute_pks = [
+            from_global_id_strict_type(
+                info, attribute_id, only_type=Attribute, field="attribute_id"
+            )
+            for attribute_id in attribute_ids
+        ]
 
         # Commit
-        cls.save_field_values(product_type, "product_attributes", product_attrs_pks)
-        cls.save_field_values(product_type, "variant_attributes", variant_attrs_pks)
+        cls.save_field_values(product_type, "product_attributes", attribute_pks)
+        cls.save_field_values(product_type, "variant_attributes", attribute_pks)
 
         return cls(product_type=product_type)
 
