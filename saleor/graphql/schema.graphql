@@ -159,8 +159,8 @@ type AttributeAssign {
 }
 
 input AttributeAssignInput {
-  attributeId: ID!
-  attributeType: AttributeTypeEnum!
+  id: ID!
+  type: AttributeTypeEnum!
 }
 
 type AttributeBulkDelete {
@@ -198,6 +198,7 @@ input AttributeCreateInput {
   name: String!
   slug: String
   values: [AttributeValueCreateInput]
+  isVariantOnly: Boolean
 }
 
 type AttributeDelete {
@@ -243,6 +244,7 @@ input AttributeUpdateInput {
   slug: String
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
+  isVariantOnly: Boolean
 }
 
 type AttributeUpdateMeta {
@@ -1709,7 +1711,7 @@ type Mutations {
   attributeDelete(id: ID!): AttributeDelete
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
   attributeAssign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeAssign
-  attributeUnassign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeUnassign
+  attributeUnassign(attributeIds: [ID]!, productTypeId: ID!): AttributeUnassign
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
   attributeUpdateMetadata(id: ID!, input: MetaInput!): AttributeUpdateMeta
