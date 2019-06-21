@@ -8,23 +8,8 @@ import { TaxRateType, WeightUnitsEnum } from "./../../types/globalTypes";
 // GraphQL query operation: ProductTypeDetails
 // ====================================================
 
-export interface ProductTypeDetails_productType_productAttributes_values {
-  __typename: "AttributeValue";
-  id: string;
-  name: string | null;
-  slug: string | null;
-}
-
 export interface ProductTypeDetails_productType_productAttributes {
   __typename: "Attribute";
-  id: string;
-  name: string | null;
-  slug: string | null;
-  values: (ProductTypeDetails_productType_productAttributes_values | null)[] | null;
-}
-
-export interface ProductTypeDetails_productType_variantAttributes_values {
-  __typename: "AttributeValue";
   id: string;
   name: string | null;
   slug: string | null;
@@ -35,7 +20,6 @@ export interface ProductTypeDetails_productType_variantAttributes {
   id: string;
   name: string | null;
   slug: string | null;
-  values: (ProductTypeDetails_productType_variantAttributes_values | null)[] | null;
 }
 
 export interface ProductTypeDetails_productType_weight {

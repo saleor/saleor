@@ -16,6 +16,11 @@ export enum AttributeInputTypeEnum {
   MULTISELECT = "MULTISELECT",
 }
 
+export enum AttributeTypeEnum {
+  PRODUCT = "PRODUCT",
+  VARIANT = "VARIANT",
+}
+
 export enum AttributeValueType {
   COLOR = "COLOR",
   GRADIENT = "GRADIENT",
@@ -234,6 +239,11 @@ export interface AddressInput {
   country?: string | null;
   countryArea?: string | null;
   phone?: string | null;
+}
+
+export interface AttributeAssignInput {
+  attributeId: string;
+  attributeType: AttributeTypeEnum;
 }
 
 export interface AttributeCreateInput {
