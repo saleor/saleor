@@ -80,7 +80,7 @@ export interface SimpleProductUpdate_productUpdate_product_attributes_value {
 export interface SimpleProductUpdate_productUpdate_product_attributes {
   __typename: "SelectedAttribute";
   attribute: SimpleProductUpdate_productUpdate_product_attributes_attribute;
-  value: SimpleProductUpdate_productUpdate_product_attributes_value;
+  value: SimpleProductUpdate_productUpdate_product_attributes_value | null;
 }
 
 export interface SimpleProductUpdate_productUpdate_product_pricing_priceRange_start_net {
@@ -210,7 +210,7 @@ export interface SimpleProductUpdate_productVariantUpdate_productVariant_attribu
 export interface SimpleProductUpdate_productVariantUpdate_productVariant_attributes {
   __typename: "SelectedAttribute";
   attribute: SimpleProductUpdate_productVariantUpdate_productVariant_attributes_attribute;
-  value: SimpleProductUpdate_productVariantUpdate_productVariant_attributes_value;
+  value: SimpleProductUpdate_productVariantUpdate_productVariant_attributes_value | null;
 }
 
 export interface SimpleProductUpdate_productVariantUpdate_productVariant_costPrice {
