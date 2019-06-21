@@ -720,18 +720,12 @@ def test_assign_attributes_to_product_type(
 
     for attr in product_attributes:
         operations.append(
-            {
-                "attributeType": "PRODUCT",
-                "attributeId": graphene.Node.to_global_id("Attribute", attr.pk),
-            }
+            {"type": "PRODUCT", "id": graphene.Node.to_global_id("Attribute", attr.pk)}
         )
 
     for attr in variant_attributes:
         operations.append(
-            {
-                "attributeType": "VARIANT",
-                "attributeId": graphene.Node.to_global_id("Attribute", attr.pk),
-            }
+            {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attr.pk)}
         )
 
     content = get_graphql_content(
@@ -774,10 +768,7 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
 
     query = ASSIGN_ATTR_QUERY
     operations = [
-        {
-            "attributeType": "VARIANT",
-            "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
-        }
+        {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attribute.pk)}
     ]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
@@ -866,8 +857,8 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     query = ASSIGN_ATTR_QUERY
     operations = [
         {
-            "attributeType": gql_attribute_type.value,
-            "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+            "type": gql_attribute_type.value,
+            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
         }
     ]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
@@ -885,9 +876,9 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
 
 UNASSIGN_ATTR_QUERY = """
     mutation unAssignAttribute(
-      $productTypeId: ID!, $operations: [AttributeAssignInput]!
+      $productTypeId: ID!, $attributeIds: [ID]!
     ) {
-      attributeUnassign(productTypeId: $productTypeId, operations: $operations) {
+      attributeUnassign(productTypeId: $productTypeId, attributeIds: $attributeIds) {
         errors {
           field
           message
@@ -921,15 +912,12 @@ def test_unassign_attributes_from_product_type(
     )
 
     query = UNASSIGN_ATTR_QUERY
-    operations = [
-        {
-            "attributeType": "PRODUCT",
-            "attributeId": graphene.Node.to_global_id(
-                "Attribute", product_attributes[0].pk
-            ),
-        }
-    ]
-    variables = {"productTypeId": product_type_global_id, "operations": operations}
+    variables = {
+        "productTypeId": product_type_global_id,
+        "attributeIds": [
+            graphene.Node.to_global_id("Attribute", product_attributes[0].pk)
+        ],
+    }
 
     content = get_graphql_content(
         staff_api_client.post_graphql(
@@ -960,15 +948,12 @@ def test_unassign_attributes_not_in_product_type(
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     query = UNASSIGN_ATTR_QUERY
-    operations = [
-        {
-            "attributeType": "VARIANT",
-            "attributeId": graphene.Node.to_global_id(
-                "Attribute", color_attribute_without_values.pk
-            ),
-        }
-    ]
-    variables = {"productTypeId": product_type_global_id, "operations": operations}
+    variables = {
+        "productTypeId": product_type_global_id,
+        "attributeIds": [
+            graphene.Node.to_global_id("Attribute", color_attribute_without_values.pk)
+        ],
+    }
 
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"

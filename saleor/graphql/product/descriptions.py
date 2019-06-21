@@ -3,6 +3,7 @@ class AttributeDescriptions:
     NAME = "Name of an attribute displayed in the interface."
     SLUG = "Internal representation of an attribute name."
     VALUES = "List of attribute's values."
+    IS_VARIANT_ONLY = "Whether the attribute is for variants only"
 
 
 class AttributeValueDescriptions:
