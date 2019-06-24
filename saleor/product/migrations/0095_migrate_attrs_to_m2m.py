@@ -156,4 +156,14 @@ class Migration(migrations.Migration):
             name="visible_in_storefront",
             field=models.BooleanField(default=True),
         ),
+        migrations.AddField(
+            model_name="attribute",
+            name="filterable_in_dashboard",
+            field=models.BooleanField(default=True),
+        ),
+        migrations.AddField(
+            model_name="attribute",
+            name="filterable_in_storefront",
+            field=models.BooleanField(default=True),
+        ),
     ]
