@@ -116,4 +116,4 @@ class Command(BaseCommand):
         site.domain = domain
         site.name = "{} e-Commerce".format(storename)
         site.header_text = "{} e-Commerce".format(storename)
-        site.save()storename
+        site.save()
