@@ -42,7 +42,7 @@
             "weight": "1.0 kg"
         }
     },
-     {
+    {
         "model": "product.producttype",
         "pk": 12,
         "fields": {
@@ -53,23 +53,23 @@
             "weight": "0.5 kg"
         }
     },
-       {
+    {
         "model": "product.product",
         "pk": 64,
         "fields": {
             "publication_date": null,
             "is_published": true,
             "seo_title": "",
-            "seo_description": "Sunlight 2in1 Spring Sensations Handwash Washing Powder is ready to get to work! Made with the best that Sunlight offers, it’s sure to clean your clothes thoroughly and make them smell sensational too.",
+            "seo_description": "Sunlight 2in1 Spring Sensations Handwash Washing Powder is ready to get to work! ",
             "product_type": 7,
             "name": "Sunlight",
-            "description": "Sunlight 2in1 Spring Sensations Handwash Washing Powder is ready to get to work! Made with the best that Sunlight offers, it’s sure to clean your clothes thoroughly and make them smell sensational too.",
+            "description": "Sunlight 2in1 Spring Sensations Handwash Washing Powder is ready to get to work! ",
             "description_json": {
                 "blocks": [
                     {
                         "key": "",
                         "data": {},
-                        "text": "Sunlight 2in1 Spring Sensations Handwash Washing Powder is ready to get to work! Made with the best that Sunlight offers, it’s sure to clean your clothes thoroughly and make them smell sensational too.",
+                        "text": "Sunlight 2in1 Spring Sensations Handwash Washing Powder is ready to get to work! ",
                         "type": "unstyled",
                         "depth": 0,
                         "entityRanges": [],
@@ -98,16 +98,16 @@
             "publication_date": null,
             "is_published": true,
             "seo_title": "",
-            "seo_description": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. OMO Auto Powder is suited for all machine types and is recommended by the leading machine manufacturers. Just one scoop is enough to remove the toughest stains in your machine!",
+            "seo_description": "OMO Auto washing powder is the expert at removing tough stains in your machine. ",
             "product_type": 7,
             "name": "Omo Auto wash",
-            "description": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. OMO Auto Powder is suited for all machine types and is recommended by the leading machine manufacturers. Just one scoop is enough to remove the toughest stains in your machine!",
+            "description": "OMO Auto washing powder is the expert at removing tough stains in your machine. ",
             "description_json": {
                 "blocks": [
                     {
                         "key": "",
                         "data": {},
-                        "text": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. OMO Auto Powder is suited for all machine types and is recommended by the leading machine manufacturers. Just one scoop is enough to remove the toughest stains in your machine!",
+                        "text": "OMO Auto washing powder is the expert at removing tough stains in your machine. ",
                         "type": "unstyled",
                         "depth": 0,
                         "entityRanges": [],
@@ -129,23 +129,23 @@
             "weight": "1.0 kg"
         }
     },
-       {
+    {
         "model": "product.product",
         "pk": 85,
         "fields": {
             "publication_date": null,
             "is_published": true,
             "seo_title": "",
-            "seo_description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
+            "seo_description": "Closeup toothpaste will give you lasting fresh breath for longer and gives you whiter teeth. ",
             "product_type": 12,
             "name": "CloseUp",
-            "description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
+            "description": "Closeup toothpaste will give you lasting fresh breath for longer and gives you whiter teeth. ",
             "description_json": {
                 "blocks": [
                     {
                         "key": "",
                         "data": {},
-                        "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
+                        "text": "Closeup toothpaste will give you lasting fresh breath for longer and gives you whiter teeth. ",
                         "type": "unstyled",
                         "depth": 0,
                         "entityRanges": [],
@@ -174,16 +174,16 @@
             "publication_date": null,
             "is_published": true,
             "seo_title": "",
-            "seo_description": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. The liquid calcium formula helps to strengthen teeth and repair weak spots before cavities start.",
+            "seo_description": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots.",
             "product_type": 12,
             "name": "Colgate",
-            "description": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. The liquid calcium formula helps to strengthen teeth and repair weak spots before cavities start.",
+            "description": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots.",
             "description_json": {
                 "blocks": [
                     {
                         "key": "",
                         "data": {},
-                        "text": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. The liquid calcium formula helps to strengthen teeth and repair weak spots before cavities start.",
+                        "text": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots.",
                         "type": "unstyled",
                         "depth": 0,
                         "entityRanges": [],
@@ -205,7 +205,6 @@
             "weight": "0.0 kg"
         }
     },
-     
     {
         "model": "product.productvariant",
         "pk": 180,
@@ -350,7 +349,7 @@
             "weight": "5.0 kg"
         }
     },
-      {
+    {
         "model": "product.productvariant",
         "pk": 197,
         "fields": {
@@ -434,8 +433,7 @@
             "weight": "0.0 kg"
         }
     },
-   
-      {
+    {
         "model": "product.attribute",
         "pk": 18,
         "fields": {
@@ -445,7 +443,7 @@
             "product_variant_type": 7
         }
     },
-      {
+    {
         "model": "product.attribute",
         "pk": 22,
         "fields": {
@@ -465,7 +463,6 @@
             "product_variant_type": null
         }
     },
-     
     {
         "model": "product.attributevalue",
         "pk": 60,
@@ -554,14 +551,13 @@
             "attribute": 23
         }
     },
-     
     {
         "model": "product.productimage",
         "pk": 4,
         "fields": {
             "sort_order": 0,
             "product": 64,
-            "image": "products/mercurieproduct_sunlight.jpg",
+            "image": "products/mercurie_sunlight.jpg",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -577,7 +573,7 @@
             "alt": ""
         }
     },
-   {
+    {
         "model": "product.productimage",
         "pk": 21,
         "fields": {
@@ -599,7 +595,7 @@
             "alt": ""
         }
     },
-     {
+    {
         "model": "product.collection",
         "pk": 1,
         "fields": {
