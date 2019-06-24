@@ -12,7 +12,8 @@ class PaymentQueries(graphene.ObjectType):
     payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
     payments = PrefetchingConnectionField(Payment, description="List of payments")
     payment_stored_sources = graphene.List(
-        PaymentSource, description="List of stored payment sources")
+        PaymentSource, description="List of stored payment sources"
+    )
     payment_client_token = graphene.Field(
         graphene.String, args={"gateway": PaymentGatewayEnum()}
     )

@@ -55,7 +55,8 @@ class CreditCard(graphene.ObjectType):
 class PaymentSource(graphene.ObjectType):
     gateway = graphene.String(description="Payment gateway name", required=True)
     credit_card = graphene.Field(
-        CreditCard, description="Stored credit card details if available")
+        CreditCard, description="Stored credit card details if available"
+    )
 
 
 class Payment(CountableDjangoObjectType):

@@ -7,14 +7,16 @@ import saleor.core.utils.json_serializer
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('account', '0027_customerevent'),
-    ]
+    dependencies = [("account", "0027_customerevent")]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='private_meta',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict, encoder=saleor.core.utils.json_serializer.CustomJsonEncoder),
-        ),
+            model_name="user",
+            name="private_meta",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True,
+                default=dict,
+                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+            ),
+        )
     ]

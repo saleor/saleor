@@ -32,7 +32,7 @@ ERROR_CODES_WHITELIST = {
 
 
 def get_customer_data(payment_information: PaymentData) -> Dict:
-    ''' Provides customer info, use only for new customer creation '''
+    """ Provides customer info, use only for new customer creation """
     billing = payment_information.billing
     return {
         "order_id": payment_information.order_id,
@@ -153,7 +153,9 @@ def authorize(
     )
 
 
-def transaction_for_new_customer(payment_information: PaymentData, config: GatewayConfig):
+def transaction_for_new_customer(
+    payment_information: PaymentData, config: GatewayConfig
+):
     gateway = get_braintree_gateway(**config.connection_params)
     return gateway.transaction.sale(
         {
@@ -168,7 +170,9 @@ def transaction_for_new_customer(payment_information: PaymentData, config: Gatew
     )
 
 
-def transaction_for_existing_customer(payment_information: PaymentData, config: GatewayConfig):
+def transaction_for_existing_customer(
+    payment_information: PaymentData, config: GatewayConfig
+):
     gateway = get_braintree_gateway(**config.connection_params)
     return gateway.transaction.sale(
         {
