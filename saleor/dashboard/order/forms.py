@@ -603,7 +603,6 @@ class AddVariantToOrderForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop("order")
         self.discounts = kwargs.pop("discounts")
-        self.taxes = kwargs.pop("taxes")  # FIXME
         super().__init__(*args, **kwargs)
 
     def clean(self):

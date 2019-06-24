@@ -1,9 +1,12 @@
 import graphene
 
-from ...core import TaxRateType as CoreTaxRateType
 from ...core.permissions import MODELS_PERMISSIONS
+from ...core.taxes.vatlayer import TaxRateType as CoreTaxRateType
 from ...core.weight import WeightUnits
 from .utils import str_to_enum
+
+# FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated
+#  to taxes
 
 
 class ReportingPeriod(graphene.Enum):

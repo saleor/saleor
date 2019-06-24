@@ -86,7 +86,6 @@ class ProductType(models.Model):
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
-    # FIXME This should be moved to meta
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
@@ -135,7 +134,6 @@ class Product(SeoModel, PublishableModel):
     attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
-    # FIXME This should be moved to meta
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )

@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 from django.core.cache import cache
+from django.utils.translation import pgettext_lazy
 from requests.auth import HTTPBasicAuth
 
 from saleor.core.utils import get_company_address
@@ -25,6 +26,20 @@ logger = logging.getLogger(__name__)
 class TransactionType:
     INVOICE = "SalesInvoice"
     ORDER = "SalesOrder"
+
+
+class CustomerErrors:
+    DEFAULT_MSG = pgettext_lazy(
+        "We are not able to calculate taxes for your order. Please try later"
+    )
+    ERRORS = ("InvalidPostalCode", "InvalidAddress", "MissingAddress")
+
+    @classmethod
+    def get_error_msg(cls, error: dict) -> str:
+        error_code = error.get("code")
+        if error_code in cls.ERRORS:
+            return error.get("message", cls.DEFAULT_MSG)
+        return cls.DEFAULT_MSG
 
 
 def get_api_url() -> str:
@@ -141,7 +156,6 @@ def append_line_to_data(
             "amount": str(amount),
             "taxCode": tax_code,
             "taxIncluded": include_taxes_in_prices(),
-            # FIXME Should fetch taxcode from somewhere and save inside variant/product
             "itemCode": item_code,
             "description": description[:2000] if description else "",
         }
@@ -226,6 +240,7 @@ def generate_request_data(
     customer_code: Optional[int],
     customer_email: str,
     commit=False,
+    currency=settings.DEFAULT_CURRENCY,
 ):
     company_address = get_company_address()
     if company_address:
@@ -244,15 +259,8 @@ def generate_request_data(
         "code": transaction_token,
         "date": str(date.today()),
         "customerCode": customer_code,
-        # 'salespersonCode'
-        # 'customerUsageType'
-        # 'entityUseCode'
-        # 'discount'
-        # 'purchaseOrderNo'
-        # 'exemptionNo'
         "addresses": {
-            # FIXME we should put company address here
-            "shipFrom": {  # warehouse
+            "shipFrom": {
                 "line1": company_address.get("street_address_1"),
                 "line2": company_address.get("street_address_2"),
                 "city": company_address.get("city"),
@@ -269,14 +277,8 @@ def generate_request_data(
                 "postalCode": address.get("postal_code"),
             },
         },
-        # parameters
-        # referenceCode
-        # reportingLocationCode
-        # isSellerImporterOfRecord
-        # businessIdentificationNo
         "commit": commit,
-        # batchCode
-        "currencyCode": settings.DEFAULT_CURRENCY,
+        "currencyCode": currency,
         "email": customer_email,
     }
     return {"createTransactionModel": data}
@@ -304,11 +306,11 @@ def generate_request_data_from_checkout(
     return data
 
 
-def get_cached_response_or_fetch(data, token_in_cache):
+def get_cached_response_or_fetch(data, token_in_cache, force_refresh=False):
     """Try to find response in cache. Return cached response if requests data are
     the same. Fetch new data in other cases"""
     data_cache_key = settings.AVATAX_CACHE_KEY + token_in_cache
-    if taxes_need_new_fetch(data, token_in_cache):
+    if taxes_need_new_fetch(data, token_in_cache) or force_refresh:
         transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
         print("HIT TO API")
         response = api_post_request(transaction_url, data)
@@ -328,7 +330,9 @@ def get_checkout_tax_data(checkout: "Checkout", discounts) -> Dict[str, Any]:
     return get_cached_response_or_fetch(data, str(checkout.token))
 
 
-def get_order_tax_data(order: "Order", commit=False) -> Dict[str, Any]:
+def get_order_tax_data(
+    order: "Order", commit=False, force_refresh=False
+) -> Dict[str, Any]:
     address = order.shipping_address or order.billing_address
     lines = get_order_lines_data(order)
     transaction = (
@@ -343,7 +347,9 @@ def get_order_tax_data(order: "Order", commit=False) -> Dict[str, Any]:
         customer_email=order.user_email,
         commit=commit,
     )
-    response = get_cached_response_or_fetch(data, "order_%s" % order.token)
+    response = get_cached_response_or_fetch(
+        data, "order_%s" % order.token, force_refresh
+    )
     return response
 
 

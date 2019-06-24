@@ -162,9 +162,11 @@ def update_order_prices(order, discounts):
             line.save(update_fields=["unit_price_net", "unit_price_gross"])
 
             price = calculate_order_line_unit(line)
-            line.unit_price = price
-            line.tax_rate = 0  # Fixme we can calulcate tax_rate based on prices
-            line.save()
+            if price != line.unit_price:
+                line.unit_price = price
+                if price.tax and price.net:
+                    line.tax_rate = price.tax / price.net
+                line.save()
 
     if order.shipping_method:
         order.shipping_price = calculate_order_shipping(order)

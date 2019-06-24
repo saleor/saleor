@@ -59,9 +59,9 @@ def calculate_checkout_shipping(
 
 
 def calculate_order_shipping(order: "Order") -> TaxedMoney:
+    """Calculate shipping price that assigned to order"""
     if settings.VATLAYER_ACCESS_KEY:
-        # FIXME
-        pass
+        return calculate_order_shipping(order)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         return avatax_interface.calculate_order_shipping(order)
     price = order.shipping_method.price
@@ -85,7 +85,6 @@ def get_tax_rate_type_choices() -> List[TaxType]:
     if settings.VATLAYER_ACCESS_KEY:
         return vatlayer_interface.get_tax_rate_type_choices()
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        # FIXME shouldn't use description as a id for tax rates.
         return avatax_interface.get_tax_rate_type_choices()
     return []
 
@@ -106,13 +105,7 @@ def calculate_checkout_line_total(
 def calculate_order_line_unit(order_line: "OrderLine"):
     """It updates unit_price for a given order line based on current price of variant"""
     if settings.VATLAYER_ACCESS_KEY:
-        # FIXME Should be inside vatlayer module
-        address = order_line.order.shipping_address or order_line.order.billing_address
-        country = address.country if address else None
-        variant = order_line.variant
-        return vatlayer_interface.apply_taxes_to_product(
-            variant.product, order_line.unit_price_net, country
-        )
+        return vatlayer_interface.calculate_order_line_unit(order_line)
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         return avatax_interface.calculate_order_line_unit(order_line)
     return order_line.unit_price

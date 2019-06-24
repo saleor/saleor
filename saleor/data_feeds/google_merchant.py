@@ -125,8 +125,7 @@ def item_tax(item, discounts):
     Read more:
     https://support.google.com/merchants/answer/6324454
     """
-    # FIXME get_price never returns taxed price
-    # price = item.get_price(discounts=discounts)
+    # FIXME https://github.com/mirumee/saleor/issues/4311
     return "US::%s:y" % ZERO_MONEY
 
 

@@ -3,12 +3,7 @@ from collections import defaultdict
 from django_prices.templatetags import prices_i18n
 
 from ...core.taxes import display_gross_prices
-from ...core.taxes.interface import (
-    apply_taxes_to_product,
-    get_tax_from_object_meta,
-    show_taxes_on_storefront,
-)
-from ...core.taxes.vatlayer import get_tax_rate_by_name
+from ...core.taxes.interface import apply_taxes_to_product, show_taxes_on_storefront
 from ...core.utils import to_local_currency
 from ...seo.schema.product import variant_json_ld
 from .availability import get_product_availability
@@ -75,10 +70,14 @@ def get_variant_picker_data(
                 }
             )
 
+    product_price = apply_taxes_to_product(product, product.price, country)
+    tax_rates = 0
+    if product_price.tax and product_price.net:
+        tax_rates = int((product_price.tax / product_price.net) * 100)
+
     data["availability"] = {
         "discount": price_as_dict(availability.discount),
-        # FIXME this should use plugin hooks after we will introduce plugin architecure.
-        "taxRate": get_tax_rate_by_name(get_tax_from_object_meta(product).code, taxes),
+        "taxRate": tax_rates,
         "priceRange": price_range_as_dict(availability.price_range),
         "priceRangeUndiscounted": price_range_as_dict(
             availability.price_range_undiscounted
