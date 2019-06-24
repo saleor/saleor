@@ -11,6 +11,7 @@ import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { UserError } from "@saleor/types";
+import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
 import {
   AttributeDetailsFragment,
   AttributeDetailsFragment_values
@@ -33,6 +34,7 @@ export interface AttributePageProps {
 }
 
 export interface AttributePageFormData {
+  inputType: AttributeInputTypeEnum;
   name: string;
   slug: string;
 }
@@ -53,10 +55,15 @@ const AttributePage: React.FC<AttributePageProps> = ({
   const initialForm: AttributePageFormData =
     attribute === null
       ? {
+          inputType: AttributeInputTypeEnum.DROPDOWN,
           name: "",
           slug: ""
         }
       : {
+          inputType: maybe(
+            () => attribute.inputType,
+            AttributeInputTypeEnum.DROPDOWN
+          ),
           name: maybe(() => attribute.name, ""),
           slug: maybe(() => attribute.slug, "")
         };
