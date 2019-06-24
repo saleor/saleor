@@ -94,6 +94,17 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_items(checkout, product_list, product):
+    variant = product.variants.get()
+    add_variant_to_checkout(checkout, variant, 1)
+    for prod in product_list:
+        variant = prod.variants.get()
+        add_variant_to_checkout(checkout, variant, 1)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 3)
@@ -508,6 +519,12 @@ def product_list(product_type, category):
             ),
         ]
     )
+    sku = 0
+    for product in products:
+        ProductVariant.objects.create(
+            product=product, sku=sku, track_inventory=True, quantity=100
+        )
+        sku = sku + 1
     return products
 
 
