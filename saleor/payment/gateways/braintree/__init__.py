@@ -163,6 +163,7 @@ def transaction_for_new_customer(
             "payment_method_nonce": payment_information.token,
             "options": {
                 "submit_for_settlement": config.auto_capture,
+                "store_in_vault_on_success": payment_information.reuse_source,
                 "three_d_secure": {"required": THREE_D_SECURE_REQUIRED},
             },
             **get_customer_data(payment_information),
@@ -178,6 +179,8 @@ def transaction_for_existing_customer(
         {
             "amount": str(payment_information.amount),
             "customer_id": payment_information.customer_id,
+            "options": {"submit_for_settlement": config.auto_capture},
+            **get_customer_data(payment_information),
         }
     )
 
