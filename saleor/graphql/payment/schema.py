@@ -24,7 +24,10 @@ class PaymentQueries(graphene.ObjectType):
         return resolve_payments(info, query)
 
     def resolve_payment_client_token(self, _info, gateway=None):
-        return resolve_payment_client_token(gateway)
+        if _info.context.user.is_authenticated:
+            return resolve_payment_client_token(gateway, user=_info.context.user)
+        else:
+            return resolve_payment_client_token(gateway)
 
 
 class PaymentMutations(graphene.ObjectType):

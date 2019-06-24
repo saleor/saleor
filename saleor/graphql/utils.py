@@ -148,3 +148,20 @@ def format_permissions_for_display(permissions):
             PermissionDisplay(code=PermissionEnum.get(codename), name=permission.name)
         )
     return formatted_permissions
+
+
+def extract_id_for_payment_gateway(user, gateway):
+    gateway_meta = user.get_private_meta(label="gateways")
+    if not gateway_meta:
+        return None
+    if not gateway in gateway_meta:
+        return None
+    gateway_config = gateway_meta[gateway]
+    if not "customer_id" in gateway_config:
+        return None
+    return gateway_config["customer_id"]
+
+
+def store_id_for_payment_gateway(user, gateway, id):
+    user.store_private_meta(user, label=gateway, key="customer_id", value=id)
+    user.save()
