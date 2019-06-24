@@ -38,6 +38,12 @@ class AttributeCreateInput(graphene.InputObjectType):
     visible_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
+    filterable_in_storefront = graphene.Boolean(
+        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
+    )
+    filterable_in_dashboard = graphene.Boolean(
+        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
+    )
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
@@ -58,6 +64,12 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
     visible_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
+    )
+    filterable_in_storefront = graphene.Boolean(
+        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
+    )
+    filterable_in_dashboard = graphene.Boolean(
+        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
     )
 
 
