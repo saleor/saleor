@@ -61,6 +61,7 @@ def create_payment_information(
     amount: Decimal = None,
     billing_address: AddressData = None,
     shipping_address: AddressData = None,
+    customer_id: str = None,
 ) -> PaymentData:
     """Extracts order information along with payment details.
 
@@ -85,6 +86,7 @@ def create_payment_information(
         shipping=shipping,
         order_id=order_id,
         customer_ip_address=payment.customer_ip_address,
+        customer_id=customer_id,
         customer_email=payment.billing_email,
     )
 
@@ -232,12 +234,12 @@ def create_transaction(
     return txn
 
 
-def gateway_get_client_token(gateway_name: str):
+def gateway_get_client_token(gateway_name: str, **token_params):
     """Gets client token, that will be used as a customer's identificator for
     client-side tokenization of the chosen payment method.
     """
     gateway, gateway_config = get_payment_gateway(gateway_name)
-    return gateway.get_client_token(config=gateway_config)
+    return gateway.get_client_token(config=gateway_config, **token_params)
 
 
 def clean_capture(payment: Payment, amount: Decimal):
@@ -277,7 +279,7 @@ def call_gateway(operation_type, payment, payment_token, **extra_params):
     error_msg = None
 
     payment_information = create_payment_information(
-        payment, payment_token, **extra_params
+        payment, payment_token, customer_id, **extra_params
     )
 
     try:
