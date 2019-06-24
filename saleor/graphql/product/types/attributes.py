@@ -77,6 +77,11 @@ class Attribute(CountableDjangoObjectType):
         model_field="values",
     )
 
+    value_required = gql_optimizer.field(
+        graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED),
+        model_field="value_required",
+    )
+
     visible_in_storefront = gql_optimizer.field(
         graphene.Boolean(description=AttributeDescriptions.VISIBLE_IN_STOREFRONT),
         model_field="visible_in_storefront",
@@ -115,6 +120,11 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_values(root: models.Attribute, *_args):
         return root.values.all()
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_value_required(root: models.Attribute, *_args):
+        return root.value_required
 
     @staticmethod
     @permission_required("product.manage_products")
