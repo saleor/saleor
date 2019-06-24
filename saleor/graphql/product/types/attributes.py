@@ -77,6 +77,20 @@ class Attribute(CountableDjangoObjectType):
         model_field="values",
     )
 
+    visible_in_storefront = gql_optimizer.field(
+        graphene.Boolean(description=AttributeDescriptions.VISIBLE_IN_STOREFRONT),
+        model_field="visible_in_storefront",
+    )
+
+    filterable_in_storefront = gql_optimizer.field(
+        graphene.Boolean(description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT),
+        model_field="filterable_in_storefront",
+    )
+    filterable_in_dashboard = gql_optimizer.field(
+        graphene.Boolean(description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD),
+        model_field="filterable_in_dashboard",
+    )
+
     translation = graphene.Field(
         AttributeTranslation,
         language_code=graphene.Argument(
@@ -94,18 +108,28 @@ class Attribute(CountableDjangoObjectType):
         description = """
             Custom attribute of a product. Attributes can be
             assigned to products and variants at the product type level."""
-        only_fields = [
-            "id",
-            "product_types",
-            "product_variant_types",
-            "visible_in_storefront",
-        ]
+        only_fields = ["id", "product_types", "product_variant_types"]
         interfaces = [relay.Node]
         model = models.Attribute
 
     @staticmethod
     def resolve_values(root: models.Attribute, *_args):
         return root.values.all()
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_visible_in_storefront(root: models.Attribute, *_args):
+        return root.visible_in_storefront
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_filterable_in_storefront(root: models.Attribute, *_args):
+        return root.filterable_in_storefront
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_filterable_in_dashboard(root: models.Attribute, *_args):
+        return root.filterable_in_dashboard
 
 
 class SelectedAttribute(graphene.ObjectType):
