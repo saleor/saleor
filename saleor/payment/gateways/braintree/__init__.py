@@ -6,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
 from ... import TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from ...interface import GatewayConfig, GatewayResponse, PaymentData, TokenConfig
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
@@ -110,10 +110,19 @@ def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     return gateway
 
 
-def get_client_token(config: GatewayConfig) -> str:
+def get_client_token(config: GatewayConfig, token_config: TokenConfig) -> str:
     gateway = get_braintree_gateway(**config.connection_params)
-    client_token = gateway.client_token.generate()
+    parameters = create_token_params(token_config)
+    client_token = gateway.client_token.generate(parameters)
     return client_token
+
+
+def create_token_params(token_config: TokenConfig) -> dict:
+    params = {}
+    customer_id = token_config.customer_id
+    if customer_id:
+        params["customer_id"] = customer_id
+    return params
 
 
 def authorize(
