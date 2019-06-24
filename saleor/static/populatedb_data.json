@@ -98,16 +98,16 @@
             "publication_date": null,
             "is_published": true,
             "seo_title": "",
-            "seo_description": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. ",
+            "seo_description": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. OMO Auto Powder is suited for all machine types and is recommended by the leading machine manufacturers. Just one scoop is enough to remove the toughest stains in your machine!",
             "product_type": 7,
             "name": "Omo Auto wash",
-            "description": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. ",
+            "description": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. OMO Auto Powder is suited for all machine types and is recommended by the leading machine manufacturers. Just one scoop is enough to remove the toughest stains in your machine!",
             "description_json": {
                 "blocks": [
                     {
                         "key": "",
                         "data": {},
-                        "text": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. ",
+                        "text": "OMO Auto washing powder is the expert at removing tough stains in your machine. OMO Auto powder penetrates deep into the fibres of your clothes to remove even the toughest of stains. OMO Auto Powder is suited for all machine types and is recommended by the leading machine manufacturers. Just one scoop is enough to remove the toughest stains in your machine!",
                         "type": "unstyled",
                         "depth": 0,
                         "entityRanges": [],
@@ -174,16 +174,16 @@
             "publication_date": null,
             "is_published": true,
             "seo_title": "",
-            "seo_description": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. ",
+            "seo_description": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. The liquid calcium formula helps to strengthen teeth and repair weak spots before cavities start.",
             "product_type": 12,
             "name": "Colgate",
-            "description": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. ",
+            "description": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. The liquid calcium formula helps to strengthen teeth and repair weak spots before cavities start.",
             "description_json": {
                 "blocks": [
                     {
                         "key": "",
                         "data": {},
-                        "text": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. ",
+                        "text": "Colgate Cavity Protection contains fluoride which is clinically proven to fight cavities on teeth surfaces and exposed roots. The liquid calcium formula helps to strengthen teeth and repair weak spots before cavities start.",
                         "type": "unstyled",
                         "depth": 0,
                         "entityRanges": [],
@@ -561,7 +561,7 @@
         "fields": {
             "sort_order": 0,
             "product": 64,
-            "image": "https://bit.ly/2x2SjAc",
+            "image": "products/mercurieproduct_sunlight.jpg",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -572,7 +572,7 @@
         "fields": {
             "sort_order": 0,
             "product": 65,
-            "image": "https://bit.ly/2IO4y98",
+            "image": "products/mercurieproduct_omoautowash.jpg",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -583,7 +583,7 @@
         "fields": {
             "sort_order": 0,
             "product": 85,
-            "image": "https://bit.ly/2IM33Z6",
+            "image": "products/mercurieproduct_closeup.jpg",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -594,7 +594,7 @@
         "fields": {
             "sort_order": 0,
             "product": 86,
-            "image": "https://bit.ly/2ZzG1LP",
+            "image": "products/mercurieproduct_colgate.jpg",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -611,13 +611,13 @@
             "slug": "summer-collection",
             "background_image": "collection-backgrounds/summer_O96Ivuv.jpg",
             "background_image_alt": "",
-            "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. ",
+            "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
             "description_json": {
                 "blocks": [
                     {
                         "key": "",
                         "data": {},
-                        "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. ",
+                        "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
                         "type": "unstyled",
                         "depth": 0,
                         "entityRanges": [],
@@ -646,13 +646,13 @@
             "slug": "winter-sale",
             "background_image": "collection-backgrounds/clothing_TuZmZFT.jpg",
             "background_image_alt": "",
-            "description": "The Saleor Winter Sale is snowed under with seasonal offers. ",
+            "description": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
             "description_json": {
                 "blocks": [
                     {
                         "key": "",
                         "data": {},
-                        "text": "The Saleor Winter Sale is snowed under with seasonal offers. ",
+                        "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
                         "type": "unstyled",
                         "depth": 0,
                         "entityRanges": [],
