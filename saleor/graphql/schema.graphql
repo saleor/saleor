@@ -3178,6 +3178,7 @@ input VoucherInput {
   categories: [ID]
   minAmountSpent: Decimal
   countries: [String]
+  applyOncePerOrder: Boolean
 }
 
 type VoucherRemoveCatalogues {
