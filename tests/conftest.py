@@ -32,6 +32,7 @@ from saleor.order.utils import fulfill_order_line, recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
+from saleor.product import AttributeInputType
 from saleor.product.models import (
     Attribute,
     AttributeTranslation,
@@ -385,7 +386,7 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
 
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
-    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+    attributes = {smart_text(product_attr.pk): [smart_text(attr_value.pk)]}
 
     Product.objects.create(
         name="Test product",
@@ -440,7 +441,7 @@ def product_type_without_variant():
 def product(product_type, category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
-    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+    attributes = {smart_text(product_attr.pk): [smart_text(attr_value.pk)]}
 
     product = Product.objects.create(
         name="Test product",
@@ -453,7 +454,7 @@ def product(product_type, category):
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
     variant_attributes = {
-        smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)
+        smart_text(variant_attr.pk): [smart_text(variant_attr_value.pk)]
     }
 
     ProductVariant.objects.create(
@@ -465,6 +466,34 @@ def product(product_type, category):
         quantity_allocated=1,
     )
     return product
+
+
+@pytest.fixture
+def variant_with_multiple_values_attributes(
+    variant, product_type, category
+) -> ProductVariant:
+    variant_attr = Attribute.objects.create(
+        slug="modes", name="Available Modes", input_type=AttributeInputType.MULTISELECT
+    )
+
+    attr_val_1 = AttributeValue.objects.create(
+        attribute=variant_attr, name="Eco Mode", slug="eco"
+    )
+    attr_val_2 = AttributeValue.objects.create(
+        attribute=variant_attr, name="Performance Mode", slug="power"
+    )
+
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(variant_attr)
+
+    variant.attributes = {
+        smart_text(variant_attr.pk): [
+            smart_text(attr_val_1.pk),
+            smart_text(attr_val_2.pk),
+        ]
+    }
+    variant.save(update_fields=["attributes"])
+    return variant
 
 
 @pytest.fixture
@@ -525,7 +554,7 @@ def product_without_shipping(category):
 def product_list(product_type, category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
-    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+    attributes = {smart_text(product_attr.pk): [smart_text(attr_value.pk)]}
 
     products = Product.objects.bulk_create(
         [
@@ -643,7 +672,7 @@ def unavailable_product_with_variant(product_type, category):
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
     variant_attributes = {
-        smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)
+        smart_text(variant_attr.pk): [smart_text(variant_attr_value.pk)]
     }
 
     ProductVariant.objects.create(

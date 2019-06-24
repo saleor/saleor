@@ -21,7 +21,7 @@ def migrate_fk_to_m2m(product_type_related_field):
 
 class Migration(migrations.Migration):
 
-    dependencies = [("product", "0094_auto_20190611_0952")]
+    dependencies = [("product", "0095_auto_20190618_0842")]
 
     operations = [
         # Rename the foreign keys to backup them before overriding and processing them
