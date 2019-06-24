@@ -19,6 +19,7 @@ export const attributeDetailsFragment = gql`
   ${attributeFragment}
   fragment AttributeDetailsFragment on Attribute {
     ...AttributeFragment
+    inputType
     values {
       id
       name

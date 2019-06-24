@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { AttributeValueType } from "./../../types/globalTypes";
+import { AttributeInputTypeEnum, AttributeValueType } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: AttributeDetails
@@ -23,6 +23,7 @@ export interface AttributeDetails_attribute {
   id: string;
   name: string | null;
   slug: string | null;
+  inputType: AttributeInputTypeEnum | null;
   values: (AttributeDetails_attribute_values | null)[] | null;
 }
 
