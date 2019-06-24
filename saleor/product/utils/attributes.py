@@ -1,3 +1,7 @@
+from collections import defaultdict
+from typing import List
+
+
 def get_product_attributes_data(product):
     """Return the attributes associated with the product.
 
@@ -26,12 +30,18 @@ def get_attributes_display_map(obj, attributes):
         attributes: Attribute Iterable
 
     """
-    display_map = {}
+    display_map = defaultdict(str)
     for attribute in attributes:
-        value = obj.attributes.get(str(attribute.pk))
-        if value:
+        values = obj.attributes.get(str(attribute.pk))  # type: List
+        if values:
             choices = {str(a.pk): a.translated for a in attribute.values.all()}
-            display_map[attribute.pk] = choices[value]
+            for value in values:
+                current_display_value = display_map[attribute.pk]
+                if not current_display_value:
+                    current_display_value = choices[value]
+                else:
+                    current_display_value = f"{current_display_value}, {choices[value]}"
+                display_map[attribute.pk] = current_display_value
     return display_map
 
 

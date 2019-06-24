@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 from django.core import serializers
+from django.core.exceptions import ValidationError
 from django.core.serializers.base import DeserializationError
 from django.http import JsonResponse
 from django.urls import reverse
@@ -20,7 +21,7 @@ from saleor.checkout.utils import add_variant_to_checkout
 from saleor.menu.models import MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.product import ProductAvailabilityStatus, models
-from saleor.product.models import DigitalContentUrl
+from saleor.product.models import DigitalContentUrl, validate_attribute_json
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock,
@@ -102,9 +103,9 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     variant_b = models.ProductVariant.objects.create(product=product_b, sku="12345")
     color = color_attribute.values.first()
     color_2 = color_attribute.values.last()
-    product_a.attributes[str(color_attribute.pk)] = str(color.pk)
+    product_a.attributes[str(color_attribute.pk)] = [str(color.pk)]
     product_a.save()
-    variant_b.attributes[str(color_attribute.pk)] = str(color.pk)
+    variant_b.attributes[str(color_attribute.pk)] = [str(color.pk)]
     variant_b.save()
 
     filtered = filter_products_by_attribute(
@@ -113,7 +114,7 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     assert product_a in list(filtered)
     assert product_b in list(filtered)
 
-    product_a.attributes[str(color_attribute.pk)] = str(color_2.pk)
+    product_a.attributes[str(color_attribute.pk)] = [str(color_2.pk)]
     product_a.save()
     filtered = filter_products_by_attribute(
         models.Product.objects.all(), color_attribute.pk, color.pk
@@ -474,6 +475,20 @@ def test_get_variant_picker_data_proper_variant_count(product):
     )
 
     assert len(data["variantAttributes"][0]["values"]) == 1
+
+
+def test_get_variant_picker_data_no_nested_attributes(
+    variant_with_multiple_values_attributes
+):
+    """Ensures that if someone bypassed variant attributes checks (e.g. a raw SQL query)
+    and inserted an attribute with multiple values, it doesn't return invalid data
+    to the storefront that would crash it."""
+    product = variant_with_multiple_values_attributes.product
+    data = get_variant_picker_data(
+        product, discounts=None, taxes=None, local_currency=None
+    )
+
+    assert len(data["variantAttributes"]) == 0
 
 
 def test_render_product_page_with_no_variant(unavailable_product, admin_client):
@@ -878,3 +893,28 @@ def test_costs_get_margin_for_variant(variant, price, cost):
     variant.cost_price = cost
     variant.price_override = price
     assert not get_margin_for_variant(variant)
+
+
+@pytest.mark.parametrize(
+    "value, error",
+    (
+        ({123: []}, ["The key 123 should be of type str (got <class 'int'>)"]),
+        (
+            {"123": 111},
+            ["The values of '123' should be of type list (got <class 'int'>)"],
+        ),
+        (
+            {"123": [111]},
+            ["The values inside 111 should be of type str (got <class 'int'>)"],
+        ),
+    ),
+)
+def test_product_attributes_validator_invalid_values(value, error):
+    with pytest.raises(ValidationError) as exc_info:
+        validate_attribute_json(value)
+        assert exc_info.value.args[0] == error
+
+
+@pytest.mark.parametrize("value", ({"123": []}, {"123": ["111"]}))
+def test_product_attributes_validator_accept_valid_values(value):
+    validate_attribute_json(value)

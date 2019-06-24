@@ -21,8 +21,8 @@ def get_redirect_location(response):
 def filter_products_by_attribute(queryset, attribute_id, value):
     key = smart_text(attribute_id)
     value = smart_text(value)
-    in_product = Q(attributes__contains={key: value})
-    in_variant = Q(variants__attributes__contains={key: value})
+    in_product = Q(**{f"attributes__from_key_{key}__has_key": value})
+    in_variant = Q(**{f"variants__attributes__from_key_{key}__has_key": value})
     return queryset.filter(in_product | in_variant)
 
 

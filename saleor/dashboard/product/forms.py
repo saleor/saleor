@@ -218,7 +218,7 @@ class AttributesMixin:
                         attribute_id=attr.pk, name=value, slug=slugify(value)
                     )
                     value.save()
-                attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                attributes[smart_text(attr.pk)] = [smart_text(value.pk)]
         return attributes
 
 
@@ -484,7 +484,7 @@ class VariantImagesSelectForm(forms.Form):
 class AttributeForm(forms.ModelForm):
     class Meta:
         model = Attribute
-        exclude = []
+        exclude = ["input_type"]
         labels = {
             "name": pgettext_lazy("Product display name", "Display name"),
             "slug": pgettext_lazy("Product internal name", "Internal name"),

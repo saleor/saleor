@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 
-from ....product import models
+from ....product import AttributeInputType, models
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -14,9 +14,9 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ...core.utils import from_global_id_strict_type
-from ...product.enums import AttributeTypeEnum
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
+from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute
 
 
@@ -26,6 +26,7 @@ class AttributeValueCreateInput(graphene.InputObjectType):
 
 
 class AttributeCreateInput(graphene.InputObjectType):
+    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     values = graphene.List(
@@ -283,6 +284,23 @@ class AttributeAssign(BaseAttributeAssignmentMutation):
                 {
                     "operations": (
                         f"{msg} have already been assigned to this product type."
+                    )
+                }
+            )
+
+        # check if attributes' input type is assignable to variants
+        is_not_assignable_to_variant = models.Attribute.objects.filter(
+            Q(pk__in=variant_attrs_pks)
+            & Q(input_type__in=AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS)
+        ).exists()
+
+        if is_not_assignable_to_variant:
+            raise ValidationError(
+                {
+                    "operations": (
+                        f"Attributes having for input types "
+                        f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
+                        f"cannot be assigned as variant attributes"
                     )
                 }
             )

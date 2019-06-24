@@ -16,6 +16,7 @@ from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.graphql.product.types.products import resolve_attribute_list
+from saleor.product import AttributeInputType
 from saleor.product.models import (
     Attribute,
     AttributeValue,
@@ -69,17 +70,17 @@ def query_collections_with_filter():
 
 def test_resolve_attribute_list(color_attribute):
     value = color_attribute.values.first()
-    attributes_hstore = {str(color_attribute.pk): str(value.pk)}
-    res = resolve_attribute_list(attributes_hstore, Attribute.objects.all())
+    attributes_json = {str(color_attribute.pk): [str(value.pk)]}
+    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
     assert len(res) == 1
     assert res[0].attribute.name == color_attribute.name
     assert res[0].value.name == value.name
 
-    # test passing invalid hstore should resolve to empty list
+    # test passing invalid json should resolve to empty list
     attr_pk = str(Attribute.objects.order_by("pk").last().pk + 1)
     val_pk = str(AttributeValue.objects.order_by("pk").last().pk + 1)
-    attributes_hstore = {attr_pk: val_pk}
-    res = resolve_attribute_list(attributes_hstore, Attribute.objects.all())
+    attributes_json = {attr_pk: [val_pk]}
+    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
     assert res == []
 
 
@@ -255,7 +256,7 @@ def test_products_query_with_filter_attributes(
     second_product = product
     second_product.id = None
     second_product.product_type = product_type
-    second_product.attributes = {smart_text(attribute.pk): smart_text(attr_value.pk)}
+    second_product.attributes = {smart_text(attribute.pk): [smart_text(attr_value.pk)]}
     second_product.save()
 
     variables = {
@@ -774,8 +775,8 @@ def test_create_product(
         "taxCode": product_tax_rate,
         "basePrice": product_price,
         "attributes": [
-            {"slug": color_attr_slug, "value": color_value_slug},
-            {"slug": size_attr_slug, "value": non_existent_attr_value},
+            {"slug": color_attr_slug, "values": [color_value_slug]},
+            {"slug": size_attr_slug, "values": [non_existent_attr_value]},
         ],
     }
 
@@ -1095,6 +1096,55 @@ def test_update_product(
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
+
+
+SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
+    mutation updateProduct($productId: ID!, $attributes: [AttributeValueInput!]) {
+      productUpdate(id: $productId, input: { attributes: $attributes }) {
+        errors {
+          message
+          field
+        }
+      }
+    }
+"""
+
+
+def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensures you cannot assign multiple values to input types
+    that are not multi-select. This also ensures multi-select types
+    can be assigned multiple values as intended."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    multi_values_attr = Attribute.objects.create(
+        name="multi", slug="multi-vals", input_type=AttributeInputType.MULTISELECT
+    )
+    multi_values_attr.product_types.add(product.product_type)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"slug": color_attribute.slug, "values": ["red", "blue"]}],
+    }
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["errors"] == [
+        {
+            "field": "attributes",
+            "message": "A dropdown attribute must take only one value",
+        }
+    ]
+
+    # Try to assign multiple values from a valid attribute
+    variables["attributes"] = [{"slug": multi_values_attr.slug, "values": ["a", "b"]}]
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["errors"] == []
 
 
 def test_update_product_without_variants(
