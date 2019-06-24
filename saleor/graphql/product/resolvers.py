@@ -30,7 +30,7 @@ def _filter_attributes_by_product_types(attribute_qs, product_qs):
 
 
 def resolve_attributes(info, category_id=None, collection_id=None, query=None):
-    qs = models.Attribute.objects.all()
+    qs = models.Attribute.objects.get_visible_to_user(info.context.user)
     qs = filter_by_query_param(qs, query, ATTRIBUTES_SEARCH_FIELDS)
 
     if category_id:
