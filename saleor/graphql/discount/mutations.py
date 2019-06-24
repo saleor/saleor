@@ -100,6 +100,9 @@ class VoucherInput(graphene.InputObjectType):
         graphene.String,
         description="Country codes that can be used with the shipping voucher",
     )
+    apply_once_per_order = graphene.Boolean(
+        description="Voucher should be applied to the cheapest item or order"
+    )
 
 
 class VoucherCreate(ModelMutation):
