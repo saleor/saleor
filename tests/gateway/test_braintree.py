@@ -163,6 +163,7 @@ def test_extract_gateway_response(braintree_success_response):
         "credit_card": t.credit_card,
         "errors": [],
         "transaction_id": t.id,
+        "customer_id": None,
     }
     assert result == expected_result
 
@@ -303,6 +304,7 @@ def test_authorize(
             "amount": str(payment.total),
             "payment_method_nonce": "auth-token",
             "options": {
+                "store_in_vault_on_success": False,
                 "submit_for_settlement": CONFIRM_MANUALLY,
                 "three_d_secure": {"required": THREE_D_SECURE_REQUIRED},
             },

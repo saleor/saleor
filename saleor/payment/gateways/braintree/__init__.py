@@ -75,8 +75,12 @@ def extract_gateway_response(braintree_result) -> Dict:
             {"code": error.code, "message": error.message}
             for error in braintree_result.errors.deep_errors
         ]
+    customer_id = None
 
     bt_transaction = braintree_result.transaction
+    if hasattr(bt_transaction, "customer"):
+        customer_id = bt_transaction.id
+
     if not bt_transaction:
         return {"errors": errors}
     return {
@@ -84,7 +88,7 @@ def extract_gateway_response(braintree_result) -> Dict:
         "currency": bt_transaction.currency_iso_code,
         "amount": bt_transaction.amount,  # Decimal type
         "credit_card": bt_transaction.credit_card,
-        "customer_id": bt_transaction.customer.id,  # TODO: check if exists always
+        "customer_id": customer_id,
         "errors": errors,
     }
 
@@ -110,11 +114,12 @@ def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     return gateway
 
 
-def get_client_token(config: GatewayConfig, token_config: TokenConfig) -> str:
+def get_client_token(config: GatewayConfig, token_config: TokenConfig = None) -> str:
     gateway = get_braintree_gateway(**config.connection_params)
+    if not token_config:
+        return gateway.client_token.generate()
     parameters = create_token_params(token_config)
-    client_token = gateway.client_token.generate(parameters)
-    return client_token
+    return gateway.client_token.generate(parameters)
 
 
 def create_token_params(token_config: TokenConfig) -> dict:
