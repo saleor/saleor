@@ -378,7 +378,7 @@ def create_order_lines(order, discounts, how_many=10):
     ProductVariant.objects.bulk_update(variants, ["quantity", "quantity_allocated"])
     lines = OrderLine.objects.bulk_create(lines)
     for line in lines:
-        unit_price = tax_interface.refresh_order_line_unit_price(line)
+        unit_price = tax_interface.calculate_order_line_unit(line)
         line.unit_price_net = unit_price.net
         line.unit_price_gross = unit_price.gross
         line.tax_rate = unit_price.tax / unit_price.net

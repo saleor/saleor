@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from ....order.models import Order, OrderLine
 
 
-def get_total_gross(checkout: "checkout_models.Checkout", discounts):
+def calculate_checkout_total(checkout: "checkout_models.Checkout", discounts):
     checkout_total = checkout.get_total(discounts=discounts)
     if not validate_checkout(checkout):
         return TaxedMoney(net=checkout_total, gross=checkout_total)
@@ -43,7 +43,7 @@ def get_total_gross(checkout: "checkout_models.Checkout", discounts):
     return TaxedMoney(net=total_net, gross=total_gross)
 
 
-def get_subtotal_gross(checkout: "checkout_models.Checkout", discounts):
+def calculate_checkout_subtotal(checkout: "checkout_models.Checkout", discounts):
     sub_total = checkout.get_subtotal(discounts)
     if not validate_checkout(checkout):
         return TaxedMoney(net=sub_total, gross=sub_total)
@@ -66,7 +66,7 @@ def get_subtotal_gross(checkout: "checkout_models.Checkout", discounts):
     return TaxedMoney(net=sub_total_net, gross=sub_total_gross)
 
 
-def get_shipping_gross(checkout: "checkout_models.Checkout", discounts):
+def calculate_checkout_shipping(checkout: "checkout_models.Checkout", discounts):
     shipping_price = checkout.get_shipping_price()
     if not validate_checkout(checkout):
         return TaxedMoney(net=shipping_price, gross=shipping_price)
@@ -128,7 +128,9 @@ def postprocess_order_creation(order: "Order"):
     api_post_request(transaction_url, data)
 
 
-def get_line_total_gross(checkout_line: "checkout_models.CheckoutLine", discounts):
+def calculate_checkout_line_total(
+    checkout_line: "checkout_models.CheckoutLine", discounts
+):
     checkout = checkout_line.checkout
     taxes_data = get_checkout_tax_data(checkout, discounts)
     currency = taxes_data.get("currencyCode")
@@ -144,7 +146,7 @@ def get_line_total_gross(checkout_line: "checkout_models.CheckoutLine", discount
     return TaxedMoney(net=total, gross=total)
 
 
-def refresh_order_line_unit_price(order_line: "OrderLine"):
+def calculate_order_line_unit(order_line: "OrderLine"):
     order = order_line.order
     if validate_order(order):
         taxes_data = get_order_tax_data(order)

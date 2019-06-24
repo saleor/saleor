@@ -7,7 +7,7 @@ from django_prices.templatetags.prices_i18n import amount
 
 from ..checkout.forms import AddToCheckoutForm
 from ..core.taxes import display_gross_prices
-from ..core.taxes.interface import apply_taxes_to_variant
+from ..core.taxes.interface import apply_taxes_to_product
 
 
 class VariantChoiceField(forms.ModelChoiceField):
@@ -17,7 +17,9 @@ class VariantChoiceField(forms.ModelChoiceField):
 
     def label_from_instance(self, obj):
         variant_label = smart_text(obj)
-        price = apply_taxes_to_variant(obj, obj.get_price(self.discounts), self.country)
+        price = apply_taxes_to_product(
+            obj.product, obj.get_price(self.discounts), self.country
+        )
         price = price.gross if self.display_gross else price.net
         label = pgettext_lazy(
             "Variant choice field label", "%(variant_label)s - %(price)s"
