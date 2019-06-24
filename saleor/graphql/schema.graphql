@@ -2088,6 +2088,11 @@ type PaymentRefund {
   payment: Payment
 }
 
+type PaymentSource {
+  gateway: String!
+  creditCard: CreditCard
+}
+
 type PaymentVoid {
   errors: [Error!]
   payment: Payment
@@ -2505,6 +2510,7 @@ type Query {
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID): Payment
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
+  paymentStoredSources: [PaymentSource]
   paymentClientToken(gateway: GatewaysEnum): String
   page(id: ID, slug: String): Page
   pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection

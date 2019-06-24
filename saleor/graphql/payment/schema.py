@@ -5,12 +5,14 @@ from ..core.fields import PrefetchingConnectionField
 from .enums import PaymentGatewayEnum
 from .mutations import PaymentCapture, PaymentRefund, PaymentVoid
 from .resolvers import resolve_payment_client_token, resolve_payments
-from .types import Payment
+from .types import Payment, PaymentSource
 
 
 class PaymentQueries(graphene.ObjectType):
     payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
     payments = PrefetchingConnectionField(Payment, description="List of payments")
+    payment_stored_sources = graphene.List(
+        PaymentSource, description="List of stored payment sources")
     payment_client_token = graphene.Field(
         graphene.String, args={"gateway": PaymentGatewayEnum()}
     )
@@ -22,6 +24,9 @@ class PaymentQueries(graphene.ObjectType):
     @permission_required("order.manage_orders")
     def resolve_payments(self, info, query=None, **_kwargs):
         return resolve_payments(info, query)
+
+    def resolve_payment_sources(self, info):
+        return []
 
     def resolve_payment_client_token(self, _info, gateway=None):
         if _info.context.user.is_authenticated:
