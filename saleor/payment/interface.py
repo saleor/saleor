@@ -39,17 +39,22 @@ class PaymentData:
     """Dataclass for storing all payment information. Used for unifying the
     representation of data. It is required to communicate between Saleor and
     given payment gateway."""
-
-    token: str
     amount: Decimal
     currency: str
     billing: Optional[AddressData]
     shipping: Optional[AddressData]
-    order_id: Optional[int]
+    order_id: int
     customer_ip_address: str
     customer_email: str
+    token: Optional[str] = None
     customer_id: Optional[str] = None
     reuse_source: bool = False
+
+
+@dataclass
+class TokenConfig:
+    """Dataclass for payment gateway token fetching customization"""
+    customer_id: Optional[str] = None
 
 
 @dataclass
