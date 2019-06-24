@@ -24,7 +24,8 @@ from . import (
     TransactionKind,
     get_payment_gateway,
 )
-from .interface import AddressData, GatewayResponse, PaymentData
+
+from .interface import AddressData, GatewayResponse, PaymentData, TokenConfig
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
@@ -234,12 +235,12 @@ def create_transaction(
     return txn
 
 
-def gateway_get_client_token(gateway_name: str, **token_params):
+def gateway_get_client_token(gateway_name: str, token_config: TokenConfig):
     """Gets client token, that will be used as a customer's identificator for
     client-side tokenization of the chosen payment method.
     """
     gateway, gateway_config = get_payment_gateway(gateway_name)
-    return gateway.get_client_token(config=gateway_config, **token_params)
+    return gateway.get_client_token(config=gateway_config, token_config=token_config)
 
 
 def clean_capture(payment: Payment, amount: Decimal):
