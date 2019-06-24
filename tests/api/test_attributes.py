@@ -5,38 +5,39 @@ from django.template.defaultfilters import slugify
 
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
-from saleor.graphql.product.utils import attributes_to_hstore
+from saleor.graphql.product.utils import attributes_to_json
+from saleor.product import AttributeInputType
 from saleor.product.models import Attribute, AttributeValue, Category, ProductType
 from tests.api.utils import get_graphql_content
 
 
-def test_attributes_to_hstore(product, color_attribute):
+def test_attributes_to_json(product, color_attribute):
     color_value = color_attribute.values.first()
 
     # test transforming slugs of existing attributes to IDs
-    input_data = [{"slug": color_attribute.slug, "value": color_value.slug}]
+    input_data = [{"slug": color_attribute.slug, "values": [color_value.slug]}]
     attrs_qs = product.product_type.product_attributes.all()
-    ids = attributes_to_hstore(input_data, attrs_qs)
+    ids = attributes_to_json(input_data, attrs_qs)
     assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == str(color_value.pk)
+    assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
 
     # test creating a new attribute value
-    input_data = [{"slug": color_attribute.slug, "value": "Space Grey"}]
-    ids = attributes_to_hstore(input_data, attrs_qs)
+    input_data = [{"slug": color_attribute.slug, "values": ["Space Grey"]}]
+    ids = attributes_to_json(input_data, attrs_qs)
     new_value = AttributeValue.objects.get(slug="space-grey")
     assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == str(new_value.pk)
+    assert ids[str(color_attribute.pk)] == [str(new_value.pk)]
 
     # test passing an attribute that doesn't belong to this product raises
     # an error
-    input_data = [{"slug": "not-an-attribute", "value": "not-a-value"}]
+    input_data = [{"slug": "not-an-attribute", "values": ["not-a-value"]}]
     with pytest.raises(ValueError):
-        attributes_to_hstore(input_data, attrs_qs)
+        attributes_to_json(input_data, attrs_qs)
 
 
-def test_attributes_to_hstore_duplicated_slug(product, color_attribute, size_attribute):
+def test_attributes_to_json_duplicated_slug(product, color_attribute, size_attribute):
     # It's possible to have a value with the same slug but for a different attribute.
-    # Ensure that `attributes_to_hstore` works in that case.
+    # Ensure that `attributes_to_json` works in that case.
 
     color_value = color_attribute.values.first()
 
@@ -45,11 +46,11 @@ def test_attributes_to_hstore_duplicated_slug(product, color_attribute, size_att
         slug=color_value.slug, name="Duplicated value", attribute=size_attribute
     )
 
-    input_data = [{"slug": color_attribute.slug, "value": color_value.slug}]
+    input_data = [{"slug": color_attribute.slug, "values": [color_value.slug]}]
     attrs_qs = product.product_type.product_attributes.all()
-    ids = attributes_to_hstore(input_data, attrs_qs)
+    ids = attributes_to_json(input_data, attrs_qs)
     assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == str(color_value.pk)
+    assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
 
 
 def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_values):
@@ -791,6 +792,45 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
     ]
 
 
+def test_assign_variant_attribute_having_unsupported_input_type(
+    staff_api_client, permission_manage_products, product_type, size_attribute
+):
+    """The assignAttribute mutation should raise an error when trying
+    to use an attribute as a variant attribute when
+    the attribute's input type doesn't support variants"""
+
+    attribute = size_attribute
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.save(update_fields=["input_type"])
+    product_type.variant_attributes.clear()
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = ASSIGN_ATTR_QUERY
+    operations = [
+        {
+            "attributeType": "VARIANT",
+            "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        }
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["attributeAssign"]
+    assert content["errors"] == [
+        {
+            "field": "operations",
+            "message": (
+                "Attributes having for input types ['multiselect'] cannot be assigned "
+                "as variant attributes"
+            ),
+        }
+    ]
+
+
 @pytest.mark.parametrize(
     "product_type_attribute_type, gql_attribute_type",
     (
@@ -938,3 +978,33 @@ def test_unassign_attributes_not_in_product_type(
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["productAttributes"]) == 0
     assert len(content["productType"]["variantAttributes"]) == 0
+
+
+def test_retrieve_product_attributes_input_type(
+    staff_api_client, product, permission_manage_products
+):
+    query = """
+        {
+          products(first: 10) {
+            edges {
+              node {
+                attributes {
+                  value {
+                    type
+                    inputType
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+
+    found_products = get_graphql_content(
+        staff_api_client.post_graphql(query, permissions=[permission_manage_products])
+    )["data"]["products"]["edges"]
+    assert len(found_products) == 1
+
+    for gql_attr in found_products[0]["node"]["attributes"]:
+        assert gql_attr["value"]["type"] == "STRING"
+        assert gql_attr["value"]["inputType"] == "DROPDOWN"

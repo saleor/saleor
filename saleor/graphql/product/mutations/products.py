@@ -37,7 +37,7 @@ from ..types import (
     ProductImage,
     ProductVariant,
 )
-from ..utils import attributes_to_hstore
+from ..utils import attributes_to_json
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -394,7 +394,9 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 class AttributeValueInput(InputObjectType):
     slug = graphene.String(required=True, description="Slug of an attribute.")
-    value = graphene.String(required=True, description="Value of an attribute.")
+    values = graphene.List(
+        graphene.String, required=True, description="Value of an attribute."
+    )
 
 
 class ProductInput(graphene.InputObjectType):
@@ -496,7 +498,7 @@ class ProductCreate(ModelMutation):
         if attributes and product_type:
             qs = product_type.product_attributes.prefetch_related("values")
             try:
-                attributes = attributes_to_hstore(attributes, qs)
+                attributes = attributes_to_json(attributes, qs)
             except ValueError as e:
                 raise ValidationError({"attributes": str(e)})
             else:
@@ -677,7 +679,7 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     def clean_product_type_attributes(cls, attributes_qs, attributes_input):
         # transform attributes_input list to a dict of slug:value pairs
-        attributes_input = {item["slug"]: item["value"] for item in attributes_input}
+        attributes_input = {item["slug"]: item["values"] for item in attributes_input}
 
         for attr in attributes_qs:
             value = attributes_input.get(attr.slug, None)
@@ -701,7 +703,7 @@ class ProductVariantCreate(ModelMutation):
             variant_attrs = product_type.variant_attributes.prefetch_related("values")
             try:
                 cls.clean_product_type_attributes(variant_attrs, attributes_input)
-                attributes = attributes_to_hstore(attributes_input, variant_attrs)
+                attributes = attributes_to_json(attributes_input, variant_attrs)
             except ValueError as e:
                 raise ValidationError({"attributes": str(e)})
             else:
