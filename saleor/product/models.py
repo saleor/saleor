@@ -525,6 +525,9 @@ class Attribute(ModelWithMetadata):
     visible_in_storefront = models.BooleanField(default=True)
     is_variant_only = models.BooleanField(default=False)
 
+    filterable_in_storefront = models.BooleanField(default=True)
+    filterable_in_dashboard = models.BooleanField(default=True)
+
     objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()
 

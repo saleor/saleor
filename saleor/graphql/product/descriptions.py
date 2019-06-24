@@ -7,6 +7,8 @@ class AttributeDescriptions:
     VISIBLE_IN_STOREFRONT = (
         "Whether the attribute should be visible or not in storefront"
     )
+    FILTERABLE_IN_STOREFRONT = "Whether the attribute can be filtered in storefront"
+    FILTERABLE_IN_DASHBOARD = "Whether the attribute can be filtered in dashboard"
 
 
 class AttributeValueDescriptions:

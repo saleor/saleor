@@ -145,13 +145,15 @@ type Attribute implements Node {
   id: ID!
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
-  visibleInStorefront: Boolean!
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   inputType: AttributeInputTypeEnum
   name: String
   slug: String
   values: [AttributeValue]
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
 }
 
@@ -203,6 +205,8 @@ input AttributeCreateInput {
   values: [AttributeValueCreateInput]
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
 }
 
 type AttributeDelete {
@@ -255,6 +259,8 @@ input AttributeUpdateInput {
   addValues: [AttributeValueCreateInput]
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
 }
 
 type AttributeUpdateMeta {
