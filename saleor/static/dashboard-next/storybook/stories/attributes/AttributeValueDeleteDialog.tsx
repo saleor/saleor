@@ -7,6 +7,7 @@ import AttributeValueDeleteDialog, {
 import Decorator from "../../Decorator";
 
 const props: AttributeValueDeleteDialogProps = {
+  attributeName: "Size",
   confirmButtonState: "default",
   name: "XS",
   onClose: () => undefined,
