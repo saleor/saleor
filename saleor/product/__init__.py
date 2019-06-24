@@ -39,3 +39,18 @@ class VariantAvailabilityStatus:
             return pgettext_lazy("Variant status", "out of stock")
         else:
             raise NotImplementedError("Unknown status: %s" % status)
+
+
+class AttributeInputType:
+    """The type that we expect to render the attribute's values as."""
+
+    DROPDOWN = "dropdown"
+    MULTISELECT = "multiselect"
+
+    CHOICES = [
+        (DROPDOWN, pgettext_lazy("Attribute input type", "Dropdown")),
+        (MULTISELECT, pgettext_lazy("Attribute input type", "Multi Select")),
+    ]
+
+    # list the input types that cannot be assigned to a variant
+    NON_ASSIGNABLE_TO_VARIANTS = [MULTISELECT]

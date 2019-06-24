@@ -1074,11 +1074,11 @@ def test_product_form_change_attributes(db, product, color_attribute):
     assert form.is_valid()
 
     product = form.save()
-    assert product.attributes[str(color_attribute.pk)] == str(color_value.pk)
+    assert product.attributes[str(color_attribute.pk)] == [str(color_value.pk)]
 
     # Check that new attribute was created for author
     author_value = AttributeValue.objects.get(name=new_author)
-    assert product.attributes[str(text_attribute.pk)] == str(author_value.pk)
+    assert product.attributes[str(text_attribute.pk)] == [str(author_value.pk)]
 
 
 def test_product_form_assign_collection_to_product(product):

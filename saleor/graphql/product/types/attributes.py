@@ -3,6 +3,7 @@ import re
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
+from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
@@ -10,7 +11,7 @@ from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeValueType
+from ..enums import AttributeInputTypeEnum, AttributeValueType
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -44,6 +45,11 @@ class AttributeValue(CountableDjangoObjectType):
         resolver=resolve_translation,
     )
 
+    input_type = gql_optimizer.field(
+        AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE),
+        model_field="attribute",
+    )
+
     class Meta:
         description = "Represents a value of an attribute."
         only_fields = ["id", "sort_order"]
@@ -54,14 +60,23 @@ class AttributeValue(CountableDjangoObjectType):
     def resolve_type(root: models.AttributeValue, *_args):
         return resolve_attribute_value_type(root.value)
 
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_input_type(root: models.AttributeValue, *_args):
+        return root.input_type
+
 
 class Attribute(CountableDjangoObjectType):
+    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
+
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
+
     values = gql_optimizer.field(
         graphene.List(AttributeValue, description=AttributeDescriptions.VALUES),
         model_field="values",
     )
+
     translation = graphene.Field(
         AttributeTranslation,
         language_code=graphene.Argument(

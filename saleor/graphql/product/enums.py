@@ -1,5 +1,10 @@
 import graphene
 
+from ...product import AttributeInputType
+from ..core.enums import to_enum
+
+AttributeInputTypeEnum = to_enum(AttributeInputType)
+
 
 class AttributeTypeEnum(graphene.Enum):
     PRODUCT = "PRODUCT"
