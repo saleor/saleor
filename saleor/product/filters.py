@@ -17,6 +17,15 @@ SORT_BY_FIELDS = OrderedDict(
 )
 
 
+class JSONBArrayFilter(MultipleChoiceFilter):
+    def get_filter_predicate(self, v):
+        operator = f"{self.field_name}__has_key"
+        try:
+            return {operator: getattr(v, self.field.to_field_name)}
+        except (AttributeError, TypeError):
+            return {operator: v}
+
+
 class ProductFilter(SortedFilterSet):
     sort_by = OrderingFilter(
         label=pgettext_lazy("Product list sorting form", "Sort by"),
@@ -62,8 +71,8 @@ class ProductFilter(SortedFilterSet):
     def _get_product_attributes_filters(self):
         filters = {}
         for attribute in self.product_attributes:
-            filters[attribute.slug] = MultipleChoiceFilter(
-                field_name="attributes__%s" % attribute.pk,
+            filters[attribute.slug] = JSONBArrayFilter(
+                field_name=f"attributes__from_key_{attribute.pk}",
                 label=attribute.translated.name,
                 widget=CheckboxSelectMultiple,
                 choices=self._get_attribute_choices(attribute),
@@ -73,8 +82,8 @@ class ProductFilter(SortedFilterSet):
     def _get_product_variants_attributes_filters(self):
         filters = {}
         for attribute in self.variant_attributes:
-            filters[attribute.slug] = MultipleChoiceFilter(
-                field_name="variants__attributes__%s" % attribute.pk,
+            filters[attribute.slug] = JSONBArrayFilter(
+                field_name=f"variants__attributes__from_key_{attribute.pk}",
                 label=attribute.translated.name,
                 widget=CheckboxSelectMultiple,
                 choices=self._get_attribute_choices(attribute),
