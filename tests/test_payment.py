@@ -13,7 +13,7 @@ from saleor.payment import (
     TransactionKind,
     get_payment_gateway,
 )
-from saleor.payment.interface import GatewayConfig, GatewayResponse
+from saleor.payment.interface import GatewayConfig, GatewayResponse, TokenConfig
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS,
@@ -218,7 +218,8 @@ def test_gateway_get_client_token(get_payment_gateway_mock, gateway_config):
     token = gateway_get_client_token("some-gateway")
 
     assert token == "client-token"
-    get_client_token_mock.assert_called_once_with(config=gateway_config)
+    get_client_token_mock.assert_called_once_with(
+        config=gateway_config, token_config=TokenConfig())
 
 
 def test_gateway_get_client_token_not_allowed_gateway(settings):
