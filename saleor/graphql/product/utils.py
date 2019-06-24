@@ -7,6 +7,11 @@ from ...product import AttributeInputType, models
 
 
 def validate_attribute_input(instance: models.Attribute, values: List[str]):
+    if not values:
+        if not instance.value_required:
+            return
+        raise ValueError(f"{instance.slug} expects a value but none were given")
+
     if instance.input_type != AttributeInputType.MULTISELECT and len(values) != 1:
         raise ValueError(f"A {instance.input_type} attribute must take only one value")
 
@@ -20,6 +25,7 @@ def attributes_to_json(attribute_value_input: List[dict], attributes_queryset):
     """
     attributes_map = {attr.slug: attr for attr in attributes_queryset}
     attributes_json = defaultdict(list)
+    passed_slugs = set()
 
     values_map = {}
     for attr in attributes_queryset:
@@ -28,16 +34,14 @@ def attributes_to_json(attribute_value_input: List[dict], attributes_queryset):
 
     for attribute_input in attribute_value_input:
         attr_slug = attribute_input.get("slug")
+        passed_slugs.add(attr_slug)
         if attr_slug not in attributes_map:
             raise ValueError(
                 "Attribute %r doesn't belong to given product type." % (attr_slug,)
             )
 
-        values = attribute_input.get("values")
-        if not values:
-            continue
-
         attribute = attributes_map[attr_slug]  # type: models.Attribute
+        values = attribute_input.get("values")
         validate_attribute_input(attribute, values)
 
         for value in values:
@@ -50,5 +54,10 @@ def attributes_to_json(attribute_value_input: List[dict], attributes_queryset):
                 value_id = obj.pk
 
             attributes_json[str(attribute.pk)].append(str(value_id))
+
+    # Check that all required attributes were passed
+    for missing_slug in attributes_map.keys() ^ passed_slugs:
+        attribute = attributes_map[missing_slug]  # type: models.Attribute
+        validate_attribute_input(attribute, [])
 
     return attributes_json

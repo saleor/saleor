@@ -166,4 +166,9 @@ class Migration(migrations.Migration):
             name="filterable_in_storefront",
             field=models.BooleanField(default=True),
         ),
+        migrations.AddField(
+            model_name="attribute",
+            name="value_required",
+            field=models.BooleanField(default=False),
+        ),
     ]
