@@ -1,11 +1,12 @@
 import { storiesOf } from "@storybook/react";
 import React from "react";
 
-import { attribute } from "@saleor/attributes/fixtures";
-import { formError } from "@saleor/storybook/misc";
 import AttributePage, {
   AttributePageProps
-} from "../../../attributes/components/AttributePage";
+} from "@saleor/attributes/components/AttributePage";
+import { attribute } from "@saleor/attributes/fixtures";
+import { formError } from "@saleor/storybook/misc";
+import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
 import Decorator from "../../Decorator";
 
 const props: AttributePageProps = {
@@ -36,5 +37,14 @@ storiesOf("Views / Attributes / Attribute details", module)
   .add("no values", () => <AttributePage {...props} values={undefined} />)
   .add("form errors", () => (
     <AttributePage {...props} errors={["name", "slug"].map(formError)} />
+  ))
+  .add("multiple select input", () => (
+    <AttributePage
+      {...props}
+      attribute={{
+        ...attribute,
+        inputType: AttributeInputTypeEnum.MULTISELECT
+      }}
+    />
   ))
   .add("create", () => <AttributePage {...props} attribute={null} />);
