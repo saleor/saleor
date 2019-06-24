@@ -43,8 +43,8 @@ def filter_products_by_attributes(qs, filter_value):
         functools.reduce(
             operator.or_,
             [
-                Q(**{"variants__attributes__%s" % (key,): v})
-                | Q(**{"attributes__%s" % (key,): v})
+                Q(**{f"variants__attributes__from_key_{key}__has_key": str(v)})
+                | Q(**{f"attributes__from_key_{key}__has_key": str(v)})
                 for v in values
             ],
         )
