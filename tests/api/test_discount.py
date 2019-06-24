@@ -3,11 +3,11 @@ from datetime import date, timedelta
 import graphene
 import pytest
 from django_countries import countries
-from tests.api.utils import get_graphql_content
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
 from saleor.graphql.discount.enums import DiscountValueTypeEnum, VoucherTypeEnum
+from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture
@@ -139,13 +139,14 @@ mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum,
     $discountValue: Decimal, $minAmountSpent: Decimal,
-    $startDate: Date, $endDate: Date) {
+    $startDate: Date, $endDate: Date, $applyOncePerOrder: Boolean) {
         voucherCreate(input: {
                 name: $name, type: $type, code: $code,
                 discountValueType: $discountValueType,
                 discountValue: $discountValue,
                 minAmountSpent: $minAmountSpent,
-                startDate: $startDate, endDate: $endDate}) {
+                startDate: $startDate, endDate: $endDate,
+                applyOncePerOrder: $applyOncePerOrder}) {
             errors {
                 field
                 message
@@ -160,6 +161,7 @@ mutation  voucherCreate(
                 discountValueType
                 startDate
                 endDate
+                applyOncePerOrder
             }
         }
     }
@@ -178,6 +180,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "minAmountSpent": 1.12,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
+        "applyOncePerOrder": True,
     }
 
     response = staff_api_client.post_graphql(
@@ -192,6 +195,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert data["discountValueType"] == DiscountValueType.FIXED.upper()
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
+    assert data["applyOncePerOrder"]
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
@@ -271,9 +275,12 @@ def test_create_voucher_with_existing_voucher_code(
 def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     query = """
     mutation  voucherUpdate($code: String,
-        $discountValueType: DiscountValueTypeEnum, $id: ID!) {
+        $discountValueType: DiscountValueTypeEnum, $id: ID!,
+        $applyOncePerOrder: Boolean) {
             voucherUpdate(id: $id, input: {
-                code: $code, discountValueType: $discountValueType}) {
+                code: $code, discountValueType: $discountValueType,
+                applyOncePerOrder: $applyOncePerOrder
+                }) {
                 errors {
                     field
                     message
@@ -281,11 +288,13 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
                 voucher {
                     code
                     discountValueType
+                    applyOncePerOrder
                 }
             }
         }
     """
     # Set discount value type to 'fixed' and change it in mutation
+    apply_once_per_order = not voucher.apply_once_per_order
     voucher.discount_value_type = DiscountValueType.FIXED
     voucher.save()
     assert voucher.code != "testcode123"
@@ -293,6 +302,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
         "code": "testcode123",
         "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
+        "applyOncePerOrder": apply_once_per_order,
     }
 
     response = staff_api_client.post_graphql(
@@ -302,6 +312,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     data = content["data"]["voucherUpdate"]["voucher"]
     assert data["code"] == "testcode123"
     assert data["discountValueType"] == DiscountValueType.PERCENTAGE.upper()
+    assert data["applyOncePerOrder"] == apply_once_per_order
 
 
 def test_voucher_delete_mutation(
