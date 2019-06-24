@@ -195,6 +195,10 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                   }
                                 />
                                 <AttributeValueDeleteDialog
+                                  attributeName={maybe(
+                                    () => data.attribute.name,
+                                    "..."
+                                  )}
                                   open={params.action === "remove-value"}
                                   name={maybe(
                                     () =>
@@ -203,6 +207,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                       ).name,
                                     "..."
                                   )}
+                                  useName={true}
                                   confirmButtonState={
                                     deleteValueTransitionState
                                   }

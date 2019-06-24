@@ -132,6 +132,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
             {values.length && (
               <>
                 <AttributeValueDeleteDialog
+                  attributeName={undefined}
                   open={params.action === "remove-value"}
                   name={maybe(() => values[id].name)}
                   confirmButtonState="default"
