@@ -314,9 +314,8 @@ def orderline_cancel(request, order_pk, line_pk):
 def add_variant_to_order(request, order_pk):
     """Add variant in given quantity to an order."""
     order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
-    taxes = None  # FIXME
     form = AddVariantToOrderForm(
-        request.POST or None, order=order, discounts=request.discounts, taxes=taxes
+        request.POST or None, order=order, discounts=request.discounts
     )
     status = 200
     if form.is_valid():

@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING, List, Union
@@ -11,6 +12,7 @@ from .. import ZERO_TAXED_MONEY, TaxType
 from ..errors import TaxError
 from . import (
     META_FIELD,
+    CustomerErrors,
     TransactionType,
     api_post_request,
     generate_request_data_from_checkout,
@@ -25,6 +27,8 @@ from . import (
 if TYPE_CHECKING:
     from ....checkout.models import Checkout
     from ....order.models import Order, OrderLine
+
+logger = logging.getLogger(__name__)
 
 
 def calculate_checkout_total(checkout: "checkout_models.Checkout", discounts):
@@ -99,31 +103,29 @@ def preprocess_order_creation(checkout: "Checkout"):
     data = generate_request_data_from_checkout(
         checkout,
         transaction_token=str(checkout.token),
-        transaction_type=TransactionType.INVOICE,
+        transaction_type=TransactionType.ORDER,
         discounts=discounts,
     )
     transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
     response = api_post_request(transaction_url, data)
-    # FIXME errors for users (?)
     if not response or "error" in response:
-        raise TaxError(response.get("error", {}).get("message", ""))
+        msg = response.get("error", {}).get("message", "")
+        error_code = response.get("error", {}).get("code", "")
+        logger.warning(
+            "Unable to calculate taxes for checkout %s, error_code: %s, error_msg: %s",
+            checkout.token,
+            error_code,
+            msg,
+        )
+        customer_msg = CustomerErrors.get_error_msg(response.get("error", {}))
+        raise TaxError(customer_msg)
 
 
 def postprocess_order_creation(order: "Order"):
-    # FIXME this should be a celery task. it should retry to send an order in case
-    # of fail
+    # FIXME after we introduce plugin architecture, this logic could be a celery task
 
-    # Fixme we can generate data directly from order
-    checkout = checkout_models.Checkout.objects.get(token=order.checkout_token)
-    discounts = Sale.objects.active(date.today()).prefetch_related(
-        "products", "categories", "collections"
-    )
-    data = generate_request_data_from_checkout(
-        checkout,
-        transaction_token=str(order.token),
-        transaction_type=TransactionType.INVOICE,
-        discounts=discounts,
-    )
+    data = get_order_tax_data(order, commit=False, force_refresh=True)
+
     transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
     api_post_request(transaction_url, data)
 
@@ -165,7 +167,7 @@ def calculate_order_line_unit(order_line: "OrderLine"):
 def calculate_order_shipping(order: "Order"):
     if not validate_order(order):
         return ZERO_TAXED_MONEY
-    taxes_data = get_order_tax_data(order, None)
+    taxes_data = get_order_tax_data(order, False)
     currency = taxes_data.get("currencyCode")
     for line in taxes_data.get("lines", []):
         if line["itemCode"] == "Shipping":

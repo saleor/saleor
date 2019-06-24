@@ -1,10 +1,79 @@
 from django.conf import settings
+from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_for_rate, get_tax_rates_for_country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ... import TaxRateType
 from .. import charge_taxes_on_shipping, include_taxes_in_prices
+
+
+class TaxRateType:
+    ACCOMMODATION = "accommodation"
+    ADMISSION_TO_CULTURAL_EVENTS = "admission to cultural events"
+    ADMISSION_TO_ENTERTAINMENT_EVENTS = "admission to entertainment events"
+    ADMISSION_TO_SPORTING_EVENTS = "admission to sporting events"
+    ADVERTISING = "advertising"
+    AGRICULTURAL_SUPPLIES = "agricultural supplies"
+    BABY_FOODSTUFFS = "baby foodstuffs"
+    BIKES = "bikes"
+    BOOKS = "books"
+    CHILDRENDS_CLOTHING = "childrens clothing"
+    DOMESTIC_FUEL = "domestic fuel"
+    DOMESTIC_SERVICES = "domestic services"
+    E_BOOKS = "e-books"
+    FOODSTUFFS = "foodstuffs"
+    HOTELS = "hotels"
+    MEDICAL = "medical"
+    NEWSPAPERS = "newspapers"
+    PASSENGER_TRANSPORT = "passenger transport"
+    PHARMACEUTICALS = "pharmaceuticals"
+    PROPERTY_RENOVATIONS = "property renovations"
+    RESTAURANTS = "restaurants"
+    SOCIAL_HOUSING = "social housing"
+    STANDARD = "standard"
+    WATER = "water"
+    WINE = "wine"
+
+    CHOICES = (
+        (ACCOMMODATION, pgettext_lazy("VAT rate type", "accommodation")),
+        (
+            ADMISSION_TO_CULTURAL_EVENTS,
+            pgettext_lazy("VAT rate type", "admission to cultural events"),
+        ),
+        (
+            ADMISSION_TO_ENTERTAINMENT_EVENTS,
+            pgettext_lazy("VAT rate type", "admission to entertainment events"),
+        ),
+        (
+            ADMISSION_TO_SPORTING_EVENTS,
+            pgettext_lazy("VAT rate type", "admission to sporting events"),
+        ),
+        (ADVERTISING, pgettext_lazy("VAT rate type", "advertising")),
+        (
+            AGRICULTURAL_SUPPLIES,
+            pgettext_lazy("VAT rate type", "agricultural supplies"),
+        ),
+        (BABY_FOODSTUFFS, pgettext_lazy("VAT rate type", "baby foodstuffs")),
+        (BIKES, pgettext_lazy("VAT rate type", "bikes")),
+        (BOOKS, pgettext_lazy("VAT rate type", "books")),
+        (CHILDRENDS_CLOTHING, pgettext_lazy("VAT rate type", "childrens clothing")),
+        (DOMESTIC_FUEL, pgettext_lazy("VAT rate type", "domestic fuel")),
+        (DOMESTIC_SERVICES, pgettext_lazy("VAT rate type", "domestic services")),
+        (E_BOOKS, pgettext_lazy("VAT rate type", "e-books")),
+        (FOODSTUFFS, pgettext_lazy("VAT rate type", "foodstuffs")),
+        (HOTELS, pgettext_lazy("VAT rate type", "hotels")),
+        (MEDICAL, pgettext_lazy("VAT rate type", "medical")),
+        (NEWSPAPERS, pgettext_lazy("VAT rate type", "newspapers")),
+        (PASSENGER_TRANSPORT, pgettext_lazy("VAT rate type", "passenger transport")),
+        (PHARMACEUTICALS, pgettext_lazy("VAT rate type", "pharmaceuticals")),
+        (PROPERTY_RENOVATIONS, pgettext_lazy("VAT rate type", "property renovations")),
+        (RESTAURANTS, pgettext_lazy("VAT rate type", "restaurants")),
+        (SOCIAL_HOUSING, pgettext_lazy("VAT rate type", "social housing")),
+        (STANDARD, pgettext_lazy("VAT rate type", "standard")),
+        (WATER, pgettext_lazy("VAT rate type", "water")),
+        (WINE, pgettext_lazy("VAT rate type", "wine")),
+    )
+
 
 DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
 

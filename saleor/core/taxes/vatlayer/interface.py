@@ -4,10 +4,10 @@ from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ....core import TaxRateType  # FIXME this should be placed in VatLayer module
 from .. import ZERO_TAXED_MONEY, TaxType
 from . import (
     DEFAULT_TAX_RATE_NAME,
+    TaxRateType,
     apply_tax_to_price,
     get_taxed_shipping_price,
     get_taxes_for_address,
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from ....checkout.models import Checkout, CheckoutLine
     from ....product.models import Product
     from ....account.models import Address
+    from ....order.models import Order, OrderLine
 
 
 META_FIELD = "vatlayer"
@@ -57,6 +58,21 @@ def calculate_checkout_shipping(checkout: "Checkout", _: "SaleQueryset") -> Taxe
     if not checkout.shipping_method:
         return ZERO_TAXED_MONEY
     return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
+
+
+def calculate_order_shipping(order: "Order") -> TaxedMoney:
+    address = order.shipping_address or order.billing_address
+    taxes = get_taxes_for_address(address)
+    if not order.shipping_method:
+        return ZERO_TAXED_MONEY
+    return get_taxed_shipping_price(order.shipping_method.price, taxes)
+
+
+def calculate_order_line_unit(order_line: "OrderLine") -> TaxedMoney:
+    address = order_line.order.shipping_address or order_line.order.billing_address
+    country = address.country if address else None
+    variant = order_line.variant
+    return apply_taxes_to_product(variant.product, order_line.unit_price_net, country)
 
 
 def calculate_checkout_line_total(
