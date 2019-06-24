@@ -314,8 +314,8 @@ def variant_details(request, product_pk, variant_pk):
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
-    discounted_price = tax_interface.apply_taxes_to_variant(
-        variant,
+    discounted_price = tax_interface.apply_taxes_to_product(
+        variant.product,
         variant.get_price(discounts=Sale.objects.active(date.today())),
         request.country,
     ).gross

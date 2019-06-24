@@ -11,7 +11,7 @@ from .vatlayer import interface as vatlayer_interface
 if TYPE_CHECKING:
     from ...discount.models import SaleQueryset
     from ...checkout.models import Checkout, CheckoutLine
-    from ...product.models import Product, ProductVariant
+    from ...product.models import Product
     from ...account.models import Address
     from ...order.models import OrderLine, Order
 
@@ -22,9 +22,9 @@ def calculate_checkout_total(
     """Calculate total gross for checkout"""
 
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.get_total_gross(checkout, discounts)
+        return vatlayer_interface.calculate_checkout_total(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.get_total_gross(checkout, discounts)
+        return avatax_interface.calculate_checkout_total(checkout, discounts)
 
     total = checkout.get_total(discounts)
     return TaxedMoney(net=total, gross=total)
@@ -36,9 +36,9 @@ def calculate_checkout_subtotal(
     """Calculate subtotal gross for checkout"""
 
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.get_subtotal_gross(checkout, discounts)
+        return vatlayer_interface.calculate_checkout_subtotal(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.get_subtotal_gross(checkout, discounts)
+        return avatax_interface.calculate_checkout_subtotal(checkout, discounts)
 
     subtotal = checkout.get_subtotal(discounts)
     return TaxedMoney(net=subtotal, gross=subtotal)
@@ -51,9 +51,9 @@ def calculate_checkout_shipping(
     if not checkout.shipping_method:
         return ZERO_TAXED_MONEY
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.get_shipping_gross(checkout, discounts)
+        return vatlayer_interface.calculate_checkout_shipping(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.get_shipping_gross(checkout, discounts)
+        return avatax_interface.calculate_checkout_shipping(checkout, discounts)
     total = checkout.shipping_method.get_total()
     return TaxedMoney(net=total, gross=total)
 
@@ -94,35 +94,28 @@ def calculate_checkout_line_total(
     checkout_line: "CheckoutLine", discounts: "SaleQueryset"
 ):
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.get_line_total_gross(checkout_line, discounts)
+        return vatlayer_interface.calculate_checkout_line_total(
+            checkout_line, discounts
+        )
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.get_line_total_gross(checkout_line, discounts)
+        return avatax_interface.calculate_checkout_line_total(checkout_line, discounts)
     total = checkout_line.get_total(discounts)
     return TaxedMoney(net=total, gross=total)
 
 
-def refresh_order_line_unit_price(order_line: "OrderLine"):
+def calculate_order_line_unit(order_line: "OrderLine"):
     """It updates unit_price for a given order line based on current price of variant"""
     if settings.VATLAYER_ACCESS_KEY:
         # FIXME Should be inside vatlayer module
         address = order_line.order.shipping_address or order_line.order.billing_address
         country = address.country if address else None
         variant = order_line.variant
-        return vatlayer_interface.apply_taxes_to_variant(
-            variant, order_line.unit_price_net, country
+        return vatlayer_interface.apply_taxes_to_product(
+            variant.product, order_line.unit_price_net, country
         )
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.refresh_order_line_unit_price(order_line)
+        return avatax_interface.calculate_order_line_unit(order_line)
     return order_line.unit_price
-
-
-def apply_taxes_to_variant(variant: "ProductVariant", price: Money, country: Country):
-    if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.apply_taxes_to_variant(variant, price, country)
-    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        # FIXME for know we don't know how to get product prices
-        return TaxedMoney(net=price, gross=price)
-    return TaxedMoney(net=price, gross=price)
 
 
 def apply_taxes_to_product(product: "Product", price: Money, country: Country):

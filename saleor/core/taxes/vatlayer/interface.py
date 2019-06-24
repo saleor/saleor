@@ -17,36 +17,40 @@ from . import (
 if TYPE_CHECKING:
     from ....discount.models import SaleQueryset
     from ....checkout.models import Checkout, CheckoutLine
-    from ....product.models import Product, ProductVariant
+    from ....product.models import Product
     from ....account.models import Address
 
 
 META_FIELD = "vatlayer"
 
 
-def get_total_gross(checkout: "Checkout", discounts: "SaleQueryset") -> TaxedMoney:
+def calculate_checkout_total(
+    checkout: "Checkout", discounts: "SaleQueryset"
+) -> TaxedMoney:
     """Calculate total gross for checkout by using vatlayer"""
     return (
-        get_subtotal_gross(checkout, discounts)
-        + get_shipping_gross(checkout, discounts)
+        calculate_checkout_subtotal(checkout, discounts)
+        + calculate_checkout_shipping(checkout, discounts)
         - checkout.discount_amount
     )
 
 
-def get_subtotal_gross(checkout: "Checkout", discounts: "SaleQueryset") -> TaxedMoney:
+def calculate_checkout_subtotal(
+    checkout: "Checkout", discounts: "SaleQueryset"
+) -> TaxedMoney:
     """Calculate subtotal gross for checkout"""
     address = checkout.shipping_address or checkout.billing_address
     lines = checkout.lines.prefetch_related("variant__product__product_type")
     lines_total = ZERO_TAXED_MONEY
     for line in lines:
         price = line.variant.get_price(discounts)
-        lines_total += line.quantity * apply_taxes_to_variant(
-            line.variant, price, address.country if address else None
+        lines_total += line.quantity * apply_taxes_to_product(
+            line.variant.product, price, address.country if address else None
         )
     return lines_total
 
 
-def get_shipping_gross(checkout: "Checkout", _: "SaleQueryset") -> TaxedMoney:
+def calculate_checkout_shipping(checkout: "Checkout", _: "SaleQueryset") -> TaxedMoney:
     """Calculate shipping gross for checkout"""
     address = checkout.shipping_address or checkout.billing_address
     taxes = get_taxes_for_address(address)
@@ -55,14 +59,16 @@ def get_shipping_gross(checkout: "Checkout", _: "SaleQueryset") -> TaxedMoney:
     return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
 
 
-def get_line_total_gross(checkout_line: "CheckoutLine", discounts: "SaleQueryset"):
+def calculate_checkout_line_total(
+    checkout_line: "CheckoutLine", discounts: "SaleQueryset"
+):
     address = (
         checkout_line.checkout.shipping_address
         or checkout_line.checkout.billing_address
     )
     price = checkout_line.variant.get_price(discounts) * checkout_line.quantity
     country = address.country if address else None
-    return apply_taxes_to_variant(checkout_line.variant, price, country)
+    return apply_taxes_to_product(checkout_line.variant.product, price, country)
 
 
 def apply_taxes_to_shipping(price: Money, shipping_address: "Address"):
@@ -77,19 +83,6 @@ def get_tax_rate_type_choices() -> List[TaxType]:
     ]
     # sort choices alphabetically by translations
     return sorted(choices, key=lambda x: x.code)
-
-
-def apply_taxes_to_variant(
-    variant: "ProductVariant", price: "Money", country: "Country"
-) -> TaxedMoney:
-    taxes = None
-    if variant.product.charge_taxes and country:
-        taxes = get_taxes_for_country(country)
-    product_tax_rate = get_tax_from_object_meta(variant.product).code
-    tax_rate = (
-        product_tax_rate or get_tax_from_object_meta(variant.product.product_type).code
-    )
-    return apply_tax_to_price(taxes, tax_rate, price)
 
 
 def apply_taxes_to_product(

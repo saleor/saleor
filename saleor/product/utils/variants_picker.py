@@ -4,7 +4,7 @@ from django_prices.templatetags import prices_i18n
 
 from ...core.taxes import display_gross_prices
 from ...core.taxes.interface import (
-    apply_taxes_to_variant,
+    apply_taxes_to_product,
     get_tax_from_object_meta,
     show_taxes_on_storefront,
 )
@@ -27,9 +27,11 @@ def get_variant_picker_data(
     filter_available_variants = defaultdict(list)
 
     for variant in variants:
-        price = apply_taxes_to_variant(variant, variant.get_price(discounts), country)
-        price_undiscounted = apply_taxes_to_variant(
-            variant, variant.get_price(), country
+        price = apply_taxes_to_product(
+            variant.product, variant.get_price(discounts), country
+        )
+        price_undiscounted = apply_taxes_to_product(
+            variant.product, variant.get_price(), country
         )
         if local_currency:
             price_local_currency = to_local_currency(price, local_currency)
