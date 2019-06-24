@@ -32,6 +32,7 @@ class AttributeCreateInput(graphene.InputObjectType):
     values = graphene.List(
         AttributeValueCreateInput, description=AttributeDescriptions.VALUES
     )
+    value_required = graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED)
     is_variant_only = graphene.Boolean(
         required=False, description=AttributeDescriptions.IS_VARIANT_ONLY
     )
@@ -59,6 +60,7 @@ class AttributeUpdateInput(graphene.InputObjectType):
         name="addValues",
         description="New values to be created for this attribute.",
     )
+    value_required = graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED)
     is_variant_only = graphene.Boolean(
         required=False, description=AttributeDescriptions.IS_VARIANT_ONLY
     )
