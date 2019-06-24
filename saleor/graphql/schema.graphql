@@ -107,6 +107,7 @@ type Attribute implements Node {
   id: ID!
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  inputType: AttributeInputTypeEnum
   name: String
   slug: String
   values: [AttributeValue]
@@ -145,6 +146,7 @@ type AttributeCreate {
 }
 
 input AttributeCreateInput {
+  inputType: AttributeInputTypeEnum
   name: String!
   slug: String
   values: [AttributeValueCreateInput]
@@ -158,6 +160,11 @@ type AttributeDelete {
 input AttributeInput {
   slug: String!
   value: String!
+}
+
+enum AttributeInputTypeEnum {
+  DROPDOWN
+  MULTISELECT
 }
 
 scalar AttributeScalar
@@ -203,6 +210,7 @@ type AttributeValue implements Node {
   type: AttributeValueType
   value: String
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
+  inputType: AttributeInputTypeEnum
 }
 
 type AttributeValueBulkDelete {
@@ -229,7 +237,7 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   slug: String!
-  value: String!
+  values: [String]!
 }
 
 type AttributeValueTranslate {

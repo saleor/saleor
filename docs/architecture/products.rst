@@ -15,7 +15,15 @@ Type of cover is the only attribute which creates separate variants in our store
 Class Diagram
 -------------
 
+.. To regenerate this class digram:
+    - brew install graphviz
+    - pip3 install --install-option="--include-path=/usr/local/include/" --install-option="--library-path=/usr/local/lib/" pygraphviz
+    - pip install django-extensions
+    - Append 'django_extensions' to `INSTALL_APPS` in your settings
+    - ./manage.py graph_models product -X '*Translation*,*Model' --pygraphviz -g -o product_class_tree.png
+
 .. image:: ../img/product_class_tree.png
+
 
 Product Variants
 ----------------
@@ -32,7 +40,7 @@ Describes common details of a few *product variants*. When the shop displays the
 
 
 Product Types
----------------
+-------------
 
 Think about types as templates for your products. Multiple *products* can use the same product type.
 
@@ -50,7 +58,7 @@ Think about types as templates for your products. Multiple *products* can use th
 
     This option mainly simplifies product management in the dashboard. There is always at least one *variant* created under the hood.
 
-- ``is_digital`` 
+- ``is_digital``
     Specify if the given product type is dedicated to digital items. ``is_shipping_required`` should be turned off along with this flag.
     Turn it on if you have digital content (ebooks, mp3s, other files) that should be send to the user after fulfillment.
 
@@ -61,7 +69,7 @@ Think about types as templates for your products. Multiple *products* can use th
 Digital Products
 ----------------
 
-A product can be digital. To do that you need to check two db models responsible for storing and serving digital content. 
+A product can be digital. To do that you need to check two db models responsible for storing and serving digital content.
 Below you can find a description for ``DigitalContent`` and ``DigitalContentUrl``.
 
 .. table:: DigitalContent
@@ -92,15 +100,15 @@ Below you can find a description for ``DigitalContent`` and ``DigitalContentUrl`
 ``DigitalContentUrl`` contains all information about a single url that was send to a customer.
 
 A product that will serve as digital content needs to be assigned to a product type marked as digital.
-The file can be uploaded by using GraphQL api, mutation - ``digitalContentCreate`` which takes a variant_id, digital settings and file as an input. 
-Each digital variant can use default or custom settings. 
+The file can be uploaded by using GraphQL api, mutation - ``digitalContentCreate`` which takes a variant_id, digital settings and file as an input.
+Each digital variant can use default or custom settings.
 To use custom settings you need to modify ``DigitalContent`` fields: ``automatic_fulfillment``, ``max_downloads``, ``url_valid_days`` and mark ``use_default_settings`` as ``false``.
 You can always come back to default settings by choosing ``true`` on ``use_default_settings``.
 
 
-During fulfilling a digital line, the new unique url pointing on content will be generated and assigned to the order line. 
+During fulfilling a digital line, the new unique url pointing on content will be generated and assigned to the order line.
 The fulfillment email will contain information with a unique direct link to the download page.
-The site settings model contains default configuration for digital products. 
+The site settings model contains default configuration for digital products.
 You can set up default values for ``automatic_fulfillment``, ``max_downloads``, and ``url_valid_days``
 
 
@@ -110,8 +118,6 @@ Attributes
 *Attributes* can help you better describe your products. Also, the can be used to filter items in category views.
 
 The attribute values display in the storefront in the order that they are listed in the list in attribute details view. You can reorder them by handling an icon on the left to the values and dragging them to another position.
-
-There are 2 types of *attributes* - choice type and text type. If you don't provide choice values, then attribute is text type.
 
 Examples
 ~~~~~~~~
