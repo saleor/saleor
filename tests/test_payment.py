@@ -219,7 +219,8 @@ def test_gateway_get_client_token(get_payment_gateway_mock, gateway_config):
 
     assert token == "client-token"
     get_client_token_mock.assert_called_once_with(
-        config=gateway_config, token_config=TokenConfig())
+        config=gateway_config, token_config=TokenConfig()
+    )
 
 
 def test_gateway_get_client_token_not_allowed_gateway(settings):

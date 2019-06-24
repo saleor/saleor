@@ -190,12 +190,12 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.email
 
     def get_private_meta(self, label):
-        if not label in self.private_meta:
+        if label not in self.private_meta:
             return None
         return self.private_meta[label]
 
     def store_private_meta(self, label, key, value):
-        if not label in self.private_meta:
+        if label not in self.private_meta:
             self.private_meta[label] = {}
         self.private_meta[label][str(key)] = str(value)
 
