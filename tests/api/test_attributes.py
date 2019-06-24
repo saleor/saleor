@@ -37,6 +37,29 @@ def test_attributes_to_json(product, color_attribute):
         attributes_to_json(input_data, attrs_qs)
 
 
+@pytest.mark.parametrize("input", ([{"slug": "color", "values": []}], []))
+def test_attributes_to_json_missing_required_value(product, color_attribute, input):
+    # A value is required
+    color_attribute.value_required = True
+    color_attribute.save(update_fields=["value_required"])
+
+    # test transforming slugs of existing attributes to IDs
+    attrs_qs = product.product_type.product_attributes.all()
+
+    with pytest.raises(ValueError) as exc:
+        attributes_to_json(input, attrs_qs)
+    assert exc.value.args == ("color expects a value but none were given",)
+
+
+def test_attributes_to_json_without_values(product, color_attribute):
+    # test transforming slugs of existing attributes to IDs
+    input_data = [{"slug": color_attribute.slug, "values": []}]
+    attrs_qs = product.product_type.product_attributes.all()
+
+    # The attribute should be ignored and raise no error as the value is not required
+    assert not attributes_to_json(input_data, attrs_qs)
+
+
 def test_attributes_to_json_duplicated_slug(product, color_attribute, size_attribute):
     # It's possible to have a value with the same slug but for a different attribute.
     # Ensure that `attributes_to_json` works in that case.
@@ -1170,6 +1193,7 @@ def test_retrieve_product_attributes_input_type(
         ("filterable_in_storefront", True),
         ("filterable_in_dashboard", True),
         ("visible_in_storefront", True),
+        ("value_required", False),
     ),
 )
 def test_retrieving_the_restricted_attributes_restricted(
