@@ -1,9 +1,13 @@
-import { AttributeValueType } from "@saleor/types/globalTypes";
+import {
+  AttributeInputTypeEnum,
+  AttributeValueType
+} from "@saleor/types/globalTypes";
 import { AttributeList_attributes_edges_node } from "./types/AttributeList";
 
 export const attribute = {
   __typename: "Attribute" as "Attribute",
   id: "UHJvZHVjdEF0dHJpYnV0ZTo5",
+  inputType: AttributeInputTypeEnum.DROPDOWN,
   name: "Author",
   slug: "author",
   values: [
