@@ -2,6 +2,7 @@ import graphene
 import pytest
 from django.db.models import Q
 from django.template.defaultfilters import slugify
+from graphene.utils.str_converters import to_camel_case
 
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
@@ -1161,3 +1162,42 @@ def test_retrieve_product_attributes_input_type(
     for gql_attr in found_products[0]["node"]["attributes"]:
         assert gql_attr["value"]["type"] == "STRING"
         assert gql_attr["value"]["inputType"] == "DROPDOWN"
+
+
+@pytest.mark.parametrize(
+    "attribute, expected_value",
+    (
+        ("filterable_in_storefront", True),
+        ("filterable_in_dashboard", True),
+        ("visible_in_storefront", True),
+    ),
+)
+def test_retrieving_the_restricted_attributes_restricted(
+    staff_api_client,
+    color_attribute,
+    permission_manage_products,
+    attribute,
+    expected_value,
+):
+    attribute = to_camel_case(attribute)
+    query = (
+        """
+        {
+          attributes(first: 10) {
+            edges {
+              node {
+                %s
+              }
+            }
+          }
+        }
+    """
+        % attribute
+    )
+
+    found_attributes = get_graphql_content(
+        staff_api_client.post_graphql(query, permissions=[permission_manage_products])
+    )["data"]["attributes"]["edges"]
+
+    assert len(found_attributes) == 1
+    assert found_attributes[0]["node"][attribute] == expected_value
