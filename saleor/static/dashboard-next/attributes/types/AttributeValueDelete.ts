@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { AttributeValueType } from "./../../types/globalTypes";
+import { AttributeInputTypeEnum, AttributeValueType } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: AttributeValueDelete
@@ -29,6 +29,7 @@ export interface AttributeValueDelete_attributeValueDelete_attribute {
   id: string;
   name: string | null;
   slug: string | null;
+  inputType: AttributeInputTypeEnum | null;
   values: (AttributeValueDelete_attributeValueDelete_attribute_values | null)[] | null;
 }
 
