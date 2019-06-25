@@ -604,6 +604,14 @@ PAYMENT_GATEWAYS = {
             "template_path": "order/payment.html",
         },
     },
+    RAVEPAY: {
+        "module": "saleor.payment.gateways.ravepay",
+        "config": {
+            "auto_capture": True,
+            "connection_params": {},
+            "template_path": "order/payment.html",
+        },
+    },
     BRAINTREE: {
         "module": "saleor.payment.gateways.braintree",
         "config": {
