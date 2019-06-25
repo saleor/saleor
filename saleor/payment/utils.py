@@ -500,3 +500,25 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
 
     _gateway_postprocess(transaction, payment)
     return transaction
+
+
+GATEWAYS_LABEL = "gateways"
+
+
+def extract_id_for_payment_gateway(user, gateway):
+    gateway_meta = user.get_private_meta(label=GATEWAYS_LABEL)
+    if not gateway_meta:
+        return None
+    if gateway not in gateway_meta:
+        return None
+    gateway_config = gateway_meta[gateway]
+    if "customer_id" not in gateway_config:
+        return None
+    return gateway_config["customer_id"]
+
+
+def store_id_for_payment_gateway(user, gateway, customer_id):
+    user.store_private_meta(
+        label=GATEWAYS_LABEL, key=gateway, value={"customer_id": customer_id}
+    )
+    user.save()

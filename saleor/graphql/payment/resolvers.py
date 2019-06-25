@@ -2,8 +2,8 @@ import graphene_django_optimizer as gql_optimizer
 
 from ...payment import models
 from ...payment.interface import TokenConfig
-from ...payment.utils import gateway_get_client_token
-from ..utils import extract_id_for_payment_gateway, filter_by_query_param
+from ...payment.utils import gateway_get_client_token, extract_id_for_payment_gateway
+from ..utils import filter_by_query_param
 
 PAYMENT_SEARCH_FIELDS = ["id"]
 
