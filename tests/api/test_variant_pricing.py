@@ -99,7 +99,7 @@ def test_get_variant_pricing_not_on_sale(api_client, product):
     assert pricing["price"]["net"]["amount"] == product.price.amount
 
 
-def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, taxes):
+def test_variant_pricing(variant: ProductVariant, monkeypatch, settings):
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     monkeypatch.setattr(
         "saleor.product.utils.availability.apply_taxes_to_product",
