@@ -23,7 +23,7 @@ class VoucherType:
     ENTIRE_ORDER = "entire_order"
 
     CHOICES = [
-        (ENTIRE_ORDER, pgettext_lazy("Voucher: discount for", "All products")),
+        (ENTIRE_ORDER, pgettext_lazy("Voucher: discount for", "Entire order")),
         (PRODUCT, pgettext_lazy("Voucher: discount for", "Specific products")),
         (
             COLLECTION,
