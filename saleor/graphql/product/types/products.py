@@ -1,3 +1,5 @@
+from typing import Dict
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Prefetch
@@ -79,7 +81,7 @@ def resolve_attribute_list(attributes_json, attributes_qs):
     `attributes_qs` is the queryset of attribute objects. If it's prefetch
     beforehand along with the values, it saves database queries.
     """
-    attributes_map = {}
+    attributes_map = {}  # type: Dict[int, models.Attribute]
     values_map = {}
     for attr in attributes_qs:
         attributes_map[attr.pk] = attr
@@ -274,9 +276,11 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     @gql_optimizer.resolver_hints(
         prefetch_related="product__product_type__variant_attributes__values"
     )
-    def resolve_attributes(root: models.ProductVariant, *_args):
-        attributes_qs = root.product.product_type.variant_attributes.all()
-        return resolve_attribute_list(root.attributes, attributes_qs)
+    def resolve_attributes(root: models.ProductVariant, info):
+        attr_qs = root.product.product_type.variant_attributes.get_visible_to_user(
+            info.context.user
+        )
+        return resolve_attribute_list(root.attributes, attr_qs)
 
     @staticmethod
     @permission_required("product.manage_products")
@@ -556,8 +560,10 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @gql_optimizer.resolver_hints(
         prefetch_related="product_type__product_attributes__values"
     )
-    def resolve_attributes(root: models.Product, *_args):
-        attributes_qs = root.product_type.product_attributes.all()
+    def resolve_attributes(root: models.Product, info):
+        attributes_qs = root.product_type.product_attributes.get_visible_to_user(
+            info.context.user
+        )
         return resolve_attribute_list(root.attributes, attributes_qs)
 
     @staticmethod

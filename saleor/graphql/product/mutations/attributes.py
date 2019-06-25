@@ -35,6 +35,9 @@ class AttributeCreateInput(graphene.InputObjectType):
     is_variant_only = graphene.Boolean(
         required=False, description=AttributeDescriptions.IS_VARIANT_ONLY
     )
+    visible_in_storefront = graphene.Boolean(
+        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
+    )
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
@@ -52,6 +55,9 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
     is_variant_only = graphene.Boolean(
         required=False, description=AttributeDescriptions.IS_VARIANT_ONLY
+    )
+    visible_in_storefront = graphene.Boolean(
+        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
 
 
