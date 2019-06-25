@@ -10,6 +10,9 @@ class AttributeDescriptions:
     )
     FILTERABLE_IN_STOREFRONT = "Whether the attribute can be filtered in storefront"
     FILTERABLE_IN_DASHBOARD = "Whether the attribute can be filtered in dashboard"
+    STOREFRONT_SEARCH_POSITION = (
+        "The position of the attribute in the storefront navigation (0 by default)"
+    )
 
 
 class AttributeValueDescriptions:

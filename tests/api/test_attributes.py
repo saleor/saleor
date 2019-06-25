@@ -1194,6 +1194,7 @@ def test_retrieve_product_attributes_input_type(
         ("filterable_in_dashboard", True),
         ("visible_in_storefront", True),
         ("value_required", False),
+        ("storefront_search_position", 0),
     ),
 )
 def test_retrieving_the_restricted_attributes_restricted(
