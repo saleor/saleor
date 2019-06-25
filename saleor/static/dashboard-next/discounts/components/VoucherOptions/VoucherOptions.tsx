@@ -8,6 +8,7 @@ import {
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
+import * as moment from "moment-timezone";
 import * as React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
@@ -54,124 +55,126 @@ const VoucherOptions = withStyles(styles, {
     disabled,
     errors,
     onChange
-  }: VoucherOptionsProps & WithStyles<typeof styles>) => (
-    <Card>
-      <CardTitle title={i18n.t("Detailed Information")} />
-      <CardContent className={classes.root}>
-        <TextFieldWithChoice
-          disabled={disabled}
-          error={!!errors.discountValue}
-          ChoiceProps={{
-            label:
-              data.discountType === VoucherDiscountValueType.FIXED
-                ? defaultCurrency
-                : "%",
-            name: "discountType" as keyof FormData,
-            values: [
-              {
-                label: defaultCurrency,
-                value: VoucherDiscountValueType.FIXED
-              },
-              {
-                label: "%",
-                value: VoucherDiscountValueType.PERCENTAGE
-              }
-            ]
-          }}
-          helperText={errors.discountValue}
-          name={"value" as keyof FormData}
-          onChange={onChange}
-          label={i18n.t("Discount Value")}
-          value={data.value}
-          type="number"
-          fullWidth
-          inputProps={{
-            min: 0
-          }}
-        />
-        <TextField
-          disabled={disabled}
-          error={!!errors.usageLimit}
-          helperText={errors.usageLimit || i18n.t("Optional")}
-          name={"usageLimit" as keyof FormData}
-          value={data.usageLimit}
-          onChange={onChange}
-          label={i18n.t("Usage Limit")}
-          type="number"
-          inputProps={{
-            min: 0
-          }}
-          fullWidth
-        />
-      </CardContent>
-      <Hr />
-      <CardContent>
-        <Typography variant="subtitle1">
-          {i18n.t("Discount Specific Information")}
-        </Typography>
-        <FormSpacer />
-        <div className={classes.root}>
-          <TextField
+  }: VoucherOptionsProps & WithStyles<typeof styles>) => {
+    return (
+      <Card>
+        <CardTitle title={i18n.t("Detailed Information")} />
+        <CardContent className={classes.root}>
+          <TextFieldWithChoice
             disabled={disabled}
-            error={!!errors.minAmountSpent}
-            helperText={errors.minAmountSpent || i18n.t("Optional")}
-            name={"minAmountSpent" as keyof FormData}
-            value={data.minAmountSpent}
+            error={!!errors.discountValue}
+            ChoiceProps={{
+              label:
+                data.discountType === VoucherDiscountValueType.FIXED
+                  ? defaultCurrency
+                  : "%",
+              name: "discountType" as keyof FormData,
+              values: [
+                {
+                  label: defaultCurrency,
+                  value: VoucherDiscountValueType.FIXED
+                },
+                {
+                  label: "%",
+                  value: VoucherDiscountValueType.PERCENTAGE
+                }
+              ]
+            }}
+            helperText={errors.discountValue}
+            name={"value" as keyof FormData}
             onChange={onChange}
-            label={i18n.t("Minimum order value")}
+            label={i18n.t("Discount Value")}
+            value={data.value}
+            type="number"
             fullWidth
-          />
-        </div>
-        <FormSpacer />
-        <ControlledSwitch
-          checked={data.applyOncePerOrder}
-          label={
-            <>
-              {i18n.t("Only once per order", {
-                context: "voucher application"
-              })}
-              <Typography variant="caption">
-                {i18n.t(
-                  "If this option is disabled, discount will be counted for every eligible product"
-                )}
-              </Typography>
-            </>
-          }
-          onChange={onChange}
-          name={"applyOncePerOrder" as keyof FormData}
-          disabled={disabled}
-        />
-      </CardContent>
-      <Hr />
-      <CardContent>
-        <Typography variant="subtitle1">{i18n.t("Time Frame")}</Typography>
-        <FormSpacer />
-        <div className={classes.root}>
-          <TextField
-            disabled={disabled}
-            error={!!errors.startDate}
-            helperText={errors.startDate}
-            name={"startDate" as keyof FormData}
-            onChange={onChange}
-            label={i18n.t("Start Date")}
-            value={data.startDate}
-            type="date"
-            fullWidth
+            inputProps={{
+              min: 0
+            }}
           />
           <TextField
             disabled={disabled}
-            error={!!errors.endDate}
-            helperText={errors.endDate}
-            name={"endDate" as keyof FormData}
+            error={!!errors.usageLimit}
+            helperText={errors.usageLimit || i18n.t("Optional")}
+            name={"usageLimit" as keyof FormData}
+            value={data.usageLimit}
             onChange={onChange}
-            label={i18n.t("End Date")}
-            value={data.endDate}
-            type="date"
+            label={i18n.t("Usage Limit")}
+            type="number"
+            inputProps={{
+              min: 0
+            }}
             fullWidth
           />
-        </div>
-      </CardContent>
-    </Card>
-  )
+        </CardContent>
+        <Hr />
+        <CardContent>
+          <Typography variant="subtitle1">
+            {i18n.t("Discount Specific Information")}
+          </Typography>
+          <FormSpacer />
+          <div className={classes.root}>
+            <TextField
+              disabled={disabled}
+              error={!!errors.minAmountSpent}
+              helperText={errors.minAmountSpent || i18n.t("Optional")}
+              name={"minAmountSpent" as keyof FormData}
+              value={data.minAmountSpent}
+              onChange={onChange}
+              label={i18n.t("Minimum order value")}
+              fullWidth
+            />
+          </div>
+          <FormSpacer />
+          <ControlledSwitch
+            checked={data.applyOncePerOrder}
+            label={
+              <>
+                {i18n.t("Only once per order", {
+                  context: "voucher application"
+                })}
+                <Typography variant="caption">
+                  {i18n.t(
+                    "If this option is disabled, discount will be counted for every eligible product"
+                  )}
+                </Typography>
+              </>
+            }
+            onChange={onChange}
+            name={"applyOncePerOrder" as keyof FormData}
+            disabled={disabled}
+          />
+        </CardContent>
+        <Hr />
+        <CardContent>
+          <Typography variant="subtitle1">{i18n.t("Time Frame")}</Typography>
+          <FormSpacer />
+          <div className={classes.root}>
+            <TextField
+              disabled={disabled}
+              error={!!errors.startDate}
+              helperText={errors.startDate}
+              name={"startDate" as keyof FormData}
+              onChange={onChange}
+              label={i18n.t("Start Date")}
+              value={moment(data.startDate).format("YYYY-MM-DD")}
+              type="date"
+              fullWidth
+            />
+            <TextField
+              disabled={disabled}
+              error={!!errors.endDate}
+              helperText={errors.endDate}
+              name={"endDate" as keyof FormData}
+              onChange={onChange}
+              label={i18n.t("End Date")}
+              value={moment(data.endDate).format("YYYY-MM-DD")}
+              type="date"
+              fullWidth
+            />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 );
 export default VoucherOptions;
