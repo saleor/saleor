@@ -990,7 +990,7 @@ def validate_gift_cards(checkout: Checkout):
         raise NotApplicable(msg)
 
 
-def create_line_for_order(checkout_line: CheckoutLine, discounts) -> OrderLine:
+def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine:
     """
     :raises InsufficientStock: when there is not enough items in stock for this variant
     """
@@ -1048,7 +1048,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
 
     order_data["lines"] = [
         create_line_for_order(checkout_line=line, discounts=discounts)
-        for line in checkout  # type: CheckoutLine
+        for line in checkout
     ]
 
     # validate checkout gift cards

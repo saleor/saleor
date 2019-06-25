@@ -1,6 +1,7 @@
 import csv
+import datetime
 import gzip
-from datetime import date
+from typing import Iterable
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -9,7 +10,8 @@ from django.core.files.storage import default_storage
 from django.utils.encoding import smart_text
 
 from ..core.taxes import ZERO_MONEY
-from ..discount.models import Sale
+from ..discount import DiscountInfo
+from ..discount.utils import fetch_discounts
 from ..product.models import Attribute, AttributeValue, Category, ProductVariant
 
 CATEGORY_SEPARATOR = " > "
@@ -56,31 +58,31 @@ def get_feed_items():
     return items
 
 
-def item_id(item):
+def item_id(item: ProductVariant):
     return item.sku
 
 
-def item_mpn(item):
+def item_mpn(item: ProductVariant):
     return str(item.sku)
 
 
-def item_guid(item):
+def item_guid(item: ProductVariant):
     return item.sku
 
 
-def item_link(item, current_site):
+def item_link(item: ProductVariant, current_site):
     return add_domain(current_site.domain, item.get_absolute_url(), not settings.DEBUG)
 
 
-def item_title(item):
+def item_title(item: ProductVariant):
     return item.display_product()
 
 
-def item_description(item):
+def item_description(item: ProductVariant):
     return item.product.description[:100]
 
 
-def item_condition(item):
+def item_condition(item: ProductVariant):
     """Return a valid item condition.
 
     Allowed values: new, refurbished, and used.
@@ -90,7 +92,7 @@ def item_condition(item):
     return "new"
 
 
-def item_brand(item, attributes_dict, attribute_values_dict):
+def item_brand(item: ProductVariant, attributes_dict, attribute_values_dict):
     """Return an item brand.
 
     This field is required.
@@ -118,7 +120,7 @@ def item_brand(item, attributes_dict, attribute_values_dict):
     return brand
 
 
-def item_tax(item, discounts):
+def item_tax(item: ProductVariant, discounts: Iterable[DiscountInfo]):
     """Return item tax.
 
     For some countries you need to set tax info
@@ -129,11 +131,11 @@ def item_tax(item, discounts):
     return "US::%s:y" % ZERO_MONEY
 
 
-def item_group_id(item):
+def item_group_id(item: ProductVariant):
     return str(item.product.pk)
 
 
-def item_image_link(item, current_site):
+def item_image_link(item: ProductVariant, current_site):
     product_image = item.get_first_image()
     if product_image:
         image = product_image.image
@@ -141,13 +143,13 @@ def item_image_link(item, current_site):
     return None
 
 
-def item_availability(item):
+def item_availability(item: ProductVariant):
     if item.quantity_available:
         return "in stock"
     return "out of stock"
 
 
-def item_google_product_category(item, category_paths):
+def item_google_product_category(item: ProductVariant, category_paths):
     """Return a canonical product category.
 
     To have your categories accepted, please use names accepted by Google or
@@ -164,22 +166,22 @@ def item_google_product_category(item, category_paths):
     return category_path
 
 
-def item_price(item):
+def item_price(item: ProductVariant):
     price = item.get_price(discounts=None)
     return "%s %s" % (price.amount, price.currency)
 
 
-def item_sale_price(item, discounts):
+def item_sale_price(item: ProductVariant, discounts: Iterable[DiscountInfo]):
     sale_price = item.get_price(discounts=discounts)
     return "%s %s" % (sale_price.amount, sale_price.currency)
 
 
 def item_attributes(
-    item,
+    item: ProductVariant,
     categories,
     category_paths,
     current_site,
-    discounts,
+    discounts: Iterable[DiscountInfo],
     attributes_dict,
     attribute_values_dict,
 ):
@@ -221,9 +223,7 @@ def write_feed(file_obj):
     writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
     writer.writeheader()
     categories = Category.objects.all()
-    discounts = Sale.objects.active(date.today()).prefetch_related(
-        "products", "categories"
-    )
+    discounts = fetch_discounts(datetime.date.today())
     attributes_dict = {a.slug: a.pk for a in Attribute.objects.all()}
     attribute_values_dict = {
         smart_text(a.pk): smart_text(a) for a in AttributeValue.objects.all()

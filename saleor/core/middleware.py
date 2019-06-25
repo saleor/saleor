@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import date
 from functools import wraps
 from typing import Callable
 
@@ -21,7 +21,7 @@ from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
-from ..discount.models import Sale
+from ..discount.utils import fetch_discounts
 from . import analytics
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 
@@ -105,8 +105,8 @@ def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
 
     def middleware(request):
-        request.discounts = Sale.objects.active(date.today()).prefetch_related(
-            "products", "categories", "collections"
+        request.discounts = SimpleLazyObject(
+            lambda: fetch_discounts(datetime.date.today())
         )
         return get_response(request)
 

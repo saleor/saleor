@@ -1,6 +1,6 @@
 from collections import namedtuple
 from decimal import Decimal
-from typing import Union
+from typing import Iterable, Union
 
 from prices import TaxedMoneyRange
 
@@ -9,6 +9,7 @@ from saleor.product.models import Product, ProductVariant
 
 from ...core.taxes.interface import apply_taxes_to_product
 from ...core.utils import to_local_currency
+from ...discount import DiscountInfo
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 ProductAvailability = namedtuple(
@@ -93,7 +94,7 @@ def _get_total_discount(
 def _get_product_price_range(
     discounted: Union[MoneyRange, TaxedMoneyRange],
     undiscounted: Union[MoneyRange, TaxedMoneyRange],
-    local_currency=None,
+    local_currency: str = None,
 ):
     price_range_local = None
     discount_local_currency = None
@@ -108,7 +109,10 @@ def _get_product_price_range(
 
 
 def get_product_availability(
-    product: Product, discounts=None, country=None, local_currency=None
+    product: Product,
+    discounts: Iterable[DiscountInfo] = None,
+    country=None,
+    local_currency=None,
 ) -> ProductAvailability:
 
     discounted_net_range = product.get_price_range(discounts=discounts)
@@ -141,7 +145,10 @@ def get_product_availability(
 
 
 def get_variant_availability(
-    variant: ProductVariant, discounts=None, country=None, local_currency=None
+    variant: ProductVariant,
+    discounts: Iterable[DiscountInfo] = None,
+    country=None,
+    local_currency=None,
 ) -> VariantAvailability:
 
     discounted = apply_taxes_to_product(

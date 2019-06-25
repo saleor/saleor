@@ -1,16 +1,22 @@
 from collections import defaultdict
+from typing import Iterable
 
 from django_prices.templatetags import prices_i18n
 
 from ...core.taxes import display_gross_prices
 from ...core.taxes.interface import apply_taxes_to_product, show_taxes_on_storefront
 from ...core.utils import to_local_currency
+from ...discount import DiscountInfo
 from ...seo.schema.product import variant_json_ld
 from .availability import get_product_availability
 
 
 def get_variant_picker_data(
-    product, discounts=None, taxes=None, local_currency=None, country=None
+    product,
+    discounts: Iterable[DiscountInfo] = None,
+    taxes=None,
+    local_currency=None,
+    country=None,
 ):
     availability = get_product_availability(product, discounts, country, local_currency)
     variants = product.variants.all()

@@ -15,7 +15,6 @@ from . import (
 )
 
 if TYPE_CHECKING:
-    from ....discount.models import SaleQueryset
     from ....checkout.models import Checkout, CheckoutLine
     from ....product.models import Product
     from ....account.models import Address
@@ -26,7 +25,7 @@ META_FIELD = "vatlayer"
 
 
 def calculate_checkout_total(
-    checkout: "Checkout", discounts: "SaleQueryset"
+    checkout: "Checkout", discounts: List["DiscountInfo"]
 ) -> TaxedMoney:
     """Calculate total gross for checkout by using vatlayer"""
     return (
@@ -37,7 +36,7 @@ def calculate_checkout_total(
 
 
 def calculate_checkout_subtotal(
-    checkout: "Checkout", discounts: "SaleQueryset"
+    checkout: "Checkout", discounts: List["DiscountInfo"]
 ) -> TaxedMoney:
     """Calculate subtotal gross for checkout"""
     address = checkout.shipping_address or checkout.billing_address
@@ -51,7 +50,9 @@ def calculate_checkout_subtotal(
     return lines_total
 
 
-def calculate_checkout_shipping(checkout: "Checkout", _: "SaleQueryset") -> TaxedMoney:
+def calculate_checkout_shipping(
+    checkout: "Checkout", _: List["DiscountInfo"]
+) -> TaxedMoney:
     """Calculate shipping gross for checkout"""
     address = checkout.shipping_address or checkout.billing_address
     taxes = get_taxes_for_address(address)
@@ -76,7 +77,7 @@ def calculate_order_line_unit(order_line: "OrderLine") -> TaxedMoney:
 
 
 def calculate_checkout_line_total(
-    checkout_line: "CheckoutLine", discounts: "SaleQueryset"
+    checkout_line: "CheckoutLine", discounts: List["DiscountInfo"]
 ):
     address = (
         checkout_line.checkout.shipping_address
