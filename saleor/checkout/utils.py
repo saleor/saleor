@@ -740,7 +740,7 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None, taxes=N
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    if voucher.type == VoucherType.VALUE:
+    if voucher.type == VoucherType.ENTIRE_ORDER:
         return get_value_voucher_discount(
             voucher, checkout.get_subtotal(discounts, taxes)
         )

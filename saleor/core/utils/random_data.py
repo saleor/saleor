@@ -792,7 +792,7 @@ def create_vouchers():
     voucher, created = Voucher.objects.get_or_create(
         code="DISCOUNT",
         defaults={
-            "type": VoucherType.VALUE,
+            "type": VoucherType.ENTIRE_ORDER,
             "name": "Big order discount",
             "discount_value_type": DiscountValueType.FIXED,
             "discount_value": 25,
