@@ -1,3 +1,4 @@
+import uuid
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
@@ -90,6 +91,16 @@ def checkout_with_item(checkout, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 3)
     checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_items(checkout, product_list, product):
+    variant = product.variants.get()
+    add_variant_to_checkout(checkout, variant, 1)
+    for prod in product_list:
+        variant = prod.variants.get()
+        add_variant_to_checkout(checkout, variant, 1)
     return checkout
 
 
@@ -505,6 +516,28 @@ def product_list(product_type, category):
                 product_type=product_type,
                 attributes=attributes,
                 is_published=True,
+            ),
+        ]
+    )
+    ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(
+                product=products[0],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+                quantity=100,
+            ),
+            ProductVariant(
+                product=products[1],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+                quantity=100,
+            ),
+            ProductVariant(
+                product=products[2],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+                quantity=100,
             ),
         ]
     )
