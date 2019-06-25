@@ -2,6 +2,8 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
+import { AttributeInputTypeEnum } from "./../../types/globalTypes";
+
 // ====================================================
 // GraphQL mutation operation: ProductImageCreate
 // ====================================================
@@ -56,6 +58,7 @@ export interface ProductImageCreate_productImageCreate_product_purchaseCost {
 
 export interface ProductImageCreate_productImageCreate_product_attributes_attribute_values {
   __typename: "AttributeValue";
+  id: string;
   name: string | null;
   slug: string | null;
 }
@@ -65,6 +68,7 @@ export interface ProductImageCreate_productImageCreate_product_attributes_attrib
   id: string;
   slug: string | null;
   name: string | null;
+  inputType: AttributeInputTypeEnum | null;
   values: (ProductImageCreate_productImageCreate_product_attributes_attribute_values | null)[] | null;
 }
 
