@@ -22,11 +22,13 @@ install:
   - pip install tox-travis pytest-django-queries
   - git clone https://github.com/NyanKiyoshi/pytest-django-queries-ci-tools.git --depth 1 ../queries-ci-tools
   - >
-    if [ -n "$DJANGO" ]; then
+    if [[ -n "$DJANGO" && "$SKIP_NPM" != yes ]]; then
       nvm install 10 \
         && npm i \
         && npm run build-assets --production \
         && npm run build-emails
+    else
+      curl https://github.com/NyanKiyoshi/saleor/releases/download/assets/assets.tar -L | tar -xv
     fi
 
 script:
@@ -43,8 +45,11 @@ env:
     - DIFF_RESULTS_BASE_URL="http://dhrwmpu5reeyd.cloudfront.net"
     - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:
-  - DJANGO="2.2"
-  - DJANGO="master"
+    - DJANGO="2.2"
+      SKIP_NPM=yes
+    - DJANGO="2.2"
+      SKIP_NPM=no
+    - DJANGO="master"
 
 matrix:
   fast_finish: true
