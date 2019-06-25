@@ -111,6 +111,11 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
         resolver=resolve_translation,
     )
 
+    storefront_search_position = gql_optimizer.field(
+        graphene.Int(description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION),
+        model_field="storefront_search_position",
+    )
+
     class Meta:
         description = """
             Custom attribute of a product. Attributes can be
@@ -151,6 +156,11 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
     @permission_required("product.manage_products")
     def resolve_filterable_in_dashboard(root: models.Attribute, *_args):
         return root.filterable_in_dashboard
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_storefront_search_position(root: models.Attribute, *_args):
+        return root.storefront_search_position
 
 
 class SelectedAttribute(graphene.ObjectType):

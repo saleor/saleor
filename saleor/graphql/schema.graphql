@@ -156,6 +156,7 @@ type Attribute implements Node {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
+  storefrontSearchPosition: Int
 }
 
 type AttributeAssign {
@@ -209,6 +210,7 @@ input AttributeCreateInput {
   visibleInStorefront: Boolean
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
+  storefrontSearchPosition: Int
 }
 
 type AttributeDelete {
@@ -264,6 +266,7 @@ input AttributeUpdateInput {
   visibleInStorefront: Boolean
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
+  storefrontSearchPosition: Int
 }
 
 type AttributeUpdateMeta {
