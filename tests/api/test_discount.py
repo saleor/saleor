@@ -293,8 +293,8 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
             }
         }
     """
-    # Set discount value type to 'fixed' and change it in mutation
     apply_once_per_order = not voucher.apply_once_per_order
+    # Set discount value type to 'fixed' and change it in mutation
     voucher.discount_value_type = DiscountValueType.FIXED
     voucher.save()
     assert voucher.code != "testcode123"
