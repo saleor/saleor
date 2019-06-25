@@ -101,6 +101,7 @@ def test_attributes_query(user_api_client, product):
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     attributes_data = content["data"]["attributes"]["edges"]
+    assert attributes_data
     assert len(attributes_data) == attributes.count()
 
 
@@ -114,7 +115,7 @@ def test_attributes_query_hidden_attribute(user_api_client, product, color_attri
     attribute_count = Attribute.objects.get_visible_to_user(
         user_api_client.user
     ).count()
-    assert attribute_count == Attribute.objects.all().count() - 1
+    assert attribute_count == 1
 
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
@@ -135,10 +136,7 @@ def test_attributes_query_hidden_attribute_as_staff_user(
 
     # The user doesn't have the permission yet to manage products,
     # the user shouldn't be able to see the hidden attributes
-    assert (
-        Attribute.objects.get_visible_to_user(staff_api_client.user).count()
-        == attribute_count - 1
-    )
+    assert Attribute.objects.get_visible_to_user(staff_api_client.user).count() == 1
 
     # The user should now be able to see the attributes
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -974,10 +972,7 @@ def test_assign_variant_attribute_having_unsupported_input_type(
 
     query = ASSIGN_ATTR_QUERY
     operations = [
-        {
-            "attributeType": "VARIANT",
-            "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
-        }
+        {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attribute.pk)}
     ]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 

@@ -515,8 +515,8 @@ class Attribute(models.Model):
         through=AttributeVariant,
         through_fields=["attribute", "product_type"],
     )
-    visible_in_storefront = models.BooleanField(default=True)
 
+    visible_in_storefront = models.BooleanField(default=True)
     is_variant_only = models.BooleanField(default=False)
 
     objects = AttributeQuerySet.as_manager()
