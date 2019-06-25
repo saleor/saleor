@@ -12,7 +12,7 @@ from saleor.graphql.payment.enums import (
     PaymentChargeStatusEnum,
     PaymentGatewayEnum,
 )
-from saleor.graphql.utils import (
+from saleor.payment.utils import (
     extract_id_for_payment_gateway,
     store_id_for_payment_gateway,
 )
