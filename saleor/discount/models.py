@@ -44,7 +44,7 @@ class VoucherQueryset(models.QuerySet):
 
 class Voucher(models.Model):
     type = models.CharField(
-        max_length=20, choices=VoucherType.CHOICES, default=VoucherType.VALUE
+        max_length=20, choices=VoucherType.CHOICES, default=VoucherType.ENTIRE_ORDER
     )
     name = models.CharField(max_length=255, null=True, blank=True)
     code = models.CharField(max_length=12, unique=True, db_index=True)
