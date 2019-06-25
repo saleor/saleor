@@ -484,6 +484,18 @@ class AttributeQuerySet(models.QuerySet):
             | Q(attributevariant__product_type_id=product_type_pk)
         )
 
+    @staticmethod
+    def user_has_access_to_all(user):
+        return user.is_active and user.has_perm("product.manage_products")
+
+    def get_public_attributes(self):
+        return self.filter(visible_in_storefront=True)
+
+    def get_visible_to_user(self, user):
+        if self.user_has_access_to_all(user):
+            return self.all()
+        return self.get_public_attributes()
+
 
 class Attribute(ModelWithMetadata):
     slug = models.SlugField(max_length=50, unique=True)
@@ -510,6 +522,7 @@ class Attribute(ModelWithMetadata):
         through_fields=["attribute", "product_type"],
     )
 
+    visible_in_storefront = models.BooleanField(default=True)
     is_variant_only = models.BooleanField(default=False)
 
     objects = AttributeQuerySet.as_manager()
