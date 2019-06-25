@@ -512,3 +512,8 @@ def test_braintree_payment_form(payment_dummy):
 
     assert isinstance(form, BraintreePaymentForm)
     assert form.is_valid()
+
+
+@pytest.mark.vcr()
+def test_store_card_on_success():
+    pass

@@ -1,4 +1,5 @@
 import graphene
+
 from django.db.models import Q
 from django.utils import timezone
 from graphene_django.registry import get_global_registry
@@ -150,8 +151,11 @@ def format_permissions_for_display(permissions):
     return formatted_permissions
 
 
+GATEWAYS_LABEL = "gateways"
+
+
 def extract_id_for_payment_gateway(user, gateway):
-    gateway_meta = user.get_private_meta(label="gateways")
+    gateway_meta = user.get_private_meta(label=GATEWAYS_LABEL)
     if not gateway_meta:
         return None
     if gateway not in gateway_meta:
@@ -163,5 +167,6 @@ def extract_id_for_payment_gateway(user, gateway):
 
 
 def store_id_for_payment_gateway(user, gateway, customer_id):
-    user.store_private_meta(user, label=gateway, key="customer_id", value=customer_id)
+    user.store_private_meta(label=GATEWAYS_LABEL, key=gateway,
+                            value={"customer_id": customer_id})
     user.save()
