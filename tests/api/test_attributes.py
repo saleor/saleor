@@ -5,6 +5,7 @@ from django.template.defaultfilters import slugify
 
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
+from saleor.graphql.product.types.products import resolve_attribute_list
 from saleor.graphql.product.utils import attributes_to_json
 from saleor.product import AttributeInputType
 from saleor.product.models import Attribute, AttributeValue, Category, ProductType
@@ -74,9 +75,7 @@ def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_val
     assert content["data"]["attribute"]["slug"] == color_attribute_without_values.slug
 
 
-def test_attributes_query(user_api_client, product):
-    attributes = Attribute.objects.prefetch_related("values")
-    query = """
+QUERY_ATTRIBUTES = """
     query {
         attributes(first: 20) {
             edges {
@@ -93,11 +92,167 @@ def test_attributes_query(user_api_client, product):
             }
         }
     }
-    """
+"""
+
+
+def test_attributes_query(user_api_client, product):
+    attributes = Attribute.objects
+    query = QUERY_ATTRIBUTES
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     attributes_data = content["data"]["attributes"]["edges"]
+    assert attributes_data
     assert len(attributes_data) == attributes.count()
+
+
+def test_attributes_query_hidden_attribute(user_api_client, product, color_attribute):
+    query = QUERY_ATTRIBUTES
+
+    # hide the attribute
+    color_attribute.visible_in_storefront = False
+    color_attribute.save(update_fields=["visible_in_storefront"])
+
+    attribute_count = Attribute.objects.get_visible_to_user(
+        user_api_client.user
+    ).count()
+    assert attribute_count == 1
+
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    attributes_data = content["data"]["attributes"]["edges"]
+    assert len(attributes_data) == attribute_count
+
+
+def test_attributes_query_hidden_attribute_as_staff_user(
+    staff_api_client, product, color_attribute, permission_manage_products
+):
+    query = QUERY_ATTRIBUTES
+
+    # hide the attribute
+    color_attribute.visible_in_storefront = False
+    color_attribute.save(update_fields=["visible_in_storefront"])
+
+    attribute_count = Attribute.objects.all().count()
+
+    # The user doesn't have the permission yet to manage products,
+    # the user shouldn't be able to see the hidden attributes
+    assert Attribute.objects.get_visible_to_user(staff_api_client.user).count() == 1
+
+    # The user should now be able to see the attributes
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    attributes_data = content["data"]["attributes"]["edges"]
+    assert len(attributes_data) == attribute_count
+
+
+QUERY_PRODUCT_ATTRIBUTES = """
+    {
+      products(first: 1) {
+        edges {
+          node {
+            attributes {
+              value {
+                name
+              }
+              attribute {
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+"""
+
+
+def test_resolve_product_attributes_with_hidden(
+    user_api_client, product, color_attribute
+):
+    query = QUERY_PRODUCT_ATTRIBUTES
+
+    # Hide one attribute from the storefront
+    color_attribute.visible_in_storefront = False
+    color_attribute.save(update_fields=["visible_in_storefront"])
+
+    gql_attrs = get_graphql_content(user_api_client.post_graphql(query))["data"][
+        "products"
+    ]["edges"][0]["node"]["attributes"]
+    assert len(gql_attrs) == len(product.attributes) - 1
+
+
+def test_resolve_product_attributes_with_hidden_as_staff_user(
+    staff_api_client, product, color_attribute, permission_manage_products
+):
+    query = QUERY_PRODUCT_ATTRIBUTES
+
+    # Hide one attribute from the storefront
+    color_attribute.visible_in_storefront = False
+    color_attribute.save(update_fields=["visible_in_storefront"])
+
+    # Add proper permissions
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    gql_attrs = get_graphql_content(staff_api_client.post_graphql(query))["data"][
+        "products"
+    ]["edges"][0]["node"]["attributes"]
+    assert len(gql_attrs) == len(product.attributes)
+
+
+QUERY_VARIANT_ATTRIBUTES = """
+    {
+      products(first: 1) {
+        edges {
+          node {
+            variants {
+              attributes {
+                value {
+                  name
+                }
+                attribute {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+"""
+
+
+def test_resolve_variant_attributes_with_hidden(
+    user_api_client, product, size_attribute
+):
+    query = QUERY_VARIANT_ATTRIBUTES
+
+    # Hide one attribute from the storefront
+    size_attribute.visible_in_storefront = False
+    size_attribute.save(update_fields=["visible_in_storefront"])
+
+    gql_attrs = get_graphql_content(user_api_client.post_graphql(query))["data"][
+        "products"
+    ]["edges"][0]["node"]["variants"][0]["attributes"]
+    assert len(gql_attrs) == len(product.variants.first().attributes) - 1
+
+
+def test_resolve_variant_attributes_with_hidden_as_staff_user(
+    staff_api_client, product, size_attribute, permission_manage_products
+):
+    query = QUERY_VARIANT_ATTRIBUTES
+
+    # Hide one attribute from the storefront
+    size_attribute.visible_in_storefront = False
+    size_attribute.save(update_fields=["visible_in_storefront"])
+
+    # Add proper permissions
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    gql_attrs = get_graphql_content(staff_api_client.post_graphql(query))["data"][
+        "products"
+    ]["edges"][0]["node"]["variants"][0]["attributes"]
+    assert len(gql_attrs) == len(product.variants.first().attributes)
 
 
 def test_attributes_in_category_query(user_api_client, product):
@@ -684,6 +839,22 @@ def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
 
 
+def test_resolve_attribute_list(color_attribute):
+    value = color_attribute.values.first()
+    attributes_json = {str(color_attribute.pk): [str(value.pk)]}
+    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
+    assert len(res) == 1
+    assert res[0].attribute.name == color_attribute.name
+    assert res[0].value.name == value.name
+
+    # test passing invalid json should resolve to empty list
+    attr_pk = str(Attribute.objects.order_by("pk").last().pk + 1)
+    val_pk = str(AttributeValue.objects.order_by("pk").last().pk + 1)
+    attributes_json = {attr_pk: [val_pk]}
+    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
+    assert res == []
+
+
 ASSIGN_ATTR_QUERY = """
     mutation assign($productTypeId: ID!, $operations: [AttributeAssignInput]!) {
       attributeAssign(productTypeId: $productTypeId, operations: $operations) {
@@ -801,10 +972,7 @@ def test_assign_variant_attribute_having_unsupported_input_type(
 
     query = ASSIGN_ATTR_QUERY
     operations = [
-        {
-            "attributeType": "VARIANT",
-            "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
-        }
+        {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attribute.pk)}
     ]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 

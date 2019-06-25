@@ -150,4 +150,10 @@ class Migration(migrations.Migration):
         # Remove the migrated foreign keys
         migrations.RemoveField(model_name="attribute", name="product_variant_type_old"),
         migrations.RemoveField(model_name="attribute", name="product_type_old"),
+        # whether the attribute is visible in storefront
+        migrations.AddField(
+            model_name="attribute",
+            name="visible_in_storefront",
+            field=models.BooleanField(default=True),
+        ),
     ]

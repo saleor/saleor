@@ -4,6 +4,9 @@ class AttributeDescriptions:
     SLUG = "Internal representation of an attribute name."
     VALUES = "List of attribute's values."
     IS_VARIANT_ONLY = "Whether the attribute is for variants only"
+    VISIBLE_IN_STOREFRONT = (
+        "Whether the attribute should be visible or not in storefront"
+    )
 
 
 class AttributeValueDescriptions:
