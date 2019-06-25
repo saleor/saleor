@@ -18,7 +18,6 @@ from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.dashboard.menu.utils import update_menu
-from saleor.discount.models import Sale
 from saleor.menu.models import MenuItemTranslation
 from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.models import DigitalContentUrl
@@ -521,7 +520,13 @@ def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
     [(Decimal("10.00"), True), (Decimal("15.0"), False)],
 )
 def test_get_price(
-    product_type, category, sale, expected_price, include_discounts, site_settings
+    product_type,
+    category,
+    sale,
+    expected_price,
+    include_discounts,
+    site_settings,
+    discount_info,
 ):
     product = models.Product.objects.create(
         product_type=product_type,
@@ -530,9 +535,7 @@ def test_get_price(
     )
     variant = product.variants.create()
 
-    price = variant.get_price(
-        discounts=Sale.objects.all() if include_discounts else None
-    )
+    price = variant.get_price(discounts=[discount_info] if include_discounts else [])
 
     assert price.amount == expected_price
 
@@ -587,7 +590,7 @@ def test_product_get_price_range_no_variants(product_type, category):
     assert price == MoneyRange(start=expected_price, stop=expected_price)
 
 
-def test_product_get_price_do_not_charge_taxes(product_type, category, sale):
+def test_product_get_price_do_not_charge_taxes(product_type, category, discount_info):
     product = models.Product.objects.create(
         product_type=product_type,
         category=category,
@@ -596,9 +599,25 @@ def test_product_get_price_do_not_charge_taxes(product_type, category, sale):
     )
     variant = product.variants.create()
 
-    price = variant.get_price(discounts=Sale.objects.all())
+    price = variant.get_price(discounts=[discount_info])
 
     assert price == Money("5.00", "USD")
+
+
+def test_product_get_price_range_do_not_charge_taxes(
+    product_type, category, discount_info
+):
+    product = models.Product.objects.create(
+        product_type=product_type,
+        category=category,
+        price=Money("10.00", "USD"),
+        charge_taxes=False,
+    )
+
+    price = product.get_price_range(discounts=[discount_info])
+
+    expected_price = MoneyRange(start=Money("5.00", "USD"), stop=Money("5.00", "USD"))
+    assert price == expected_price
 
 
 @pytest.mark.parametrize("price_override", ["15.00", "0.00"])

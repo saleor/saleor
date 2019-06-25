@@ -4,7 +4,7 @@ import pytest
 from prices import Money
 
 from saleor.checkout.utils import get_voucher_discount_for_checkout
-from saleor.discount import DiscountValueType, VoucherType
+from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
     decrease_voucher_usage,
@@ -42,13 +42,25 @@ def test_valid_voucher_min_amount_spent(min_amount_spent, value):
 @pytest.mark.django_db(transaction=True)
 def test_variant_discounts(product):
     variant = product.variants.get()
-    low_discount = Sale.objects.create(type=DiscountValueType.FIXED, value=5)
-    low_discount.products.add(product)
-    discount = Sale.objects.create(type=DiscountValueType.FIXED, value=8)
-    discount.products.add(product)
-    high_discount = Sale.objects.create(type=DiscountValueType.FIXED, value=50)
-    high_discount.products.add(product)
-    final_price = variant.get_price(discounts=Sale.objects.all())
+    low_sale = Sale(type=DiscountValueType.FIXED, value=5)
+    low_discount = DiscountInfo(
+        sale=low_sale,
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
+    )
+    sale = Sale(type=DiscountValueType.FIXED, value=8)
+    discount = DiscountInfo(
+        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
+    )
+    high_sale = Sale(type=DiscountValueType.FIXED, value=50)
+    high_discount = DiscountInfo(
+        sale=high_sale,
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
+    )
+    final_price = variant.get_price(discounts=[low_discount, discount, high_discount])
     assert final_price == Money(0, "USD")
 
 
@@ -56,8 +68,10 @@ def test_variant_discounts(product):
 @pytest.mark.django_db(transaction=True)
 def test_percentage_discounts(product):
     variant = product.variants.get()
-    discount = Sale.objects.create(type=DiscountValueType.PERCENTAGE, value=50)
-    discount.products.add(product)
+    sale = Sale(type=DiscountValueType.PERCENTAGE, value=50)
+    discount = DiscountInfo(
+        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids={}
+    )
     final_price = variant.get_price(discounts=[discount])
     assert final_price == Money(5, "USD")
 
@@ -70,7 +84,7 @@ def test_voucher_queryset_active(voucher):
 
 
 @pytest.mark.parametrize(
-    "prices, discount_value, discount_type, " "apply_once_per_order, expected_value",
+    "prices, discount_value, discount_type, apply_once_per_order, expected_value",
     [
         ([10], 10, DiscountValueType.FIXED, True, 10),
         ([5], 10, DiscountValueType.FIXED, True, 5),
@@ -125,14 +139,15 @@ def test_sale_applies_to_correct_products(product_type, category):
         category=category,
     )
     sec_variant = ProductVariant.objects.create(product=product2, sku="secvar", pk=111)
-    sale = Sale.objects.create(name="Test sale", value=3, type=DiscountValueType.FIXED)
-    sale.products.add(product)
-    assert product2 not in sale.products.all()
-    product_discount = get_product_discount_on_sale(sale, variant.product)
+    sale = Sale(name="Test sale", value=3, type=DiscountValueType.FIXED)
+    discount = DiscountInfo(
+        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
+    )
+    product_discount = get_product_discount_on_sale(variant.product, discount)
     discounted_price = product_discount(product.price)
     assert discounted_price == Money(7, "USD")
     with pytest.raises(NotApplicable):
-        get_product_discount_on_sale(sale, sec_variant.product)
+        get_product_discount_on_sale(sec_variant.product, discount)
 
 
 def test_increase_voucher_usage():

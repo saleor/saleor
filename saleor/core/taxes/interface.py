@@ -9,7 +9,6 @@ from .avatax import interface as avatax_interface
 from .vatlayer import interface as vatlayer_interface
 
 if TYPE_CHECKING:
-    from ...discount.models import SaleQueryset
     from ...checkout.models import Checkout, CheckoutLine
     from ...product.models import Product
     from ...account.models import Address
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def calculate_checkout_total(
-    checkout: "Checkout", discounts: "SaleQueryset"
+    checkout: "Checkout", discounts: List["DiscountInfo"]
 ) -> TaxedMoney:
     """Calculate total gross for checkout"""
 
@@ -31,7 +30,7 @@ def calculate_checkout_total(
 
 
 def calculate_checkout_subtotal(
-    checkout: "Checkout", discounts: "SaleQueryset"
+    checkout: "Checkout", discounts: List["DiscountInfo"]
 ) -> TaxedMoney:
     """Calculate subtotal gross for checkout"""
 
@@ -45,7 +44,7 @@ def calculate_checkout_subtotal(
 
 
 def calculate_checkout_shipping(
-    checkout: "Checkout", discounts: "SaleQueryset"
+    checkout: "Checkout", discounts: List["DiscountInfo"]
 ) -> TaxedMoney:
     """Calculate shipping gross for checkout"""
     if not checkout.shipping_method:
@@ -90,7 +89,7 @@ def get_tax_rate_type_choices() -> List[TaxType]:
 
 
 def calculate_checkout_line_total(
-    checkout_line: "CheckoutLine", discounts: "SaleQueryset"
+    checkout_line: "CheckoutLine", discounts: List["DiscountInfo"]
 ):
     if settings.VATLAYER_ACCESS_KEY:
         return vatlayer_interface.calculate_checkout_line_total(

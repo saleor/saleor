@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Iterable
 from uuid import uuid4
 
 from django.conf import settings
@@ -26,6 +27,7 @@ from ..core.utils import build_absolute_uri
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
+from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -188,7 +190,7 @@ class Product(SeoModel, PublishableModel):
         images = list(self.images.all())
         return images[0] if images else None
 
-    def get_price_range(self, discounts=None):
+    def get_price_range(self, discounts: Iterable[DiscountInfo] = None):
         if self.variants.all():
             prices = [variant.get_price(discounts) for variant in self]
             return MoneyRange(min(prices), max(prices))
@@ -288,7 +290,7 @@ class ProductVariant(models.Model):
             else self.product.price
         )
 
-    def get_price(self, discounts=None):
+    def get_price(self, discounts: Iterable[DiscountInfo] = None):
         return calculate_discounted_price(self.product, self.base_price, discounts)
 
     def get_weight(self):

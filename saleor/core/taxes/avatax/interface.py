@@ -31,7 +31,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def calculate_checkout_total(checkout: "checkout_models.Checkout", discounts):
+def calculate_checkout_total(
+    checkout: "checkout_models.Checkout", discounts: List["DiscountInfo"]
+):
     checkout_total = checkout.get_total(discounts=discounts)
     if not validate_checkout(checkout):
         return TaxedMoney(net=checkout_total, gross=checkout_total)
@@ -47,7 +49,9 @@ def calculate_checkout_total(checkout: "checkout_models.Checkout", discounts):
     return TaxedMoney(net=total_net, gross=total_gross)
 
 
-def calculate_checkout_subtotal(checkout: "checkout_models.Checkout", discounts):
+def calculate_checkout_subtotal(
+    checkout: "checkout_models.Checkout", discounts: List["DiscountInfo"]
+):
     sub_total = checkout.get_subtotal(discounts)
     if not validate_checkout(checkout):
         return TaxedMoney(net=sub_total, gross=sub_total)
@@ -70,7 +74,9 @@ def calculate_checkout_subtotal(checkout: "checkout_models.Checkout", discounts)
     return TaxedMoney(net=sub_total_net, gross=sub_total_gross)
 
 
-def calculate_checkout_shipping(checkout: "checkout_models.Checkout", discounts):
+def calculate_checkout_shipping(
+    checkout: "checkout_models.Checkout", discounts: List["DiscountInfo"]
+):
     shipping_price = checkout.get_shipping_price()
     if not validate_checkout(checkout):
         return TaxedMoney(net=shipping_price, gross=shipping_price)
@@ -131,7 +137,7 @@ def postprocess_order_creation(order: "Order"):
 
 
 def calculate_checkout_line_total(
-    checkout_line: "checkout_models.CheckoutLine", discounts
+    checkout_line: "checkout_models.CheckoutLine", discounts: List["DiscountInfo"]
 ):
     checkout = checkout_line.checkout
     taxes_data = get_checkout_tax_data(checkout, discounts)

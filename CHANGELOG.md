@@ -7,6 +7,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed internal error when creating a checkout with a voucher code - #4292 by @NyanKiyoshi
 - Add filter tab name as required - #4269 by @benekex2
 - A few unused panels are now disabled by default from the debug toolbar; this should improve loading time when debugging - #4301 by @NyanKiyoshi
+- Fixed internal error when adding a note to an anonymous order - #4319 by @NyanKiyoshi
+- Fix populatedb gift card duplication error - #4336 by @fowczarek
 
 ## 2.7.0
 

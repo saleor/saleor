@@ -1,5 +1,3 @@
-from datetime import date
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -12,7 +10,6 @@ from django.views.decorators.http import require_POST
 
 from ...core.taxes import interface as tax_interface
 from ...core.utils import get_paginator_items
-from ...discount.models import Sale
 from ...product.models import (
     Attribute,
     AttributeValue,
@@ -315,9 +312,7 @@ def variant_details(request, product_pk, variant_pk):
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
     discounted_price = tax_interface.apply_taxes_to_product(
-        variant.product,
-        variant.get_price(discounts=Sale.objects.active(date.today())),
-        request.country,
+        variant.product, variant.get_price(discounts=request.discounts), request.country
     ).gross
     ctx = {
         "images": images,

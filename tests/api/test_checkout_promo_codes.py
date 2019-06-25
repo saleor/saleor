@@ -4,6 +4,7 @@ import graphene
 from prices import TaxedMoney
 
 from saleor.checkout.utils import add_voucher_to_checkout
+from saleor.discount import DiscountInfo
 from tests.api.test_checkout import (
     MUTATION_CHECKOUT_LINES_DELETE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
@@ -184,7 +185,14 @@ def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    discounts = [sale]
+    discounts = [
+        DiscountInfo(
+            sale=sale,
+            product_ids={product.id},
+            category_ids=set(),
+            collection_ids=set(),
+        )
+    ]
     total = checkout.get_total(discounts=discounts)
     taxed_total = TaxedMoney(total, total)
     assert data["totalPrice"]["gross"]["amount"] == taxed_total.gross.amount
