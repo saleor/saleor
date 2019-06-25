@@ -494,8 +494,10 @@ def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
     store_id_for_payment_gateway(customer_user, gateway_name, braintree_customer_id)
     assert customer_user.private_meta == META
     customer_user.refresh_from_db()
-    assert extract_id_for_payment_gateway(
-        customer_user, gateway_name) == braintree_customer_id
+    assert (
+        extract_id_for_payment_gateway(customer_user, gateway_name)
+        == braintree_customer_id
+    )
 
 
 @pytest.fixture
