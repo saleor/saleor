@@ -516,8 +516,9 @@ class Attribute(models.Model):
         through_fields=["attribute", "product_type"],
     )
 
-    visible_in_storefront = models.BooleanField(default=True)
+    value_required = models.BooleanField(default=False)
     is_variant_only = models.BooleanField(default=False)
+    visible_in_storefront = models.BooleanField(default=True)
 
     filterable_in_storefront = models.BooleanField(default=True)
     filterable_in_dashboard = models.BooleanField(default=True)

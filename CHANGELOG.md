@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Implemented a `input_type` field into the attribute models and refactored the product attributes to be able to store more than one value per attribute per product. - #4255 by @NyanKiyoshi.
 - Staff users can now flag attributes as to be hidden in the storefront. -  #4338 by @NyanKiyoshi
 - Added flags to attributes: whether they are filterable or not in dashboard and/or storefront. - #4341 by @NyanKiyoshi.
+- Attributes can now be flagged as required. - #4340 by @NyanKiyoshi.
 
 ## [Unreleased]
 

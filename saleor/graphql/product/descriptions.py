@@ -3,6 +3,7 @@ class AttributeDescriptions:
     NAME = "Name of an attribute displayed in the interface."
     SLUG = "Internal representation of an attribute name."
     VALUES = "List of attribute's values."
+    VALUE_REQUIRED = "Whether the attribute requires values to be passed or not"
     IS_VARIANT_ONLY = "Whether the attribute is for variants only"
     VISIBLE_IN_STOREFRONT = (
         "Whether the attribute should be visible or not in storefront"
