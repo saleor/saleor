@@ -35,8 +35,8 @@ PaystackConfig.PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
 transactionManager = TransactionsManager()
 
 # Ravepay
-RAVE_PUBLIC_KEY = os.environ.get('RAVE_PUBLIC_KEY', '')
-RAVE_SECRET_KEY = os.environ.get('RAVE_SECRET_KEY', '')
+RAVEPAY_PUBLIC_KEY = os.environ.get('RAVE_PUBLIC_KEY', '')
+RAVEPAY_SECRET_KEY = os.environ.get('RAVE_SECRET_KEY', '')
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,11 @@ def start_payment(request, order, gateway):
             return redirect(currentTransaction.authorization_url)
         
         if (gateway=='ravepay'):
-            return redirect('order:payment', token=order.token)
+            print(str(RAVEPAY_PUBLIC_KEY))
+            c_url = 'http://' + request.META['HTTP_HOST'] + '/order/' + order.token + '/payment-confirm/'
+            return TemplateResponse(request, 'order/ravepay.html', {'RPK': str(RAVEPAY_PUBLIC_KEY), 'AMT': order.total.gross.amount,
+                                                    'EMAIL': order.user_email, 'PHN': order.billing_address.phone, 'TOKEN': order.token})
+            # return redirect('order:payment', token=order.token)
             # c_url = 'http://' + request.META['HTTP_HOST'] + '/order/' + order.token + '/payment-confirm/'
             # url = "https://api.ravepay.co/flwv3-pug/getpaidx/api/v2/hosted/pay"
             # querystring = {"PBFPubKey": RAVE_PUBLIC_KEY,"txref": order.token,
@@ -145,21 +149,6 @@ def start_payment(request, order, gateway):
             #                 "amount": order.total.gross.amount, "redirect_url": c_url}
             # response = requests.request("POST", url, params=querystring)
             # return redirect(response.text.data.link)
-        
-        # form = payment_gateway.create_form(
-        #     data=request.POST or None,
-        #     payment_information=payment_info,
-        #     connection_params=connection_params)
-        # if form.is_valid():
-        #     try:
-        #         gateway_process_payment(
-        #             payment=payment, payment_token=form.get_payment_token())
-        #     except Exception as exc:
-        #         form.add_error(None, str(exc))
-        #     else:
-        #         if order.is_fully_paid():
-        #             return redirect('order:payment-success', token=order.token)
-        #         return redirect(order.get_absolute_url())
 
     client_token = payment_gateway.get_client_token(
         connection_params=connection_params)

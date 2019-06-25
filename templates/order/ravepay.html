@@ -1,0 +1,38 @@
+
+<form>
+    <script src="https://api.ravepay.co/flwv3-pug/getpaidx/api/flwpbf-inline.js"></script>
+</form>
+
+<script>
+    const API_publicKey = "FLWPUBK-03a1b1c9704792fcd093f3333302d983-X";
+    
+
+        var x = getpaidSetup({
+            PBFPubKey: API_publicKey,
+            customer_email: '{{EMAIL}}',
+            amount: {{AMT}},
+            customer_phone: '{{PHN}}',
+            currency: "NGN",
+            txref: "{{TOKEN}}",
+            meta: [{
+                metaname: "Mercurie",
+                metavalue: "Mc1234"
+            }],
+            onclose: function() {},
+            callback: function(response) {
+                var txref = response.tx.txRef; // collect txRef returned and pass to a 					server page to complete status check.
+                console.log("This is the response returned after a charge", response);
+                if (
+                    response.tx.chargeResponseCode == "00" ||
+                    response.tx.chargeResponseCode == "0"
+                ) {
+                    // redirect to a success page
+                } else {
+                    // redirect to a failure page.
+                }
+
+                x.close(); // use this to close the modal immediately after payment.
+            }
+        });
+
+</script>
