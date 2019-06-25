@@ -71,7 +71,7 @@ def test_variant_availability_status(unavailable_product):
     get_variant_availability_status(variant)
 
 
-def test_availability(product, monkeypatch, settings, taxes):
+def test_availability(product, monkeypatch, settings):
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     monkeypatch.setattr(
         "saleor.product.utils.availability.apply_taxes_to_product",

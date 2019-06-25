@@ -161,7 +161,7 @@ def test_render_home_page_with_sale(client, product, sale):
     assert response.status_code == 200
 
 
-def test_render_home_page_with_taxes(client, product, vatlayer):
+def test_render_home_page_with_taxes(client, product):
     response = client.get(reverse("home"))
     assert response.status_code == 200
 
@@ -176,7 +176,7 @@ def test_render_category_with_sale(client, category, product, sale):
     assert response.status_code == 200
 
 
-def test_render_category_with_taxes(client, category, product, vatlayer):
+def test_render_category_with_taxes(client, category, product):
     response = client.get(category.get_absolute_url())
     assert response.status_code == 200
 
@@ -191,7 +191,7 @@ def test_render_product_detail_with_sale(client, product, sale):
     assert response.status_code == 200
 
 
-def test_render_product_detail_with_taxes(client, product, vatlayer):
+def test_render_product_detail_with_taxes(client, product):
     response = client.get(product.get_absolute_url())
     assert response.status_code == 200
 
@@ -823,7 +823,7 @@ def test_digital_product_view_url_expired(client, digital_content):
     assert response.status_code == 404
 
 
-def test_variant_picker_data_price_range(product_type, taxes, category):
+def test_variant_picker_data_price_range(product_type, category):
     product = models.Product.objects.create(
         product_type=product_type, category=category, price=Money("15.00", "USD")
     )

@@ -1,8 +1,5 @@
-from unittest.mock import patch
-
 import graphene
 from django_countries import countries
-from django_prices_vatlayer.models import VAT
 
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
@@ -48,58 +45,6 @@ def test_query_countries(user_api_client):
     content = get_graphql_content(response)
     data = content["data"]["shop"]
     assert len(data["countries"]) == len(countries)
-
-
-def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
-    query = """
-    query {
-        shop {
-            countries {
-                code
-                vat {
-                    standardRate
-                    reducedRates {
-                        rate
-                        rateType
-                    }
-                }
-            }
-        }
-    }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]["countries"]
-    vat = VAT.objects.first()
-    country = next(country for country in data if country["code"] == vat.country_code)
-    assert country["vat"]["standardRate"] == tax_rates["standard_rate"]
-    rates = {rate["rateType"]: rate["rate"] for rate in country["vat"]["reducedRates"]}
-    reduced_rates = {
-        str_to_enum(tax_rate): tax_rates["reduced_rates"][tax_rate]
-        for tax_rate in tax_rates["reduced_rates"]
-    }
-    assert rates == reduced_rates
-
-
-def test_query_default_country_with_tax(user_api_client, settings, vatlayer, tax_rates):
-    settings.DEFAULT_COUNTRY = "PL"
-    query = """
-    query {
-        shop {
-            defaultCountry {
-                code
-                vat {
-                    standardRate
-                }
-            }
-        }
-    }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]["defaultCountry"]
-    assert data["code"] == settings.DEFAULT_COUNTRY
-    assert data["vat"]["standardRate"] == tax_rates["standard_rate"]
 
 
 def test_query_currencies(user_api_client, settings):
@@ -564,43 +509,6 @@ def test_mutation_authorization_key_delete(
     )
     content = get_graphql_content(response)
     assert content["data"]["authorizationKeyDelete"]["authorizationKey"]
-
-
-MUTATION_SHOP_FETCH_TAX_RATES = """
-    mutation FetchTaxRates {
-        shopFetchTaxRates {
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
-
-
-def test_shop_fetch_tax_rates_no_api_access_key(
-    staff_api_client, permission_manage_settings
-):
-    staff_api_client.user.user_permissions.add(permission_manage_settings)
-    response = staff_api_client.post_graphql(MUTATION_SHOP_FETCH_TAX_RATES)
-    content = get_graphql_content(response)
-    data = content["data"]["shopFetchTaxRates"]
-    error_message = (
-        "Could not fetch tax rates. "
-        "Make sure you have supplied a valid API Access Key."
-    )
-    assert data["errors"][0]["message"] == error_message
-
-
-@patch("saleor.graphql.shop.mutations.call_command")
-def test_shop_fetch_tax_rates(
-    mock_call_command, staff_api_client, permission_manage_settings, settings
-):
-    settings.VATLAYER_ACCESS_KEY = "KEY"
-    staff_api_client.user.user_permissions.add(permission_manage_settings)
-    response = staff_api_client.post_graphql(MUTATION_SHOP_FETCH_TAX_RATES)
-    get_graphql_content(response)
-    mock_call_command.assert_called_once_with("get_vat_rates")
 
 
 def test_mutation_update_company_address(
