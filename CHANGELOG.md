@@ -17,6 +17,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Staff users can now flag attributes as to be hidden in the storefront. -  #4338 by @NyanKiyoshi
 - Added flags to attributes: whether they are filterable or not in dashboard and/or storefront. - #4341 by @NyanKiyoshi.
 - Attributes can now be flagged as required. - #4340 by @NyanKiyoshi.
+- Added a search position field for the storefront navigation to the attributes. - #4343 by @NyanKiyoshi
 
 ## [Unreleased]
 

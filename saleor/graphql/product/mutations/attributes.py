@@ -39,6 +39,9 @@ class AttributeCreateInput(graphene.InputObjectType):
     filterable_in_dashboard = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
     )
+    storefront_search_position = graphene.Int(
+        required=False, description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
+    )
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
@@ -66,6 +69,9 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
     filterable_in_dashboard = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
+    )
+    storefront_search_position = graphene.Int(
+        required=False, description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
     )
 
 
