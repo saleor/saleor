@@ -529,11 +529,13 @@ class Attribute(ModelWithMetadata):
     filterable_in_storefront = models.BooleanField(default=True)
     filterable_in_dashboard = models.BooleanField(default=True)
 
+    storefront_search_position = models.IntegerField(default=0)
+
     objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ("slug",)
+        ordering = ("storefront_search_position", "slug")
 
     def __str__(self):
         return self.name
