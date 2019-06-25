@@ -6,5 +6,5 @@ export const translateVoucherTypes = () => ({
   [VoucherType.COLLECTION]: i18n.t("Selected Collections"),
   [VoucherType.PRODUCT]: i18n.t("Selected Products"),
   [VoucherType.SHIPPING]: i18n.t("Shipment"),
-  [VoucherType.VALUE]: i18n.t("All Products")
+  [VoucherType.ENTIRE_ORDER]: i18n.t("Entire order")
 });
