@@ -1,10 +1,11 @@
 import { storiesOf } from "@storybook/react";
 import React from "react";
 
+import { collections } from "@saleor/collections/fixtures";
+import { listActionsProps } from "@saleor/fixtures";
+import ProductUpdatePage from "@saleor/products/components/ProductUpdatePage";
+import { product as productFixture } from "@saleor/products/fixtures";
 import placeholderImage from "../../../../images/placeholder255x255.png";
-import { listActionsProps } from "../../../fixtures";
-import ProductUpdatePage from "../../../products/components/ProductUpdatePage";
-import { product as productFixture } from "../../../products/fixtures";
 import Decorator from "../../Decorator";
 
 const product = productFixture(placeholderImage);
@@ -13,15 +14,16 @@ storiesOf("Views / Products / Product edit", module)
   .addDecorator(Decorator)
   .add("when data is fully loaded", () => (
     <ProductUpdatePage
+      disabled={false}
       errors={[]}
       onBack={() => undefined}
       onSubmit={() => undefined}
       product={product}
       header={product.name}
-      collections={product.collections}
+      collections={collections}
       categories={[product.category]}
       fetchCategories={() => undefined}
-      fetchCollections={() => undefined}
+      fetchCollections={undefined}
       placeholderImage={placeholderImage}
       images={product.images}
       variants={product.variants}
@@ -39,15 +41,16 @@ storiesOf("Views / Products / Product edit", module)
   ))
   .add("when product has no images", () => (
     <ProductUpdatePage
+      disabled={false}
       errors={[]}
       onBack={() => undefined}
       onSubmit={() => undefined}
       product={product}
       header={product.name}
-      collections={product.collections}
+      collections={collections}
       categories={[product.category]}
       fetchCategories={() => undefined}
-      fetchCollections={() => undefined}
+      fetchCollections={undefined}
       placeholderImage={placeholderImage}
       images={[]}
       variants={product.variants}
@@ -65,6 +68,7 @@ storiesOf("Views / Products / Product edit", module)
   ))
   .add("when product has no variants", () => (
     <ProductUpdatePage
+      disabled={false}
       errors={[]}
       onBack={() => undefined}
       onSubmit={() => undefined}
@@ -75,10 +79,10 @@ storiesOf("Views / Products / Product edit", module)
         } as any
       }
       header={product.name}
-      collections={product.collections}
+      collections={collections}
       categories={[product.category]}
       fetchCategories={() => undefined}
-      fetchCollections={() => undefined}
+      fetchCollections={undefined}
       placeholderImage={placeholderImage}
       images={product.images}
       variants={product.variants}
@@ -100,7 +104,7 @@ storiesOf("Views / Products / Product edit", module)
       header={undefined}
       categories={[]}
       fetchCategories={() => undefined}
-      fetchCollections={() => undefined}
+      fetchCollections={undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
       disabled={true}
@@ -112,6 +116,10 @@ storiesOf("Views / Products / Product edit", module)
       onImageUpload={() => undefined}
       saveButtonBarState="default"
       variants={undefined}
+      product={undefined}
+      collections={undefined}
+      images={undefined}
+      productCollections={undefined}
       {...listActionsProps}
     />
   ));
