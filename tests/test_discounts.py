@@ -157,7 +157,7 @@ def test_sale_applies_to_correct_products(product_type, category):
 def test_increase_voucher_usage():
     voucher = Voucher.objects.create(
         code="unique",
-        type=VoucherType.VALUE,
+        type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
         usage_limit=100,
@@ -170,8 +170,8 @@ def test_increase_voucher_usage():
 def test_decrease_voucher_usage():
     voucher = Voucher.objects.create(
         code="unique",
-        type=VoucherType.VALUE,
-        discount_value_type=VoucherType.VALUE,
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
         usage_limit=100,
         used=10,
@@ -195,7 +195,7 @@ def test_get_value_voucher_discount(
 ):
     voucher = Voucher(
         code="unique",
-        type=VoucherType.VALUE,
+        type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
         min_amount_spent=get_min_amount_spent(min_amount_spent),
@@ -226,7 +226,7 @@ def test_get_shipping_voucher_discount(
 ):
     voucher = Voucher(
         code="unique",
-        type=VoucherType.VALUE,
+        type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
         min_amount_spent=get_min_amount_spent(min_amount_spent),

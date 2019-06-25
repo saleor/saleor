@@ -113,7 +113,7 @@ def test_value_voucher_order_discount(
 ):
     voucher = Voucher(
         code="unique",
-        type=VoucherType.VALUE,
+        type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_type,
         discount_value=discount_value,
         min_amount_spent=Money(min_amount_spent, "USD")
@@ -219,7 +219,7 @@ def test_ajax_voucher_list(admin_client, voucher):
 
 
 @pytest.mark.parametrize(
-    "voucher_type", ["collection", "category", "product", "value", "shipping"]
+    "voucher_type", ["collection", "category", "product", "entire_order", "shipping"]
 )
 def test_voucher_form_min_amount_spent_is_changed_on_edit(
     admin_client, product, collection, voucher_type
