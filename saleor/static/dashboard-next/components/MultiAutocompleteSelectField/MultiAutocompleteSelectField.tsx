@@ -10,12 +10,14 @@ import {
 import TextField from "@material-ui/core/TextField";
 import Downshift, { ControllerStateAndHelpers } from "downshift";
 import React from "react";
+import { compareTwoStrings } from "string-similarity";
 
-import i18n from "../../i18n";
-import ArrowDropdownIcon from "../../icons/ArrowDropdown";
-import Debounce, { DebounceProps } from "../Debounce";
+import Checkbox from "@saleor/components/Checkbox";
+import Debounce, { DebounceProps } from "@saleor/components/Debounce";
+import i18n from "@saleor/i18n";
+import ArrowDropdownIcon from "@saleor/icons/ArrowDropdown";
 
-interface ChoiceType {
+export interface MultiAutocompleteChoiceType {
   label: string;
   value: string;
 }
@@ -39,25 +41,16 @@ const styles = (theme: Theme) =>
     }
   });
 
-export interface MultiAutocompleteSelectFieldChildrenFunc {
-  deleteItem: (item: ChoiceType) => void;
-  items: ChoiceType[];
-}
-export type MultiAutocompleteSelectFieldChildren = (
-  props: MultiAutocompleteSelectFieldChildrenFunc
-) => React.ReactNode;
-
-export interface MultiAutocompleteSelectFieldProps
-  extends WithStyles<typeof styles> {
+export interface MultiAutocompleteSelectFieldProps {
+  displayValue: string;
   name: string;
-  children: MultiAutocompleteSelectFieldChildren;
-  choices: ChoiceType[];
-  value?: ChoiceType[];
+  choices: MultiAutocompleteChoiceType[];
+  value: string[];
   loading?: boolean;
   placeholder?: string;
   helperText?: string;
   label?: string;
-  fetchChoices(value: string);
+  fetchChoices?(value: string);
   onChange(event);
 }
 
@@ -65,13 +58,13 @@ const DebounceAutocomplete: React.ComponentType<
   DebounceProps<string>
 > = Debounce;
 
-export const MultiAutocompleteSelectField = withStyles(styles, {
+export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
   name: "MultiAutocompleteSelectField"
 })(
   ({
-    children,
     choices,
     classes,
+    displayValue,
     helperText,
     label,
     loading,
@@ -80,102 +73,130 @@ export const MultiAutocompleteSelectField = withStyles(styles, {
     value,
     fetchChoices,
     onChange
-  }: MultiAutocompleteSelectFieldProps) => {
+  }: MultiAutocompleteSelectFieldProps & WithStyles<typeof styles>) => {
+    const [focused, setFocus] = React.useState(false);
     const handleSelect = (
-      item: ChoiceType,
+      item: MultiAutocompleteChoiceType,
       { reset }: ControllerStateAndHelpers
     ) => {
       reset({ inputValue: "" });
-      onChange({ target: { name, value: [...value, item] } });
+      onChange({ target: { name, value: item } });
     };
-    const handleDelete = (item: ChoiceType) => {
-      const newValue = value.slice();
-      newValue.splice(
-        value.findIndex(listItem => listItem.value === item.value),
-        1
-      );
-      onChange({ target: { name, value: newValue } });
-    };
-
-    const filteredChoices = choices.filter(
-      suggestion => value.map(v => v.value).indexOf(suggestion.value) === -1
-    );
 
     return (
+      <Downshift
+        selectedItem={value}
+        itemToString={item => (item ? item.label : "")}
+        onSelect={handleSelect}
+        onInputValueChange={fetchChoices}
+      >
+        {({
+          getInputProps,
+          getItemProps,
+          isOpen,
+          toggleMenu,
+          openMenu,
+          highlightedIndex,
+          inputValue
+        }) => {
+          return (
+            <div className={classes.container}>
+              <TextField
+                InputProps={{
+                  ...getInputProps({
+                    placeholder,
+                    value: focused ? inputValue : displayValue
+                  }),
+                  endAdornment: (
+                    <div>
+                      {loading ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <ArrowDropdownIcon onClick={toggleMenu} />
+                      )}
+                    </div>
+                  ),
+                  id: undefined,
+                  onBlur: () => setFocus(false),
+                  onFocus: () => {
+                    openMenu();
+                    setFocus(true);
+                  }
+                }}
+                helperText={helperText}
+                label={label}
+                fullWidth={true}
+              />
+              {isOpen && (
+                <Paper className={classes.paper} square>
+                  {!loading && choices.length > 0
+                    ? choices.map((suggestion, index) => (
+                        <MenuItem
+                          key={suggestion.value}
+                          selected={highlightedIndex === index}
+                          component="div"
+                          {...getItemProps({
+                            item: suggestion.value
+                          })}
+                        >
+                          <Checkbox
+                            checked={value.includes(suggestion.value)}
+                            disableRipple
+                          />
+                          {suggestion.label}
+                        </MenuItem>
+                      ))
+                    : !loading && (
+                        <MenuItem disabled={true} component="div">
+                          {i18n.t("No results found")}
+                        </MenuItem>
+                      )}
+                </Paper>
+              )}
+            </div>
+          );
+        }}
+      </Downshift>
+    );
+  }
+);
+const MultiAutocompleteSelectField: React.FC<
+  MultiAutocompleteSelectFieldProps
+> = ({ choices, fetchChoices, ...props }) => {
+  const [query, setQuery] = React.useState("");
+  if (fetchChoices) {
+    return (
       <DebounceAutocomplete debounceFn={fetchChoices}>
-        {debounce => (
-          <Downshift
-            selectedItem={value}
-            itemToString={item => (item ? item.label : "")}
-            onSelect={handleSelect}
-            onInputValueChange={value => debounce(value)}
-          >
-            {({
-              getInputProps,
-              getItemProps,
-              isOpen,
-              selectedItem,
-              toggleMenu,
-              closeMenu,
-              openMenu,
-              highlightedIndex
-            }) => {
-              return (
-                <div className={classes.container}>
-                  <TextField
-                    InputProps={{
-                      ...getInputProps({
-                        placeholder
-                      }),
-                      endAdornment: (
-                        <div>
-                          {loading ? (
-                            <CircularProgress size={20} />
-                          ) : (
-                            <ArrowDropdownIcon onClick={toggleMenu} />
-                          )}
-                        </div>
-                      ),
-                      id: undefined,
-                      onBlur: closeMenu,
-                      onFocus: openMenu
-                    }}
-                    helperText={helperText}
-                    label={label}
-                    fullWidth={true}
-                  />
-                  {isOpen && (
-                    <Paper className={classes.paper} square>
-                      {!loading && filteredChoices.length > 0
-                        ? filteredChoices.map((suggestion, index) => (
-                            <MenuItem
-                              key={suggestion.value}
-                              selected={highlightedIndex === index}
-                              component="div"
-                              {...getItemProps({ item: suggestion })}
-                            >
-                              {suggestion.label}
-                            </MenuItem>
-                          ))
-                        : !loading && (
-                            <MenuItem disabled={true} component="div">
-                              {i18n.t("No results found")}
-                            </MenuItem>
-                          )}
-                    </Paper>
-                  )}
-                  {children({
-                    deleteItem: handleDelete,
-                    items: selectedItem
-                  })}
-                </div>
-              );
-            }}
-          </Downshift>
+        {debounceFn => (
+          <MultiAutocompleteSelectFieldComponent
+            choices={choices}
+            {...props}
+            fetchChoices={debounceFn}
+          />
         )}
       </DebounceAutocomplete>
     );
   }
-);
+
+  const sortedChoices = choices.sort((a, b) => {
+    const ratingA = compareTwoStrings(query, a.label);
+    const ratingB = compareTwoStrings(query, b.label);
+    if (ratingA > ratingB) {
+      return -1;
+    }
+    if (ratingA < ratingB) {
+      return 1;
+    }
+    return 0;
+  });
+
+  return (
+    <MultiAutocompleteSelectFieldComponent
+      fetchChoices={q => setQuery(q || "")}
+      choices={sortedChoices}
+      {...props}
+    />
+  );
+};
 MultiAutocompleteSelectField.displayName = "MultiAutocompleteSelectField";
 export default MultiAutocompleteSelectField;

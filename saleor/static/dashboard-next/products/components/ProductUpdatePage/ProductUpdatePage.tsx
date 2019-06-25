@@ -11,15 +11,19 @@ import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import SeoForm from "@saleor/components/SeoForm";
 import VisibilityCard from "@saleor/components/VisibilityCard";
-import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
-import { ListActions, UserError } from "../../../types";
+import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
+import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
+import useFormset from "@saleor/hooks/useFormset";
+import i18n from "@saleor/i18n";
+import { maybe } from "@saleor/misc";
+import { ListActions, UserError } from "@saleor/types";
 import {
   ProductDetails_product,
   ProductDetails_product_attributes_attribute,
   ProductDetails_product_images,
   ProductDetails_product_variants
 } from "../../types/ProductDetails";
+import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
 import ProductOrganization from "../ProductOrganization";
@@ -30,22 +34,16 @@ import ProductVariants from "../ProductVariants";
 interface ProductUpdateProps extends ListActions {
   errors: UserError[];
   placeholderImage: string;
-  collections?: Array<{
-    id: string;
-    name: string;
-  }>;
-  categories?: Array<{
-    id: string;
-    name: string;
-  }>;
-  disabled?: boolean;
-  productCollections?: Array<{
+  collections: SearchCollections_collections_edges_node[];
+  categories: SearchCategories_categories_edges_node[];
+  disabled: boolean;
+  productCollections: Array<{
     id: string;
     name: string;
   }>;
   variants: ProductDetails_product_variants[];
-  images?: ProductDetails_product_images[];
-  product?: ProductDetails_product;
+  images: ProductDetails_product_images[];
+  product: ProductDetails_product;
   header: string;
   saveButtonBarState: ConfirmButtonTransitionState;
   fetchCategories: (query: string) => void;
@@ -76,7 +74,7 @@ export interface FormData {
   basePrice: number;
   category: ChoiceType | null;
   chargeTaxes: boolean;
-  collections: ChoiceType[];
+  collections: string[];
   description: RawDraftContentState;
   isPublished: boolean;
   name: string;
@@ -129,6 +127,37 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   toggleAll,
   toolbar
 }) => {
+  const { change: changeAttributeData, data: attributes } = useFormset(
+    maybe(
+      (): ProductAttributeInput[] =>
+        product.attributes.map(attribute => ({
+          data: {
+            inputType: attribute.attribute.inputType,
+            values: attribute.attribute.values
+          },
+          id: attribute.attribute.id,
+          label: attribute.attribute.name,
+          value: attribute.value.id
+        })),
+      []
+    )
+  );
+  const [selectedCollections, setSelectedCollections] = React.useState<
+    Array<{
+      id: string;
+      label: string;
+    }>
+  >(
+    maybe(
+      () =>
+        productCollections.map(collection => ({
+          id: collection.id,
+          label: collection.name
+        })),
+      []
+    )
+  );
+
   const initialDescription = maybe<RawDraftContentState>(() =>
     JSON.parse(product.descriptionJson)
   );
@@ -149,10 +178,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
     },
     chargeTaxes: maybe(() => product.chargeTaxes, false),
     collections: productCollections
-      ? productCollections.map(collection => ({
-          label: collection.name,
-          value: collection.id
-        }))
+      ? productCollections.map(collection => collection.id)
       : [],
     description: initialDescription,
     isPublished: maybe(() => product.isPublished, false),
@@ -210,108 +236,146 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, set, submit }) => (
-        <>
-          <Container>
-            <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
-            <PageHeader title={header} />
-            <Grid>
-              <div>
-                <ProductDetailsForm
-                  data={data}
-                  disabled={disabled}
-                  errors={errors}
-                  initialDescription={initialDescription}
-                  onChange={change}
-                />
-                <CardSpacer />
-                <ProductImages
-                  images={images}
-                  placeholderImage={placeholderImage}
-                  onImageDelete={onImageDelete}
-                  onImageReorder={onImageReorder}
-                  onImageEdit={onImageEdit}
-                  onImageUpload={onImageUpload}
-                />
-                <CardSpacer />
-                <ProductPricing
-                  currency={currency}
-                  data={data}
-                  disabled={disabled}
-                  onChange={change}
-                />
-                <CardSpacer />
-                {hasVariants ? (
-                  <ProductVariants
-                    disabled={disabled}
-                    variants={variants}
-                    fallbackPrice={product ? product.basePrice : undefined}
-                    onAttributesEdit={onAttributesEdit}
-                    onRowClick={onVariantShow}
-                    onVariantAdd={onVariantAdd}
-                    toolbar={toolbar}
-                    isChecked={isChecked}
-                    selected={selected}
-                    toggle={toggle}
-                    toggleAll={toggleAll}
-                  />
-                ) : (
-                  <ProductStock
+      {({ change, data, errors, hasChanged, submit }) => {
+        const handleCollectionSelect = (event: React.ChangeEvent<any>) => {
+          const id = event.target.value;
+          const collectionIndex = data.collections.indexOf(id);
+          const collectionList =
+            collectionIndex === -1
+              ? [
+                  ...selectedCollections,
+                  {
+                    id,
+                    label: collections.find(
+                      collection => collection.value === id
+                    ).label
+                  }
+                ]
+              : [
+                  ...selectedCollections.slice(0, collectionIndex),
+                  ...selectedCollections.slice(collectionIndex + 1)
+                ];
+
+          setSelectedCollections(collectionList);
+          change({
+            target: {
+              name: "collections",
+              value: collectionList.map(collection => collection.id)
+            }
+          } as any);
+        };
+
+        return (
+          <>
+            <Container>
+              <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
+              <PageHeader title={header} />
+              <Grid>
+                <div>
+                  <ProductDetailsForm
                     data={data}
                     disabled={disabled}
-                    product={product}
-                    onChange={change}
                     errors={errors}
+                    initialDescription={initialDescription}
+                    onChange={change}
                   />
-                )}
-                <CardSpacer />
-                <SeoForm
-                  title={data.seoTitle}
-                  titlePlaceholder={data.name}
-                  description={data.seoDescription}
-                  descriptionPlaceholder={maybe(() =>
-                    convertFromRaw(data.description)
-                      .getPlainText()
-                      .slice(0, 300)
+                  <CardSpacer />
+                  <ProductImages
+                    images={images}
+                    placeholderImage={placeholderImage}
+                    onImageDelete={onImageDelete}
+                    onImageReorder={onImageReorder}
+                    onImageEdit={onImageEdit}
+                    onImageUpload={onImageUpload}
+                  />
+                  <CardSpacer />
+                  <ProductAttributes
+                    attributes={attributes}
+                    onChange={changeAttributeData}
+                  />
+                  <CardSpacer />
+                  <ProductPricing
+                    currency={currency}
+                    data={data}
+                    disabled={disabled}
+                    onChange={change}
+                  />
+                  <CardSpacer />
+                  {hasVariants ? (
+                    <ProductVariants
+                      disabled={disabled}
+                      variants={variants}
+                      fallbackPrice={product ? product.basePrice : undefined}
+                      onAttributesEdit={onAttributesEdit}
+                      onRowClick={onVariantShow}
+                      onVariantAdd={onVariantAdd}
+                      toolbar={toolbar}
+                      isChecked={isChecked}
+                      selected={selected}
+                      toggle={toggle}
+                      toggleAll={toggleAll}
+                    />
+                  ) : (
+                    <ProductStock
+                      data={data}
+                      disabled={disabled}
+                      product={product}
+                      onChange={change}
+                      errors={errors}
+                    />
                   )}
-                  loading={disabled}
-                  onClick={onSeoClick}
-                  onChange={change}
-                />
-              </div>
-              <div>
-                <ProductOrganization
-                  canChangeType={false}
-                  categories={categories}
-                  errors={errors}
-                  fetchCategories={fetchCategories}
-                  fetchCollections={fetchCollections}
-                  collections={collections}
-                  product={product}
-                  data={data}
-                  disabled={disabled}
-                  onChange={change}
-                  onSet={set}
-                />
-                <CardSpacer />
-                <VisibilityCard
-                  data={data}
-                  errors={errors}
-                  disabled={disabled}
-                  onChange={change}
-                />
-              </div>
-            </Grid>
-            <SaveButtonBar
-              onCancel={onBack}
-              onDelete={onDelete}
-              onSave={submit}
-              state={saveButtonBarState}
-              disabled={disabled || !hasChanged}
-            />
-          </Container>
-        </>
-      )}
+                  <CardSpacer />
+                  <SeoForm
+                    title={data.seoTitle}
+                    titlePlaceholder={data.name}
+                    description={data.seoDescription}
+                    descriptionPlaceholder={maybe(() =>
+                      convertFromRaw(data.description)
+                        .getPlainText()
+                        .slice(0, 300)
+                    )}
+                    loading={disabled}
+                    onClick={onSeoClick}
+                    onChange={change}
+                  />
+                </div>
+                <div>
+                  <ProductOrganization
+                    canChangeType={false}
+                    categories={categories}
+                    collectionInputDisplayValue={selectedCollections
+                      .map(c => c.label)
+                      .join(", ")}
+                    errors={errors}
+                    fetchCategories={fetchCategories}
+                    fetchCollections={fetchCollections}
+                    collections={collections}
+                    product={product}
+                    data={data}
+                    disabled={disabled}
+                    onChange={change}
+                    onCollectionChange={handleCollectionSelect}
+                  />
+                  <CardSpacer />
+                  <VisibilityCard
+                    data={data}
+                    errors={errors}
+                    disabled={disabled}
+                    onChange={change}
+                  />
+                </div>
+              </Grid>
+              <SaveButtonBar
+                onCancel={onBack}
+                onDelete={onDelete}
+                onSave={submit}
+                state={saveButtonBarState}
+                disabled={disabled || !hasChanged}
+              />
+            </Container>
+          </>
+        );
+      }}
     </Form>
   );
 };
