@@ -547,6 +547,8 @@ class Attribute(ModelWithMetadata):
 
     storefront_search_position = models.IntegerField(default=0, blank=True)
 
+    storefront_search_position = models.IntegerField(default=0)
+
     objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()
 
