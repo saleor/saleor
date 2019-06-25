@@ -167,6 +167,7 @@ def extract_id_for_payment_gateway(user, gateway):
 
 
 def store_id_for_payment_gateway(user, gateway, customer_id):
-    user.store_private_meta(label=GATEWAYS_LABEL, key=gateway,
-                            value={"customer_id": customer_id})
+    user.store_private_meta(
+        label=GATEWAYS_LABEL, key=gateway, value={"customer_id": customer_id}
+    )
     user.save()
