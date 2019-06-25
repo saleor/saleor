@@ -465,6 +465,23 @@ def test_query_payments(payment_dummy, permission_manage_orders, staff_api_clien
     assert payment_ids == [payment_id]
 
 
+@pytest.fixture
+def braintree_customer_id():
+    return "1234"
+
+
+def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
+    gateway_name = PaymentGatewayEnum.BRAINTREE.name
+    META = {"gateways": {gateway_name: {"customer_id": braintree_customer_id}}}
+    store_id_for_payment_gateway(customer_user, gateway_name, braintree_customer_id)
+    assert customer_user.private_meta == META
+    customer_user.refresh_from_db()
+    assert (
+        extract_id_for_payment_gateway(customer_user, gateway_name)
+        == braintree_customer_id
+    )
+
+
 @patch("saleor.graphql.payment.resolvers.gateway_get_client_token")
 def test_query_payment_client_token(mock_get_client_token, user_api_client):
     query = """
@@ -481,23 +498,6 @@ def test_query_payment_client_token(mock_get_client_token, user_api_client):
     assert mock_get_client_token.called_once_with(PaymentGatewayEnum.BRAINTREE.name)
     token = content["data"]["paymentClientToken"]
     assert token == example_token
-
-
-@pytest.fixture
-def braintree_customer_id():
-    return "1234"
-
-
-def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
-    gateway_name = PaymentGatewayEnum.BRAINTREE.name
-    META = {"gateways": {gateway_name: {"customer_id": braintree_customer_id}}}
-    store_id_for_payment_gateway(customer_user, gateway_name, braintree_customer_id)
-    assert customer_user.private_meta == META
-    customer_user.refresh_from_db()
-    assert (
-        extract_id_for_payment_gateway(customer_user, gateway_name)
-        == braintree_customer_id
-    )
 
 
 @pytest.fixture
