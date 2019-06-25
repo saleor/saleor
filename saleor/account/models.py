@@ -197,7 +197,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     def store_private_meta(self, label, key, value):
         if label not in self.private_meta:
             self.private_meta[label] = {}
-        self.private_meta[label][str(key)] = str(value)
+        self.private_meta[label][str(key)] = value
 
 
 class CustomerNote(models.Model):
