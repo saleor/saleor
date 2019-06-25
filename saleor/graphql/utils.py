@@ -1,5 +1,4 @@
 import graphene
-
 from django.db.models import Q
 from django.utils import timezone
 from graphene_django.registry import get_global_registry
