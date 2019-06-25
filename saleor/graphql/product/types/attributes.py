@@ -94,7 +94,12 @@ class Attribute(CountableDjangoObjectType):
         description = """
             Custom attribute of a product. Attributes can be
             assigned to products and variants at the product type level."""
-        only_fields = ["id", "product_types", "product_variant_types"]
+        only_fields = [
+            "id",
+            "product_types",
+            "product_variant_types",
+            "visible_in_storefront",
+        ]
         interfaces = [relay.Node]
         model = models.Attribute
 

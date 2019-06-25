@@ -91,6 +91,7 @@ type Attribute implements Node {
   id: ID!
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  visibleInStorefront: Boolean!
   inputType: AttributeInputTypeEnum
   name: String
   slug: String
@@ -135,6 +136,7 @@ input AttributeCreateInput {
   slug: String
   values: [AttributeValueCreateInput]
   isVariantOnly: Boolean
+  visibleInStorefront: Boolean
 }
 
 type AttributeDelete {
@@ -186,6 +188,7 @@ input AttributeUpdateInput {
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
   isVariantOnly: Boolean
+  visibleInStorefront: Boolean
 }
 
 type AttributeValue implements Node {
