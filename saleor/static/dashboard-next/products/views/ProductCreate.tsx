@@ -75,6 +75,10 @@ export const ProductUpdate: React.StatelessComponent<
                               formData.publicationDate !== ""
                                 ? formData.publicationDate
                                 : null,
+                            seo: {
+                              description: formData.seoDescription,
+                              title: formData.seoTitle,
+                            },
                             sku: formData.sku,
                             stockQuantity:
                               formData.stockQuantity !== null
