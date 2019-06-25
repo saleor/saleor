@@ -1,8 +1,7 @@
 from datetime import date, timedelta
 
-from prices import Money, TaxedMoney
-
 import pytest
+from prices import Money, TaxedMoney
 
 from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
@@ -89,8 +88,8 @@ def test_voucher_queryset_active(voucher):
     [
         ([10], 10, DiscountValueType.FIXED, True, 10),
         ([5], 10, DiscountValueType.FIXED, True, 5),
-        ([5, 5], 10, DiscountValueType.FIXED, True, 10),
-        ([2, 3], 10, DiscountValueType.FIXED, True, 5),
+        ([5, 5], 10, DiscountValueType.FIXED, True, 5),
+        ([2, 3], 10, DiscountValueType.FIXED, True, 2),
         ([10, 10], 5, DiscountValueType.FIXED, False, 10),
         ([5, 2], 5, DiscountValueType.FIXED, False, 7),
         ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15),
@@ -244,8 +243,8 @@ def test_get_shipping_voucher_discount(
     "prices, discount_value_type, discount_value, voucher_type, expected_value",
     [  # noqa
         ([5, 10, 15], DiscountValueType.PERCENTAGE, 10, VoucherType.PRODUCT, 3),
-        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.PRODUCT, 2),
-        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.COLLECTION, 2),
+        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.PRODUCT, 6),
+        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.COLLECTION, 6),
     ],
 )
 def test_get_voucher_discount_all_products(
@@ -260,7 +259,6 @@ def test_get_voucher_discount_all_products(
         type=voucher_type,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
-        apply_once_per_order=True,
     )
     voucher.save()
     discount = get_products_voucher_discount(voucher, prices)

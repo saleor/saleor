@@ -849,6 +849,37 @@ def test_get_discount_for_checkout_value_voucher(
     assert discount == Money(discount_amount, "USD")
 
 
+@pytest.mark.parametrize(
+    "discount_value, discount_type, apply_once_per_order, discount_amount",
+    [
+        (5, DiscountValueType.FIXED, True, 5),
+        (5, DiscountValueType.FIXED, False, 15),
+        (10000, DiscountValueType.FIXED, True, 10),
+        (10, DiscountValueType.PERCENTAGE, True, 1),
+        (10, DiscountValueType.PERCENTAGE, False, 5),
+    ],
+)
+def test_get_discount_for_checkout_apply_once_per_order(
+    checkout_with_items,
+    product_list,
+    discount_value,
+    discount_type,
+    apply_once_per_order,
+    discount_amount,
+):
+    voucher = Voucher.objects.create(
+        code="unique",
+        type=VoucherType.PRODUCT,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        apply_once_per_order=apply_once_per_order,
+    )
+    for product in product_list:
+        voucher.products.add(product)
+    discount = get_voucher_discount_for_checkout(voucher, checkout_with_items)
+    assert discount == Money(discount_amount, "USD")
+
+
 def test_get_discount_for_checkout_value_voucher_not_applicable():
     voucher = Voucher(
         code="unique",
