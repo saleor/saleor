@@ -95,7 +95,9 @@ export const productFragmentDetails = gql`
         id
         slug
         name
+        inputType
         values {
+          id
           name
           slug
         }

@@ -1,3 +1,4 @@
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { Omit } from "@material-ui/core";
 import { InputProps } from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -34,17 +35,16 @@ const styles = (theme: Theme) =>
     }
   });
 
+export interface SingleAutocompleteChoiceType {
+  label: string;
+  value: any;
+}
 export interface SingleAutocompleteSelectFieldProps {
   error?: boolean;
   name: string;
-  choices: Array<{
-    label: string;
-    value: any;
-  }>;
-  value?: {
-    label: string;
-    value: any;
-  };
+  displayValue: string;
+  choices: SingleAutocompleteChoiceType[];
+  value?: string;
   disabled?: boolean;
   loading?: boolean;
   placeholder?: string;
@@ -75,6 +75,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
     classes,
     custom,
     disabled,
+    displayValue,
     error,
     helperText,
     label,
@@ -93,7 +94,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
         {debounceFn => (
           <Downshift
             selectedItem={value}
-            itemToString={item => (item ? item.label : "")}
+            itemToString={() => displayValue}
             onSelect={handleChange}
             onInputValueChange={value => debounceFn(value)}
           >
@@ -122,9 +123,13 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                         placeholder
                       }),
                       endAdornment: (
-                        <ArrowDropdownIcon
-                          onClick={disabled ? undefined : toggleMenu}
-                        />
+                        <div>
+                          {loading ? (
+                            <CircularProgress size={20} />
+                          ) : (
+                            <ArrowDropdownIcon onClick={toggleMenu} />
+                          )}
+                        </div>
                       ),
                       error,
                       id: undefined,
@@ -138,18 +143,14 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                   />
                   {isOpen && (
                     <Paper className={classes.paper} square>
-                      {loading ? (
-                        <MenuItem disabled={true} component="div">
-                          {i18n.t("Loading...")}
-                        </MenuItem>
-                      ) : choices.length > 0 || custom ? (
+                      {choices.length > 0 || custom ? (
                         <>
                           {choices.map((suggestion, index) => (
                             <MenuItem
                               key={JSON.stringify(suggestion)}
                               selected={highlightedIndex === index}
                               component="div"
-                              {...getItemProps({ item: suggestion })}
+                              {...getItemProps({ item: suggestion.value })}
                             >
                               {suggestion.label}
                             </MenuItem>
