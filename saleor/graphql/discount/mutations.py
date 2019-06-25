@@ -101,7 +101,7 @@ class VoucherInput(graphene.InputObjectType):
         description="Country codes that can be used with the shipping voucher",
     )
     apply_once_per_order = graphene.Boolean(
-        description="Voucher should be applied to the cheapest item or order"
+        description="Voucher should be applied to the cheapest item or entire order"
     )
 
 

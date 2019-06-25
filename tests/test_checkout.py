@@ -867,14 +867,13 @@ def test_get_discount_for_checkout_apply_once_per_order(
     apply_once_per_order,
     discount_amount,
 ):
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.PRODUCT,
         discount_value_type=discount_type,
         discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
     )
-    voucher.save()
     for product in product_list:
         voucher.products.add(product)
     discount = get_voucher_discount_for_checkout(voucher, checkout_with_items)
