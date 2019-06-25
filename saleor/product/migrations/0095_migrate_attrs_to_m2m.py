@@ -171,4 +171,13 @@ class Migration(migrations.Migration):
             name="value_required",
             field=models.BooleanField(default=False),
         ),
+        migrations.AlterModelOptions(
+            name="attribute",
+            options={"ordering": ("storefront_search_position", "slug")},
+        ),
+        migrations.AddField(
+            model_name="attribute",
+            name="storefront_search_position",
+            field=models.IntegerField(default=0),
+        ),
     ]
