@@ -60,7 +60,7 @@ def calculate_checkout_shipping(
 def calculate_order_shipping(order: "Order") -> TaxedMoney:
     """Calculate shipping price that assigned to order"""
     if settings.VATLAYER_ACCESS_KEY:
-        return calculate_order_shipping(order)
+        return vatlayer_interface.calculate_order_shipping(order)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         return avatax_interface.calculate_order_shipping(order)
     price = order.shipping_method.price

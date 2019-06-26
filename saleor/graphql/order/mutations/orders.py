@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....account.models import User
 from ....core.taxes import ZERO_TAXED_MONEY, interface as tax_interface
 from ....order import events, models
-from ....order.utils import cancel_order
+from ....order.utils import cancel_order, recalculate_order
 from ....payment import CustomPaymentChoices, PaymentError
 from ....payment.utils import (
     clean_mark_order_as_paid,
@@ -182,6 +182,9 @@ class OrderUpdateShipping(BaseMutation):
                 "shipping_price_gross",
             ]
         )
+        # Post-process the results
+        recalculate_order(order)
+
         return OrderUpdateShipping(order=order)
 
 

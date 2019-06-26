@@ -163,7 +163,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        new_instance = bool(instance.pk)
+        new_instance = not bool(instance.pk)
 
         # Process addresses
         cls._save_addresses(info, instance, cleaned_input)
