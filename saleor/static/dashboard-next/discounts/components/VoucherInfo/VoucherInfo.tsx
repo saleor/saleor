@@ -9,13 +9,10 @@ import {
 import TextField from "@material-ui/core/TextField";
 import React from "react";
 
+import Button from "@material-ui/core/Button";
 import CardTitle from "@saleor/components/CardTitle";
-import FormSpacer from "@saleor/components/FormSpacer";
-import SingleSelectField from "@saleor/components/SingleSelectField";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
-import { VoucherType } from "../../../types/globalTypes";
-import { translateVoucherTypes } from "../../translations";
 import { FormData } from "../VoucherDetailsPage";
 
 interface VoucherInfoProps {
@@ -34,7 +31,7 @@ const styles = (theme: Theme) =>
     root: {
       display: "grid",
       gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "1fr 1fr"
+      gridTemplateColumns: "1fr"
     }
   });
 
@@ -49,28 +46,33 @@ const VoucherInfo = withStyles(styles, {
     variant,
     onChange
   }: VoucherInfoProps & WithStyles<typeof styles>) => {
-    const translatedVoucherTypes = translateVoucherTypes();
-    const voucherTypeChoices = Object.values(VoucherType).map(type => ({
-      label: translatedVoucherTypes[type],
-      value: type
-    }));
+    const [generateCode, setGenerateCode] = React.useState();
+    const onGenerateCode = () => {
+      let result = "";
+      const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      for (let i = 0; i < 10; i++) {
+        result += characters.charAt(
+          Math.floor(Math.random() * characters.length)
+        );
+      }
+      setGenerateCode(result);
+    };
 
+    const onChangeInput = event => {
+      setGenerateCode(event.target.value);
+      onChange(event);
+    };
     return (
       <Card>
-        <CardTitle title={i18n.t("General Information")} />
+        <CardTitle
+          title={i18n.t("General Information")}
+          toolbar={
+            <Button color="primary" onClick={onGenerateCode}>
+              {i18n.t("Generate Code")}
+            </Button>
+          }
+        />
         <CardContent>
-          <TextField
-            className={classes.nameInput}
-            disabled={disabled}
-            error={!!errors.name}
-            fullWidth
-            helperText={errors.name}
-            name={"name" as keyof FormData}
-            label={i18n.t("Name")}
-            value={data.name}
-            onChange={onChange}
-          />
-          <FormSpacer />
           <div className={classes.root}>
             <TextField
               disabled={disabled}
@@ -79,18 +81,8 @@ const VoucherInfo = withStyles(styles, {
               helperText={errors.code}
               name={"code" as keyof FormData}
               label={i18n.t("Discount Code")}
-              value={data.code}
-              onChange={onChange}
-            />
-            <SingleSelectField
-              choices={voucherTypeChoices}
-              disabled={disabled || variant === "update"}
-              error={!!errors.type}
-              hint={errors.type}
-              name={"type" as keyof FormData}
-              label={i18n.t("Type of Discount")}
-              value={data.type}
-              onChange={onChange}
+              value={generateCode || data.code}
+              onChange={e => onChangeInput(e)}
             />
           </div>
         </CardContent>
