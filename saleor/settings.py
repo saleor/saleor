@@ -597,18 +597,18 @@ CHECKOUT_PAYMENT_GATEWAYS = {
 PAYMENT_GATEWAYS = {
     DUMMY: {
         "module": "saleor.payment.gateways.dummy",
-        "store_card": False,
         "config": {
             "auto_capture": True,
+            "store_card": False,
             "connection_params": {},
             "template_path": "order/payment/dummy.html",
         },
     },
     BRAINTREE: {
         "module": "saleor.payment.gateways.braintree",
-        "store_card": False,
         "config": {
             "auto_capture": True,
+            "store_card": False,
             "template_path": "order/payment/braintree.html",
             "connection_params": {
                 "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
@@ -620,8 +620,8 @@ PAYMENT_GATEWAYS = {
     },
     RAZORPAY: {
         "module": "saleor.payment.gateways.razorpay",
-        "store_card": False,
         "config": {
+            "store_card": False,
             "auto_capture": None,
             "template_path": "order/payment/razorpay.html",
             "connection_params": {
@@ -635,8 +635,8 @@ PAYMENT_GATEWAYS = {
     },
     STRIPE: {
         "module": "saleor.payment.gateways.stripe",
-        "store_card": False,
         "config": {
+            "store_card": False,
             "auto_capture": True,
             "template_path": "order/payment/stripe.html",
             "connection_params": {

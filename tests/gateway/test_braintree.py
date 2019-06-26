@@ -1,13 +1,11 @@
-from decimal import Decimal
-from unittest.mock import Mock, patch
-
-import pytest
-from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
-from braintree.errors import Errors
-from braintree.exceptions import NotFoundError
-from braintree.validation_error import ValidationError
-from django.core.exceptions import ImproperlyConfigured
-
+import os
+from saleor.payment.utils import create_payment_information
+from saleor.payment.interface import GatewayConfig
+from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
+from saleor.payment.gateways.braintree.errors import (
+    DEFAULT_ERROR_MESSAGE,
+    BraintreeException,
+)
 from saleor.payment.gateways.braintree import (
     CONFIRM_MANUALLY,
     THREE_D_SECURE_REQUIRED,
@@ -24,13 +22,15 @@ from saleor.payment.gateways.braintree import (
     refund,
     void,
 )
-from saleor.payment.gateways.braintree.errors import (
-    DEFAULT_ERROR_MESSAGE,
-    BraintreeException,
-)
-from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
-from saleor.payment.interface import GatewayConfig
-from saleor.payment.utils import create_payment_information
+from django.core.exceptions import ImproperlyConfigured
+from braintree.validation_error import ValidationError
+from braintree.exceptions import NotFoundError
+from braintree.errors import Errors
+from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
+import pytest
+from unittest.mock import MagicMock, Mock, patch
+from decimal import Decimal
+
 
 INCORRECT_TOKEN_ERROR = (
     "Unable to process the transaction. Transaction's token is incorrect " "or expired."
@@ -46,7 +46,7 @@ def braintree_success_response():
         transaction=Mock(
             id="1x02131",
             spec=Transaction,
-            amount=Decimal("0.20"),
+            amount=Decimal("80.00"),
             created_at="2018-10-20 18:34:22",
             credit_card="",  # FIXME we should provide a proper CreditCard mock
             additional_processor_response="",
@@ -92,6 +92,7 @@ def gateway_config():
     return GatewayConfig(
         template_path="template.html",
         auto_capture=False,
+        store_customer=False,
         connection_params={
             "sandbox_mode": False,
             "merchant_id": "123",
@@ -313,6 +314,55 @@ def test_authorize(
     )
 
 
+@pytest.fixture
+def sandbox_braintree_gateway_config(gateway_config):
+    """ To record communication with Braintree sandbox set up your environment variables """
+    gateway_config.connection_params = {
+        "merchant_id": os.getenv("BRAINTREE_MERCHANT_ID", "fake_merchant_id"),
+        "public_key": os.getenv("BRAINTREE_PUBLIC_KEY", "fake_public_key"),
+        "private_key": os.getenv("BRAINTREE_PRIVATE_KEY", "fake_private_key"),
+        "sandbox_mode": True,
+    }
+    gateway_config.auto_capture = True
+    return gateway_config
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_authorize_one_time(
+    payment_dummy, sandbox_braintree_gateway_config, braintree_success_response
+):
+    payment = payment_dummy
+
+    payment_info = create_payment_information(payment, "fake-valid-nonce")
+    sandbox_braintree_gateway_config.auto_capture = False
+
+    response = authorize(payment_info, sandbox_braintree_gateway_config)
+    assert not response.error
+    assert response.kind == TransactionKind.AUTH
+    assert response.amount == braintree_success_response.transaction.amount
+    assert response.currency == braintree_success_response.transaction.currency_iso_code
+    assert response.is_success == True
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_authorize_and_save_customer_id(
+    payment_dummy, sandbox_braintree_gateway_config
+):
+    CUSTOMER_ID = "595109854"  # retrieved from sandbox
+    payment = payment_dummy
+
+    payment_info = create_payment_information(payment, "fake-valid-nonce")
+    payment_info.amount = 100.00
+    payment_info.reuse_source = True
+
+    sandbox_braintree_gateway_config.store_customer = True
+    response = authorize(payment_info, sandbox_braintree_gateway_config)
+    assert not response.error
+    assert response.customer_id == CUSTOMER_ID
+
+
 @pytest.mark.integration
 @patch("saleor.payment.gateways.braintree.get_braintree_gateway")
 def test_refund(
@@ -512,8 +562,3 @@ def test_braintree_payment_form(payment_dummy):
 
     assert isinstance(form, BraintreePaymentForm)
     assert form.is_valid()
-
-
-@pytest.mark.vcr()
-def test_store_card_on_success():
-    pass
