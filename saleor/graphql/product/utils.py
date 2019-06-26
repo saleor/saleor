@@ -23,7 +23,13 @@ def attributes_to_json(attribute_value_input: List[dict], attributes_queryset):
     a dict of IDs. This function transforms the list of `AttributeValueInput`
     objects to this format.
     """
-    attributes_map = {attr.slug: attr for attr in attributes_queryset}
+    attributes_map_by_slug = {}
+    attributes_map_by_id = {}
+
+    for attr in attributes_queryset:
+        attributes_map_by_slug[attr.slug] = attr
+        attributes_map_by_id[attr.id] = attr
+
     attributes_json = defaultdict(list)
     passed_slugs = set()
 
@@ -33,14 +39,20 @@ def attributes_to_json(attribute_value_input: List[dict], attributes_queryset):
             values_map[value.slug] = value.id
 
     for attribute_input in attribute_value_input:
-        attr_slug = attribute_input.get("slug")
-        passed_slugs.add(attr_slug)
-        if attr_slug not in attributes_map:
+        if "slug" in attribute_input:
+            attribute = attributes_map_by_slug.get(attribute_input["slug"])
+        elif "id" in attribute_input:
+            attribute = attributes_map_by_id.get(attribute_input["id"])
+        else:
+            raise ValueError("The value ID or slug was not provided")
+
+        if not attribute:
             raise ValueError(
-                "Attribute %r doesn't belong to given product type." % (attr_slug,)
+                "The given attribute doesn't belong to given product type."
             )
 
-        attribute = attributes_map[attr_slug]  # type: models.Attribute
+        passed_slugs.add(attribute.slug)
+
         values = attribute_input.get("values")
         validate_attribute_input(attribute, values)
 
@@ -56,8 +68,8 @@ def attributes_to_json(attribute_value_input: List[dict], attributes_queryset):
             attributes_json[str(attribute.pk)].append(str(value_id))
 
     # Check that all required attributes were passed
-    for missing_slug in attributes_map.keys() ^ passed_slugs:
-        attribute = attributes_map[missing_slug]  # type: models.Attribute
+    for missing_slug in attributes_map_by_slug.keys() ^ passed_slugs:
+        attribute = attributes_map_by_slug[missing_slug]  # type: models.Attribute
         validate_attribute_input(attribute, [])
 
     return attributes_json
