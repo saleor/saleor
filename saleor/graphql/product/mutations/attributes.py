@@ -1,11 +1,12 @@
 from typing import List
 
 import graphene
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from ....product import AttributeInputType, models
+from ...core.interfaces import MoveOperation
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -13,7 +14,7 @@ from ...core.mutations import (
     ModelMutation,
     UpdateMetaBaseMutation,
 )
-from ...core.utils import from_global_id_strict_type
+from ...core.utils import from_global_id_strict_type, perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
@@ -85,6 +86,16 @@ class AttributeAssignInput(graphene.InputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign")
     type = AttributeTypeEnum(
         required=True, description="The attribute type to be assigned as."
+    )
+
+
+class AttributeReorderInput(graphene.InputObjectType):
+    id = graphene.ID(required=True, description="The ID of the attribute to move")
+    sort_order = graphene.Int(
+        description=(
+            "The relative sorting position of the attribute (from -inf to +inf) "
+            "starting from the first given attribute's actual position."
+        )
     )
 
 
@@ -558,3 +569,61 @@ class AttributeValueDelete(ModelDeleteMutation):
         response = super().success_response(instance)
         response.attribute = instance.attribute
         return response
+
+
+class ProductTypeReorderAttributes(BaseMutation):
+    product_type = graphene.Field(
+        ProductType, description="Product type from which attributes are reordered."
+    )
+
+    class Meta:
+        description = "Reorder the attributes of a product type"
+        permissions = ("product.manage_products",)
+
+    class Arguments:
+        product_type_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of a product type."
+        )
+        type = AttributeTypeEnum(
+            required=True, description="The attribute type to reorder."
+        )
+        moves = graphene.List(
+            AttributeReorderInput,
+            required=True,
+            description="The list of attribute reordering operations.",
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, product_type_id, type, moves):
+        product_type_id = from_global_id_strict_type(
+            info, product_type_id, only_type=ProductType, field="product_type_id"
+        )
+
+        if type == AttributeTypeEnum.PRODUCT:
+            m2m_field = "attributeproduct"
+        else:
+            m2m_field = "attributevariant"
+
+        product_type = models.ProductType.objects.prefetch_related(m2m_field).get(
+            pk=product_type_id
+        )
+
+        attributes_m2m = getattr(product_type, m2m_field)
+        operations = []
+
+        for move_info in moves:
+            attribute_id = from_global_id_strict_type(
+                info, move_info.id, only_type=Attribute, field="moves"
+            )
+
+            try:
+                node = attributes_m2m.get(attribute_id=attribute_id)
+            except ObjectDoesNotExist:
+                raise ValidationError(
+                    {"moves": "Couldn't resolve to an attribute: %s" % move_info.id}
+                )
+
+            operations.append(MoveOperation(node=node, sort_order=move_info.sort_order))
+
+        perform_reordering(operations)
+        return ProductTypeReorderAttributes(product_type=product_type)
