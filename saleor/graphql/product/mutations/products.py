@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -29,6 +29,7 @@ from ...core.utils import (
     from_global_id_strict_type,
     validate_image_file,
 )
+from ...product.types import AttributeValue
 from ..types import (
     Category,
     Collection,
@@ -393,6 +394,11 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 
 class AttributeValueInput(InputObjectType):
+    id = graphene.ID(description="ID of an attribute")
+    name = graphene.String(
+        description="Slug of an attribute",
+        deprecation_reason="name is deprecated, use id instead",
+    )
     slug = graphene.String(required=True, description="Slug of an attribute.")
     values = graphene.List(
         graphene.String, required=True, description="Value of an attribute."
@@ -677,13 +683,33 @@ class ProductVariantCreate(ModelMutation):
         permissions = ("product.manage_products",)
 
     @classmethod
-    def clean_product_type_attributes(cls, attributes_qs, attributes_input):
+    def clean_product_type_attributes(cls, info, attributes_qs, attributes_input):
         # transform attributes_input list to a dict of slug:value pairs
-        attributes_input = {item["slug"]: item["values"] for item in attributes_input}
+        input_slug_map = {}  # type: Dict[str, List[str]]
+        input_id_map = {}  # type: Dict[int, List[str]]
+
+        for attr_input in attributes_input:
+            attr_id = attr_input.get("id", None)
+            slug = attr_input.get("slug", None)
+            values = attr_input["values"]
+
+            if attr_id:
+                attr_id = from_global_id_strict_type(
+                    info, attr_id, only_type=AttributeValue, field="attributes"
+                )
+                input_id_map[attr_id] = values
+            elif slug:
+                input_slug_map[attr_id] = values
+            else:
+                raise ValidationError(
+                    {"attributes": "Please provide a value's identifier."}
+                )
 
         for attr in attributes_qs:
-            value = attributes_input.get(attr.slug, None)
-            if not value:
+            values_by_id = input_id_map.get(attr.id, None)
+            values_by_slug = input_slug_map.get(attr.slug, None)
+
+            if not values_by_id and not values_by_slug:
                 fieldname = "attributes:%s" % attr.slug
                 raise ValidationError({fieldname: "This field cannot be blank."})
 
@@ -702,7 +728,7 @@ class ProductVariantCreate(ModelMutation):
             product_type = product.product_type
             variant_attrs = product_type.variant_attributes.prefetch_related("values")
             try:
-                cls.clean_product_type_attributes(variant_attrs, attributes_input)
+                cls.clean_product_type_attributes(info, variant_attrs, attributes_input)
                 attributes = attributes_to_json(attributes_input, variant_attrs)
             except ValueError as e:
                 raise ValidationError({"attributes": str(e)})
