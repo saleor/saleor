@@ -699,7 +699,7 @@ class ProductVariantCreate(ModelMutation):
                 )
                 input_id_map[attr_id] = values
             elif slug:
-                input_slug_map[attr_id] = values
+                input_slug_map[slug] = values
             else:
                 raise ValidationError(
                     {"attributes": "Please provide a value's identifier."}
