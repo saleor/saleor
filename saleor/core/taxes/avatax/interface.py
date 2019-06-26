@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, List, Union
 from urllib.parse import urljoin
 
+from django.conf import settings
 from prices import Money, TaxedMoney
 
 from ....checkout import models as checkout_models
@@ -134,7 +135,9 @@ def preprocess_order_creation(checkout: "Checkout"):
 def postprocess_order_creation(order: "Order"):
     # FIXME after we introduce plugin architecture, this logic could be a celery task
 
-    data = get_order_tax_data(order, commit=False, force_refresh=True)
+    data = get_order_tax_data(
+        order, commit=settings.AVATAX_AUTOCOMMIT, force_refresh=True
+    )
 
     transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
     api_post_request(transaction_url, data)

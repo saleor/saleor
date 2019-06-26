@@ -356,6 +356,7 @@ AVATAX_CACHE_KEY = os.environ.get("AVATAX_CACHE_KEY", "avatax_request_id_")
 AVATAX_TAX_CODES_CACHE_KEY = os.environ.get(
     "AVATAX_TAX_CODES_CACHE_KEY", "avatax_tax_codes_cache_key"
 )
+AVATAX_AUTOCOMMIT = os.environ.get("AVATAX_AUTOCOMMIT", False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
