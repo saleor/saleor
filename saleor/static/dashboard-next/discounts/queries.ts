@@ -81,7 +81,6 @@ export const saleDetailsFragment = gql`
 export const voucherFragment = gql`
   fragment VoucherFragment on Voucher {
     id
-    name
     startDate
     endDate
     usageLimit
