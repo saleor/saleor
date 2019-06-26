@@ -33,7 +33,7 @@ install:
 
 script:
   - >
-    if [ -n "$DJANGO" ]; then
+    if [ -n "$DJANGO" && "$SKIP_NPM" != yes ]; then
       npm run test
     fi
   - tox
