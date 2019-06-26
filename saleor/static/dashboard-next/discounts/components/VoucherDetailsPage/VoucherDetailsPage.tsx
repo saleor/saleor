@@ -143,7 +143,6 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                 data={data}
                 disabled={disabled}
                 errors={formErrors}
-                variant="update"
                 onChange={change}
               />
               <CardSpacer />
@@ -151,7 +150,6 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                 data={data}
                 disabled={disabled}
                 errors={formErrors}
-                variant="update"
                 onChange={change}
               />
               <CardSpacer />

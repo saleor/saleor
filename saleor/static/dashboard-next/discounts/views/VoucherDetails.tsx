@@ -333,7 +333,6 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                           ? null
                                           : moment(formData.endDate),
 
-                                      name: formData.name,
                                       startDate:
                                         formData.startDate === null
                                           ? null

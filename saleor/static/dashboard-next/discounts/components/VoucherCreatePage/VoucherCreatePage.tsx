@@ -72,7 +72,6 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
                 data={data}
                 errors={formErrors}
                 disabled={disabled}
-                variant="create"
                 onChange={change}
               />
               <CardSpacer />
