@@ -399,7 +399,7 @@ class AttributeValueInput(InputObjectType):
         description="Slug of an attribute",
         deprecation_reason="name is deprecated, use id instead",
     )
-    slug = graphene.String(required=True, description="Slug of an attribute.")
+    slug = graphene.String(description="Slug of an attribute.")
     values = graphene.List(
         graphene.String, required=True, description="Value of an attribute."
     )

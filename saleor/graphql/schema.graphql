@@ -315,7 +315,7 @@ type AttributeValueDelete {
 input AttributeValueInput {
   id: ID
   name: String
-  slug: String!
+  slug: String
   values: [String]!
 }
 
