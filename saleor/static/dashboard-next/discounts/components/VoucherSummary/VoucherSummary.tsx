@@ -32,9 +32,9 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
     <Card>
       <CardTitle title={i18n.t("Summary")} />
       <CardContent>
-        <Typography variant="caption">{i18n.t("Name")}</Typography>
+        <Typography variant="caption">{i18n.t("Code")}</Typography>
         <Typography>
-          {maybe<React.ReactNode>(() => voucher.name, <Skeleton />)}
+          {maybe<React.ReactNode>(() => voucher.code, <Skeleton />)}
         </Typography>
         <FormSpacer />
 

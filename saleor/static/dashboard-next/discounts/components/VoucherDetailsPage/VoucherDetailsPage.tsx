@@ -25,6 +25,7 @@ import DiscountProducts from "../DiscountProducts";
 import VoucherInfo from "../VoucherInfo";
 import VoucherOptions from "../VoucherOptions";
 import VoucherSummary from "../VoucherSummary";
+import VoucherTypes from "../VoucherTypes";
 
 export enum VoucherDetailsPageTab {
   categories = "categories",
@@ -45,7 +46,6 @@ export interface FormData {
   discountType: VoucherDiscountValueType;
   endDate: string;
   minAmountSpent: number;
-  name: string;
   startDate: string;
   type: VoucherType;
   usageLimit: number;
@@ -125,7 +125,6 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
     ),
     endDate: maybe(() => voucher.endDate, ""),
     minAmountSpent: maybe(() => voucher.minAmountSpent.amount, 0),
-    name: maybe(() => voucher.name, ""),
     startDate: maybe(() => voucher.startDate, ""),
     type: maybe(() => voucher.type, VoucherType.ENTIRE_ORDER),
     usageLimit: maybe(() => voucher.usageLimit || 0, 0),
@@ -137,10 +136,18 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container>
           <AppHeader onBack={onBack}>{i18n.t("Vouchers")}</AppHeader>
-          <PageHeader title={maybe(() => voucher.name)} />
+          <PageHeader title={maybe(() => voucher.code)} />
           <Grid>
             <div>
               <VoucherInfo
+                data={data}
+                disabled={disabled}
+                errors={formErrors}
+                variant="update"
+                onChange={change}
+              />
+              <CardSpacer />
+              <VoucherTypes
                 data={data}
                 disabled={disabled}
                 errors={formErrors}
