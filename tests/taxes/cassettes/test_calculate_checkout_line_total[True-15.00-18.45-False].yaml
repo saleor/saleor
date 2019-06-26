@@ -1,0 +1,85 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 3, "amount": "15.00", "taxCode": "PC040156", "taxIncluded":
+      false, "itemCode": "123", "description": ""}], "code": "fed24153-887c-4470-a139-db35f86b0e5c",
+      "date": "2019-06-26", "customerCode": 0, "addresses": {"shipFrom": {"line1":
+      "4371 Lucas Knoll Apt. 791", "line2": "", "city": "BENNETTMOUTH", "region":
+      "", "country": "US", "postalCode": "92614"}, "shipTo": {"line1": "T\u0119czowa
+      7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":
+      "53-601"}}, "commit": false, "currencyCode": "USD", "email": ""}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '637'
+      User-Agent:
+      - python-requests/2.22.0
+    method: POST
+    uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: "{\"id\":0,\"code\":\"fed24153-887c-4470-a139-db35f86b0e5c\",\"companyId\"\
+        :242975,\"date\":\"2019-06-26\",\"paymentDate\":\"2019-06-26\",\"status\"\
+        :\"Temporary\",\"type\":\"SalesOrder\",\"currencyCode\":\"USD\",\"customerVendorCode\"\
+        :\"0\",\"customerCode\":\"0\",\"reconciled\":false,\"totalAmount\":15.0,\"\
+        totalExempt\":0.0,\"totalDiscount\":0.0,\"totalTax\":3.45,\"totalTaxable\"\
+        :15.0,\"totalTaxCalculated\":3.45,\"adjustmentReason\":\"NotAdjusted\",\"\
+        locked\":false,\"version\":1,\"exchangeRateEffectiveDate\":\"2019-06-26\"\
+        ,\"exchangeRate\":1.0,\"email\":\"\",\"modifiedDate\":\"2019-06-26T09:22:52.9171529Z\"\
+        ,\"modifiedUserId\":283192,\"taxDate\":\"2019-06-26T00:00:00\",\"lines\":[{\"\
+        id\":0,\"transactionId\":0,\"lineNumber\":\"1\",\"description\":\"\",\"discountAmount\"\
+        :0.0,\"exemptAmount\":0.0,\"exemptCertId\":0,\"isItemTaxable\":true,\"itemCode\"\
+        :\"123\",\"lineAmount\":15.0,\"quantity\":3.0,\"reportingDate\":\"2019-06-26\"\
+        ,\"tax\":3.45,\"taxableAmount\":15.0,\"taxCalculated\":3.45,\"taxCode\":\"\
+        PC040156\",\"taxCodeId\":6622,\"taxDate\":\"2019-06-26\",\"taxIncluded\":false,\"\
+        details\":[{\"id\":0,\"transactionLineId\":0,\"transactionId\":0,\"country\"\
+        :\"PL\",\"region\":\"PL\",\"exemptAmount\":0.0,\"jurisCode\":\"PL\",\"jurisName\"\
+        :\"POLAND\",\"stateAssignedNo\":\"\",\"jurisType\":\"CNT\",\"jurisdictionType\"\
+        :\"Country\",\"nonTaxableAmount\":0.0,\"rate\":0.230000,\"tax\":3.45,\"taxableAmount\"\
+        :15.0,\"taxType\":\"Output\",\"taxSubTypeId\":\"O\",\"taxName\":\"Standard\
+        \ Rate\",\"taxAuthorityTypeId\":45,\"taxCalculated\":3.45,\"rateType\":\"\
+        Standard\",\"rateTypeCode\":\"S\",\"isNonPassThru\":false}],\"nonPassthroughDetails\"\
+        :[],\"hsCode\":\"\",\"costInsuranceFreight\":0.0,\"vatCode\":\"PLS-2300P--US\"\
+        ,\"vatNumberTypeId\":0}],\"addresses\":[{\"id\":0,\"transactionId\":0,\"boundaryLevel\"\
+        :\"Zip5\",\"line1\":\"T\u0119czowa 7\",\"line2\":\"\",\"line3\":\"\",\"city\"\
+        :\"WROCLAW\",\"region\":\"\",\"postalCode\":\"53-601\",\"country\":\"PL\"\
+        ,\"taxRegionId\":205102,\"latitude\":\"0\",\"longitude\":\"0\"},{\"id\":0,\"\
+        transactionId\":0,\"boundaryLevel\":\"Zip5\",\"line1\":\"4371 Lucas Knoll\
+        \ Apt. 791\",\"line2\":\"\",\"line3\":\"\",\"city\":\"BENNETTMOUTH\",\"region\"\
+        :\"CA\",\"postalCode\":\"92614\",\"country\":\"US\",\"taxRegionId\":4017409,\"\
+        latitude\":\"0\",\"longitude\":\"0\"}],\"summary\":[{\"country\":\"PL\",\"\
+        region\":\"PL\",\"jurisType\":\"Country\",\"jurisCode\":\"PL\",\"jurisName\"\
+        :\"POLAND\",\"taxAuthorityType\":45,\"stateAssignedNo\":\"\",\"taxType\":\"\
+        Output\",\"taxSubType\":\"O\",\"taxName\":\"Standard Rate\",\"rateType\":\"\
+        Standard\",\"taxable\":15.0,\"rate\":0.230000,\"tax\":3.45,\"taxCalculated\"\
+        :3.45,\"nonTaxable\":0.0,\"exemption\":0.0}]}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 26 Jun 2019 09:22:42 GMT
+      Location:
+      - /api/v2/companies/242975/transactions/0
+      Server:
+      - Kestrel
+      ServerDuration:
+      - '00:00:00.0664731'
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - ASP.NET
+    status:
+      code: 201
+      message: Created
+version: 1

@@ -58,7 +58,9 @@ def api_post_request(
     try:
         auth = HTTPBasicAuth(username, password)
         response = requests.post(url, auth=auth, data=json.dumps(data), timeout=2)
+        logger.debug("Hit to Avatax to calculate taxes %s", url)
     except requests.exceptions.RequestException:
+        logger.warning("Fetching taxes failed %s", url)
         return {}
     return response.json()
 
@@ -71,7 +73,9 @@ def api_get_request(
     try:
         auth = HTTPBasicAuth(username, password)
         response = requests.get(url, auth=auth, timeout=2)
+        logger.debug("[GET] Hit to %s", url)
     except requests.exceptions.RequestException:
+        logger.warning("Failed to fetch data from %s", url)
         return {}
     return response.json()
 
@@ -299,7 +303,7 @@ def generate_request_data_from_checkout(
         lines=lines,
         transaction_token=transaction_token or str(checkout.token),
         address=address.as_data(),
-        customer_code=checkout.user.id if checkout.user else None,
+        customer_code=checkout.user.id if checkout.user else 0,
         customer_email=checkout.email,
         commit=commit,
     )
@@ -312,7 +316,6 @@ def get_cached_response_or_fetch(data, token_in_cache, force_refresh=False):
     data_cache_key = settings.AVATAX_CACHE_KEY + token_in_cache
     if taxes_need_new_fetch(data, token_in_cache) or force_refresh:
         transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
-        print("HIT TO API")
         response = api_post_request(transaction_url, data)
         if response and "error" not in response:
             cache.set(data_cache_key, (data, response), settings.AVATAX_CACHE_TIME)

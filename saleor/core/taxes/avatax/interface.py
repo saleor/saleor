@@ -42,11 +42,15 @@ def calculate_checkout_total(
         return TaxedMoney(net=checkout_total, gross=checkout_total)
 
     currency = response.get("currencyCode")
-    tax = Decimal(response.get("totalTax", "0.0"))
-    total_net = Decimal(response.get("totalAmount", "0.0"))
+    tax = Decimal(str(response.get("totalTax", 0.0)))
+    total_net = Decimal(str(response.get("totalAmount", 0.0)))
     total_gross = Money(amount=total_net + tax, currency=currency)
     total_net = Money(amount=total_net, currency=currency)
-    return TaxedMoney(net=total_net, gross=total_gross)
+    total = TaxedMoney(net=total_net, gross=total_gross)
+    voucher_amount = checkout.discount_amount
+    if voucher_amount:
+        total -= voucher_amount
+    return max(total, ZERO_TAXED_MONEY)
 
 
 def calculate_checkout_subtotal(
@@ -66,8 +70,8 @@ def calculate_checkout_subtotal(
     for line in response.get("lines", []):
         if line["itemCode"] == "Shipping":
             continue
-        sub_tax += Decimal(line["tax"])
-        sub_net += Decimal(line.get("lineAmount", "0.0"))
+        sub_tax += Decimal(str(line["tax"]))
+        sub_net += Decimal(str(line.get("lineAmount", 0.0)))
 
     sub_total_gross = Money(sub_net + sub_tax, currency)
     sub_total_net = Money(sub_net, currency)
@@ -90,8 +94,8 @@ def calculate_checkout_shipping(
     currency = response.get("currencyCode")
     for line in response.get("lines", []):
         if line["itemCode"] == "Shipping":
-            shipping_net = Decimal(line["lineAmount"])
-            shipping_tax = Decimal(line["tax"])
+            shipping_net = Decimal(str(line["lineAmount"]))
+            shipping_tax = Decimal(str(line["tax"]))
             break
 
     shipping_gross = Money(amount=shipping_net + shipping_tax, currency=currency)
@@ -144,8 +148,8 @@ def calculate_checkout_line_total(
     currency = taxes_data.get("currencyCode")
     for line in taxes_data.get("lines", []):
         if line.get("itemCode") == checkout_line.variant.sku:
-            tax = Decimal(line.get("tax", "0.0"))
-            line_net = Decimal(line["lineAmount"])
+            tax = Decimal(str(line.get("tax", 0.0)))
+            line_net = Decimal(str(line["lineAmount"]))
             line_gross = Money(amount=line_net + tax, currency=currency)
             line_net = Money(amount=line_net, currency=currency)
             return TaxedMoney(net=line_net, gross=line_gross)
@@ -161,8 +165,8 @@ def calculate_order_line_unit(order_line: "OrderLine"):
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line.get("itemCode") == order_line.variant.sku:
-                tax = Decimal(line.get("tax", "0.0")) / order_line.quantity
-                net = Decimal(line.get("lineAmount", "0.0")) / order_line.quantity
+                tax = Decimal(str(line.get("tax", 0.0))) / order_line.quantity
+                net = Decimal(str(line.get("lineAmount", 0.0))) / order_line.quantity
 
                 gross = Money(amount=net + tax, currency=currency)
                 net = Money(amount=net, currency=currency)
@@ -177,8 +181,8 @@ def calculate_order_shipping(order: "Order"):
     currency = taxes_data.get("currencyCode")
     for line in taxes_data.get("lines", []):
         if line["itemCode"] == "Shipping":
-            tax = Decimal(line.get("tax", "0.0"))
-            net = Decimal(line.get("lineAmount", "0.0"))
+            tax = Decimal(str(line.get("tax", 0.0)))
+            net = Decimal(str(line.get("lineAmount", 0.0)))
             gross = Money(amount=net + tax, currency=currency)
             net = Money(amount=net, currency=currency)
             return TaxedMoney(net=net, gross=gross)
