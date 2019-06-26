@@ -162,6 +162,11 @@ enum AttributeInputTypeEnum {
   MULTISELECT
 }
 
+input AttributeReorderInput {
+  id: ID!
+  sortOrder: Int
+}
+
 scalar AttributeScalar
 
 type AttributeTranslate {
@@ -1596,6 +1601,7 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  productTypeReorderAttributes(moves: [AttributeReorderInput]!, productTypeId: ID!, type: AttributeTypeEnum!): ProductTypeReorderAttributes
   digitalContentCreate(input: DigitalContentUploadInput!, variantId: ID!): DigitalContentCreate
   digitalContentDelete(variantId: ID!): DigitalContentDelete
   digitalContentUpdate(input: DigitalContentInput!, variantId: ID!): DigitalContentUpdate
@@ -2422,6 +2428,11 @@ input ProductTypeInput {
   isDigital: Boolean
   weight: WeightScalar
   taxRate: TaxRateType
+}
+
+type ProductTypeReorderAttributes {
+  errors: [Error!]
+  productType: ProductType
 }
 
 type ProductTypeUpdate {
