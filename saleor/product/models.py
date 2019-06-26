@@ -453,7 +453,7 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
-class AttributeProduct(models.Model):
+class AttributeProduct(SortableModel):
     attribute = models.ForeignKey(
         "Attribute", related_name="attributeproduct", on_delete=models.CASCADE
     )
@@ -461,14 +461,20 @@ class AttributeProduct(models.Model):
         ProductType, related_name="attributeproduct", on_delete=models.CASCADE
     )
 
+    def get_ordering_queryset(self):
+        return self.product_type.attributeproduct.all()
 
-class AttributeVariant(models.Model):
+
+class AttributeVariant(SortableModel):
     attribute = models.ForeignKey(
         "Attribute", related_name="attributevariant", on_delete=models.CASCADE
     )
     product_type = models.ForeignKey(
         ProductType, related_name="attributevariant", on_delete=models.CASCADE
     )
+
+    def get_ordering_queryset(self):
+        return self.product_type.attributevariant.all()
 
 
 class AttributeQuerySet(models.QuerySet):
@@ -495,6 +501,12 @@ class AttributeQuerySet(models.QuerySet):
         if self.user_has_access_to_all(user):
             return self.all()
         return self.get_public_attributes()
+
+    def product_attributes_sorted_for_dashboard(self):
+        return self.order_by(F("attributeproduct__sort_order").asc(nulls_last=True))
+
+    def variant_attributes_sorted_for_dashboard(self):
+        return self.order_by(F("attributevariant__sort_order").asc(nulls_last=True))
 
 
 class Attribute(ModelWithMetadata):

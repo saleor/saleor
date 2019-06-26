@@ -677,14 +677,18 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         return tax.get("code")
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="product_attributes")
+    @gql_optimizer.resolver_hints(
+        prefetch_related="product_attributes__attributeproduct"
+    )
     def resolve_product_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.product_attributes.all()
+        return root.product_attributes.product_attributes_sorted_for_dashboard().all()
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="variant_attributes")
+    @gql_optimizer.resolver_hints(
+        prefetch_related="variant_attributes__attributevariant"
+    )
     def resolve_variant_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.variant_attributes.all()
+        return root.variant_attributes.variant_attributes_sorted_for_dashboard().all()
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
