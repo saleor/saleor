@@ -144,6 +144,20 @@ def address_other_country():
 
 
 @pytest.fixture
+def address_usa():
+    return Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        street_address_1="2000 Main Street",
+        city="Irvine",
+        postal_code="92614",
+        country_area="CA",
+        country="US",
+        phone="",
+    )
+
+
+@pytest.fixture
 def graphql_address_data():
     return {
         "firstName": "John Saleor",
