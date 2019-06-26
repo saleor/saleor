@@ -71,6 +71,7 @@ class AddToCheckoutForm(forms.Form):
         self.product = kwargs.pop("product")
         self.discounts = kwargs.pop("discounts", ())
         self.country = kwargs.pop("country", {})
+        self.taxes = kwargs.pop("taxes", None)
         super().__init__(*args, **kwargs)
 
     def add_error_i18n(self, field, error_name, fmt: Any = tuple()):

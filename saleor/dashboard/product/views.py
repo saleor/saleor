@@ -53,7 +53,10 @@ def product_details(request, pk):
     variants = product.variants.all()
     images = product.images.all()
     availability = get_product_availability(
-        product, discounts=request.discounts, country=request.country
+        product,
+        discounts=request.discounts,
+        country=request.country,
+        taxes=request.taxes,
     )
     sale_price = availability.price_range_undiscounted
     discounted_price = availability.price_range

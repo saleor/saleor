@@ -39,11 +39,15 @@ VariantAvailability = namedtuple(
 )
 
 
-def products_with_availability(products, discounts, country, local_currency):
+def products_with_availability(
+    products, discounts, country, local_currency, taxes=None
+):
     for product in products:
         yield (
             product,
-            get_product_availability(product, discounts, country, local_currency),
+            get_product_availability(
+                product, discounts, country, local_currency, taxes=taxes
+            ),
         )
 
 
@@ -113,17 +117,26 @@ def get_product_availability(
     discounts: Iterable[DiscountInfo] = None,
     country=None,
     local_currency=None,
+    taxes=None,
 ) -> ProductAvailability:
 
     discounted_net_range = product.get_price_range(discounts=discounts)
     undiscounted_net_range = product.get_price_range()
     discounted = TaxedMoneyRange(
-        start=apply_taxes_to_product(product, discounted_net_range.start, country),
-        stop=apply_taxes_to_product(product, discounted_net_range.stop, country),
+        start=apply_taxes_to_product(
+            product, discounted_net_range.start, country, taxes=taxes
+        ),
+        stop=apply_taxes_to_product(
+            product, discounted_net_range.stop, country, taxes=taxes
+        ),
     )
     undiscounted = TaxedMoneyRange(
-        start=apply_taxes_to_product(product, undiscounted_net_range.start, country),
-        stop=apply_taxes_to_product(product, undiscounted_net_range.stop, country),
+        start=apply_taxes_to_product(
+            product, undiscounted_net_range.start, country, taxes=taxes
+        ),
+        stop=apply_taxes_to_product(
+            product, undiscounted_net_range.stop, country, taxes=taxes
+        ),
     )
 
     discount = _get_total_discount(undiscounted, discounted)
@@ -149,12 +162,15 @@ def get_variant_availability(
     discounts: Iterable[DiscountInfo] = None,
     country=None,
     local_currency=None,
+    taxes=None,
 ) -> VariantAvailability:
 
     discounted = apply_taxes_to_product(
-        variant.product, variant.get_price(discounts=discounts), country
+        variant.product, variant.get_price(discounts=discounts), country, taxes=taxes
     )
-    undiscounted = apply_taxes_to_product(variant.product, variant.get_price(), country)
+    undiscounted = apply_taxes_to_product(
+        variant.product, variant.get_price(), country, taxes=taxes
+    )
 
     discount = _get_total_discount(undiscounted, discounted)
 

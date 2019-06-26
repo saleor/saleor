@@ -71,6 +71,7 @@ def handle_checkout_form(request, product, create_checkout=False):
         data=request.POST or None,
         discounts=request.discounts,
         country=request.country,
+        taxes=request.taxes,
     )
     return form, checkout
 
@@ -136,7 +137,11 @@ def get_product_list_context(request, filter_set):
     )
     products_and_availability = list(
         products_with_availability(
-            products_paginated, request.discounts, request.country, request.currency
+            products_paginated,
+            request.discounts,
+            request.country,
+            request.currency,
+            request.taxes,
         )
     )
     now_sorted_by = get_now_sorted_by(filter_set)
