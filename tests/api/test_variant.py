@@ -79,6 +79,10 @@ def test_create_variant(
                         trackInventory: $trackInventory,
                         weight: $weight
                     }) {
+                    errors {
+                      field
+                      message
+                    }
                     productVariant {
                         name
                         sku
@@ -132,8 +136,9 @@ def test_create_variant(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantCreate"]["productVariant"]
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["errors"]
+    data = content["productVariant"]
     assert data["name"] == variant_value
     assert data["quantity"] == quantity
     assert data["costPrice"]["amount"] == cost_price
