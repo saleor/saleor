@@ -16,6 +16,7 @@ class AttributeDescriptions:
 
 
 class AttributeValueDescriptions:
+    ID = "The ID of a value displayed in the interface."
     NAME = "Name of a value displayed in the interface."
     SLUG = "Internal representation of a value (unique per attribute)."
     TYPE = """Type of value (used only when `value` field is set)."""
