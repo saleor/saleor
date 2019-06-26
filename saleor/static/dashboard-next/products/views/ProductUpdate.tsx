@@ -121,7 +121,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         if (product) {
                           if (product.productType.hasVariants) {
                             updateProduct.mutate({
-                              attributes: data.attributes,
+                              attributes: data.attributes.map(attribute => ({
+                                slug: attribute.slug,
+                                values: [attribute.value]
+                              })),
                               basePrice: decimal(data.basePrice),
                               category: data.category.value,
                               chargeTaxes: data.chargeTaxes,
@@ -143,7 +146,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             });
                           } else {
                             updateSimpleProduct.mutate({
-                              attributes: data.attributes,
+                              attributes: data.attributes.map(attribute => ({
+                                slug: attribute.slug,
+                                values: [attribute.value]
+                              })),
                               basePrice: decimal(data.basePrice),
                               category: data.category.value,
                               chargeTaxes: data.chargeTaxes,

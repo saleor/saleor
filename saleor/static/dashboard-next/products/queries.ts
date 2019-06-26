@@ -275,6 +275,7 @@ const productCreateQuery = gql`
           hasVariants
           productAttributes {
             id
+            inputType
             slug
             name
             values {
