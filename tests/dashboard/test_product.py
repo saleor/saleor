@@ -876,7 +876,7 @@ def test_view_attribute_create(admin_client, color_attribute):
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    assert Attribute.objects.count() == 2
+    assert Attribute.objects.count() == 2, "An attribute should have been created"
 
 
 def test_view_attribute_create_not_valid(admin_client, color_attribute):
