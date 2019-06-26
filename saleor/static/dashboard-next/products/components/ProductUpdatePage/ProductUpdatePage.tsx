@@ -19,11 +19,14 @@ import { maybe } from "@saleor/misc";
 import { ListActions, UserError } from "@saleor/types";
 import {
   ProductDetails_product,
-  ProductDetails_product_attributes_attribute,
+  ProductDetails_product_collections,
   ProductDetails_product_images,
   ProductDetails_product_variants
 } from "../../types/ProductDetails";
-import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
+import ProductAttributes, {
+  ProductAttributeInput,
+  ProductAttributeInputData
+} from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
 import ProductOrganization from "../ProductOrganization";
@@ -31,16 +34,18 @@ import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
 
+interface Collection {
+  id: string;
+  label: string;
+}
+
 interface ProductUpdateProps extends ListActions {
   errors: UserError[];
   placeholderImage: string;
   collections: SearchCollections_collections_edges_node[];
   categories: SearchCategories_categories_edges_node[];
   disabled: boolean;
-  productCollections: Array<{
-    id: string;
-    name: string;
-  }>;
+  productCollections: ProductDetails_product_collections[];
   variants: ProductDetails_product_variants[];
   images: ProductDetails_product_images[];
   product: ProductDetails_product;
@@ -58,37 +63,22 @@ interface ProductUpdateProps extends ListActions {
   onImageUpload(file: File);
   onProductShow?();
   onSeoClick?();
-  onSubmit?(data: any);
+  onSubmit?(data: FormData);
   onVariantAdd?();
 }
 
-interface ChoiceType {
-  label: string;
-  value: string;
-}
 export interface FormData {
   attributes: Array<{
     slug: string;
     values: string[];
   }>;
   basePrice: number;
-  category: ChoiceType | null;
+  category: string | null;
   chargeTaxes: boolean;
   collections: string[];
   description: RawDraftContentState;
   isPublished: boolean;
   name: string;
-  productType: {
-    label: string;
-    value: {
-      hasVariants: boolean;
-      id: string;
-      name: string;
-      productAttributes: Array<
-        Exclude<ProductDetails_product_attributes_attribute, "__typename">
-      >;
-    };
-  } | null;
   publicationDate: string;
   seoDescription: string;
   seoTitle: string;
@@ -127,7 +117,9 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   toggleAll,
   toolbar
 }) => {
-  const { change: changeAttributeData, data: attributes } = useFormset(
+  const { change: changeAttributeData, data: attributes } = useFormset<
+    ProductAttributeInputData
+  >(
     maybe(
       (): ProductAttributeInput[] =>
         product.attributes.map(attribute => ({
@@ -142,11 +134,9 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       []
     )
   );
+  const [selectedCategory, setSelectedCategory] = React.useState("");
   const [selectedCollections, setSelectedCollections] = React.useState<
-    Array<{
-      id: string;
-      label: string;
-    }>
+    Collection[]
   >(
     maybe(
       () =>
@@ -172,10 +162,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       []
     ),
     basePrice: maybe(() => product.basePrice.amount, 0),
-    category: {
-      label: maybe(() => product.category.name, ""),
-      value: maybe(() => product.category.id, "")
-    },
+    category: maybe(() => product.category.id),
     chargeTaxes: maybe(() => product.chargeTaxes, false),
     collections: productCollections
       ? productCollections.map(collection => collection.id)
@@ -183,15 +170,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
     description: initialDescription,
     isPublished: maybe(() => product.isPublished, false),
     name: maybe(() => product.name, ""),
-    productType: maybe(() => ({
-      label: product.productType.name,
-      value: {
-        hasVariants: product.productType.hasVariants,
-        id: product.productType.id,
-        name: product.productType.name,
-        productAttributes: product.attributes.map(a => a.attribute)
-      }
-    })),
     publicationDate: maybe(() => product.publicationDate, ""),
     seoDescription: maybe(() => product.seoDescription, ""),
     seoTitle: maybe(() => product.seoTitle, ""),
@@ -265,6 +243,16 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
           } as any);
         };
 
+        const handleCategorySelect = (event: React.ChangeEvent<any>) => {
+          const id = event.target.value;
+          setSelectedCategory(
+            categoryChoiceList.find(category => category.id === id).name
+          );
+          change(event);
+        };
+
+        const handleAttributeValueChange = (event: React.ChangeEvent) => {};
+
         return (
           <>
             <Container>
@@ -291,6 +279,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   <CardSpacer />
                   <ProductAttributes
                     attributes={attributes}
+                    disabled={disabled}
                     onChange={changeAttributeData}
                   />
                   <CardSpacer />
@@ -343,6 +332,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   <ProductOrganization
                     canChangeType={false}
                     categories={categories}
+                    categoryInputDisplayValue={selectedCategory}
                     collectionInputDisplayValue={selectedCollections
                       .map(c => c.label)
                       .join(", ")}
@@ -350,10 +340,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     fetchCategories={fetchCategories}
                     fetchCollections={fetchCollections}
                     collections={collections}
-                    product={product}
+                    productType={maybe(() => product.productType)}
                     data={data}
                     disabled={disabled}
-                    onChange={change}
+                    onCategoryChange={handleCategorySelect}
                     onCollectionChange={handleCollectionSelect}
                   />
                   <CardSpacer />
