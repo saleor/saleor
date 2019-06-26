@@ -1,6 +1,7 @@
 import uuid
 from decimal import Decimal
 from io import BytesIO
+from typing import List
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -346,7 +347,7 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def attribute_list():
+def attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
