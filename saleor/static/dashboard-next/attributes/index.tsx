@@ -34,7 +34,12 @@ const AttributeDetails: React.FC<RouteComponentProps<{ id: string }>> = ({
 }) => {
   const qs = parseQs(location.search.substr(1));
   const params: AttributeUrlQueryParams = qs;
-  return <AttributeDetailsComponent id={match.params.id} params={params} />;
+  return (
+    <AttributeDetailsComponent
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
 };
 
 export const AttributeSection: React.FC = () => (
