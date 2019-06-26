@@ -1303,3 +1303,109 @@ def test_retrieving_the_restricted_attributes_restricted(
 
     assert len(found_attributes) == 1
     assert found_attributes[0]["node"][attribute] == expected_value
+
+
+ATTRIBUTES_RESORT_QUERY = """
+    mutation ProductTypeReorderAttributes(
+      $productTypeId: ID!
+      $moves: [AttributeReorderInput]!
+      $type: AttributeTypeEnum!
+    ) {
+      productTypeReorderAttributes(
+        productTypeId: $productTypeId
+        moves: $moves
+        type: $type
+      ) {
+        productType {
+          variantAttributes {
+            id
+            slug
+          }
+          productAttributes {
+            id
+          }
+        }
+
+        errors {
+          field
+          message
+        }
+      }
+    }
+"""
+
+
+def test_sort_attributes_within_product_type_invalid_id(
+    staff_api_client, permission_manage_products, color_attribute
+):
+    """Try to reorder an attribute not associated to the given product type."""
+
+    product_type = ProductType.objects.create(name="Dummy Type")
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+
+    variables = {
+        "type": "VARIANT",
+        "productTypeId": product_type_id,
+        "moves": [{"id": attribute_id, "sortOrder": 1}],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            ATTRIBUTES_RESORT_QUERY, variables, permissions=[permission_manage_products]
+        )
+    )["data"]["productTypeReorderAttributes"]
+
+    assert content["errors"] == [
+        {
+            "field": "moves",
+            "message": f"Couldn't resolve to an attribute: {attribute_id}",
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    "attribute_type, relation_field, backref_field",
+    (
+        ("VARIANT", "variant_attributes", "attributevariant"),
+        ("PRODUCT", "product_attributes", "attributeproduct"),
+    ),
+)
+def test_sort_variant_attributes_within_product_type(
+    staff_api_client,
+    attribute_list,
+    permission_manage_products,
+    attribute_type,
+    relation_field,
+    backref_field,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(name="Dummy Type")
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    getattr(product_type, relation_field).set(attribute_list)
+
+    variables = {
+        "type": attribute_type,
+        "productTypeId": product_type_id,
+        "moves": [
+            {"id": graphene.Node.to_global_id("Attribute", attr.id), "sortOrder": 0}
+            for attr in attribute_list
+        ],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(ATTRIBUTES_RESORT_QUERY, variables)
+    )["data"]["productTypeReorderAttributes"]
+    assert not content["errors"]
+
+    gql_attributes = content["productType"]["variantAttributes"]
+    current_sort_pos = 0
+    for gql_attr, db_attr in zip(gql_attributes, attribute_list):
+        assert getattr(db_attr, backref_field).last().sort_order == current_sort_pos
+
+        _, gql_attr_id = graphene.Node.from_global_id(gql_attr["id"])
+        assert gql_attr_id == str(db_attr.pk)
+
+        current_sort_pos += 1
