@@ -285,7 +285,11 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_pricing(root: models.ProductVariant, info):
         context = info.context
         availability = get_variant_availability(
-            root, context.discounts, context.country, context.currency
+            root,
+            context.discounts,
+            context.country,
+            context.currency,
+            taxes=context.taxes,
         )
         return VariantPricingInfo(**availability._asdict())
 
@@ -492,7 +496,7 @@ class Product(CountableDjangoObjectType):
     def resolve_pricing(root: models.Product, info):
         context = info.context
         availability = get_product_availability(
-            root, context.discounts, context.country, context.currency
+            root, context.discounts, context.country, context.currency, context.taxes
         )
         return ProductPricingInfo(**availability._asdict())
 
@@ -515,7 +519,7 @@ class Product(CountableDjangoObjectType):
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
         price = tax_interface.apply_taxes_to_product(
-            root, price_range.start, info.context.country
+            root, price_range.start, info.context.country, taxes=info.context.taxes
         )
         return price.net
 

@@ -110,9 +110,13 @@ def calculate_order_line_unit(order_line: "OrderLine"):
     return order_line.unit_price
 
 
-def apply_taxes_to_product(product: "Product", price: Money, country: Country):
+def apply_taxes_to_product(
+    product: "Product", price: Money, country: Country, **kwargs
+):
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.apply_taxes_to_product(product, price, country)
+        return vatlayer_interface.apply_taxes_to_product(
+            product, price, country, **kwargs
+        )
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         return TaxedMoney(net=price, gross=price)
     return TaxedMoney(net=price, gross=price)

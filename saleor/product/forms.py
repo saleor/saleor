@@ -14,11 +14,12 @@ class VariantChoiceField(forms.ModelChoiceField):
     discounts = None
     country = None
     display_gross = True
+    taxes = None
 
     def label_from_instance(self, obj):
         variant_label = smart_text(obj)
         price = apply_taxes_to_product(
-            obj.product, obj.get_price(self.discounts), self.country
+            obj.product, obj.get_price(self.discounts), self.country, taxes=self.taxes
         )
         price = price.gross if self.display_gross else price.net
         label = pgettext_lazy(
@@ -26,11 +27,12 @@ class VariantChoiceField(forms.ModelChoiceField):
         ) % {"variant_label": variant_label, "price": amount(price)}
         return label
 
-    def update_field_data(self, variants, discounts, country):
+    def update_field_data(self, variants, discounts, country, taxes=None):
         """Initialize variant picker metadata."""
         self.queryset = variants
         self.discounts = discounts
         self.country = country
+        self.taxes = taxes
         self.empty_label = None
         self.display_gross = display_gross_prices()
         images_map = {
@@ -52,7 +54,7 @@ class ProductForm(AddToCheckoutForm):
         shipping_address = self.checkout.shipping_address
         country = shipping_address.country if shipping_address else self.country
         variant_field.update_field_data(
-            self.product.variants.all(), self.discounts, country
+            self.product.variants.all(), self.discounts, country, self.taxes
         )
 
     def get_variant(self, cleaned_data):

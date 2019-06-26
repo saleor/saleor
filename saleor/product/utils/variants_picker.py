@@ -18,7 +18,9 @@ def get_variant_picker_data(
     local_currency=None,
     country=None,
 ):
-    availability = get_product_availability(product, discounts, country, local_currency)
+    availability = get_product_availability(
+        product, discounts, country, local_currency, taxes
+    )
     variants = product.variants.all()
     data = {"variantAttributes": [], "variants": []}
 
@@ -29,10 +31,10 @@ def get_variant_picker_data(
 
     for variant in variants:
         price = apply_taxes_to_product(
-            variant.product, variant.get_price(discounts), country
+            variant.product, variant.get_price(discounts), country, taxes=taxes
         )
         price_undiscounted = apply_taxes_to_product(
-            variant.product, variant.get_price(), country
+            variant.product, variant.get_price(), country, taxes=taxes
         )
         if local_currency:
             price_local_currency = to_local_currency(price, local_currency)
@@ -76,7 +78,7 @@ def get_variant_picker_data(
                 }
             )
 
-    product_price = apply_taxes_to_product(product, product.price, country)
+    product_price = apply_taxes_to_product(product, product.price, country, taxes=taxes)
     tax_rates = 0
     if product_price.tax and product_price.net:
         tax_rates = int((product_price.tax / product_price.net) * 100)

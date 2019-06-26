@@ -103,11 +103,16 @@ def get_tax_rate_type_choices() -> List[TaxType]:
 
 
 def apply_taxes_to_product(
-    product: "Product", price: Money, country: Country
+    product: "Product", price: Money, country: Country, **kwargs
 ) -> TaxedMoney:
-    taxes = None
-    if product.charge_taxes and country:
+    taxes = kwargs.get("taxes")
+    if country and not taxes:
+        # FIXME After we introduce plugin architecture, taxes will be cached on the
+        #  plugin level and there will be no need to pass it from view functions.
+        #  This is only temporary approach to limit redis and db hits
         taxes = get_taxes_for_country(country)
+    if not product.charge_taxes:
+        taxes = None
     product_tax_rate = get_tax_from_object_meta(product).code
     tax_rate = product_tax_rate or get_tax_from_object_meta(product.product_type).code
     return apply_tax_to_price(taxes, tax_rate, price)
