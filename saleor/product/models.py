@@ -522,14 +522,14 @@ class Attribute(ModelWithMetadata):
         through_fields=["attribute", "product_type"],
     )
 
-    value_required = models.BooleanField(default=False)
-    is_variant_only = models.BooleanField(default=False)
-    visible_in_storefront = models.BooleanField(default=True)
+    value_required = models.BooleanField(default=False, blank=True)
+    is_variant_only = models.BooleanField(default=False, blank=True)
+    visible_in_storefront = models.BooleanField(default=True, blank=True)
 
-    filterable_in_storefront = models.BooleanField(default=True)
-    filterable_in_dashboard = models.BooleanField(default=True)
+    filterable_in_storefront = models.BooleanField(default=True, blank=True)
+    filterable_in_dashboard = models.BooleanField(default=True, blank=True)
 
-    storefront_search_position = models.IntegerField(default=0)
+    storefront_search_position = models.IntegerField(default=0, blank=True)
 
     objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()
