@@ -35,6 +35,7 @@ from .mutations.attributes import (
     AttributeValueCreate,
     AttributeValueDelete,
     AttributeValueUpdate,
+    ProductTypeReorderAttributes,
 )
 from .mutations.digital_contents import (
     DigitalContentCreate,
@@ -315,6 +316,7 @@ class ProductMutations(graphene.ObjectType):
     product_type_delete = ProductTypeDelete.Field()
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
+    product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
 
     digital_content_create = DigitalContentCreate.Field()
     digital_content_delete = DigitalContentDelete.Field()
