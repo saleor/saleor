@@ -275,14 +275,16 @@ def test_update_product_variant_not_all_attributes(
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "test sku"
-    variant_slug = product_type.variant_attributes.first().slug
+    attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().id
+    )
     variant_value = "test-value"
     product_type.variant_attributes.add(color_attribute)
 
     variables = {
         "id": variant_id,
         "sku": sku,
-        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
+        "attributes": [{"id": attr_id, "values": [variant_value]}],
     }
 
     response = staff_api_client.post_graphql(
@@ -292,7 +294,7 @@ def test_update_product_variant_not_all_attributes(
     content = get_graphql_content(response)
     assert content["data"]["productVariantUpdate"]["errors"]
     assert content["data"]["productVariantUpdate"]["errors"][0]["field"] == (
-        "attributes:color"
+        "attributes"
     )
     assert not product.variants.filter(sku=sku).exists()
 
