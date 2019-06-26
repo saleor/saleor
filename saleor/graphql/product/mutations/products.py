@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -15,6 +15,7 @@ from ....product.thumbnails import (
 )
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.enums import TaxRateType
+from ...core.interfaces import MoveOperation
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -27,6 +28,7 @@ from ...core.types import SeoInput, Upload
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
+    perform_reordering,
     validate_image_file,
 )
 from ...product.types import AttributeValue
@@ -225,11 +227,11 @@ class CollectionReorderProducts(BaseMutation):
         )
 
     @classmethod
-    def get_operations(
-        cls, info, collection_id: int, moves: List[MoveProductInput]
-    ) -> List[Tuple[models.CollectionProduct, int]]:
+    def perform_mutation(cls, _root, info, collection_id, moves):
+        collection = cls.get_node_or_error(
+            info, collection_id, field="collection_id", only_type=Collection
+        )
         operations = []
-        current_rel_pos = None
 
         for move_info in moves:
             product_id = from_global_id_strict_type(
@@ -238,40 +240,16 @@ class CollectionReorderProducts(BaseMutation):
 
             try:
                 node = models.CollectionProduct.objects.get(
-                    product_id=product_id, collection_id=collection_id
+                    product_id=product_id, collection_id=collection.id
                 )
             except models.CollectionProduct.DoesNotExist:
                 raise ValidationError(
                     {"moves": "Couldn't resolve to a product: %s" % product_id}
                 )
 
-            if current_rel_pos is None:
-                # This case happens when products created using a bulk_creation
-                # e.g., bulk_create or collections.add
-                if node.sort_order is None:
-                    current_rel_pos = (
-                        node.get_max_sort_order(node.get_ordering_queryset()) or 0
-                    )
-                else:
-                    current_rel_pos = node.sort_order
-            else:
-                current_rel_pos += 1
+            operations.append(MoveOperation(node=node, sort_order=move_info.sort_order))
 
-            sort_position = max(0, current_rel_pos + move_info.sort_order)
-            operations.append((node, sort_position))
-
-        return operations
-
-    @classmethod
-    def perform_mutation(cls, _root, info, collection_id, moves):
-        collection = cls.get_node_or_error(
-            info, collection_id, field="collection_id", only_type=Collection
-        )
-
-        for node, new_position in cls.get_operations(info, collection.id, moves):
-            node.sort_order = new_position
-            node.save(update_fields=["sort_order"])
-
+        perform_reordering(operations)
         return CollectionReorderProducts(collection=collection)
 
 
