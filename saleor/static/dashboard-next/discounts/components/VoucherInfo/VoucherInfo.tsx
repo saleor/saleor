@@ -19,7 +19,6 @@ interface VoucherInfoProps {
   data: FormData;
   errors: FormErrors<"name" | "code" | "type">;
   disabled: boolean;
-  variant: "create" | "update";
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -43,7 +42,6 @@ const VoucherInfo = withStyles(styles, {
     data,
     disabled,
     errors,
-    variant,
     onChange
   }: VoucherInfoProps & WithStyles<typeof styles>) => {
     const [generateCode, setGenerateCode] = React.useState();

@@ -20,7 +20,6 @@ interface VoucherTypesProps {
   data: FormData;
   errors: FormErrors<"name" | "code" | "type">;
   disabled: boolean;
-  variant: "create" | "update";
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -41,7 +40,6 @@ const VoucherTypes = withStyles(styles, {
     data,
     disabled,
     errors,
-    variant,
     onChange
   }: VoucherTypesProps & WithStyles<typeof styles>) => {
     const translatedVoucherTypes = translateVoucherTypes();

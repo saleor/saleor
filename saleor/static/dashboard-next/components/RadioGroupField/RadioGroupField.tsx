@@ -13,17 +13,17 @@ import i18n from "../../i18n";
 
 const styles = createStyles({
   formControl: {
-    width: "100%",
-    padding: "0 15px"
+    padding: "0 15px",
+    width: "100%"
+  },
+  formLabel: {
+    marginLeft: "-5px",
+    paddingBottom: "10px"
   },
   radioLabel: {
     "& > span": {
       padding: "6px"
     }
-  },
-  formLabel: {
-    marginLeft: "-5px",
-    paddingBottom: "10px"
   }
 });
 
@@ -38,7 +38,6 @@ interface RadioGroupFieldProps extends WithStyles<typeof styles> {
   hint?: string;
   label?: string;
   name?: string;
-  placeholder?: string;
   value?: string;
   onChange(event: any);
 }
@@ -56,17 +55,8 @@ export const RadioGroupField = withStyles(styles, {
     value,
     onChange,
     name,
-    hint,
-    placeholder
+    hint
   }: RadioGroupFieldProps) => {
-    const choicesByKey: { [key: string]: string } =
-      choices === undefined
-        ? {}
-        : choices.reduce((prev, curr) => {
-            prev[curr.value] = curr.label;
-            return prev;
-          }, {});
-
     return (
       <FormControl
         className={classNames(classes.formControl, className)}
@@ -77,7 +67,6 @@ export const RadioGroupField = withStyles(styles, {
         <RadioGroup
           aria-label={name}
           name={name}
-          className={classes.group}
           value={value}
           onChange={onChange}
         >
