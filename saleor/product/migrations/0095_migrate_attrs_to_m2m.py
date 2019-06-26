@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="attribute",
             name="is_variant_only",
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, blank=True),
         ),
         # Rename the foreign keys to backup them before overriding and processing them
         migrations.RenameField(
@@ -154,22 +154,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="attribute",
             name="visible_in_storefront",
-            field=models.BooleanField(default=True),
+            field=models.BooleanField(default=True, blank=True),
         ),
         migrations.AddField(
             model_name="attribute",
             name="filterable_in_dashboard",
-            field=models.BooleanField(default=True),
+            field=models.BooleanField(default=True, blank=True),
         ),
         migrations.AddField(
             model_name="attribute",
             name="filterable_in_storefront",
-            field=models.BooleanField(default=True),
+            field=models.BooleanField(default=True, blank=True),
         ),
         migrations.AddField(
             model_name="attribute",
             name="value_required",
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, blank=True),
         ),
         migrations.AlterModelOptions(
             name="attribute",
@@ -178,6 +178,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="attribute",
             name="storefront_search_position",
-            field=models.IntegerField(default=0),
+            field=models.IntegerField(default=0, blank=True),
         ),
     ]
