@@ -135,7 +135,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               publicationDate:
                                 data.publicationDate !== ""
                                   ? data.publicationDate
-                                  : null
+                                  : null,
+                              seo: {
+                                description: data.seoDescription,
+                                title: data.seoTitle,
+                              }
                             });
                           } else {
                             updateSimpleProduct.mutate({
@@ -158,7 +162,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               publicationDate:
                                 data.publicationDate !== ""
                                   ? data.publicationDate
-                                  : null
+                                  : null,
+                              seo: {
+                                description: data.seoDescription,
+                                title: data.seoTitle,
+                              }
                             });
                           }
                         }

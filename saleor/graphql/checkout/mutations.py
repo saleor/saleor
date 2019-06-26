@@ -1,9 +1,8 @@
-from datetime import date
-
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 
 from ...checkout import models
 from ...checkout.utils import (
@@ -563,7 +562,7 @@ class CheckoutUpdateVoucher(BaseMutation):
 
         if voucher_code:
             try:
-                voucher = voucher_model.Voucher.objects.active(date=date.today()).get(
+                voucher = voucher_model.Voucher.objects.active(date=timezone.now()).get(
                     code=voucher_code
                 )
             except voucher_model.Voucher.DoesNotExist:
@@ -604,7 +603,9 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        add_promo_code_to_checkout(checkout, promo_code)
+        add_promo_code_to_checkout(
+            checkout, promo_code, info.context.discounts, info.context.taxes
+        )
         return CheckoutAddPromoCode(checkout=checkout)
 
 

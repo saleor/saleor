@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Any, List
+
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
 
@@ -32,3 +35,11 @@ class VoucherType:
         ),
         (SHIPPING, pgettext_lazy("Voucher: discount for", "Shipping")),
     ]
+
+
+@dataclass
+class DiscountInfo:
+    sale: Any
+    product_ids: List[int]
+    category_ids: List[int]
+    collection_ids: List[int]

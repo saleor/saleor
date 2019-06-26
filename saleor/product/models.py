@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Iterable
 from uuid import uuid4
 
 from django.conf import settings
@@ -28,6 +29,7 @@ from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils.taxes import apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
+from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -190,7 +192,7 @@ class Product(SeoModel, PublishableModel):
         images = list(self.images.all())
         return images[0] if images else None
 
-    def get_price_range(self, discounts=None, taxes=None):
+    def get_price_range(self, discounts: Iterable[DiscountInfo] = None, taxes=None):
         if self.variants.all():
             prices = [
                 variant.get_price(discounts=discounts, taxes=taxes) for variant in self
@@ -296,7 +298,7 @@ class ProductVariant(models.Model):
             else self.product.price
         )
 
-    def get_price(self, discounts=None, taxes=None):
+    def get_price(self, discounts: Iterable[DiscountInfo] = None, taxes=None):
         price = calculate_discounted_price(self.product, self.base_price, discounts)
         if not self.product.charge_taxes:
             taxes = None

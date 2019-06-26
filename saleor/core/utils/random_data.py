@@ -4,12 +4,12 @@ import random
 import unicodedata
 import uuid
 from collections import defaultdict
-from datetime import date
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
+from django.utils import timezone
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
@@ -25,6 +25,7 @@ from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
+from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...order.models import Fulfillment, Order
@@ -444,9 +445,7 @@ def create_users(how_many=10):
 
 def create_orders(how_many=10):
     taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
-    discounts = Sale.objects.active(date.today()).prefetch_related(
-        "products", "categories", "collections"
-    )
+    discounts = fetch_discounts(timezone.now())
     for dummy in range(how_many):
         order = create_fake_order(discounts, taxes)
         yield "Order: %s" % (order,)
@@ -811,7 +810,8 @@ def create_gift_card():
         [User.objects.filter(is_superuser=False).order_by("?").first()]
     )
     gift_card, created = GiftCard.objects.get_or_create(
-        code="Gift_card_10", user=user, initial_balance=10, current_balance=10
+        code="Gift_card_10",
+        defaults={"user": user, "initial_balance": 10, "current_balance": 10},
     )
     if created:
         yield "Gift card #%d" % gift_card.id

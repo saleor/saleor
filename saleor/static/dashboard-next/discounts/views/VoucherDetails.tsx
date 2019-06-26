@@ -1,5 +1,6 @@
 import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
+import * as moment from "moment-timezone";
 import * as React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
@@ -328,14 +329,15 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                         formData.discountType
                                       ),
                                       endDate:
-                                        formData.endDate === ""
+                                        formData.endDate === null
                                           ? null
-                                          : formData.endDate,
+                                          : moment(formData.endDate),
+
                                       name: formData.name,
                                       startDate:
-                                        formData.startDate === ""
+                                        formData.startDate === null
                                           ? null
-                                          : formData.startDate
+                                          : moment(formData.startDate)
                                     }
                                   }
                                 })

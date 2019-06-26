@@ -292,7 +292,7 @@ LOGGING = {
     "formatters": {
         "verbose": {
             "format": (
-                "%(levelname)s %(name)s %(message)s" " [PID:%(process)d:%(threadName)s]"
+                "%(levelname)s %(name)s %(message)s [PID:%(process)d:%(threadName)s]"
             )
         },
         "simple": {"format": "%(levelname)s %(message)s"},

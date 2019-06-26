@@ -1,6 +1,6 @@
 from collections import namedtuple
 from decimal import Decimal
-from typing import Union
+from typing import Iterable, Union
 
 from prices import TaxedMoneyRange
 
@@ -8,6 +8,7 @@ from saleor.graphql.core.types import MoneyRange
 from saleor.product.models import Product, ProductVariant
 
 from ...core.utils import to_local_currency
+from ...discount import DiscountInfo
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 ProductAvailability = namedtuple(
@@ -37,7 +38,9 @@ VariantAvailability = namedtuple(
 )
 
 
-def products_with_availability(products, discounts, taxes, local_currency):
+def products_with_availability(
+    products, discounts: Iterable[DiscountInfo], taxes, local_currency
+):
     for product in products:
         yield (
             product,
@@ -92,7 +95,7 @@ def _get_total_discount(
 def _get_product_price_range(
     discounted: Union[MoneyRange, TaxedMoneyRange],
     undiscounted: Union[MoneyRange, TaxedMoneyRange],
-    local_currency=None,
+    local_currency: str = None,
 ):
     price_range_local = None
     discount_local_currency = None
@@ -107,7 +110,10 @@ def _get_product_price_range(
 
 
 def get_product_availability(
-    product: Product, discounts=None, taxes=None, local_currency=None
+    product: Product,
+    discounts: Iterable[DiscountInfo] = None,
+    taxes=None,
+    local_currency: str = None,
 ) -> ProductAvailability:
 
     discounted = product.get_price_range(discounts=discounts, taxes=taxes)
@@ -132,7 +138,10 @@ def get_product_availability(
 
 
 def get_variant_availability(
-    variant: ProductVariant, discounts=None, taxes=None, local_currency=None
+    variant: ProductVariant,
+    discounts: Iterable[DiscountInfo] = None,
+    taxes=None,
+    local_currency=None,
 ) -> VariantAvailability:
 
     discounted = variant.get_price(discounts=discounts, taxes=taxes)
