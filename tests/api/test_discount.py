@@ -140,7 +140,6 @@ mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum,
     $discountValue: Decimal, $minAmountSpent: Decimal,
-    $startDate: Date, $endDate: Date, ) {
     $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean) {
         voucherCreate(input: {
                 name: $name, type: $type, code: $code,
