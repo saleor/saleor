@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
+from django.utils import timezone
 from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -497,7 +498,7 @@ def test_view_checkout_place_order_with_expired_voucher_code(
     checkout.shipping_method = shipping_zone.shipping_methods.first()
 
     # set voucher to be expired
-    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    yesterday = timezone.now() - datetime.timedelta(days=1)
     voucher.end_date = yesterday
     voucher.save()
 
@@ -1118,7 +1119,7 @@ def test_checkout_voucher_form_active_queryset_voucher_not_active(
     voucher, request_checkout_with_item
 ):
     assert Voucher.objects.count() == 1
-    voucher.start_date = datetime.date.today() + datetime.timedelta(days=1)
+    voucher.start_date = timezone.now() + datetime.timedelta(days=1)
     voucher.save()
     form = CheckoutVoucherForm(
         {"voucher": voucher.code}, instance=request_checkout_with_item
@@ -1131,7 +1132,7 @@ def test_checkout_voucher_form_active_queryset_voucher_active(
     voucher, request_checkout_with_item
 ):
     assert Voucher.objects.count() == 1
-    voucher.start_date = datetime.date.today()
+    voucher.start_date = timezone.now()
     voucher.save()
     form = CheckoutVoucherForm(
         {"voucher": voucher.code}, instance=request_checkout_with_item
@@ -1144,8 +1145,8 @@ def test_checkout_voucher_form_active_queryset_after_some_time(
     voucher, request_checkout_with_item
 ):
     assert Voucher.objects.count() == 1
-    voucher.start_date = datetime.date(year=2016, month=6, day=1)
-    voucher.end_date = datetime.date(year=2016, month=6, day=2)
+    voucher.start_date = timezone.now().replace(year=2016, month=6, day=1, hour=0)
+    voucher.end_date = timezone.now().replace(year=2016, month=6, day=2, hour=0)
     voucher.save()
 
     with freeze_time("2016-05-31"):
@@ -1154,7 +1155,7 @@ def test_checkout_voucher_form_active_queryset_after_some_time(
         )
         assert form.fields["voucher"].queryset.count() == 0
 
-    with freeze_time("2016-06-01"):
+    with freeze_time("2016-06-01T05:00:00+00:00"):
         form = CheckoutVoucherForm(
             {"voucher": voucher.code}, instance=request_checkout_with_item
         )
@@ -1198,7 +1199,7 @@ def test_get_voucher_for_checkout(checkout_with_voucher, voucher):
 
 
 def test_get_voucher_for_checkout_expired_voucher(checkout_with_voucher, voucher):
-    date_yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    date_yesterday = timezone.now() - datetime.timedelta(days=1)
     voucher.end_date = date_yesterday
     voucher.save()
     checkout_voucher = get_voucher_for_checkout(checkout_with_voucher)
@@ -1234,6 +1235,16 @@ def test_recalculate_checkout_discount(
     assert checkout_with_voucher.discount_amount == Money("10.00", "USD")
 
 
+def test_recalculate_checkout_discount_with_sale(
+    checkout_with_voucher_percentage, discount_info
+):
+    checkout = checkout_with_voucher_percentage
+    recalculate_checkout_discount(checkout, [discount_info], None)
+    assert checkout.discount_amount == Money("1.50", "USD")
+    total = TaxedMoney(net=Money("13.50", "USD"), gross=Money("13.50", "USD"))
+    assert checkout.get_total(discounts=[discount_info]) == total
+
+
 def test_recalculate_checkout_discount_voucher_not_applicable(
     checkout_with_voucher, voucher
 ):
@@ -1250,7 +1261,7 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
 
 def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
     checkout = checkout_with_voucher
-    date_yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    date_yesterday = timezone.now() - datetime.timedelta(days=1)
     voucher.end_date = date_yesterday
     voucher.save()
 

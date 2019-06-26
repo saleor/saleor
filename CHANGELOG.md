@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed internal error when adding a note to an anonymous order - #4319 by @NyanKiyoshi
 - Fix populatedb gift card duplication error - #4336 by @fowczarek
 - Fix voucher apply once per order - #4339 by @fowczarek
+- Change type of start and end date for discounts on date time field - #4293 by @fowczarek
 
 ## 2.7.0
 
