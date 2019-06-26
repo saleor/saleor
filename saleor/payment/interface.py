@@ -70,3 +70,4 @@ class GatewayConfig:
     # Each gateway has different connection data so we are not able to create
     # a unified structure
     connection_params: Dict[str, Any]
+    store_customer: bool = False

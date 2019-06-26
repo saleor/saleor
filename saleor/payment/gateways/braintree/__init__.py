@@ -75,11 +75,13 @@ def extract_gateway_response(braintree_result) -> Dict:
             {"code": error.code, "message": error.message}
             for error in braintree_result.errors.deep_errors
         ]
-    customer_id = None
-
     bt_transaction = braintree_result.transaction
-    if hasattr(bt_transaction, "customer"):
-        customer_id = bt_transaction.id
+
+    try:
+        customer_id = bt_transaction.customer_details.id
+    except:
+        # TODO: hack for legacy tests, remove when vcr data used everywhere
+        customer_id = None
 
     if not bt_transaction:
         return {"errors": errors}

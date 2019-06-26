@@ -129,6 +129,7 @@ def get_payment_gateway(gateway_name):
         auto_capture=gateway_config["auto_capture"],
         template_path=gateway_config["template_path"],
         connection_params=gateway_config["connection_params"],
+        store_customer=gateway_config["store_card"],
     )
 
     return gateway_module, config

@@ -532,3 +532,18 @@ def test_use_customer_id_from_meta_on_client_token_generation(
     assert mock_get_client_token.called_once_with(
         PaymentGatewayEnum.BRAINTREE.name, token_config=token_config_with_customer
     )
+
+
+def test_list_payment_sources(mocker, set_braintree_customer_id, user_api_client):
+    query = """
+    {
+        paymentStoredSources {
+            gateway
+            creditCard {
+                lastDigits
+            }
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query)
+    get_graphql_content(response)
