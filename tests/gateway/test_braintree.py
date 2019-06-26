@@ -364,6 +364,22 @@ def test_authorize_and_save_customer_id(
 
 
 @pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_authorize_with_customer_id(payment_dummy, sandbox_braintree_gateway_config):
+    CUSTOMER_ID = "810066863"  # retrieved from sandbox
+    payment = payment_dummy
+
+    payment_info = create_payment_information(payment, None)
+    payment_info.amount = 100.00
+    payment_info.customer_id = CUSTOMER_ID
+
+    response = authorize(payment_info, sandbox_braintree_gateway_config)
+    assert not response.error
+    assert response.customer_id == CUSTOMER_ID
+    assert response.is_success
+
+
+@pytest.mark.integration
 @patch("saleor.payment.gateways.braintree.get_braintree_gateway")
 def test_refund(
     mock_gateway, payment_txn_captured, braintree_success_response, gateway_config
