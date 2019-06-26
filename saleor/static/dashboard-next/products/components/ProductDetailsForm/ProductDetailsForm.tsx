@@ -7,6 +7,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import { RawDraftContentState } from "draft-js";
 import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
@@ -15,8 +16,6 @@ import RichTextEditor from "@saleor/components/RichTextEditor";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductDetails_product } from "../../types/ProductDetails";
-import { FormData as CreateFormData } from "../ProductCreatePage";
-import { FormData as UpdateFormData } from "../ProductUpdatePage";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -28,7 +27,10 @@ const styles = (theme: Theme) =>
   });
 
 interface ProductDetailsFormProps extends WithStyles<typeof styles> {
-  data: CreateFormData & UpdateFormData;
+  data: {
+    description: RawDraftContentState;
+    name: string;
+  };
   disabled?: boolean;
   errors: { [key: string]: string };
   product?: ProductDetails_product;

@@ -9,7 +9,9 @@ import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
-import ProductCreatePage, { FormData } from "../components/ProductCreatePage";
+import ProductCreatePage, {
+  ProductCreatePageSubmitData
+} from "../components/ProductCreatePage";
 import { TypedProductCreateMutation } from "../mutations";
 import { TypedProductCreateQuery } from "../queries";
 import { ProductCreate } from "../types/ProductCreate";
@@ -55,22 +57,25 @@ export const ProductUpdate: React.StatelessComponent<
                         loading: productCreateDataLoading
                       }
                     ) => {
-                      const handleSubmit = (formData: FormData) => {
+                      const handleSubmit = (
+                        formData: ProductCreatePageSubmitData
+                      ) => {
                         productCreate({
                           variables: {
-                            attributes: formData.attributes,
+                            attributes: formData.attributes.map(attribute => ({
+                              id: attribute.id,
+                              values: [attribute.value]
+                            })),
                             basePrice: decimal(formData.basePrice),
-                            category: formData.category.value,
+                            category: formData.category,
                             chargeTaxes: formData.chargeTaxes,
-                            collections: formData.collections.map(
-                              collection => collection.value
-                            ),
+                            collections: formData.collections,
                             descriptionJson: JSON.stringify(
                               formData.description
                             ),
                             isPublished: formData.isPublished,
                             name: formData.name,
-                            productType: formData.productType.value.id,
+                            productType: formData.productType,
                             publicationDate:
                               formData.publicationDate !== ""
                                 ? formData.publicationDate

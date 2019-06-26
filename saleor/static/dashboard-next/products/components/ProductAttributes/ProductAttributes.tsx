@@ -8,7 +8,6 @@ import makeStyles from "@material-ui/styles/makeStyles";
 import classNames from "classnames";
 import * as React from "react";
 
-import CardSpacer from "@saleor/components/CardSpacer";
 import CardTitle from "@saleor/components/CardTitle";
 import Grid from "@saleor/components/Grid";
 import Hr from "@saleor/components/Hr";
@@ -22,11 +21,15 @@ import { FormsetAtomicData } from "@saleor/hooks/useFormset";
 import i18n from "@saleor/i18n";
 import { ProductDetails_product_attributes_attribute_values } from "@saleor/products/types/ProductDetails";
 import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
+import { maybe } from "@saleor/misc";
 
-export type ProductAttributeInput = FormsetAtomicData<{
+export interface ProductAttributeInputData {
   inputType: AttributeInputTypeEnum;
   values: ProductDetails_product_attributes_attribute_values[];
-}>;
+}
+export type ProductAttributeInput = FormsetAtomicData<
+  ProductAttributeInputData
+>;
 export interface ProductAttributesProps {
   attributes: ProductAttributeInput[];
   disabled: boolean;
@@ -135,11 +138,13 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                     <SingleAutocompleteSelectField
                       choices={getSingleChoices(attribute.data.values)}
                       disabled={disabled}
-                      displayValue={
-                        attribute.data.values.find(
-                          value => value.id === attribute.value
-                        ).name
-                      }
+                      displayValue={maybe(
+                        () =>
+                          attribute.data.values.find(
+                            value => value.id === attribute.value
+                          ).name,
+                        ""
+                      )}
                       name={`attribute:${attribute.label}`}
                       label={i18n.t("Value")}
                       value={attribute.value}
@@ -147,8 +152,16 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                         onChange(attribute.id, event.target.value)
                       }
                     />
-                  ) : // <MultiAutocompleteSelectField choices={getMultiChoices(attribute.data.values)}  label={i18n.t("Values")} value={attribute.value}/>
-                  null}
+                  ) : (
+                    <MultiAutocompleteSelectField
+                      choices={getMultiChoices(attribute.data.values)}
+                      label={i18n.t("Values")}
+                      value={attribute.value}
+                      onChange={event =>
+                        onChange(attribute.id, event.target.value)
+                      }
+                    />
+                  )}
                 </div>
               </Grid>
               <Hr />
