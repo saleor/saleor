@@ -17,6 +17,35 @@ def test_attributes_to_json(product, color_attribute):
     color_value = color_attribute.values.first()
 
     # test transforming slugs of existing attributes to IDs
+    input_data = [{"id": color_attribute.id, "values": [color_value.slug]}]
+    attrs_qs = product.product_type.product_attributes.all()
+    ids = attributes_to_json(input_data, attrs_qs)
+    assert str(color_attribute.pk) in ids
+    assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
+
+    # test creating a new attribute value
+    input_data = [{"id": color_attribute.id, "values": ["Space Grey"]}]
+    ids = attributes_to_json(input_data, attrs_qs)
+    new_value = AttributeValue.objects.get(slug="space-grey")
+    assert str(color_attribute.pk) in ids
+    assert ids[str(color_attribute.pk)] == [str(new_value.pk)]
+
+    # test passing an attribute that doesn't belong to this product raises
+    # an error
+    input_data = [{"id": -1, "values": ["not-a-value"]}]
+    with pytest.raises(ValueError) as exc:
+        attributes_to_json(input_data, attrs_qs)
+    assert exc.value.args == (
+        "The given attribute doesn't belong to given product type.",
+    )
+
+
+# WARNING: Passing by slug will be dropped in a future release
+# This test can be safely removed on the field is dropped.
+def test_attributes_to_json_passing_by_slug(product, color_attribute):
+    color_value = color_attribute.values.first()
+
+    # test transforming slugs of existing attributes to IDs
     input_data = [{"slug": color_attribute.slug, "values": [color_value.slug]}]
     attrs_qs = product.product_type.product_attributes.all()
     ids = attributes_to_json(input_data, attrs_qs)
@@ -32,9 +61,12 @@ def test_attributes_to_json(product, color_attribute):
 
     # test passing an attribute that doesn't belong to this product raises
     # an error
-    input_data = [{"slug": "not-an-attribute", "values": ["not-a-value"]}]
-    with pytest.raises(ValueError):
+    input_data = [{"slug": "no-existing", "values": ["not-a-value"]}]
+    with pytest.raises(ValueError) as exc:
         attributes_to_json(input_data, attrs_qs)
+    assert exc.value.args == (
+        "The given attribute doesn't belong to given product type.",
+    )
 
 
 @pytest.mark.parametrize("input", ([{"slug": "color", "values": []}], []))
@@ -52,8 +84,7 @@ def test_attributes_to_json_missing_required_value(product, color_attribute, inp
 
 
 def test_attributes_to_json_without_values(product, color_attribute):
-    # test transforming slugs of existing attributes to IDs
-    input_data = [{"slug": color_attribute.slug, "values": []}]
+    input_data = [{"id": color_attribute.id, "values": []}]
     attrs_qs = product.product_type.product_attributes.all()
 
     # The attribute should be ignored and raise no error as the value is not required
@@ -71,11 +102,22 @@ def test_attributes_to_json_duplicated_slug(product, color_attribute, size_attri
         slug=color_value.slug, name="Duplicated value", attribute=size_attribute
     )
 
-    input_data = [{"slug": color_attribute.slug, "values": [color_value.slug]}]
+    input_data = [{"id": color_attribute.id, "values": [color_value.slug]}]
     attrs_qs = product.product_type.product_attributes.all()
     ids = attributes_to_json(input_data, attrs_qs)
     assert str(color_attribute.pk) in ids
     assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
+
+
+def test_attributes_to_json_missing_value_getter_raises_error(product):
+    # test transforming slugs of existing attributes to IDs
+    input_data = [{"values": []}]
+    attrs_qs = product.product_type.product_attributes.all()
+
+    with pytest.raises(ValueError) as exc:
+        assert not attributes_to_json(input_data, attrs_qs)
+
+    assert exc.value.args == ("The value ID or slug was not provided",)
 
 
 def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_values):
