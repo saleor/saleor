@@ -45,10 +45,8 @@ env:
     - DIFF_RESULTS_BASE_URL="http://dhrwmpu5reeyd.cloudfront.net"
     - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:
-    - DJANGO="2.2"
-      SKIP_NPM=yes
-    - DJANGO="2.2"
-      SKIP_NPM=no
+    - DJANGO="2.2" SKIP_NPM=yes
+    - DJANGO="2.2" SKIP_NPM=no
     - DJANGO="master"
 
 matrix:
@@ -67,6 +65,10 @@ matrix:
       env: DJANGO="master"
     - python: "3.7"
       env: DJANGO="master"
+    - python: "3.7"
+      env: DJANGO="2.2" SKIP_NPM=no
+    - python: "3.6"
+      env: DJANGO="2.2" SKIP_NPM=no
 
 services:
   - postgresql
