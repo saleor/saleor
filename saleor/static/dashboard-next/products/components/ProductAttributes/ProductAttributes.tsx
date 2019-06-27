@@ -19,9 +19,9 @@ import SingleAutocompleteSelectField, {
 } from "@saleor/components/SingleAutocompleteSelectField";
 import { FormsetAtomicData } from "@saleor/hooks/useFormset";
 import i18n from "@saleor/i18n";
+import { maybe } from "@saleor/misc";
 import { ProductDetails_product_attributes_attribute_values } from "@saleor/products/types/ProductDetails";
 import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
-import { maybe } from "@saleor/misc";
 
 export interface ProductAttributeInputData {
   inputType: AttributeInputTypeEnum;
