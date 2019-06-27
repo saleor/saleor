@@ -318,7 +318,7 @@ def test_authorize(
 def sandbox_braintree_gateway_config(gateway_config):
     """ To record communication with Braintree sandbox set up your environment variables """
     gateway_config.connection_params = {
-        "merchant_id": os.getenv("BRAINTREE_MERCHANT_ID", "fake_merchant_id"),
+        "merchant_id": os.getenv("BRAINTREE_MERCHANT_ID", "9m6qhfxsqzm3cgzw"),
         "public_key": os.getenv("BRAINTREE_PUBLIC_KEY", "fake_public_key"),
         "private_key": os.getenv("BRAINTREE_PRIVATE_KEY", "fake_private_key"),
         "sandbox_mode": True,
