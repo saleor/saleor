@@ -427,30 +427,19 @@ def test_refund_error_response(
 
 
 @pytest.mark.integration
-@patch("saleor.payment.gateways.braintree.get_braintree_gateway")
-def test_capture(
-    mock_gateway, payment_txn_preauth, braintree_success_response, gateway_config
-):
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_capture(payment_txn_preauth, sandbox_braintree_gateway_config):
     payment = payment_txn_preauth
-    amount = Decimal("10.00")
-    mock_response = Mock(return_value=braintree_success_response)
-    mock_gateway.return_value = Mock(
-        transaction=Mock(submit_for_settlement=mock_response)
-    )
+    amount = Decimal("80.00")
 
-    payment_info = create_payment_information(payment, "token", amount)
-    response = capture(payment_info, gateway_config)
+    payment_info = create_payment_information(payment, "m30bcfym", amount)
+    response = capture(payment_info, sandbox_braintree_gateway_config)
     assert not response.error
 
     assert response.kind == TransactionKind.CAPTURE
-    assert response.amount == braintree_success_response.transaction.amount
-    assert response.currency == braintree_success_response.transaction.currency_iso_code
-    assert response.transaction_id == braintree_success_response.transaction.id
-    assert response.is_success == braintree_success_response.is_success
-
-    mock_response.assert_called_once_with(
-        amount=str(amount), transaction_id=payment_info.token
-    )
+    assert response.amount == amount
+    assert response.currency == "EUR"
+    assert response.is_success is True
 
 
 @pytest.mark.integration
