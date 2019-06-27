@@ -99,6 +99,34 @@ def get_variant_prices_from_lines(lines):
     return [line.variant.get_price() for line in lines for item in range(line.quantity)]
 
 
+def get_prices_of_discounted_specific_product(lines, voucher):
+    """Get prices of variants belonging to the discounted specific products.
+
+    Specific products are products, collections and categories.
+    Product must be assigned directly to the discounted category, assigning
+    product to child category won't work.
+    """
+    # If there's no discounted products, collections or categories,
+    # it means that all products are discounted
+    discounted_products = voucher.products.all()
+    discounted_collections = set(voucher.collections.all())
+    discounted_categories = set(voucher.categories.all())
+    if discounted_products or discounted_collections or discounted_categories:
+        lines = (
+            line
+            for line in lines
+            if line.variant
+            and (
+                line.variant.product in discounted_products
+                or set(line.variant.product.collections.all()).intersection(
+                    discounted_collections
+                )
+                or line.variant.product.category in discounted_categories
+            )
+        )
+    return get_variant_prices_from_lines(lines)
+
+
 def get_prices_of_discounted_products(lines, discounted_products):
     """Get prices of variants belonging to the discounted products."""
     # If there's no discounted_products,
@@ -713,9 +741,12 @@ def _get_shipping_voucher_discount_for_checkout(
 
 
 def _get_products_voucher_discount(order_or_checkout, voucher):
-    """Calculate products discount value for a voucher, depending on its type.
-    """
-    if voucher.type == VoucherType.PRODUCT:
+    """Calculate products discount value for a voucher, depending on its type."""
+    if voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        prices = get_prices_of_discounted_specific_product(
+            order_or_checkout.lines.all(), voucher
+        )
+    elif voucher.type == VoucherType.PRODUCT:
         prices = get_prices_of_discounted_products(
             order_or_checkout.lines.all(), voucher.products.all()
         )
@@ -752,6 +783,7 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None, taxes=N
         VoucherType.PRODUCT,
         VoucherType.COLLECTION,
         VoucherType.CATEGORY,
+        VoucherType.SPECIFIC_PRODUCT,
     ):
         return _get_products_voucher_discount(checkout, voucher)
     raise NotImplementedError("Unknown discount type")
