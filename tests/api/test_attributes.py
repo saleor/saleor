@@ -13,31 +13,36 @@ from saleor.product.models import Attribute, AttributeValue, Category, ProductTy
 from tests.api.utils import get_graphql_content
 
 
-def test_attributes_to_json(product, color_attribute):
+def test_attributes_to_json(product, color_attribute, size_attribute):
+    attribute_values_count = AttributeValue.objects.count()
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
     color_value = color_attribute.values.first()
 
     # test transforming slugs of existing attributes to IDs
-    input_data = [{"id": color_attribute.id, "values": [color_value.slug]}]
+    input_data = [{"id": attribute_id, "values": [color_value.slug]}]
     attrs_qs = product.product_type.product_attributes.all()
     ids = attributes_to_json(input_data, attrs_qs)
     assert str(color_attribute.pk) in ids
     assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
+    assert (
+        AttributeValue.objects.count() == attribute_values_count
+    ), "No new values should been created"
 
     # test creating a new attribute value
-    input_data = [{"id": color_attribute.id, "values": ["Space Grey"]}]
+    input_data = [{"id": attribute_id, "values": ["Space Grey"]}]
     ids = attributes_to_json(input_data, attrs_qs)
     new_value = AttributeValue.objects.get(slug="space-grey")
+    attribute_values_count += 1
     assert str(color_attribute.pk) in ids
     assert ids[str(color_attribute.pk)] == [str(new_value.pk)]
 
-    # test passing an attribute that doesn't belong to this product raises
-    # an error
-    input_data = [{"id": -1, "values": ["not-a-value"]}]
-    with pytest.raises(ValueError) as exc:
-        attributes_to_json(input_data, attrs_qs)
-    assert exc.value.args == (
-        "The given attribute doesn't belong to given product type.",
-    )
+    # test passing the newly created value by slug
+    input_data = [{"id": attribute_id, "values": ["space-grey"]}]
+    attributes_to_json(input_data, attrs_qs)
+    assert (
+        AttributeValue.objects.count() == attribute_values_count
+    ), "Only one new value should have been created"
 
 
 # WARNING: Passing by slug will be dropped in a future release
@@ -83,8 +88,37 @@ def test_attributes_to_json_missing_required_value(product, color_attribute, inp
     assert exc.value.args == ("color expects a value but none were given",)
 
 
+def test_attributes_to_json_id_not_in_product_type(product, size_attribute):
+    attrs_qs = product.product_type.product_attributes.all()
+
+    # Pass an id not belonging to the product type
+    input_data = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", size_attribute.pk),
+            "values": ["a-value"],
+        }
+    ]
+    with pytest.raises(ValueError) as exc:
+        attributes_to_json(input_data, attrs_qs)
+    assert exc.value.args == (
+        "The given attribute doesn't belong to given product type.",
+    )
+
+
+def test_attributes_to_json_invalid_id_type(product):
+    attrs_qs = product.product_type.product_attributes.all()
+    invalid_id = graphene.Node.to_global_id("Invalid", 1)
+
+    # Pass an id of invalid type
+    input_data = [{"id": invalid_id, "values": ["a-value"]}]
+    with pytest.raises(ValueError) as exc:
+        attributes_to_json(input_data, attrs_qs)
+    assert exc.value.args == (f"Couldn't resolve to a node: {invalid_id}",)
+
+
 def test_attributes_to_json_without_values(product, color_attribute):
-    input_data = [{"id": color_attribute.id, "values": []}]
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    input_data = [{"id": attribute_id, "values": []}]
     attrs_qs = product.product_type.product_attributes.all()
 
     # The attribute should be ignored and raise no error as the value is not required
@@ -95,6 +129,7 @@ def test_attributes_to_json_duplicated_slug(product, color_attribute, size_attri
     # It's possible to have a value with the same slug but for a different attribute.
     # Ensure that `attributes_to_json` works in that case.
 
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
     color_value = color_attribute.values.first()
 
     # Create a fake duplicated value.
@@ -102,7 +137,7 @@ def test_attributes_to_json_duplicated_slug(product, color_attribute, size_attri
         slug=color_value.slug, name="Duplicated value", attribute=size_attribute
     )
 
-    input_data = [{"id": color_attribute.id, "values": [color_value.slug]}]
+    input_data = [{"id": attribute_id, "values": [color_value.slug]}]
     attrs_qs = product.product_type.product_attributes.all()
     ids = attributes_to_json(input_data, attrs_qs)
     assert str(color_attribute.pk) in ids
