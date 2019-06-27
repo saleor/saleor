@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Sum
+from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
 from prices import TaxedMoneyRange
@@ -691,7 +692,7 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
     return context
 
 
-def _get_shipping_voucher_discount_for_checkout(voucher, checkout):
+def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=None):
     """Calculate discount value for a voucher of shipping type."""
     if not checkout.is_shipping_required():
         msg = pgettext(
@@ -714,13 +715,16 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout):
         raise NotApplicable(msg)
 
     return get_shipping_voucher_discount(
-        voucher, checkout.get_subtotal(), shipping_method.get_total()
+        voucher,
+        calculate_checkout_subtotal(checkout, discounts).gross,
+        calculate_checkout_shipping(checkout, discounts).gross,
     )
 
 
 def _get_products_voucher_discount(order_or_checkout, voucher):
     """Calculate products discount value for a voucher, depending on its type.
     """
+    prices = None
     if voucher.type == VoucherType.PRODUCT:
         prices = get_prices_of_discounted_products(
             order_or_checkout.lines.all(), voucher.products.all()
@@ -741,15 +745,17 @@ def _get_products_voucher_discount(order_or_checkout, voucher):
     return get_products_voucher_discount(voucher, prices)
 
 
-def get_voucher_discount_for_checkout(voucher, checkout):
+def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
     """Calculate discount value depending on voucher and discount types.
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if voucher.type == VoucherType.VALUE:
-        return get_value_voucher_discount(voucher, checkout.get_subtotal())
+        return get_value_voucher_discount(
+            voucher, calculate_checkout_subtotal(checkout, discounts).gross
+        )
     if voucher.type == VoucherType.SHIPPING:
-        return _get_shipping_voucher_discount_for_checkout(voucher, checkout)
+        return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
     if voucher.type in (
         VoucherType.PRODUCT,
         VoucherType.COLLECTION,
@@ -763,7 +769,7 @@ def get_voucher_for_checkout(checkout, vouchers=None, with_lock=False):
     """Return voucher with voucher code saved in checkout if active or None."""
     if checkout.voucher_code is not None:
         if vouchers is None:
-            vouchers = Voucher.objects.active(date=date.today())
+            vouchers = Voucher.objects.active(date=timezone.now())
         try:
             qs = vouchers
             if with_lock:
@@ -783,7 +789,7 @@ def recalculate_checkout_discount(checkout, discounts):
     voucher = get_voucher_for_checkout(checkout)
     if voucher is not None:
         try:
-            discount = get_voucher_discount_for_checkout(voucher, checkout)
+            discount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
@@ -806,42 +812,42 @@ def recalculate_checkout_discount(checkout, discounts):
         remove_voucher_from_checkout(checkout)
 
 
-def add_promo_code_to_checkout(checkout: Checkout, promo_code: str):
+def add_promo_code_to_checkout(checkout: Checkout, promo_code: str, discounts=None):
     """Add gift card or voucher data to checkout.
 
     Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
     """
     if promo_code_is_voucher(promo_code):
-        add_voucher_code_to_checkout(checkout, promo_code)
+        add_voucher_code_to_checkout(checkout, promo_code, discounts)
     elif promo_code_is_gift_card(promo_code):
         add_gift_card_code_to_checkout(checkout, promo_code)
     else:
         raise InvalidPromoCode()
 
 
-def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str):
+def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str, discounts=None):
     """Add voucher data to checkout by code.
 
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
     try:
-        voucher = Voucher.objects.active(date=date.today()).get(code=voucher_code)
+        voucher = Voucher.objects.active(date=timezone.now()).get(code=voucher_code)
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:
-        add_voucher_to_checkout(checkout, voucher)
+        add_voucher_to_checkout(checkout, voucher, discounts)
     except NotApplicable:
         raise ValidationError(
             {"promo_code": "Voucher is not applicable to that checkout."}
         )
 
 
-def add_voucher_to_checkout(checkout: Checkout, voucher: Voucher):
+def add_voucher_to_checkout(checkout: Checkout, voucher: Voucher, discounts=None):
     """Add voucher data to checkout.
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    discount_amount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount_amount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
     checkout.translated_discount_name = (

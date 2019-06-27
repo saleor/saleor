@@ -1,5 +1,4 @@
 import json
-from datetime import date
 from decimal import Decimal
 from unittest.mock import Mock
 
@@ -46,8 +45,8 @@ def test_voucher_shipping_add(admin_client):
     assert voucher.type == VoucherType.SHIPPING
     assert voucher.code == data["code"]
     assert voucher.name == data["name"]
-    assert voucher.start_date == date(2018, 1, 1)
-    assert voucher.end_date == date(2018, 6, 1)
+    assert voucher.start_date.isoformat() == "2018-01-01T06:00:00+00:00"
+    assert voucher.end_date.isoformat() == "2018-06-01T05:00:00+00:00"
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.discount_value == Decimal("15.99")
     assert voucher.min_amount_spent == Money("59.99", "USD")
@@ -257,8 +256,8 @@ def test_voucher_form_min_amount_spent_is_changed_on_edit(
     assert voucher.type == voucher_type
     assert voucher.code == data["code"]
     assert voucher.name == data["name"]
-    assert voucher.start_date == date(2019, 1, 1)
-    assert voucher.end_date == date(2019, 6, 1)
+    assert voucher.start_date.isoformat() == "2019-01-01T06:00:00+00:00"
+    assert voucher.end_date.isoformat() == "2019-06-01T05:00:00+00:00"
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.discount_value == Decimal("15.99")
     assert voucher.min_amount_spent == Money("800", "USD")

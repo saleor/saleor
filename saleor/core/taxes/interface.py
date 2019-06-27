@@ -53,7 +53,7 @@ def calculate_checkout_shipping(
         return vatlayer_interface.calculate_checkout_shipping(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         return avatax_interface.calculate_checkout_shipping(checkout, discounts)
-    total = checkout.shipping_method.get_total()
+    total = checkout.get_shipping_price()
     return TaxedMoney(net=total, gross=total)
 
 

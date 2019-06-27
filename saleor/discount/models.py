@@ -1,10 +1,10 @@
-from datetime import date
 from decimal import Decimal
 from functools import partial
 
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
+from django.utils import timezone
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
@@ -50,8 +50,8 @@ class Voucher(models.Model):
     code = models.CharField(max_length=12, unique=True, db_index=True)
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
     used = models.PositiveIntegerField(default=0, editable=False)
-    start_date = models.DateField(default=date.today)
-    end_date = models.DateField(null=True, blank=True)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(null=True, blank=True)
     # this field indicates if discount should be applied per order or
     # individually to every item
     apply_once_per_order = models.BooleanField(default=False)
@@ -184,8 +184,8 @@ class Sale(models.Model):
     products = models.ManyToManyField("product.Product", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
     collections = models.ManyToManyField("product.Collection", blank=True)
-    start_date = models.DateField(default=date.today)
-    end_date = models.DateField(null=True, blank=True)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(null=True, blank=True)
 
     objects = SaleQueryset.as_manager()
     translated = TranslationProxy()
