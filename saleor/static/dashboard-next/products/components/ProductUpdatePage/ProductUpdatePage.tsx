@@ -39,7 +39,7 @@ interface Collection {
   label: string;
 }
 
-interface ProductUpdateProps extends ListActions {
+interface ProductUpdatePageProps extends ListActions {
   errors: UserError[];
   placeholderImage: string;
   collections: SearchCollections_collections_edges_node[];
@@ -63,15 +63,11 @@ interface ProductUpdateProps extends ListActions {
   onImageUpload(file: File);
   onProductShow?();
   onSeoClick?();
-  onSubmit?(data: FormData);
+  onSubmit?(data: ProductUpdatePageSubmitData);
   onVariantAdd?();
 }
 
 export interface FormData {
-  attributes: Array<{
-    slug: string;
-    values: string[];
-  }>;
   basePrice: number;
   category: string | null;
   chargeTaxes: boolean;
@@ -85,8 +81,11 @@ export interface FormData {
   sku: string;
   stockQuantity: number;
 }
+export interface ProductUpdatePageSubmitData extends FormData {
+  attributes: ProductAttributeInput[];
+}
 
-export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
+export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   disabled,
   categories: categoryChoiceList,
   collections: collectionChoiceList,
@@ -129,7 +128,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
           },
           id: attribute.attribute.id,
           label: attribute.attribute.name,
-          value: attribute.value.id
+          value: attribute.value.slug
         })),
       []
     )
@@ -153,14 +152,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   );
 
   const initialData: FormData = {
-    attributes: maybe(
-      () =>
-        product.attributes.map(a => ({
-          slug: a.attribute.slug,
-          values: a.value ? [a.value.slug] : null
-        })),
-      []
-    ),
     basePrice: maybe(() => product.basePrice.amount, 0),
     category: maybe(() => product.category.id),
     chargeTaxes: maybe(() => product.chargeTaxes, false),
@@ -188,28 +179,34 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         : 0
     )
   };
-  const categories =
-    categoryChoiceList !== undefined
-      ? categoryChoiceList.map(category => ({
-          label: category.name,
-          value: category.id
-        }))
-      : [];
-  const collections =
-    collectionChoiceList !== undefined
-      ? collectionChoiceList.map(collection => ({
-          label: collection.name,
-          value: collection.id
-        }))
-      : [];
-  const currency =
-    product && product.basePrice ? product.basePrice.currency : undefined;
-  const hasVariants =
-    product && product.productType && product.productType.hasVariants;
+  const categories = maybe(
+    () =>
+      categoryChoiceList.map(collection => ({
+        label: collection.name,
+        value: collection.id
+      })),
+    []
+  );
+  const collections = maybe(
+    () =>
+      collectionChoiceList.map(collection => ({
+        label: collection.name,
+        value: collection.id
+      })),
+    []
+  );
+  const currency = maybe(() => product.basePrice.currency);
+  const hasVariants = maybe(() => product.productType.hasVariants, false);
+
+  const handleSubmit = (data: FormData) =>
+    onSubmit({
+      attributes,
+      ...data
+    });
 
   return (
     <Form
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       errors={userErrors}
       initial={initialData}
       confirmLeave
@@ -250,8 +247,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
           );
           change(event);
         };
-
-        const handleAttributeValueChange = (event: React.ChangeEvent) => {};
 
         return (
           <>
@@ -369,5 +364,5 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
     </Form>
   );
 };
-ProductUpdate.displayName = "ProductUpdate";
-export default ProductUpdate;
+ProductUpdatePage.displayName = "ProductUpdatePage";
+export default ProductUpdatePage;
