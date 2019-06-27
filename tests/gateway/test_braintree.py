@@ -342,7 +342,7 @@ def test_authorize_one_time(
     assert response.kind == TransactionKind.AUTH
     assert response.amount == braintree_success_response.transaction.amount
     assert response.currency == braintree_success_response.transaction.currency_iso_code
-    assert response.is_success == True
+    assert response.is_success is True
 
 
 @pytest.mark.integration
