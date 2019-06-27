@@ -11,11 +11,24 @@ import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import SeoForm from "@saleor/components/SeoForm";
 import VisibilityCard from "@saleor/components/VisibilityCard";
+import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
+import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
 import useFormset from "@saleor/hooks/useFormset";
+import {
+  Collection,
+  getAttributeInputFromProductType,
+  getChoices,
+  ProductType
+} from "@saleor/products/utils/data";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
+import {
+  createAttributeChangeHandler,
+  createCategorySelectHandler,
+  createCollectionSelectHandler,
+  createProductTypeSelectHandler
+} from "../../utils/handlers";
 import ProductAttributes, {
   ProductAttributeInput,
   ProductAttributeInputData
@@ -25,16 +38,6 @@ import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 
-interface Collection {
-  id: string;
-  label: string;
-}
-interface ProductType {
-  hasVariants: boolean;
-  id: string;
-  name: string;
-  productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
-}
 interface FormData {
   basePrice: number;
   publicationDate: string;
@@ -56,15 +59,9 @@ export interface ProductCreatePageSubmitData extends FormData {
 
 interface ProductCreatePageProps {
   errors: UserError[];
-  collections?: Array<{
-    id: string;
-    name: string;
-  }>;
+  collections: SearchCollections_collections_edges_node[];
+  categories: SearchCategories_categories_edges_node[];
   currency: string;
-  categories?: Array<{
-    id: string;
-    name: string;
-  }>;
   disabled: boolean;
   productTypes?: Array<{
     id: string;
@@ -109,20 +106,9 @@ export const ProductCreatePage: React.StatelessComponent<
   const [selectedCollections, setSelectedCollections] = React.useState<
     Collection[]
   >([]);
-  const { change: changeAttributeData, data: attributes } = useFormset<
-    ProductAttributeInputData
-  >(
-    productType.productAttributes.map(attribute => ({
-      data: {
-        inputType: attribute.inputType,
-        values: attribute.values
-      },
-      id: attribute.id,
-      label: attribute.name,
-      value: ""
-    }))
+  const { change: changeAttributeData, data: attributes } = useFormset(
+    getAttributeInputFromProductType(productType)
   );
-
   const initialData: FormData = {
     basePrice: 0,
     category: "",
@@ -139,30 +125,9 @@ export const ProductCreatePage: React.StatelessComponent<
     stockQuantity: null
   };
 
-  const categories = maybe(
-    () =>
-      categoryChoiceList.map(collection => ({
-        label: collection.name,
-        value: collection.id
-      })),
-    []
-  );
-  const collections = maybe(
-    () =>
-      collectionChoiceList.map(collection => ({
-        label: collection.name,
-        value: collection.id
-      })),
-    []
-  );
-  const productTypes = maybe(
-    () =>
-      productTypeChoiceList.map(pt => ({
-        label: pt.name,
-        value: pt.id
-      })),
-    []
-  );
+  const categories = getChoices(categoryChoiceList);
+  const collections = getChoices(collectionChoiceList);
+  const productTypes = getChoices(productTypeChoiceList);
 
   const handleSubmit = (data: FormData) =>
     onSubmit({
@@ -177,60 +142,29 @@ export const ProductCreatePage: React.StatelessComponent<
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, submit }) => {
-        const handleCollectionSelect = (event: React.ChangeEvent<any>) => {
-          const id = event.target.value;
-          const collectionIndex = data.collections.indexOf(id);
-          const collectionList =
-            collectionIndex === -1
-              ? [
-                  ...selectedCollections,
-                  {
-                    id,
-                    label: collectionChoiceList.find(
-                      collection => collection.id === id
-                    ).name
-                  }
-                ]
-              : [
-                  ...selectedCollections.slice(0, collectionIndex),
-                  ...selectedCollections.slice(collectionIndex + 1)
-                ];
+      {({ change, data, errors, hasChanged, submit, triggerChange }) => {
+        const handleCollectionSelect = createCollectionSelectHandler(
+          data,
+          collections,
+          selectedCollections,
+          setSelectedCollections,
+          change
+        );
+        const handleCategorySelect = createCategorySelectHandler(
+          categoryChoiceList,
+          setSelectedCategory,
+          change
+        );
+        const handleAttributeChange = createAttributeChangeHandler(
+          changeAttributeData,
+          triggerChange
+        );
 
-          setSelectedCollections(collectionList);
-          change({
-            target: {
-              name: "collections",
-              value: collectionList.map(collection => collection.id)
-            }
-          } as any);
-        };
-
-        const handleCategorySelect = (event: React.ChangeEvent<any>) => {
-          const id = event.target.value;
-          setSelectedCategory(
-            categoryChoiceList.find(category => category.id === id).name
-          );
-          change(event);
-        };
-
-        const handleProductTypeChange = (event: React.ChangeEvent<any>) => {
-          const id = event.target.value;
-          const selectedProductType = productTypeChoiceList.find(
-            productType => productType.id === id
-          );
-          setProductType(selectedProductType);
-          change(event);
-          change({
-            target: {
-              name: "attributes",
-              value: selectedProductType.productAttributes.map(attribute => ({
-                slug: attribute.slug,
-                value: ""
-              }))
-            }
-          } as any);
-        };
+        const handleProductTypeSelect = createProductTypeSelectHandler(
+          productTypeChoiceList,
+          setProductType,
+          change
+        );
 
         return (
           <Container>
@@ -249,7 +183,7 @@ export const ProductCreatePage: React.StatelessComponent<
                 <ProductAttributes
                   attributes={attributes}
                   disabled={disabled}
-                  onChange={changeAttributeData}
+                  onChange={handleAttributeChange}
                 />
                 <CardSpacer />
                 <ProductPricing
@@ -302,7 +236,7 @@ export const ProductCreatePage: React.StatelessComponent<
                     .join(", ")}
                   onCategoryChange={handleCategorySelect}
                   onCollectionChange={handleCollectionSelect}
-                  onProductTypeChange={handleProductTypeChange}
+                  onProductTypeChange={handleProductTypeSelect}
                 />
                 <CardSpacer />
                 <VisibilityCard
