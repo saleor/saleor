@@ -1,5 +1,4 @@
 import logging
-from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING, List, Union
 from urllib.parse import urljoin
@@ -8,7 +7,6 @@ from django.conf import settings
 from prices import Money, TaxedMoney
 
 from ....checkout import models as checkout_models
-from ....discount.models import Sale
 from .. import ZERO_TAXED_MONEY, TaxType
 from ..errors import TaxError
 from . import (
@@ -104,13 +102,10 @@ def calculate_checkout_shipping(
     return TaxedMoney(net=shipping_net, gross=shipping_gross)
 
 
-def preprocess_order_creation(checkout: "Checkout"):
+def preprocess_order_creation(checkout: "Checkout", discounts: List["DiscountInfo"]):
     """Confirm that all data is correct and we can proceed with creation of order.
     Raise error when can't receive taxes"""
 
-    discounts = Sale.objects.active(date.today()).prefetch_related(
-        "products", "categories", "collections"
-    )
     data = generate_request_data_from_checkout(
         checkout,
         transaction_token=str(checkout.token),
@@ -147,6 +142,9 @@ def calculate_checkout_line_total(
     checkout_line: "checkout_models.CheckoutLine", discounts: List["DiscountInfo"]
 ):
     checkout = checkout_line.checkout
+    total = checkout_line.get_total(discounts)
+    if not validate_checkout(checkout):
+        return TaxedMoney(net=total, gross=total)
     taxes_data = get_checkout_tax_data(checkout, discounts)
     currency = taxes_data.get("currencyCode")
     for line in taxes_data.get("lines", []):

@@ -2,12 +2,17 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
+from django.utils.translation import pgettext
 
 from ...checkout import AddressType
-from ...checkout.utils import _get_products_voucher_discount
 from ...core.taxes import ZERO_MONEY
 from ...discount import VoucherType
-from ...discount.utils import get_shipping_voucher_discount, get_value_voucher_discount
+from ...discount.models import NotApplicable
+from ...discount.utils import (
+    get_products_voucher_discount,
+    get_shipping_voucher_discount,
+    get_value_voucher_discount,
+)
 
 INVOICE_TEMPLATE = "dashboard/order/pdf/invoice.html"
 PACKING_SLIP_TEMPLATE = "dashboard/order/pdf/packing_slip.html"
@@ -73,6 +78,71 @@ def update_order_with_user_addresses(order):
     order.save(update_fields=["billing_address", "shipping_address"])
 
 
+def get_prices_of_discounted_products(order, discounted_products):
+    """Get prices of variants belonging to the discounted products."""
+    line_prices = []
+    if discounted_products:
+        for line in order:
+            if line.variant.product in discounted_products:
+                line_prices.extend([line.unit_price_gross] * line.quantity)
+    return line_prices
+
+
+def get_prices_of_products_in_discounted_collections(order, discounted_collections):
+    """Get prices of variants belonging to the discounted collections."""
+    line_prices = []
+    if discounted_collections:
+        for line in order:
+            if not line.variant:
+                continue
+            product_collections = line.variant.product.collections.all()
+            if set(product_collections).intersection(discounted_collections):
+                line_prices.extend([line.unit_price_gross] * line.quantity)
+    return line_prices
+
+
+def get_prices_of_products_in_discounted_categories(order, discounted_categories):
+    """Get prices of variants belonging to the discounted categories.
+
+    Product must be assigned directly to the discounted category, assigning
+    product to child category won't work.
+    """
+    # If there's no discounted collections,
+    # it means that all of them are discounted
+    line_prices = []
+    if discounted_categories:
+        discounted_categories = set(discounted_categories)
+        for line in order:
+            if not line.variant:
+                continue
+            product_category = line.variant.product.category
+            if product_category in discounted_categories:
+                line_prices.extend([line.unit_price_gross] * line.quantity)
+    return line_prices
+
+
+def get_products_voucher_discount_for_order(order, voucher):
+    """Calculate products discount value for a voucher, depending on its type.
+    """
+    prices = None
+    if voucher.type == VoucherType.PRODUCT:
+        prices = get_prices_of_discounted_products(order, voucher.products.all())
+    elif voucher.type == VoucherType.COLLECTION:
+        prices = get_prices_of_products_in_discounted_collections(
+            order, voucher.collections.all()
+        )
+    elif voucher.type == VoucherType.CATEGORY:
+        prices = get_prices_of_products_in_discounted_categories(
+            order, voucher.categories.all()
+        )
+    if not prices:
+        msg = pgettext(
+            "Voucher not applicable", "This offer is only valid for selected items."
+        )
+        raise NotApplicable(msg)
+    return get_products_voucher_discount(voucher, prices)
+
+
 def get_voucher_discount_for_order(order):
     """Calculate discount value depending on voucher and discount types.
 
@@ -92,7 +162,7 @@ def get_voucher_discount_for_order(order):
         VoucherType.COLLECTION,
         VoucherType.CATEGORY,
     ):
-        return _get_products_voucher_discount(order, order.voucher)
+        return get_products_voucher_discount_for_order(order, order.voucher)
     raise NotImplementedError("Unknown discount type")
 
 
