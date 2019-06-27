@@ -242,8 +242,8 @@ export interface AddressInput {
 }
 
 export interface AttributeAssignInput {
-  attributeId: string;
-  attributeType: AttributeTypeEnum;
+  id: string;
+  type: AttributeTypeEnum;
 }
 
 export interface AttributeCreateInput {
