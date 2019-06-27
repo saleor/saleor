@@ -90,6 +90,7 @@ def get_voucher_discount_for_order(order):
         VoucherType.PRODUCT,
         VoucherType.COLLECTION,
         VoucherType.CATEGORY,
+        VoucherType.SPECIFIC_PRODUCT,
     ):
         return _get_products_voucher_discount(order, order.voucher)
     raise NotImplementedError("Unknown discount type")
