@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add SPECIFIC_PRODUCT type to VoucherTypes - #4344 by @fowczarek
 - Use "esModuleInterop" flag in tsconfig to simplify imports - #4372 by @dominik-zeglen
 - Use hooks instead of class component in forms - #4374 by @dominik-zeglen
+- Drop csrf token header from API client - #4357 by @dominik-zeglen
 
 ## 2.7.0
 
