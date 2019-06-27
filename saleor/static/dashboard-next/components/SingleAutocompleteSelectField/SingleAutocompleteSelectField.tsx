@@ -1,5 +1,5 @@
-import CircularProgress from "@material-ui/core/CircularProgress";
 import { Omit } from "@material-ui/core";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { InputProps } from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
