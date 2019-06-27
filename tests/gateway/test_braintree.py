@@ -1,21 +1,14 @@
-from decimal import Decimal
 import os
+from decimal import Decimal
 from unittest.mock import Mock, patch
+
 import pytest
-
-from django.core.exceptions import ImproperlyConfigured
-from braintree.validation_error import ValidationError
-from braintree.exceptions import NotFoundError
-from braintree.errors import Errors
 from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
+from braintree.errors import Errors
+from braintree.exceptions import NotFoundError
+from braintree.validation_error import ValidationError
+from django.core.exceptions import ImproperlyConfigured
 
-from saleor.payment.utils import create_payment_information
-from saleor.payment.interface import GatewayConfig, TokenConfig
-from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
-from saleor.payment.gateways.braintree.errors import (
-    DEFAULT_ERROR_MESSAGE,
-    BraintreeException,
-)
 from saleor.payment.gateways.braintree import (
     TransactionKind,
     authorize,
@@ -29,6 +22,13 @@ from saleor.payment.gateways.braintree import (
     refund,
     void,
 )
+from saleor.payment.gateways.braintree.errors import (
+    DEFAULT_ERROR_MESSAGE,
+    BraintreeException,
+)
+from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
+from saleor.payment.interface import GatewayConfig, TokenConfig
+from saleor.payment.utils import create_payment_information
 
 INCORRECT_TOKEN_ERROR = (
     "Unable to process the transaction. Transaction's token is incorrect " "or expired."
@@ -47,6 +47,7 @@ def braintree_success_response():
             amount=Decimal("80.00"),
             created_at="2018-10-20 18:34:22",
             credit_card="",  # FIXME we should provide a proper CreditCard mock
+            customer_details=Mock(id=None),
             additional_processor_response="",
             gateway_rejection_reason="",
             processor_response_code="1000",

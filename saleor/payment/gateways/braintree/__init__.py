@@ -77,12 +77,6 @@ def extract_gateway_response(braintree_result) -> Dict:
         ]
     bt_transaction = braintree_result.transaction
 
-    try:
-        customer_id = bt_transaction.customer_details.id
-    except:
-        # TODO: hack for legacy tests, remove when vcr data used everywhere
-        customer_id = None
-
     if not bt_transaction:
         return {"errors": errors}
     return {
@@ -90,7 +84,7 @@ def extract_gateway_response(braintree_result) -> Dict:
         "currency": bt_transaction.currency_iso_code,
         "amount": bt_transaction.amount,  # Decimal type
         "credit_card": bt_transaction.credit_card,
-        "customer_id": customer_id,
+        "customer_id": bt_transaction.customer_details.id,
         "errors": errors,
     }
 
