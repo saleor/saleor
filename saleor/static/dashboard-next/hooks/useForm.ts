@@ -12,14 +12,17 @@ export interface ChangeEvent<TName = string, TData = any> {
   };
 }
 
+export type FormChange = (event: ChangeEvent<T>, cb?: () => void) => void;
+
 export interface UseFormResult<T> {
-  change: (event: ChangeEvent<T>, cb?: () => void) => void;
+  change: FormChange;
   data: T;
   errors: Record<string, string>;
   hasChanged: boolean;
   reset: () => void;
   set: (data: T) => void;
   submit: () => void;
+  triggerChange: () => void;
   toggleValue: (event: ChangeEvent<T>) => void;
 }
 
@@ -87,6 +90,10 @@ function useForm<T extends Record<keyof T, any | any[]>>(
     return onSubmit(data);
   }
 
+  function triggerChange() {
+    setChanged(true);
+  }
+
   return {
     change,
     data,
@@ -95,7 +102,8 @@ function useForm<T extends Record<keyof T, any | any[]>>(
     reset,
     set,
     submit,
-    toggleValue
+    toggleValue,
+    triggerChange
   };
 }
 

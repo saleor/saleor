@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+export type FormsetChange = (id: string, value: string) => void;
 export interface FormsetAtomicData<TData = object> {
   data: TData;
   id: string;
@@ -8,7 +9,7 @@ export interface FormsetAtomicData<TData = object> {
 }
 export type FormsetData<TData = object> = Array<FormsetAtomicData<TData>>;
 export interface UseFormsetOutput<TData = object> {
-  change: (id: string, value: string) => void;
+  change: FormsetChange;
   data: FormsetData<TData>;
 }
 function useFormset<TData = object>(
