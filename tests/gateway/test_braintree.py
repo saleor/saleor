@@ -28,7 +28,7 @@ from braintree.exceptions import NotFoundError
 from braintree.errors import Errors
 from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
 import pytest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 from decimal import Decimal
 
 
@@ -316,7 +316,7 @@ def test_authorize(
 
 @pytest.fixture
 def sandbox_braintree_gateway_config(gateway_config):
-    """ To record communication with Braintree sandbox set up your environment variables """
+    """ set up your environment variables to record sandbox """
     gateway_config.connection_params = {
         "merchant_id": os.getenv("BRAINTREE_MERCHANT_ID", "9m6qhfxsqzm3cgzw"),
         "public_key": os.getenv("BRAINTREE_PUBLIC_KEY", "fake_public_key"),
@@ -397,19 +397,14 @@ def test_refund(payment_txn_captured, sandbox_braintree_gateway_config):
 
 
 @pytest.mark.integration
-@patch("saleor.payment.gateways.braintree.get_braintree_gateway")
-def test_refund_incorrect_token(
-    mock_gateway, payment_txn_captured, braintree_not_found_error, gateway_config
-):
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_refund_incorrect_token(payment_txn_captured, sandbox_braintree_gateway_config):
     payment = payment_txn_captured
     amount = Decimal("10.00")
 
-    mock_response = Mock(side_effect=braintree_not_found_error)
-    mock_gateway.return_value = Mock(transaction=Mock(refund=mock_response))
-
     payment_info = create_payment_information(payment, "token", amount)
     with pytest.raises(BraintreeException) as e:
-        refund(payment_info, gateway_config)
+        refund(payment_info, sandbox_braintree_gateway_config)
     assert str(e.value) == DEFAULT_ERROR_MESSAGE
 
 
