@@ -23,21 +23,25 @@ import {
   ProductDetails_product_images,
   ProductDetails_product_variants
 } from "../../types/ProductDetails";
-import ProductAttributes, {
-  ProductAttributeInput,
-  ProductAttributeInputData
-} from "../ProductAttributes";
+import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
-
-interface Collection {
-  id: string;
-  label: string;
-}
+import {
+  getAttributeInput,
+  getChoices,
+  getCollectionInput,
+  getFormData,
+  ProductUpdatePageFormData
+} from "./data";
+import {
+  createAttributeChangeHandler,
+  createCategorySelectHandler,
+  createCollectionSelectHandler
+} from "./handlers";
 
 interface ProductUpdatePageProps extends ListActions {
   errors: UserError[];
@@ -67,21 +71,7 @@ interface ProductUpdatePageProps extends ListActions {
   onVariantAdd?();
 }
 
-export interface FormData {
-  basePrice: number;
-  category: string | null;
-  chargeTaxes: boolean;
-  collections: string[];
-  description: RawDraftContentState;
-  isPublished: boolean;
-  name: string;
-  publicationDate: string;
-  seoDescription: string;
-  seoTitle: string;
-  sku: string;
-  stockQuantity: number;
-}
-export interface ProductUpdatePageSubmitData extends FormData {
+export interface ProductUpdatePageSubmitData extends ProductUpdatePageFormData {
   attributes: ProductAttributeInput[];
 }
 
@@ -116,89 +106,25 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   toggleAll,
   toolbar
 }) => {
-  const { change: changeAttributeData, data: attributes } = useFormset<
-    ProductAttributeInputData
-  >(
-    maybe(
-      (): ProductAttributeInput[] =>
-        product.attributes.map(attribute => ({
-          data: {
-            inputType: attribute.attribute.inputType,
-            values: attribute.attribute.values
-          },
-          id: attribute.attribute.id,
-          label: attribute.attribute.name,
-          value: attribute.value.slug
-        })),
-      []
-    )
+  const { change: changeAttributeData, data: attributes } = useFormset(
+    getAttributeInput(product)
   );
   const [selectedCategory, setSelectedCategory] = React.useState("");
-  const [selectedCollections, setSelectedCollections] = React.useState<
-    Collection[]
-  >(
-    maybe(
-      () =>
-        productCollections.map(collection => ({
-          id: collection.id,
-          label: collection.name
-        })),
-      []
-    )
+  const [selectedCollections, setSelectedCollections] = React.useState(
+    getCollectionInput(productCollections)
   );
 
   const initialDescription = maybe<RawDraftContentState>(() =>
     JSON.parse(product.descriptionJson)
   );
+  const initialData = getFormData(product, productCollections, variants);
 
-  const initialData: FormData = {
-    basePrice: maybe(() => product.basePrice.amount, 0),
-    category: maybe(() => product.category.id),
-    chargeTaxes: maybe(() => product.chargeTaxes, false),
-    collections: productCollections
-      ? productCollections.map(collection => collection.id)
-      : [],
-    description: initialDescription,
-    isPublished: maybe(() => product.isPublished, false),
-    name: maybe(() => product.name, ""),
-    publicationDate: maybe(() => product.publicationDate, ""),
-    seoDescription: maybe(() => product.seoDescription, ""),
-    seoTitle: maybe(() => product.seoTitle, ""),
-    sku: maybe(() =>
-      product.productType.hasVariants
-        ? ""
-        : variants && variants[0]
-        ? variants[0].sku
-        : ""
-    ),
-    stockQuantity: maybe(() =>
-      product.productType.hasVariants
-        ? 0
-        : variants && variants[0]
-        ? variants[0].quantity
-        : 0
-    )
-  };
-  const categories = maybe(
-    () =>
-      categoryChoiceList.map(collection => ({
-        label: collection.name,
-        value: collection.id
-      })),
-    []
-  );
-  const collections = maybe(
-    () =>
-      collectionChoiceList.map(collection => ({
-        label: collection.name,
-        value: collection.id
-      })),
-    []
-  );
+const categories = getChoices(categoryChoiceList);
+  const collections = getChoices(collectionChoiceList);
   const currency = maybe(() => product.basePrice.currency);
   const hasVariants = maybe(() => product.productType.hasVariants, false);
 
-  const handleSubmit = (data: FormData) =>
+  const handleSubmit = (data: ProductUpdatePageFormData) =>
     onSubmit({
       attributes,
       ...data
@@ -211,42 +137,23 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, submit }) => {
-        const handleCollectionSelect = (event: React.ChangeEvent<any>) => {
-          const id = event.target.value;
-          const collectionIndex = data.collections.indexOf(id);
-          const collectionList =
-            collectionIndex === -1
-              ? [
-                  ...selectedCollections,
-                  {
-                    id,
-                    label: collections.find(
-                      collection => collection.value === id
-                    ).label
-                  }
-                ]
-              : [
-                  ...selectedCollections.slice(0, collectionIndex),
-                  ...selectedCollections.slice(collectionIndex + 1)
-                ];
-
-          setSelectedCollections(collectionList);
-          change({
-            target: {
-              name: "collections",
-              value: collectionList.map(collection => collection.id)
-            }
-          } as any);
-        };
-
-        const handleCategorySelect = (event: React.ChangeEvent<any>) => {
-          const id = event.target.value;
-          setSelectedCategory(
-            categoryChoiceList.find(category => category.id === id).name
-          );
-          change(event);
-        };
+      {({ change, data, errors, hasChanged, submit, triggerChange }) => {
+        const handleCollectionSelect = createCollectionSelectHandler(
+          data,
+          collections,
+          selectedCollections,
+          setSelectedCollections,
+          change
+        );
+        const handleCategorySelect = createCategorySelectHandler(
+          categoryChoiceList,
+          setSelectedCategory,
+          change
+        );
+        const handleAttributeChange = createAttributeChangeHandler(
+          changeAttributeData,
+          triggerChange
+        );
 
         return (
           <>
@@ -275,7 +182,7 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
                   <ProductAttributes
                     attributes={attributes}
                     disabled={disabled}
-                    onChange={changeAttributeData}
+                    onChange={handleAttributeChange}
                   />
                   <CardSpacer />
                   <ProductPricing
