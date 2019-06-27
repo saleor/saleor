@@ -78,7 +78,7 @@ function getMultiChoices(
 ): MultiAutocompleteChoiceType[] {
   return values.map(value => ({
     label: value.name,
-    value: value.id
+    value: value.slug
   }));
 }
 
@@ -87,7 +87,7 @@ function getSingleChoices(
 ): SingleAutocompleteChoiceType[] {
   return values.map(value => ({
     label: value.name,
-    value: value.id
+    value: value.slug
   }));
 }
 
@@ -141,7 +141,7 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                       displayValue={maybe(
                         () =>
                           attribute.data.values.find(
-                            value => value.id === attribute.value
+                            value => value.slug === attribute.value
                           ).name,
                         ""
                       )}
