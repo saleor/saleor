@@ -23,7 +23,7 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
-from saleor.discount import DiscountValueType, DiscountInfo, VoucherType
+from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
@@ -649,6 +649,13 @@ def product_with_images(product_type, category, media_root):
 @pytest.fixture
 def voucher(db):  # pylint: disable=W0613
     return Voucher.objects.create(code="mirumee", discount_value=20)
+
+
+@pytest.fixture
+def voucher_specific_product_type(db):
+    return Voucher.objects.create(
+        code="mirumee", discount_value=10, type=VoucherType.SPECIFIC_PRODUCT
+    )
 
 
 @pytest.fixture
