@@ -26,12 +26,14 @@ def test_calculate_checkout_line_total(
     address_usa,
     site_settings,
     monkeypatch,
+    shipping_zone,
 ):
     monkeypatch.setattr(
         "saleor.core.taxes.avatax.interface.get_cached_tax_codes_or_fetch",
         lambda: {"PC040156": "desc"},
     )
     checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     site_settings.company_address = address_usa
     site_settings.include_taxes_in_prices = taxes_in_prices

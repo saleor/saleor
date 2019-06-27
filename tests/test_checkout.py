@@ -1332,17 +1332,18 @@ def test_change_address_in_checkout_from_user_address_to_other(
     assert Address.objects.filter(id=address_id).exists()
 
 
-def test_get_prices_of_products_in_discounted_categories(checkout_with_item):
+def test_get_prices_of_products_in_discounted_categories(checkout_with_item, category):
     lines = checkout_with_item.lines.all()
-    # There's no discounted categories, therefore all of them are discoutned
-    discounted_lines = get_prices_of_products_in_discounted_categories(lines, [])
+    discounted_lines = get_prices_of_products_in_discounted_categories(
+        checkout_with_item, [category]
+    )
     assert [
         line.variant.get_price() for line in lines for item in range(line.quantity)
     ] == discounted_lines
 
     discounted_category = Category.objects.create(name="discounted", slug="discounted")
     discounted_lines = get_prices_of_products_in_discounted_categories(
-        lines, [discounted_category]
+        checkout_with_item, [discounted_category]
     )
     # None of the lines are belongs to the discounted category
     assert not discounted_lines

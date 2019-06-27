@@ -101,38 +101,40 @@ def remove_unavailable_variants(checkout):
             add_variant_to_checkout(checkout, line.variant, quantity, replace=True)
 
 
-def get_variant_prices_from_lines(lines):
-    """Get's price of each individual item within the lines."""
-    return [line.variant.get_price() for line in lines for item in range(line.quantity)]
-
-
-def get_prices_of_discounted_products(lines, discounted_products):
+def get_prices_of_discounted_products(checkout, discounted_products):
     """Get prices of variants belonging to the discounted products."""
     # If there's no discounted_products,
     # it means that all products are discounted
+    line_prices = []
     if discounted_products:
-        lines = (line for line in lines if line.variant.product in discounted_products)
-    return get_variant_prices_from_lines(lines)
+        for line in checkout:
+            if line.variant.product in discounted_products:
+                line_unit_price = (
+                    calculate_checkout_line_total(line, []).gross / line.quantity
+                )
+                line_prices.extend([line_unit_price] * line.quantity)
+    return line_prices
 
 
-def get_prices_of_products_in_discounted_collections(lines, discounted_collections):
+def get_prices_of_products_in_discounted_collections(checkout, discounted_collections):
     """Get prices of variants belonging to the discounted collections."""
     # If there's no discounted collections,
     # it means that all of them are discounted
+    line_prices = []
     if discounted_collections:
-        discounted_collections = set(discounted_collections)
-        lines = (
-            line
-            for line in lines
-            if line.variant
-            and set(line.variant.product.collections.all()).intersection(
-                discounted_collections
-            )
-        )
-    return get_variant_prices_from_lines(lines)
+        for line in checkout:
+            if not line.variant:
+                continue
+            product_collections = line.variant.product.collections.all()
+            if set(product_collections).intersection(discounted_collections):
+                line_unit_price = (
+                    calculate_checkout_line_total(line, []).gross / line.quantity
+                )
+                line_prices.extend([line_unit_price] * line.quantity)
+    return line_prices
 
 
-def get_prices_of_products_in_discounted_categories(lines, discounted_categories):
+def get_prices_of_products_in_discounted_categories(checkout, discounted_categories):
     """Get prices of variants belonging to the discounted categories.
 
     Product must be assigned directly to the discounted category, assigning
@@ -140,14 +142,19 @@ def get_prices_of_products_in_discounted_categories(lines, discounted_categories
     """
     # If there's no discounted collections,
     # it means that all of them are discounted
+    line_prices = []
     if discounted_categories:
         discounted_categories = set(discounted_categories)
-        lines = (
-            line
-            for line in lines
-            if line.variant and line.variant.product.category in discounted_categories
-        )
-    return get_variant_prices_from_lines(lines)
+        for line in checkout:
+            if not line.variant:
+                continue
+            product_category = line.variant.product.category
+            if product_category in discounted_categories:
+                line_unit_price = (
+                    calculate_checkout_line_total(line, []).gross / line.quantity
+                )
+                line_prices.extend([line_unit_price] * line.quantity)
+    return line_prices
 
 
 def check_product_availability_and_warn(request, checkout):
@@ -721,21 +728,19 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=Non
     )
 
 
-def _get_products_voucher_discount(order_or_checkout, voucher):
+def _get_products_voucher_discount(checkout, voucher):
     """Calculate products discount value for a voucher, depending on its type.
     """
     prices = None
     if voucher.type == VoucherType.PRODUCT:
-        prices = get_prices_of_discounted_products(
-            order_or_checkout.lines.all(), voucher.products.all()
-        )
+        prices = get_prices_of_discounted_products(checkout, voucher.products.all())
     elif voucher.type == VoucherType.COLLECTION:
         prices = get_prices_of_products_in_discounted_collections(
-            order_or_checkout.lines.all(), voucher.collections.all()
+            checkout, voucher.collections.all()
         )
     elif voucher.type == VoucherType.CATEGORY:
         prices = get_prices_of_products_in_discounted_categories(
-            order_or_checkout.lines.all(), voucher.categories.all()
+            checkout, voucher.categories.all()
         )
     if not prices:
         msg = pgettext(
@@ -1070,7 +1075,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
         - checkout.discount_amount
     ).gross
 
-    preprocess_order_creation(checkout)
+    preprocess_order_creation(checkout, discounts)
     return order_data
 
 
