@@ -23,6 +23,18 @@ import {
   ProductDetails_product_images,
   ProductDetails_product_variants
 } from "../../types/ProductDetails";
+import {
+  getAttributeInputFromProduct,
+  getChoices,
+  getCollectionInput,
+  getProductUpdatePageFormData,
+  ProductUpdatePageFormData
+} from "../../utils/data";
+import {
+  createAttributeChangeHandler,
+  createCategorySelectHandler,
+  createCollectionSelectHandler
+} from "../../utils/handlers";
 import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
@@ -30,18 +42,6 @@ import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
-import {
-  getAttributeInput,
-  getChoices,
-  getCollectionInput,
-  getFormData,
-  ProductUpdatePageFormData
-} from "./data";
-import {
-  createAttributeChangeHandler,
-  createCategorySelectHandler,
-  createCollectionSelectHandler
-} from "./handlers";
 
 interface ProductUpdatePageProps extends ListActions {
   errors: UserError[];
@@ -107,7 +107,7 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   toolbar
 }) => {
   const { change: changeAttributeData, data: attributes } = useFormset(
-    getAttributeInput(product)
+    getAttributeInputFromProduct(product)
   );
   const [selectedCategory, setSelectedCategory] = React.useState("");
   const [selectedCollections, setSelectedCollections] = React.useState(
@@ -117,9 +117,13 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   const initialDescription = maybe<RawDraftContentState>(() =>
     JSON.parse(product.descriptionJson)
   );
-  const initialData = getFormData(product, productCollections, variants);
+  const initialData = getProductUpdatePageFormData(
+    product,
+    productCollections,
+    variants
+  );
 
-const categories = getChoices(categoryChoiceList);
+  const categories = getChoices(categoryChoiceList);
   const collections = getChoices(collectionChoiceList);
   const currency = maybe(() => product.basePrice.currency);
   const hasVariants = maybe(() => product.productType.hasVariants, false);
