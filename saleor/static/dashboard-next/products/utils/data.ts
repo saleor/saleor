@@ -7,10 +7,28 @@ import {
   ProductDetails_product_collections,
   ProductDetails_product_variants
 } from "@saleor/products/types/ProductDetails";
-import { ProductAttributeInput } from "../ProductAttributes";
+import { ProductAttributeInput } from "../components/ProductAttributes";
+import { ProductCreateData_productTypes_edges_node_productAttributes } from "../types/ProductCreateData";
+
+export interface Collection {
+  id: string;
+  label: string;
+}
+
+interface Node {
+  id: string;
+  name: string;
+}
+
+export interface ProductType {
+  hasVariants: boolean;
+  id: string;
+  name: string;
+  productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
+}
 
 // TODO: Take attributes from product type
-export function getAttributeInput(
+export function getAttributeInputFromProduct(
   product: ProductDetails_product
 ): ProductAttributeInput[] {
   return maybe(
@@ -28,9 +46,18 @@ export function getAttributeInput(
   );
 }
 
-export interface Collection {
-  id: string;
-  label: string;
+export function getAttributeInputFromProductType(
+  productType: ProductType
+): ProductAttributeInput[] {
+  return productType.productAttributes.map(attribute => ({
+    data: {
+      inputType: attribute.inputType,
+      values: attribute.values
+    },
+    id: attribute.id,
+    label: attribute.name,
+    value: ""
+  }));
 }
 
 export function getCollectionInput(
@@ -44,11 +71,6 @@ export function getCollectionInput(
       })),
     []
   );
-}
-
-interface Node {
-  id: string;
-  name: string;
 }
 
 export function getChoices(nodes: Node[]): SingleAutocompleteChoiceType[] {
@@ -77,7 +99,7 @@ export interface ProductUpdatePageFormData {
   stockQuantity: number;
 }
 
-export function getFormData(
+export function getProductUpdatePageFormData(
   product: ProductDetails_product,
   productCollections: ProductDetails_product_collections[],
   variants: ProductDetails_product_variants[]

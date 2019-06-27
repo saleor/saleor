@@ -1,8 +1,9 @@
 import { FormChange } from "@saleor/components/Form";
 import { SingleAutocompleteChoiceType } from "@saleor/components/SingleAutocompleteSelectField";
 import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
-import { Collection, ProductUpdatePageFormData } from "./data";
 import { FormsetChange } from "@saleor/hooks/useFormset";
+import { ProductCreateData_productTypes_edges_node } from "@saleor/products/types/ProductCreateData";
+import { Collection, ProductType, ProductUpdatePageFormData } from "./data";
 
 export function createCollectionSelectHandler(
   data: ProductUpdatePageFormData,
@@ -60,5 +61,29 @@ export function createAttributeChangeHandler(
   return (id: string, value: string) => {
     triggerChange();
     changeAttributeData(id, value);
+  };
+}
+
+export function createProductTypeSelectHandler(
+  productTypeChoiceList: ProductType[],
+  setProductType: (productType: ProductType) => void,
+  change: FormChange
+): FormChange {
+  return (event: React.ChangeEvent<any>) => {
+    const id = event.target.value;
+    const selectedProductType = productTypeChoiceList.find(
+      productType => productType.id === id
+    );
+    setProductType(selectedProductType);
+    change(event);
+    change({
+      target: {
+        name: "attributes",
+        value: selectedProductType.productAttributes.map(attribute => ({
+          slug: attribute.slug,
+          value: ""
+        }))
+      }
+    } as any);
   };
 }
