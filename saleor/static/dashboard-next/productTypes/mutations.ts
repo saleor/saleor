@@ -101,7 +101,7 @@ export const TypedAssignAttributeMutation = TypedMutation<
 export const unassignAttributeMutation = gql`
   ${productTypeDetailsFragment}
   mutation UnassignAttribute($id: ID!, $ids: [ID]!) {
-    attributeUnassign(productTypeId: $id, ids: $ids) {
+    attributeUnassign(productTypeId: $id, attributeIds: $ids) {
       errors {
         field
         message
