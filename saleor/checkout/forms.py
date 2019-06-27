@@ -1,10 +1,10 @@
 """Checkout-related forms and fields."""
-from datetime import date
 from typing import Any
 
 from django import forms
 from django.conf import settings
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import npgettext_lazy, pgettext_lazy
@@ -382,7 +382,7 @@ class CheckoutVoucherForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["voucher"].queryset = Voucher.objects.active(date=date.today())
+        self.fields["voucher"].queryset = Voucher.objects.active(date=timezone.now())
 
     def clean(self):
         from .utils import get_voucher_discount_for_checkout

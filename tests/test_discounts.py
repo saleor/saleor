@@ -1,6 +1,7 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pytest
+from django.utils import timezone
 from prices import Money
 
 from saleor.checkout.utils import get_voucher_discount_for_checkout
@@ -79,7 +80,7 @@ def test_percentage_discounts(product):
 def test_voucher_queryset_active(voucher):
     vouchers = Voucher.objects.all()
     assert len(vouchers) == 1
-    active_vouchers = Voucher.objects.active(date=date.today() - timedelta(days=1))
+    active_vouchers = Voucher.objects.active(date=timezone.now() - timedelta(days=1))
     assert len(active_vouchers) == 0
 
 
@@ -88,8 +89,8 @@ def test_voucher_queryset_active(voucher):
     [
         ([10], 10, DiscountValueType.FIXED, True, 10),
         ([5], 10, DiscountValueType.FIXED, True, 5),
-        ([5, 5], 10, DiscountValueType.FIXED, True, 10),
-        ([2, 3], 10, DiscountValueType.FIXED, True, 5),
+        ([5, 5], 10, DiscountValueType.FIXED, True, 5),
+        ([2, 3], 10, DiscountValueType.FIXED, True, 2),
         ([10, 10], 5, DiscountValueType.FIXED, False, 10),
         ([5, 2], 5, DiscountValueType.FIXED, False, 7),
         ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15),
@@ -238,8 +239,8 @@ def test_get_shipping_voucher_discount(
     "prices, discount_value_type, discount_value, voucher_type, expected_value",
     [  # noqa
         ([5, 10, 15], DiscountValueType.PERCENTAGE, 10, VoucherType.PRODUCT, 3),
-        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.PRODUCT, 2),
-        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.COLLECTION, 2),
+        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.PRODUCT, 6),
+        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.COLLECTION, 6),
     ],
 )
 def test_get_voucher_discount_all_products(
@@ -251,37 +252,39 @@ def test_get_voucher_discount_all_products(
         type=voucher_type,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
-        apply_once_per_order=True,
     )
     voucher.save()
     discount = get_products_voucher_discount(voucher, prices)
     assert discount == Money(expected_value, "USD")
 
 
+date_time_now = timezone.now()
+
+
 @pytest.mark.parametrize(
     "current_date, start_date, end_date, is_active",
     (
-        (date.today(), date.today(), date.today() + timedelta(days=1), True),
+        (date_time_now, date_time_now, date_time_now + timedelta(days=1), True),
         (
-            date.today() + timedelta(days=1),
-            date.today(),
-            date.today() + timedelta(days=1),
+            date_time_now + timedelta(days=1),
+            date_time_now,
+            date_time_now + timedelta(days=1),
             True,
         ),
         (
-            date.today() + timedelta(days=2),
-            date.today(),
-            date.today() + timedelta(days=1),
+            date_time_now + timedelta(days=2),
+            date_time_now,
+            date_time_now + timedelta(days=1),
             False,
         ),
         (
-            date.today() - timedelta(days=2),
-            date.today(),
-            date.today() + timedelta(days=1),
+            date_time_now - timedelta(days=2),
+            date_time_now,
+            date_time_now + timedelta(days=1),
             False,
         ),
-        (date.today(), date.today(), None, True),
-        (date.today() + timedelta(weeks=10), date.today(), None, True),
+        (date_time_now, date_time_now, None, True),
+        (date_time_now + timedelta(weeks=10), date_time_now, None, True),
     ),
 )
 def test_sale_active(current_date, start_date, end_date, is_active):

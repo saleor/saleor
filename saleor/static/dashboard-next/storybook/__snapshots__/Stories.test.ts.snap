@@ -31440,8 +31440,8 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
                   >
                     Start Date
                   </label>
@@ -31453,7 +31453,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
                       name="startDate"
                       type="date"
-                      value=""
+                      value="Invalid date"
                     />
                   </div>
                 </div>
@@ -31461,8 +31461,8 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
                   >
                     End Date
                   </label>
@@ -31474,7 +31474,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
                       name="endDate"
                       type="date"
-                      value=""
+                      value="Invalid date"
                     />
                   </div>
                 </div>
@@ -31861,8 +31861,8 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
                   >
                     Start Date
                   </label>
@@ -31874,11 +31874,11 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
                       name="startDate"
                       type="date"
-                      value=""
+                      value="Invalid date"
                     />
                   </div>
                   <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
                   >
                     Generic form error
                   </p>
@@ -31887,8 +31887,8 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
                   >
                     End Date
                   </label>
@@ -31900,11 +31900,11 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
                       name="endDate"
                       type="date"
-                      value=""
+                      value="Invalid date"
                     />
                   </div>
                   <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
                   >
                     Generic form error
                   </p>
@@ -32297,8 +32297,8 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
                   >
                     End Date
                   </label>
@@ -32310,6 +32310,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
                       name="endDate"
                       type="date"
+                      value="Invalid date"
                     />
                   </div>
                 </div>
@@ -32854,8 +32855,8 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
                   >
                     End Date
                   </label>
@@ -32867,10 +32868,11 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
                       name="endDate"
                       type="date"
+                      value="Invalid date"
                     />
                   </div>
                   <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
                   >
                     Generic form error
                   </p>
@@ -33382,8 +33384,8 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
                   >
                     Start Date
                   </label>
@@ -33396,7 +33398,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                       disabled=""
                       name="startDate"
                       type="date"
-                      value=""
+                      value="Invalid date"
                     />
                   </div>
                 </div>
@@ -33404,8 +33406,8 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
                   >
                     End Date
                   </label>
@@ -33418,7 +33420,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                       disabled=""
                       name="endDate"
                       type="date"
-                      value=""
+                      value="Invalid date"
                     />
                   </div>
                 </div>

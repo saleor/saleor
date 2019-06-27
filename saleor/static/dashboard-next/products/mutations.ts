@@ -124,6 +124,7 @@ export const productUpdateMutation = gql`
     $isPublished: Boolean!
     $name: String
     $basePrice: Decimal
+    $seo: SeoInput
   ) {
     productUpdate(
       id: $id
@@ -137,6 +138,7 @@ export const productUpdateMutation = gql`
         isPublished: $isPublished
         name: $name
         basePrice: $basePrice
+        seo: $seo
       }
     ) {
       errors {
@@ -170,6 +172,7 @@ export const simpleProductUpdateMutation = gql`
     $basePrice: Decimal
     $productVariantId: ID!
     $productVariantInput: ProductVariantInput!
+    $seo: SeoInput
   ) {
     productUpdate(
       id: $id
@@ -183,6 +186,7 @@ export const simpleProductUpdateMutation = gql`
         isPublished: $isPublished
         name: $name
         basePrice: $basePrice
+        seo: $seo
       }
     ) {
       errors {
@@ -224,6 +228,7 @@ export const productCreateMutation = gql`
     $productType: ID!
     $sku: String
     $stockQuantity: Int
+    $seo: SeoInput
   ) {
     productCreate(
       input: {
@@ -239,6 +244,7 @@ export const productCreateMutation = gql`
         productType: $productType
         sku: $sku
         quantity: $stockQuantity
+        seo: $seo
       }
     ) {
       errors {
