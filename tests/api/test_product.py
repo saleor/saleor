@@ -740,11 +740,11 @@ def test_create_product(
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name="Color")
     color_value_slug = color_attr.values.first().slug
-    color_attr_slug = color_attr.slug
+    color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
 
     # Add second attribute
     product_type.product_attributes.add(size_attribute)
-    size_attr_slug = product_type.product_attributes.get(name="Size").slug
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
     non_existent_attr_value = "The cake is a lie"
 
     # test creating root product
@@ -758,8 +758,8 @@ def test_create_product(
         "taxCode": product_tax_rate,
         "basePrice": product_price,
         "attributes": [
-            {"slug": color_attr_slug, "values": [color_value_slug]},
-            {"slug": size_attr_slug, "values": [non_existent_attr_value]},
+            {"id": color_attr_id, "values": [color_value_slug]},
+            {"id": size_attr_id, "values": [non_existent_attr_value]},
         ],
     }
 
@@ -1106,11 +1106,14 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
         name="multi", slug="multi-vals", input_type=AttributeInputType.MULTISELECT
     )
     multi_values_attr.product_types.add(product.product_type)
+    multi_values_attr_id = graphene.Node.to_global_id("Attribute", multi_values_attr.id)
+
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
 
     # Try to assign multiple values from an attribute that does not support such things
     variables = {
         "productId": graphene.Node.to_global_id("Product", product.pk),
-        "attributes": [{"slug": color_attribute.slug, "values": ["red", "blue"]}],
+        "attributes": [{"id": color_attribute_id, "values": ["red", "blue"]}],
     }
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
@@ -1123,11 +1126,11 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     ]
 
     # Try to assign multiple values from a valid attribute
-    variables["attributes"] = [{"slug": multi_values_attr.slug, "values": ["a", "b"]}]
+    variables["attributes"] = [{"id": multi_values_attr_id, "values": ["a", "b"]}]
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["errors"] == []
+    assert not data["errors"]
 
 
 def test_update_product_without_variants(

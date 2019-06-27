@@ -401,7 +401,12 @@ class AttributeValueInput(InputObjectType):
     )
     slug = graphene.String(description="Slug of an attribute.")
     values = graphene.List(
-        graphene.String, required=True, description="Value of an attribute."
+        graphene.String,
+        required=True,
+        description=(
+            "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
     )
 
 
