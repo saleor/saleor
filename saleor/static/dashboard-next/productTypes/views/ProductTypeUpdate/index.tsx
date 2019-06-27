@@ -74,12 +74,15 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
             const handleAttributeUnassignSuccess = (
               data: UnassignAttribute
             ) => {
-              if (!data.attributeUnassign.errors) {
+              if (data.attributeUnassign.errors.length === 0) {
                 notify({
                   text: i18n.t("Attribute unassigned", {
                     context: "notification"
                   })
                 });
+                closeModal();
+                productAttributeListActions.reset();
+                variantAttributeListActions.reset();
               }
             };
             const handleProductTypeDeleteSuccess = (
@@ -153,8 +156,8 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                     assignAttribute.mutate({
                       id,
                       operations: params.ids.map(id => ({
-                        attributeId: id,
-                        attributeType: AttributeTypeEnum[params.type]
+                        id,
+                        type: AttributeTypeEnum[params.type]
                       }))
                     });
 
@@ -354,7 +357,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                         )}
                         confirmButtonState={unassignTransactionState}
                         onClose={closeModal}
-                        onConfirm={handleAttributeUnassign}
+                        onConfirm={handleBulkAttributeUnassign}
                         open={params.action === "unassign-attributes"}
                         productTypeName={maybe(
                           () => data.productType.name,
@@ -373,7 +376,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                         )}
                         confirmButtonState={unassignTransactionState}
                         onClose={closeModal}
-                        onConfirm={handleBulkAttributeUnassign}
+                        onConfirm={handleAttributeUnassign}
                         open={params.action === "unassign-attribute"}
                         productTypeName={maybe(
                           () => data.productType.name,
