@@ -158,7 +158,8 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
               <CardSpacer />
               {data.type === VoucherType.CATEGORY ||
               data.type === VoucherType.COLLECTION ||
-              data.type === VoucherType.PRODUCT ? (
+              data.type === VoucherType.PRODUCT ||
+              data.type === VoucherType.SPECIFIC_PRODUCT ? (
                 <>
                   <TabContainer>
                     <CategoriesTab
