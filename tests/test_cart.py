@@ -405,6 +405,20 @@ def test_get_prices_of_discounted_specific_product_only_category(
     assert prices == excepted_value
 
 
+def test_get_prices_of_discounted_specific_product_all_products(
+    checkout_with_item, voucher_specific_product_type
+):
+    checkout = checkout_with_item
+    voucher = voucher_specific_product_type
+    line = checkout.lines.first()
+
+    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+
+    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+
+    assert prices == excepted_value
+
+
 def test_contains_unavailable_variants():
     missing_variant = Mock(check_quantity=Mock(side_effect=InsufficientStock("")))
     checkout = MagicMock()
