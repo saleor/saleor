@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 
 from ...checkout import models
-from ...core.taxes import ZERO_TAXED_MONEY
+from ...core.taxes import zero_taxed_money
 from ...core.taxes.interface import (
     calculate_checkout_line_total,
     calculate_checkout_shipping,
@@ -121,7 +121,7 @@ class Checkout(CountableDjangoObjectType):
             calculate_checkout_total(checkout=root, discounts=info.context.discounts)
             - root.get_total_gift_cards_balance()
         )
-        return max(taxed_total, ZERO_TAXED_MONEY)
+        return max(taxed_total, zero_taxed_money())
 
     @staticmethod
     def resolve_subtotal_price(root: models.Checkout, info):

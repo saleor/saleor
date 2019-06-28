@@ -16,15 +16,15 @@ from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
+from ..core.taxes import zero_money, zero_taxed_money
 from ..core.taxes.interface import (
     calculate_checkout_line_total,
     calculate_checkout_shipping,
     calculate_checkout_subtotal,
     calculate_checkout_total,
-    checkout_are_taxes_handled,
     postprocess_order_creation,
     preprocess_order_creation,
+    taxes_are_enabled,
 )
 from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
@@ -665,7 +665,7 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
         calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
-    checkout_total = max(checkout_total, ZERO_TAXED_MONEY)
+    checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
     checkout_subtotal = calculate_checkout_subtotal(checkout, discounts)
     shipping_price = calculate_checkout_shipping(checkout, discounts)
 
@@ -678,7 +678,7 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
 
     context = {
         "checkout": checkout,
-        "checkout_are_taxes_handled": checkout_are_taxes_handled(),
+        "checkout_are_taxes_handled": taxes_are_enabled(),
         "checkout_lines": [
             (line, calculate_checkout_line_total(line, discounts)) for line in checkout
         ],
@@ -889,7 +889,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
     checkout.voucher_code = None
     checkout.discount_name = None
     checkout.translated_discount_name = None
-    checkout.discount_amount = ZERO_MONEY
+    checkout.discount_amount = zero_money()
     checkout.save(
         update_fields=[
             "voucher_code",
@@ -1044,7 +1044,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
         calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
-    total = max(total, ZERO_TAXED_MONEY)
+    total = max(total, zero_taxed_money(total.currency))
 
     shipping_total = calculate_checkout_shipping(checkout, discounts)
     order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
@@ -1142,7 +1142,9 @@ def is_fully_paid(checkout: Checkout, discounts):
         calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
-    checkout_total = max(checkout_total, ZERO_TAXED_MONEY).gross
+    checkout_total = max(
+        checkout_total, zero_taxed_money(checkout_total.currency)
+    ).gross
     return total_paid >= checkout_total.amount
 
 

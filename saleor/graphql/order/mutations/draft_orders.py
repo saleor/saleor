@@ -4,7 +4,7 @@ from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
-from ....core.taxes import ZERO_TAXED_MONEY
+from ....core.taxes import zero_taxed_money
 from ....order import OrderStatus, events, models
 from ....order.utils import (
     add_variant_to_order,
@@ -239,7 +239,7 @@ class DraftOrderComplete(BaseMutation):
 
         if not order.is_shipping_required():
             order.shipping_method_name = None
-            order.shipping_price = ZERO_TAXED_MONEY
+            order.shipping_price = zero_taxed_money()
             if order.shipping_address:
                 order.shipping_address.delete()
 

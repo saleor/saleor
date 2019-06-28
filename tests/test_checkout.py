@@ -30,8 +30,8 @@ from saleor.checkout.utils import (
     remove_voucher_from_checkout,
 )
 from saleor.core.exceptions import InsufficientStock
-from saleor.core.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
-from saleor.core.taxes.interface import checkout_are_taxes_handled
+from saleor.core.taxes import zero_money, zero_taxed_money
+from saleor.core.taxes.interface import taxes_are_enabled
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 from saleor.order import OrderEvents, OrderEventsEmails
@@ -758,7 +758,7 @@ def test_create_order_with_gift_card_partial_use(
 
     gift_card_used.refresh_from_db()
     assert order.gift_cards.count() > 0
-    assert order.total == ZERO_TAXED_MONEY
+    assert order.total == zero_taxed_money()
     assert (
         gift_card_balance_before_order
         == (price_without_gift_card + gift_card_used.current_balance).gross.amount
@@ -799,9 +799,10 @@ def test_create_order_with_many_gift_cards(
 
     gift_card_created_by_staff.refresh_from_db()
     gift_card.refresh_from_db()
+    zero_price = zero_money()
     assert order.gift_cards.count() > 0
-    assert gift_card_created_by_staff.current_balance == ZERO_MONEY
-    assert gift_card.current_balance == ZERO_MONEY
+    assert gift_card_created_by_staff.current_balance == zero_price
+    assert gift_card.current_balance == zero_price
     assert price_without_gift_card.gross.amount == (
         gift_cards_balance_befor_order + order.total.gross.amount
     )
@@ -1189,7 +1190,7 @@ def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation
     assert not checkout.voucher_code
     assert not checkout.discount_name
     assert not checkout.translated_discount_name
-    assert checkout.discount_amount == ZERO_MONEY
+    assert checkout.discount_amount == zero_money()
 
 
 def test_recalculate_checkout_discount(
@@ -1226,7 +1227,7 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount_amount == ZERO_MONEY
+    assert checkout.discount_amount == zero_money()
 
 
 def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
@@ -1239,16 +1240,16 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount_amount == ZERO_MONEY
+    assert checkout.discount_amount == zero_money()
 
 
 def test_get_checkout_context(checkout_with_voucher):
     line_price = TaxedMoney(net=Money("30.00", "USD"), gross=Money("30.00", "USD"))
     expected_data = {
         "checkout": checkout_with_voucher,
-        "checkout_are_taxes_handled": checkout_are_taxes_handled(),
+        "checkout_are_taxes_handled": taxes_are_enabled(),
         "checkout_lines": [(checkout_with_voucher.lines.first(), line_price)],
-        "checkout_shipping_price": ZERO_TAXED_MONEY,
+        "checkout_shipping_price": zero_taxed_money(),
         "checkout_subtotal": line_price,
         "checkout_total": line_price - checkout_with_voucher.discount_amount,
         "shipping_required": checkout_with_voucher.is_shipping_required(),

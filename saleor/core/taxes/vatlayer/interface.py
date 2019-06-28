@@ -4,7 +4,7 @@ from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from .. import ZERO_TAXED_MONEY, TaxType
+from .. import TaxType, zero_taxed_money
 from . import (
     DEFAULT_TAX_RATE_NAME,
     TaxRateType,
@@ -41,7 +41,8 @@ def calculate_checkout_subtotal(
     """Calculate subtotal gross for checkout"""
     address = checkout.shipping_address or checkout.billing_address
     lines = checkout.lines.prefetch_related("variant__product__product_type")
-    lines_total = ZERO_TAXED_MONEY
+    total = checkout.get_total()
+    lines_total = zero_taxed_money(currency=total.currency)
     for line in lines:
         price = line.variant.get_price(discounts)
         lines_total += line.quantity * apply_taxes_to_product(
@@ -57,7 +58,8 @@ def calculate_checkout_shipping(
     address = checkout.shipping_address or checkout.billing_address
     taxes = get_taxes_for_address(address)
     if not checkout.shipping_method:
-        return ZERO_TAXED_MONEY
+        total = checkout.get_total()
+        return zero_taxed_money(total.currency)
     return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
 
 
@@ -65,7 +67,7 @@ def calculate_order_shipping(order: "Order") -> TaxedMoney:
     address = order.shipping_address or order.billing_address
     taxes = get_taxes_for_address(address)
     if not order.shipping_method:
-        return ZERO_TAXED_MONEY
+        return zero_taxed_money(order.total.currency)
     return get_taxed_shipping_price(order.shipping_method.price, taxes)
 
 

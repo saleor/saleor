@@ -5,7 +5,7 @@ from django.template.loader import get_template
 from django.utils.translation import pgettext
 
 from ...checkout import AddressType
-from ...core.taxes import ZERO_MONEY
+from ...core.taxes import zero_money
 from ...discount import VoucherType
 from ...discount.models import NotApplicable
 from ...discount.utils import (
@@ -149,7 +149,7 @@ def get_voucher_discount_for_order(order):
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if not order.voucher:
-        return ZERO_MONEY
+        return zero_money()
     subtotal = order.get_subtotal()
     if order.voucher.type == VoucherType.VALUE:
         return get_value_voucher_discount(order.voucher, subtotal.gross)

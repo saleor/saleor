@@ -5,9 +5,9 @@ from django.template.response import TemplateResponse
 
 from ...account.forms import LoginForm
 from ...core.taxes import (
-    ZERO_TAXED_MONEY,
     get_display_price,
     interface as tax_interface,
+    zero_taxed_money,
 )
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
 from ...shipping.utils import get_shipping_price_estimate
@@ -218,7 +218,8 @@ def update_checkout_line(request, checkout, variant_id):
         checkout.refresh_from_db()
         # Refresh obj from db and confirm that checkout still has this line
         checkout_line = checkout.lines.filter(variant_id=variant_id).first()
-        line_total = ZERO_TAXED_MONEY
+        currency = checkout.get_total().currency
+        line_total = zero_taxed_money(currency)
         if checkout_line:
             line_total = tax_interface.calculate_checkout_line_total(
                 checkout_line, discounts

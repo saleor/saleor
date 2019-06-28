@@ -9,7 +9,7 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.account.models import CustomerEvent
-from saleor.core.taxes import ZERO_TAXED_MONEY
+from saleor.core.taxes import zero_taxed_money
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
@@ -1712,7 +1712,7 @@ def test_order_update_shipping_clear_shipping_method(
 
     order.refresh_from_db()
     assert order.shipping_method is None
-    assert order.shipping_price == ZERO_TAXED_MONEY
+    assert order.shipping_price == zero_taxed_money()
     assert order.shipping_method_name is None
 
 
@@ -1801,7 +1801,7 @@ def test_draft_order_clear_shipping_method(
     assert data["order"]["id"] == order_id
     draft_order.refresh_from_db()
     assert draft_order.shipping_method is None
-    assert draft_order.shipping_price == ZERO_TAXED_MONEY
+    assert draft_order.shipping_price == zero_taxed_money()
     assert draft_order.shipping_method_name is None
 
 

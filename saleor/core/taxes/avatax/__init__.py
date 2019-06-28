@@ -18,9 +18,15 @@ if TYPE_CHECKING:
     from ....checkout.models import Checkout
     from ....order.models import Order
 
-META_FIELD = "avatax"
-
 logger = logging.getLogger(__name__)
+
+META_FIELD = "avatax"
+CACHE_TIME = 60 * 60
+TAX_CODES_CACHE_TIME = 60 * 60 * 24 * 7
+COMMON_CARRIER_CODE = "FR020100"
+CACHE_KEY = "avatax_request_id_"
+TAX_CODES_CACHE_KEY = "avatax_tax_codes_cache_key"
+TIMEOUT = 5
 
 
 class TransactionType:
@@ -57,7 +63,7 @@ def api_post_request(
 ) -> Dict[str, Any]:
     try:
         auth = HTTPBasicAuth(username, password)
-        response = requests.post(url, auth=auth, data=json.dumps(data), timeout=2)
+        response = requests.post(url, auth=auth, data=json.dumps(data), timeout=TIMEOUT)
         logger.debug("Hit to Avatax to calculate taxes %s", url)
     except requests.exceptions.RequestException:
         logger.warning("Fetching taxes failed %s", url)
@@ -72,7 +78,7 @@ def api_get_request(
 ):
     try:
         auth = HTTPBasicAuth(username, password)
-        response = requests.get(url, auth=auth, timeout=2)
+        response = requests.get(url, auth=auth, timeout=TIMEOUT)
         logger.debug("[GET] Hit to %s", url)
     except requests.exceptions.RequestException:
         logger.warning("Failed to fetch data from %s", url)
@@ -80,7 +86,7 @@ def api_get_request(
     return response.json()
 
 
-def validate_order(order: "Order") -> bool:
+def _validate_order(order: "Order") -> bool:
     """Validate if checkout object contains enough information to generate a request to
     avatax"""
     if not order.lines.count():
@@ -98,7 +104,7 @@ def validate_order(order: "Order") -> bool:
     return True
 
 
-def validate_checkout(checkout: "Checkout") -> bool:
+def _validate_checkout(checkout: "Checkout") -> bool:
     """Validate if checkout object contains enough information to generate a request to
     avatax"""
     if not checkout.lines.count():
@@ -116,11 +122,17 @@ def validate_checkout(checkout: "Checkout") -> bool:
     return True
 
 
+def _retrieve_from_cache(token):
+    taxes_cache_key = CACHE_KEY + token
+    cached_data = cache.get(taxes_cache_key)
+    return cached_data
+
+
 def checkout_needs_new_fetch(data, checkout_token: str) -> bool:
     """We store the response from avatax for checkout object for given time. If object
     doesn't exist in cache or something has changed, then we fetch data from avatax."""
-    checkout_cache_key = settings.AVATAX_CACHE_KEY + checkout_token
-    cached_checkout = cache.get(checkout_cache_key)
+
+    cached_checkout = _retrieve_from_cache(checkout_token)
 
     if not cached_checkout:
         return True
@@ -134,8 +146,7 @@ def checkout_needs_new_fetch(data, checkout_token: str) -> bool:
 def taxes_need_new_fetch(data: Dict[str, Any], taxes_token: str) -> bool:
     """We store the response from avatax. If object doesn't exist in cache or
     something has changed, then we fetch data from avatax."""
-    taxes_cache_key = settings.AVATAX_CACHE_KEY + taxes_token
-    cached_data = cache.get(taxes_cache_key)
+    cached_data = _retrieve_from_cache(taxes_token)
 
     if not cached_data:
         return True
@@ -197,7 +208,7 @@ def get_checkout_lines_data(
             data,
             quantity=1,
             amount=str(checkout.shipping_method.price.amount),
-            tax_code=settings.AVATAX_COMMON_CARRIER_CODE,
+            tax_code=COMMON_CARRIER_CODE,
             item_code="Shipping",
         )
     return data
@@ -230,7 +241,7 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
             data,
             quantity=1,
             amount=order.shipping_method.price.amount,
-            tax_code=settings.AVATAX_COMMON_CARRIER_CODE,
+            tax_code=COMMON_CARRIER_CODE,
             item_code="Shipping",
         )
     return data
@@ -298,6 +309,9 @@ def generate_request_data_from_checkout(
 
     address = checkout.shipping_address or checkout.billing_address
     lines = get_checkout_lines_data(checkout, discounts)
+
+    # FIXME after we introduce multicurrency this should be taken from Checkout obj
+    currency = checkout.get_subtotal().currency
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
@@ -306,6 +320,7 @@ def generate_request_data_from_checkout(
         customer_code=checkout.user.id if checkout.user else 0,
         customer_email=checkout.email,
         commit=commit,
+        currency=currency,
     )
     return data
 
@@ -313,12 +328,12 @@ def generate_request_data_from_checkout(
 def get_cached_response_or_fetch(data, token_in_cache, force_refresh=False):
     """Try to find response in cache. Return cached response if requests data are
     the same. Fetch new data in other cases"""
-    data_cache_key = settings.AVATAX_CACHE_KEY + token_in_cache
+    data_cache_key = CACHE_KEY + token_in_cache
     if taxes_need_new_fetch(data, token_in_cache) or force_refresh:
         transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
         response = api_post_request(transaction_url, data)
         if response and "error" not in response:
-            cache.set(data_cache_key, (data, response), settings.AVATAX_CACHE_TIME)
+            cache.set(data_cache_key, (data, response), CACHE_TIME)
         else:
             # cache failed response to limit hits to avatax.
             cache.set(data_cache_key, (data, response), 10)
@@ -349,6 +364,7 @@ def get_order_tax_data(
         customer_code=order.user.id if order.user else None,
         customer_email=order.user_email,
         commit=commit,
+        currency=order.total.currency,
     )
     response = get_cached_response_or_fetch(
         data, "order_%s" % order.token, force_refresh
@@ -366,18 +382,16 @@ def generate_tax_codes_dict(
     return tax_codes
 
 
-def get_cached_tax_codes_or_fetch(
-    cache_time: int = settings.AVATAX_TAX_CODES_CACHE_TIME
-):
+def get_cached_tax_codes_or_fetch(cache_time: int = TAX_CODES_CACHE_TIME):
     """Try to get cached tax codes. If cache is empty fetch the newest taxcodes from
     avatax"""
-    tax_codes = cache.get(settings.AVATAX_TAX_CODES_CACHE_KEY, {})
+    tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(), "definitions/taxcodes")
         response = api_get_request(tax_codes_url)
         if response and "error" not in response:
             tax_codes = generate_tax_codes_dict(response)
-            cache.set(settings.AVATAX_TAX_CODES_CACHE_KEY, tax_codes, cache_time)
+            cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)
     return tax_codes
 
 

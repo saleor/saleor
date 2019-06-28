@@ -9,7 +9,7 @@ from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.utils.encoding import smart_text
 
-from ..core.taxes import ZERO_MONEY
+from ..core.taxes import zero_money
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_discounts
 from ..product.models import Attribute, AttributeValue, Category, ProductVariant
@@ -128,7 +128,7 @@ def item_tax(item: ProductVariant, discounts: Iterable[DiscountInfo]):
     https://support.google.com/merchants/answer/6324454
     """
     # FIXME https://github.com/mirumee/saleor/issues/4311
-    return "US::%s:y" % ZERO_MONEY
+    return "US::%s:y" % zero_money()
 
 
 def item_group_id(item: ProductVariant):

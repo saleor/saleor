@@ -5,7 +5,7 @@ from typing import Iterable
 from django.db.models import F
 from django.utils.translation import pgettext
 
-from ..core.taxes import ZERO_MONEY
+from ..core.taxes import zero_money
 from . import DiscountInfo
 from .models import NotApplicable, Sale
 
@@ -78,7 +78,7 @@ def get_products_voucher_discount(voucher, prices):
     if voucher.apply_once_per_order:
         return voucher.get_discount_amount_for(min(prices))
     discounts = (voucher.get_discount_amount_for(price) for price in prices)
-    total_amount = sum(discounts, ZERO_MONEY)
+    total_amount = sum(discounts, zero_money())
     return total_amount
 
 

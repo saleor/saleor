@@ -7,20 +7,20 @@ from django.conf import settings
 from prices import Money, TaxedMoney
 
 from ....checkout import models as checkout_models
-from .. import ZERO_TAXED_MONEY, TaxType
+from .. import TaxType, zero_taxed_money
 from ..errors import TaxError
 from . import (
     META_FIELD,
     CustomerErrors,
     TransactionType,
+    _validate_checkout,
+    _validate_order,
     api_post_request,
     generate_request_data_from_checkout,
     get_api_url,
     get_cached_tax_codes_or_fetch,
     get_checkout_tax_data,
     get_order_tax_data,
-    validate_checkout,
-    validate_order,
 )
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ def calculate_checkout_total(
     checkout: "checkout_models.Checkout", discounts: List["DiscountInfo"]
 ):
     checkout_total = checkout.get_total(discounts=discounts)
-    if not validate_checkout(checkout):
+    if not _validate_checkout(checkout):
         return TaxedMoney(net=checkout_total, gross=checkout_total)
     response = get_checkout_tax_data(checkout, discounts)
     if not response or "error" in response:
@@ -49,14 +49,14 @@ def calculate_checkout_total(
     voucher_amount = checkout.discount_amount
     if voucher_amount:
         total -= voucher_amount
-    return max(total, ZERO_TAXED_MONEY)
+    return max(total, zero_taxed_money(total.currency))
 
 
 def calculate_checkout_subtotal(
     checkout: "checkout_models.Checkout", discounts: List["DiscountInfo"]
 ):
     sub_total = checkout.get_subtotal(discounts)
-    if not validate_checkout(checkout):
+    if not _validate_checkout(checkout):
         return TaxedMoney(net=sub_total, gross=sub_total)
 
     response = get_checkout_tax_data(checkout, discounts)
@@ -81,7 +81,7 @@ def calculate_checkout_shipping(
     checkout: "checkout_models.Checkout", discounts: List["DiscountInfo"]
 ):
     shipping_price = checkout.get_shipping_price()
-    if not validate_checkout(checkout):
+    if not _validate_checkout(checkout):
         return TaxedMoney(net=shipping_price, gross=shipping_price)
 
     response = get_checkout_tax_data(checkout, discounts)
@@ -143,7 +143,7 @@ def calculate_checkout_line_total(
 ):
     checkout = checkout_line.checkout
     total = checkout_line.get_total(discounts)
-    if not validate_checkout(checkout):
+    if not _validate_checkout(checkout):
         return TaxedMoney(net=total, gross=total)
     taxes_data = get_checkout_tax_data(checkout, discounts)
     currency = taxes_data.get("currencyCode")
@@ -161,7 +161,7 @@ def calculate_checkout_line_total(
 
 def calculate_order_line_unit(order_line: "OrderLine"):
     order = order_line.order
-    if validate_order(order):
+    if _validate_order(order):
         taxes_data = get_order_tax_data(order)
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
@@ -176,8 +176,8 @@ def calculate_order_line_unit(order_line: "OrderLine"):
 
 
 def calculate_order_shipping(order: "Order"):
-    if not validate_order(order):
-        return ZERO_TAXED_MONEY
+    if not _validate_order(order):
+        return zero_taxed_money(order.total.currency)
     taxes_data = get_order_tax_data(order, False)
     currency = taxes_data.get("currencyCode")
     for line in taxes_data.get("lines", []):

@@ -16,7 +16,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..account.models import Address
-from ..core.taxes import ZERO_TAXED_MONEY, zero_money
+from ..core.taxes import zero_money, zero_taxed_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
@@ -179,7 +179,7 @@ class Order(models.Model):
             ]
         )
         total_captured = [payment.get_captured_amount() for payment in payments]
-        total_paid = sum(total_captured, ZERO_TAXED_MONEY)
+        total_paid = sum(total_captured, zero_taxed_money())
         return total_paid
 
     def _index_billing_phone(self):
@@ -233,7 +233,7 @@ class Order(models.Model):
 
     def get_subtotal(self):
         subtotal_iterator = (line.get_total() for line in self)
-        return sum(subtotal_iterator, ZERO_TAXED_MONEY)
+        return sum(subtotal_iterator, zero_taxed_money())
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self])

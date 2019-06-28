@@ -11,7 +11,7 @@ from ...account.i18n import (
 from ...account.models import User
 from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.taxes import ZERO_TAXED_MONEY, interface as tax_interface
+from ...core.taxes import interface as tax_interface, zero_taxed_money
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import OrderStatus, events
@@ -102,7 +102,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
         remove_shipping_address = False
         if not self.instance.is_shipping_required():
             self.instance.shipping_method_name = None
-            self.instance.shipping_price = ZERO_TAXED_MONEY
+            self.instance.shipping_price = zero_taxed_money()
             if self.instance.shipping_address:
                 remove_shipping_address = True
         super().save()
@@ -228,7 +228,7 @@ class OrderRemoveShippingForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.shipping_method = None
         self.instance.shipping_method_name = None
-        self.instance.shipping_price = ZERO_TAXED_MONEY
+        self.instance.shipping_price = zero_taxed_money()
         recalculate_order(self.instance)
         return super().save(commit)
 
