@@ -69,7 +69,8 @@
                   {{ product_form.name|materializecss }}
                 </div>
                 <div class="row">
-                  {{ product_form.description|materializecss }}
+                  <div>{{ product_form.description_json|materializecss }}</div>
+                  <div>{{ product_form.description|materializecss }}</div>
                 </div>
                 <span class="card-title">Availability</span>
                 <div class="row">

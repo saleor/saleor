@@ -194,6 +194,7 @@
         <h3>{% trans "Description" context "Product details title" %}</h3>
         <hr>
         {{ product.translated.description|safe }}
+        <div data-description-json='{{ description_json }}'>{{ product }}</div>
       </div>
       <hr>
       <table>

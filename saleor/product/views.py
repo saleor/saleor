@@ -90,6 +90,7 @@ def product_details(request, slug, product_id, form=None):
     show_variant_picker = all([v.attributes for v in product.variants.all()])
     json_ld_data = product_json_ld(product, product_attributes)
     ctx = {
+        "description_json": json.dumps(product.translated.description_json, default=serialize_decimal),
         "is_visible": is_visible,
         "form": form,
         "availability": availability,
