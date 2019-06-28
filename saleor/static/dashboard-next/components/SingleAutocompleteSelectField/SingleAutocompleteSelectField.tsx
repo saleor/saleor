@@ -17,6 +17,7 @@ import { compareTwoStrings } from "string-similarity";
 import i18n from "../../i18n";
 import ArrowDropdownIcon from "../../icons/ArrowDropdown";
 import Debounce, { DebounceProps } from "../Debounce";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -87,6 +88,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
     fetchChoices,
     onChange
   }: SingleAutocompleteSelectFieldProps & WithStyles<typeof styles>) => {
+    const [prevDisplayValue] = useStateFromProps(displayValue);
     const handleChange = item =>
       onChange({
         target: {
@@ -99,6 +101,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
       <DebounceAutocomplete debounceFn={fetchChoices}>
         {debounceFn => (
           <Downshift
+            defaultInputValue={displayValue}
             itemToString={() => displayValue}
             onInputValueChange={value => debounceFn(value)}
             onSelect={handleChange}
@@ -113,12 +116,17 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
               toggleMenu,
               openMenu,
               closeMenu,
-              highlightedIndex
+              highlightedIndex,
+              reset
             }) => {
               const isCustomValueSelected =
                 choices && selectedItem
                   ? choices.filter(c => c.value === selectedItem).length === 0
                   : false;
+
+              if (prevDisplayValue !== displayValue) {
+                reset({ inputValue: displayValue });
+              }
 
               return (
                 <div className={classes.container}>
