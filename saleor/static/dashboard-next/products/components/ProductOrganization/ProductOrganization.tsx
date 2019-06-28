@@ -53,7 +53,6 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
   collections?: ChoiceType[];
   data: {
     category: string;
-    collections: string[];
     productType?: string;
   };
   disabled: boolean;
