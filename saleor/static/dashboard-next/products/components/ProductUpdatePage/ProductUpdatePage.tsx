@@ -15,6 +15,7 @@ import { SearchCategories_categories_edges_node } from "@saleor/containers/Searc
 import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
 import useFormset from "@saleor/hooks/useFormset";
 import useMultiAutocomplete from "@saleor/hooks/useMultiAutocomplete";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { ListActions, UserError } from "@saleor/types";
@@ -110,7 +111,10 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   const { change: changeAttributeData, data: attributes } = useFormset(
     getAttributeInputFromProduct(product)
   );
-  const [selectedCategory, setSelectedCategory] = React.useState("");
+  const [selectedCategory, setSelectedCategory] = useStateFromProps(
+    maybe(() => product.category.name)
+  );
+
   const {
     change: selectCollection,
     data: selectedCollections
