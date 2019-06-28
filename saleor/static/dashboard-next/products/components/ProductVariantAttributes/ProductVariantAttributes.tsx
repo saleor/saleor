@@ -128,7 +128,7 @@ const ProductVariantAttributes = withStyles(styles, {
                 onChange={handleAttributeValueSelect}
                 value={getAttributeValue(attribute.slug)}
                 choices={getAttributeValues(attribute.slug)}
-                custom
+                allowCustomValues
               />
             );
           })

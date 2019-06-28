@@ -48,12 +48,12 @@ export interface SingleAutocompleteSelectFieldProps {
   disabled?: boolean;
   loading?: boolean;
   placeholder?: string;
-  custom?: boolean;
+  allowCustomValues?: boolean;
   helperText?: string;
   label?: string;
   InputProps?: InputProps;
-  fetchChoices?(value: string);
-  onChange(event);
+  fetchChoices?: (value: string) => void;
+  onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 interface SingleAutocompleteSelectFieldState {
@@ -73,7 +73,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
   ({
     choices,
     classes,
-    custom,
+    allowCustomValues: custom,
     disabled,
     displayValue,
     error,
@@ -87,7 +87,13 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
     fetchChoices,
     onChange
   }: SingleAutocompleteSelectFieldProps & WithStyles<typeof styles>) => {
-    const handleChange = item => onChange({ target: { name, value: item } });
+    const handleChange = item =>
+      onChange({
+        target: {
+          name,
+          value: item
+        }
+      } as any);
 
     return (
       <DebounceAutocomplete debounceFn={fetchChoices}>
@@ -109,11 +115,11 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
               closeMenu,
               highlightedIndex
             }) => {
-              const isCustom =
+              const isCustomValueSelected =
                 choices && selectedItem
-                  ? choices.filter(c => c.value === selectedItem.value)
-                      .length === 0
+                  ? choices.filter(c => c.value === selectedItem).length === 0
                   : false;
+
               return (
                 <div className={classes.container}>
                   <TextField
@@ -141,32 +147,44 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                     label={label}
                     fullWidth={true}
                   />
-                  {isOpen && (
+                  {isOpen && (inputValue || choices.length) && (
                     <Paper className={classes.paper} square>
                       {choices.length > 0 || custom ? (
                         <>
                           {choices.map((suggestion, index) => (
                             <MenuItem
                               key={JSON.stringify(suggestion)}
-                              selected={highlightedIndex === index}
+                              selected={
+                                highlightedIndex === index ||
+                                selectedItem === suggestion.value
+                              }
                               component="div"
                               {...getItemProps({ item: suggestion.value })}
                             >
                               {suggestion.label}
                             </MenuItem>
                           ))}
-                          {custom && (
-                            <MenuItem
-                              key={"customValue"}
-                              selected={isCustom}
-                              component="div"
-                              {...getItemProps({
-                                item: { label: inputValue, value: inputValue }
-                              })}
-                            >
-                              {i18n.t("Add custom value")}
-                            </MenuItem>
-                          )}
+                          {custom &&
+                            inputValue &&
+                            !choices.find(
+                              choice =>
+                                choice.label.toLowerCase() ===
+                                inputValue.toLowerCase()
+                            ) && (
+                              <MenuItem
+                                key={"customValue"}
+                                selected={isCustomValueSelected}
+                                component="div"
+                                {...getItemProps({
+                                  item: inputValue
+                                })}
+                              >
+                                {i18n.t("Add new value: {{ value }}", {
+                                  context: "add custom option",
+                                  value: inputValue
+                                })}
+                              </MenuItem>
+                            )}
                         </>
                       ) : (
                         <MenuItem disabled={true} component="div">
