@@ -347,15 +347,8 @@ VATLAYER_USE_HTTPS = get_bool_from_env("VATLAYER_USE_HTTPS", False)
 # Avatax supports two ways of log in - username:password or account:license
 AVATAX_USERNAME_OR_ACCOUNT = os.environ.get("AVATAX_USERNAME_OR_ACCOUNT")
 AVATAX_PASSWORD_OR_LICENSE = os.environ.get("AVATAX_PASSWORD_OR_LICENSE")
-AVATAX_USE_SANDBOX = os.environ.get("AVATAX_USE_SANDBOX", True)
+AVATAX_USE_SANDBOX = os.environ.get("AVATAX_USE_SANDBOX", DEBUG)
 AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
-AVATAX_CACHE_TIME = os.environ.get("AVATAX_CACHE_TIME", 60 * 60)
-AVATAX_TAX_CODES_CACHE_TIME = os.environ.get("AVATAX_TAX_CODES_CACHE", 60 * 60 * 24 * 7)
-AVATAX_COMMON_CARRIER_CODE = os.environ.get("AVATAX_COMMON_CARRIER_CODE", "FR020100")
-AVATAX_CACHE_KEY = os.environ.get("AVATAX_CACHE_KEY", "avatax_request_id_")
-AVATAX_TAX_CODES_CACHE_KEY = os.environ.get(
-    "AVATAX_TAX_CODES_CACHE_KEY", "avatax_tax_codes_cache_key"
-)
 AVATAX_AUTOCOMMIT = os.environ.get("AVATAX_AUTOCOMMIT", False)
 
 ACCOUNT_ACTIVATION_DAYS = 3

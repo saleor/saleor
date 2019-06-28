@@ -8,7 +8,7 @@ from prices import TaxedMoney
 
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
-from saleor.core.taxes import ZERO_MONEY
+from saleor.core.taxes import zero_money
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from saleor.payment import PaymentError
@@ -932,7 +932,7 @@ def test_checkout_complete(
     assert payment.transactions.count() == 1
 
     gift_card.refresh_from_db()
-    assert gift_card.current_balance == ZERO_MONEY
+    assert gift_card.current_balance == zero_money()
     assert gift_card.last_used_on
 
     assert not Checkout.objects.filter(

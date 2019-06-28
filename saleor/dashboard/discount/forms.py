@@ -6,7 +6,7 @@ from django_countries import countries
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
-from ...core.taxes import ZERO_MONEY
+from ...core.taxes import zero_money
 from ...core.utils.promo_code import generate_promo_code
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
@@ -14,7 +14,7 @@ from ...product.models import Category, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 
 MinAmountSpent = MoneyField(
-    min_value=ZERO_MONEY,
+    min_value=zero_money(),
     required=False,
     currency=settings.DEFAULT_CURRENCY,
     label=pgettext_lazy(

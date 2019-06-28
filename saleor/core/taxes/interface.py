@@ -4,7 +4,7 @@ from django.conf import settings
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from . import ZERO_TAXED_MONEY, TaxType
+from . import TaxType
 from .avatax import interface as avatax_interface
 from .vatlayer import interface as vatlayer_interface
 
@@ -47,14 +47,16 @@ def calculate_checkout_shipping(
     checkout: "Checkout", discounts: List["DiscountInfo"]
 ) -> TaxedMoney:
     """Calculate shipping gross for checkout"""
+    total = checkout.get_shipping_price()
+    total = TaxedMoney(net=total, gross=total)
     if not checkout.shipping_method:
-        return ZERO_TAXED_MONEY
+        return total
     if settings.VATLAYER_ACCESS_KEY:
         return vatlayer_interface.calculate_checkout_shipping(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         return avatax_interface.calculate_checkout_shipping(checkout, discounts)
-    total = checkout.get_shipping_price()
-    return TaxedMoney(net=total, gross=total)
+
+    return total
 
 
 def calculate_order_shipping(order: "Order") -> TaxedMoney:
@@ -131,7 +133,7 @@ def show_taxes_on_storefront() -> bool:
     return False
 
 
-def checkout_are_taxes_handled() -> bool:
+def taxes_are_enabled() -> bool:
     if settings.VATLAYER_ACCESS_KEY:
         return True
     if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:

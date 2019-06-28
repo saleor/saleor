@@ -5,14 +5,15 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-ZERO_MONEY = Money(0, settings.DEFAULT_CURRENCY)
 
-ZERO_TAXED_MONEY = TaxedMoney(net=ZERO_MONEY, gross=ZERO_MONEY)
-
-
-def zero_money():
+def zero_money(currency=settings.DEFAULT_CURRENCY):
     """Function used as a model's default."""
-    return ZERO_MONEY
+    return Money(0, currency)
+
+
+def zero_taxed_money(currency=settings.DEFAULT_CURRENCY):
+    zero = zero_money(currency)
+    return TaxedMoney(net=zero, gross=zero)
 
 
 def include_taxes_in_prices():
@@ -44,7 +45,7 @@ def get_display_price(
     return base
 
 
-@dataclass
+@dataclass(frozen=True)
 class TaxType:
     """Dataclass for unifying tax type object that comes from tax gateway"""
 

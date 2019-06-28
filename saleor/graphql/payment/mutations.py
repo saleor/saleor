@@ -2,7 +2,7 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from ...core.taxes import ZERO_TAXED_MONEY
+from ...core.taxes import zero_taxed_money
 from ...core.taxes.interface import calculate_checkout_total
 from ...core.utils import get_client_ip
 from ...payment import PaymentError, models
@@ -83,7 +83,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             calculate_checkout_total(checkout, discounts=info.context.discounts)
             - checkout.get_total_gift_cards_balance()
         )
-        checkout_total = max(checkout_total, ZERO_TAXED_MONEY)
+        checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
         amount = data.get("amount", checkout_total.gross.amount)
         if amount < checkout_total.gross.amount:
             raise ValidationError(

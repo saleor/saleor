@@ -381,8 +381,7 @@ class Product(CountableDjangoObjectType):
     tax_rate = TaxRateType(
         description="A type of tax rate.",
         deprecation_reason=(
-            "taxRate is deprecated. Use tax_type to obtain tax_code for given tax "
-            "gateway"
+            "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway"
         ),
     )
 

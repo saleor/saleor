@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
-from ..core.taxes import ZERO_MONEY
+from ..core.taxes import zero_money
 from ..core.taxes.interface import calculate_order_line_unit, calculate_order_shipping
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
@@ -112,7 +112,7 @@ def update_voucher_discount(func):
             try:
                 discount_amount = get_voucher_discount_for_order(order)
             except NotApplicable:
-                discount_amount = ZERO_MONEY
+                discount_amount = zero_money()
             order.discount_amount = discount_amount
         return func(*args, **kwargs)
 
@@ -309,11 +309,11 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
 
     Return a total price left after applying the gift cards.
     """
-    if total_price_left > ZERO_MONEY:
+    if total_price_left > zero_money(total_price_left.currency):
         order.gift_cards.add(gift_card)
         if total_price_left < gift_card.current_balance:
             gift_card.current_balance = gift_card.current_balance - total_price_left
-            total_price_left = ZERO_MONEY
+            total_price_left = zero_money(total_price_left.currency)
         else:
             total_price_left = total_price_left - gift_card.current_balance
             gift_card.current_balance = 0
