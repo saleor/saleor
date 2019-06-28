@@ -112,7 +112,7 @@ const OrderCustomer = withStyles(styles, { name: "OrderCustomer" })(
                 };
                 return (
                   <SingleAutocompleteSelectField
-                    custom={true}
+                    allowCustomValues={true}
                     choices={maybe(() => users, []).map(user => ({
                       label: user.email,
                       value: user.id
