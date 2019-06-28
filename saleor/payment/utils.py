@@ -232,6 +232,7 @@ def create_transaction(
         amount=gateway_response.amount,
         currency=gateway_response.currency,
         error=gateway_response.error,
+        customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
     )
     return txn
