@@ -14,8 +14,8 @@ import VisibilityCard from "@saleor/components/VisibilityCard";
 import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
 import useFormset from "@saleor/hooks/useFormset";
+import useMultiAutocomplete from "@saleor/hooks/useMultiAutocomplete";
 import {
-  Collection,
   getAttributeInputFromProductType,
   getChoices,
   ProductType
@@ -100,9 +100,10 @@ export const ProductCreatePage: React.StatelessComponent<
     name: "",
     productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
   });
-  const [selectedCollections, setSelectedCollections] = React.useState<
-    Collection[]
-  >([]);
+  const {
+    change: selectCollection,
+    data: selectedCollections
+  } = useMultiAutocomplete();
   const { change: changeAttributeData, data: attributes } = useFormset(
     getAttributeInputFromProductType(productType)
   );
@@ -141,11 +142,8 @@ export const ProductCreatePage: React.StatelessComponent<
     >
       {({ change, data, errors, hasChanged, submit, triggerChange }) => {
         const handleCollectionSelect = createCollectionSelectHandler(
-          data,
-          collections,
-          selectedCollections,
-          setSelectedCollections,
-          change
+          event => selectCollection(event, collections),
+          triggerChange
         );
         const handleCategorySelect = createCategorySelectHandler(
           categoryChoiceList,
@@ -219,18 +217,16 @@ export const ProductCreatePage: React.StatelessComponent<
                   canChangeType={true}
                   categories={categories}
                   categoryInputDisplayValue={selectedCategory}
+                  collections={collections}
+                  data={data}
+                  disabled={disabled}
                   errors={errors}
                   fetchCategories={fetchCategories}
                   fetchCollections={fetchCollections}
-                  collections={collections}
+                  productType={productType}
                   productTypeInputDisplayValue={productType.name}
                   productTypes={productTypes}
-                  data={data}
-                  productType={productType}
-                  disabled={disabled}
-                  collectionInputDisplayValue={selectedCollections
-                    .map(collection => collection.label)
-                    .join(", ")}
+                  selectedCollections={selectedCollections}
                   onCategoryChange={handleCategorySelect}
                   onCollectionChange={handleCollectionSelect}
                   onProductTypeChange={handleProductTypeSelect}
