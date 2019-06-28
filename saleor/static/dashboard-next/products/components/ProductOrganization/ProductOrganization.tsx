@@ -13,7 +13,9 @@ import CardSpacer from "@saleor/components/CardSpacer";
 import CardTitle from "@saleor/components/CardTitle";
 import { FormSpacer } from "@saleor/components/FormSpacer";
 import Hr from "@saleor/components/Hr";
-import MultiAutocompleteSelectField from "@saleor/components/MultiAutocompleteSelectField";
+import MultiAutocompleteSelectField, {
+  MultiAutocompleteChoiceType
+} from "@saleor/components/MultiAutocompleteSelectField";
 import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
@@ -48,7 +50,6 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
   categories?: ChoiceType[];
   categoryInputDisplayValue: string;
   collections?: ChoiceType[];
-  collectionInputDisplayValue: string;
   data: {
     category: string;
     collections: string[];
@@ -56,6 +57,7 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
   };
   disabled: boolean;
   errors: FormErrors<"productType" | "category">;
+  selectedCollections: MultiAutocompleteChoiceType[];
   productType?: ProductType;
   productTypeInputDisplayValue?: string;
   productTypes?: ChoiceType[];
@@ -73,12 +75,12 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
     categoryInputDisplayValue,
     classes,
     collections,
-    collectionInputDisplayValue,
     data,
     disabled,
     errors,
     fetchCategories,
     fetchCollections,
+    selectedCollections,
     productType,
     productTypeInputDisplayValue,
     productTypes,
@@ -141,11 +143,11 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
         <Hr />
         <FormSpacer />
         <MultiAutocompleteSelectField
-          displayValue={collectionInputDisplayValue}
+          displayValues={selectedCollections}
           label={i18n.t("Collections")}
           choices={disabled ? [] : collections}
           name="collections"
-          value={data.collections}
+          value={selectedCollections.map(collection => collection.value)}
           helperText={i18n.t(
             "*Optional. Adding product to collection helps users find it."
           )}
