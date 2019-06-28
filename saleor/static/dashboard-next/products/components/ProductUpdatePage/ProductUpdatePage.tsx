@@ -27,7 +27,6 @@ import {
 import {
   getAttributeInputFromProduct,
   getChoices,
-  getCollectionInput,
   getProductUpdatePageFormData,
   ProductUpdatePageFormData
 } from "../../utils/data";
@@ -74,6 +73,7 @@ interface ProductUpdatePageProps extends ListActions {
 
 export interface ProductUpdatePageSubmitData extends ProductUpdatePageFormData {
   attributes: ProductAttributeInput[];
+  collections: string[];
 }
 
 export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
@@ -116,13 +116,9 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
     data: selectedCollections
   } = useMultiAutocomplete(getChoices(productCollections));
 
+  const initialData = getProductUpdatePageFormData(product, variants);
   const initialDescription = maybe<RawDraftContentState>(() =>
     JSON.parse(product.descriptionJson)
-  );
-  const initialData = getProductUpdatePageFormData(
-    product,
-    productCollections,
-    variants
   );
 
   const categories = getChoices(categoryChoiceList);
@@ -133,6 +129,7 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   const handleSubmit = (data: ProductUpdatePageFormData) =>
     onSubmit({
       attributes,
+      collections: selectedCollections.map(({ value }) => value),
       ...data
     });
 
