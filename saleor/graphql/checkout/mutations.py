@@ -484,6 +484,7 @@ class CheckoutComplete(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
 
+        user = info.context.user
         clean_checkout(checkout, info.context.discounts)
 
         payment = checkout.get_last_active_payment()
@@ -514,20 +515,15 @@ class CheckoutComplete(BaseMutation):
                 shipping_address=AddressData(**shipping_address.as_data()),
                 store_source=store_source,
             )
-            if trs.is_success and trs.customer_id:
-                user = info.context.user
-                if user:
-                    gateway = payment.gateway
-                    store_id_for_payment_gateway(user, gateway, trs.customer_id)
+            if trs.is_success and trs.customer_id and user.is_authenticated:
+                store_id_for_payment_gateway(user, payment.gateway, trs.customer_id)
 
         except PaymentError as e:
             abort_order_data(order_data)
             raise ValidationError(str(e))
 
         # create the order into the database
-        order = create_order(
-            checkout=checkout, order_data=order_data, user=info.context.user
-        )
+        order = create_order(checkout=checkout, order_data=order_data, user=user)
 
         # remove checkout after order is successfully paid
         checkout.delete()
