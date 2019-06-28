@@ -73,7 +73,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
   ({
     choices,
     classes,
-    allowCustomValues: custom,
+    allowCustomValues,
     disabled,
     displayValue,
     error,
@@ -99,10 +99,10 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
       <DebounceAutocomplete debounceFn={fetchChoices}>
         {debounceFn => (
           <Downshift
-            selectedItem={value}
             itemToString={() => displayValue}
-            onSelect={handleChange}
             onInputValueChange={value => debounceFn(value)}
+            onSelect={handleChange}
+            selectedItem={value}
           >
             {({
               getInputProps,
@@ -147,9 +147,9 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                     label={label}
                     fullWidth={true}
                   />
-                  {isOpen && (inputValue || choices.length) && (
+                  {isOpen && (!!inputValue || !!choices.length) && (
                     <Paper className={classes.paper} square>
-                      {choices.length > 0 || custom ? (
+                      {choices.length > 0 || allowCustomValues ? (
                         <>
                           {choices.map((suggestion, index) => (
                             <MenuItem
@@ -164,8 +164,8 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                               {suggestion.label}
                             </MenuItem>
                           ))}
-                          {custom &&
-                            inputValue &&
+                          {allowCustomValues &&
+                            !!inputValue &&
                             !choices.find(
                               choice =>
                                 choice.label.toLowerCase() ===
