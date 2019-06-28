@@ -109,21 +109,21 @@ def get_prices_of_discounted_specific_product(lines, voucher):
     # If there's no discounted products, collections or categories,
     # it means that all products are discounted
     discounted_products = voucher.products.all()
-    discounted_collections = set(voucher.collections.all())
     discounted_categories = set(voucher.categories.all())
+    discounted_collections = set(voucher.collections.all())
     if discounted_products or discounted_collections or discounted_categories:
-        lines = (
-            line
-            for line in lines
-            if line.variant
-            and (
-                line.variant.product in discounted_products
-                or set(line.variant.product.collections.all()).intersection(
-                    discounted_collections
-                )
-                or line.variant.product.category in discounted_categories
-            )
-        )
+        discounted_lines = []
+        for line in lines:
+            line_product = line.variant.product
+            line_category = line.variant.product.category
+            line_collections = set(line.variant.product.collections.all())
+            if line.variant and (
+                line_product in discounted_products
+                or line_category in discounted_categories
+                or line_collections.intersection(discounted_collections)
+            ):
+                discounted_lines.append(line)
+        return get_variant_prices_from_lines(discounted_lines)
     return get_variant_prices_from_lines(lines)
 
 
