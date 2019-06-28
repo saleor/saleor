@@ -82,7 +82,7 @@ export const ProductUpdate: React.StatelessComponent<
                                 : null,
                             seo: {
                               description: formData.seoDescription,
-                              title: formData.seoTitle,
+                              title: formData.seoTitle
                             },
                             sku: formData.sku,
                             stockQuantity:

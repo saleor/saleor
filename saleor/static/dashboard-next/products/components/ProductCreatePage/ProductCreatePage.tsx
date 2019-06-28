@@ -40,7 +40,6 @@ interface FormData {
   publicationDate: string;
   category: string;
   chargeTaxes: boolean;
-  collections: string[];
   description: RawDraftContentState;
   isPublished: boolean;
   name: string;
@@ -52,6 +51,7 @@ interface FormData {
 }
 export interface ProductCreatePageSubmitData extends FormData {
   attributes: ProductAttributeInput[];
+  collections: string[];
 }
 
 interface ProductCreatePageProps {
@@ -111,7 +111,6 @@ export const ProductCreatePage: React.StatelessComponent<
     basePrice: 0,
     category: "",
     chargeTaxes: false,
-    collections: [],
     description: {} as any,
     isPublished: false,
     name: "",
@@ -130,6 +129,7 @@ export const ProductCreatePage: React.StatelessComponent<
   const handleSubmit = (data: FormData) =>
     onSubmit({
       attributes,
+      collections: selectedCollections.map(({ value }) => value),
       ...data
     });
 
