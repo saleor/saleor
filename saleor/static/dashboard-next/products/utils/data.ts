@@ -88,7 +88,6 @@ export interface ProductUpdatePageFormData {
   basePrice: number;
   category: string | null;
   chargeTaxes: boolean;
-  collections: string[];
   description: RawDraftContentState;
   isPublished: boolean;
   name: string;
@@ -101,16 +100,12 @@ export interface ProductUpdatePageFormData {
 
 export function getProductUpdatePageFormData(
   product: ProductDetails_product,
-  productCollections: ProductDetails_product_collections[],
   variants: ProductDetails_product_variants[]
 ): ProductUpdatePageFormData {
   return {
     basePrice: maybe(() => product.basePrice.amount),
     category: maybe(() => product.category.id),
     chargeTaxes: maybe(() => product.chargeTaxes, false),
-    collections: productCollections
-      ? productCollections.map(collection => collection.id)
-      : [],
     description: maybe(() => JSON.parse(product.descriptionJson)),
     isPublished: maybe(() => product.isPublished, false),
     name: maybe(() => product.name),
