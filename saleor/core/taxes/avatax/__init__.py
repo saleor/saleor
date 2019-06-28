@@ -26,7 +26,7 @@ TAX_CODES_CACHE_TIME = 60 * 60 * 24 * 7
 COMMON_CARRIER_CODE = "FR020100"
 CACHE_KEY = "avatax_request_id_"
 TAX_CODES_CACHE_KEY = "avatax_tax_codes_cache_key"
-TIMEOUT = 5
+TIMEOUT = 10
 
 
 class TransactionType:
