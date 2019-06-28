@@ -14,6 +14,7 @@ import VisibilityCard from "@saleor/components/VisibilityCard";
 import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
 import useFormset from "@saleor/hooks/useFormset";
+import useMultiAutocomplete from "@saleor/hooks/useMultiAutocomplete";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { ListActions, UserError } from "@saleor/types";
@@ -110,9 +111,10 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
     getAttributeInputFromProduct(product)
   );
   const [selectedCategory, setSelectedCategory] = React.useState("");
-  const [selectedCollections, setSelectedCollections] = React.useState(
-    getCollectionInput(productCollections)
-  );
+  const {
+    change: selectCollection,
+    data: selectedCollections
+  } = useMultiAutocomplete(getChoices(productCollections));
 
   const initialDescription = maybe<RawDraftContentState>(() =>
     JSON.parse(product.descriptionJson)
@@ -143,11 +145,8 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
     >
       {({ change, data, errors, hasChanged, submit, triggerChange }) => {
         const handleCollectionSelect = createCollectionSelectHandler(
-          data,
-          collections,
-          selectedCollections,
-          setSelectedCollections,
-          change
+          event => selectCollection(event, collections),
+          triggerChange
         );
         const handleCategorySelect = createCategorySelectHandler(
           categoryChoiceList,
@@ -239,16 +238,14 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
                     canChangeType={false}
                     categories={categories}
                     categoryInputDisplayValue={selectedCategory}
-                    collectionInputDisplayValue={selectedCollections
-                      .map(c => c.label)
-                      .join(", ")}
+                    collections={collections}
+                    data={data}
+                    disabled={disabled}
                     errors={errors}
                     fetchCategories={fetchCategories}
                     fetchCollections={fetchCollections}
-                    collections={collections}
                     productType={maybe(() => product.productType)}
-                    data={data}
-                    disabled={disabled}
+                    selectedCollections={selectedCollections}
                     onCategoryChange={handleCategorySelect}
                     onCollectionChange={handleCollectionSelect}
                   />
