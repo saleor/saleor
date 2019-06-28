@@ -71,3 +71,21 @@ class GatewayConfig:
     # a unified structure
     connection_params: Dict[str, Any]
     store_customer: bool = False
+
+
+@dataclass
+class CreditCardInfo:
+    """Uniform way to represent Credit Card information"""
+
+    last4: str
+    exp_year: int
+    exp_month: int
+    name_on_card: Optional[str] = None
+
+
+@dataclass
+class CustomerSource:
+    """Dataclass for storing information about stored payment sources in gateways"""
+
+    id: str
+    credit_card_info: CreditCardInfo = None
