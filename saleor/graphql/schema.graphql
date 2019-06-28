@@ -1630,7 +1630,7 @@ type Mutations {
   tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID!): CheckoutComplete
+  checkoutComplete(checkoutId: ID!, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
