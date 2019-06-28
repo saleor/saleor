@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 import pytest
 from braintree import Environment, ErrorResult, SuccessfulResult, Transaction
 from braintree.errors import Errors
-from braintree.exceptions import NotFoundError
 from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
 
