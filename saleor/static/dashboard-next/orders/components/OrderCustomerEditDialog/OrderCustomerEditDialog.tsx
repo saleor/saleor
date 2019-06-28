@@ -81,7 +81,7 @@ const OrderCustomerEditDialog = withStyles(styles, {
         <DialogContent className={classes.root}>
           <SingleAutocompleteSelectField
             choices={choices}
-            custom
+            allowCustomValues
             loading={loading}
             name="user"
             value={user}
