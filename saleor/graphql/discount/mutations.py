@@ -66,7 +66,11 @@ class BaseDiscountCatalogueMutation(BaseMutation):
 
 class VoucherInput(graphene.InputObjectType):
     type = VoucherTypeEnum(
-        description="Voucher type: product, category shipping or value."
+        description=(
+            "Voucher type: product, category shipping or entire order. "
+            "Deprecated: PRODUCT, COLLECTION, CATEGORY are deprecated, "
+            "use SPECIFIC_PRODUCT instead."
+        )
     )
     name = graphene.String(description="Voucher name.")
     code = graphene.String(decription="Code to use the voucher.")
