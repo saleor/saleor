@@ -469,6 +469,7 @@ class CheckoutComplete(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID", required=True)
+        store_source = graphene.Boolean(default_value=False)
 
     class Meta:
         description = (
@@ -478,7 +479,7 @@ class CheckoutComplete(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id):
+    def perform_mutation(cls, _root, info, checkout_id, store_source):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
@@ -511,6 +512,7 @@ class CheckoutComplete(BaseMutation):
                 payment_token=payment.token,
                 billing_address=AddressData(**billing_address.as_data()),
                 shipping_address=AddressData(**shipping_address.as_data()),
+                store_source=store_source,
             )
         except PaymentError as e:
             abort_order_data(order_data)

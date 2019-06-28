@@ -63,6 +63,7 @@ def create_payment_information(
     billing_address: AddressData = None,
     shipping_address: AddressData = None,
     customer_id: str = None,
+    store_source: bool = False,
 ) -> PaymentData:
     """Extracts order information along with payment details.
 
@@ -89,6 +90,7 @@ def create_payment_information(
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
         customer_email=payment.billing_email,
+        reuse_source=store_source,
     )
 
 
@@ -280,9 +282,11 @@ def call_gateway(operation_type, payment, payment_token, **extra_params):
     gateway, gateway_config = get_payment_gateway(payment.gateway)
     gateway_response = None
     error_msg = None
-
+    store_source = (
+        extra_params.pop("store_source", False) and gateway_config.store_customer
+    )
     payment_information = create_payment_information(
-        payment, payment_token, **extra_params
+        payment, payment_token, store_source=store_source, **extra_params
     )
 
     try:

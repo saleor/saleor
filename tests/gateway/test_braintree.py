@@ -30,9 +30,6 @@ from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
 from saleor.payment.interface import GatewayConfig, TokenConfig
 from saleor.payment.utils import create_payment_information
 
-INCORRECT_TOKEN_ERROR = (
-    "Unable to process the transaction. Transaction's token is incorrect " "or expired."
-)
 DEFAULT_ERROR = "Unable to process transaction. Please try again in a moment"
 
 
@@ -82,11 +79,6 @@ def braintree_error_response(braintree_error):
 
 
 @pytest.fixture
-def braintree_not_found_error():
-    return Mock(side_effect=NotFoundError)
-
-
-@pytest.fixture
 def gateway_config():
     return GatewayConfig(
         template_path="template.html",
@@ -99,13 +91,6 @@ def gateway_config():
             "private_key": "789",
         },
     )
-
-
-def success_gateway_response(gateway_response):
-    data = extract_gateway_response(gateway_response)
-    data.pop("currency")
-    data.pop("amount")
-    return data
 
 
 def test_get_customer_data(payment_dummy):
