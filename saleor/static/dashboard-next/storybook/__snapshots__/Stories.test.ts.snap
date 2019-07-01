@@ -31204,12 +31204,12 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                         role="button"
                         tabindex="0"
                       >
-                        All Products
+                        Entire order
                       </div>
                       <input
                         name="type"
                         type="hidden"
-                        value="VALUE"
+                        value="ENTIRE_ORDER"
                       />
                       <svg
                         aria-hidden="true"
@@ -31620,12 +31620,12 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                         role="button"
                         tabindex="0"
                       >
-                        All Products
+                        Entire order
                       </div>
                       <input
                         name="type"
                         type="hidden"
-                        value="VALUE"
+                        value="ENTIRE_ORDER"
                       />
                       <svg
                         aria-hidden="true"
@@ -32040,12 +32040,12 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                         id="select-type"
                         role="button"
                       >
-                        All Products
+                        Entire order
                       </div>
                       <input
                         name="type"
                         type="hidden"
-                        value="VALUE"
+                        value="ENTIRE_ORDER"
                       />
                       <svg
                         aria-hidden="true"
@@ -32367,7 +32367,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body2-id"
               >
-                All Products
+                Entire order
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -32583,12 +32583,12 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                         id="select-type"
                         role="button"
                       >
-                        All Products
+                        Entire order
                       </div>
                       <input
                         name="type"
                         type="hidden"
-                        value="VALUE"
+                        value="ENTIRE_ORDER"
                       />
                       <svg
                         aria-hidden="true"
@@ -32930,7 +32930,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body2-id"
               >
-                All Products
+                Entire order
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -33143,12 +33143,12 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                         id="select-type"
                         role="button"
                       >
-                        All Products
+                        Entire order
                       </div>
                       <input
                         name="type"
                         type="hidden"
-                        value="VALUE"
+                        value="ENTIRE_ORDER"
                       />
                       <svg
                         aria-hidden="true"

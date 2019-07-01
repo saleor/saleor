@@ -206,17 +206,19 @@ export enum VoucherDiscountValueType {
 export enum VoucherType {
   CATEGORY = "CATEGORY",
   COLLECTION = "COLLECTION",
+  ENTIRE_ORDER = "ENTIRE_ORDER",
   PRODUCT = "PRODUCT",
   SHIPPING = "SHIPPING",
-  VALUE = "VALUE",
+  SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT",
 }
 
 export enum VoucherTypeEnum {
   CATEGORY = "CATEGORY",
   COLLECTION = "COLLECTION",
+  ENTIRE_ORDER = "ENTIRE_ORDER",
   PRODUCT = "PRODUCT",
   SHIPPING = "SHIPPING",
-  VALUE = "VALUE",
+  SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT",
 }
 
 export enum WeightUnitsEnum {
@@ -577,6 +579,7 @@ export interface VoucherInput {
   categories?: (string | null)[] | null;
   minAmountSpent?: any | null;
   countries?: (string | null)[] | null;
+  applyOncePerOrder?: boolean | null;
 }
 
 //==============================================================
