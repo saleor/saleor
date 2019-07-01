@@ -14,8 +14,11 @@ import {
   VoucherDiscountValueType,
   VoucherType
 } from "../../../types/globalTypes";
+import VoucherDates from "../VoucherDates";
 import VoucherInfo from "../VoucherInfo";
-import VoucherOptions from "../VoucherOptions";
+import VoucherLimits from "../VoucherLimits";
+import VoucherRequirements from "../VoucherRequirements";
+import VoucherTypes from "../VoucherTypes";
 
 export interface FormData {
   applyOncePerOrder: boolean;
@@ -75,7 +78,14 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
                 onChange={change}
               />
               <CardSpacer />
-              <VoucherOptions
+              <VoucherTypes
+                data={data}
+                disabled={disabled}
+                errors={formErrors}
+                onChange={change}
+              />
+              <CardSpacer />
+              <VoucherRequirements
                 data={data}
                 disabled={disabled}
                 defaultCurrency={defaultCurrency}
@@ -83,6 +93,21 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
                 onChange={change}
               />
               <CardSpacer />
+              <VoucherLimits
+                data={data}
+                disabled={disabled}
+                defaultCurrency={defaultCurrency}
+                errors={formErrors}
+                onChange={change}
+              />
+              <CardSpacer />
+              <VoucherDates
+                data={data}
+                disabled={disabled}
+                defaultCurrency={defaultCurrency}
+                errors={formErrors}
+                onChange={change}
+              />
             </div>
           </Grid>
           <SaveButtonBar
