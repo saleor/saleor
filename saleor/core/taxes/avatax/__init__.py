@@ -21,12 +21,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 META_FIELD = "avatax"
-CACHE_TIME = 60 * 60
-TAX_CODES_CACHE_TIME = 60 * 60 * 24 * 7
-COMMON_CARRIER_CODE = "FR020100"
+CACHE_TIME = 60 * 60  # 1 hour
+TAX_CODES_CACHE_TIME = 60 * 60 * 24 * 7  # 7 days
 CACHE_KEY = "avatax_request_id_"
 TAX_CODES_CACHE_KEY = "avatax_tax_codes_cache_key"
-TIMEOUT = 10
+TIMEOUT = 10  # API HTTP Requests Timeout
+
+# Common carrier code used to identify the line as a shipping service
+COMMON_CARRIER_CODE = "FR020100"
 
 
 class TransactionType:
@@ -87,7 +89,7 @@ def api_get_request(
 
 
 def _validate_order(order: "Order") -> bool:
-    """Validate if checkout object contains enough information to generate a request to
+    """Validate if order object contains enough information to generate a request to
     avatax"""
     if not order.lines.count():
         return False
