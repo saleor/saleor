@@ -4,7 +4,7 @@ from django.conf import settings
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from . import TaxType
+from . import TaxType, quantize_price
 from .avatax import interface as avatax_interface
 from .vatlayer import interface as vatlayer_interface
 
@@ -20,13 +20,17 @@ def calculate_checkout_total(
 ) -> TaxedMoney:
     """Calculate total gross for checkout"""
 
+    total = None
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.calculate_checkout_total(checkout, discounts)
+        total = vatlayer_interface.calculate_checkout_total(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.calculate_checkout_total(checkout, discounts)
+        total = avatax_interface.calculate_checkout_total(checkout, discounts)
+
+    if total:
+        return quantize_price(total, total.currency)
 
     total = checkout.get_total(discounts)
-    return TaxedMoney(net=total, gross=total)
+    return quantize_price(TaxedMoney(net=total, gross=total), total.currency)
 
 
 def calculate_checkout_subtotal(
@@ -34,13 +38,17 @@ def calculate_checkout_subtotal(
 ) -> TaxedMoney:
     """Calculate subtotal gross for checkout"""
 
+    subtotal = None
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.calculate_checkout_subtotal(checkout, discounts)
+        subtotal = vatlayer_interface.calculate_checkout_subtotal(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.calculate_checkout_subtotal(checkout, discounts)
+        subtotal = avatax_interface.calculate_checkout_subtotal(checkout, discounts)
+
+    if subtotal:
+        return quantize_price(subtotal, subtotal.currency)
 
     subtotal = checkout.get_subtotal(discounts)
-    return TaxedMoney(net=subtotal, gross=subtotal)
+    return quantize_price(TaxedMoney(net=subtotal, gross=subtotal), subtotal.currency)
 
 
 def calculate_checkout_shipping(
@@ -50,36 +58,44 @@ def calculate_checkout_shipping(
     total = checkout.get_shipping_price()
     total = TaxedMoney(net=total, gross=total)
     if not checkout.shipping_method:
-        return total
+        return quantize_price(total, total.currency)
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.calculate_checkout_shipping(checkout, discounts)
+        total = vatlayer_interface.calculate_checkout_shipping(checkout, discounts)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.calculate_checkout_shipping(checkout, discounts)
-
-    return total
+        total = avatax_interface.calculate_checkout_shipping(checkout, discounts)
+    return quantize_price(total, total.currency)
 
 
 def calculate_order_shipping(order: "Order") -> TaxedMoney:
     """Calculate shipping price that assigned to order"""
+    shipping_price = None
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.calculate_order_shipping(order)
+        shipping_price = vatlayer_interface.calculate_order_shipping(order)
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.calculate_order_shipping(order)
-    price = order.shipping_method.price
-    return TaxedMoney(net=price, gross=price)
+        shipping_price = avatax_interface.calculate_order_shipping(order)
+
+    if shipping_price:
+        return quantize_price(shipping_price, shipping_price.currency)
+    shipping_price = order.shipping_method.price
+    return quantize_price(
+        TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency
+    )
 
 
 def apply_taxes_to_shipping(price: Money, shipping_address: "Address") -> TaxedMoney:
     """Apply taxes for shipping methods that user can use during checkout"""
     if shipping_address:
         if settings.VATLAYER_ACCESS_KEY:
-            return vatlayer_interface.apply_taxes_to_shipping(price, shipping_address)
+            return quantize_price(
+                vatlayer_interface.apply_taxes_to_shipping(price, shipping_address),
+                price.currency,
+            )
         if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
             # For now we can't calculate product/shipping prices that are not directly
             # assigned to order. Avatax has api only to calculate prices based on
             # checkout/order data
             pass
-    return TaxedMoney(net=price, gross=price)
+    return quantize_price(TaxedMoney(net=price, gross=price), price.currency)
 
 
 def get_tax_rate_type_choices() -> List[TaxType]:
@@ -93,35 +109,44 @@ def get_tax_rate_type_choices() -> List[TaxType]:
 def calculate_checkout_line_total(
     checkout_line: "CheckoutLine", discounts: List["DiscountInfo"]
 ):
+    total = None
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.calculate_checkout_line_total(
+        total = vatlayer_interface.calculate_checkout_line_total(
             checkout_line, discounts
         )
-    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.calculate_checkout_line_total(checkout_line, discounts)
+    elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        total = avatax_interface.calculate_checkout_line_total(checkout_line, discounts)
+    if total:
+        return quantize_price(total, total.currency)
     total = checkout_line.get_total(discounts)
-    return TaxedMoney(net=total, gross=total)
+    return quantize_price(TaxedMoney(net=total, gross=total), total.currency)
 
 
 def calculate_order_line_unit(order_line: "OrderLine"):
     """It updates unit_price for a given order line based on current price of variant"""
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.calculate_order_line_unit(order_line)
-    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return avatax_interface.calculate_order_line_unit(order_line)
-    return order_line.unit_price
+        unit_price = vatlayer_interface.calculate_order_line_unit(order_line)
+    elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        unit_price = avatax_interface.calculate_order_line_unit(order_line)
+    else:
+        unit_price = order_line.unit_price
+
+    return quantize_price(unit_price, unit_price.currency)
 
 
 def apply_taxes_to_product(
     product: "Product", price: Money, country: Country, **kwargs
 ):
     if settings.VATLAYER_ACCESS_KEY:
-        return vatlayer_interface.apply_taxes_to_product(
-            product, price, country, **kwargs
+        return quantize_price(
+            vatlayer_interface.apply_taxes_to_product(
+                product, price, country, **kwargs
+            ),
+            price.currency,
         )
-    if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
-        return TaxedMoney(net=price, gross=price)
-    return TaxedMoney(net=price, gross=price)
+    elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
+        pass
+    return quantize_price(TaxedMoney(net=price, gross=price), price.currency)
 
 
 def show_taxes_on_storefront() -> bool:
@@ -144,14 +169,15 @@ def taxes_are_enabled() -> bool:
 def apply_taxes_to_shipping_price_range(prices: MoneyRange, country: Country):
     if country:
         if settings.VATLAYER_ACCESS_KEY:
-            return vatlayer_interface.apply_taxes_to_shipping_price_range(
-                prices, country
+            return quantize_price(
+                vatlayer_interface.apply_taxes_to_shipping_price_range(prices, country),
+                prices.currency,
             )
         if settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
             pass
     start = TaxedMoney(net=prices.start, gross=prices.start)
     stop = TaxedMoney(net=prices.stop, gross=prices.stop)
-    return TaxedMoneyRange(start=start, stop=stop)
+    return quantize_price(TaxedMoneyRange(start=start, stop=stop), start.currency)
 
 
 def preprocess_order_creation(checkout: "Checkout", discounts: List["DiscountInfo"]):

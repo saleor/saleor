@@ -7,6 +7,7 @@ from ...account.forms import LoginForm
 from ...core.taxes import (
     get_display_price,
     interface as tax_interface,
+    quantize_price,
     zero_taxed_money,
 )
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
@@ -140,7 +141,7 @@ def checkout_index(request, checkout):
             discounts=discounts,
         )
         total_line = tax_interface.calculate_checkout_line_total(line, discounts)
-        variant_price = total_line / line.quantity
+        variant_price = quantize_price(total_line / line.quantity, total_line.currency)
         checkout_lines.append(
             {
                 "variant": line.variant,

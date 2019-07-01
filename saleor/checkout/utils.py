@@ -16,7 +16,7 @@ from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import zero_money, zero_taxed_money
+from ..core.taxes import quantize_price, zero_money, zero_taxed_money
 from ..core.taxes.interface import (
     calculate_checkout_line_total,
     calculate_checkout_shipping,
@@ -109,8 +109,9 @@ def get_prices_of_discounted_products(checkout, discounted_products):
     if discounted_products:
         for line in checkout:
             if line.variant.product in discounted_products:
-                line_unit_price = (
-                    calculate_checkout_line_total(line, []).gross / line.quantity
+                line_total = calculate_checkout_line_total(line, []).gross
+                line_unit_price = quantize_price(
+                    (line_total / line.quantity), line_total.currency
                 )
                 line_prices.extend([line_unit_price] * line.quantity)
     return line_prices
@@ -127,8 +128,9 @@ def get_prices_of_products_in_discounted_collections(checkout, discounted_collec
                 continue
             product_collections = line.variant.product.collections.all()
             if set(product_collections).intersection(discounted_collections):
-                line_unit_price = (
-                    calculate_checkout_line_total(line, []).gross / line.quantity
+                line_total = calculate_checkout_line_total(line, []).gross
+                line_unit_price = quantize_price(
+                    (line_total / line.quantity), line_total.currency
                 )
                 line_prices.extend([line_unit_price] * line.quantity)
     return line_prices
@@ -150,8 +152,9 @@ def get_prices_of_products_in_discounted_categories(checkout, discounted_categor
                 continue
             product_category = line.variant.product.category
             if product_category in discounted_categories:
-                line_unit_price = (
-                    calculate_checkout_line_total(line, []).gross / line.quantity
+                line_total = calculate_checkout_line_total(line, []).gross
+                line_unit_price = quantize_price(
+                    (line_total / line.quantity), line_total.currency
                 )
                 line_prices.extend([line_unit_price] * line.quantity)
     return line_prices
@@ -1017,7 +1020,9 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
         translated_product_name = ""
 
     total_line_price = calculate_checkout_line_total(checkout_line, discounts)
-    unit_price = total_line_price / checkout_line.quantity
+    unit_price = quantize_price(
+        total_line_price / checkout_line.quantity, total_line_price.currency
+    )
     line = OrderLine(
         product_name=product_name,
         translated_product_name=translated_product_name,

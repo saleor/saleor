@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Union
 
+from babel.numbers import get_currency_precision
 from django.conf import settings
 from django.contrib.sites.models import Site
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -43,6 +45,14 @@ def get_display_price(
     if isinstance(base, TaxedMoney):
         base = base.gross if display_gross else base.net
     return base
+
+
+def quantize_price(
+    price: Union["TaxedMoney", "Money", "Decimal", "TaxedMoneyRange"], currency
+):
+    precision = get_currency_precision(currency)
+    number_places = Decimal(10) ** -precision
+    return price.quantize(number_places)
 
 
 @dataclass(frozen=True)

@@ -2,6 +2,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from saleor.checkout.utils import add_variant_to_checkout
+from saleor.core.taxes import quantize_price
 from saleor.core.taxes.avatax import interface
 
 
@@ -44,6 +45,7 @@ def test_calculate_checkout_line_total(
     product.save()
     discounts = [discount_info] if with_discount else None
     total = interface.calculate_checkout_line_total(line, discounts)
+    total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
     )
@@ -93,6 +95,7 @@ def test_calculate_checkout_total(
 
     discounts = [discount_info] if with_discount else None
     total = interface.calculate_checkout_total(checkout_with_item, discounts)
+    total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
     )
@@ -122,6 +125,7 @@ def test_calculate_checkout_shipping(
     shipping_price = interface.calculate_checkout_shipping(
         checkout_with_item, [discount_info]
     )
+    shipping_price = quantize_price(shipping_price, shipping_price.currency)
     assert shipping_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )
@@ -167,7 +171,7 @@ def test_calculate_checkout_subtotal(
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
     total = interface.calculate_checkout_subtotal(checkout_with_item, discounts)
-
+    total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
     )
@@ -188,6 +192,7 @@ def test_calculate_order_shipping(
     site_settings.save()
 
     price = interface.calculate_order_shipping(order)
+    price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
 
 
@@ -210,6 +215,8 @@ def test_calculate_order_line_unit(
     site_settings.company_address = address_usa
     site_settings.save()
 
-    assert interface.calculate_order_line_unit(order_line) == TaxedMoney(
+    line_price = interface.calculate_order_line_unit(order_line)
+    line_price = quantize_price(line_price, line_price.currency)
+    assert line_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )

@@ -3,7 +3,7 @@ from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.taxes import interface
+from saleor.core.taxes import interface, quantize_price
 from saleor.shipping import ShippingMethodType
 
 
@@ -94,7 +94,9 @@ def test_calculate_order_shipping(order, shipping_zone):
 
 
 def test_calculate_order_line_unit(order_line):
-    assert interface.calculate_order_line_unit(order_line) == order_line.unit_price
+    assert interface.calculate_order_line_unit(order_line) == quantize_price(
+        order_line.unit_price, order_line.unit_price.currency
+    )
 
 
 @pytest.mark.parametrize(
