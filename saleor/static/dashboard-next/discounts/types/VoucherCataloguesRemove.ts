@@ -133,7 +133,6 @@ export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher_categor
 export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher {
   __typename: "Voucher";
   id: string;
-  name: string | null;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;

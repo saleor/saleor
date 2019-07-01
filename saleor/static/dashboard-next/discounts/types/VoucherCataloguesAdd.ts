@@ -133,7 +133,6 @@ export interface VoucherCataloguesAdd_voucherCataloguesAdd_voucher_categories {
 export interface VoucherCataloguesAdd_voucherCataloguesAdd_voucher {
   __typename: "Voucher";
   id: string;
-  name: string | null;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;
