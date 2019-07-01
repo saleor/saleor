@@ -12,7 +12,7 @@ import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import { Tab, TabContainer } from "@saleor/components/Tab";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { maybe, splitDateTime } from "../../../misc";
 import { ListProps, TabListActions, UserError } from "../../../types";
 import {
   VoucherDiscountValueType,
@@ -22,10 +22,13 @@ import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 import DiscountCategories from "../DiscountCategories";
 import DiscountCollections from "../DiscountCollections";
 import DiscountProducts from "../DiscountProducts";
+import VoucherDates from "../VoucherDates";
 import VoucherInfo from "../VoucherInfo";
-import VoucherOptions from "../VoucherOptions";
+import VoucherLimits from "../VoucherLimits";
+import VoucherRequirements from "../VoucherRequirements";
 import VoucherSummary from "../VoucherSummary";
 import VoucherTypes from "../VoucherTypes";
+import VoucherValue from "../VoucherValue";
 
 export enum VoucherDetailsPageTab {
   categories = "categories",
@@ -45,8 +48,10 @@ export interface FormData {
   code: string;
   discountType: VoucherDiscountValueType;
   endDate: string;
+  endTime: string;
   minAmountSpent: number;
   startDate: string;
+  startTime: string;
   type: VoucherType;
   usageLimit: number;
   value: number;
@@ -123,9 +128,11 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
       () => voucher.discountValueType,
       VoucherDiscountValueType.FIXED
     ),
-    endDate: maybe(() => voucher.endDate, ""),
+    endDate: splitDateTime(maybe(() => voucher.endDate, "")).date,
+    endTime: splitDateTime(maybe(() => voucher.endDate, "")).time,
     minAmountSpent: maybe(() => voucher.minAmountSpent.amount, 0),
-    startDate: maybe(() => voucher.startDate, ""),
+    startDate: splitDateTime(maybe(() => voucher.startDate, "")).date,
+    startTime: splitDateTime(maybe(() => voucher.startDate, "")).time,
     type: maybe(() => voucher.type, VoucherType.ENTIRE_ORDER),
     usageLimit: maybe(() => voucher.usageLimit || 0, 0),
     value: maybe(() => voucher.discountValue, 0)
@@ -153,13 +160,15 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                 onChange={change}
               />
               <CardSpacer />
-              <VoucherOptions
-                data={data}
-                disabled={disabled}
-                defaultCurrency={defaultCurrency}
-                errors={formErrors}
-                onChange={change}
-              />
+              {data.discountType !== VoucherDiscountValueType.SHIPPING ? (
+                <VoucherValue
+                  data={data}
+                  disabled={disabled}
+                  defaultCurrency={defaultCurrency}
+                  errors={formErrors}
+                  onChange={change}
+                />
+              ) : null}
               <CardSpacer />
               {data.type === VoucherType.CATEGORY ||
               data.type === VoucherType.COLLECTION ||
@@ -252,7 +261,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                     />
                   )}
                 </>
-              ) : data.type === VoucherType.SHIPPING ? (
+              ) : data.discountType === VoucherDiscountValueType.SHIPPING ? (
                 <CountryList
                   countries={maybe(() => voucher.countries)}
                   disabled={disabled}
@@ -271,6 +280,30 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                   onCountryUnassign={onCountryUnassign}
                 />
               ) : null}
+              <CardSpacer />
+              <VoucherRequirements
+                data={data}
+                disabled={disabled}
+                defaultCurrency={defaultCurrency}
+                errors={formErrors}
+                onChange={change}
+              />
+              <CardSpacer />
+              <VoucherLimits
+                data={data}
+                disabled={disabled}
+                defaultCurrency={defaultCurrency}
+                errors={formErrors}
+                onChange={change}
+              />
+              <CardSpacer />
+              <VoucherDates
+                data={data}
+                disabled={disabled}
+                defaultCurrency={defaultCurrency}
+                errors={formErrors}
+                onChange={change}
+              />
             </div>
             <div>
               <VoucherSummary

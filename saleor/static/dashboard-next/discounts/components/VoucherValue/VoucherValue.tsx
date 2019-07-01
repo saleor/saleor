@@ -19,7 +19,7 @@ import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
 import {
   VoucherDiscountValueType,
-  VoucherType
+  VoucherTypeEnum
 } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { FormData } from "../VoucherDetailsPage";
@@ -53,7 +53,7 @@ const VoucherValue = withStyles(styles, {
     onChange
   }: VoucherValueProps & WithStyles<typeof styles>) => {
     const translatedVoucherTypes = translateVoucherTypes();
-    const voucherTypeChoices = Object.values(VoucherType).map(type => ({
+    const voucherTypeChoices = Object.values(VoucherTypeEnum).map(type => ({
       hidden: type === "SHIPPING" ? true : false,
       label: translatedVoucherTypes[type],
       value: type

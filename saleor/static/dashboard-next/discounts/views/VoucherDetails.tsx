@@ -22,11 +22,13 @@ import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
 import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
-import { decimal, getMutationState, maybe } from "../../misc";
+import { decimal, getMutationState, maybe, connectDateTime } from "../../misc";
 import { productUrl } from "../../products/urls";
 import {
   DiscountValueTypeEnum,
-  VoucherDiscountValueType
+  VoucherDiscountValueType,
+  VoucherType,
+  VoucherTypeEnum
 } from "../../types/globalTypes";
 import DiscountCountrySelectDialog from "../components/DiscountCountrySelectDialog";
 import VoucherDetailsPage, {
@@ -53,14 +55,6 @@ import {
 interface VoucherDetailsProps {
   id: string;
   params: VoucherUrlQueryParams;
-}
-
-function discountValueTypeEnum(
-  type: VoucherDiscountValueType
-): DiscountValueTypeEnum {
-  return type.toString() === DiscountValueTypeEnum.FIXED
-    ? DiscountValueTypeEnum.FIXED
-    : DiscountValueTypeEnum.PERCENTAGE;
 }
 
 export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
@@ -319,28 +313,33 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               activeTab={params.activeTab}
                               onBack={() => navigate(voucherListUrl())}
                               onTabClick={changeTab}
-                              onSubmit={formData =>
+                              onSubmit={formData => {
+                                console.log(
+                                  connectDateTime(
+                                    formData.endDate,
+                                    formData.endTime
+                                  )
+                                );
                                 voucherUpdate({
                                   variables: {
                                     id,
                                     input: {
+                                      code: formData.code,
                                       discountValue: decimal(formData.value),
-                                      discountValueType: discountValueTypeEnum(
-                                        formData.discountType
+                                      discountValueType: formData.discountType,
+                                      endDate: connectDateTime(
+                                        formData.endDate,
+                                        formData.endTime
                                       ),
-                                      endDate:
-                                        formData.endDate === null
-                                          ? null
-                                          : moment(formData.endDate),
-
-                                      startDate:
-                                        formData.startDate === null
-                                          ? null
-                                          : moment(formData.startDate)
+                                      startDate: connectDateTime(
+                                        formData.startDate,
+                                        formData.startTime
+                                      ),
+                                      type: formData.type
                                     }
                                   }
-                                })
-                              }
+                                });
+                              }}
                               onRemove={() => openModal("remove")}
                               saveButtonBarState={formTransitionState}
                               categoryListToolbar={
