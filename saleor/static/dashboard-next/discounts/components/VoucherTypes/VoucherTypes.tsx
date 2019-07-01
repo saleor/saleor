@@ -12,8 +12,10 @@ import CardTitle from "@saleor/components/CardTitle";
 import RadioGroupField from "@saleor/components/RadioGroupField";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
-import { VoucherType } from "../../../types/globalTypes";
-import { translateVoucherTypes } from "../../translations";
+import {
+  DiscountValueTypeEnum,
+  VoucherDiscountValueType
+} from "../../../types/globalTypes";
 import { FormData } from "../VoucherDetailsPage";
 
 interface VoucherTypesProps {
@@ -42,11 +44,30 @@ const VoucherTypes = withStyles(styles, {
     errors,
     onChange
   }: VoucherTypesProps & WithStyles<typeof styles>) => {
-    const translatedVoucherTypes = translateVoucherTypes();
-    const voucherTypeChoices = Object.values(VoucherType).map(type => ({
-      label: translatedVoucherTypes[type],
-      value: type
-    }));
+    const voucherTypeChoices = Object.values(VoucherDiscountValueType).map(
+      type => {
+        switch (type.toString()) {
+          case DiscountValueTypeEnum.FIXED:
+            return {
+              hidden: false,
+              label: i18n.t("Fixed Amount"),
+              value: type
+            };
+          case DiscountValueTypeEnum.PERCENTAGE:
+            return {
+              hidden: false,
+              label: i18n.t("Percentage"),
+              value: type
+            };
+          case DiscountValueTypeEnum.SHIPPING:
+            return {
+              hidden: false,
+              label: i18n.t("Free Shipping"),
+              value: type
+            };
+        }
+      }
+    );
 
     return (
       <Card>
@@ -58,8 +79,8 @@ const VoucherTypes = withStyles(styles, {
               disabled={disabled}
               error={!!errors.type}
               hint={errors.type}
-              name={"type" as keyof FormData}
-              value={data.type}
+              name={"discountType" as keyof FormData}
+              value={data.discountType}
               onChange={onChange}
             />
           </div>
