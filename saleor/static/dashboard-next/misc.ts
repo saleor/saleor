@@ -238,18 +238,21 @@ export function stopPropagation(cb: () => void) {
 }
 
 export function connectDateTime(date: string, time?: string) {
-  if (!date) return null;
+  if (!date) {
+    return null;
+  }
   const setTime = time || "00:00";
   const dateTime = moment(date + " " + setTime).format();
   return dateTime;
 }
 
 export function splitDateTime(dateTime: string) {
-  if (!dateTime)
+  if (!dateTime) {
     return {
       date: "",
       time: ""
     };
+  }
   const splitDateTime = moment(dateTime)
     .format("YYYY-MM-DD HH:mm")
     .split(" ");

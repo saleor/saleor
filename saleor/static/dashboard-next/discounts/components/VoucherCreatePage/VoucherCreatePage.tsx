@@ -25,9 +25,10 @@ export interface FormData {
   code: string;
   discountType: VoucherDiscountValueType;
   endDate: string;
+  endTime: string;
   minAmountSpent: number;
-  name: string;
   startDate: string;
+  startTime: string;
   type: VoucherType;
   usageLimit: number;
   value: number;
@@ -55,9 +56,10 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
     code: "",
     discountType: VoucherDiscountValueType.FIXED,
     endDate: "",
+    endTime: "",
     minAmountSpent: 0,
-    name: "",
     startDate: "",
+    startTime: "",
     type: VoucherType.ENTIRE_ORDER,
     usageLimit: 0,
     value: 0

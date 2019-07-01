@@ -127,6 +127,7 @@ export interface VoucherDetails_voucher_categories {
 export interface VoucherDetails_voucher {
   __typename: "Voucher";
   id: string;
+  code: string;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;
@@ -135,7 +136,6 @@ export interface VoucherDetails_voucher {
   countries: (VoucherDetails_voucher_countries | null)[] | null;
   minAmountSpent: VoucherDetails_voucher_minAmountSpent | null;
   type: VoucherType;
-  code: string;
   used: number;
   applyOncePerOrder: boolean;
   products: VoucherDetails_voucher_products | null;

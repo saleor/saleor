@@ -102,7 +102,7 @@ const VoucherList = withStyles(styles, {
           toolbar={toolbar}
         >
           <TableCell className={classes.colName}>
-            {i18n.t("Name", {
+            {i18n.t("Code", {
               context: "voucher list table header"
             })}
           </TableCell>
@@ -167,7 +167,7 @@ const VoucherList = withStyles(styles, {
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>
-                    {maybe<React.ReactNode>(() => voucher.name, <Skeleton />)}
+                    {maybe<React.ReactNode>(() => voucher.code, <Skeleton />)}
                   </TableCell>
                   <TableCell className={classes.colMinSpent}>
                     {voucher && voucher.minAmountSpent ? (

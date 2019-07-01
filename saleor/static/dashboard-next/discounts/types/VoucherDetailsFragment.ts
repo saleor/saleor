@@ -127,6 +127,7 @@ export interface VoucherDetailsFragment_categories {
 export interface VoucherDetailsFragment {
   __typename: "Voucher";
   id: string;
+  code: string;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;
@@ -135,7 +136,6 @@ export interface VoucherDetailsFragment {
   countries: (VoucherDetailsFragment_countries | null)[] | null;
   minAmountSpent: VoucherDetailsFragment_minAmountSpent | null;
   type: VoucherType;
-  code: string;
   used: number;
   applyOncePerOrder: boolean;
   products: VoucherDetailsFragment_products | null;

@@ -23,6 +23,7 @@ export interface VoucherFragment_minAmountSpent {
 export interface VoucherFragment {
   __typename: "Voucher";
   id: string;
+  code: string;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;

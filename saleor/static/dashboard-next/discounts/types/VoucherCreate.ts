@@ -29,6 +29,7 @@ export interface VoucherCreate_voucherCreate_voucher_minAmountSpent {
 export interface VoucherCreate_voucherCreate_voucher {
   __typename: "Voucher";
   id: string;
+  code: string;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;

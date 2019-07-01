@@ -7,7 +7,6 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import * as moment from "moment-timezone";
 import * as React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
@@ -20,14 +19,7 @@ interface VoucherDatesProps {
   data: FormData;
   defaultCurrency: string;
   disabled: boolean;
-  errors: FormErrors<
-    | "discountType"
-    | "discountValue"
-    | "endDate"
-    | "minAmountSpent"
-    | "startDate"
-    | "usageLimit"
-  >;
+  errors: FormErrors<"endDate" | "startDate">;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -52,8 +44,6 @@ const VoucherDates = withStyles(styles, {
   }: VoucherDatesProps & WithStyles<typeof styles>) => {
     const [showEndDate, setshowEndDate] = React.useState(false);
     const handleOnChange = () => setshowEndDate(!showEndDate);
-
-    console.log(data);
 
     return (
       <Card>
