@@ -407,10 +407,10 @@ def test_void_incorrect_token(payment_txn_preauth, sandbox_braintree_gateway_con
 def test_list_customer_sources(sandbox_braintree_gateway_config):
     CUSTOMER_ID = "595109854"  # retrieved from sandbox
     expected_credit_card = CreditCardInfo(
-        last4="1881", exp_year=2020, exp_month=12, name_on_card=""
+        last4="1881", exp_year=2020, exp_month=12, name_on_card=None
     )
     expected_customer_source = CustomerSource(
-        id=CUSTOMER_ID, credit_card_info=expected_credit_card
+        id="d0b52c80b648ae8e5a14eddcaf24d254", credit_card_info=expected_credit_card
     )
     sources = list_client_sources(sandbox_braintree_gateway_config, CUSTOMER_ID)
-    assert len(sources) == 1
+    assert sources == [expected_customer_source]

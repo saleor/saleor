@@ -291,8 +291,8 @@ def list_client_sources(
 
 def extract_credit_card_data(card):
     credit_card = CreditCardInfo(
-        exp_year=card.expiration_year,
-        exp_month=card.expiration_month,
+        exp_year=int(card.expiration_year),
+        exp_month=int(card.expiration_month),
         last4=card.last_4,
         name_on_card=card.cardholder_name,
     )
