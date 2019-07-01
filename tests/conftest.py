@@ -668,6 +668,13 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def voucher_specific_product_type(db):
+    return Voucher.objects.create(
+        code="mirumee", discount_value=10, type=VoucherType.SPECIFIC_PRODUCT
+    )
+
+
+@pytest.fixture
 def voucher_percentage(db):
     return Voucher.objects.create(
         code="mirumee",

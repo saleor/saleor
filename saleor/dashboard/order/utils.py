@@ -151,7 +151,7 @@ def get_voucher_discount_for_order(order):
     if not order.voucher:
         return zero_money()
     subtotal = order.get_subtotal()
-    if order.voucher.type == VoucherType.VALUE:
+    if order.voucher.type == VoucherType.ENTIRE_ORDER:
         return get_value_voucher_discount(order.voucher, subtotal.gross)
     if order.voucher.type == VoucherType.SHIPPING:
         return get_shipping_voucher_discount(
@@ -161,6 +161,7 @@ def get_voucher_discount_for_order(order):
         VoucherType.PRODUCT,
         VoucherType.COLLECTION,
         VoucherType.CATEGORY,
+        VoucherType.SPECIFIC_PRODUCT,
     ):
         return get_products_voucher_discount_for_order(order, order.voucher)
     raise NotImplementedError("Unknown discount type")

@@ -297,7 +297,7 @@ export const voucherDetails: VoucherDetails_voucher = {
     totalCount: 0
   },
   startDate: "2018-11-27",
-  type: VoucherType.VALUE,
+  type: VoucherType.ENTIRE_ORDER,
   usageLimit: null,
   used: 0
 };

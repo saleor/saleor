@@ -127,7 +127,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
     minAmountSpent: maybe(() => voucher.minAmountSpent.amount, 0),
     name: maybe(() => voucher.name, ""),
     startDate: maybe(() => voucher.startDate, ""),
-    type: maybe(() => voucher.type, VoucherType.VALUE),
+    type: maybe(() => voucher.type, VoucherType.ENTIRE_ORDER),
     usageLimit: maybe(() => voucher.usageLimit || 0, 0),
     value: maybe(() => voucher.discountValue, 0)
   };
@@ -158,7 +158,8 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
               <CardSpacer />
               {data.type === VoucherType.CATEGORY ||
               data.type === VoucherType.COLLECTION ||
-              data.type === VoucherType.PRODUCT ? (
+              data.type === VoucherType.PRODUCT ||
+              data.type === VoucherType.SPECIFIC_PRODUCT ? (
                 <>
                   <TabContainer>
                     <CategoriesTab
