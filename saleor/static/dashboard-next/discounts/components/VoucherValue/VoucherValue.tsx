@@ -17,10 +17,7 @@ import RadioGroupField from "@saleor/components/RadioGroupField";
 import TextFieldWithChoice from "@saleor/components/TextFieldWithChoice";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
-import {
-  VoucherDiscountValueType,
-  VoucherTypeEnum
-} from "../../../types/globalTypes";
+import { VoucherDiscountValueType } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { FormData } from "../VoucherDetailsPage";
 
@@ -30,6 +27,12 @@ interface VoucherValueProps {
   errors: FormErrors<"name" | "code" | "type">;
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
+}
+
+const enum VoucherTypeEnum {
+  ENTIRE_ORDER = "ENTIRE_ORDER",
+  SHIPPING = "SHIPPING",
+  SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT"
 }
 
 const styles = (theme: Theme) =>

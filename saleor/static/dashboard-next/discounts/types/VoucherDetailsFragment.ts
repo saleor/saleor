@@ -127,7 +127,6 @@ export interface VoucherDetailsFragment_categories {
 export interface VoucherDetailsFragment {
   __typename: "Voucher";
   id: string;
-  name: string | null;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;
