@@ -128,7 +128,7 @@ class ShippingVoucherForm(forms.ModelForm):
         fields = ["countries", "min_amount_spent"]
 
 
-class ValueVoucherForm(forms.ModelForm):
+class EntireOrderVoucherForm(forms.ModelForm):
     min_amount_spent = MinAmountSpent
 
     class Meta:
@@ -157,6 +157,46 @@ class CommonVoucherForm(forms.ModelForm):
             "off each suitable item in an order.",
         ),
     )
+
+
+class SpecificProductVoucherForm(CommonVoucherForm):
+    products = AjaxSelect2MultipleChoiceField(
+        queryset=Product.objects.all(),
+        fetch_data_url=reverse_lazy("dashboard:ajax-products"),
+        required=True,
+        label=pgettext_lazy(
+            "Products that can be discounted with the voucher", "Products"
+        ),
+    )
+    categories = TreeNodeMultipleChoiceField(
+        queryset=Category.objects.all(),
+        required=True,
+        label=pgettext_lazy(
+            "Categories that can be discounted with the voucher", "Categories"
+        ),
+    )
+
+    class Meta:
+        model = Voucher
+        fields = [
+            "products",
+            "collections",
+            "categories",
+            "apply_once_per_order",
+            "min_amount_spent",
+        ]
+        labels = {
+            "collections": pgettext_lazy(
+                "Collections that can be discounted with the voucher", "Collections"
+            )
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["products"].set_initial(self.instance.products.all())
+        self.fields["categories"].required = False
+        self.fields["products"].required = False
 
 
 class ProductVoucherForm(CommonVoucherForm):

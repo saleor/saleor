@@ -55,7 +55,7 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
     minAmountSpent: 0,
     name: "",
     startDate: "",
-    type: VoucherType.VALUE,
+    type: VoucherType.ENTIRE_ORDER,
     usageLimit: 0,
     value: 0
   };
