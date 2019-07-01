@@ -3220,11 +3220,12 @@ type VoucherTranslation implements Node {
 }
 
 enum VoucherType {
-  VALUE
+  ENTIRE_ORDER
   PRODUCT
   COLLECTION
   CATEGORY
   SHIPPING
+  SPECIFIC_PRODUCT
 }
 
 enum VoucherTypeEnum {
@@ -3233,6 +3234,8 @@ enum VoucherTypeEnum {
   CATEGORY
   SHIPPING
   VALUE
+  ENTIRE_ORDER
+  SPECIFIC_PRODUCT
 }
 
 type VoucherUpdate {

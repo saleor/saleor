@@ -836,7 +836,7 @@ def test_get_discount_for_checkout_value_voucher(
 ):
     voucher = Voucher(
         code="unique",
-        type=VoucherType.VALUE,
+        type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_type,
         discount_value=discount_value,
         min_amount_spent=(
@@ -882,7 +882,7 @@ def test_get_discount_for_checkout_apply_once_per_order(
 def test_get_discount_for_checkout_value_voucher_not_applicable():
     voucher = Voucher(
         code="unique",
-        type=VoucherType.VALUE,
+        type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
         min_amount_spent=Money(100, "USD"),

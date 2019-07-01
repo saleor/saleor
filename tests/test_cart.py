@@ -20,6 +20,7 @@ from saleor.checkout.utils import (
 from saleor.checkout.views import clear_checkout, update_checkout_line
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount.models import Sale
+from saleor.product.models import Category
 from saleor.shipping.utils import get_shipping_price_estimate
 
 
@@ -304,6 +305,109 @@ def test_get_prices_of_discounted_products(checkout_with_item):
         discounted_line.variant.get_price() for item in range(discounted_line.quantity)
     ]
     assert list(prices) == excepted_value
+
+
+def test_get_prices_of_discounted_specific_product(
+    checkout_with_item, collection, voucher_specific_product_type
+):
+    checkout = checkout_with_item
+    voucher = voucher_specific_product_type
+    line = checkout.lines.first()
+    product = line.variant.product
+    category = product.category
+
+    product.collections.add(collection)
+    voucher.products.add(product)
+    voucher.collections.add(collection)
+    voucher.categories.add(category)
+
+    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+
+    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+
+    assert prices == excepted_value
+
+
+def test_get_prices_of_discounted_specific_product_only_product(
+    checkout_with_item, voucher_specific_product_type, product_with_default_variant
+):
+    checkout = checkout_with_item
+    voucher = voucher_specific_product_type
+    line = checkout.lines.first()
+    product = line.variant.product
+    product2 = product_with_default_variant
+
+    add_variant_to_checkout(checkout, product2.variants.get(), 1)
+    voucher.products.add(product)
+
+    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+
+    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+
+    assert checkout.lines.count() > 1
+    assert prices == excepted_value
+
+
+def test_get_prices_of_discounted_specific_product_only_collection(
+    checkout_with_item,
+    collection,
+    voucher_specific_product_type,
+    product_with_default_variant,
+):
+    checkout = checkout_with_item
+    voucher = voucher_specific_product_type
+    line = checkout.lines.first()
+    product = line.variant.product
+    product2 = product_with_default_variant
+
+    add_variant_to_checkout(checkout, product2.variants.get(), 1)
+    product.collections.add(collection)
+    voucher.collections.add(collection)
+
+    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+
+    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+
+    assert checkout.lines.count() > 1
+    assert prices == excepted_value
+
+
+def test_get_prices_of_discounted_specific_product_only_category(
+    checkout_with_item, voucher_specific_product_type, product_with_default_variant
+):
+    checkout = checkout_with_item
+    voucher = voucher_specific_product_type
+    line = checkout.lines.first()
+    product = line.variant.product
+    product2 = product_with_default_variant
+    category = product.category
+    category2 = Category.objects.create(name="Cat", slug="cat")
+
+    product2.category = category2
+    product2.save()
+    add_variant_to_checkout(checkout, product2.variants.get(), 1)
+    voucher.categories.add(category)
+
+    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+
+    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+
+    assert checkout.lines.count() > 1
+    assert prices == excepted_value
+
+
+def test_get_prices_of_discounted_specific_product_all_products(
+    checkout_with_item, voucher_specific_product_type
+):
+    checkout = checkout_with_item
+    voucher = voucher_specific_product_type
+    line = checkout.lines.first()
+
+    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+
+    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+
+    assert prices == excepted_value
 
 
 def test_contains_unavailable_variants():

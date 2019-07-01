@@ -66,7 +66,12 @@ class BaseDiscountCatalogueMutation(BaseMutation):
 
 class VoucherInput(graphene.InputObjectType):
     type = VoucherTypeEnum(
-        description="Voucher type: product, category shipping or value."
+        description=(
+            "Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER. "
+            "Deprecated fields: "
+            "PRODUCT, COLLECTION, CATEGORY use SPECIFIC_PRODUCT instead. "
+            "VALUE use ENTIRE_ORDER instead."
+        )
     )
     name = graphene.String(description="Voucher name.")
     code = graphene.String(decription="Code to use the voucher.")
@@ -123,6 +128,9 @@ class VoucherCreate(ModelMutation):
             data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
             raise PromoCodeAlreadyExists()
+        voucher_type = data.get("type", None)
+        if voucher_type == VoucherTypeEnum.VALUE:
+            data["type"] = VoucherTypeEnum.ENTIRE_ORDER.value
         cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
 

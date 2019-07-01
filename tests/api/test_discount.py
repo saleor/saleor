@@ -174,7 +174,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
-        "type": VoucherTypeEnum.VALUE.name,
+        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
         "code": "testcode123",
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "discountValue": 10.12,
@@ -189,7 +189,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     )
     content = get_graphql_content(response)
     data = content["data"]["voucherCreate"]["voucher"]
-    assert data["type"] == VoucherType.VALUE.upper()
+    assert data["type"] == VoucherType.ENTIRE_ORDER.upper()
     assert data["minAmountSpent"]["amount"] == 1.12
     assert data["name"] == "test voucher"
     assert data["code"] == "testcode123"
@@ -200,6 +200,31 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+    variables = {
+        "name": "test voucher",
+        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+        "code": "",
+        "discountValueType": DiscountValueTypeEnum.FIXED.name,
+        "discountValue": 10.12,
+        "minAmountSpent": 1.12,
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+    }
+
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]["voucher"]
+    assert data["name"] == variables["name"]
+    assert data["code"] != ""
+
+
+def test_create_voucher_with_deprecated_type(
+    staff_api_client, permission_manage_discounts
+):
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
     variables = {
@@ -220,6 +245,7 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
     data = content["data"]["voucherCreate"]["voucher"]
     assert data["name"] == variables["name"]
     assert data["code"] != ""
+    assert data["type"] == VoucherTypeEnum.ENTIRE_ORDER.name
 
 
 def test_create_voucher_with_existing_gift_card_code(
@@ -229,7 +255,7 @@ def test_create_voucher_with_existing_gift_card_code(
     end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
-        "type": VoucherTypeEnum.VALUE.name,
+        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
         "code": gift_card.code,
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "discountValue": 10.12,
@@ -255,7 +281,7 @@ def test_create_voucher_with_existing_voucher_code(
     end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
-        "type": VoucherTypeEnum.VALUE.name,
+        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
         "code": voucher_shipping_type.code,
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "discountValue": 10.12,
