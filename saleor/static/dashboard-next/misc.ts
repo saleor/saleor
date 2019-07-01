@@ -1,5 +1,5 @@
+import moment from "moment-timezone";
 import urlJoin from "url-join";
-
 import { MutationFn, MutationResult } from "react-apollo";
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
 import { APP_MOUNT_URI } from "./config";
@@ -234,5 +234,27 @@ export function stopPropagation(cb: () => void) {
   return (event: AnyEvent) => {
     event.stopPropagation();
     cb();
+  };
+}
+
+export function connectDateTime(date: string, time?: string) {
+  if (!date) return null;
+  const setTime = time || "00:00";
+  const dateTime = moment(date + " " + setTime).format();
+  return dateTime;
+}
+
+export function splitDateTime(dateTime: string) {
+  if (!dateTime)
+    return {
+      date: "",
+      time: ""
+    };
+  const splitDateTime = moment(dateTime)
+    .format("YYYY-MM-DD HH:mm")
+    .split(" ");
+  return {
+    date: splitDateTime[0],
+    time: splitDateTime[1]
   };
 }
