@@ -51,7 +51,5 @@
       {% endblocktrans %}
     </div>
   {% endif %}
-  <div class="">
-    {{ page.translated.content|safe }}
-  </div>
+  <div data-description-json='{{ page.translated.content_json }}'></div>
 {% endblock %}
