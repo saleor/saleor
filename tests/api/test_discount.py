@@ -222,6 +222,32 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
     assert data["code"] != ""
 
 
+def test_create_voucher_with_deprecated_type(
+    staff_api_client, permission_manage_discounts
+):
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+    variables = {
+        "name": "test voucher",
+        "type": VoucherTypeEnum.VALUE.name,
+        "code": "",
+        "discountValueType": DiscountValueTypeEnum.FIXED.name,
+        "discountValue": 10.12,
+        "minAmountSpent": 1.12,
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+    }
+
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]["voucher"]
+    assert data["name"] == variables["name"]
+    assert data["code"] != ""
+    assert data["type"] == VoucherTypeEnum.ENTIRE_ORDER.name
+
+
 def test_create_voucher_with_existing_gift_card_code(
     staff_api_client, gift_card, permission_manage_discounts
 ):
