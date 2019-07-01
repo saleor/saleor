@@ -133,6 +133,7 @@ export interface VoucherCataloguesAdd_voucherCataloguesAdd_voucher_categories {
 export interface VoucherCataloguesAdd_voucherCataloguesAdd_voucher {
   __typename: "Voucher";
   id: string;
+  code: string;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;
@@ -141,7 +142,6 @@ export interface VoucherCataloguesAdd_voucherCataloguesAdd_voucher {
   countries: (VoucherCataloguesAdd_voucherCataloguesAdd_voucher_countries | null)[] | null;
   minAmountSpent: VoucherCataloguesAdd_voucherCataloguesAdd_voucher_minAmountSpent | null;
   type: VoucherType;
-  code: string;
   used: number;
   applyOncePerOrder: boolean;
   products: VoucherCataloguesAdd_voucherCataloguesAdd_voucher_products | null;

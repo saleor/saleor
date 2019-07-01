@@ -60,6 +60,7 @@ export const saleList: SaleList_sales_edges_node[] = [
 export const voucherList: VoucherList_vouchers_edges_node[] = [
   {
     __typename: "Voucher" as "Voucher",
+    code: "FREE2019",
     countries: [
       {
         __typename: "CountryDisplay",
@@ -72,12 +73,12 @@ export const voucherList: VoucherList_vouchers_edges_node[] = [
     endDate: null,
     id: "Vm91Y2hlcjox",
     minAmountSpent: null,
-    name: "Free shipping",
     startDate: "2019-01-03",
     usageLimit: null
   },
   {
     __typename: "Voucher" as "Voucher",
+    code: "FREE2020",
     countries: [],
     discountValue: 25,
     discountValueType: "FIXED" as VoucherDiscountValueType,
@@ -88,7 +89,6 @@ export const voucherList: VoucherList_vouchers_edges_node[] = [
       amount: 200,
       currency: "USD"
     },
-    name: "Big order discount",
     startDate: "2019-01-03",
     usageLimit: 150
   }
@@ -283,7 +283,6 @@ export const voucherDetails: VoucherDetails_voucher = {
     amount: 200,
     currency: "USD"
   },
-  name: "Big order discount",
   products: {
     __typename: "ProductCountableConnection",
     edges: [],

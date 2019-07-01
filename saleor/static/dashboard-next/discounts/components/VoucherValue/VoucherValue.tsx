@@ -24,12 +24,12 @@ import { FormData } from "../VoucherDetailsPage";
 interface VoucherValueProps {
   data: FormData;
   defaultCurrency: string;
-  errors: FormErrors<"name" | "code" | "type">;
+  errors: FormErrors<"discountValue" | "type">;
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const enum VoucherTypeEnum {
+enum VoucherTypeEnum {
   ENTIRE_ORDER = "ENTIRE_ORDER",
   SHIPPING = "SHIPPING",
   SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT"

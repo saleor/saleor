@@ -23,6 +23,7 @@ export interface VoucherList_vouchers_edges_node_minAmountSpent {
 export interface VoucherList_vouchers_edges_node {
   __typename: "Voucher";
   id: string;
+  code: string;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;

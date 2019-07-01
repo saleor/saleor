@@ -29,6 +29,7 @@ export interface VoucherUpdate_voucherUpdate_voucher_minAmountSpent {
 export interface VoucherUpdate_voucherUpdate_voucher {
   __typename: "Voucher";
   id: string;
+  code: string;
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;

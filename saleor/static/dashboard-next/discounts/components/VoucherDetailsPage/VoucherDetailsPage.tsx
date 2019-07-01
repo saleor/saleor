@@ -170,10 +170,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                 />
               ) : null}
               <CardSpacer />
-              {data.type === VoucherType.CATEGORY ||
-              data.type === VoucherType.COLLECTION ||
-              data.type === VoucherType.PRODUCT ||
-              data.type === VoucherType.SPECIFIC_PRODUCT ? (
+              {data.type === VoucherType.SPECIFIC_PRODUCT ? (
                 <>
                   <TabContainer>
                     <CategoriesTab
@@ -268,9 +265,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                   emptyText={i18n.t("Voucher applies to all countries")}
                   title={
                     <>
-                      {i18n.t("Countries assigned to {{ voucherName }}", {
-                        voucherName: maybe(() => voucher.name)
-                      })}
+                      {i18n.t("Countries")}
                       <Typography variant="caption">
                         {i18n.t("Vouchers limited to these countries")}
                       </Typography>

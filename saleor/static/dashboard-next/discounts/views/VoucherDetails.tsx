@@ -1,6 +1,5 @@
 import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
-import moment from "moment-timezone";
 import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
@@ -22,14 +21,8 @@ import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
 import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
-import { decimal, getMutationState, maybe, connectDateTime } from "../../misc";
+import { connectDateTime, decimal, getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
-import {
-  DiscountValueTypeEnum,
-  VoucherDiscountValueType,
-  VoucherType,
-  VoucherTypeEnum
-} from "../../types/globalTypes";
 import DiscountCountrySelectDialog from "../components/DiscountCountrySelectDialog";
 import VoucherDetailsPage, {
   VoucherDetailsPageTab
@@ -314,12 +307,6 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               onBack={() => navigate(voucherListUrl())}
                               onTabClick={changeTab}
                               onSubmit={formData => {
-                                console.log(
-                                  connectDateTime(
-                                    formData.endDate,
-                                    formData.endTime
-                                  )
-                                );
                                 voucherUpdate({
                                   variables: {
                                     id,
@@ -597,10 +584,10 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               <DialogContentText
                                 dangerouslySetInnerHTML={{
                                   __html: i18n.t(
-                                    "Are you sure you want to remove <strong>{{ voucherName }}</strong>?",
+                                    "Are you sure you want to remove <strong>{{ voucherCode }}</strong>?",
                                     {
-                                      voucherName: maybe(
-                                        () => data.voucher.name,
+                                      voucherCode: maybe(
+                                        () => data.voucher.code,
                                         "..."
                                       )
                                     }
