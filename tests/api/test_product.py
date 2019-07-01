@@ -100,7 +100,6 @@ def test_fetch_all_products(user_api_client, product):
     assert len(content["data"]["products"]["edges"]) == num_products
 
 
-@pytest.mark.djangodb
 def test_fetch_unavailable_products(user_api_client, product):
     Product.objects.update(is_published=False)
     query = """
