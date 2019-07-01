@@ -26,7 +26,7 @@ def calculate_checkout_total(
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         total = avatax_interface.calculate_checkout_total(checkout, discounts)
 
-    if total:
+    if total is not None:
         return quantize_price(total, total.currency)
 
     total = checkout.get_total(discounts)
@@ -44,7 +44,7 @@ def calculate_checkout_subtotal(
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         subtotal = avatax_interface.calculate_checkout_subtotal(checkout, discounts)
 
-    if subtotal:
+    if subtotal is not None:
         return quantize_price(subtotal, subtotal.currency)
 
     subtotal = checkout.get_subtotal(discounts)
@@ -74,7 +74,7 @@ def calculate_order_shipping(order: "Order") -> TaxedMoney:
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         shipping_price = avatax_interface.calculate_order_shipping(order)
 
-    if shipping_price:
+    if shipping_price is not None:
         return quantize_price(shipping_price, shipping_price.currency)
     shipping_price = order.shipping_method.price
     return quantize_price(
@@ -116,7 +116,7 @@ def calculate_checkout_line_total(
         )
     elif settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE:
         total = avatax_interface.calculate_checkout_line_total(checkout_line, discounts)
-    if total:
+    if total is not None:
         return quantize_price(total, total.currency)
     total = checkout_line.get_total(discounts)
     return quantize_price(TaxedMoney(net=total, gross=total), total.currency)
