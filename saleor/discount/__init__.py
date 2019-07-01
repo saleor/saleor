@@ -20,6 +20,7 @@ class VoucherType:
     COLLECTION = "collection"
     CATEGORY = "category"
     SHIPPING = "shipping"
+    VALUE = "value"
     ENTIRE_ORDER = "entire_order"
     SPECIFIC_PRODUCT = "specific_product"
 
