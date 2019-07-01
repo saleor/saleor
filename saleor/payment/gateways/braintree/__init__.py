@@ -2,11 +2,19 @@ import logging
 from typing import Dict, List
 
 import braintree as braintree_sdk
+from autopep8 import extract_code_from_function
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
 from ... import TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData, TokenConfig
+from ...interface import (
+    CustomerSource,
+    CreditCardInfo,
+    GatewayConfig,
+    GatewayResponse,
+    PaymentData,
+    TokenConfig,
+)
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
@@ -269,3 +277,25 @@ def process_payment(
 ) -> GatewayResponse:
     auth_resp = authorize(payment_information, config)
     return auth_resp
+
+
+def list_client_sources(
+    config: GatewayConfig, customer_id: str
+) -> List[CustomerSource]:
+    gateway = get_braintree_gateway(**config.connection_params)
+    customer = gateway.customer.find(customer_id)
+    if not customer:
+        return []
+    return [extract_credit_card_data(card) for card in customer.credit_cards]
+
+
+def extract_credit_card_data(card):
+    credit_card = CreditCardInfo(
+        exp_year=card.expiration_year,
+        exp_month=card.expiration_month,
+        last4=card.last_4,
+        name_on_card=card.cardholder_name,
+    )
+    return CustomerSource(
+        id=card.unique_number_identifier, credit_card_info=credit_card
+    )
