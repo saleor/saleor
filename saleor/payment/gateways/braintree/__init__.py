@@ -2,14 +2,13 @@ import logging
 from typing import Dict, List
 
 import braintree as braintree_sdk
-from autopep8 import extract_code_from_function
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
 from ... import TransactionKind
 from ...interface import (
-    CustomerSource,
     CreditCardInfo,
+    CustomerSource,
     GatewayConfig,
     GatewayResponse,
     PaymentData,
