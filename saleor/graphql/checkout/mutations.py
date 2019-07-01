@@ -1,3 +1,5 @@
+from typing import List, Optional, Tuple
+
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -29,6 +31,7 @@ from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.interface import AddressData
 from ...payment.utils import gateway_process_payment, store_customer_id
+from ...product import models as product_models
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
@@ -126,37 +129,47 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return_field_name = "checkout"
 
     @classmethod
+    def process_checkout_lines(
+        cls, lines
+    ) -> Tuple[List[product_models.ProductVariant], List[int]]:
+        variant_ids = [line.get("variant_id") for line in lines]
+        variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
+        quantities = [line.get("quantity") for line in lines]
+
+        check_lines_quantity(variants, quantities)
+
+        return variants, quantities
+
+    @classmethod
+    def retrieve_shipping_address(cls, user, data: dict) -> Optional[models.Address]:
+        if "shipping_address" in data:
+            return cls.validate_address(data["shipping_address"])
+        elif user.is_authenticated:
+            return user.default_shipping_address
+        return None
+
+    @classmethod
+    def retrieve_billing_address(cls, user, data: dict) -> Optional[models.Address]:
+        if "billing_address" in data:
+            return cls.validate_address(data["billing_address"])
+        elif user.is_authenticated:
+            return user.default_billing_address
+        return None
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
+
+        # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
         if lines:
-            variant_ids = [line.get("variant_id") for line in lines]
-            variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-            quantities = [line.get("quantity") for line in lines]
+            cleaned_input["variants"], cleaned_input[
+                "quantities"
+            ] = cls.process_checkout_lines(lines)
 
-            check_lines_quantity(variants, quantities)
-
-            cleaned_input["variants"] = variants
-            cleaned_input["quantities"] = quantities
-
-        default_shipping_address = None
-        default_billing_address = None
-        if user.is_authenticated:
-            default_billing_address = user.default_billing_address
-            default_shipping_address = user.default_shipping_address
-
-        if "shipping_address" in data:
-            shipping_address = cls.validate_address(data["shipping_address"])
-            cleaned_input["shipping_address"] = shipping_address
-        else:
-            cleaned_input["shipping_address"] = default_shipping_address
-
-        if "billing_address" in data:
-            billing_address = cls.validate_address(data["billing_address"])
-            cleaned_input["billing_address"] = billing_address
-        else:
-            cleaned_input["billing_address"] = default_billing_address
+        cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
+        cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
 
         # Use authenticated user's email as default email
         if user.is_authenticated:
@@ -167,8 +180,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        # FIXME: we should add a atomic transaction here?
+
         shipping_address = cleaned_input.get("shipping_address")
         billing_address = cleaned_input.get("billing_address")
+
+        # FIXME: check if we actually need a shipping address
         if shipping_address:
             shipping_address.save()
             instance.shipping_address = shipping_address.get_copy()
@@ -180,8 +197,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
+        # FIXME: move this logic out of save and then add by ignoring quantities check
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
+                # FIXME: should we catch ValueError
                 add_variant_to_checkout(instance, variant, quantity)
 
     @classmethod
@@ -195,6 +214,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             # If user has an active checkout, return it without any
             # modifications.
             if not created:
+                # FIXME: should we raise an error?
+                #        Nothing was created--which is invalid,
+                #        the user knows nothing about this.
                 return CheckoutCreate(checkout=checkout)
         else:
             checkout = models.Checkout()
