@@ -1,6 +1,6 @@
 import Table from "@material-ui/core/Table";
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import TablePagination from "@saleor/components/TablePagination";
 import CardDecorator from "../../CardDecorator";

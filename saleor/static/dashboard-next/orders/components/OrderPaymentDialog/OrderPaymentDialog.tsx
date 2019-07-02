@@ -4,7 +4,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
-import * as React from "react";
+import React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
@@ -72,9 +72,9 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
               transitionState={confirmButtonState}
               color="primary"
               variant="contained"
-              onClick={data => {
+              onClick={() => {
                 onClose();
-                submit(data);
+                submit();
               }}
             >
               {i18n.t("Confirm", { context: "button" })}

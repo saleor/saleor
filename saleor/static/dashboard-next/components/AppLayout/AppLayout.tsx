@@ -12,8 +12,8 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 import SVG from "react-inlinesvg";
 import { RouteComponentProps, withRouter } from "react-router";
 
@@ -21,8 +21,8 @@ import AppProgressProvider from "@saleor/components/AppProgress";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useTheme from "@saleor/hooks/useTheme";
 import useUser from "@saleor/hooks/useUser";
-import * as saleorDarkLogo from "../../../images/logo-dark.svg";
-import * as saleorLightLogo from "../../../images/logo-light.svg";
+import saleorDarkLogo from "../../../images/logo-dark.svg";
+import saleorLightLogo from "../../../images/logo-light.svg";
 import i18n from "../../i18n";
 import ArrowDropdown from "../../icons/ArrowDropdown";
 import Container from "../Container";

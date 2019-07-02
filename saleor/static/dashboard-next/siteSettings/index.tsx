@@ -1,5 +1,5 @@
 import { parse as parseQs } from "qs";
-import * as React from "react";
+import React from "react";
 import { Route, RouteComponentProps } from "react-router-dom";
 
 import { siteSettingsPath, SiteSettingsUrlQueryParams } from "./urls";
