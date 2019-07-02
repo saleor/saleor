@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { VoucherInput, VoucherDiscountValueType } from "./../../types/globalTypes";
+import { VoucherInput, DiscountValueTypeEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: VoucherCreate
@@ -33,7 +33,7 @@ export interface VoucherCreate_voucherCreate_voucher {
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;
-  discountValueType: VoucherDiscountValueType;
+  discountValueType: DiscountValueTypeEnum;
   discountValue: number;
   countries: (VoucherCreate_voucherCreate_voucher_countries | null)[] | null;
   minAmountSpent: VoucherCreate_voucherCreate_voucher_minAmountSpent | null;

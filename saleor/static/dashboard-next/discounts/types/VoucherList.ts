@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { VoucherDiscountValueType } from "./../../types/globalTypes";
+import { DiscountValueTypeEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: VoucherList
@@ -27,7 +27,7 @@ export interface VoucherList_vouchers_edges_node {
   startDate: any;
   endDate: any | null;
   usageLimit: number | null;
-  discountValueType: VoucherDiscountValueType;
+  discountValueType: DiscountValueTypeEnum;
   discountValue: number;
   countries: (VoucherList_vouchers_edges_node_countries | null)[] | null;
   minAmountSpent: VoucherList_vouchers_edges_node_minAmountSpent | null;
