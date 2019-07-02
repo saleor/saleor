@@ -19,12 +19,7 @@ interface VoucherRequirementsProps {
   defaultCurrency: string;
   disabled: boolean;
   errors: FormErrors<
-    | "discountType"
-    | "discountValue"
-    | "endDate"
     | "minAmountSpent"
-    | "startDate"
-    | "usageLimit"
   >;
   onChange: (event: React.ChangeEvent<any>) => void;
 }

@@ -1,8 +1,8 @@
 import placeholderImage from "../../images/placeholder60x60.png";
 import {
+  DiscountValueTypeEnum,
   SaleType,
-  VoucherDiscountValueType,
-  VoucherType
+  VoucherTypeEnum
 } from "../types/globalTypes";
 import { SaleDetails_sale } from "./types/SaleDetails";
 import { SaleList_sales_edges_node } from "./types/SaleList";
@@ -69,7 +69,7 @@ export const voucherList: VoucherList_vouchers_edges_node[] = [
       }
     ],
     discountValue: 100,
-    discountValueType: "PERCENTAGE" as VoucherDiscountValueType,
+    discountValueType: "PERCENTAGE" as DiscountValueTypeEnum,
     endDate: null,
     id: "Vm91Y2hlcjox",
     minAmountSpent: null,
@@ -81,7 +81,7 @@ export const voucherList: VoucherList_vouchers_edges_node[] = [
     code: "FREE2020",
     countries: [],
     discountValue: 25,
-    discountValueType: "FIXED" as VoucherDiscountValueType,
+    discountValueType: "FIXED" as DiscountValueTypeEnum,
     endDate: null,
     id: "Vm91Y2hlcjoy",
     minAmountSpent: {
@@ -275,7 +275,7 @@ export const voucherDetails: VoucherDetails_voucher = {
     }
   ],
   discountValue: 25,
-  discountValueType: VoucherDiscountValueType.FIXED,
+  discountValueType: DiscountValueTypeEnum.FIXED,
   endDate: null,
   id: "Vm91Y2hlcjoy",
   minAmountSpent: {
@@ -296,7 +296,7 @@ export const voucherDetails: VoucherDetails_voucher = {
     totalCount: 0
   },
   startDate: "2018-11-27",
-  type: VoucherType.ENTIRE_ORDER,
+  type: VoucherTypeEnum.ENTIRE_ORDER,
   usageLimit: null,
   used: 0
 };

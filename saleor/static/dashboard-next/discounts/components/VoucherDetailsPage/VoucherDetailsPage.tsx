@@ -15,8 +15,8 @@ import i18n from "../../../i18n";
 import { maybe, splitDateTime } from "../../../misc";
 import { ListProps, TabListActions, UserError } from "../../../types";
 import {
-  VoucherDiscountValueType,
-  VoucherType
+  DiscountValueTypeEnum,
+  VoucherTypeEnum
 } from "../../../types/globalTypes";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 import DiscountCategories from "../DiscountCategories";
@@ -46,13 +46,15 @@ export function voucherDetailsPageTab(tab: string): VoucherDetailsPageTab {
 export interface FormData {
   applyOncePerOrder: boolean;
   code: string;
-  discountType: VoucherDiscountValueType;
+  discountType: DiscountValueTypeEnum;
   endDate: string;
   endTime: string;
+  hasEndDate: boolean;
+  hasUsageLimit: boolean;
   minAmountSpent: number;
   startDate: string;
   startTime: string;
-  type: VoucherType;
+  type: VoucherTypeEnum;
   usageLimit: number;
   value: number;
 }
@@ -126,14 +128,16 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
     code: maybe(() => voucher.code, ""),
     discountType: maybe(
       () => voucher.discountValueType,
-      VoucherDiscountValueType.FIXED
+      DiscountValueTypeEnum.FIXED
     ),
     endDate: splitDateTime(maybe(() => voucher.endDate, "")).date,
     endTime: splitDateTime(maybe(() => voucher.endDate, "")).time,
+    hasEndDate: maybe(() => !!voucher.endDate),
+    hasUsageLimit: maybe(() => !!voucher.usageLimit),
     minAmountSpent: maybe(() => voucher.minAmountSpent.amount, 0),
     startDate: splitDateTime(maybe(() => voucher.startDate, "")).date,
     startTime: splitDateTime(maybe(() => voucher.startDate, "")).time,
-    type: maybe(() => voucher.type, VoucherType.ENTIRE_ORDER),
+    type: maybe(() => voucher.type, VoucherTypeEnum.ENTIRE_ORDER),
     usageLimit: maybe(() => voucher.usageLimit || 0, 0),
     value: maybe(() => voucher.discountValue, 0)
   };
@@ -151,6 +155,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                 disabled={disabled}
                 errors={formErrors}
                 onChange={change}
+                variant="update"
               />
               <CardSpacer />
               <VoucherTypes
@@ -160,17 +165,19 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                 onChange={change}
               />
               <CardSpacer />
-              {data.discountType !== VoucherDiscountValueType.SHIPPING ? (
+              {data.discountType.toString() !== "SHIPPING" ? (
                 <VoucherValue
                   data={data}
                   disabled={disabled}
                   defaultCurrency={defaultCurrency}
                   errors={formErrors}
                   onChange={change}
+                  variant="update"
                 />
               ) : null}
               <CardSpacer />
-              {data.type === VoucherType.SPECIFIC_PRODUCT ? (
+              {data.type === VoucherTypeEnum.SPECIFIC_PRODUCT &&
+              data.discountType.toString() !== "SHIPPING" ? (
                 <>
                   <TabContainer>
                     <CategoriesTab
@@ -258,7 +265,9 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                     />
                   )}
                 </>
-              ) : data.discountType === VoucherDiscountValueType.SHIPPING ? (
+              ) : null}
+              <CardSpacer />
+              {data.discountType.toString() === "SHIPPING" ? (
                 <CountryList
                   countries={maybe(() => voucher.countries)}
                   disabled={disabled}

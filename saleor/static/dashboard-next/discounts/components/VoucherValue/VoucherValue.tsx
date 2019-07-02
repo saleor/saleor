@@ -17,7 +17,7 @@ import RadioGroupField from "@saleor/components/RadioGroupField";
 import TextFieldWithChoice from "@saleor/components/TextFieldWithChoice";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
-import { VoucherDiscountValueType } from "../../../types/globalTypes";
+import { DiscountValueTypeEnum } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { FormData } from "../VoucherDetailsPage";
 
@@ -26,10 +26,11 @@ interface VoucherValueProps {
   defaultCurrency: string;
   errors: FormErrors<"discountValue" | "type">;
   disabled: boolean;
+  variant: string;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-enum VoucherTypeEnum {
+export enum VoucherTypeEnum {
   ENTIRE_ORDER = "ENTIRE_ORDER",
   SHIPPING = "SHIPPING",
   SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT"
@@ -53,6 +54,7 @@ const VoucherValue = withStyles(styles, {
     defaultCurrency,
     disabled,
     errors,
+    variant,
     onChange
   }: VoucherValueProps & WithStyles<typeof styles>) => {
     const translatedVoucherTypes = translateVoucherTypes();
@@ -72,10 +74,11 @@ const VoucherValue = withStyles(styles, {
               error={!!errors.discountValue}
               ChoiceProps={{
                 label:
-                  data.discountType === VoucherDiscountValueType.FIXED
+                  data.discountType === DiscountValueTypeEnum.FIXED
                     ? defaultCurrency
                     : "%",
-                name: "discountType" as keyof FormData
+                name: "discountType" as keyof FormData,
+                values: null
               }}
               helperText={errors.discountValue}
               name={"value" as keyof FormData}
@@ -89,17 +92,21 @@ const VoucherValue = withStyles(styles, {
               }}
             />
             <FormSpacer />
-            <RadioGroupField
-              choices={voucherTypeChoices}
-              disabled={disabled}
-              error={!!errors.type}
-              hint={errors.type}
-              label="Discount Specific Information"
-              name={"type" as keyof FormData}
-              value={data.type}
-              onChange={onChange}
-            />
-            <FormSpacer />
+            {variant === "update" ? (
+              <>
+                <RadioGroupField
+                  choices={voucherTypeChoices}
+                  disabled={disabled}
+                  error={!!errors.type}
+                  hint={errors.type}
+                  label="Discount Specific Information"
+                  name={"type" as keyof FormData}
+                  value={data.type}
+                  onChange={onChange}
+                />
+                <FormSpacer />
+              </>
+            ) : null}
             <Hr />
             <FormSpacer />
             <ControlledSwitch

@@ -13,7 +13,7 @@ import Percent from "@saleor/components/Percent";
 import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { VoucherDiscountValueType } from "../../../types/globalTypes";
+import { DiscountValueTypeEnum } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 
@@ -51,7 +51,7 @@ const VoucherSummary: React.StatelessComponent<VoucherSummaryProps> = ({
         <Typography>
           {maybe<React.ReactNode>(
             () =>
-              voucher.discountValueType === VoucherDiscountValueType.FIXED ? (
+              voucher.discountValueType === DiscountValueTypeEnum.FIXED ? (
                 <Money
                   money={{
                     amount: voucher.discountValue,
