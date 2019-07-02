@@ -27,7 +27,7 @@ interface ChoiceType {
 export interface FormData {
   attributes: Array<{
     slug: string;
-    value: string;
+    values: string[];
   }>;
   basePrice: number;
   publicationDate: string;
