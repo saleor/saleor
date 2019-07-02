@@ -5,7 +5,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
 import makeStyles from "@material-ui/styles/makeStyles";
-import * as React from "react";
+import React from "react";
 
 import Checkbox from "@saleor/components/Checkbox";
 import Skeleton from "@saleor/components/Skeleton";
