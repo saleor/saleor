@@ -2,7 +2,7 @@ import json
 import logging
 from decimal import Decimal
 from functools import wraps
-from typing import Dict
+from typing import Dict, List
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
@@ -40,6 +40,10 @@ REQUIRED_GATEWAY_KEYS = {
     "currency",
 }
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+
+
+def list_enabled_gateways() -> List[str]:
+    return list(settings.CHECKOUT_PAYMENT_GATEWAYS.keys())
 
 
 def get_gateway_operation_func(gateway, operation_type):
@@ -517,12 +521,13 @@ GATEWAYS_LABEL = "gateways"
 
 
 def extract_id_for_payment_gateway(user, gateway):
+    key = gateway.strip().upper()
     gateway_meta = user.get_private_meta(label=GATEWAYS_LABEL)
     if not gateway_meta:
         return None
-    if gateway not in gateway_meta:
+    if key not in gateway_meta:
         return None
-    gateway_config = gateway_meta[gateway]
+    gateway_config = gateway_meta[key]
     if "customer_id" not in gateway_config:
         return None
     return gateway_config["customer_id"]
@@ -530,6 +535,8 @@ def extract_id_for_payment_gateway(user, gateway):
 
 def store_id_for_payment_gateway(user, gateway, customer_id):
     user.store_private_meta(
-        label=GATEWAYS_LABEL, key=gateway, value={"customer_id": customer_id}
+        label=GATEWAYS_LABEL,
+        key=gateway.strip().upper(),
+        value={"customer_id": customer_id},
     )
     user.save()

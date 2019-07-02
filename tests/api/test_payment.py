@@ -12,12 +12,12 @@ from saleor.graphql.payment.enums import (
     PaymentChargeStatusEnum,
     PaymentGatewayEnum,
 )
+from saleor.payment.interface import CustomerSource, CreditCardInfo, TokenConfig
+from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from saleor.payment.utils import (
     extract_id_for_payment_gateway,
     store_id_for_payment_gateway,
 )
-from saleor.payment.interface import TokenConfig
-from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
@@ -472,7 +472,7 @@ def braintree_customer_id():
 
 def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
     gateway_name = PaymentGatewayEnum.BRAINTREE.name
-    META = {"gateways": {gateway_name: {"customer_id": braintree_customer_id}}}
+    META = {"gateways": {gateway_name.upper(): {"customer_id": braintree_customer_id}}}
     store_id_for_payment_gateway(customer_user, gateway_name, braintree_customer_id)
     assert customer_user.private_meta == META
     customer_user.refresh_from_db()
@@ -495,7 +495,7 @@ def test_query_payment_client_token(mock_get_client_token, user_api_client):
     response = user_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
-    assert mock_get_client_token.called_once_with(PaymentGatewayEnum.BRAINTREE.name)
+    assert mock_get_client_token.assert_called_once_with("braintree")
     token = content["data"]["paymentClientToken"]
     assert token == example_token
 
@@ -507,9 +507,8 @@ def token_config_with_customer(braintree_customer_id):
 
 @pytest.fixture
 def set_braintree_customer_id(customer_user, braintree_customer_id):
-    gateway_name = PaymentGatewayEnum.BRAINTREE.name
+    gateway_name = "braintree"
     store_id_for_payment_gateway(customer_user, gateway_name, braintree_customer_id)
-    customer_user.save()
     return customer_user
 
 
@@ -521,20 +520,28 @@ def test_use_customer_id_from_meta_on_client_token_generation(
         paymentClientToken(gateway: $gateway)
     }
     """
-    mock_get_client_token = mocker.patch(
+    TOKEN = "sample_token"
+    mocker.patch(
         "saleor.graphql.payment.resolvers.gateway_get_client_token",
-        return_value="sample_token",
+        return_value=TOKEN,
+        autospec=True,
     )
     variables = {"gateway": PaymentGatewayEnum.BRAINTREE.name}
     response = user_api_client.post_graphql(query, variables)
 
-    get_graphql_content(response)
-    assert mock_get_client_token.called_once_with(
-        PaymentGatewayEnum.BRAINTREE.name, token_config=token_config_with_customer
-    )
+    content = get_graphql_content(response)
+    assert content["data"]["paymentClientToken"] == TOKEN
 
 
-def test_list_payment_sources(mocker, set_braintree_customer_id, user_api_client):
+@pytest.fixture
+def enable_braintree(settings):
+    settings.CHECKOUT_PAYMENT_GATEWAYS = {"braintree": None}
+    return settings
+
+
+def test_list_payment_sources(
+    mocker, enable_braintree, set_braintree_customer_id, user_api_client
+):
     query = """
     {
         paymentStoredSources {
@@ -545,5 +552,24 @@ def test_list_payment_sources(mocker, set_braintree_customer_id, user_api_client
         }
     }
     """
+    card = CreditCardInfo(
+        last4="5678", exp_year=2020, exp_month=12, name_on_card="John Doe"
+    )
+    source = CustomerSource(id="test1", credit_card_info=card)
+    mock_get_source_list = mocker.patch(
+        "saleor.payment.gateways.braintree.list_client_sources",
+        return_value=[source],
+        autospec=True,
+    )
+
     response = user_api_client.post_graphql(query)
-    get_graphql_content(response)
+    assert mock_get_source_list.assert_called_once()
+
+    content = get_graphql_content(response)["data"]["paymentStoredSources"]
+    assert content is not None and len(content) == 1
+    assert content[0] == [
+        {
+            "gateway": PaymentGatewayEnum.BRAINTREE.name,
+            "credit_card": {"lastDigits": "5678"},
+        }
+    ]
