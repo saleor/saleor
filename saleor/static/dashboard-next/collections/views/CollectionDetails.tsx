@@ -287,7 +287,7 @@ export const CollectionDetails: React.StatelessComponent<
                         open={params.action === "assign"}
                         onFetch={search}
                         loading={result.loading}
-                        onClose={() => navigate(collectionUrl(id), true, true)}
+                        onClose={closeModal}
                         onSubmit={formData =>
                           assignProduct.mutate({
                             ...paginationState,
