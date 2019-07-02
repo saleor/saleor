@@ -198,15 +198,6 @@ export enum TaxRateType {
   WINE = "WINE",
 }
 
-export enum VoucherType {
-  CATEGORY = "CATEGORY",
-  COLLECTION = "COLLECTION",
-  ENTIRE_ORDER = "ENTIRE_ORDER",
-  PRODUCT = "PRODUCT",
-  SHIPPING = "SHIPPING",
-  SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT",
-}
-
 export enum VoucherTypeEnum {
   CATEGORY = "CATEGORY",
   COLLECTION = "COLLECTION",
