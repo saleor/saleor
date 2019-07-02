@@ -23,6 +23,10 @@ import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
 import { connectDateTime, decimal, getMutationState, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
+import {
+  DiscountValueTypeEnum,
+  VoucherTypeEnum
+} from "../../types/globalTypes";
 import DiscountCountrySelectDialog from "../components/DiscountCountrySelectDialog";
 import VoucherDetailsPage, {
   VoucherDetailsPageTab
@@ -311,18 +315,33 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   variables: {
                                     id,
                                     input: {
-                                      code: formData.code,
-                                      discountValue: decimal(formData.value),
-                                      discountValueType: formData.discountType,
+                                      applyOncePerOrder:
+                                        formData.applyOncePerOrder,
+                                      discountValue:
+                                        formData.discountType.toString() ===
+                                        "SHIPPING"
+                                          ? 100
+                                          : decimal(formData.value),
+                                      discountValueType:
+                                        formData.discountType.toString() ===
+                                        "SHIPPING"
+                                          ? DiscountValueTypeEnum.PERCENTAGE
+                                          : formData.discountType,
                                       endDate: connectDateTime(
                                         formData.endDate,
                                         formData.endTime
                                       ),
+                                      minAmountSpent: formData.minAmountSpent,
                                       startDate: connectDateTime(
                                         formData.startDate,
                                         formData.startTime
                                       ),
-                                      type: formData.type
+                                      type:
+                                        formData.discountType.toString() ===
+                                        "SHIPPING"
+                                          ? VoucherTypeEnum.ENTIRE_ORDER
+                                          : formData.type,
+                                      usageLimit: formData.usageLimit
                                     }
                                   }
                                 });
