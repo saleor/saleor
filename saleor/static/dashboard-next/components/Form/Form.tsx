@@ -17,7 +17,7 @@ function Form<T>(props: FormProps<T>) {
   const renderProps = useForm(initial, errors, onSubmit);
 
   function handleSubmit(event?: React.FormEvent<any>, cb?: () => void) {
-    const { reset } = renderProps;
+    const { reset, submit } = renderProps;
 
     if (event) {
       event.stopPropagation();
@@ -31,6 +31,8 @@ function Form<T>(props: FormProps<T>) {
     if (resetOnSubmit) {
       reset();
     }
+
+    submit();
   }
 
   return <form onSubmit={handleSubmit}>{children(renderProps)}</form>;
