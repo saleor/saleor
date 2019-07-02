@@ -12,7 +12,7 @@ import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
 import React from "react";
 
-import Form from "@saleor/components/Form";
+import useForm from "@saleor/hooks/useForm";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -66,48 +66,39 @@ export const EditableTableCell = withStyles(styles, {
     value,
     onConfirm
   }: EditableTableCellProps) => {
-    const [opened, setOpenStatus] = React.useState(focused);
-    const enable = () => setOpenStatus(true);
-    const disable = () => setOpenStatus(false);
-
     const handleConfirm = (data: { value: string }) => {
       disable();
       onConfirm(data.value);
     };
 
+    const [opened, setOpenStatus] = React.useState(focused);
+    const { change, data } = useForm({ value }, [], handleConfirm);
+    const enable = () => setOpenStatus(true);
+    const disable = () => setOpenStatus(false);
+
     return (
       <TableCell className={classNames(classes.container, className)}>
         {opened && <div className={classes.overlay} onClick={disable} />}
-        <Form initial={{ value }} onSubmit={handleConfirm} useForm={false}>
-          {({ change, data }) => (
-            <>
-              <Typography
-                variant="caption"
-                onClick={enable}
-                className={classes.text}
-              >
-                {value || defaultValue}
-              </Typography>
-              {opened && (
-                <div className={classes.root}>
-                  <Card className={classes.card}>
-                    <CardContent>
-                      <TextField
-                        name="value"
-                        autoFocus
-                        fullWidth
-                        onChange={change}
-                        value={data.value}
-                        variant="standard"
-                        {...InputProps}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </>
-          )}
-        </Form>
+        <Typography variant="caption" onClick={enable} className={classes.text}>
+          {value || defaultValue}
+        </Typography>
+        {opened && (
+          <div className={classes.root}>
+            <Card className={classes.card}>
+              <CardContent>
+                <TextField
+                  name="value"
+                  autoFocus
+                  fullWidth
+                  onChange={change}
+                  value={data.value}
+                  variant="standard"
+                  {...InputProps}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </TableCell>
     );
   }
