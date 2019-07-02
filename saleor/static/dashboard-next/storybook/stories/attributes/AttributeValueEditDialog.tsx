@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import { attributes } from "@saleor/attributes/fixtures";
 import { formError } from "@saleor/storybook/misc";

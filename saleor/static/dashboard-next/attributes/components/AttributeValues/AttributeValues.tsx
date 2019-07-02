@@ -9,7 +9,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import makeStyles from "@material-ui/styles/makeStyles";
-import * as React from "react";
+import React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
