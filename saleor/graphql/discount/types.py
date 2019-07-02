@@ -10,6 +10,7 @@ from ..product.types import Category, Collection, Product
 from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import SaleTranslation, VoucherTranslation
+from .enums import DiscountValueTypeEnum
 
 
 class Sale(CountableDjangoObjectType):
@@ -95,6 +96,9 @@ class Voucher(CountableDjangoObjectType):
         ),
         description="Returns translated Voucher fields for the given language code.",
         resolver=resolve_translation,
+    )
+    discount_value_type = DiscountValueTypeEnum(
+        description="Determines a type of voucher - value or percentage", required=True
     )
 
     class Meta:
