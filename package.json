@@ -64,6 +64,7 @@
     "jss": "^9.8.7",
     "keycode": "^2.2.0",
     "lazysizes": "^4.0.1",
+    "lodash": "^4.17.11",
     "lodash-es": "^4.17.11",
     "materialize-css": "^0.100.2",
     "medium-editor": "^5.23.3",
@@ -200,7 +201,7 @@
     ],
     "moduleNameMapper": {
       "@saleor(.*)$": "<rootDir>/saleor/static/dashboard-next/$1",
-      "^lodash-es$": "<rootDir>/node_modules/lodash/index.js"
+      "^lodash-es(.*)$": "lodash/$1"
     }
   },
   "scripts": {
