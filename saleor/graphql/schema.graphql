@@ -2139,7 +2139,7 @@ type Product implements Node {
   isAvailable: Boolean
   basePrice: Money
   price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
-  taxRate: TaxRateType @deprecated(reason: "taxRate is deprecated. Use tax_type to obtain tax_code for given tax gateway")
+  taxRate: TaxRateType @deprecated(reason: "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway")
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
