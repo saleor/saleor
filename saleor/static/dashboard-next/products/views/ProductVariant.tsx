@@ -28,7 +28,7 @@ interface FormData {
   id: string;
   attributes?: Array<{
     slug: string;
-    value: string;
+    values: string[];
   }>;
   costPrice?: string;
   priceOverride?: string;

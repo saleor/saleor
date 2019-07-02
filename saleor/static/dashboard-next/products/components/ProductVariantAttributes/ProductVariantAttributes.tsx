@@ -32,7 +32,7 @@ interface ProductVariantAttributesProps extends WithStyles<typeof styles> {
   data: {
     attributes?: Array<{
       slug: string;
-      value: string;
+      values: string[];
     }>;
   };
   disabled: boolean;
@@ -69,7 +69,7 @@ const ProductVariantAttributes = withStyles(styles, {
                 const valueMatches = attributes.filter(a => a.slug === slug);
                 if (valueMatches.length > 0) {
                   const value = data.attributes.filter(a => a.slug === slug)[0]
-                    .value;
+                    .values[0];
                   const labelMatches = valueMatches[0].values.filter(
                     v => v.slug === value
                   );

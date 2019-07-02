@@ -58,7 +58,7 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
   data: {
     attributes: Array<{
       slug: string;
-      value: string;
+      values: string[];
     }>;
     category: ChoiceType;
     collections: ChoiceType[];
@@ -123,11 +123,11 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
           };
         }
         const attributeValueMatch = attributeMatch.values.find(
-          v => v.slug === value.value
+          v => v.slug === value.values[0]
         );
         const label = !!attributeValueMatch
           ? attributeValueMatch.name
-          : value.value;
+          : value.values[0];
         return {
           label,
           value
