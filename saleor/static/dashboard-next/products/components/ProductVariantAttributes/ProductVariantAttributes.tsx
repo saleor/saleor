@@ -33,7 +33,7 @@ interface ProductVariantAttributesProps extends WithStyles<typeof styles> {
     attributes?: Array<{
       name: string;
       slug: string;
-      value: string;
+      values: string[];
     }>;
   };
   disabled: boolean;
@@ -68,7 +68,8 @@ const ProductVariantAttributes = withStyles(styles, {
             const getAttributeValue = (slug: string) => {
               const valueMatch = attributes.find(a => a.slug === slug);
               if (valueMatch) {
-                const value = data.attributes.find(a => a.slug === slug).value;
+                const value = data.attributes.find(a => a.slug === slug)
+                  .values[0];
                 const labelMatch = valueMatch.values.find(
                   v => v.slug === value
                 );

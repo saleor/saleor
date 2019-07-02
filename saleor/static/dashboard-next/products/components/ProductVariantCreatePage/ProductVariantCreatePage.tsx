@@ -21,7 +21,7 @@ interface FormData {
   attributes: Array<{
     name: string;
     slug: string;
-    value: string;
+    values: string[];
   }>;
   costPrice: string;
   images: string[];
@@ -42,9 +42,7 @@ interface ProductVariantCreatePageProps {
   onVariantClick: (variantId: string) => void;
 }
 
-const ProductVariantCreatePage: React.StatelessComponent<
-  ProductVariantCreatePageProps
-> = ({
+const ProductVariantCreatePage: React.FC<ProductVariantCreatePageProps> = ({
   currencySymbol,
   errors: formErrors,
   loading,
@@ -61,7 +59,7 @@ const ProductVariantCreatePage: React.StatelessComponent<
         product.productType.variantAttributes.map(attribute => ({
           name: attribute.name,
           slug: attribute.slug,
-          value: ""
+          values: [""]
         })),
       []
     ),
