@@ -3184,6 +3184,7 @@ input VoucherInput {
   minAmountSpent: Decimal
   countries: [String]
   applyOncePerOrder: Boolean
+  usageLimit: Int
 }
 
 type VoucherRemoveCatalogues {
