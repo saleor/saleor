@@ -4,8 +4,8 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
-import * as isUrl from "is-url";
-import * as React from "react";
+import isUrl from "is-url";
+import React from "react";
 
 import AutocompleteSelectMenu from "@saleor/components/AutocompleteSelectMenu";
 import ConfirmButton, {

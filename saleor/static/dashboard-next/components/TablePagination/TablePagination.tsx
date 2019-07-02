@@ -9,7 +9,7 @@ import {
 } from "@material-ui/core/styles";
 import TableCell from "@material-ui/core/TableCell";
 import Toolbar from "@material-ui/core/Toolbar";
-import * as React from "react";
+import React from "react";
 
 import TablePaginationActions from "./TablePaginationActions";
 

@@ -1,5 +1,5 @@
 import Card from "@material-ui/core/Card";
-import * as React from "react";
+import React from "react";
 
 import AppHeader from "@saleor/components/AppHeader";
 import Container from "@saleor/components/Container";

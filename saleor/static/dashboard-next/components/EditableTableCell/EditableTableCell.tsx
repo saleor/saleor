@@ -9,8 +9,8 @@ import {
 import TableCell from "@material-ui/core/TableCell";
 import TextField, { TextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 import Form from "@saleor/components/Form";
 

@@ -1,5 +1,5 @@
 import Button from "@material-ui/core/Button";
-import * as React from "react";
+import React from "react";
 
 import DeleteFilterTabDialog from "@saleor/components/DeleteFilterTabDialog";
 import SaveFilterTabDialog, {

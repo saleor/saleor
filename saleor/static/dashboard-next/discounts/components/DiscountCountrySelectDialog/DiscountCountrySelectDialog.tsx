@@ -16,7 +16,7 @@ import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import { filter } from "fuzzaldrin";
-import * as React from "react";
+import React from "react";
 
 import Checkbox from "@saleor/components/Checkbox";
 import ConfirmButton, {

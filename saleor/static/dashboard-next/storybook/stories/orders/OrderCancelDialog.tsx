@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import OrderCancelDialog from "../../../orders/components/OrderCancelDialog";
 import Decorator from "../../Decorator";

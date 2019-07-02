@@ -1,7 +1,7 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
-import * as React from "react";
+import React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
 import ActionDialog from "@saleor/components/ActionDialog";
@@ -9,7 +9,7 @@ import { WindowTitle } from "@saleor/components/WindowTitle";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import * as placeholderImg from "../../../images/placeholder255x255.png";
+import placeholderImg from "../../../images/placeholder255x255.png";
 import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
 import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";

@@ -1,7 +1,7 @@
 import { createStyles, Theme, withStyles, WithStyles } from "@material-ui/core";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
-import * as React from "react";
+import React from "react";
 
 const styles = (theme: Theme) =>
   createStyles({

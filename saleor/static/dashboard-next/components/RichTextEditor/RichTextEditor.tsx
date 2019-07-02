@@ -6,7 +6,7 @@ import {
 } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
-import * as classNames from "classnames";
+import classNames from "classnames";
 import { RawDraftContentState } from "draft-js";
 import {
   BLOCK_TYPE,
@@ -14,7 +14,7 @@ import {
   ENTITY_TYPE,
   INLINE_STYLE
 } from "draftail";
-import * as React from "react";
+import React from "react";
 
 import BoldIcon from "../../icons/BoldIcon";
 import HeaderOne from "../../icons/HeaderOne";

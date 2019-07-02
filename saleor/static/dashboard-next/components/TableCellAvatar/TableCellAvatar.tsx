@@ -7,8 +7,8 @@ import {
 } from "@material-ui/core/styles";
 import TableCell from "@material-ui/core/TableCell";
 import Cached from "@material-ui/icons/Cached";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 import Image from "../../icons/Image";
 

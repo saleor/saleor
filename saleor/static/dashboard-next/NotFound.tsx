@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import NotFoundPage from "./components/NotFoundPage";
 import useNavigator from "./hooks/useNavigator";

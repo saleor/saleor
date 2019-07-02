@@ -1,4 +1,4 @@
-import * as urlJoin from "url-join";
+import urlJoin from "url-join";
 
 export const taxSection = "/taxes/";
 

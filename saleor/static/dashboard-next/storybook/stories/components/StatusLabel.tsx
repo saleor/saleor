@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import StatusLabel from "@saleor/components/StatusLabel";
 import CardDecorator from "../../CardDecorator";

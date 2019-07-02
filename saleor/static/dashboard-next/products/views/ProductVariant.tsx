@@ -1,9 +1,9 @@
-import * as React from "react";
+import React from "react";
 
 import { WindowTitle } from "@saleor/components/WindowTitle";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import * as placeholderImg from "../../../images/placeholder255x255.png";
+import placeholderImg from "../../../images/placeholder255x255.png";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import ProductVariantDeleteDialog from "../components/ProductVariantDeleteDialog";

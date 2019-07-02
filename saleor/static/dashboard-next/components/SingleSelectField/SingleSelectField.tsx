@@ -6,7 +6,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select, { SelectProps } from "@material-ui/core/Select";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 
