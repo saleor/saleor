@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix voucher apply once per order - #4339 by @fowczarek
 - Change type of start and end date for discounts on date time field - #4293 by @fowczarek
 - Add SPECIFIC_PRODUCT type to VoucherTypes - #4344 by @fowczarek
+- Avatax backend support - #4310 by @korycins
 
 ## 2.7.0
 
