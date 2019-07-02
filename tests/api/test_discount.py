@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 import graphene
 import pytest
@@ -140,14 +141,15 @@ mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum,
     $discountValue: Decimal, $minAmountSpent: Decimal,
-    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean) {
+    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean,
+    $usageLimit: Int) {
         voucherCreate(input: {
                 name: $name, type: $type, code: $code,
                 discountValueType: $discountValueType,
                 discountValue: $discountValue,
                 minAmountSpent: $minAmountSpent,
                 startDate: $startDate, endDate: $endDate,
-                applyOncePerOrder: $applyOncePerOrder}) {
+                applyOncePerOrder: $applyOncePerOrder, usageLimit: $usageLimit}) {
             errors {
                 field
                 message
@@ -182,21 +184,23 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "applyOncePerOrder": True,
+        "usageLimit": 3,
     }
 
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
-    content = get_graphql_content(response)
-    data = content["data"]["voucherCreate"]["voucher"]
-    assert data["type"] == VoucherType.ENTIRE_ORDER.upper()
-    assert data["minAmountSpent"]["amount"] == 1.12
-    assert data["name"] == "test voucher"
-    assert data["code"] == "testcode123"
-    assert data["discountValueType"] == DiscountValueType.FIXED.upper()
-    assert data["startDate"] == start_date.isoformat()
-    assert data["endDate"] == end_date.isoformat()
-    assert data["applyOncePerOrder"]
+    get_graphql_content(response)
+    voucher = Voucher.objects.get()
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    assert voucher.min_amount_spent.amount == Decimal("1.12")
+    assert voucher.name == "test voucher"
+    assert voucher.code == "testcode123"
+    assert voucher.discount_value_type == DiscountValueType.FIXED
+    assert voucher.start_date == start_date
+    assert voucher.end_date == end_date
+    assert voucher.apply_once_per_order
+    assert voucher.usage_limit == 3
 
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
@@ -211,6 +215,7 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
         "minAmountSpent": 1.12,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
+        "usageLimit": None,
     }
 
     response = staff_api_client.post_graphql(
@@ -236,6 +241,7 @@ def test_create_voucher_with_deprecated_type(
         "minAmountSpent": 1.12,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
+        "usageLimit": 0,
     }
 
     response = staff_api_client.post_graphql(
@@ -262,6 +268,7 @@ def test_create_voucher_with_existing_gift_card_code(
         "minAmountSpent": 1.12,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
+        "usageLimit": 3,
     }
 
     response = staff_api_client.post_graphql(
@@ -288,6 +295,7 @@ def test_create_voucher_with_existing_voucher_code(
         "minAmountSpent": 1.12,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
+        "usageLimit": 3,
     }
     response = staff_api_client.post_graphql(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]

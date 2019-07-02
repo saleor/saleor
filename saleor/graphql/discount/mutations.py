@@ -108,6 +108,9 @@ class VoucherInput(graphene.InputObjectType):
     apply_once_per_order = graphene.Boolean(
         description="Voucher should be applied to the cheapest item or entire order"
     )
+    usage_limit = graphene.Int(
+        description="Limit number of times this voucher can be used in total"
+    )
 
 
 class VoucherCreate(ModelMutation):
