@@ -2,7 +2,7 @@ import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import Snackbar from "@material-ui/core/Snackbar";
 import CloseIcon from "@material-ui/icons/Close";
-import * as React from "react";
+import React from "react";
 
 import { IMessage, MessageContext } from "./";
 

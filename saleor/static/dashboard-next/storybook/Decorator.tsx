@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { Provider as DateProvider } from "../components/Date/DateContext";
 import { FormProvider } from "../components/Form";

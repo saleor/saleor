@@ -1,5 +1,6 @@
 import { stringify as stringifyQs } from "qs";
-import * as urlJoin from "url-join";
+import urlJoin from "url-join";
+
 import { BulkAction, Dialog, Pagination, SingleAction } from "../types";
 
 export const navigationSection = "/navigation";

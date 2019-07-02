@@ -5,7 +5,7 @@ import TextField, { TextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import ClearIcon from "@material-ui/icons/Clear";
 import { createStyles, makeStyles, useTheme } from "@material-ui/styles";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 import Filter, { FilterContentSubmitData, IFilter } from "../Filter";

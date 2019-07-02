@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import useNavigator from "@saleor/hooks/useNavigator";
 import { configurationMenuUrl } from "../../configuration";

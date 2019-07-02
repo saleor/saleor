@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import OrderHistory from "../../../orders/components/OrderHistory";
 import { order as orderFixture } from "../../../orders/fixtures";

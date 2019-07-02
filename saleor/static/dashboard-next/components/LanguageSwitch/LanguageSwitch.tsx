@@ -14,7 +14,7 @@ import {
 import Typography from "@material-ui/core/Typography";
 import ArrowDropDown from "@material-ui/icons/ArrowDropDown";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 import { LanguageCodeEnum } from "../../types/globalTypes";
