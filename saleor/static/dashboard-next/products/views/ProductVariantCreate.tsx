@@ -19,7 +19,7 @@ interface ProductUpdateProps {
 interface FormData {
   attributes: Array<{
     slug: string;
-    value: string;
+    values: string[];
   }>;
   costPrice: string;
   priceOverride: string;
