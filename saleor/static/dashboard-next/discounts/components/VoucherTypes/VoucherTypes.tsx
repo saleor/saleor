@@ -12,15 +12,12 @@ import CardTitle from "@saleor/components/CardTitle";
 import RadioGroupField from "@saleor/components/RadioGroupField";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
-import {
-  DiscountValueTypeEnum,
-  VoucherDiscountValueType
-} from "../../../types/globalTypes";
+import { DiscountValueTypeEnum } from "../../../types/globalTypes";
 import { FormData } from "../VoucherDetailsPage";
 
 interface VoucherTypesProps {
   data: FormData;
-  errors: FormErrors<"name" | "code" | "type">;
+  errors: FormErrors<"discountType">;
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
@@ -44,7 +41,7 @@ const VoucherTypes = withStyles(styles, {
     errors,
     onChange
   }: VoucherTypesProps & WithStyles<typeof styles>) => {
-    const voucherTypeChoices = Object.values(VoucherDiscountValueType).map(
+    const voucherTypeChoices = Object.values(DiscountValueTypeEnum).map(
       type => {
         switch (type.toString()) {
           case DiscountValueTypeEnum.FIXED:
@@ -59,15 +56,15 @@ const VoucherTypes = withStyles(styles, {
               label: i18n.t("Percentage"),
               value: type
             };
-          case DiscountValueTypeEnum.SHIPPING:
-            return {
-              hidden: false,
-              label: i18n.t("Free Shipping"),
-              value: type
-            };
         }
       }
     );
+
+    voucherTypeChoices.push({
+      hidden: false,
+      label: i18n.t("Free Shipping"),
+      value: "SHIPPING"
+    });
 
     return (
       <Card>
@@ -77,8 +74,8 @@ const VoucherTypes = withStyles(styles, {
             <RadioGroupField
               choices={voucherTypeChoices}
               disabled={disabled}
-              error={!!errors.type}
-              hint={errors.type}
+              error={!!errors.discountType}
+              hint={errors.discountType}
               name={"discountType" as keyof FormData}
               value={data.discountType}
               onChange={onChange}

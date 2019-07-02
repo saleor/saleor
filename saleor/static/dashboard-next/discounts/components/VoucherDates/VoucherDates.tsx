@@ -42,9 +42,6 @@ const VoucherDates = withStyles(styles, {
     errors,
     onChange
   }: VoucherDatesProps & WithStyles<typeof styles>) => {
-    const [showEndDate, setshowEndDate] = React.useState(false);
-    const handleOnChange = () => setshowEndDate(!showEndDate);
-
     return (
       <Card>
         <CardTitle title={i18n.t("Active Dates")} />
@@ -74,12 +71,12 @@ const VoucherDates = withStyles(styles, {
             />
           </div>
           <ControlledCheckbox
-            checked={showEndDate}
+            checked={data.hasEndDate}
             label={i18n.t("Set end date")}
-            name="setEndDate"
-            onChange={handleOnChange}
+            name={"hasEndDate" as keyof FormData}
+            onChange={onChange}
           />
-          {showEndDate ? (
+          {data.hasEndDate ? (
             <div className={classes.root}>
               <TextField
                 disabled={disabled}

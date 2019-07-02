@@ -17,8 +17,9 @@ import { FormData } from "../VoucherDetailsPage";
 
 interface VoucherInfoProps {
   data: FormData;
-  errors: FormErrors<"name" | "code" | "type">;
+  errors: FormErrors<"code">;
   disabled: boolean;
+  variant: string;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -42,6 +43,7 @@ const VoucherInfo = withStyles(styles, {
     data,
     disabled,
     errors,
+    variant,
     onChange
   }: VoucherInfoProps & WithStyles<typeof styles>) => {
     const [generateCode, setGenerateCode] = React.useState();
@@ -65,15 +67,17 @@ const VoucherInfo = withStyles(styles, {
         <CardTitle
           title={i18n.t("General Information")}
           toolbar={
-            <Button color="primary" onClick={onGenerateCode}>
-              {i18n.t("Generate Code")}
-            </Button>
+            variant === "create" ? (
+              <Button color="primary" onClick={onGenerateCode}>
+                {i18n.t("Generate Code")}
+              </Button>
+            ) : null
           }
         />
         <CardContent>
           <div className={classes.root}>
             <TextField
-              disabled={disabled}
+              disabled={variant === "update" || disabled}
               error={!!errors.code}
               fullWidth
               helperText={errors.code}

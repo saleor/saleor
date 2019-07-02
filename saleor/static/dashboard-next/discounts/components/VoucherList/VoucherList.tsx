@@ -22,7 +22,7 @@ import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
-import { VoucherDiscountValueType } from "../../../types/globalTypes";
+import { DiscountValueTypeEnum } from "../../../types/globalTypes";
 import { VoucherList_vouchers_edges_node } from "../../types/VoucherList";
 
 export interface VoucherListProps extends ListProps, ListActions {
@@ -202,7 +202,7 @@ const VoucherList = withStyles(styles, {
                     voucher.discountValueType &&
                     voucher.discountValue ? (
                       voucher.discountValueType ===
-                      VoucherDiscountValueType.FIXED ? (
+                      DiscountValueTypeEnum.FIXED ? (
                         <Money
                           money={{
                             amount: voucher.discountValue,

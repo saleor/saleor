@@ -19,14 +19,7 @@ interface VoucherLimitsProps {
   data: FormData;
   defaultCurrency: string;
   disabled: boolean;
-  errors: FormErrors<
-    | "discountType"
-    | "discountValue"
-    | "endDate"
-    | "minAmountSpent"
-    | "startDate"
-    | "usageLimit"
-  >;
+  errors: FormErrors<"usageLimit">;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -49,21 +42,19 @@ const VoucherLimits = withStyles(styles, {
     errors,
     onChange
   }: VoucherLimitsProps & WithStyles<typeof styles>) => {
-    const [showInput, setshowInput] = React.useState(false);
-    const handleOnChange = () => setshowInput(!showInput);
     return (
       <Card>
         <CardTitle title={i18n.t("Usage Limit ")} />
         <CardContent className={classes.root}>
           <ControlledCheckbox
-            checked={showInput}
+            checked={data.hasUsageLimit}
             label={i18n.t(
               "Limit number of times this discount can be used in total"
             )}
-            name="usageLimitCheck"
-            onChange={handleOnChange}
+            name={"hasUsageLimit" as keyof FormData}
+            onChange={onChange}
           />
-          {showInput ? (
+          {data.hasUsageLimit ? (
             <TextField
               disabled={disabled}
               error={!!errors.usageLimit}
