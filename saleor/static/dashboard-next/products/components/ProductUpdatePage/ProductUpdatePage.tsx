@@ -71,7 +71,7 @@ interface ChoiceType {
 export interface FormData {
   attributes: Array<{
     slug: string;
-    value: string;
+    values: string[];
   }>;
   basePrice: number;
   category: ChoiceType | null;
@@ -138,7 +138,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       () =>
         product.attributes.map(a => ({
           slug: a.attribute.slug,
-          value: a.value ? a.value.slug : null
+          values: a.value ? [a.value.slug] : null
         })),
       []
     ),
