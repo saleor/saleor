@@ -3102,7 +3102,7 @@ type VerifyToken {
 
 type Voucher implements Node {
   id: ID!
-  type: VoucherType!
+  type: VoucherTypeEnum!
   name: String
   code: String!
   usageLimit: Int
@@ -3196,15 +3196,6 @@ type VoucherTranslation implements Node {
   id: ID!
   name: String
   language: LanguageDisplay!
-}
-
-enum VoucherType {
-  ENTIRE_ORDER
-  PRODUCT
-  COLLECTION
-  CATEGORY
-  SHIPPING
-  SPECIFIC_PRODUCT
 }
 
 enum VoucherTypeEnum {
