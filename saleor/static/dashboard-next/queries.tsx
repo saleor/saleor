@@ -1,6 +1,6 @@
 import { DocumentNode } from "graphql";
 import gql from "graphql-tag";
-import * as React from "react";
+import React from "react";
 import { Query, QueryResult } from "react-apollo";
 
 import { ApolloQueryResult } from "apollo-client";

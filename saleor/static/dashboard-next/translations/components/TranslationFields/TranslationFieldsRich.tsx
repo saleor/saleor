@@ -1,5 +1,5 @@
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
 import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
 import DraftRenderer from "@saleor/components/DraftRenderer";

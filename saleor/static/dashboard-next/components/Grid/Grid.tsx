@@ -5,7 +5,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 export type GridVariant = "default" | "inverted" | "uniform";
 export interface GridProps extends WithStyles<typeof styles> {

@@ -9,7 +9,7 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState

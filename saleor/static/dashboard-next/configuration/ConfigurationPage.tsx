@@ -7,7 +7,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
 import { IconProps } from "@material-ui/core/Icon";
 import { User } from "../auth/types/User";
