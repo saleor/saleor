@@ -14,7 +14,7 @@ import FormSpacer from "@saleor/components/FormSpacer";
 import SingleSelectField from "@saleor/components/SingleSelectField";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
-import { VoucherType } from "../../../types/globalTypes";
+import { VoucherTypeEnum } from "../../../types/globalTypes";
 import { translateVoucherTypes } from "../../translations";
 import { FormData } from "../VoucherDetailsPage";
 
@@ -50,7 +50,7 @@ const VoucherInfo = withStyles(styles, {
     onChange
   }: VoucherInfoProps & WithStyles<typeof styles>) => {
     const translatedVoucherTypes = translateVoucherTypes();
-    const voucherTypeChoices = Object.values(VoucherType).map(type => ({
+    const voucherTypeChoices = Object.values(VoucherTypeEnum).map(type => ({
       label: translatedVoucherTypes[type],
       value: type
     }));

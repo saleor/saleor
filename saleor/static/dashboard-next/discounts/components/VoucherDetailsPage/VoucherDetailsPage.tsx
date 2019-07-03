@@ -16,7 +16,7 @@ import { maybe } from "../../../misc";
 import { ListProps, TabListActions, UserError } from "../../../types";
 import {
   VoucherDiscountValueType,
-  VoucherType
+  VoucherTypeEnum
 } from "../../../types/globalTypes";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 import DiscountCategories from "../DiscountCategories";
@@ -47,7 +47,7 @@ export interface FormData {
   minAmountSpent: number;
   name: string;
   startDate: string;
-  type: VoucherType;
+  type: VoucherTypeEnum;
   usageLimit: number;
   value: number;
 }
@@ -127,7 +127,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
     minAmountSpent: maybe(() => voucher.minAmountSpent.amount, 0),
     name: maybe(() => voucher.name, ""),
     startDate: maybe(() => voucher.startDate, ""),
-    type: maybe(() => voucher.type, VoucherType.ENTIRE_ORDER),
+    type: maybe(() => voucher.type, VoucherTypeEnum.ENTIRE_ORDER),
     usageLimit: maybe(() => voucher.usageLimit || 0, 0),
     value: maybe(() => voucher.discountValue, 0)
   };
@@ -156,10 +156,10 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                 onChange={change}
               />
               <CardSpacer />
-              {data.type === VoucherType.CATEGORY ||
-              data.type === VoucherType.COLLECTION ||
-              data.type === VoucherType.PRODUCT ||
-              data.type === VoucherType.SPECIFIC_PRODUCT ? (
+              {data.type === VoucherTypeEnum.CATEGORY ||
+              data.type === VoucherTypeEnum.COLLECTION ||
+              data.type === VoucherTypeEnum.PRODUCT ||
+              data.type === VoucherTypeEnum.SPECIFIC_PRODUCT ? (
                 <>
                   <TabContainer>
                     <CategoriesTab
@@ -247,7 +247,7 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
                     />
                   )}
                 </>
-              ) : data.type === VoucherType.SHIPPING ? (
+              ) : data.type === VoucherTypeEnum.SHIPPING ? (
                 <CountryList
                   countries={maybe(() => voucher.countries)}
                   disabled={disabled}

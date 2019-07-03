@@ -3102,7 +3102,6 @@ type VerifyToken {
 
 type Voucher implements Node {
   id: ID!
-  type: VoucherType!
   name: String
   code: String!
   usageLimit: Int
@@ -3113,6 +3112,7 @@ type Voucher implements Node {
   discountValueType: VoucherDiscountValueType!
   discountValue: Float!
   minAmountSpent: Money
+  type: VoucherTypeEnum
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -3200,15 +3200,6 @@ type VoucherTranslation implements Node {
   id: ID!
   name: String
   language: LanguageDisplay!
-}
-
-enum VoucherType {
-  ENTIRE_ORDER
-  PRODUCT
-  COLLECTION
-  CATEGORY
-  SHIPPING
-  SPECIFIC_PRODUCT
 }
 
 enum VoucherTypeEnum {

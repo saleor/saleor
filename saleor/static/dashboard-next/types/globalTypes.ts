@@ -203,15 +203,6 @@ export enum VoucherDiscountValueType {
   PERCENTAGE = "PERCENTAGE",
 }
 
-export enum VoucherType {
-  CATEGORY = "CATEGORY",
-  COLLECTION = "COLLECTION",
-  ENTIRE_ORDER = "ENTIRE_ORDER",
-  PRODUCT = "PRODUCT",
-  SHIPPING = "SHIPPING",
-  SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT",
-}
-
 export enum VoucherTypeEnum {
   CATEGORY = "CATEGORY",
   COLLECTION = "COLLECTION",
@@ -219,6 +210,7 @@ export enum VoucherTypeEnum {
   PRODUCT = "PRODUCT",
   SHIPPING = "SHIPPING",
   SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT",
+  VALUE = "VALUE",
 }
 
 export enum WeightUnitsEnum {

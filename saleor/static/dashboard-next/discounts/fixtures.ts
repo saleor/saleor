@@ -2,7 +2,7 @@ import placeholderImage from "../../images/placeholder60x60.png";
 import {
   SaleType,
   VoucherDiscountValueType,
-  VoucherType
+  VoucherTypeEnum
 } from "../types/globalTypes";
 import { SaleDetails_sale } from "./types/SaleDetails";
 import { SaleList_sales_edges_node } from "./types/SaleList";
@@ -297,7 +297,7 @@ export const voucherDetails: VoucherDetails_voucher = {
     totalCount: 0
   },
   startDate: "2018-11-27",
-  type: VoucherType.ENTIRE_ORDER,
+  type: VoucherTypeEnum.ENTIRE_ORDER,
   usageLimit: null,
   used: 0
 };

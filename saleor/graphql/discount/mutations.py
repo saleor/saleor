@@ -9,6 +9,7 @@ from ...discount import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
 from ..product.types import Category, Collection, Product
+from .descriptions import VoucherDescriptions
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
 
@@ -65,14 +66,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
 
 
 class VoucherInput(graphene.InputObjectType):
-    type = VoucherTypeEnum(
-        description=(
-            "Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER. "
-            "Deprecated fields: "
-            "PRODUCT, COLLECTION, CATEGORY use SPECIFIC_PRODUCT instead. "
-            "VALUE use ENTIRE_ORDER instead."
-        )
-    )
+    type = VoucherTypeEnum(description=VoucherDescriptions.TYPE)
     name = graphene.String(description="Voucher name.")
     code = graphene.String(decription="Code to use the voucher.")
     start_date = graphene.types.datetime.DateTime(

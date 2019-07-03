@@ -10,6 +10,8 @@ from ..product.types import Category, Collection, Product
 from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import SaleTranslation, VoucherTranslation
+from .descriptions import VoucherDescriptions
+from .enums import VoucherTypeEnum
 
 
 class Sale(CountableDjangoObjectType):
@@ -64,6 +66,7 @@ class Sale(CountableDjangoObjectType):
 
 
 class Voucher(CountableDjangoObjectType):
+    type = VoucherTypeEnum(description=VoucherDescriptions.TYPE)
     categories = gql_optimizer.field(
         PrefetchingConnectionField(
             Category, description="List of categories this voucher applies to."
@@ -112,7 +115,6 @@ class Voucher(CountableDjangoObjectType):
             "min_amount_spent",
             "name",
             "start_date",
-            "type",
             "usage_limit",
             "used",
         ]

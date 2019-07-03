@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { VoucherDiscountValueType, VoucherType } from "./../../types/globalTypes";
+import { VoucherDiscountValueType, VoucherTypeEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL fragment: VoucherDetailsFragment
@@ -135,7 +135,7 @@ export interface VoucherDetailsFragment {
   discountValue: number;
   countries: (VoucherDetailsFragment_countries | null)[] | null;
   minAmountSpent: VoucherDetailsFragment_minAmountSpent | null;
-  type: VoucherType;
+  type: VoucherTypeEnum | null;
   code: string;
   used: number;
   applyOncePerOrder: boolean;
