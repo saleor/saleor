@@ -140,15 +140,15 @@ def test_sale_query(staff_api_client, sale, permission_manage_discounts):
 CREATE_VOUCHER_MUTATION = """
 mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
-    $discountValueType: DiscountValueTypeEnum,
-    $discountValue: Decimal, $minAmountSpent: Decimal,
-    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean,
-    $usageLimit: Int) {
+    $discountValueType: DiscountValueTypeEnum, $usageLimit: Int,
+    $discountValue: Decimal, $minAmountSpent: Decimal, $minQuantityOfProducts: Int,
+    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean) {
         voucherCreate(input: {
                 name: $name, type: $type, code: $code,
                 discountValueType: $discountValueType,
                 discountValue: $discountValue,
                 minAmountSpent: $minAmountSpent,
+                minQuantityOfProducts: $minQuantityOfProducts,
                 startDate: $startDate, endDate: $endDate,
                 applyOncePerOrder: $applyOncePerOrder, usageLimit: $usageLimit}) {
             errors {
@@ -160,6 +160,7 @@ mutation  voucherCreate(
                 minAmountSpent {
                     amount
                 }
+                minQuantityOfProducts
                 name
                 code
                 discountValueType
@@ -183,6 +184,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "discountValue": 10.12,
         "minAmountSpent": 1.12,
+        "minQuantityOfProducts": 10,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "applyOncePerOrder": True,
@@ -317,10 +319,11 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     query = """
     mutation  voucherUpdate($code: String,
         $discountValueType: DiscountValueTypeEnum, $id: ID!,
-        $applyOncePerOrder: Boolean) {
+        $applyOncePerOrder: Boolean, $minQuantityOfProducts: Int) {
             voucherUpdate(id: $id, input: {
                 code: $code, discountValueType: $discountValueType,
-                applyOncePerOrder: $applyOncePerOrder
+                applyOncePerOrder: $applyOncePerOrder,
+                minQuantityOfProducts: $minQuantityOfProducts
                 }) {
                 errors {
                     field
@@ -330,6 +333,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
                     code
                     discountValueType
                     applyOncePerOrder
+                    minQuantityOfProducts
                 }
             }
         }
@@ -344,6 +348,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
         "code": "testcode123",
         "discountValueType": DiscountValueTypeEnum.PERCENTAGE.name,
         "applyOncePerOrder": apply_once_per_order,
+        "minQuantityOfProducts": 10,
     }
 
     response = staff_api_client.post_graphql(
@@ -354,6 +359,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["code"] == "testcode123"
     assert data["discountValueType"] == DiscountValueType.PERCENTAGE.upper()
     assert data["applyOncePerOrder"] == apply_once_per_order
+    assert data["minQuantityOfProducts"] == 10
 
 
 def test_voucher_delete_mutation(
