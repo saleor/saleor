@@ -30,6 +30,9 @@ TIMEOUT = 10  # API HTTP Requests Timeout
 # Common carrier code used to identify the line as a shipping service
 COMMON_CARRIER_CODE = "FR020100"
 
+# Common discount code use to apply discount on order
+COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
+
 
 class TransactionType:
     INVOICE = "SalesInvoice"
@@ -166,13 +169,16 @@ def append_line_to_data(
     tax_code: str,
     item_code: str,
     description: str = None,
+    tax_included: Optional[bool] = None,
 ):
+    if tax_included is None:
+        tax_included = include_taxes_in_prices()
     data.append(
         {
             "quantity": quantity,
             "amount": str(amount),
             "taxCode": tax_code,
-            "taxIncluded": include_taxes_in_prices(),
+            "taxIncluded": tax_included,
             "itemCode": item_code,
             "description": description[:2000] if description else "",
         }
@@ -237,6 +243,16 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
             tax_code=tax_code,
             item_code=line.variant.sku,
             description=line.variant.product.description,
+        )
+    if order.discount_amount and order.discount_amount.amount:
+        append_line_to_data(
+            data=data,
+            quantity=1,
+            amount=order.discount_amount.amount * -1,
+            tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
+            item_code="Voucher",
+            description=order.discount_name,
+            tax_included=True,  # Voucher should be always applied as a gross amount
         )
     if charge_taxes_on_shipping() and order.shipping_method:
         append_line_to_data(
