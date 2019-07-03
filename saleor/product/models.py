@@ -22,7 +22,6 @@ from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.fields import FilterableJSONBField
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
