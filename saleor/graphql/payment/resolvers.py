@@ -23,10 +23,12 @@ def resolve_payments(info, query):
 
 
 def resolve_payment_client_token(gateway=None, user=None):
-    token_config = TokenConfig()
     if user is not None:
-        token_config.customer_id = extract_id_for_payment_gateway(user, gateway)
-    return gateway_get_client_token(gateway, token_config)
+        customer_id = extract_id_for_payment_gateway(user, gateway)
+        if customer_id:
+            token_config = TokenConfig(customer_id=customer_id)
+            return gateway_get_client_token(gateway, token_config)
+    return gateway_get_client_token(gateway)
 
 
 def resolve_payment_sources(user):
