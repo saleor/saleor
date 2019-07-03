@@ -515,7 +515,11 @@ def set_braintree_customer_id(customer_user, braintree_customer_id):
 
 
 def test_use_customer_id_from_meta_on_client_token_generation(
-    mocker, token_config_with_customer, set_braintree_customer_id, user_api_client
+    mocker,
+    token_config_with_customer,
+    braintree_customer_id,
+    set_braintree_customer_id,
+    user_api_client,
 ):
     query = """
     query paymentClientToken($gateway: GatewaysEnum) {
@@ -523,7 +527,7 @@ def test_use_customer_id_from_meta_on_client_token_generation(
     }
     """
     TOKEN = "sample_token"
-    mocker.patch(
+    mock_get_token = mocker.patch(
         "saleor.graphql.payment.resolvers.gateway_get_client_token",
         return_value=TOKEN,
         autospec=True,
@@ -531,6 +535,9 @@ def test_use_customer_id_from_meta_on_client_token_generation(
     variables = {"gateway": PaymentGatewayEnum.BRAINTREE.name}
     response = user_api_client.post_graphql(query, variables)
 
+    mock_get_token.assert_called_once_with(
+        "braintree", TokenConfig(customer_id=braintree_customer_id)
+    )
     content = get_graphql_content(response)
     assert content["data"]["paymentClientToken"] == TOKEN
 
