@@ -14,14 +14,12 @@ import VisibilityCard from "@saleor/components/VisibilityCard";
 import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
 import useFormset from "@saleor/hooks/useFormset";
-import useMultiAutocomplete from "@saleor/hooks/useMultiAutocomplete";
 import useStateFromProps from "@saleor/hooks/useStateFromProps";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { ListActions, UserError } from "@saleor/types";
 import {
   ProductDetails_product,
-  ProductDetails_product_collections,
   ProductDetails_product_images,
   ProductDetails_product_variants
 } from "../../types/ProductDetails";
@@ -43,6 +41,8 @@ import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
+import createMultiAutocompleteSelectHandler from "@saleor/utils/handlers/multiAutocompleteSelectChangeHandler";
+import createSingleAutocompleteSelectHandler from "@saleor/utils/handlers/singleAutocompleteSelectChangeHandler";
 
 interface ProductUpdatePageProps extends ListActions {
   errors: UserError[];
@@ -50,7 +50,6 @@ interface ProductUpdatePageProps extends ListActions {
   collections: SearchCollections_collections_edges_node[];
   categories: SearchCategories_categories_edges_node[];
   disabled: boolean;
-  productCollections: ProductDetails_product_collections[];
   variants: ProductDetails_product_variants[];
   images: ProductDetails_product_images[];
   product: ProductDetails_product;
@@ -88,7 +87,6 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   header,
   placeholderImage,
   product,
-  productCollections,
   saveButtonBarState,
   variants,
   onAttributesEdit,
@@ -112,13 +110,12 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
     getAttributeInputFromProduct(product)
   );
   const [selectedCategory, setSelectedCategory] = useStateFromProps(
-    maybe(() => product.category.name)
+    maybe(() => product.category.name, "")
   );
 
-  const {
-    change: selectCollection,
-    data: selectedCollections
-  } = useMultiAutocomplete(getChoices(productCollections));
+  const [selectedCollections, setSelectedCollections] = useStateFromProps(
+    getChoices(maybe(() => product.collections, []))
+  );
 
   const initialData = getProductUpdatePageFormData(product, variants);
   const initialDescription = maybe<RawDraftContentState>(() =>
@@ -133,7 +130,6 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   const handleSubmit = (data: ProductUpdatePageFormData) =>
     onSubmit({
       attributes,
-      collections: selectedCollections.map(({ value }) => value),
       ...data
     });
 
@@ -144,15 +140,25 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, submit, triggerChange }) => {
-        const handleCollectionSelect = createCollectionSelectHandler(
-          event => selectCollection(event, collections),
-          triggerChange
+      {({
+        change,
+        data,
+        errors,
+        hasChanged,
+        submit,
+        triggerChange,
+        toggleValue
+      }) => {
+        const handleCollectionSelect = createMultiAutocompleteSelectHandler(
+          toggleValue,
+          setSelectedCollections,
+          selectedCollections,
+          collections
         );
-        const handleCategorySelect = createCategorySelectHandler(
-          categoryChoiceList,
+        const handleCategorySelect = createSingleAutocompleteSelectHandler(
+          change,
           setSelectedCategory,
-          change
+          categories
         );
         const handleAttributeChange = createAttributeChangeHandler(
           changeAttributeData,
@@ -240,13 +246,13 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
                     categories={categories}
                     categoryInputDisplayValue={selectedCategory}
                     collections={collections}
+                    collectionsInputDisplayValue={selectedCollections}
                     data={data}
                     disabled={disabled}
                     errors={errors}
                     fetchCategories={fetchCategories}
                     fetchCollections={fetchCollections}
                     productType={maybe(() => product.productType)}
-                    selectedCollections={selectedCollections}
                     onCategoryChange={handleCategorySelect}
                     onCollectionChange={handleCollectionSelect}
                   />
