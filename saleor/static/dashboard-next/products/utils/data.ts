@@ -87,6 +87,7 @@ export function getChoices(nodes: Node[]): SingleAutocompleteChoiceType[] {
 export interface ProductUpdatePageFormData {
   basePrice: number;
   category: string | null;
+  collections: string[];
   chargeTaxes: boolean;
   description: RawDraftContentState;
   isPublished: boolean;
@@ -106,6 +107,9 @@ export function getProductUpdatePageFormData(
     basePrice: maybe(() => product.basePrice.amount),
     category: maybe(() => product.category.id),
     chargeTaxes: maybe(() => product.chargeTaxes, false),
+    collections: maybe(() =>
+      product.collections.map(collection => collection.id)
+    ),
     description: maybe(() => JSON.parse(product.descriptionJson)),
     isPublished: maybe(() => product.isPublished, false),
     name: maybe(() => product.name),
