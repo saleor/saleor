@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
-import urlJoin from "url-join";
 import { MutationFn, MutationResult } from "react-apollo";
+import urlJoin from "url-join";
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
 import { APP_MOUNT_URI } from "./config";
 import { AddressType } from "./customers/types";
