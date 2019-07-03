@@ -508,15 +508,15 @@ class CheckoutComplete(BaseMutation):
         try:
             billing_address = order_data["billing_address"]  # type: models.Address
             shipping_address = order_data["shipping_address"]  # type: models.Address
-            trs = gateway_process_payment(
+            txn = gateway_process_payment(
                 payment=payment,
                 payment_token=payment.token,
                 billing_address=AddressData(**billing_address.as_data()),
                 shipping_address=AddressData(**shipping_address.as_data()),
                 store_source=store_source,
             )
-            if trs.is_success and trs.customer_id and user.is_authenticated:
-                store_id_for_payment_gateway(user, payment.gateway, trs.customer_id)
+            if txn.is_success and txn.customer_id and user.is_authenticated:
+                store_id_for_payment_gateway(user, payment.gateway, txn.customer_id)
 
         except PaymentError as e:
             abort_order_data(order_data)

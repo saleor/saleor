@@ -39,7 +39,7 @@ ERROR_CODES_WHITELIST = {
 
 
 def get_customer_data(payment_information: PaymentData) -> Dict:
-    """ Provides customer info, use only for new customer creation """
+    """Provides customer info, use only for new customer creation"""
     billing = payment_information.billing
     return {
         "order_id": payment_information.order_id,

@@ -2,8 +2,6 @@ from itertools import chain
 
 import graphene_django_optimizer as gql_optimizer
 
-from saleor.payment import get_payment_gateway
-
 from ...payment import models
 from ...payment.interface import TokenConfig
 from ...payment.utils import (
