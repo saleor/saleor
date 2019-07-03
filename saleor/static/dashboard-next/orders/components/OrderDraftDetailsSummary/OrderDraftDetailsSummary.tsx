@@ -4,7 +4,7 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import React from "react";
 
 import Link from "@saleor/components/Link";
 import Money from "@saleor/components/Money";

@@ -13,6 +13,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change type of start and end date for discounts on date time field - #4293 by @fowczarek
 - Add SPECIFIC_PRODUCT type to VoucherTypes - #4344 by @fowczarek
 - Avatax backend support - #4310 by @korycins
+- Use "esModuleInterop" flag in tsconfig to simplify imports - #4372 by @dominik-zeglen
+- Use hooks instead of class component in forms - #4374 by @dominik-zeglen
+- Drop csrf token header from API client - #4357 by @dominik-zeglen
 
 ## 2.7.0
 

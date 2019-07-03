@@ -13,7 +13,7 @@ import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
-import * as React from "react";
+import React from "react";
 
 import { DebounceForm } from "@saleor/components/DebounceForm";
 import Form from "@saleor/components/Form";

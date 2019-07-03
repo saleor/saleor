@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { FieldType, IFilter } from "@saleor/components/Filter";
 import FilterBar from "@saleor/components/FilterBar";

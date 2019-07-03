@@ -1,5 +1,5 @@
 import createSvgIcon from "@material-ui/icons/utils/createSvgIcon";
-import * as React from "react";
+import React from "react";
 
 export const LocalShipping = createSvgIcon(
   <>

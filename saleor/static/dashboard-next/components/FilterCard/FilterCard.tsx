@@ -3,7 +3,7 @@ import CardContent from "@material-ui/core/CardContent";
 import CardHeader from "@material-ui/core/CardHeader";
 import IconButton from "@material-ui/core/IconButton";
 import RefreshIcon from "@material-ui/icons/Refresh";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 

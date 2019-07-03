@@ -1837,13 +1837,11 @@ exports[`Storyshots Generics / EditableTableCell default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id EditableTableCell-container-id"
             >
-              <div>
-                <span
-                  class="MuiTypography-root-id MuiTypography-caption-id EditableTableCell-text-id"
-                >
-                  Some editable text
-                </span>
-              </div>
+              <span
+                class="MuiTypography-root-id MuiTypography-caption-id EditableTableCell-text-id"
+              >
+                Some editable text
+              </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"

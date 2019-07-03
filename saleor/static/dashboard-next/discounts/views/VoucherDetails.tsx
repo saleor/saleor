@@ -1,7 +1,7 @@
 import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
-import * as moment from "moment-timezone";
-import * as React from "react";
+import moment from "moment-timezone";
+import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import AssignCategoriesDialog from "@saleor/components/AssignCategoryDialog";

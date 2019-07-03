@@ -7,7 +7,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField, { StandardTextFieldProps } from "@material-ui/core/TextField";
-import * as React from "react";
+import React from "react";
 import i18n from "../../i18n";
 import Chip from "../Chip";
 

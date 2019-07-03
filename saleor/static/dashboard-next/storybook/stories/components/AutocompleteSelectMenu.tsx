@@ -1,7 +1,7 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import AutocompleteSelectMenu, {
   AutocompleteSelectMenuProps

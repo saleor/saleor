@@ -2,7 +2,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Close";
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import Form from "@saleor/components/Form";
 import MultiAutocompleteSelectField, {

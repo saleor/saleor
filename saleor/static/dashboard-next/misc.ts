@@ -1,4 +1,4 @@
-import * as urlJoin from "url-join";
+import urlJoin from "url-join";
 
 import { MutationFn, MutationResult } from "react-apollo";
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";

@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 const AppActionContext = React.createContext<React.RefObject<HTMLDivElement>>(
   undefined
