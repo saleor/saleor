@@ -31494,7 +31494,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Usage Limit
+                Usage Limit 
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -32061,7 +32061,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Usage Limit
+                Usage Limit 
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -32742,7 +32742,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Usage Limit
+                Usage Limit 
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -33566,7 +33566,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Usage Limit
+                Usage Limit 
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -34396,7 +34396,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Usage Limit
+                Usage Limit 
               </span>
               <div
                 class="CardTitle-toolbar-id"
