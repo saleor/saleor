@@ -76,6 +76,7 @@ LANGUAGES = [
     ("hu", _("Hungarian")),
     ("hy", _("Armenian")),
     ("id", _("Indonesian")),
+    ("is", _("Icelandic")),
     ("it", _("Italian")),
     ("ja", _("Japanese")),
     ("ko", _("Korean")),
