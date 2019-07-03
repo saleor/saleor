@@ -114,6 +114,7 @@ from .types import (
     ProductType,
     ProductVariant,
 )
+from .types.attributes import AttributeSortingInput
 
 
 class ProductFilterInput(FilterInputObjectType):
@@ -161,6 +162,9 @@ class ProductQueries(graphene.ObjectType):
             belonging to the given collection.""",
         ),
         filter=AttributeFilterInput(),
+        sort_by=graphene.Argument(
+            AttributeSortingInput, description="Sort attributes."
+        ),
     )
     attribute = graphene.Field(
         Attribute,
@@ -247,10 +251,8 @@ class ProductQueries(graphene.ObjectType):
         description="List of top selling products.",
     )
 
-    def resolve_attributes(
-        self, info, in_category=None, in_collection=None, query=None, **_kwargs
-    ):
-        return resolve_attributes(info, in_category, in_collection, query)
+    def resolve_attributes(self, info, **kwargs):
+        return resolve_attributes(info, **kwargs)
 
     def resolve_attribute(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Attribute)
