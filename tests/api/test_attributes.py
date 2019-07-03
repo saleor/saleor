@@ -996,17 +996,17 @@ def test_assign_attributes_to_product_type(
     operations = []
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
-    product_attributes = attribute_list[:2]
-    variant_attributes = attribute_list[2:]
+    product_attributes_ids = {attr.pk for attr in attribute_list[:2]}
+    variant_attributes_ids = {attr.pk for attr in attribute_list[2:]}
 
-    for attr in product_attributes:
+    for attr_id in product_attributes_ids:
         operations.append(
-            {"type": "PRODUCT", "id": graphene.Node.to_global_id("Attribute", attr.pk)}
+            {"type": "PRODUCT", "id": graphene.Node.to_global_id("Attribute", attr_id)}
         )
 
-    for attr in variant_attributes:
+    for attr_id in variant_attributes_ids:
         operations.append(
-            {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attr.pk)}
+            {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attr_id)}
         )
 
     content = get_graphql_content(
@@ -1017,18 +1017,24 @@ def test_assign_attributes_to_product_type(
     assert not content["errors"], "Should have succeeded"
 
     assert content["productType"]["id"] == product_type_global_id
-    assert len(content["productType"]["productAttributes"]) == len(product_attributes)
-    assert len(content["productType"]["variantAttributes"]) == len(variant_attributes)
+    assert len(content["productType"]["productAttributes"]) == len(
+        product_attributes_ids
+    )
+    assert len(content["productType"]["variantAttributes"]) == len(
+        variant_attributes_ids
+    )
 
-    for attr, gql_attr in zip(
-        product_attributes, content["productType"]["productAttributes"]
-    ):
-        assert gql_attr["id"] == graphene.Node.to_global_id("Attribute", attr.pk)
+    found_product_attrs_ids = {
+        int(graphene.Node.from_global_id(attr["id"])[1])
+        for attr in content["productType"]["productAttributes"]
+    }
+    found_variant_attrs_ids = {
+        int(graphene.Node.from_global_id(attr["id"])[1])
+        for attr in content["productType"]["variantAttributes"]
+    }
 
-    for attr, gql_attr in zip(
-        variant_attributes, content["productType"]["variantAttributes"]
-    ):
-        assert gql_attr["id"] == graphene.Node.to_global_id("Attribute", attr.pk)
+    assert found_product_attrs_ids == product_attributes_ids
+    assert found_variant_attrs_ids == variant_attributes_ids
 
 
 def test_assign_variant_attribute_to_product_type_with_disabled_variants(
