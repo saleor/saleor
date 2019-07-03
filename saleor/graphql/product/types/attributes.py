@@ -13,7 +13,12 @@ from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeInputTypeEnum, AttributeValueType
+from ..enums import (
+    AttributeInputTypeEnum,
+    AttributeSortField,
+    AttributeValueType,
+    OrderDirection,
+)
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -27,6 +32,19 @@ def resolve_attribute_value_type(attribute_value):
     if "://" in attribute_value:
         return AttributeValueType.URL
     return AttributeValueType.STRING
+
+
+class AttributeSortingInput(graphene.InputObjectType):
+    field = graphene.Argument(
+        AttributeSortField,
+        required=True,
+        description="Sort attributes by the selected field.",
+    )
+    direction = graphene.Argument(
+        OrderDirection,
+        required=True,
+        description="Specifies the direction in which to sort the attributes",
+    )
 
 
 class AttributeValue(CountableDjangoObjectType):

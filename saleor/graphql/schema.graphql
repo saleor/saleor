@@ -239,6 +239,24 @@ enum AttributeInputTypeEnum {
 
 scalar AttributeScalar
 
+enum AttributeSortField {
+  NAME
+  SLUG
+  VALUE_REQUIRED
+  IS_VARIANT_ONLY
+  VISIBLE_IN_STOREFRONT
+  FILTERABLE_IN_STOREFRONT
+  FILTERABLE_IN_DASHBOARD
+  DASHBOARD_VARIANT_POSITION
+  DASHBOARD_PRODUCT_POSITION
+  STOREFRONT_SEARCH_POSITION
+}
+
+input AttributeSortingInput {
+  field: AttributeSortField!
+  direction: OrderDirection!
+}
+
 type AttributeTranslate {
   errors: [Error!]
   attribute: Attribute
@@ -2833,7 +2851,7 @@ type Query {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(query: String, level: Int, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
-  attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category

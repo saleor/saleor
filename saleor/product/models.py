@@ -502,11 +502,15 @@ class AttributeQuerySet(models.QuerySet):
             return self.all()
         return self.get_public_attributes()
 
-    def product_attributes_sorted_for_dashboard(self):
-        return self.order_by(F("attributeproduct__sort_order").asc(nulls_last=True))
+    def product_attributes_sorted_for_dashboard(self, asc=True):
+        field = F("attributeproduct__sort_order")
+        sort_meth = getattr(field, "asc" if asc else "desc")
+        return self.order_by(sort_meth(nulls_last=True))
 
-    def variant_attributes_sorted_for_dashboard(self):
-        return self.order_by(F("attributevariant__sort_order").asc(nulls_last=True))
+    def variant_attributes_sorted_for_dashboard(self, asc=True):
+        field = F("attributevariant__sort_order")
+        sort_meth = getattr(field, "asc" if asc else "desc")
+        return self.order_by(sort_meth(nulls_last=True))
 
 
 class Attribute(ModelWithMetadata):
