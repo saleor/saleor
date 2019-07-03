@@ -16,15 +16,13 @@ import Hr from "@saleor/components/Hr";
 import MultiAutocompleteSelectField, {
   MultiAutocompleteChoiceType
 } from "@saleor/components/MultiAutocompleteSelectField";
-import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
+import SingleAutocompleteSelectField, {
+  SingleAutocompleteChoiceType
+} from "@saleor/components/SingleAutocompleteSelectField";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { FormErrors } from "@saleor/types";
 
-interface ChoiceType {
-  label: string;
-  value: string;
-}
 interface ProductType {
   hasVariants: boolean;
   id: string;
@@ -47,19 +45,20 @@ const styles = (theme: Theme) =>
 
 interface ProductOrganizationProps extends WithStyles<typeof styles> {
   canChangeType: boolean;
-  categories?: ChoiceType[];
+  categories?: SingleAutocompleteChoiceType[];
   categoryInputDisplayValue: string;
-  collections?: ChoiceType[];
+  collections?: MultiAutocompleteChoiceType[];
+  collectionsInputDisplayValue: MultiAutocompleteChoiceType[];
   data: {
     category: string;
+    collections: string[];
     productType?: string;
   };
   disabled: boolean;
   errors: FormErrors<"productType" | "category">;
-  selectedCollections: MultiAutocompleteChoiceType[];
   productType?: ProductType;
   productTypeInputDisplayValue?: string;
-  productTypes?: ChoiceType[];
+  productTypes?: SingleAutocompleteChoiceType[];
   fetchCategories: (query: string) => void;
   fetchCollections: (query: string) => void;
   onCategoryChange: (event: React.ChangeEvent<any>) => void;
@@ -74,12 +73,12 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
     categoryInputDisplayValue,
     classes,
     collections,
+    collectionsInputDisplayValue,
     data,
     disabled,
     errors,
     fetchCategories,
     fetchCollections,
-    selectedCollections,
     productType,
     productTypeInputDisplayValue,
     productTypes,
@@ -142,11 +141,11 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
         <Hr />
         <FormSpacer />
         <MultiAutocompleteSelectField
-          displayValues={selectedCollections}
+          displayValues={collectionsInputDisplayValue}
           label={i18n.t("Collections")}
           choices={disabled ? [] : collections}
           name="collections"
-          value={selectedCollections.map(collection => collection.value)}
+          value={data.collections}
           helperText={i18n.t(
             "*Optional. Adding product to collection helps users find it."
           )}

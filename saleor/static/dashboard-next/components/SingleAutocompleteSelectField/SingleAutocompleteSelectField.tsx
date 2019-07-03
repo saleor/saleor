@@ -14,10 +14,10 @@ import Downshift from "downshift";
 import React from "react";
 import { compareTwoStrings } from "string-similarity";
 
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
 import i18n from "../../i18n";
 import ArrowDropdownIcon from "../../icons/ArrowDropdown";
 import Debounce, { DebounceProps } from "../Debounce";
-import useStateFromProps from "@saleor/hooks/useStateFromProps";
 
 const styles = (theme: Theme) =>
   createStyles({
