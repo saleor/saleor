@@ -1,6 +1,6 @@
 import { Theme, withStyles } from "@material-ui/core/styles";
 import Switch, { SwitchProps } from "@material-ui/core/Switch";
-import * as React from "react";
+import React from "react";
 
 import MoonIcon from "../../icons/Moon";
 import SunIcon from "../../icons/Sun";

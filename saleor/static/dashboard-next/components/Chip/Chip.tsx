@@ -8,7 +8,7 @@ import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
 import CloseIcon from "@material-ui/icons/Close";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 export interface ChipProps {
   className?: string;

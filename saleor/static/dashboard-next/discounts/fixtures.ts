@@ -1,4 +1,4 @@
-import * as placeholderImage from "../../images/placeholder60x60.png";
+import placeholderImage from "../../images/placeholder60x60.png";
 import {
   SaleType,
   VoucherDiscountValueType,

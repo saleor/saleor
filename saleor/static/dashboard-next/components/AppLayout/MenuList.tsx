@@ -6,7 +6,7 @@ import {
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 import { matchPath } from "react-router";
 
 import { User } from "../../auth/types/User";

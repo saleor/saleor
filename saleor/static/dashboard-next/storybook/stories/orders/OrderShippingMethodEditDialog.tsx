@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import OrderShippingMethodEditDialog from "../../../orders/components/OrderShippingMethodEditDialog";
 import { order as orderFixture } from "../../../orders/fixtures";
