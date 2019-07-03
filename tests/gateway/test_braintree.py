@@ -410,7 +410,9 @@ def test_list_customer_sources(sandbox_braintree_gateway_config):
         last4="1881", exp_year=2020, exp_month=12, name_on_card=None
     )
     expected_customer_source = CustomerSource(
-        id="d0b52c80b648ae8e5a14eddcaf24d254", credit_card_info=expected_credit_card
+        id="d0b52c80b648ae8e5a14eddcaf24d254",
+        gateway="braintree",
+        credit_card_info=expected_credit_card,
     )
     sources = list_client_sources(sandbox_braintree_gateway_config, CUSTOMER_ID)
     assert sources == [expected_customer_source]

@@ -1,5 +1,6 @@
 import json
 import logging
+
 from decimal import Decimal
 from functools import wraps
 from typing import Dict, List
@@ -540,3 +541,9 @@ def store_id_for_payment_gateway(user, gateway, customer_id):
         value={"customer_id": customer_id},
     )
     user.save()
+
+
+def retrieve_customer_sources(gateway_name, customer_id):
+    """ Fetches all customer payment sources stored in gateway"""
+    gateway, config = get_payment_gateway(gateway_name)
+    return gateway.list_client_sources(config, customer_id)

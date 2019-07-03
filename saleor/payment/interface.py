@@ -88,4 +88,5 @@ class CustomerSource:
     """Dataclass for storing information about stored payment sources in gateways"""
 
     id: str
+    gateway: str
     credit_card_info: CreditCardInfo = None
