@@ -1,26 +1,27 @@
-import { useEffect, useState } from "react";
+import isEqual from "lodash-es/isEqual";
 
-export type FormsetChange = (id: string, value: string) => void;
+import { toggle } from "@saleor/utils/lists";
+import useStateFromProps from "./useStateFromProps";
+
+export type FormsetChange = (id: string, value: any) => void;
 export interface FormsetAtomicData<TData = object> {
   data: TData;
   id: string;
   label: string;
-  value: string;
+  value: any;
 }
 export type FormsetData<TData = object> = Array<FormsetAtomicData<TData>>;
 export interface UseFormsetOutput<TData = object> {
   change: FormsetChange;
   data: FormsetData<TData>;
+  toggleItemValue: FormsetChange;
 }
 function useFormset<TData = object>(
   initial: FormsetData<TData>
 ): UseFormsetOutput<TData> {
-  const [data, setData] = useState<FormsetData<TData>>(initial || []);
+  const [data, setData] = useStateFromProps<FormsetData<TData>>(initial || []);
 
-  // Reload formset after fetching new initial data
-  useEffect(() => setData(initial), [JSON.stringify(initial)]);
-
-  function setItemValue(id: string, value: string) {
+  function setItemValue(id: string, value: any) {
     const itemIndex = data.findIndex(item => item.id === id);
     setData([
       ...data.slice(0, itemIndex),
@@ -32,9 +33,19 @@ function useFormset<TData = object>(
     ]);
   }
 
+  function toggleItemValue(id: string, value: any) {
+    const itemIndex = data.findIndex(item => item.id === id);
+    const field = data[itemIndex];
+
+    if (Array.isArray(field)) {
+      setItemValue(id, toggle(value, field, isEqual));
+    }
+  }
+
   return {
     change: setItemValue,
-    data
+    data,
+    toggleItemValue
   };
 }
 

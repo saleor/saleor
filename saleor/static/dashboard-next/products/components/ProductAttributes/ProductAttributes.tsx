@@ -17,7 +17,7 @@ import MultiAutocompleteSelectField, {
 import SingleAutocompleteSelectField, {
   SingleAutocompleteChoiceType
 } from "@saleor/components/SingleAutocompleteSelectField";
-import { FormsetAtomicData } from "@saleor/hooks/useFormset";
+import { FormsetAtomicData, FormsetChange } from "@saleor/hooks/useFormset";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { ProductDetails_product_attributes_attribute_values } from "@saleor/products/types/ProductDetails";
@@ -33,7 +33,8 @@ export type ProductAttributeInput = FormsetAtomicData<
 export interface ProductAttributesProps {
   attributes: ProductAttributeInput[];
   disabled: boolean;
-  onChange: (id: string, value: string) => void;
+  onChange: FormsetChange;
+  onMultiChange: FormsetChange;
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -94,7 +95,8 @@ function getSingleChoices(
 const ProductAttributes: React.FC<ProductAttributesProps> = ({
   attributes,
   disabled,
-  onChange
+  onChange,
+  onMultiChange
 }) => {
   const classes = useStyles({});
   const [expanded, setExpansionStatus] = React.useState(true);
@@ -155,10 +157,19 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                   ) : (
                     <MultiAutocompleteSelectField
                       choices={getMultiChoices(attribute.data.values)}
+                      displayValues={maybe(
+                        () =>
+                          attribute.data.values.map(value => ({
+                            label: value.name,
+                            value: value.id
+                          })),
+                        []
+                      )}
                       label={i18n.t("Values")}
+                      name={`attribute:${attribute.label}`}
                       value={attribute.value}
                       onChange={event =>
-                        onChange(attribute.id, event.target.value)
+                        onMultiChange(attribute.id, event.target.value)
                       }
                     />
                   )}
