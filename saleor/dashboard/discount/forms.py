@@ -93,6 +93,9 @@ class VoucherForm(forms.ModelForm):
             "name": pgettext_lazy("Item name", "Name"),
             "code": pgettext_lazy("Coupon code", "Code"),
             "usage_limit": pgettext_lazy("Usage limit", "Usage limit"),
+            "min_quantity_of_products": pgettext_lazy(
+                "Voucher: discount with", "Minimal quantity of products"
+            ),
             "start_date": pgettext_lazy("Voucher date restrictions", "Start date"),
             "end_date": pgettext_lazy("Voucher date restrictions", "End date"),
             "discount_value_type": pgettext_lazy(

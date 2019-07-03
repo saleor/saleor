@@ -101,12 +101,15 @@ class VoucherInput(graphene.InputObjectType):
     min_amount_spent = Decimal(
         description="Min purchase amount required to apply the voucher."
     )
+    min_quantity_of_products = graphene.Int(
+        description="Minimal quantity of products required to apply the voucher."
+    )
     countries = graphene.List(
         graphene.String,
-        description="Country codes that can be used with the shipping voucher",
+        description="Country codes that can be used with the shipping voucher.",
     )
     apply_once_per_order = graphene.Boolean(
-        description="Voucher should be applied to the cheapest item or entire order"
+        description="Voucher should be applied to the cheapest item or entire order."
     )
     usage_limit = graphene.Int(
         description="Limit number of times this voucher can be used in total"

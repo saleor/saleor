@@ -19,13 +19,15 @@ class NotApplicable(ValueError):
     """Exception raised when a discount is not applicable to a checkout.
 
     The error is raised if the order value is below the minimum required
-    price.
+    price or the order quantity is below the minimum quantity of items.
     Minimum price will be available as the `min_amount_spent` attribute.
+    Minimum quantity will be available as the `min_quantity_of_products` attribute.
     """
 
-    def __init__(self, msg, min_amount_spent=None):
+    def __init__(self, msg, min_amount_spent=None, min_quantity_of_products=None):
         super().__init__(msg)
         self.min_amount_spent = min_amount_spent
+        self.min_quantity_of_products = min_quantity_of_products
 
 
 class VoucherQueryset(models.QuerySet):
@@ -73,6 +75,7 @@ class Voucher(models.Model):
         null=True,
         blank=True,
     )
+    min_quantity_of_products = models.PositiveIntegerField(null=True, blank=True)
     products = models.ManyToManyField("product.Product", blank=True)
     collections = models.ManyToManyField("product.Collection", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
@@ -145,6 +148,21 @@ class Voucher(models.Model):
             raise NotApplicable(
                 msg % {"amount": amount(min_amount_spent)},
                 min_amount_spent=min_amount_spent,
+            )
+
+    def validate_min_quantity_of_products(self, quantity):
+        min_quantity_of_products = self.min_quantity_of_products
+        if min_quantity_of_products > quantity:
+            msg = pgettext(
+                "Voucher not applicable",
+                (
+                    "This offer is only valid for orders with a minimum of "
+                    "%(min_quantity_of_products)d quantity."
+                ),
+            )
+            raise NotApplicable(
+                msg % {"min_quantity_of_products": min_quantity_of_products},
+                min_quantity_of_products=min_quantity_of_products,
             )
 
 
