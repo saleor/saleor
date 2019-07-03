@@ -482,20 +482,22 @@ def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
     )
 
 
-@patch("saleor.graphql.payment.resolvers.gateway_get_client_token")
-def test_query_payment_client_token(mock_get_client_token, user_api_client):
+def test_query_payment_client_token(mocker, user_api_client):
     query = """
     query paymentClientToken($gateway: GatewaysEnum) {
         paymentClientToken(gateway: $gateway)
     }
     """
     example_token = "example-token"
-    mock_get_client_token.return_value = example_token
+    mock_get_client_token = mocker.patch(
+        "saleor.graphql.payment.resolvers.gateway_get_client_token",
+        return_value=example_token,
+    )
     variables = {"gateway": PaymentGatewayEnum.BRAINTREE.name}
     response = user_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
-    assert mock_get_client_token.assert_called_once_with("braintree")
+    mock_get_client_token.assert_called_once_with("braintree")
     token = content["data"]["paymentClientToken"]
     assert token == example_token
 
@@ -553,7 +555,7 @@ def test_list_payment_sources(
     }
     """
     card = CreditCardInfo(
-        last4="5678", exp_year=2020, exp_month=12, name_on_card="John Doe"
+        last4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
     )
     source = CustomerSource(id="test1", credit_card_info=card)
     mock_get_source_list = mocker.patch(
@@ -563,7 +565,7 @@ def test_list_payment_sources(
     )
 
     response = user_api_client.post_graphql(query)
-    assert mock_get_source_list.assert_called_once()
+    mock_get_source_list.assert_called_once()
 
     content = get_graphql_content(response)["data"]["paymentStoredSources"]
     assert content is not None and len(content) == 1
