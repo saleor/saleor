@@ -163,6 +163,13 @@ def filter_product_type(qs, _, value):
     return qs
 
 
+def filter_attributes_search(qs, _, value):
+    search_fields = ("name", "slug")
+    if value:
+        qs = filter_by_query_param(qs, value, search_fields)
+    return qs
+
+
 class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
@@ -212,3 +219,18 @@ class ProductTypeFilter(django_filters.FilterSet):
     class Meta:
         model = ProductType
         fields = ["configurable", "product_type"]
+
+
+class AttributeFilter(django_filters.FilterSet):
+    # Search by attribute name and slug
+    search = django_filters.CharFilter(method=filter_attributes_search)
+
+    class Meta:
+        model = Attribute
+        fields = [
+            "value_required",
+            "is_variant_only",
+            "visible_in_storefront",
+            "filterable_in_storefront",
+            "filterable_in_dashboard",
+        ]
