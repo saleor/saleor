@@ -1,4 +1,5 @@
 """Checkout related views."""
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
@@ -219,8 +220,7 @@ def update_checkout_line(request, checkout, variant_id):
         checkout.refresh_from_db()
         # Refresh obj from db and confirm that checkout still has this line
         checkout_line = checkout.lines.filter(variant_id=variant_id).first()
-        currency = checkout.get_total().currency
-        line_total = zero_taxed_money(currency)
+        line_total = zero_taxed_money(currency=settings.DEFAULT_CURRENCY)
         if checkout_line:
             line_total = tax_interface.calculate_checkout_line_total(
                 checkout_line, discounts
