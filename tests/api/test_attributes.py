@@ -1,3 +1,5 @@
+from typing import Union
+
 import graphene
 import pytest
 from django.db.models import Q
@@ -9,7 +11,14 @@ from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.graphql.product.types.products import resolve_attribute_list
 from saleor.graphql.product.utils import attributes_to_json
 from saleor.product import AttributeInputType
-from saleor.product.models import Attribute, AttributeValue, Category, ProductType
+from saleor.product.models import (
+    Attribute,
+    AttributeProduct,
+    AttributeValue,
+    AttributeVariant,
+    Category,
+    ProductType,
+)
 from tests.api.utils import get_graphql_content
 
 
@@ -1450,3 +1459,85 @@ def test_filter_attributes_if_filterable_in_dashboard(
 
     assert len(attributes) == 1
     assert attributes[0]["node"]["slug"] == "size"
+
+
+ATTRIBUTES_SORT_QUERY = """
+    query($sortBy: AttributeSortingInput) {
+      attributes(first: 10, sortBy: $sortBy) {
+        edges {
+          node {
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+def test_sort_attributes_by_slug(api_client):
+    Attribute.objects.bulk_create(
+        [
+            Attribute(name="MyAttribute", slug="b"),
+            Attribute(name="MyAttribute", slug="a"),
+        ]
+    )
+
+    variables = {"sortBy": {"field": "SLUG", "direction": "ASC"}}
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_SORT_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    assert len(attributes) == 2
+    assert attributes[0]["node"]["slug"] == "a"
+    assert attributes[1]["node"]["slug"] == "b"
+
+
+@pytest.mark.parametrize(
+    "sort_field, m2m_model",
+    (
+        ("DASHBOARD_VARIANT_POSITION", AttributeVariant),
+        ("DASHBOARD_PRODUCT_POSITION", AttributeProduct),
+    ),
+)
+def test_sort_attributes_by_position_in_product_type(
+    api_client,
+    color_attribute,
+    size_attribute,
+    sort_field: str,
+    m2m_model: Union[AttributeVariant, AttributeProduct],
+):
+    """Sorts attributes for dashboard custom ordering inside a given product type."""
+
+    product_type = ProductType.objects.create(name="My Product Type")
+    m2m_model.objects.create(
+        product_type=product_type, attribute=color_attribute, sort_order=0
+    )
+    m2m_model.objects.create(
+        product_type=product_type, attribute=size_attribute, sort_order=1
+    )
+
+    variables = {"sortBy": {"field": sort_field, "direction": "DESC"}}
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_SORT_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    assert len(attributes) == 2
+    assert attributes[0]["node"]["slug"] == "size"
+    assert attributes[1]["node"]["slug"] == "color"
+
+
+def test_sort_attributes_by_default_sorting(api_client):
+    """Don't provide any sorting, this should sort by name by default."""
+    Attribute.objects.bulk_create(
+        [Attribute(name="A", slug="b"), Attribute(name="B", slug="a")]
+    )
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_SORT_QUERY, {})
+    )["data"]["attributes"]["edges"]
+
+    assert len(attributes) == 2
+    assert attributes[0]["node"]["slug"] == "b"
+    assert attributes[1]["node"]["slug"] == "a"
