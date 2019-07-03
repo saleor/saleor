@@ -3,7 +3,6 @@ from datetime import date, timedelta
 from functools import wraps
 from uuid import UUID
 
-from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -17,13 +16,22 @@ from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..core.taxes import quantize_price, zero_money, zero_taxed_money
+from ..core.taxes.interface import (
+    calculate_checkout_line_total,
+    calculate_checkout_shipping,
+    calculate_checkout_subtotal,
+    calculate_checkout_total,
+    postprocess_order_creation,
+    preprocess_order_creation,
+    taxes_are_enabled,
+)
 from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
     promo_code_is_voucher,
 )
-from ..core.utils.taxes import ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_country
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
@@ -40,7 +48,6 @@ from ..giftcard.utils import (
 from ..order import events
 from ..order.emails import send_order_confirmation
 from ..order.models import Order, OrderLine
-from ..product.models import ProductVariant
 from ..shipping.models import ShippingMethod
 from . import AddressType, logger
 from .forms import (
@@ -49,7 +56,7 @@ from .forms import (
     AnonymousUserShippingForm,
     BillingAddressChoiceForm,
 )
-from .models import Checkout
+from .models import Checkout, CheckoutLine
 
 COOKIE_NAME = "checkout"
 
@@ -94,11 +101,6 @@ def remove_unavailable_variants(checkout):
             add_variant_to_checkout(checkout, line.variant, quantity, replace=True)
 
 
-def get_variant_prices_from_lines(lines):
-    """Get's price of each individual item within the lines."""
-    return [line.variant.get_price() for line in lines for item in range(line.quantity)]
-
-
 def get_prices_of_discounted_specific_product(lines, voucher):
     """Get prices of variants belonging to the discounted specific products.
 
@@ -106,13 +108,13 @@ def get_prices_of_discounted_specific_product(lines, voucher):
     Product must be assigned directly to the discounted category, assigning
     product to child category won't work.
     """
-    # If there's no discounted products, collections or categories,
-    # it means that all products are discounted
     discounted_products = voucher.products.all()
     discounted_categories = set(voucher.categories.all())
     discounted_collections = set(voucher.collections.all())
+
+    line_prices = []
+    discounted_lines = []
     if discounted_products or discounted_collections or discounted_categories:
-        discounted_lines = []
         for line in lines:
             line_product = line.variant.product
             line_category = line.variant.product.category
@@ -123,37 +125,57 @@ def get_prices_of_discounted_specific_product(lines, voucher):
                 or line_collections.intersection(discounted_collections)
             ):
                 discounted_lines.append(line)
-        return get_variant_prices_from_lines(discounted_lines)
-    return get_variant_prices_from_lines(lines)
+    else:
+        # If there's no discounted products, collections or categories,
+        # it means that all products are discounted
+        discounted_lines.extend(list(lines))
+
+    for line in discounted_lines:
+        line_total = calculate_checkout_line_total(line, []).gross
+        line_unit_price = quantize_price(
+            (line_total / line.quantity), line_total.currency
+        )
+        line_prices.extend([line_unit_price] * line.quantity)
+
+    return line_prices
 
 
-def get_prices_of_discounted_products(lines, discounted_products):
+def get_prices_of_discounted_products(checkout, discounted_products):
     """Get prices of variants belonging to the discounted products."""
     # If there's no discounted_products,
     # it means that all products are discounted
+    line_prices = []
     if discounted_products:
-        lines = (line for line in lines if line.variant.product in discounted_products)
-    return get_variant_prices_from_lines(lines)
+        for line in checkout:
+            if line.variant.product in discounted_products:
+                line_total = calculate_checkout_line_total(line, []).gross
+                line_unit_price = quantize_price(
+                    (line_total / line.quantity), line_total.currency
+                )
+                line_prices.extend([line_unit_price] * line.quantity)
+    return line_prices
 
 
-def get_prices_of_products_in_discounted_collections(lines, discounted_collections):
+def get_prices_of_products_in_discounted_collections(checkout, discounted_collections):
     """Get prices of variants belonging to the discounted collections."""
     # If there's no discounted collections,
     # it means that all of them are discounted
+    line_prices = []
     if discounted_collections:
-        discounted_collections = set(discounted_collections)
-        lines = (
-            line
-            for line in lines
-            if line.variant
-            and set(line.variant.product.collections.all()).intersection(
-                discounted_collections
-            )
-        )
-    return get_variant_prices_from_lines(lines)
+        for line in checkout:
+            if not line.variant:
+                continue
+            product_collections = line.variant.product.collections.all()
+            if set(product_collections).intersection(discounted_collections):
+                line_total = calculate_checkout_line_total(line, []).gross
+                line_unit_price = quantize_price(
+                    (line_total / line.quantity), line_total.currency
+                )
+                line_prices.extend([line_unit_price] * line.quantity)
+    return line_prices
 
 
-def get_prices_of_products_in_discounted_categories(lines, discounted_categories):
+def get_prices_of_products_in_discounted_categories(checkout, discounted_categories):
     """Get prices of variants belonging to the discounted categories.
 
     Product must be assigned directly to the discounted category, assigning
@@ -161,14 +183,20 @@ def get_prices_of_products_in_discounted_categories(lines, discounted_categories
     """
     # If there's no discounted collections,
     # it means that all of them are discounted
+    line_prices = []
     if discounted_categories:
         discounted_categories = set(discounted_categories)
-        lines = (
-            line
-            for line in lines
-            if line.variant and line.variant.product.category in discounted_categories
-        )
-    return get_variant_prices_from_lines(lines)
+        for line in checkout:
+            if not line.variant:
+                continue
+            product_category = line.variant.product.category
+            if product_category in discounted_categories:
+                line_total = calculate_checkout_line_total(line, []).gross
+                line_unit_price = quantize_price(
+                    (line_total / line.quantity), line_total.currency
+                )
+                line_prices.extend([line_unit_price] * line.quantity)
+    return line_prices
 
 
 def check_product_availability_and_warn(request, checkout):
@@ -673,26 +701,30 @@ def change_shipping_address_in_checkout(checkout, address):
         checkout.save(update_fields=["shipping_address"])
 
 
-def get_checkout_context(
-    checkout, discounts, taxes, currency=None, shipping_range=None
-):
+def get_checkout_context(checkout, discounts, currency=None, shipping_range=None):
     """Data shared between views in checkout process."""
-    checkout_total = checkout.get_total(discounts, taxes)
+    checkout_total = (
+        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        - checkout.get_total_gift_cards_balance()
+    )
+    checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
+    checkout_subtotal = calculate_checkout_subtotal(checkout, discounts)
+    shipping_price = calculate_checkout_shipping(checkout, discounts)
+
     shipping_required = checkout.is_shipping_required()
-    checkout_subtotal = checkout.get_subtotal(discounts, taxes)
     total_with_shipping = TaxedMoneyRange(
         start=checkout_subtotal, stop=checkout_subtotal
     )
     if shipping_required and shipping_range:
-        total_with_shipping = shipping_range + checkout_subtotal
+        total_with_shipping = shipping_range + checkout_subtotal.net
 
     context = {
         "checkout": checkout,
-        "checkout_are_taxes_handled": bool(taxes),
+        "checkout_are_taxes_handled": taxes_are_enabled(),
         "checkout_lines": [
-            (line, line.get_total(discounts, taxes)) for line in checkout
+            (line, calculate_checkout_line_total(line, discounts)) for line in checkout
         ],
-        "checkout_shipping_price": checkout.get_shipping_price(taxes),
+        "checkout_shipping_price": shipping_price,
         "checkout_subtotal": checkout_subtotal,
         "checkout_total": checkout_total,
         "shipping_required": checkout.is_shipping_required(),
@@ -709,9 +741,7 @@ def get_checkout_context(
     return context
 
 
-def _get_shipping_voucher_discount_for_checkout(
-    voucher, checkout, discounts=None, taxes=None
-):
+def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=None):
     """Calculate discount value for a voucher of shipping type."""
     if not checkout.is_shipping_required():
         msg = pgettext(
@@ -735,28 +765,26 @@ def _get_shipping_voucher_discount_for_checkout(
 
     return get_shipping_voucher_discount(
         voucher,
-        checkout.get_subtotal(discounts, taxes),
-        shipping_method.get_total(taxes),
+        calculate_checkout_subtotal(checkout, discounts).gross,
+        calculate_checkout_shipping(checkout, discounts).gross,
     )
 
 
-def _get_products_voucher_discount(order_or_checkout, voucher):
-    """Calculate products discount value for a voucher, depending on its type."""
+def _get_products_voucher_discount(checkout, voucher):
+    """Calculate products discount value for a voucher, depending on its type.
+    """
+    prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(
-            order_or_checkout.lines.all(), voucher
-        )
+        prices = get_prices_of_discounted_specific_product(checkout, voucher)
     elif voucher.type == VoucherType.PRODUCT:
-        prices = get_prices_of_discounted_products(
-            order_or_checkout.lines.all(), voucher.products.all()
-        )
+        prices = get_prices_of_discounted_products(checkout, voucher.products.all())
     elif voucher.type == VoucherType.COLLECTION:
         prices = get_prices_of_products_in_discounted_collections(
-            order_or_checkout.lines.all(), voucher.collections.all()
+            checkout, voucher.collections.all()
         )
     elif voucher.type == VoucherType.CATEGORY:
         prices = get_prices_of_products_in_discounted_categories(
-            order_or_checkout.lines.all(), voucher.categories.all()
+            checkout, voucher.categories.all()
         )
     if not prices:
         msg = pgettext(
@@ -766,19 +794,17 @@ def _get_products_voucher_discount(order_or_checkout, voucher):
     return get_products_voucher_discount(voucher, prices)
 
 
-def get_voucher_discount_for_checkout(voucher, checkout, discounts=None, taxes=None):
+def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
     """Calculate discount value depending on voucher and discount types.
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if voucher.type == VoucherType.ENTIRE_ORDER:
         return get_value_voucher_discount(
-            voucher, checkout.get_subtotal(discounts, taxes)
+            voucher, calculate_checkout_subtotal(checkout, discounts).gross
         )
     if voucher.type == VoucherType.SHIPPING:
-        return _get_shipping_voucher_discount_for_checkout(
-            voucher, checkout, discounts, taxes
-        )
+        return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
     if voucher.type in (
         VoucherType.PRODUCT,
         VoucherType.COLLECTION,
@@ -804,7 +830,7 @@ def get_voucher_for_checkout(checkout, vouchers=None, with_lock=False):
     return None
 
 
-def recalculate_checkout_discount(checkout, discounts, taxes):
+def recalculate_checkout_discount(checkout, discounts):
     """Recalculate `checkout.discount` based on the voucher.
 
     Will clear both voucher and discount if the discount is no longer
@@ -813,13 +839,11 @@ def recalculate_checkout_discount(checkout, discounts, taxes):
     voucher = get_voucher_for_checkout(checkout)
     if voucher is not None:
         try:
-            discount = get_voucher_discount_for_checkout(
-                voucher, checkout, discounts, taxes
-            )
+            discount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
-            subtotal = checkout.get_subtotal(discounts, taxes).gross
+            subtotal = calculate_checkout_subtotal(checkout, discounts).gross
             checkout.discount_amount = min(discount, subtotal)
             checkout.discount_name = str(voucher)
             checkout.translated_discount_name = (
@@ -838,24 +862,20 @@ def recalculate_checkout_discount(checkout, discounts, taxes):
         remove_voucher_from_checkout(checkout)
 
 
-def add_promo_code_to_checkout(
-    checkout: Checkout, promo_code: str, discounts=None, taxes=None
-):
+def add_promo_code_to_checkout(checkout: Checkout, promo_code: str, discounts=None):
     """Add gift card or voucher data to checkout.
 
     Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
     """
     if promo_code_is_voucher(promo_code):
-        add_voucher_code_to_checkout(checkout, promo_code, discounts, taxes)
+        add_voucher_code_to_checkout(checkout, promo_code, discounts)
     elif promo_code_is_gift_card(promo_code):
         add_gift_card_code_to_checkout(checkout, promo_code)
     else:
         raise InvalidPromoCode()
 
 
-def add_voucher_code_to_checkout(
-    checkout: Checkout, voucher_code: str, discounts=None, taxes=None
-):
+def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str, discounts=None):
     """Add voucher data to checkout by code.
 
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
@@ -865,23 +885,19 @@ def add_voucher_code_to_checkout(
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:
-        add_voucher_to_checkout(checkout, voucher, discounts, taxes)
+        add_voucher_to_checkout(checkout, voucher, discounts)
     except NotApplicable:
         raise ValidationError(
             {"promo_code": "Voucher is not applicable to that checkout."}
         )
 
 
-def add_voucher_to_checkout(
-    checkout: Checkout, voucher: Voucher, discounts=None, taxes=None
-):
+def add_voucher_to_checkout(checkout: Checkout, voucher: Voucher, discounts=None):
     """Add voucher data to checkout.
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    discount_amount = get_voucher_discount_for_checkout(
-        voucher, checkout, discounts, taxes
-    )
+    discount_amount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
     checkout.translated_discount_name = (
@@ -918,7 +934,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
     checkout.voucher_code = None
     checkout.discount_name = None
     checkout.translated_discount_name = None
-    checkout.discount_amount = ZERO_MONEY
+    checkout.discount_amount = zero_money()
     checkout.save(
         update_fields=[
             "voucher_code",
@@ -929,24 +945,13 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
-def get_taxes_for_checkout(checkout, default_taxes):
-    """Return taxes (if handled) due to shipping address or default one."""
-    if not settings.VATLAYER_ACCESS_KEY:
-        return None
-
-    if checkout.shipping_address:
-        return get_taxes_for_country(checkout.shipping_address.country)
-
-    return default_taxes
-
-
-def is_valid_shipping_method(checkout, taxes, discounts):
+def is_valid_shipping_method(checkout, discounts):
     """Check if shipping method is valid and remove (if not)."""
     if not checkout.shipping_method:
         return False
 
     valid_methods = ShippingMethod.objects.applicable_shipping_methods(
-        price=checkout.get_subtotal(discounts, taxes).gross,
+        price=calculate_checkout_subtotal(checkout, discounts).gross,
         weight=checkout.get_total_weight(),
         country_code=checkout.shipping_address.country.code,
     )
@@ -990,7 +995,7 @@ def _get_voucher_data_for_order(checkout):
     }
 
 
-def _process_shipping_data_for_order(checkout, taxes):
+def _process_shipping_data_for_order(checkout, shipping_price):
     """Fetch, process and return shipping data from checkout."""
     if not checkout.is_shipping_required():
         return {}
@@ -1006,7 +1011,7 @@ def _process_shipping_data_for_order(checkout, taxes):
         "shipping_address": shipping_address,
         "shipping_method": checkout.shipping_method,
         "shipping_method_name": smart_text(checkout.shipping_method),
-        "shipping_price": checkout.get_shipping_price(taxes),
+        "shipping_price": shipping_price,
         "weight": checkout.get_total_weight(),
     }
 
@@ -1041,13 +1046,13 @@ def validate_gift_cards(checkout: Checkout):
         raise NotApplicable(msg)
 
 
-def create_line_for_order(
-    variant: ProductVariant, quantity: int, discounts, taxes
-) -> OrderLine:
+def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine:
     """
     :raises InsufficientStock: when there is not enough items in stock for this variant
     """
 
+    quantity = checkout_line.quantity
+    variant = checkout_line.variant
     variant.check_quantity(quantity)
 
     product_name = variant.display_product()
@@ -1056,6 +1061,10 @@ def create_line_for_order(
     if translated_product_name == product_name:
         translated_product_name = ""
 
+    total_line_price = calculate_checkout_line_total(checkout_line, discounts)
+    unit_price = quantize_price(
+        total_line_price / checkout_line.quantity, total_line_price.currency
+    )
     line = OrderLine(
         product_name=product_name,
         translated_product_name=translated_product_name,
@@ -1063,16 +1072,14 @@ def create_line_for_order(
         is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
         variant=variant,
-        unit_price=variant.get_price(discounts, taxes),
-        tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes),
+        unit_price=unit_price,
+        tax_rate=unit_price.tax / unit_price.net,
     )
 
     return line
 
 
-def prepare_order_data(
-    *, checkout: Checkout, tracking_code: str, discounts, taxes
-) -> dict:
+def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> dict:
     """
     Runs checks and returns all the data from a given checkout to create an order.
 
@@ -1080,23 +1087,25 @@ def prepare_order_data(
     """
     order_data = {}
 
-    order_data.update(_process_shipping_data_for_order(checkout, taxes))
+    total = (
+        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        - checkout.get_total_gift_cards_balance()
+    )
+    total = max(total, zero_taxed_money(total.currency))
+
+    shipping_total = calculate_checkout_shipping(checkout, discounts)
+    order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
     order_data.update(_process_user_data_for_order(checkout))
     order_data.update(
         {
             "language_code": get_language(),
             "tracking_client_id": tracking_code,
-            "total": checkout.get_total(discounts, taxes),
+            "total": total,
         }
     )
 
     order_data["lines"] = [
-        create_line_for_order(
-            variant=line.variant,
-            quantity=line.quantity,
-            discounts=discounts,
-            taxes=taxes,
-        )
+        create_line_for_order(checkout_line=line, discounts=discounts)
         for line in checkout
     ]
 
@@ -1108,11 +1117,12 @@ def prepare_order_data(
 
     # assign gift cards to the order
     order_data["total_price_left"] = (
-        checkout.get_subtotal(discounts, taxes)
-        + checkout.get_shipping_price(taxes)
+        calculate_checkout_subtotal(checkout, discounts)
+        + shipping_total
         - checkout.discount_amount
     ).gross
 
+    preprocess_order_creation(checkout, discounts)
     return order_data
 
 
@@ -1160,6 +1170,8 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
+    postprocess_order_creation(order)
+
     # Create the order placed
     events.order_created_event(order=order, user=user)
 
@@ -1168,23 +1180,29 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     return order
 
 
-def is_fully_paid(checkout: Checkout, taxes, discounts):
+def is_fully_paid(checkout: Checkout, discounts):
     """Check if provided payment methods cover the checkout's total amount.
     Note that these payments may not be captured or charged at all."""
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
-    checkout_total = checkout.get_total(discounts=discounts, taxes=taxes).gross.amount
-    return total_paid >= checkout_total
+    checkout_total = (
+        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        - checkout.get_total_gift_cards_balance()
+    )
+    checkout_total = max(
+        checkout_total, zero_taxed_money(checkout_total.currency)
+    ).gross
+    return total_paid >= checkout_total.amount
 
 
-def clean_checkout(checkout: Checkout, taxes, discounts):
+def clean_checkout(checkout: Checkout, discounts):
     """Check if checkout can be completed."""
     if checkout.is_shipping_required():
         if not checkout.shipping_method:
             raise ValidationError("Shipping method is not set")
         if not checkout.shipping_address:
             raise ValidationError("Shipping address is not set")
-        if not is_valid_shipping_method(checkout, taxes, discounts):
+        if not is_valid_shipping_method(checkout, discounts):
             raise ValidationError(
                 "Shipping method is not valid for your shipping address"
             )
@@ -1192,7 +1210,7 @@ def clean_checkout(checkout: Checkout, taxes, discounts):
     if not checkout.billing_address:
         raise ValidationError("Billing address is not set")
 
-    if not is_fully_paid(checkout, taxes, discounts):
+    if not is_fully_paid(checkout, discounts):
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total " "amount"
         )

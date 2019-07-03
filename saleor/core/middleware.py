@@ -24,7 +24,6 @@ from django_countries.fields import Country
 from ..discount.utils import fetch_discounts
 from . import analytics
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
-from .utils.taxes import get_taxes_for_country
 
 logger = logging.getLogger(__name__)
 
@@ -164,6 +163,10 @@ def taxes(get_response):
 
     def middleware(request):
         if settings.VATLAYER_ACCESS_KEY:
+            # FIXME this should be disabled after we will introduce plugin architecure.
+            # For now, a lot of templates use tax_rate function.
+            from .taxes.vatlayer import get_taxes_for_country
+
             request.taxes = SimpleLazyObject(
                 lambda: get_taxes_for_country(request.country)
             )

@@ -20,8 +20,9 @@ def home(request):
         products_with_availability(
             products,
             discounts=request.discounts,
-            taxes=request.taxes,
+            country=request.country,
             local_currency=request.currency,
+            taxes=request.taxes,
         )
     )
     webpage_schema = get_webpage_schema(request)

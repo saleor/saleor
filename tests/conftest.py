@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
@@ -11,17 +12,14 @@ from django.forms import ModelForm
 from django.test.client import Client
 from django.utils.encoding import smart_text
 from django_countries import countries
-from django_prices_vatlayer.models import VAT
-from django_prices_vatlayer.utils import get_tax_for_rate
 from PIL import Image
-from prices import Money
+from prices import Money, TaxedMoney
 
 from saleor.account.backends import BaseBackend
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherTranslation
@@ -95,6 +93,14 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_single_item(checkout, product):
+    variant = product.variants.get()
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_items(checkout, product_list, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 1)
@@ -154,6 +160,20 @@ def address_other_country():
         city="BENNETTMOUTH",
         postal_code="13377",
         country="IS",
+        phone="",
+    )
+
+
+@pytest.fixture
+def address_usa():
+    return Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        street_address_1="2000 Main Street",
+        city="Irvine",
+        postal_code="92614",
+        country_area="CA",
+        country="US",
         phone="",
     )
 
@@ -388,10 +408,7 @@ def permission_manage_orders():
 @pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
-        name="Default Type",
-        has_variants=True,
-        is_shipping_required=True,
-        tax_rate=DEFAULT_TAX_RATE_NAME,
+        name="Default Type", has_variants=True, is_shipping_required=True
     )
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
@@ -418,7 +435,6 @@ def product(product_type, category):
         product_type=product_type,
         attributes=attributes,
         category=category,
-        tax_rate=DEFAULT_TAX_RATE_NAME,
     )
 
     variant_attr = product_type.variant_attributes.first()
@@ -681,17 +697,18 @@ def voucher_shipping_type():
     )
 
 
-@pytest.fixture
-def order_line(order, variant, vatlayer):
-    taxes = vatlayer
+@pytest.fixture()
+def order_line(order, variant):
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     return order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=3,
         variant=variant,
-        unit_price=variant.get_price(taxes=taxes),
-        tax_rate=taxes["standard"]["value"],
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
     )
 
 
@@ -719,9 +736,8 @@ def gift_card_created_by_staff(staff_user):
     )
 
 
-@pytest.fixture
-def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
-    taxes = vatlayer
+@pytest.fixture()
+def order_with_lines(order, product_type, category, shipping_zone):
     product = Product.objects.create(
         name="Test product",
         price=Money("10.00", "USD"),
@@ -735,14 +751,16 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
         quantity=5,
         quantity_allocated=3,
     )
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=3,
         variant=variant,
-        unit_price=variant.get_price(taxes=taxes),
-        tax_rate=taxes["standard"]["value"],
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
     )
 
     product = Product.objects.create(
@@ -758,21 +776,27 @@ def order_with_lines(order, product_type, category, shipping_zone, vatlayer):
         quantity=2,
         quantity_allocated=2,
     )
+
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=2,
         variant=variant,
-        unit_price=variant.get_price(taxes=taxes),
-        tax_rate=taxes["standard"]["value"],
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
     )
 
     order.shipping_address = order.billing_address.get_copy()
     method = shipping_zone.shipping_methods.get()
     order.shipping_method_name = method.name
     order.shipping_method = method
-    order.shipping_price = method.get_total(taxes)
+
+    net = method.get_total()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.save()
 
     recalculate_order(order)
@@ -1100,68 +1124,6 @@ def menu_with_items(menu, category, collection):
     menu.items.create(name=collection.name, collection=collection, parent=menu_item)
     update_menu(menu)
     return menu
-
-
-@pytest.fixture
-def tax_rates():
-    return {
-        "standard_rate": 23,
-        "reduced_rates": {
-            "pharmaceuticals": 8,
-            "medical": 8,
-            "passenger transport": 8,
-            "newspapers": 8,
-            "hotels": 8,
-            "restaurants": 8,
-            "admission to cultural events": 8,
-            "admission to sporting events": 8,
-            "admission to entertainment events": 8,
-            "foodstuffs": 5,
-        },
-    }
-
-
-@pytest.fixture
-def taxes(tax_rates):
-    taxes = {
-        "standard": {
-            "value": tax_rates["standard_rate"],
-            "tax": get_tax_for_rate(tax_rates),
-        }
-    }
-    if tax_rates["reduced_rates"]:
-        taxes.update(
-            {
-                rate: {
-                    "value": tax_rates["reduced_rates"][rate],
-                    "tax": get_tax_for_rate(tax_rates, rate),
-                }
-                for rate in tax_rates["reduced_rates"]
-            }
-        )
-    return taxes
-
-
-@pytest.fixture
-def vatlayer(db, settings, tax_rates, taxes):
-    settings.VATLAYER_ACCESS_KEY = "enablevatlayer"
-    VAT.objects.create(country_code="PL", data=tax_rates)
-
-    tax_rates_2 = {
-        "standard_rate": 19,
-        "reduced_rates": {
-            "admission to cultural events": 7,
-            "admission to entertainment events": 7,
-            "books": 7,
-            "foodstuffs": 7,
-            "hotels": 7,
-            "medical": 7,
-            "newspapers": 7,
-            "passenger transport": 7,
-        },
-    }
-    VAT.objects.create(country_code="DE", data=tax_rates_2)
-    return taxes
 
 
 @pytest.fixture
