@@ -1,13 +1,13 @@
 import graphene
-from graphql_jwt.decorators import permission_required, login_required
+from graphql_jwt.decorators import login_required, permission_required
 
 from ..core.fields import PrefetchingConnectionField
 from .enums import PaymentGatewayEnum
 from .mutations import PaymentCapture, PaymentRefund, PaymentVoid
 from .resolvers import (
     resolve_payment_client_token,
-    resolve_payments,
     resolve_payment_sources,
+    resolve_payments,
 )
 from .types import Payment, PaymentSource
 
