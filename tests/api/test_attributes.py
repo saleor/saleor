@@ -1409,3 +1409,44 @@ def test_sort_variant_attributes_within_product_type(
         assert gql_attr_id == str(db_attr.pk)
 
         current_sort_pos += 1
+
+
+ATTRIBUTES_FILTER_QUERY = """
+    query($filters: AttributeFilterInput!) {
+      attributes(first: 10, filter: $filters) {
+        edges {
+          node {
+            name
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+def test_search_attributes(api_client, color_attribute, size_attribute):
+    variables = {"filters": {"search": "color"}}
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    assert len(attributes) == 1
+    assert attributes[0]["node"]["slug"] == "color"
+
+
+def test_filter_attributes_if_filterable_in_dashboard(
+    api_client, color_attribute, size_attribute
+):
+    color_attribute.filterable_in_dashboard = False
+    color_attribute.save(update_fields=["filterable_in_dashboard"])
+
+    variables = {"filters": {"filterableInDashboard": True}}
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    assert len(attributes) == 1
+    assert attributes[0]["node"]["slug"] == "size"
