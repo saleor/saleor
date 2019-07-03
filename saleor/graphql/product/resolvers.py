@@ -6,6 +6,7 @@ from ...order import OrderStatus
 from ...product import models
 from ...search.backends import picker
 from ..utils import filter_by_period, filter_by_query_param, get_database_id, get_nodes
+from .enums import AttributeSortField, OrderDirection
 from .filters import (
     filter_products_by_attributes,
     filter_products_by_categories,
@@ -29,7 +30,9 @@ def _filter_attributes_by_product_types(attribute_qs, product_qs):
     )
 
 
-def resolve_attributes(info, category_id=None, collection_id=None, query=None):
+def resolve_attributes(
+    info, category_id=None, collection_id=None, query=None, sort_by=None, **_kwargs
+):
     qs = models.Attribute.objects.get_visible_to_user(info.context.user)
     qs = filter_by_query_param(qs, query, ATTRIBUTES_SEARCH_FIELDS)
 
@@ -54,7 +57,17 @@ def resolve_attributes(info, category_id=None, collection_id=None, query=None):
         else:
             qs = qs.none()
 
-    qs = qs.order_by("name")
+    if sort_by:
+        is_asc = sort_by["direction"] == OrderDirection.ASC.value
+        if sort_by["field"] == AttributeSortField.DASHBOARD_VARIANT_POSITION.value:
+            qs = qs.variant_attributes_sorted_for_dashboard(is_asc)
+        elif sort_by["field"] == AttributeSortField.DASHBOARD_PRODUCT_POSITION.value:
+            qs = qs.product_attributes_sorted_for_dashboard(is_asc)
+        else:
+            qs = sort_qs(qs, sort_by)
+    else:
+        qs = qs.order_by("name")
+
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 

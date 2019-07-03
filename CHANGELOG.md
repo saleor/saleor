@@ -19,7 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Attributes can now be flagged as required. - #4340 by @NyanKiyoshi.
 - Added a search position field for the storefront navigation to the attributes. - #4343 by @NyanKiyoshi
 - Deprecate the slug field for value input in attributes, and pass by ID instead. - #4348 by @NyanKiyoshi
-- Add filtering capabilities to the top-level attributes' field. - #4386 by @NyanKiyoshi
+- Add filtering and sorting capabilities to the top-level attributes' field. - #4387 by @NyanKiyoshi
 
 ## [Unreleased]
 
