@@ -2,11 +2,11 @@ from django.db.models import Q
 from django.utils.translation import pgettext_lazy
 from prices import MoneyRange
 
-from ..core.utils.taxes import get_taxed_shipping_price
+from ..core.taxes import interface as tax_interface
 from ..core.weight import convert_weight, get_default_weight_unit
 
 
-def get_shipping_price_estimate(price, weight, country_code, taxes):
+def get_shipping_price_estimate(price, weight, country_code):
     """Returns estimated price range for shipping for given order."""
     from .models import ShippingMethod
 
@@ -17,7 +17,7 @@ def get_shipping_price_estimate(price, weight, country_code, taxes):
     if not shipping_methods:
         return
     prices = MoneyRange(start=min(shipping_methods), stop=max(shipping_methods))
-    return get_taxed_shipping_price(prices, taxes)
+    return tax_interface.apply_taxes_to_shipping_price_range(prices, country_code)
 
 
 def applicable_weight_based_methods(weight, qs):

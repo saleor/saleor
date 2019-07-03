@@ -22,7 +22,6 @@ from saleor.checkout.utils import (
     create_order,
     get_checkout_context,
     get_prices_of_products_in_discounted_categories,
-    get_taxes_for_checkout,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_valid_shipping_method,
@@ -31,7 +30,8 @@ from saleor.checkout.utils import (
     remove_voucher_from_checkout,
 )
 from saleor.core.exceptions import InsufficientStock
-from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country
+from saleor.core.taxes import zero_money, zero_taxed_money
+from saleor.core.taxes.interface import taxes_are_enabled
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 from saleor.order import OrderEvents, OrderEventsEmails
@@ -39,7 +39,7 @@ from saleor.order.models import OrderEvent
 from saleor.product.models import Category
 from saleor.shipping.models import ShippingZone
 
-from .utils import compare_taxes, get_redirect_location
+from .utils import get_redirect_location
 
 
 def test_country_form_country_choices():
@@ -54,22 +54,22 @@ def test_country_form_country_choices():
     assert form.fields["country"].choices == expected_choices
 
 
-def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone, vatlayer):
+def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save()
     # no shipping method assigned
-    assert not is_valid_shipping_method(checkout, vatlayer, None)
+    assert not is_valid_shipping_method(checkout, None)
     shipping_method = shipping_zone.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    assert is_valid_shipping_method(checkout, vatlayer, None)
+    assert is_valid_shipping_method(checkout, None)
 
     zone = ShippingZone.objects.create(name="DE", countries=["DE"])
     shipping_method.shipping_zone = zone
     shipping_method.save()
-    assert not is_valid_shipping_method(checkout, vatlayer, None)
+    assert not is_valid_shipping_method(checkout, None)
 
 
 def test_clear_shipping_method(checkout, shipping_method):
@@ -623,7 +623,7 @@ def test_create_order_creates_expected_events(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout, tracking_code="tracking_code", discounts=None, taxes=None
+            checkout=checkout, tracking_code="tracking_code", discounts=None
         ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
     )
@@ -674,10 +674,7 @@ def test_create_order_insufficient_stock(
 
     with pytest.raises(InsufficientStock):
         prepare_order_data(
-            checkout=request_checkout,
-            tracking_code="tracking_code",
-            discounts=None,
-            taxes=None,
+            checkout=request_checkout, tracking_code="tracking_code", discounts=None
         )
 
 
@@ -691,9 +688,7 @@ def test_create_order_doesnt_duplicate_order(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    order_data = prepare_order_data(
-        checkout=checkout, tracking_code="", discounts=None, taxes=None
-    )
+    order_data = prepare_order_data(checkout=checkout, tracking_code="", discounts=None)
 
     order_1 = create_order(checkout=checkout, order_data=order_data, user=customer_user)
     assert order_1.checkout_token == checkout.token
@@ -714,9 +709,11 @@ def test_create_order_with_gift_card(
     checkout.shipping_method = shipping_method
     checkout.save()
 
+    subtotal = checkout.get_subtotal()
+    shipping_price = checkout.get_shipping_price()
     total_gross_without_gift_cards = (
-        checkout.get_subtotal()
-        + checkout.get_shipping_price(None)
+        TaxedMoney(subtotal, subtotal)
+        + TaxedMoney(shipping_price, shipping_price)
         - checkout.discount_amount
     ).gross
     gift_cards_balance = checkout.get_total_gift_cards_balance()
@@ -724,12 +721,12 @@ def test_create_order_with_gift_card(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout, tracking_code="tracking_code", discounts=None, taxes=None
+            checkout=checkout, tracking_code="tracking_code", discounts=None
         ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
     )
 
-    assert order.gift_cards.count() > 0
+    assert order.gift_cards.count() == 1
     assert order.gift_cards.first().current_balance.amount == 0
     assert order.total.gross == (total_gross_without_gift_cards - gift_cards_balance)
 
@@ -744,7 +741,8 @@ def test_create_order_with_gift_card_partial_use(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    price_without_gift_card = checkout.get_total()
+    checkout_total = checkout.get_total()
+    price_without_gift_card = TaxedMoney(net=checkout_total, gross=checkout_total)
     gift_card_balance_before_order = gift_card_used.current_balance
 
     checkout.gift_cards.add(gift_card_used)
@@ -753,14 +751,14 @@ def test_create_order_with_gift_card_partial_use(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout, tracking_code="tracking_code", discounts=None, taxes=None
+            checkout=checkout, tracking_code="tracking_code", discounts=None
         ),
         user=customer_user,
     )
 
     gift_card_used.refresh_from_db()
     assert order.gift_cards.count() > 0
-    assert order.total == ZERO_TAXED_MONEY
+    assert order.total == zero_taxed_money()
     assert (
         gift_card_balance_before_order
         == (price_without_gift_card + gift_card_used.current_balance).gross.amount
@@ -781,7 +779,8 @@ def test_create_order_with_many_gift_cards(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    price_without_gift_card = checkout.get_total()
+    checkout_total = checkout.get_total()
+    price_without_gift_card = TaxedMoney(net=checkout_total, gross=checkout_total)
     gift_cards_balance_befor_order = (
         gift_card_created_by_staff.current_balance + gift_card.current_balance
     )
@@ -793,16 +792,17 @@ def test_create_order_with_many_gift_cards(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout, tracking_code="tracking_code", discounts=None, taxes=None
+            checkout=checkout, tracking_code="tracking_code", discounts=None
         ),
         user=customer_user,
     )
 
     gift_card_created_by_staff.refresh_from_db()
     gift_card.refresh_from_db()
+    zero_price = zero_money()
     assert order.gift_cards.count() > 0
-    assert gift_card_created_by_staff.current_balance == ZERO_MONEY
-    assert gift_card.current_balance == ZERO_MONEY
+    assert gift_card_created_by_staff.current_balance == zero_price
+    assert gift_card.current_balance == zero_price
     assert price_without_gift_card.gross.amount == (
         gift_cards_balance_befor_order + order.total.gross.amount
     )
@@ -818,7 +818,6 @@ def test_note_in_created_order(request_checkout_with_item, address, customer_use
             checkout=request_checkout_with_item,
             tracking_code="tracking_code",
             discounts=None,
-            taxes=None,
         ),
         user=customer_user,
     )
@@ -844,8 +843,7 @@ def test_get_discount_for_checkout_value_voucher(
             Money(min_amount_spent, "USD") if min_amount_spent is not None else None
         ),
     )
-    subtotal = TaxedMoney(net=Money(total, "USD"), gross=Money(total, "USD"))
-    checkout = Mock(get_subtotal=Mock(return_value=subtotal))
+    checkout = Mock(get_subtotal=Mock(return_value=Money(total, "USD")))
     discount = get_voucher_discount_for_checkout(voucher, checkout)
     assert discount == Money(discount_amount, "USD")
 
@@ -889,8 +887,7 @@ def test_get_discount_for_checkout_value_voucher_not_applicable():
         discount_value=10,
         min_amount_spent=Money(100, "USD"),
     )
-    subtotal = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
-    checkout = Mock(get_subtotal=Mock(return_value=subtotal))
+    checkout = Mock(get_subtotal=Mock(return_value=Money(10, "USD")))
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(voucher, checkout)
     assert e.value.min_amount_spent == Money(100, "USD")
@@ -914,14 +911,13 @@ def test_get_discount_for_checkout_shipping_voucher(
     countries,
     expected_value,
 ):
-    subtotal = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
-    shipping_total = TaxedMoney(
-        net=Money(shipping_cost, "USD"), gross=Money(shipping_cost, "USD")
-    )
+    subtotal = Money(100, "USD")
+    shipping_total = Money(shipping_cost, "USD")
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
         is_shipping_required=Mock(return_value=True),
         shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
+        get_shipping_price=Mock(return_value=shipping_total),
         shipping_address=Mock(country=Country(shipping_country_code)),
     )
     voucher = Voucher(
@@ -936,12 +932,13 @@ def test_get_discount_for_checkout_shipping_voucher(
 
 
 def test_get_discount_for_checkout_shipping_voucher_all_countries():
-    subtotal = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
-    shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
+    subtotal = Money(100, "USD")
+    shipping_total = Money(10, "USD")
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
         is_shipping_required=Mock(return_value=True),
         shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
+        get_shipping_price=Mock(return_value=shipping_total),
         shipping_address=Mock(country=Country("PL")),
     )
     voucher = Voucher(
@@ -1034,11 +1031,11 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     subtotal,
     error_msg,
 ):
-    subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
     checkout = Mock(
-        get_subtotal=Mock(return_value=subtotal_price),
+        get_subtotal=Mock(return_value=subtotal),
         is_shipping_required=Mock(return_value=is_shipping_required),
         shipping_method=shipping_method,
+        get_shipping_price=Mock(return_value=Money(10, "USD")),
     )
     voucher = Voucher(
         code="unique",
@@ -1168,31 +1165,6 @@ def test_checkout_voucher_form_active_queryset_after_some_time(
         assert form.fields["voucher"].queryset.count() == 0
 
 
-def test_get_taxes_for_checkout(checkout, vatlayer):
-    taxes = get_taxes_for_checkout(checkout, vatlayer)
-    compare_taxes(taxes, vatlayer)
-
-
-def test_get_taxes_for_checkout_with_shipping_address(checkout, address, vatlayer):
-    address.country = "DE"
-    address.save()
-    checkout.shipping_address = address
-    checkout.save()
-    taxes = get_taxes_for_checkout(checkout, vatlayer)
-    compare_taxes(taxes, get_taxes_for_country(Country("DE")))
-
-
-def test_get_taxes_for_checkout_with_shipping_address_taxes_not_handled(
-    checkout, settings, address, vatlayer
-):
-    settings.VATLAYER_ACCESS_KEY = ""
-    address.country = "DE"
-    address.save()
-    checkout.shipping_address = address
-    checkout.save()
-    assert not get_taxes_for_checkout(checkout, None)
-
-
 def test_get_voucher_for_checkout(checkout_with_voucher, voucher):
     checkout_voucher = get_voucher_for_checkout(checkout_with_voucher)
     assert checkout_voucher == voucher
@@ -1218,7 +1190,7 @@ def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation
     assert not checkout.voucher_code
     assert not checkout.discount_name
     assert not checkout.translated_discount_name
-    assert checkout.discount_amount == ZERO_MONEY
+    assert checkout.discount_amount == zero_money()
 
 
 def test_recalculate_checkout_discount(
@@ -1228,7 +1200,7 @@ def test_recalculate_checkout_discount(
     voucher.discount_value = 10
     voucher.save()
 
-    recalculate_checkout_discount(checkout_with_voucher, None, None)
+    recalculate_checkout_discount(checkout_with_voucher, None)
     assert (
         checkout_with_voucher.translated_discount_name == voucher_translation_fr.name
     )  # noqa
@@ -1239,10 +1211,9 @@ def test_recalculate_checkout_discount_with_sale(
     checkout_with_voucher_percentage, discount_info
 ):
     checkout = checkout_with_voucher_percentage
-    recalculate_checkout_discount(checkout, [discount_info], None)
+    recalculate_checkout_discount(checkout, [discount_info])
     assert checkout.discount_amount == Money("1.50", "USD")
-    total = TaxedMoney(net=Money("13.50", "USD"), gross=Money("13.50", "USD"))
-    assert checkout.get_total(discounts=[discount_info]) == total
+    assert checkout.get_total(discounts=[discount_info]) == Money("13.50", "USD")
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(
@@ -1252,11 +1223,11 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
     voucher.min_amount_spent = 100
     voucher.save()
 
-    recalculate_checkout_discount(checkout_with_voucher, None, None)
+    recalculate_checkout_discount(checkout_with_voucher, None)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount_amount == ZERO_MONEY
+    assert checkout.discount_amount == zero_money()
 
 
 def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
@@ -1265,27 +1236,27 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
     voucher.end_date = date_yesterday
     voucher.save()
 
-    recalculate_checkout_discount(checkout_with_voucher, None, None)
+    recalculate_checkout_discount(checkout_with_voucher, None)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount_amount == ZERO_MONEY
+    assert checkout.discount_amount == zero_money()
 
 
-def test_get_checkout_context(checkout_with_voucher, vatlayer):
-    line_price = TaxedMoney(net=Money("24.39", "USD"), gross=Money("30.00", "USD"))
+def test_get_checkout_context(checkout_with_voucher):
+    line_price = TaxedMoney(net=Money("30.00", "USD"), gross=Money("30.00", "USD"))
     expected_data = {
         "checkout": checkout_with_voucher,
-        "checkout_are_taxes_handled": True,
+        "checkout_are_taxes_handled": taxes_are_enabled(),
         "checkout_lines": [(checkout_with_voucher.lines.first(), line_price)],
-        "checkout_shipping_price": ZERO_TAXED_MONEY,
+        "checkout_shipping_price": zero_taxed_money(),
         "checkout_subtotal": line_price,
         "checkout_total": line_price - checkout_with_voucher.discount_amount,
         "shipping_required": checkout_with_voucher.is_shipping_required(),
         "total_with_shipping": TaxedMoneyRange(start=line_price, stop=line_price),
     }
 
-    data = get_checkout_context(checkout_with_voucher, discounts=None, taxes=vatlayer)
+    data = get_checkout_context(checkout_with_voucher, discounts=None)
 
     assert data == expected_data
 
@@ -1362,17 +1333,18 @@ def test_change_address_in_checkout_from_user_address_to_other(
     assert Address.objects.filter(id=address_id).exists()
 
 
-def test_get_prices_of_products_in_discounted_categories(checkout_with_item):
+def test_get_prices_of_products_in_discounted_categories(checkout_with_item, category):
     lines = checkout_with_item.lines.all()
-    # There's no discounted categories, therefore all of them are discoutned
-    discounted_lines = get_prices_of_products_in_discounted_categories(lines, [])
+    discounted_lines = get_prices_of_products_in_discounted_categories(
+        checkout_with_item, [category]
+    )
     assert [
         line.variant.get_price() for line in lines for item in range(line.quantity)
     ] == discounted_lines
 
     discounted_category = Category.objects.create(name="discounted", slug="discounted")
     discounted_lines = get_prices_of_products_in_discounted_categories(
-        lines, [discounted_category]
+        checkout_with_item, [discounted_category]
     )
     # None of the lines are belongs to the discounted category
     assert not discounted_lines

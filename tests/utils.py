@@ -31,15 +31,6 @@ def get_form_errors(response, form_name="form"):
     return errors.get("__all__") if errors else []
 
 
-def compare_taxes(taxes_1, taxes_2):
-    assert len(taxes_1) == len(taxes_2)
-
-    for rate_name, tax in taxes_1.items():
-        value_1 = tax["value"]
-        value_2 = taxes_2.get(rate_name)["value"]
-        assert value_1 == value_2
-
-
 def create_image(image_name="product2"):
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1), color=(255, 0, 0, 0))
