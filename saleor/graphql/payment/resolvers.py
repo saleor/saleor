@@ -10,6 +10,7 @@ from ...payment.utils import (
     extract_id_for_payment_gateway,
     gateway_get_client_token,
     list_enabled_gateways,
+    retrieve_customer_sources,
 )
 from ..utils import filter_by_query_param
 
@@ -32,20 +33,32 @@ def resolve_payment_client_token(gateway=None, user=None):
 
 
 def resolve_payment_sources(user):
-    def retrieve_sources(gateway_name, customer_id):
-        gateway, config = get_payment_gateway(gateway_name)
-        return gateway.list_client_sources(config, customer_id)
-
     stored_customer_accounts = {
         gateway: extract_id_for_payment_gateway(user, gateway)
         for gateway in list_enabled_gateways()
     }
-    return [
+    return list(
         chain(
             *[
-                retrieve_sources(gateway, customer_id)
-                for gateway, customer_id in stored_customer_accounts
+                [
+                    prepare_graphql_payment_source_type(src)
+                    for src in retrieve_customer_sources(gateway, customer_id)
+                ]
+                for gateway, customer_id in stored_customer_accounts.items()
                 if customer_id is not None
             ]
         )
-    ]
+    )
+
+
+def prepare_graphql_payment_source_type(payment_source):
+    return {
+        "gateway": payment_source.gateway,
+        "credit_card_info": {
+            "last_digits": payment_source.credit_card_info.last4,
+            "exp_year": payment_source.credit_card_info.exp_year,
+            "exp_month": payment_source.credit_card_info.exp_month,
+            "brand": "",
+            "first_digits": "",
+        },
+    }

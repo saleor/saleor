@@ -31,7 +31,7 @@ class PaymentQueries(graphene.ObjectType):
         return resolve_payments(info, query)
 
     @login_required
-    def resolve_payment_sources(self, info):
+    def resolve_payment_stored_sources(self, info):
         return resolve_payment_sources(info.context.user)
 
     def resolve_payment_client_token(self, info, gateway=None):

@@ -12,7 +12,8 @@ from saleor.graphql.payment.enums import (
     PaymentChargeStatusEnum,
     PaymentGatewayEnum,
 )
-from saleor.payment.interface import CustomerSource, CreditCardInfo, TokenConfig
+from saleor.payment.gateways.braintree import list_client_sources
+from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from saleor.payment.utils import (
     extract_id_for_payment_gateway,
@@ -549,13 +550,17 @@ def enable_braintree(settings):
 
 
 def test_list_payment_sources(
-    mocker, enable_braintree, set_braintree_customer_id, user_api_client
+    mocker,
+    enable_braintree,
+    braintree_customer_id,
+    set_braintree_customer_id,
+    user_api_client,
 ):
     query = """
     {
         paymentStoredSources {
             gateway
-            creditCard {
+            creditCardInfo {
                 lastDigits
             }
         }
@@ -564,21 +569,18 @@ def test_list_payment_sources(
     card = CreditCardInfo(
         last4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
     )
-    source = CustomerSource(id="test1", credit_card_info=card)
+    source = CustomerSource(id="test1", gateway="braintree", credit_card_info=card)
     mock_get_source_list = mocker.patch(
-        "saleor.payment.gateways.braintree.list_client_sources",
+        "saleor.graphql.payment.resolvers.retrieve_customer_sources",
         return_value=[source],
         autospec=True,
     )
-
     response = user_api_client.post_graphql(query)
-    mock_get_source_list.assert_called_once()
 
+    mock_get_source_list.assert_called_once_with("braintree", braintree_customer_id)
     content = get_graphql_content(response)["data"]["paymentStoredSources"]
     assert content is not None and len(content) == 1
-    assert content[0] == [
-        {
-            "gateway": PaymentGatewayEnum.BRAINTREE.name,
-            "credit_card": {"lastDigits": "5678"},
-        }
-    ]
+    assert content[0] == {
+        "gateway": "braintree",
+        "creditCardInfo": {"lastDigits": "5678"},
+    }

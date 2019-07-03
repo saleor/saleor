@@ -296,5 +296,7 @@ def extract_credit_card_data(card):
         name_on_card=card.cardholder_name,
     )
     return CustomerSource(
-        id=card.unique_number_identifier, credit_card_info=credit_card
+        id=card.unique_number_identifier,
+        gateway="braintree",
+        credit_card_info=credit_card,
     )
