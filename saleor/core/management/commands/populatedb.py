@@ -98,8 +98,8 @@ class Command(BaseCommand):
         #     self.stdout.write(msg)
 
         # Create Super User
-        storename = os.environ.get('STORENAME', 'example')
-        email = "admin@{}.com".format(storename)
+        # storename = os.environ.get('STORENAME', 'example')
+        email = "admin@store.com"
         if options['createsuperuser']:
             credentials = {'email': email, 'password': 'admin'}
             msg = create_superuser(credentials)
@@ -111,9 +111,9 @@ class Command(BaseCommand):
             self.sequence_reset()
         
         # Modify Site Settings
-        domain = "{}.mercuriemart.com".format(storename)
+        # domain = "{}.mercuriemart.com".format(storename)
         site =  Site.objects.get_current()
-        site.domain = domain
-        site.name = "{} e-Commerce".format(storename)
-        site.header_text = "{} e-Commerce".format(storename)
+        # site.domain = domain
+        site.name = "A MercurieMart Store"
+        site.header_text = "A MercurieMart Store"
         site.save()
