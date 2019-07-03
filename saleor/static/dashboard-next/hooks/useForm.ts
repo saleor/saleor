@@ -12,10 +12,10 @@ export interface ChangeEvent<TName = string, TData = any> {
   };
 }
 
-export type FormChange = (event: ChangeEvent<T>, cb?: () => void) => void;
+export type FormChange<T> = (event: ChangeEvent<T>, cb?: () => void) => void;
 
 export interface UseFormResult<T> {
-  change: FormChange;
+  change: FormChange<T>;
   data: T;
   errors: Record<string, string>;
   hasChanged: boolean;
