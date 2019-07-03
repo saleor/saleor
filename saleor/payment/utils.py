@@ -540,7 +540,7 @@ def store_id_for_payment_gateway(user, gateway, customer_id):
         key=gateway.strip().upper(),
         value={"customer_id": customer_id},
     )
-    user.save()
+    user.save(update_fields=["private_meta"])
 
 
 def retrieve_customer_sources(gateway_name, customer_id):
