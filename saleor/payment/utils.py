@@ -522,25 +522,22 @@ GATEWAYS_LABEL = "gateways"
 
 
 def extract_id_for_payment_gateway(user, gateway):
-    key = gateway.strip().upper()
-    gateway_meta = user.get_private_meta(label=GATEWAYS_LABEL)
-    if not gateway_meta:
-        return None
-    if key not in gateway_meta:
-        return None
-    gateway_config = gateway_meta[key]
-    if "customer_id" not in gateway_config:
-        return None
-    return gateway_config["customer_id"]
+    key = prepare_label_name(gateway)
+    gateway_config = user.get_private_meta(label=GATEWAYS_LABEL).get(key, {})
+    return gateway_config.get("customer_id", None)
 
 
 def store_id_for_payment_gateway(user, gateway, customer_id):
     user.store_private_meta(
         label=GATEWAYS_LABEL,
-        key=gateway.strip().upper(),
+        key=prepare_label_name(gateway),
         value={"customer_id": customer_id},
     )
     user.save(update_fields=["private_meta"])
+
+
+def prepare_label_name(s):
+    return s.strip().upper()
 
 
 def retrieve_customer_sources(gateway_name, customer_id):
