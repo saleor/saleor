@@ -5,7 +5,7 @@ import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import useShop from "@saleor/hooks/useShop";
 import i18n from "../../i18n";
-import { connectDateTime, decimal, getMutationState, maybe } from "../../misc";
+import { decimal, getMutationState, joinDateTime, maybe } from "../../misc";
 import {
   DiscountValueTypeEnum,
   VoucherTypeEnum
@@ -62,12 +62,9 @@ export const VoucherDetails: React.StatelessComponent = () => {
                         formData.discountType.toString() === "SHIPPING"
                           ? DiscountValueTypeEnum.PERCENTAGE
                           : formData.discountType,
-                      endDate: connectDateTime(
-                        formData.endDate,
-                        formData.endTime
-                      ),
+                      endDate: joinDateTime(formData.endDate, formData.endTime),
                       minAmountSpent: formData.minAmountSpent,
-                      startDate: connectDateTime(
+                      startDate: joinDateTime(
                         formData.startDate,
                         formData.startTime
                       ),

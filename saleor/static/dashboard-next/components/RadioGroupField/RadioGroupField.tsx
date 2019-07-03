@@ -24,9 +24,6 @@ const styles = createStyles({
     "& > span": {
       padding: "6px"
     }
-  },
-  radioLabelHidden: {
-    display: "none"
   }
 });
 
@@ -34,7 +31,6 @@ interface RadioGroupFieldProps extends WithStyles<typeof styles> {
   choices: Array<{
     value: string;
     label: string | React.ReactNode;
-    hidden: boolean;
   }>;
   className?: string;
   disabled?: boolean;
@@ -43,7 +39,7 @@ interface RadioGroupFieldProps extends WithStyles<typeof styles> {
   label?: string;
   name?: string;
   value?: string;
-  onChange(event: any);
+  onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 export const RadioGroupField = withStyles(styles, {
@@ -80,9 +76,7 @@ export const RadioGroupField = withStyles(styles, {
             choices.map(choice => (
               <FormControlLabel
                 value={choice.value}
-                className={classNames(classes.radioLabel, {
-                  [classes.radioLabelHidden]: choice.hidden
-                })}
+                className={classes.radioLabel}
                 control={<Radio color="primary" />}
                 label={choice.label}
                 key={choice.value}

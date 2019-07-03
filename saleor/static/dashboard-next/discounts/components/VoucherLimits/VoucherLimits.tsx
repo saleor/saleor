@@ -54,7 +54,7 @@ const VoucherLimits = withStyles(styles, {
             name={"hasUsageLimit" as keyof FormData}
             onChange={onChange}
           />
-          {data.hasUsageLimit ? (
+          {data.hasUsageLimit && (
             <TextField
               disabled={disabled}
               error={!!errors.usageLimit}
@@ -69,7 +69,7 @@ const VoucherLimits = withStyles(styles, {
               }}
               fullWidth
             />
-          ) : null}
+          )}
         </CardContent>
       </Card>
     );
