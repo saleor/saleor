@@ -25,7 +25,7 @@ from .bulk_mutations.products import (
     ProductVariantBulkDelete,
 )
 from .enums import StockAvailability
-from .filters import CollectionFilter, ProductFilter, ProductTypeFilter
+from .filters import AttributeFilter, CollectionFilter, ProductFilter, ProductTypeFilter
 from .mutations.attributes import (
     AttributeAssign,
     AttributeCreate,
@@ -107,6 +107,11 @@ class ProductTypeFilterInput(FilterInputObjectType):
         filterset_class = ProductTypeFilter
 
 
+class AttributeFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = AttributeFilter
+
+
 class ProductQueries(graphene.ObjectType):
     digital_content = graphene.Field(
         DigitalContent, id=graphene.Argument(graphene.ID, required=True)
@@ -117,7 +122,7 @@ class ProductQueries(graphene.ObjectType):
         level=graphene.Argument(graphene.Int),
         description="List of the digital contents.",
     )
-    attributes = PrefetchingConnectionField(
+    attributes = FilterInputConnectionField(
         Attribute,
         description="List of the shop's attributes.",
         query=graphene.String(description=DESCRIPTIONS["attributes"]),
@@ -131,6 +136,7 @@ class ProductQueries(graphene.ObjectType):
             description="""Return attributes for products
             belonging to the given collection.""",
         ),
+        filter=AttributeFilterInput(),
     )
     attribute = graphene.Field(
         Attribute,
