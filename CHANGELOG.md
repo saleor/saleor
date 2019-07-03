@@ -78,9 +78,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix margin calculations when product/variant price is set to zero - #4170 by @MahmoudRizk
 - Fix applying discounts in checkout's subtotal calculation in API - #4192 by @maarcingebala
 - Fix GATEWAYS_ENUM to always contain all implemented payment gateways - #4108 by @koradon
-- Fix exploding object select in menu section - #4282 by @dominik-zeglen
-- Add default state to rich text editor - #4281 by @dominik-zeglen
-- Fix rich text editor responsiveness and story - #4295 by @dominik-zeglen
 
 ## 2.6.0
 

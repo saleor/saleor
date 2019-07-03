@@ -237,7 +237,7 @@ export function stopPropagation(cb: () => void) {
   };
 }
 
-export function connectDateTime(date: string, time?: string) {
+export function joinDateTime(date: string, time?: string) {
   if (!date) {
     return null;
   }
@@ -253,6 +253,7 @@ export function splitDateTime(dateTime: string) {
       time: ""
     };
   }
+  // Default html input format YYYY-MM-DD HH:mm
   const splitDateTime = moment(dateTime)
     .format("YYYY-MM-DD HH:mm")
     .split(" ");
@@ -260,4 +261,13 @@ export function splitDateTime(dateTime: string) {
     date: splitDateTime[0],
     time: splitDateTime[1]
   };
+}
+
+export function generateCode(charNum: number) {
+  let result = "";
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  for (let i = 0; i < charNum; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
 }

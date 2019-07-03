@@ -21,7 +21,7 @@ import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
 import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
-import { connectDateTime, decimal, getMutationState, maybe } from "../../misc";
+import { decimal, getMutationState, joinDateTime, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
 import {
   DiscountValueTypeEnum,
@@ -310,7 +310,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               activeTab={params.activeTab}
                               onBack={() => navigate(voucherListUrl())}
                               onTabClick={changeTab}
-                              onSubmit={formData => {
+                              onSubmit={formData =>
                                 voucherUpdate({
                                   variables: {
                                     id,
@@ -327,25 +327,25 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                         "SHIPPING"
                                           ? DiscountValueTypeEnum.PERCENTAGE
                                           : formData.discountType,
-                                      endDate: connectDateTime(
+                                      endDate: joinDateTime(
                                         formData.endDate,
                                         formData.endTime
                                       ),
                                       minAmountSpent: formData.minAmountSpent,
-                                      startDate: connectDateTime(
+                                      startDate: joinDateTime(
                                         formData.startDate,
                                         formData.startTime
                                       ),
                                       type:
                                         formData.discountType.toString() ===
                                         "SHIPPING"
-                                          ? VoucherTypeEnum.ENTIRE_ORDER
+                                          ? VoucherTypeEnum.SHIPPING
                                           : formData.type,
                                       usageLimit: formData.usageLimit
                                     }
                                   }
-                                });
-                              }}
+                                })
+                              }
                               onRemove={() => openModal("remove")}
                               saveButtonBarState={formTransitionState}
                               categoryListToolbar={
