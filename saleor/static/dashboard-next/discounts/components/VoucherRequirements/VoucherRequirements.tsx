@@ -4,7 +4,6 @@ import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
-import Grid from "@saleor/components/Grid";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
 import { FormData } from "../VoucherDetailsPage";
@@ -27,18 +26,16 @@ const VoucherRequirements = ({
     <Card>
       <CardTitle title={i18n.t("Minimum Requirements")} />
       <CardContent>
-        <Grid variant="uniform">
-          <TextField
-            disabled={disabled}
-            error={!!errors.minAmountSpent}
-            helperText={errors.minAmountSpent}
-            label={i18n.t("Minimal order value")}
-            name={"minAmountSpent" as keyof FormData}
-            value={data.minAmountSpent}
-            onChange={onChange}
-            fullWidth
-          />
-        </Grid>
+        <TextField
+          disabled={disabled}
+          error={!!errors.minAmountSpent}
+          helperText={errors.minAmountSpent}
+          label={i18n.t("Minimal order value")}
+          name={"minAmountSpent" as keyof FormData}
+          value={data.minAmountSpent}
+          onChange={onChange}
+          fullWidth
+        />
       </CardContent>
     </Card>
   );
