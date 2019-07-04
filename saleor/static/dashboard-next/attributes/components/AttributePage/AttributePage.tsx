@@ -85,6 +85,7 @@ const AttributePage: React.FC<AttributePageProps> = ({
           <Grid>
             <div>
               <AttributeDetails
+                canChangeType={attribute === null}
                 data={data}
                 disabled={disabled}
                 errors={formErrors}
