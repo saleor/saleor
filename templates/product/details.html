@@ -193,7 +193,7 @@
       <div class="product__info__description">
         <h3>{% trans "Description" context "Product details title" %}</h3>
         <hr>
-        <div data-description-json='{{ description_json }}'></div>
+        <div data-description-json='{{ description_json|safe }}'></div>
       </div>
       <hr>
       <table>

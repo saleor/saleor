@@ -4,52 +4,52 @@
 {% load build_absolute_uri from urls %}
 
 {% block title %}
-{% if page.seo_title %}
-{{ page.translated.seo_title }}
-{% else %}
-{{ page.translated.title }} - {{ block.super }}
-{% endif %}
+  {% if page.seo_title %}
+    {{ page.translated.seo_title }}
+  {% else %}
+    {{ page.translated.title }} - {{ block.super }}
+  {% endif %}
 {% endblock %}
 
 {% block meta_tags %}
-<meta property="og:title" content="{{ page.translated.seo_title|default:page.translated.title }}">
-<meta property="og:description" content="{{ page.translated.seo_description|default:"" }}">
-<meta name="description" content="{{ page.translated.seo_description|default:"" }}">
+  <meta property="og:title" content="{{ page.translated.seo_title|default:page.translated.title }}">
+  <meta property="og:description" content="{{ page.translated.seo_description|default:"" }}">
+  <meta name="description" content="{{ page.translated.seo_description|default:"" }}">
 
-{% build_absolute_uri request=request location=page.get_absolute_url as page_url %}
-<meta property="og:url" content="{{ page_url }}">
+  {% build_absolute_uri request=request location=page.get_absolute_url as page_url %}
+  <meta property="og:url" content="{{ page_url }}">
 {% endblock meta_tags %}
 
 {% block breadcrumb %}
-<ul class="breadcrumbs list-unstyled">
-  <li>
-    <a href="{% url 'home' %}">
-      {% trans "Home" context "Main navigation item" %}
-    </a>
-  </li>
-  {% if page %}
-  <li>
-    <a href="{{ page.get_absolute_url }}">{{ page.translated.title }}</a>
-  </li>
-  {% endif %}
-</ul>
+  <ul class="breadcrumbs list-unstyled">
+    <li>
+      <a href="{% url 'home' %}">
+        {% trans "Home" context "Main navigation item" %}
+      </a>
+    </li>
+    {% if page %}
+      <li>
+        <a href="{{ page.get_absolute_url }}">{{ page.translated.title }}</a>
+      </li>
+    {% endif %}
+  </ul>
 {% endblock breadcrumb %}
 
 {% block content %}
-{% if not page.is_published %}
-<div class="alert alert-warning" role="alert">
-  {% blocktrans context "Unavailable page detail text" %}
-  <strong>Warning!</strong>
-  You are previewing a page that is not visible.
-  {% endblocktrans %}
-</div>
-{% elif not is_visible %}
-<div class="alert alert-warning" role="alert">
-  {% blocktrans trimmed with date=page.publication_date|date context "Unpublished page details text" %}
-  <strong>Warning!</strong>
-  You are previewing a page that will become visible on <strong>{{ date }}</strong>.
-  {% endblocktrans %}
-</div>
-{% endif %}
-<div data-description-json='{{ content_json }}'></div>
+  {% if not page.is_published %}
+    <div class="alert alert-warning" role="alert">
+      {% blocktrans context "Unavailable page detail text" %}
+        <strong>Warning!</strong>
+        You are previewing a page that is not visible.
+      {% endblocktrans %}
+    </div>
+  {% elif not is_visible %}
+    <div class="alert alert-warning" role="alert">
+      {% blocktrans trimmed with date=page.publication_date|date context "Unpublished page details text" %}
+        <strong>Warning!</strong>
+        You are previewing a page that will become visible on <strong>{{ date }}</strong>.
+      {% endblocktrans %}
+    </div>
+  {% endif %}
+  <div data-description-json='{{ content_json|safe }}'></div>
 {% endblock %}
