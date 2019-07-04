@@ -3007,7 +3007,8 @@ type SaleUpdate {
 
 type SelectedAttribute {
   attribute: Attribute!
-  value: AttributeValue!
+  value: AttributeValue @deprecated(reason: "Use values instead.")
+  values: [AttributeValue]!
 }
 
 input SeoInput {
