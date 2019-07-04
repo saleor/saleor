@@ -18,6 +18,8 @@ import useStateFromProps from "@saleor/hooks/useStateFromProps";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { ListActions, UserError } from "@saleor/types";
+import createMultiAutocompleteSelectHandler from "@saleor/utils/handlers/multiAutocompleteSelectChangeHandler";
+import createSingleAutocompleteSelectHandler from "@saleor/utils/handlers/singleAutocompleteSelectChangeHandler";
 import {
   ProductDetails_product,
   ProductDetails_product_images,
@@ -27,12 +29,14 @@ import {
   getAttributeInputFromProduct,
   getChoices,
   getProductUpdatePageFormData,
+  getSelectedAttributesFromProduct,
   ProductUpdatePageFormData
 } from "../../utils/data";
 import {
   createAttributeChangeHandler,
   createCategorySelectHandler,
-  createCollectionSelectHandler
+  createCollectionSelectHandler,
+  AttributeValueChoice
 } from "../../utils/handlers";
 import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
@@ -41,8 +45,6 @@ import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
-import createMultiAutocompleteSelectHandler from "@saleor/utils/handlers/multiAutocompleteSelectChangeHandler";
-import createSingleAutocompleteSelectHandler from "@saleor/utils/handlers/singleAutocompleteSelectChangeHandler";
 
 interface ProductUpdatePageProps extends ListActions {
   errors: UserError[];
@@ -106,9 +108,21 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   toggleAll,
   toolbar
 }) => {
-  const { change: changeAttributeData, data: attributes } = useFormset(
-    getAttributeInputFromProduct(product)
+  const {
+    change: changeAttributeData,
+    data: attributes,
+    toggleItemValue: toggleAttributeValue
+  } = useFormset(getAttributeInputFromProduct(product));
+
+  const [selectedAttributes, setSelectedAttributes] = useStateFromProps<
+    AttributeValueChoice[]
+  >(
+    getSelectedAttributesFromProduct(product).map(attribute => ({
+      id: attribute.id,
+      values: attribute.value
+    }))
   );
+
   const [selectedCategory, setSelectedCategory] = useStateFromProps(
     maybe(() => product.category.name, "")
   );
@@ -162,6 +176,12 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
         );
         const handleAttributeChange = createAttributeChangeHandler(
           changeAttributeData,
+          setSelectedAttributes,
+          selectedAttributes,
+          triggerChange
+        );
+        const handleAttributeMultiChange = createAttributeChangeHandler(
+          toggleAttributeValue,
           triggerChange
         );
 
@@ -193,6 +213,7 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
                     attributes={attributes}
                     disabled={disabled}
                     onChange={handleAttributeChange}
+                    onMultiChange={handleAttributeMultiChange}
                   />
                   <CardSpacer />
                   <ProductPricing
