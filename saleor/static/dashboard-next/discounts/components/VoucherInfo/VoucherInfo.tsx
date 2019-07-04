@@ -15,7 +15,7 @@ interface VoucherInfoProps {
   errors: FormErrors<"code">;
   disabled: boolean;
   variant: "create" | "update";
-  onChange: (event: React.ChangeEvent<any>) => void;
+  onChange: (event: any) => void;
 }
 
 const VoucherInfo = ({
@@ -25,15 +25,15 @@ const VoucherInfo = ({
   variant,
   onChange
 }: VoucherInfoProps) => {
-  const [generatedCode, setGeneratedCode] = React.useState();
   const onGenerateCode = () => {
-    setGeneratedCode(generateCode(10));
+    onChange({
+      target: {
+        name: "code",
+        value: generateCode(10)
+      }
+    });
   };
 
-  const onChangeInput = event => {
-    setGeneratedCode(event.target.value);
-    onChange(event);
-  };
   return (
     <Card>
       <CardTitle
@@ -54,8 +54,8 @@ const VoucherInfo = ({
           helperText={errors.code}
           name={"code" as keyof FormData}
           label={i18n.t("Discount Code")}
-          value={generatedCode || data.code}
-          onChange={e => onChangeInput(e)}
+          value={data.code}
+          onChange={onChange}
         />
       </CardContent>
     </Card>
