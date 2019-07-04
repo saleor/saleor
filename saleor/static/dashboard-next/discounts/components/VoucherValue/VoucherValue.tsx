@@ -70,7 +70,7 @@ const VoucherValue = ({
           }}
         />
         <FormSpacer />
-        {variant === "update" ? (
+        {variant === "update" && (
           <>
             <RadioGroupField
               choices={voucherTypeChoices}
@@ -84,7 +84,7 @@ const VoucherValue = ({
             />
             <FormSpacer />
           </>
-        ) : null}
+        )}
         <Hr />
         <FormSpacer />
         <ControlledSwitch
