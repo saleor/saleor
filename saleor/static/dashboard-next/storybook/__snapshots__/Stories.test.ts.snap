@@ -27521,7 +27521,7 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Collections assigned to Happy minute day!
+                Eligible Collections
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -28047,7 +28047,7 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Categories assigned to Happy minute day!
+                Eligible Categories
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -28601,7 +28601,7 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Categories assigned to Happy minute day!
+                Eligible Categories
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -29144,7 +29144,7 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Categories assigned to 
+                Eligible Categories
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -29694,7 +29694,7 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Products assigned to Happy minute day!
+                Eligible Products
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -31120,7 +31120,19 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               </span>
               <div
                 class="CardTitle-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Generate Code
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="CardTitle-children-id"
@@ -31132,13 +31144,13 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VoucherInfo-nameInput-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
                   class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
                   data-shrink="false"
                 >
-                  Name
+                  Discount Code
                 </label>
                 <div
                   class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -31146,82 +31158,10 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                   <input
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
-                    name="name"
+                    name="code"
                     type="text"
                     value=""
                   />
-                </div>
-              </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="VoucherInfo-root-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
-                  >
-                    Discount Code
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="code"
-                      type="text"
-                      value=""
-                    />
-                  </div>
-                </div>
-                <div
-                  class="MuiFormControl-root-id SingleSelectField-formControl-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Type of Discount
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <div
-                      class="MuiSelect-root-id"
-                    >
-                      <div
-                        aria-haspopup="true"
-                        aria-pressed="false"
-                        class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id"
-                        id="select-type"
-                        role="button"
-                        tabindex="0"
-                      >
-                        Entire order
-                      </div>
-                      <input
-                        name="type"
-                        type="hidden"
-                        value="ENTIRE_ORDER"
-                      />
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -31238,7 +31178,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Information
+                Discount Type
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -31251,7 +31191,150 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherOptions-root-id"
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="MuiFormControl-root-id RadioGroupField-formControl-id"
+                >
+                  <div
+                    aria-label="discountType"
+                    class="MuiFormGroup-root-id"
+                    role="radiogroup"
+                  >
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            checked=""
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="FIXED"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Fixed Amount
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="PERCENTAGE"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Percentage
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="SHIPPING"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Free Shipping
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Value
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
             >
               <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -31281,96 +31364,15 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                     >
                       USD
                     </span>
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
                   </div>
                 </div>
               </div>
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                  data-shrink="true"
-                >
-                  Usage Limit
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                >
-                  <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    min="0"
-                    name="usageLimit"
-                    type="number"
-                    value="0"
-                  />
-                </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
-                >
-                  Optional
-                </p>
-              </div>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
-              >
-                Discount Specific Information
-              </h6>
               <div
                 class="FormSpacer-spacer-id"
               />
-              <div
-                class="VoucherOptions-root-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Minimum order value
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="minAmountSpent"
-                      type="text"
-                      value="0"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
-                  >
-                    Optional
-                  </p>
-                </div>
-              </div>
+              <hr
+                class="Hr-root-id"
+              />
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -31417,29 +31419,143 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                 </span>
               </label>
             </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Minimum Requirements
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
             <hr
-              class="Hr-root-id"
+              class="CardTitle-hr-id"
             />
             <div
               class="MuiCardContent-root-id"
             >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                Time Frame
-              </h6>
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="minAmountSpent"
+                    type="text"
+                    value="0"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Usage Limit 
+              </span>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardTitle-toolbar-id"
               />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasUsageLimit"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit number of times this discount can be used in total
+                </span>
+              </label>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Active Dates
+              </span>
               <div
-                class="VoucherOptions-root-id"
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                    data-shrink="false"
                   >
                     Start Date
                   </label>
@@ -31451,7 +31567,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
                       name="startDate"
                       type="date"
-                      value="Invalid date"
+                      value=""
                     />
                   </div>
                 </div>
@@ -31459,10 +31575,10 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                    data-shrink="false"
                   >
-                    End Date
+                    Start Hour
                   </label>
                   <div
                     class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -31470,18 +31586,36 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                      name="endDate"
-                      type="date"
-                      value="Invalid date"
+                      name="startTime"
+                      type="time"
+                      value=""
                     />
                   </div>
                 </div>
               </div>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasEndDate"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Set end date
+                </span>
+              </label>
             </div>
           </div>
-          <div
-            class="CardSpacer-spacer-id"
-          />
         </div>
       </div>
     </div>
@@ -31526,7 +31660,19 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               </span>
               <div
                 class="CardTitle-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Generate Code
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="CardTitle-children-id"
@@ -31538,13 +31684,13 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VoucherInfo-nameInput-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
                   class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
                   data-shrink="false"
                 >
-                  Name
+                  Discount Code
                 </label>
                 <div
                   class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -31552,7 +31698,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                   <input
                     aria-invalid="true"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
-                    name="name"
+                    name="code"
                     type="text"
                     value=""
                   />
@@ -31562,88 +31708,6 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                 >
                   Generic form error
                 </p>
-              </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="VoucherInfo-root-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
-                  >
-                    Discount Code
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="code"
-                      type="text"
-                      value=""
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
-                  >
-                    Generic form error
-                  </p>
-                </div>
-                <div
-                  class="MuiFormControl-root-id SingleSelectField-formControl-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Type of Discount
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <div
-                      class="MuiSelect-root-id"
-                    >
-                      <div
-                        aria-haspopup="true"
-                        aria-pressed="false"
-                        class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id"
-                        id="select-type"
-                        role="button"
-                        tabindex="0"
-                      >
-                        Entire order
-                      </div>
-                      <input
-                        name="type"
-                        type="hidden"
-                        value="ENTIRE_ORDER"
-                      />
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
-                </div>
               </div>
             </div>
           </div>
@@ -31659,7 +31723,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Information
+                Discount Type
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -31672,7 +31736,155 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherOptions-root-id"
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="MuiFormControl-root-id RadioGroupField-formControl-id"
+                >
+                  <div
+                    aria-label="discountType"
+                    class="MuiFormGroup-root-id"
+                    role="radiogroup"
+                  >
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            checked=""
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="FIXED"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Fixed Amount
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="PERCENTAGE"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Percentage
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="SHIPPING"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Free Shipping
+                      </span>
+                    </label>
+                  </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
+                  >
+                    Generic form error
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Value
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
             >
               <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -31702,96 +31914,15 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                     >
                       USD
                     </span>
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
                   </div>
                 </div>
               </div>
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                  data-shrink="true"
-                >
-                  Usage Limit
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                >
-                  <input
-                    aria-invalid="true"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    min="0"
-                    name="usageLimit"
-                    type="number"
-                    value="0"
-                  />
-                </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                >
-                  Generic form error
-                </p>
-              </div>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
-              >
-                Discount Specific Information
-              </h6>
               <div
                 class="FormSpacer-spacer-id"
               />
-              <div
-                class="VoucherOptions-root-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Minimum order value
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="minAmountSpent"
-                      type="text"
-                      value="0"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
-                </div>
-              </div>
+              <hr
+                class="Hr-root-id"
+              />
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -31838,29 +31969,148 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                 </span>
               </label>
             </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Minimum Requirements
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
             <hr
-              class="Hr-root-id"
+              class="CardTitle-hr-id"
             />
             <div
               class="MuiCardContent-root-id"
             >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                Time Frame
-              </h6>
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="minAmountSpent"
+                    type="text"
+                    value="0"
+                  />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Usage Limit 
+              </span>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardTitle-toolbar-id"
               />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasUsageLimit"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit number of times this discount can be used in total
+                </span>
+              </label>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Active Dates
+              </span>
               <div
-                class="VoucherOptions-root-id"
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                    data-shrink="false"
                   >
                     Start Date
                   </label>
@@ -31872,11 +32122,11 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
                       name="startDate"
                       type="date"
-                      value="Invalid date"
+                      value=""
                     />
                   </div>
                   <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
                   >
                     Generic form error
                   </p>
@@ -31885,10 +32135,10 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                    data-shrink="false"
                   >
-                    End Date
+                    Start Hour
                   </label>
                   <div
                     class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -31896,23 +32146,41 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                     <input
                       aria-invalid="true"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                      name="endDate"
-                      type="date"
-                      value="Invalid date"
+                      name="startTime"
+                      type="time"
+                      value=""
                     />
                   </div>
                   <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
                   >
                     Generic form error
                   </p>
                 </div>
               </div>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasEndDate"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Set end date
+                </span>
+              </label>
             </div>
           </div>
-          <div
-            class="CardSpacer-spacer-id"
-          />
         </div>
       </div>
     </div>
@@ -31934,7 +32202,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
         <h5
           class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
         >
-          Big order discount
+          DISCOUNT
         </h5>
         <div
           class="ExtendedPageHeader-action-id"
@@ -31969,94 +32237,170 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VoucherInfo-nameInput-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
                   data-shrink="true"
                 >
-                  Name
+                  Discount Code
                 </label>
                 <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
                 >
                   <input
                     aria-invalid="false"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id"
-                    name="name"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="code"
                     type="text"
-                    value="Big order discount"
+                    value="DISCOUNT"
                   />
                 </div>
               </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Discount Type
+              </span>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardTitle-toolbar-id"
               />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
               <div
-                class="VoucherInfo-root-id"
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  class="MuiFormControl-root-id RadioGroupField-formControl-id"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Discount Code
-                  </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                    aria-label="discountType"
+                    class="MuiFormGroup-root-id"
+                    role="radiogroup"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="code"
-                      type="text"
-                      value="DISCOUNT"
-                    />
-                  </div>
-                </div>
-                <div
-                  class="MuiFormControl-root-id SingleSelectField-formControl-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Type of Discount
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <div
-                      class="MuiSelect-root-id"
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
                     >
-                      <div
-                        aria-haspopup="true"
-                        aria-pressed="false"
-                        class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
-                        id="select-type"
-                        role="button"
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
                       >
-                        Entire order
-                      </div>
-                      <input
-                        name="type"
-                        type="hidden"
-                        value="ENTIRE_ORDER"
-                      />
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            checked=""
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="FIXED"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </svg>
-                    </div>
+                        Fixed Amount
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="PERCENTAGE"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Percentage
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="SHIPPING"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Free Shipping
+                      </span>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -32074,7 +32418,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Information
+                Value
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -32087,7 +32431,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherOptions-root-id"
+              class="MuiCardContent-root-id"
             >
               <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -32117,96 +32461,102 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                     >
                       USD
                     </span>
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
                   </div>
                 </div>
               </div>
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                  data-shrink="true"
-                >
-                  Usage Limit
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                >
-                  <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    min="0"
-                    name="usageLimit"
-                    type="number"
-                    value="0"
-                  />
-                </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
-                >
-                  Optional
-                </p>
-              </div>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
-              >
-                Discount Specific Information
-              </h6>
               <div
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="VoucherOptions-root-id"
+                class="MuiFormControl-root-id RadioGroupField-formControl-id"
               >
+                <label
+                  class="MuiFormLabel-root-id RadioGroupField-formLabel-id"
+                >
+                  Discount Specific Information
+                </label>
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  aria-label="type"
+                  class="MuiFormGroup-root-id"
+                  role="radiogroup"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
                   >
-                    Minimum order value
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          checked=""
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="type"
+                          type="radio"
+                          value="ENTIRE_ORDER"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Entire order
+                    </span>
                   </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="minAmountSpent"
-                      type="text"
-                      value="200"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
-                  >
-                    Optional
-                  </p>
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="type"
+                          type="radio"
+                          value="SPECIFIC_PRODUCT"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Specific Products
+                    </span>
+                  </label>
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -32253,22 +32603,142 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                 </span>
               </label>
             </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Minimum Requirements
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
             <hr
-              class="Hr-root-id"
+              class="CardTitle-hr-id"
             />
             <div
               class="MuiCardContent-root-id"
             >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                Time Frame
-              </h6>
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="minAmountSpent"
+                    type="text"
+                    value="200"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Usage Limit 
+              </span>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardTitle-toolbar-id"
               />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasUsageLimit"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit number of times this discount can be used in total
+                </span>
+              </label>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Active Dates
+              </span>
               <div
-                class="VoucherOptions-root-id"
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -32298,7 +32768,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                     class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
                     data-shrink="true"
                   >
-                    End Date
+                    Start Hour
                   </label>
                   <div
                     class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -32306,18 +32776,36 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                     <input
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                      name="endDate"
-                      type="date"
-                      value="Invalid date"
+                      name="startTime"
+                      type="time"
+                      value="00:00"
                     />
                   </div>
                 </div>
               </div>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasEndDate"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Set end date
+                </span>
+              </label>
             </div>
           </div>
-          <div
-            class="CardSpacer-spacer-id"
-          />
         </div>
         <div>
           <div
@@ -32347,12 +32835,12 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-caption-id"
               >
-                Name
+                Code
               </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body2-id"
               >
-                Big order discount
+                DISCOUNT
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -32467,7 +32955,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
         <h5
           class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
         >
-          Big order discount
+          DISCOUNT
         </h5>
         <div
           class="ExtendedPageHeader-action-id"
@@ -32502,107 +32990,178 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VoucherInfo-nameInput-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
                   data-shrink="true"
                 >
-                  Name
+                  Discount Code
                 </label>
                 <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
                 >
                   <input
                     aria-invalid="true"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id"
-                    name="name"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="code"
                     type="text"
-                    value="Big order discount"
+                    value="DISCOUNT"
                   />
                 </div>
                 <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-disabled-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
                 >
                   Generic form error
                 </p>
               </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Discount Type
+              </span>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardTitle-toolbar-id"
               />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
               <div
-                class="VoucherInfo-root-id"
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  class="MuiFormControl-root-id RadioGroupField-formControl-id"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Discount Code
-                  </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                    aria-label="discountType"
+                    class="MuiFormGroup-root-id"
+                    role="radiogroup"
                   >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="code"
-                      type="text"
-                      value="DISCOUNT"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
-                </div>
-                <div
-                  class="MuiFormControl-root-id SingleSelectField-formControl-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Type of Discount
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <div
-                      class="MuiSelect-root-id"
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
                     >
-                      <div
-                        aria-haspopup="true"
-                        aria-pressed="false"
-                        class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
-                        id="select-type"
-                        role="button"
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
                       >
-                        Entire order
-                      </div>
-                      <input
-                        name="type"
-                        type="hidden"
-                        value="ENTIRE_ORDER"
-                      />
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            checked=""
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="FIXED"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </svg>
-                    </div>
+                        Fixed Amount
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="PERCENTAGE"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Percentage
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            name="discountType"
+                            type="radio"
+                            value="SHIPPING"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                      >
+                        Free Shipping
+                      </span>
+                    </label>
                   </div>
                   <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-disabled-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
                   >
                     Generic form error
                   </p>
@@ -32622,7 +33181,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Information
+                Value
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -32635,7 +33194,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherOptions-root-id"
+              class="MuiCardContent-root-id"
             >
               <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -32665,21 +33224,6 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                     >
                       USD
                     </span>
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
                   </div>
                 </div>
                 <p
@@ -32688,78 +33232,104 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                   Generic form error
                 </p>
               </div>
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                  data-shrink="true"
-                >
-                  Usage Limit
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                >
-                  <input
-                    aria-invalid="true"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                    min="0"
-                    name="usageLimit"
-                    type="number"
-                    value="0"
-                  />
-                </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                >
-                  Generic form error
-                </p>
-              </div>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
-              >
-                Discount Specific Information
-              </h6>
               <div
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="VoucherOptions-root-id"
+                class="MuiFormControl-root-id RadioGroupField-formControl-id"
               >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id RadioGroupField-formLabel-id"
+                >
+                  Discount Specific Information
+                </label>
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  aria-label="type"
+                  class="MuiFormGroup-root-id"
+                  role="radiogroup"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
                   >
-                    Minimum order value
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          checked=""
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="type"
+                          type="radio"
+                          value="ENTIRE_ORDER"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Entire order
+                    </span>
                   </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
                   >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="minAmountSpent"
-                      type="text"
-                      value="200"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="type"
+                          type="radio"
+                          value="SPECIFIC_PRODUCT"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Specific Products
+                    </span>
+                  </label>
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
+                >
+                  Generic form error
+                </p>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -32806,22 +33376,147 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                 </span>
               </label>
             </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Minimum Requirements
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
             <hr
-              class="Hr-root-id"
+              class="CardTitle-hr-id"
             />
             <div
               class="MuiCardContent-root-id"
             >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                Time Frame
-              </h6>
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="minAmountSpent"
+                    type="text"
+                    value="200"
+                  />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Usage Limit 
+              </span>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardTitle-toolbar-id"
               />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasUsageLimit"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit number of times this discount can be used in total
+                </span>
+              </label>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Active Dates
+              </span>
               <div
-                class="VoucherOptions-root-id"
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -32856,7 +33551,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                     class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
                     data-shrink="true"
                   >
-                    End Date
+                    Start Hour
                   </label>
                   <div
                     class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -32864,9 +33559,9 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                     <input
                       aria-invalid="true"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id"
-                      name="endDate"
-                      type="date"
-                      value="Invalid date"
+                      name="startTime"
+                      type="time"
+                      value="00:00"
                     />
                   </div>
                   <p
@@ -32876,11 +33571,29 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                   </p>
                 </div>
               </div>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasEndDate"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Set end date
+                </span>
+              </label>
             </div>
           </div>
-          <div
-            class="CardSpacer-spacer-id"
-          />
         </div>
         <div>
           <div
@@ -32910,12 +33623,12 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-caption-id"
               >
-                Name
+                Code
               </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body2-id"
               >
-                Big order discount
+                DISCOUNT
               </p>
               <div
                 class="FormSpacer-spacer-id"
@@ -33070,13 +33783,13 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id VoucherInfo-nameInput-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
                   class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
                   data-shrink="false"
                 >
-                  Name
+                  Discount Code
                 </label>
                 <div
                   class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -33085,81 +33798,161 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
                     disabled=""
-                    name="name"
+                    name="code"
                     type="text"
                     value=""
                   />
                 </div>
               </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Discount Type
+              </span>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardTitle-toolbar-id"
               />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
               <div
-                class="VoucherInfo-root-id"
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  class="MuiFormControl-root-id RadioGroupField-formControl-id"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
-                  >
-                    Discount Code
-                  </label>
                   <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                    aria-label="discountType"
+                    class="MuiFormGroup-root-id"
+                    role="radiogroup"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
-                      disabled=""
-                      name="code"
-                      type="text"
-                      value=""
-                    />
-                  </div>
-                </div>
-                <div
-                  class="MuiFormControl-root-id SingleSelectField-formControl-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Type of Discount
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <div
-                      class="MuiSelect-root-id"
+                    <label
+                      class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id RadioGroupField-radioLabel-id"
                     >
-                      <div
-                        aria-haspopup="true"
-                        aria-pressed="false"
-                        class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
-                        id="select-type"
-                        role="button"
+                      <span
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id MuiPrivateSwitchBase-disabled-id MuiRadio-disabled-id"
+                        tabindex="-1"
                       >
-                        Entire order
-                      </div>
-                      <input
-                        name="type"
-                        type="hidden"
-                        value="ENTIRE_ORDER"
-                      />
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id MuiSelect-icon-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            checked=""
+                            class="MuiPrivateSwitchBase-input-id"
+                            disabled=""
+                            name="discountType"
+                            type="radio"
+                            value="FIXED"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </svg>
-                    </div>
+                        Fixed Amount
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiRadio-disabled-id"
+                        tabindex="-1"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            disabled=""
+                            name="discountType"
+                            type="radio"
+                            value="PERCENTAGE"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                      >
+                        Percentage
+                      </span>
+                    </label>
+                    <label
+                      class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id RadioGroupField-radioLabel-id"
+                    >
+                      <span
+                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiRadio-disabled-id"
+                        tabindex="-1"
+                      >
+                        <span
+                          class="MuiIconButton-label-id"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                            />
+                          </svg>
+                          <input
+                            class="MuiPrivateSwitchBase-input-id"
+                            disabled=""
+                            name="discountType"
+                            type="radio"
+                            value="SHIPPING"
+                          />
+                        </span>
+                      </span>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                      >
+                        Free Shipping
+                      </span>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -33177,7 +33970,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
               >
-                Detailed Information
+                Value
               </span>
               <div
                 class="CardTitle-toolbar-id"
@@ -33190,7 +33983,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherOptions-root-id"
+              class="MuiCardContent-root-id"
             >
               <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
@@ -33221,98 +34014,106 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                     >
                       USD
                     </span>
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                      <path
-                        d="M0 0h24v24H0z"
-                        fill="none"
-                      />
-                    </svg>
                   </div>
                 </div>
               </div>
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                  data-shrink="true"
-                >
-                  Usage Limit
-                </label>
-                <div
-                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                >
-                  <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id"
-                    disabled=""
-                    min="0"
-                    name="usageLimit"
-                    type="number"
-                    value="0"
-                  />
-                </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-disabled-id MuiFormHelperText-filled-id"
-                >
-                  Optional
-                </p>
-              </div>
-            </div>
-            <hr
-              class="Hr-root-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
-              >
-                Discount Specific Information
-              </h6>
               <div
                 class="FormSpacer-spacer-id"
               />
               <div
-                class="VoucherOptions-root-id"
+                class="MuiFormControl-root-id RadioGroupField-formControl-id"
               >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id RadioGroupField-formLabel-id"
+                >
+                  Discount Specific Information
+                </label>
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  aria-label="type"
+                  class="MuiFormGroup-root-id"
+                  role="radiogroup"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id RadioGroupField-radioLabel-id"
                   >
-                    Minimum order value
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id MuiPrivateSwitchBase-disabled-id MuiRadio-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          checked=""
+                          class="MuiPrivateSwitchBase-input-id"
+                          disabled=""
+                          name="type"
+                          type="radio"
+                          value="ENTIRE_ORDER"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                    >
+                      Entire order
+                    </span>
                   </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  <label
+                    class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id RadioGroupField-radioLabel-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
-                      disabled=""
-                      name="minAmountSpent"
-                      type="text"
-                      value="0"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-disabled-id MuiFormHelperText-filled-id"
-                  >
-                    Optional
-                  </p>
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiRadio-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          disabled=""
+                          name="type"
+                          type="radio"
+                          value="SPECIFIC_PRODUCT"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                    >
+                      Specific Products
+                    </span>
+                  </label>
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <hr
+                class="Hr-root-id"
+              />
               <div
                 class="FormSpacer-spacer-id"
               />
@@ -33361,29 +34162,150 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                 </span>
               </label>
             </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Minimum Requirements
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
             <hr
-              class="Hr-root-id"
+              class="CardTitle-hr-id"
             />
             <div
               class="MuiCardContent-root-id"
             >
-              <h6
-                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                Time Frame
-              </h6>
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="minAmountSpent"
+                    type="text"
+                    value="0"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Usage Limit 
+              </span>
               <div
-                class="FormSpacer-spacer-id"
+                class="CardTitle-toolbar-id"
               />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasUsageLimit"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit number of times this discount can be used in total
+                </span>
+              </label>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Active Dates
+              </span>
               <div
-                class="VoucherOptions-root-id"
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                    data-shrink="false"
                   >
                     Start Date
                   </label>
@@ -33396,7 +34318,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                       disabled=""
                       name="startDate"
                       type="date"
-                      value="Invalid date"
+                      value=""
                     />
                   </div>
                 </div>
@@ -33404,10 +34326,10 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                    data-shrink="false"
                   >
-                    End Date
+                    Start Hour
                   </label>
                   <div
                     class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
@@ -33416,18 +34338,36 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                       aria-invalid="false"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputType-id"
                       disabled=""
-                      name="endDate"
-                      type="date"
-                      value="Invalid date"
+                      name="startTime"
+                      type="time"
+                      value=""
                     />
                   </div>
                 </div>
               </div>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="hasEndDate"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Set end date
+                </span>
+              </label>
             </div>
           </div>
-          <div
-            class="CardSpacer-spacer-id"
-          />
         </div>
         <div>
           <div
@@ -33457,7 +34397,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-caption-id"
               >
-                Name
+                Code
               </span>
               <p
                 class="MuiTypography-root-id MuiTypography-body2-id"
@@ -33669,7 +34609,7 @@ exports[`Storyshots Views / Discounts / Voucher list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colName-id"
               scope="col"
             >
-              Name
+              Code
             </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colMinSpent-id"
@@ -33802,7 +34742,7 @@ exports[`Storyshots Views / Discounts / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id VoucherList-colName-id"
             >
-              Free shipping
+              FREE2019
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id VoucherList-colMinSpent-id"
@@ -33857,7 +34797,7 @@ exports[`Storyshots Views / Discounts / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id VoucherList-colName-id"
             >
-              Big order discount
+              FREE2020
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id VoucherList-colMinSpent-id"
@@ -33964,7 +34904,7 @@ exports[`Storyshots Views / Discounts / Voucher list loading 1`] = `
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colName-id"
               scope="col"
             >
-              Name
+              Code
             </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colMinSpent-id"
@@ -34222,7 +35162,7 @@ exports[`Storyshots Views / Discounts / Voucher list no data 1`] = `
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colName-id"
               scope="col"
             >
-              Name
+              Code
             </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colMinSpent-id"
