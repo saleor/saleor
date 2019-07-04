@@ -12,6 +12,7 @@ import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
 import { AttributePageFormData } from "../AttributePage";
 
 export interface AttributeDetailsProps {
+  canChangeType: boolean;
   data: AttributePageFormData;
   disabled: boolean;
   errors: FormErrors<"name" | "slug" | "inputType">;
@@ -30,6 +31,7 @@ const inputTypeChoices = [
 ];
 
 const AttributeDetails: React.FC<AttributeDetailsProps> = ({
+  canChangeType,
   data,
   disabled,
   errors,
@@ -67,7 +69,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({
       <FormSpacer />
       <SingleSelectField
         choices={inputTypeChoices}
-        disabled={disabled}
+        disabled={disabled || !canChangeType}
         error={!!errors.inputType}
         hint={errors.inputType}
         label={i18n.t("Catalog Input type for Store Owner", {
