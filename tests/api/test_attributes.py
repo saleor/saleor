@@ -263,9 +263,6 @@ QUERY_PRODUCT_ATTRIBUTES = """
         edges {
           node {
             attributes {
-              value {
-                name
-              }
               attribute {
                 name
               }
@@ -317,9 +314,6 @@ QUERY_VARIANT_ATTRIBUTES = """
           node {
             variants {
               attributes {
-                value {
-                  name
-                }
                 attribute {
                   name
                 }
@@ -375,11 +369,6 @@ def test_attributes_in_category_query(user_api_client, product):
                     id
                     name
                     slug
-                    values {
-                        id
-                        name
-                        slug
-                    }
                 }
             }
         }
@@ -408,11 +397,6 @@ def test_attributes_in_collection_query(user_api_client, sale):
                     id
                     name
                     slug
-                    values {
-                        id
-                        name
-                        slug
-                    }
                 }
             }
         }
@@ -954,15 +938,99 @@ def test_resolve_attribute_list(color_attribute):
     attributes_json = {str(color_attribute.pk): [str(value.pk)]}
     res = resolve_attribute_list(attributes_json, Attribute.objects.all())
     assert len(res) == 1
+    assert len(res[0].values) == 1
     assert res[0].attribute.name == color_attribute.name
-    assert res[0].value.name == value.name
+    assert res[0].values[0].name == value.name
 
     # test passing invalid json should resolve to empty list
     attr_pk = str(Attribute.objects.order_by("pk").last().pk + 1)
     val_pk = str(AttributeValue.objects.order_by("pk").last().pk + 1)
     attributes_json = {attr_pk: [val_pk]}
     res = resolve_attribute_list(attributes_json, Attribute.objects.all())
-    assert res == []
+    assert len(res) == 1
+    assert res[0].attribute.pk == color_attribute.pk
+    assert res[0].values == []
+
+
+# FIXME: this field (value) is deprecated
+def test_resolve_attribute_list_deprecated_single_value(color_attribute):
+    value = color_attribute.values.first()
+
+    # Test passing a value
+    attributes_json = {str(color_attribute.pk): [str(value.pk)]}
+    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
+    assert len(res) == 1
+    assert len(res[0].values) == 1
+    assert res[0].value.pk == value.pk
+
+    # Test passing no values
+    attributes_json = {str(color_attribute.pk): []}
+    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
+    assert len(res) == 1
+    assert res[0].values == []
+    assert res[0].value is None
+
+
+def test_resolve_assigned_attribute_without_values(api_client, product_type, product):
+    # Remove all attributes and values from product
+    product.attributes = {}
+    product.save(update_fields=["attributes"])
+
+    # Remove all attributes and values from variant
+    variant = product.variants.get()
+    variant.attributes = {}
+    variant.save(update_fields=["attributes"])
+
+    # Retrieve the product and variant's attributes
+    products = get_graphql_content(
+        api_client.post_graphql(
+            """
+        {
+          products(first: 10) {
+            edges {
+              node {
+                attributes {
+                  attribute {
+                    slug
+                  }
+                  values {
+                    value
+                  }
+                }
+                variants {
+                  attributes {
+                    attribute {
+                      slug
+                    }
+                    values {
+                      value
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+        )
+    )["data"]["products"]["edges"]
+
+    # Ensure we are only working on one product and variant, the ones we are testing
+    assert len(products) == 1
+    assert len(products[0]["node"]["variants"]) == 1
+
+    # Retrieve the nodes data
+    product = products[0]["node"]
+    variant = product["variants"][0]
+
+    # Ensure the product attributes values are all None
+    assert len(product["attributes"]) == 1
+    assert product["attributes"][0]["attribute"]["slug"] == "color"
+    assert product["attributes"][0]["values"] == []
+
+    # Ensure the variant attributes values are all None
+    assert variant["attributes"][0]["attribute"]["slug"] == "size"
+    assert variant["attributes"][0]["values"] == []
 
 
 ASSIGN_ATTR_QUERY = """
@@ -1258,7 +1326,7 @@ def test_retrieve_product_attributes_input_type(
             edges {
               node {
                 attributes {
-                  value {
+                  values {
                     type
                     inputType
                   }
@@ -1275,8 +1343,9 @@ def test_retrieve_product_attributes_input_type(
     assert len(found_products) == 1
 
     for gql_attr in found_products[0]["node"]["attributes"]:
-        assert gql_attr["value"]["type"] == "STRING"
-        assert gql_attr["value"]["inputType"] == "DROPDOWN"
+        assert len(gql_attr["values"]) == 1
+        assert gql_attr["values"][0]["type"] == "STRING"
+        assert gql_attr["values"][0]["inputType"] == "DROPDOWN"
 
 
 @pytest.mark.parametrize(

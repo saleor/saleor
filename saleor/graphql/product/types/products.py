@@ -81,23 +81,21 @@ def resolve_attribute_list(attributes_json, attributes_qs):
     `attributes_qs` is the queryset of attribute objects. If it's prefetch
     beforehand along with the values, it saves database queries.
     """
-    attributes_map = {}  # type: Dict[int, models.Attribute]
-    values_map = {}
+    attributes_map = {}  # type: Dict[str, models.Attribute]
+    values_map = {}  # type: Dict[str, models.AttributeValue]
     for attr in attributes_qs:
-        attributes_map[attr.pk] = attr
+        attributes_map[str(attr.pk)] = attr
         for val in attr.values.all():
-            values_map[val.pk] = val
+            values_map[str(val.pk)] = val
 
     attributes_list = []
-    for k, values in attributes_json.items():
-        attribute = attributes_map.get(int(k))
-
-        for v_pk in values:
-            value = values_map.get(int(v_pk))
-            if attribute and value:
-                attributes_list.append(
-                    SelectedAttribute(attribute=attribute, value=value)
-                )
+    for attr_pk, attr in attributes_map.items():
+        values = attributes_json.get(attr_pk, [])
+        values = [values_map[v_pk] for v_pk in values if v_pk in values_map]
+        value = values[0] if values else None
+        attributes_list.append(
+            SelectedAttribute(attribute=attr, value=value, values=values)
+        )
     return attributes_list
 
 
