@@ -6,9 +6,8 @@ import json
 
 
 class Migration(migrations.Migration):
-
     def populate_data(apps, schema_editor):
-        CartLine = apps.get_model('checkout', 'CartLine')
+        CartLine = apps.get_model("checkout", "CartLine")
         for cart_line in CartLine.objects.all():
             if isinstance(cart_line.data, str):
                 json_str = cart_line.data
@@ -17,19 +16,18 @@ class Migration(migrations.Migration):
                 cart_line.data_new = json_str
                 cart_line.save()
 
-    dependencies = [
-        ('checkout', '0010_auto_20180822_0720'),
-    ]
+    dependencies = [("checkout", "0010_auto_20180822_0720")]
 
     operations = [
         migrations.AddField(
-            model_name='cartline',
-            name='data_new',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="cartline",
+            name="data_new",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='cartline',
-            unique_together={('cart', 'variant', 'data_new')},
+            name="cartline", unique_together={("cart", "variant", "data_new")}
         ),
-        migrations.RunPython(populate_data)
+        migrations.RunPython(populate_data),
     ]

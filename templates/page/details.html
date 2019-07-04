@@ -36,7 +36,7 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-  {% if not page.is_visible %}
+  {% if not page.is_published %}
     <div class="alert alert-warning" role="alert">
       {% blocktrans context "Unavailable page detail text" %}
         <strong>Warning!</strong>
@@ -45,7 +45,7 @@
     </div>
   {% elif not is_visible %}
     <div class="alert alert-warning" role="alert">
-      {% blocktrans trimmed with date=page.available_on|date context "Unpublished page details text" %}
+      {% blocktrans trimmed with date=page.publication_date|date context "Unpublished page details text" %}
         <strong>Warning!</strong>
         You are previewing a page that will become visible on <strong>{{ date }}</strong>.
       {% endblocktrans %}

@@ -6,11 +6,11 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import ControlledCheckbox from "../../../components/ControlledCheckbox";
-import PriceField from "../../../components/PriceField";
+import CardTitle from "@saleor/components/CardTitle";
+import ControlledCheckbox from "@saleor/components/ControlledCheckbox";
+import PriceField from "@saleor/components/PriceField";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>
@@ -26,7 +26,7 @@ interface ProductPricingProps extends WithStyles<typeof styles> {
   currency?: string;
   data: {
     chargeTaxes: boolean;
-    price: number;
+    basePrice: number;
   };
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
@@ -49,8 +49,8 @@ const ProductPricing = withStyles(styles, { name: "ProductPricing" })(
           <PriceField
             disabled={disabled}
             label={i18n.t("Price")}
-            name="price"
-            value={data.price}
+            name="basePrice"
+            value={data.basePrice}
             currencySymbol={currency}
             onChange={onChange}
           />

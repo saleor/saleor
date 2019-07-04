@@ -1,22 +1,25 @@
-import * as React from "react";
+import { convertFromRaw, RawDraftContentState } from "draft-js";
+import React from "react";
 
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
-import SeoForm from "../../../components/SeoForm";
+import AppHeader from "@saleor/components/AppHeader";
+import CardSpacer from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import SeoForm from "@saleor/components/SeoForm";
+import VisibilityCard from "@saleor/components/VisibilityCard";
 import i18n from "../../../i18n";
-import { UserError } from "../../../types";
+import { maybe } from "../../../misc";
+import { ListActions, UserError } from "../../../types";
 import {
   ProductDetails_product,
   ProductDetails_product_attributes_attribute,
   ProductDetails_product_images,
   ProductDetails_product_variants
 } from "../../types/ProductDetails";
-import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
 import ProductOrganization from "../ProductOrganization";
@@ -24,7 +27,7 @@ import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
 
-interface ProductUpdateProps {
+interface ProductUpdateProps extends ListActions {
   errors: UserError[];
   placeholderImage: string;
   collections?: Array<{
@@ -70,14 +73,13 @@ export interface FormData {
     slug: string;
     value: string;
   }>;
-  available: boolean;
-  availableOn: string;
+  basePrice: number;
   category: ChoiceType | null;
   chargeTaxes: boolean;
   collections: ChoiceType[];
-  description: string;
+  description: RawDraftContentState;
+  isPublished: boolean;
   name: string;
-  price: string;
   productType: {
     label: string;
     value: {
@@ -89,6 +91,7 @@ export interface FormData {
       >;
     };
   } | null;
+  publicationDate: string;
   seoDescription: string;
   seoTitle: string;
   sku: string;
@@ -119,77 +122,64 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   onSeoClick,
   onSubmit,
   onVariantAdd,
-  onVariantShow
+  onVariantShow,
+  isChecked,
+  selected,
+  toggle,
+  toggleAll,
+  toolbar
 }) => {
-  const initialData: FormData = product
-    ? {
-        attributes: product.attributes
-          ? product.attributes.map(a => ({
-              slug: a.attribute.slug,
-              value: a.value ? a.value.slug : null
-            }))
-          : undefined,
-        available: product.isPublished,
-        availableOn: product.availableOn,
-        category: product.category
-          ? {
-              label: product.category.name,
-              value: product.category.id
-            }
-          : undefined,
-        chargeTaxes: product.chargeTaxes ? product.chargeTaxes : false,
-        collections: productCollections
-          ? productCollections.map(collection => ({
-              label: collection.name,
-              value: collection.id
-            }))
-          : [],
-        description: product.description,
-        name: product.name,
-        price: product.price ? product.price.amount.toString() : undefined,
-        productType:
-          product.productType && product.attributes
-            ? {
-                label: product.productType.name,
-                value: {
-                  hasVariants: product.productType.hasVariants,
-                  id: product.productType.id,
-                  name: product.productType.name,
-                  productAttributes: product.attributes.map(a => a.attribute)
-                }
-              }
-            : undefined,
-        seoDescription: product.seoDescription,
-        seoTitle: product.seoTitle,
-        sku:
-          product.productType && product.productType.hasVariants
-            ? undefined
-            : variants && variants[0]
-            ? variants[0].sku
-            : undefined,
-        stockQuantity:
-          product.productType && product.productType.hasVariants
-            ? undefined
-            : variants && variants[0]
-            ? variants[0].quantity
-            : undefined
+  const initialData: FormData = {
+    attributes: maybe(
+      () =>
+        product.attributes.map(a => ({
+          slug: a.attribute.slug,
+          value: a.value ? a.value.slug : null
+        })),
+      []
+    ),
+    basePrice: maybe(() => product.basePrice.amount),
+    category: maybe(() => ({
+      label: product.category.name,
+      value: product.category.id
+    })),
+    chargeTaxes: maybe(() => product.chargeTaxes, false),
+    collections: productCollections
+      ? productCollections.map(collection => ({
+          label: collection.name,
+          value: collection.id
+        }))
+      : [],
+    description: maybe(() => JSON.parse(product.descriptionJson)),
+    isPublished: maybe(() => product.isPublished, false),
+    name: maybe(() => product.name),
+    productType: maybe(() => ({
+      label: product.productType.name,
+      value: {
+        hasVariants: product.productType.hasVariants,
+        id: product.productType.id,
+        name: product.productType.name,
+        productAttributes: product.attributes.map(a => a.attribute)
       }
-    : {
-        attributes: [],
-        available: false,
-        availableOn: "",
-        category: null,
-        chargeTaxes: false,
-        collections: [],
-        description: "",
-        name: "",
-        price: "",
-        productType: null,
-        seoDescription: "",
-        seoTitle: "",
-        sku: "",
-        stockQuantity: 0
-      };
+    })),
+    publicationDate: maybe(() => product.publicationDate),
+    seoDescription: maybe(() => product.seoDescription) || "",
+    seoTitle: maybe(() => product.seoTitle) || "",
+    sku: maybe(() =>
+      product.productType.hasVariants
+        ? undefined
+        : variants && variants[0]
+        ? variants[0].sku
+        : undefined
+    ),
+    stockQuantity: maybe(() =>
+      product.productType.hasVariants
+        ? undefined
+        : variants && variants[0]
+        ? variants[0].quantity
+        : undefined
+    )
+  };
   const categories =
     categoryChoiceList !== undefined
       ? categoryChoiceList.map(category => ({
@@ -205,7 +195,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         }))
       : [];
   const currency =
-    product && product.price ? product.price.currency : undefined;
+    product && product.basePrice ? product.basePrice.currency : undefined;
   const hasVariants =
     product && product.productType && product.productType.hasVariants;
 
@@ -218,14 +208,16 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
     >
       {({ change, data, errors, hasChanged, submit }) => (
         <>
-          <Container width="md">
-            <PageHeader title={header} onBack={onBack} />
+          <Container>
+            <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
+            <PageHeader title={header} />
             <Grid>
               <div>
                 <ProductDetailsForm
                   data={data}
                   disabled={disabled}
                   errors={errors}
+                  product={product}
                   onChange={change}
                 />
                 <CardSpacer />
@@ -247,11 +239,17 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 <CardSpacer />
                 {hasVariants ? (
                   <ProductVariants
+                    disabled={disabled}
                     variants={variants}
-                    fallbackPrice={product ? product.price : undefined}
+                    fallbackPrice={product ? product.basePrice : undefined}
                     onAttributesEdit={onAttributesEdit}
                     onRowClick={onVariantShow}
                     onVariantAdd={onVariantAdd}
+                    toolbar={toolbar}
+                    isChecked={isChecked}
+                    selected={selected}
+                    toggle={toggle}
+                    toggleAll={toggleAll}
                   />
                 ) : (
                   <ProductStock
@@ -259,17 +257,19 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     disabled={disabled}
                     product={product}
                     onChange={change}
+                    errors={errors}
                   />
                 )}
                 <CardSpacer />
                 <SeoForm
-                  helperText={i18n.t(
-                    "Add search engine title and description to make this product easier to find"
-                  )}
                   title={data.seoTitle}
                   titlePlaceholder={data.name}
                   description={data.seoDescription}
-                  descriptionPlaceholder={data.description}
+                  descriptionPlaceholder={maybe(() =>
+                    convertFromRaw(data.description)
+                      .getPlainText()
+                      .slice(0, 300)
+                  )}
                   loading={disabled}
                   onClick={onSeoClick}
                   onChange={change}
@@ -277,6 +277,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
               </div>
               <div>
                 <ProductOrganization
+                  canChangeType={false}
                   categories={categories}
                   errors={errors}
                   fetchCategories={fetchCategories}
@@ -288,10 +289,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   onChange={change}
                 />
                 <CardSpacer />
-                <ProductAvailabilityForm
+                <VisibilityCard
                   data={data}
                   errors={errors}
-                  loading={disabled}
+                  disabled={disabled}
                   onChange={change}
                 />
               </div>

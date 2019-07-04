@@ -1,12 +1,13 @@
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import AppHeader from "@saleor/components/AppHeader";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { AuthorizationKeyType } from "../../../types/globalTypes";
@@ -57,21 +58,22 @@ const SiteSettingsPage: React.StatelessComponent<SiteSettingsPageProps> = ({
       confirmLeave
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
-        <Container width="md">
+        <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
           <PageHeader
             title={i18n.t("General Information", {
               context: "page header"
             })}
           />
           <Grid variant="inverted">
-            <Typography variant="title">{i18n.t("Site Settings")}</Typography>
+            <Typography variant="h6">{i18n.t("Site Settings")}</Typography>
             <SiteSettingsDetails
               data={data}
               errors={formErrors}
               disabled={disabled}
               onChange={change}
             />
-            <Typography variant="title">
+            <Typography variant="h6">
               {i18n.t("Authentication keys")}
             </Typography>
             <SiteSettingsKeys

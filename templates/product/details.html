@@ -59,7 +59,7 @@
 {% block content %}
   {% if not is_visible %}
     <div class="alert alert-warning" role="alert">
-      {% blocktrans trimmed with date=product.available_on|date context "Product details text" %}
+      {% blocktrans trimmed with date=product.publication_date|date context "Product details text" %}
         <strong>Warning!</strong>
         You are previewing a product that will become visible on <strong>{{ date }}</strong>.
       {% endblocktrans %}
@@ -164,9 +164,9 @@
         {% block orderform %}
           {% if show_variant_picker %}
             {% csrf_token %}
-            <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
+            <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-checkout' product_id=product.pk slug=product.get_slug %}"></div>
           {% else %}
-            <form id="product-form" role="form" class="product-form clearfix" method="post" action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
+            <form id="product-form" role="form" class="product-form clearfix" method="post" action="{% url 'product:add-to-checkout' product_id=product.pk slug=product.get_slug %}" novalidate>
               {% csrf_token %}
               {% bootstrap_field form.variant %}
               <div class="product__info__quantity">

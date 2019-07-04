@@ -1,7 +1,7 @@
 import { createStyles, Theme, withStyles, WithStyles } from "@material-ui/core";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
-import * as React from "react";
+import React from "react";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -13,9 +13,10 @@ const styles = (theme: Theme) =>
 interface ControlledSwitchProps extends WithStyles<typeof styles> {
   checked: boolean;
   disabled?: boolean;
-  label: string;
+  label: string | React.ReactNode;
   name: string;
-  uncheckedLabel?: string;
+  secondLabel?: string;
+  uncheckedLabel?: string | React.ReactNode;
   onChange?(event: React.ChangeEvent<any>);
 }
 
@@ -29,6 +30,7 @@ export const ControlledSwitch = withStyles(styles, {
     onChange,
     label,
     name,
+    secondLabel,
     uncheckedLabel
   }: ControlledSwitchProps) => (
     <FormControlLabel
@@ -45,6 +47,7 @@ export const ControlledSwitch = withStyles(styles, {
       label={
         <div className={classes.label}>
           {uncheckedLabel ? (checked ? label : uncheckedLabel) : label}
+          <div>{secondLabel ? secondLabel : null}</div>
         </div>
       }
       disabled={disabled}

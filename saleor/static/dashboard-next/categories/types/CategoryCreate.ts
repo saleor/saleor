@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { CategoryInput } from "./../../types/globalTypes";
@@ -29,7 +30,7 @@ export interface CategoryCreate_categoryCreate_category {
   id: string;
   backgroundImage: CategoryCreate_categoryCreate_category_backgroundImage | null;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoDescription: string | null;
   seoTitle: string | null;
   parent: CategoryCreate_categoryCreate_category_parent | null;

@@ -7,41 +7,37 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0036_auto_20171115_0608'),
-    ]
+    dependencies = [("product", "0036_auto_20171115_0608")]
 
     operations = [
+        migrations.AlterModelOptions(name="attributechoicevalue", options={}),
         migrations.AlterModelOptions(
-            name='attributechoicevalue',
-            options={},
+            name="category",
+            options={
+                "permissions": (
+                    ("view_category", "Can view categories"),
+                    ("edit_category", "Can edit categories"),
+                )
+            },
         ),
         migrations.AlterModelOptions(
-            name='category',
-            options={'permissions': (('view_category', 'Can view categories'), ('edit_category', 'Can edit categories'))},
+            name="product",
+            options={
+                "permissions": (
+                    ("view_product", "Can view products"),
+                    ("edit_product", "Can edit products"),
+                    ("view_properties", "Can view product properties"),
+                    ("edit_properties", "Can edit product properties"),
+                )
+            },
         ),
         migrations.AlterModelOptions(
-            name='product',
-            options={'permissions': (('view_product', 'Can view products'), ('edit_product', 'Can edit products'), ('view_properties', 'Can view product properties'), ('edit_properties', 'Can edit product properties'))},
+            name="productattribute", options={"ordering": ("slug",)}
         ),
+        migrations.AlterModelOptions(name="productclass", options={}),
         migrations.AlterModelOptions(
-            name='productattribute',
-            options={'ordering': ('slug',)},
+            name="productimage", options={"ordering": ("order",)}
         ),
-        migrations.AlterModelOptions(
-            name='productclass',
-            options={},
-        ),
-        migrations.AlterModelOptions(
-            name='productimage',
-            options={'ordering': ('order',)},
-        ),
-        migrations.AlterModelOptions(
-            name='productvariant',
-            options={},
-        ),
-        migrations.AlterModelOptions(
-            name='variantimage',
-            options={},
-        ),
+        migrations.AlterModelOptions(name="productvariant", options={}),
+        migrations.AlterModelOptions(name="variantimage", options={}),
     ]

@@ -36,7 +36,7 @@
 
 {% block content %}
   <div class="row checkout">
-    <div class="col-lg-7 m-auto checkout__payment">
+    <div class="col-lg-10 m-auto checkout__payment">
       {% if order.user == user or not order.is_fully_paid %}
         {% if not order.is_fully_paid and order.billing_address %}
           {% if waiting_payment %}

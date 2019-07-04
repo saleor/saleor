@@ -1,13 +1,13 @@
-import * as React from "react";
+import React from "react";
 
 import { LocaleConsumer } from "../Locale";
 
-export interface Money {
+export interface IMoney {
   amount: number;
   currency: string;
 }
 export interface MoneyProps {
-  money: Money;
+  money: IMoney;
 }
 
 export const Money: React.StatelessComponent<MoneyProps> = ({ money }) => (

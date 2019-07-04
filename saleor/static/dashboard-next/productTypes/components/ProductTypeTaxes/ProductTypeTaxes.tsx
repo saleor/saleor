@@ -1,9 +1,9 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import SingleSelectField from "../../../components/SingleSelectField";
+import CardTitle from "@saleor/components/CardTitle";
+import SingleSelectField from "@saleor/components/SingleSelectField";
 import i18n from "../../../i18n";
 import { translatedTaxRates as taxRates } from "../../../misc";
 import { TaxRateType } from "../../../types/globalTypes";

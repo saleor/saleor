@@ -12,8 +12,7 @@
               This is required if you want to have sorting to be kept during further filtering.
             {% endcomment %}
             <input type="hidden" name="sort_by" value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
-          {% elif field.name == 'price' %}
-          {% else %}
+          {% elif field.name != 'price' %}
             <div class="filter-section" aria-expanded="true">
               <div class="filter-section__header">
                 <h3>{{ field.label }}</h3>
@@ -40,10 +39,10 @@
               </div>
               <div class="filter-section__content">
                 <div class="filter-form-field price-field">
-                  <input id="{{ field.auto_id }}_0" name="{{ field.name }}_0"
+                  <input id="{{ field.auto_id }}_0" name="{{ field.name }}_min"
                         value="{% if field.value.0 %}{{ field.value.0 }}{% endif %}" type="number" min="0"
                         class="form-control d-inline"
-                        placeholder="{% trans 'from' context 'Product price filter' %}"/><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1"
+                        placeholder="{% trans 'from' context 'Product price filter' %}"/><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_max"
                         value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
                         class="form-control d-inline" placeholder="{% trans 'to' context 'Product price filter' %}"/>
                 </div>

@@ -5,15 +5,16 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import { CardMenu } from "../../../components/CardMenu/CardMenu";
-import { CardSpacer } from "../../../components/CardSpacer";
-import { Container } from "../../../components/Container";
-import DateFormatter from "../../../components/DateFormatter";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import Skeleton from "../../../components/Skeleton";
+import AppHeader from "@saleor/components/AppHeader";
+import CardMenu from "@saleor/components/CardMenu";
+import { CardSpacer } from "@saleor/components/CardSpacer";
+import { Container } from "@saleor/components/Container";
+import { DateTime } from "@saleor/components/Date";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { OrderStatus } from "../../../types/globalTypes";
@@ -29,13 +30,10 @@ const styles = (theme: Theme) =>
   createStyles({
     date: {
       marginBottom: theme.spacing.unit * 3,
-      marginLeft: theme.spacing.unit * 7
+      marginTop: -theme.spacing.unit * 2
     },
     header: {
       marginBottom: 0
-    },
-    menu: {
-      marginRight: -theme.spacing.unit
     }
   });
 
@@ -62,6 +60,7 @@ export interface OrderDetailsPageProps extends WithStyles<typeof styles> {
   onShippingAddressEdit();
   onOrderCancel();
   onNoteAdd(data: HistoryFormData);
+  onProfileView();
 }
 
 const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
@@ -79,7 +78,8 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
     onPaymentPaid,
     onPaymentRefund,
     onPaymentVoid,
-    onShippingAddressEdit
+    onShippingAddressEdit,
+    onProfileView
   }: OrderDetailsPageProps) => {
     const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
     const canEditAddresses = maybe(() => order.status) !== OrderStatus.CANCELED;
@@ -89,15 +89,14 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
     );
 
     return (
-      <Container width="md">
+      <Container>
+        <AppHeader onBack={onBack}>{i18n.t("Orders")}</AppHeader>
         <PageHeader
           className={classes.header}
           title={maybe(() => order.number) ? "#" + order.number : undefined}
-          onBack={onBack}
         >
           {canCancel && (
             <CardMenu
-              className={classes.menu}
               menuItems={[
                 {
                   label: i18n.t("Cancel order", { context: "button" }),
@@ -110,7 +109,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
         <div className={classes.date}>
           {order && order.created ? (
             <Typography variant="caption">
-              <DateFormatter date={order.created} />
+              <DateTime date={order.created} />
             </Typography>
           ) : (
             <Skeleton style={{ width: "10em" }} />
@@ -165,6 +164,7 @@ const OrderDetailsPage = withStyles(styles, { name: "OrderDetailsPage" })(
               order={order}
               onBillingAddressEdit={onBillingAddressEdit}
               onShippingAddressEdit={onShippingAddressEdit}
+              onProfileView={onProfileView}
             />
             <CardSpacer />
             <OrderCustomerNote note={maybe(() => order.customerNote)} />

@@ -4,19 +4,23 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import Typography from "@material-ui/core/Typography";
+import React from "react";
 
-import Form from "../../../components/Form";
-import PageHeader from "../../../components/PageHeader";
-import Skeleton from "../../../components/Skeleton";
+import Form from "@saleor/components/Form";
+import Hr from "@saleor/components/Hr";
+import Skeleton from "@saleor/components/Skeleton";
 import {
   Timeline,
   TimelineAddNote,
   TimelineEvent,
   TimelineNote
-} from "../../../components/Timeline";
+} from "@saleor/components/Timeline";
 import i18n from "../../../i18n";
-import { OrderEvents, OrderEventsEmails } from "../../../types/globalTypes";
+import {
+  OrderEventsEmailsEnum,
+  OrderEventsEnum
+} from "../../../types/globalTypes";
 import { OrderDetails_order_events } from "../../types/OrderDetails";
 
 export interface FormData {
@@ -25,84 +29,112 @@ export interface FormData {
 
 const getEventMessage = (event: OrderDetails_order_events) => {
   switch (event.type) {
-    case OrderEvents.CANCELED:
-      return i18n.t("Order has been cancelled", {
+    case OrderEventsEnum.CANCELED:
+      return i18n.t("Order was cancelled", {
         context: "order history message"
       });
-    case OrderEvents.EMAIL_SENT:
+    case OrderEventsEnum.DRAFT_ADDED_PRODUCTS:
+      return i18n.t("Products were added to draft order", {
+        context: "order history message"
+      });
+    case OrderEventsEnum.DRAFT_CREATED:
+      return i18n.t("Draft order was created", {
+        context: "order history message"
+      });
+    case OrderEventsEnum.DRAFT_REMOVED_PRODUCTS:
+      return i18n.t("Products were removed from draft order", {
+        context: "order history message"
+      });
+    case OrderEventsEnum.EMAIL_SENT:
       switch (event.emailType) {
-        case OrderEventsEmails.FULFILLMENT:
-          return i18n.t("Fulfillment confirmation has been sent to customer", {
+        case OrderEventsEmailsEnum.DIGITAL_LINKS:
+          return i18n.t("Links to the order's digital goods were sent", {
             context: "order history message"
           });
-        case OrderEventsEmails.ORDER:
-          return i18n.t("Order confirmation has been sent to customer", {
+        case OrderEventsEmailsEnum.FULFILLMENT_CONFIRMATION:
+          return i18n.t("Fulfillment confirmation was sent to customer", {
             context: "order history message"
           });
-        case OrderEventsEmails.PAYMENT:
-          return i18n.t("Payment confirmation has been sent to customer", {
+        case OrderEventsEmailsEnum.ORDER_CONFIRMATION:
+          return i18n.t("Order confirmation was sent to customer", {
             context: "order history message"
           });
-        case OrderEventsEmails.SHIPPING:
-          return i18n.t("Shipping details has been sent to customer", {
+        case OrderEventsEmailsEnum.PAYMENT_CONFIRMATION:
+          return i18n.t("Payment confirmation was sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmailsEnum.SHIPPING_CONFIRMATION:
+          return i18n.t("Shipping details was sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmailsEnum.TRACKING_UPDATED:
+          return i18n.t("Shipping tracking number was sent to customer", {
             context: "order history message"
           });
       }
-    case OrderEvents.FULFILLMENT_CANCELED:
-      return i18n.t("Fulfillment has been cancelled", {
+    case OrderEventsEnum.FULFILLMENT_CANCELED:
+      return i18n.t("Fulfillment was cancelled", {
         context: "order history message"
       });
-    case OrderEvents.FULFILLMENT_FULFILLED_ITEMS:
+    case OrderEventsEnum.FULFILLMENT_FULFILLED_ITEMS:
       return i18n.t("Fulfilled {{ quantity }} items", {
         context: "order history message",
         quantity: event.quantity
       });
-    case OrderEvents.FULFILLMENT_RESTOCKED_ITEMS:
+    case OrderEventsEnum.FULFILLMENT_RESTOCKED_ITEMS:
       return i18n.t("Restocked {{ quantity }} items", {
         context: "order history message",
         quantity: event.quantity
       });
-    case OrderEvents.ORDER_FULLY_PAID:
-      return i18n.t("Order has been fully paid", {
+    case OrderEventsEnum.NOTE_ADDED:
+      return i18n.t("Note was added to the order", {
         context: "order history message"
       });
-    case OrderEvents.ORDER_MARKED_AS_PAID:
+    case OrderEventsEnum.ORDER_FULLY_PAID:
+      return i18n.t("Order was fully paid", {
+        context: "order history message"
+      });
+    case OrderEventsEnum.ORDER_MARKED_AS_PAID:
       return i18n.t("Marked order as paid", {
         context: "order history message"
       });
-    case OrderEvents.OTHER:
+    case OrderEventsEnum.OTHER:
       return event.message;
-    case OrderEvents.OVERSOLD_ITEMS:
+    case OrderEventsEnum.OVERSOLD_ITEMS:
       return i18n.t("Oversold {{ quantity }} items", {
         context: "order history message",
         quantity: event.quantity
       });
-    case OrderEvents.PAYMENT_CAPTURED:
-      return i18n.t("Payment has been captured", {
+    case OrderEventsEnum.PAYMENT_CAPTURED:
+      return i18n.t("Payment was captured", {
         context: "order history message"
       });
-    case OrderEvents.PAYMENT_REFUNDED:
-      return i18n.t("Payment has been refunded", {
+    case OrderEventsEnum.PAYMENT_FAILED:
+      return i18n.t("Payment failed", {
         context: "order history message"
       });
-    case OrderEvents.PAYMENT_VOIDED:
-      return i18n.t("Payment has been voided", {
+    case OrderEventsEnum.PAYMENT_REFUNDED:
+      return i18n.t("Payment was refunded", {
         context: "order history message"
       });
-    case OrderEvents.PLACED:
-      return i18n.t("Order has been placed", {
+    case OrderEventsEnum.PAYMENT_VOIDED:
+      return i18n.t("Payment was voided", {
         context: "order history message"
       });
-    case OrderEvents.PLACED_FROM_DRAFT:
-      return i18n.t("Order has been created from draft", {
+    case OrderEventsEnum.PLACED:
+      return i18n.t("Order was placed", {
         context: "order history message"
       });
-    case OrderEvents.TRACKING_UPDATED:
+    case OrderEventsEnum.PLACED_FROM_DRAFT:
+      return i18n.t("Order was created from draft", {
+        context: "order history message"
+      });
+    case OrderEventsEnum.TRACKING_UPDATED:
       return i18n.t("Updated fulfillment group's tracking number", {
         context: "order history message"
       });
-    case OrderEvents.UPDATED:
-      return i18n.t("Order has been updated", {
+    case OrderEventsEnum.UPDATED_ADDRESS:
+      return i18n.t("Order address was updated", {
         context: "order history message"
       });
   }
@@ -110,7 +142,11 @@ const getEventMessage = (event: OrderDetails_order_events) => {
 
 const styles = (theme: Theme) =>
   createStyles({
-    root: { marginTop: theme.spacing.unit * 2 },
+    header: {
+      fontWeight: 500,
+      marginBottom: theme.spacing.unit
+    },
+    root: { marginTop: theme.spacing.unit * 4 },
     user: {
       marginBottom: theme.spacing.unit
     }
@@ -124,14 +160,13 @@ interface OrderHistoryProps extends WithStyles<typeof styles> {
 const OrderHistory = withStyles(styles, { name: "OrderHistory" })(
   ({ classes, history, onNoteAdd }: OrderHistoryProps) => (
     <div className={classes.root}>
-      <PageHeader
-        title={i18n.t("Order timeline", {
-          context: "section name"
-        })}
-      />
+      <Typography className={classes.header} color="textSecondary">
+        {i18n.t("Order History")}
+      </Typography>
+      <Hr />
       {history ? (
         <Timeline>
-          <Form initial={{ message: "" }} onSubmit={onNoteAdd}>
+          <Form initial={{ message: "" }} onSubmit={onNoteAdd} resetOnSubmit>
             {({ change, data, submit }) => (
               <TimelineAddNote
                 message={data.message}
@@ -144,7 +179,7 @@ const OrderHistory = withStyles(styles, { name: "OrderHistory" })(
             .slice()
             .reverse()
             .map(event => {
-              if (event.type === OrderEvents.NOTE_ADDED) {
+              if (event.type === OrderEventsEnum.NOTE_ADDED) {
                 return (
                   <TimelineNote
                     date={event.date}

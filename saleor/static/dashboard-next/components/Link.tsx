@@ -5,8 +5,8 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography, { TypographyProps } from "@material-ui/core/Typography";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -18,7 +18,7 @@ const styles = (theme: Theme) =>
       display: "inline"
     },
     secondary: {
-      color: theme.palette.secondary.main
+      color: theme.palette.primary.main
     },
     underline: {
       textDecoration: "underline"
@@ -31,6 +31,7 @@ interface LinkProps
   color?: "primary" | "secondary";
   underline?: boolean;
   typographyProps?: TypographyProps;
+  onClick: () => void;
 }
 
 const Link = withStyles(styles, { name: "Link" })(
@@ -40,6 +41,7 @@ const Link = withStyles(styles, { name: "Link" })(
     children,
     color = "primary",
     underline = false,
+    onClick,
     ...linkProps
   }: LinkProps) => (
     <Typography
@@ -49,6 +51,10 @@ const Link = withStyles(styles, { name: "Link" })(
         [classes[color]]: true,
         [classes.underline]: underline
       })}
+      onClick={event => {
+        event.preventDefault();
+        onClick();
+      }}
       {...linkProps}
     >
       {children}

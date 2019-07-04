@@ -1,7 +1,9 @@
 import createGenerateClassName from "@material-ui/core/styles/createGenerateClassName";
 import initStoryshots from "@storybook/addon-storyshots";
+// tslint:disable no-submodule-imports
+import generateRandomKey from "draft-js/lib/generateRandomKey";
 import { configure, render } from "enzyme";
-import * as Adapter from "enzyme-adapter-react-16";
+import Adapter from "enzyme-adapter-react-16";
 import toJSON from "enzyme-to-json";
 
 configure({ adapter: new Adapter() });
@@ -12,6 +14,9 @@ jest.mock("@material-ui/core/styles/createGenerateClassName");
     return [stylesheet.options.meta, rule.key, "id"].join("-");
   }
 );
+
+jest.mock("draft-js/lib/generateRandomKey");
+(generateRandomKey as any).mockImplementation(() => "testKey");
 
 initStoryshots({
   configPath: "saleor/static/dashboard-next/storybook/",

@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { CollectionInput } from "./../../types/globalTypes";
@@ -47,7 +48,8 @@ export interface CollectionUpdateWithHomepage_collectionUpdate_collection {
   isPublished: boolean;
   name: string;
   backgroundImage: CollectionUpdateWithHomepage_collectionUpdate_collection_backgroundImage | null;
-  description: string;
+  descriptionJson: any;
+  publicationDate: any | null;
   seoDescription: string | null;
   seoTitle: string | null;
 }

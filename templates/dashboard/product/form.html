@@ -77,7 +77,7 @@
                     {{ product_form.is_published|materializecss }}
                   </div>
                   <div class="col s12 m9">
-                    {{ product_form.available_on|materializecss }}
+                    {{ product_form.publication_date|materializecss }}
                   </div>
                 </div>
                 {% include "dashboard/includes/_google_preview.html" with object=product form=product_form %}

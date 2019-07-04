@@ -15,7 +15,7 @@ export const categoryDetailsFragment = gql`
       url
     }
     name
-    description
+    descriptionJson
     seoDescription
     seoTitle
     parent {
@@ -100,15 +100,13 @@ export const categoryDetails = gql`
           node {
             id
             name
-            availability {
-              available
-            }
-            thumbnail {
-              url
-            }
-            price {
+            basePrice {
               amount
               currency
+            }
+            isAvailable
+            thumbnail {
+              url
             }
             productType {
               id

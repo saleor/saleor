@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import { pageListProps } from "../../../fixtures";
 import CountryListPage, {
@@ -10,6 +10,7 @@ import { countries } from "./fixtures";
 
 const props: CountryListPageProps = {
   ...pageListProps.default,
+  onBack: () => undefined,
   onSubmit: () => undefined,
   onTaxFetch: () => undefined,
   shop: {

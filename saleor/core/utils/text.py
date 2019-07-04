@@ -31,7 +31,8 @@ def get_cleaner(**serializer_kwargs: bool):
     for k, v in serializer_kwargs.items():
         if k not in HTMLSerializer.options:
             raise ValueError(
-                'Parameter %s is not a valid option for HTMLSerializer' % k)
+                "Parameter %s is not a valid option for HTMLSerializer" % k
+            )
         setattr(cleaner.serializer, k, v)
     return cleaner
 

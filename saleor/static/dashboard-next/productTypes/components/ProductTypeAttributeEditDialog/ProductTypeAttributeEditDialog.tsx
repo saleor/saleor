@@ -4,11 +4,11 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
-import * as React from "react";
+import React from "react";
 
-import Form from "../../../components/Form";
-import { FormSpacer } from "../../../components/FormSpacer";
-import ListField from "../../../components/ListField/ListField";
+import Form from "@saleor/components/Form";
+import { FormSpacer } from "@saleor/components/FormSpacer";
+import ListField from "@saleor/components/ListField";
 import i18n from "../../../i18n";
 
 export interface FormData {
@@ -44,7 +44,7 @@ const ProductTypeAttributeEditDialog: React.StatelessComponent<
     values: values || []
   };
   return (
-    <Dialog open={opened}>
+    <Dialog onClose={onClose} open={opened}>
       <Form errors={errors} initial={initialForm} onSubmit={onConfirm}>
         {({ change, data, errors: formErrors }) => (
           <>

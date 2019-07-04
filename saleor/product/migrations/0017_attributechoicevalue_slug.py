@@ -7,15 +7,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0016_auto_20161204_0311'),
-    ]
+    dependencies = [("product", "0016_auto_20161204_0311")]
 
     operations = [
         migrations.AddField(
-            model_name='attributechoicevalue',
-            name='slug',
-            field=models.SlugField(default=''),
+            model_name="attributechoicevalue",
+            name="slug",
+            field=models.SlugField(default=""),
             preserve_default=False,
-        ),
+        )
     ]

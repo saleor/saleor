@@ -9,39 +9,72 @@ import django_prices.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('shipping', '0008_auto_20180108_0814'),
-        ('order', '0043_auto_20180322_0655'),
+        ("shipping", "0008_auto_20180108_0814"),
+        ("order", "0043_auto_20180322_0655"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='shipping_method',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='shipping.ShippingMethodCountry'),
+            model_name="order",
+            name="shipping_method",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="orders",
+                to="shipping.ShippingMethodCountry",
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='billing_address',
-            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='account.Address'),
+            model_name="order",
+            name="billing_address",
+            field=models.ForeignKey(
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="account.Address",
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='discount_amount',
-            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=2, default=0, max_digits=12),
+            model_name="order",
+            name="discount_amount",
+            field=django_prices.models.MoneyField(
+                currency=settings.DEFAULT_CURRENCY,
+                decimal_places=2,
+                default=0,
+                max_digits=12,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='shipping_address',
-            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='account.Address'),
+            model_name="order",
+            name="shipping_address",
+            field=models.ForeignKey(
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="account.Address",
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='status',
-            field=models.CharField(choices=[('draft', 'Draft'), ('unfulfilled', 'Unfulfilled'), ('partially fulfilled', 'Partially fulfilled'), ('fulfilled', 'Fulfilled'), ('canceled', 'Canceled')], default='unfulfilled', max_length=32),
+            model_name="order",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("draft", "Draft"),
+                    ("unfulfilled", "Unfulfilled"),
+                    ("partially fulfilled", "Partially fulfilled"),
+                    ("fulfilled", "Fulfilled"),
+                    ("canceled", "Canceled"),
+                ],
+                default="unfulfilled",
+                max_length=32,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='user_email',
-            field=models.EmailField(blank=True, default='', max_length=254),
+            model_name="order",
+            name="user_email",
+            field=models.EmailField(blank=True, default="", max_length=254),
         ),
     ]

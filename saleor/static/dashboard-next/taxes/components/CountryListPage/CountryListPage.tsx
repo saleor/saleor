@@ -1,9 +1,10 @@
-import * as React from "react";
+import React from "react";
 
-import { Container } from "../../../components/Container";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
+import AppHeader from "@saleor/components/AppHeader";
+import { Container } from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { CountryList_shop } from "../../types/CountryList";
@@ -18,6 +19,7 @@ export interface FormData {
 export interface CountryListPageProps {
   disabled: boolean;
   shop: CountryList_shop;
+  onBack: () => void;
   onRowClick: (code: string) => void;
   onSubmit: (data: FormData) => void;
   onTaxFetch: () => void;
@@ -26,6 +28,7 @@ export interface CountryListPageProps {
 const CountryListPage: React.StatelessComponent<CountryListPageProps> = ({
   disabled,
   shop,
+  onBack,
   onRowClick,
   onSubmit,
   onTaxFetch
@@ -38,7 +41,8 @@ const CountryListPage: React.StatelessComponent<CountryListPageProps> = ({
   return (
     <Form initial={initialForm} onSubmit={onSubmit}>
       {({ change, data, submit }) => (
-        <Container width="md">
+        <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Configuration")}</AppHeader>
           <PageHeader title={i18n.t("Taxes", { context: "page title" })} />
           <Grid>
             <div>

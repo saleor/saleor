@@ -12,28 +12,95 @@ import django_prices.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('product', '0010_auto_20160129_0826'),
-        ('discount', '0001_initial'),
+        ("product", "0010_auto_20160129_0826"),
+        ("discount", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Voucher',
+            name="Voucher",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('product', 'Product'), ('category', 'Category'), ('shipping', 'Shipping'), ('basket', 'Baskets over')], max_length=20)),
-                ('name', models.CharField(blank=True, max_length=255, null=True)),
-                ('code', models.CharField(db_index=True, max_length=12, unique=True)),
-                ('usage_limit', models.PositiveIntegerField(blank=True, help_text='Unlimited if empty', null=True)),
-                ('used', models.PositiveIntegerField(default=0, editable=False)),
-                ('start_date', models.DateField(default=datetime.date.today)),
-                ('end_date', models.DateField(blank=True, help_text='Never expire if empty', null=True)),
-                ('discount_value_type', models.CharField(choices=[('fixed', settings.DEFAULT_CURRENCY), ('percentage', '%')], default='fixed', max_length=10)),
-                ('discount_value', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('apply_to', models.CharField(blank=True, max_length=20, null=True)),
-                ('limit', django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True)),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='product.Category')),
-                ('product', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='product.Product')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("product", "Product"),
+                            ("category", "Category"),
+                            ("shipping", "Shipping"),
+                            ("basket", "Baskets over"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("name", models.CharField(blank=True, max_length=255, null=True)),
+                ("code", models.CharField(db_index=True, max_length=12, unique=True)),
+                (
+                    "usage_limit",
+                    models.PositiveIntegerField(
+                        blank=True, help_text="Unlimited if empty", null=True
+                    ),
+                ),
+                ("used", models.PositiveIntegerField(default=0, editable=False)),
+                ("start_date", models.DateField(default=datetime.date.today)),
+                (
+                    "end_date",
+                    models.DateField(
+                        blank=True, help_text="Never expire if empty", null=True
+                    ),
+                ),
+                (
+                    "discount_value_type",
+                    models.CharField(
+                        choices=[
+                            ("fixed", settings.DEFAULT_CURRENCY),
+                            ("percentage", "%"),
+                        ],
+                        default="fixed",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "discount_value",
+                    models.DecimalField(decimal_places=2, max_digits=12),
+                ),
+                ("apply_to", models.CharField(blank=True, max_length=20, null=True)),
+                (
+                    "limit",
+                    django_prices.models.MoneyField(
+                        blank=True,
+                        currency=settings.DEFAULT_CURRENCY,
+                        decimal_places=2,
+                        max_digits=12,
+                        null=True,
+                    ),
+                ),
+                (
+                    "category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="product.Category",
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="product.Product",
+                    ),
+                ),
             ],
-        ),
+        )
     ]

@@ -1,14 +1,14 @@
 import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
-import * as React from "react";
+import React from "react";
 
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
+import Container from "@saleor/components/Container";
+import PageHeader from "@saleor/components/PageHeader";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import CategoryList from "../CategoryList";
 
-export interface CategoryTableProps extends PageListProps {
+export interface CategoryTableProps extends PageListProps, ListActions {
   categories: Array<{
     id: string;
     name: string;
@@ -28,11 +28,16 @@ export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
   onNextPage,
   onPreviousPage,
   onRowClick,
-  pageInfo
+  pageInfo,
+  isChecked,
+  selected,
+  toggle,
+  toggleAll,
+  toolbar
 }) => (
-  <Container width="md">
-    <PageHeader title={i18n.t("Category")}>
-      <Button color="secondary" variant="contained" onClick={onAdd}>
+  <Container>
+    <PageHeader title={i18n.t("Categories")}>
+      <Button color="primary" variant="contained" onClick={onAdd}>
         {i18n.t("Add category")} <AddIcon />
       </Button>
     </PageHeader>
@@ -45,6 +50,11 @@ export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       pageInfo={pageInfo}
+      isChecked={isChecked}
+      selected={selected}
+      toggle={toggle}
+      toggleAll={toggleAll}
+      toolbar={toolbar}
     />
   </Container>
 );

@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -21,6 +22,7 @@ export interface ProductImageById_product_images {
 export interface ProductImageById_product {
   __typename: "Product";
   id: string;
+  name: string;
   mainImage: ProductImageById_product_mainImage | null;
   images: (ProductImageById_product_images | null)[] | null;
 }

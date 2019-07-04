@@ -15,14 +15,14 @@ import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
-import * as React from "react";
+import React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import Form from "../../../components/Form";
-import { FormSpacer } from "../../../components/FormSpacer";
-import TableCellAvatar from "../../../components/TableCellAvatar";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
+import { FormSpacer } from "@saleor/components/FormSpacer";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order_lines } from "../../types/OrderDetails";
@@ -41,6 +41,13 @@ const styles = (theme: Theme) =>
     },
     quantityInput: {
       width: "4rem"
+    },
+    quantityInputContainer: {
+      paddingRight: theme.spacing.unit,
+      textAlign: "right" as "right"
+    },
+    remainingQuantity: {
+      paddingBottom: 4
     },
     textRight: {
       textAlign: "right" as "right"
@@ -66,7 +73,7 @@ const OrderFulfillmentDialog = withStyles(styles, {
     onClose,
     onSubmit
   }: OrderFulfillmentDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <Form
         initial={{
           lines: maybe(
@@ -103,7 +110,7 @@ const OrderFulfillmentDialog = withStyles(styles, {
                     <TableCell />
                     <TableCell>{i18n.t("Product name")}</TableCell>
                     <TableCell>{i18n.t("SKU")}</TableCell>
-                    <TableCell className={classes.textRight}>
+                    <TableCell className={classes.textRight} colSpan={2}>
                       {i18n.t("Quantity")}
                     </TableCell>
                   </TableRow>
@@ -114,10 +121,12 @@ const OrderFulfillmentDialog = withStyles(styles, {
                       product.quantity - product.quantityFulfilled;
                     return (
                       <TableRow key={product.id}>
-                        <TableCellAvatar thumbnail={product.thumbnailUrl} />
+                        <TableCellAvatar
+                          thumbnail={maybe(() => product.thumbnail.url)}
+                        />
                         <TableCell>{product.productName}</TableCell>
                         <TableCell>{product.productSku}</TableCell>
-                        <TableCell className={classes.textRight}>
+                        <TableCell className={classes.quantityInputContainer}>
                           <TextField
                             type="number"
                             inputProps={{
@@ -130,8 +139,12 @@ const OrderFulfillmentDialog = withStyles(styles, {
                               handleQuantityChange(productIndex, event)
                             }
                             error={remainingQuantity < data.lines[productIndex]}
-                          />{" "}
-                          / {remainingQuantity}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className={classes.remainingQuantity}>
+                            / {remainingQuantity}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

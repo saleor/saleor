@@ -5,28 +5,32 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 const styles = (theme: Theme) =>
   createStyles({
     active: {},
     root: {
       "&$active": {
-        borderBottomColor: theme.palette.primary.main
+        borderBottomColor: theme.palette.primary.main,
+        color: theme.typography.body2.color
       },
       "&:focus": {
-        color: "#5AB378"
+        color: theme.palette.primary.main
       },
       "&:hover": {
-        color: "#5AB378"
+        color: theme.palette.primary.main
       },
       borderBottom: "1px solid transparent",
+      color: theme.typography.caption.color,
       cursor: "pointer",
       display: "inline-block",
       fontWeight: theme.typography.fontWeightRegular,
-      marginRight: theme.spacing.unit * 4,
-      minWidth: 40
+      marginRight: theme.spacing.unit * 2,
+      minWidth: 40,
+      padding: `0 ${theme.spacing.unit}px`,
+      transition: theme.transitions.duration.short + "ms"
     }
   });
 

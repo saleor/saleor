@@ -11,9 +11,9 @@ import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
-import * as React from "react";
+import React from "react";
 
-import Skeleton from "../../../components/Skeleton";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>

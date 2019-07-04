@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { StaffCreateInput, PermissionEnum } from "./../../types/globalTypes";
@@ -11,6 +12,11 @@ export interface StaffMemberAdd_staffCreate_errors {
   __typename: "Error";
   field: string | null;
   message: string | null;
+}
+
+export interface StaffMemberAdd_staffCreate_user_avatar {
+  __typename: "Image";
+  url: string;
 }
 
 export interface StaffMemberAdd_staffCreate_user_permissions {
@@ -26,6 +32,7 @@ export interface StaffMemberAdd_staffCreate_user {
   firstName: string;
   isActive: boolean;
   lastName: string;
+  avatar: StaffMemberAdd_staffCreate_user_avatar | null;
   permissions: (StaffMemberAdd_staffCreate_user_permissions | null)[] | null;
 }
 

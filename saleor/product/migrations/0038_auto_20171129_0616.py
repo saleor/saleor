@@ -8,10 +8,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0037_auto_20171124_0847'),
-    ]
+    dependencies = [("product", "0037_auto_20171124_0847")]
 
-    operations = [
-        BtreeGinExtension()
-    ]
+    operations = [BtreeGinExtension()]

@@ -4,7 +4,7 @@ from ...payment import models
 from ...payment.utils import gateway_get_client_token
 from ..utils import filter_by_query_param
 
-PAYMENT_SEARCH_FIELDS = ['id']
+PAYMENT_SEARCH_FIELDS = ["id"]
 
 
 def resolve_payments(info, query):

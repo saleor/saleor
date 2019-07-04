@@ -6,10 +6,10 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 import SVG from "react-inlinesvg";
 
-import * as notFoundImage from "../../../images/not-found-404.svg";
+import notFoundImage from "../../../images/not-found-404.svg";
 import i18n from "../../i18n";
 
 const styles = (theme: Theme) =>
@@ -64,18 +64,18 @@ const NotFoundPage = withStyles(styles, { name: "NotFoundPage" })(
       <div className={classes.container}>
         <div className={classes.innerContainer}>
           <div>
-            <Typography className={classes.header} variant="display2">
+            <Typography className={classes.header} variant="h3">
               {i18n.t("Ooops!...")}
             </Typography>
-            <Typography className={classes.header} variant="display1">
+            <Typography className={classes.header} variant="h4">
               {i18n.t("Something's missing")}
             </Typography>
-            <Typography>{i18n.t("Sorry the page not found")}</Typography>
+            <Typography>{i18n.t("Sorry, the page was not found")}</Typography>
           </div>
           <div>
             <Button
               className={classes.button}
-              color="secondary"
+              color="primary"
               variant="contained"
               onClick={onBack}
             >

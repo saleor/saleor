@@ -6,6 +6,13 @@
 <div class="checkout__payment-form">
   <form method="POST" id="payment-form" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %} novalidate>
     {% csrf_token %}
+    {% if form.errors or form.non_field_errors %}
+      <blockquote>
+        {% for non_field_error in form.non_field_errors %}
+          {{ non_field_error }}
+        {% endfor %}
+      </blockquote>
+    {% endif %}
     {{ form.media }}
     {% for choice in form.charge_status %}
       <div class="radio">

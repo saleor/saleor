@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import * as placeholder from "../../../../images/placeholder60x60.png";
+import placeholder from "../../../../images/placeholder60x60.png";
 import CategoryProducts from "../../../categories/components/CategoryProducts";
 import Decorator from "../../Decorator";
 
@@ -13,7 +13,9 @@ const products = [
       id: "1",
       name: "T-Shirt"
     },
-    thumbnailUrl: placeholder
+    thumbnail: {
+      url: placeholder
+    }
   },
   {
     id: "UHJvZHVjdDoy",
@@ -22,7 +24,9 @@ const products = [
       id: "1",
       name: "T-Shirt"
     },
-    thumbnailUrl: placeholder
+    thumbnail: {
+      url: placeholder
+    }
   },
   {
     id: "UHJvZHVjdDoz",
@@ -31,7 +35,9 @@ const products = [
       id: "1",
       name: "T-Shirt"
     },
-    thumbnailUrl: placeholder
+    thumbnail: {
+      url: placeholder
+    }
   },
   {
     id: "UHJvZHVjdDoa",
@@ -40,7 +46,9 @@ const products = [
       id: "1",
       name: "T-Shirt"
     },
-    thumbnailUrl: placeholder
+    thumbnail: {
+      url: placeholder
+    }
   }
 ];
 

@@ -5,19 +5,21 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import Skeleton from "../../../components/Skeleton";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>
   createStyles({
     headerContainer: {
-      marginBottom: theme.spacing.unit * 3,
-      marginTop: theme.spacing.unit * 3
+      marginBottom: theme.spacing.unit * 3
     },
     pageHeader: {
       fontWeight: 600 as 600
+    },
+    subtitle: {
+      color: theme.typography.caption.color
     }
   });
 
@@ -29,16 +31,16 @@ const HomeOrdersCard = withStyles(styles, { name: "HomeOrdersCard" })(
   ({ classes, userName }: HomeOrdersCardProps) => {
     return (
       <div className={classes.headerContainer}>
-        <Typography className={classes.pageHeader} variant="headline">
+        <Typography className={classes.pageHeader} variant="h4">
           {userName ? (
             i18n.t("Hello there, {{userName}}", { userName })
           ) : (
             <Skeleton style={{ width: "10em" }} />
           )}
         </Typography>
-        <Typography>
+        <Typography className={classes.subtitle}>
           {userName ? (
-            i18n.t("Here are some information we gathered about your store")
+            i18n.t("Here is some information we gathered about your store")
           ) : (
             <Skeleton style={{ width: "10em" }} />
           )}

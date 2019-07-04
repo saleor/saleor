@@ -7,9 +7,8 @@
 {% endblock %}
 
 {% block plain %}
+{% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Order confirmation e-mail text" %}
-Hi!
-
 Thank you for your order. Below is the list of ordered products. To see your payment details please visit:
 {{ order_details_url }}{% endblocktrans %}
 {% for line in order %}
@@ -23,17 +22,12 @@ Thank you for your order. Below is the list of ordered products. To see your pay
 {% trans "Total" context "Order confirmation e-mail table header" %}:              {% price order.total.gross html=False %}
 
 {% trans "Billing address" context "Order confirmation e-mail billing address" %}
-{{ order.billing_address }}
+{% if order.billing_address %}{{ order.billing_address }}{% else %}{% trans "No billing address" context "Order confirmation e-mail text" %}{% endif %}
 
 {% trans "Shipping address" context "Order confirmation e-mail shipping address" %}
 {% if order.shipping_address %}{{ order.shipping_address }}{% else %}{% trans "No shipping required" context "Order confirmation e-mail text" %}{% endif %}
 
-{% blocktrans context "Order confirmation e-mail text" %}
-This is an automatically generated e-mail, please do not reply.
-
-Sincerely,
-{{ site_name }}
-{% endblocktrans %}
+{% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}

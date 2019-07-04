@@ -10,7 +10,7 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../../i18n";
 
@@ -35,7 +35,7 @@ export interface CategoryDeleteDialogProps extends WithStyles<typeof styles> {
 const CategoryDeleteDialog = withStyles(styles, {
   name: "CategoryDeleteDialog"
 })(({ classes, name, open, onConfirm, onClose }: CategoryDeleteDialogProps) => (
-  <Dialog open={open}>
+  <Dialog onClose={onClose} open={open}>
     <DialogTitle>{i18n.t("Delete category", { context: "title" })}</DialogTitle>
     <DialogContent>
       <DialogContentText

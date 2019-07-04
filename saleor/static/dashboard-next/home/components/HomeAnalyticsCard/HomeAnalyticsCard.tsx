@@ -8,7 +8,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../../i18n";
 
@@ -19,7 +19,7 @@ const styles = (theme: Theme) =>
         paddingBottom: 16
       },
       display: "grid",
-      gridColumnGap: theme.spacing.unit * 1 + "px",
+      gridColumnGap: theme.spacing.unit * 3 + "px",
       gridTemplateColumns: "1fr 64px"
     },
     cardSpacing: {
@@ -42,13 +42,16 @@ const styles = (theme: Theme) =>
       margin: ".5rem .3rem"
     },
     iconBackground: {
-      backgroundColor: theme.palette.primary.main,
+      backgroundColor: theme.palette.background.default,
       borderRadius: "8px",
       color: "white",
       fontSize: "54px",
       height: "100%",
       padding: "10px 5px 0px 5px",
       width: "100%"
+    },
+    value: {
+      textAlign: "right"
     }
   });
 
@@ -63,7 +66,7 @@ const HomeAnalyticsCard = withStyles(styles, { name: "HomeAnalyticsCard" })(
     <Card className={classes.cardSpacing}>
       <CardContent className={classes.cardContent}>
         <div>
-          <Typography className={classes.cardTitle} variant="subheading">
+          <Typography className={classes.cardTitle} variant="subtitle1">
             {title}
           </Typography>
           <Typography
@@ -73,7 +76,11 @@ const HomeAnalyticsCard = withStyles(styles, { name: "HomeAnalyticsCard" })(
           >
             {i18n.t("Today")}
           </Typography>
-          <Typography color="textPrimary" variant="headline">
+          <Typography
+            className={classes.value}
+            color="textPrimary"
+            variant="h4"
+          >
             {children}
           </Typography>
         </div>

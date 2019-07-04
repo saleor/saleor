@@ -5,19 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0077_generate_versatile_background_images'),
-    ]
+    dependencies = [("product", "0077_generate_versatile_background_images")]
 
     operations = [
         migrations.AddField(
-            model_name='collection',
-            name='description',
+            model_name="collection",
+            name="description",
             field=models.TextField(blank=True),
         ),
         migrations.AddField(
-            model_name='collectiontranslation',
-            name='description',
+            model_name="collectiontranslation",
+            name="description",
             field=models.TextField(blank=True),
         ),
     ]

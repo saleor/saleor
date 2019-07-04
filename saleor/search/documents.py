@@ -6,17 +6,15 @@ from ..account.utils import get_user_first_name, get_user_last_name
 from ..order.models import Order
 from ..product.models import Product
 
-storefront = Index('storefront')
+storefront = Index("storefront")
 storefront.settings(number_of_shards=1, number_of_replicas=0)
 
 
-partial_words = token_filter(
-    'partial_words', 'edge_ngram', min_gram=3, max_gram=15)
+partial_words = token_filter("partial_words", "edge_ngram", min_gram=3, max_gram=15)
 title_analyzer = analyzer(
-    'title_analyzer',
-    tokenizer='standard',
-    filter=[partial_words, 'lowercase'])
-email_analyzer = analyzer('email_analyzer', tokenizer='uax_url_email')
+    "title_analyzer", tokenizer="standard", filter=[partial_words, "lowercase"]
+)
+email_analyzer = analyzer("email_analyzer", tokenizer="uax_url_email")
 
 
 @storefront.doc_type
@@ -28,10 +26,10 @@ class ProductDocument(DocType):
 
     class Meta:
         model = Product
-        fields = ['name', 'description', 'is_published']
+        fields = ["name", "description", "is_published"]
 
 
-users = Index('users')
+users = Index("users")
 users.settings(number_of_shards=1, number_of_replicas=0)
 
 
@@ -52,10 +50,10 @@ class UserDocument(DocType):
 
     class Meta:
         model = User
-        fields = ['email']
+        fields = ["email"]
 
 
-orders = Index('orders')
+orders = Index("orders")
 orders.settings(number_of_shards=1, number_of_replicas=0)
 
 
@@ -82,4 +80,4 @@ class OrderDocument(DocType):
 
     class Meta:
         model = Order
-        fields = ['user_email', 'discount_name']
+        fields = ["user_email", "discount_name"]

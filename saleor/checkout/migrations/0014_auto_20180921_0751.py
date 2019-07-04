@@ -6,14 +6,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('checkout', '0013_auto_20180913_0841'),
-    ]
+    dependencies = [("checkout", "0013_auto_20180913_0841")]
 
     operations = [
         migrations.AlterField(
-            model_name='cartline',
-            name='quantity',
-            field=models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)]),
-        ),
+            model_name="cartline",
+            name="quantity",
+            field=models.PositiveIntegerField(
+                validators=[django.core.validators.MinValueValidator(1)]
+            ),
+        )
     ]

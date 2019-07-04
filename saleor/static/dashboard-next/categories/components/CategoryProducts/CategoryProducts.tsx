@@ -12,19 +12,19 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
-import TableCellAvatar from "../../../components/TableCellAvatar";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Skeleton from "@saleor/components/Skeleton";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 
 const styles = (theme: Theme) =>
   createStyles({
     link: {
-      color: theme.palette.secondary.main,
+      color: theme.palette.primary.main,
       cursor: "pointer"
     },
     textLeft: {
@@ -41,7 +41,9 @@ interface ProductListProps extends WithStyles<typeof styles> {
     productType: {
       name: string;
     };
-    thumbnailUrl: string;
+    thumbnail: {
+      url: string;
+    };
   }>;
   onAddProduct?();
   onNextPage?();
@@ -64,7 +66,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
       <CardTitle
         title={i18n.t("Products")}
         toolbar={
-          <Button variant="text" color="secondary" onClick={onAddProduct}>
+          <Button variant="text" color="primary" onClick={onAddProduct}>
             {i18n.t("Add product")}
           </Button>
         }
@@ -95,7 +97,9 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
             products,
             product => (
               <TableRow key={product ? product.id : "skeleton"}>
-                <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
+                <TableCellAvatar
+                  thumbnail={maybe(() => product.thumbnail.url)}
+                />
                 <TableCell className={classes.textLeft}>
                   {product ? (
                     <span

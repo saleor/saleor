@@ -1,6 +1,6 @@
 import { ApolloError } from "apollo-client";
 import { DocumentNode } from "graphql";
-import * as React from "react";
+import React from "react";
 import {
   Mutation,
   MutationFn,
@@ -8,7 +8,7 @@ import {
   MutationUpdaterFn
 } from "react-apollo";
 
-import Messages from "./components/messages";
+import useNotifier from "./hooks/useNotifier";
 import i18n from "./i18n";
 
 export interface TypedMutationInnerProps<TData, TVariables> {
@@ -26,32 +26,37 @@ export function TypedMutation<TData, TVariables>(
   update?: MutationUpdaterFn<TData>
 ) {
   class StrictTypedMutation extends Mutation<TData, TVariables> {}
-  return ({
-    children,
-    onCompleted,
-    onError,
-    variables
-  }: TypedMutationInnerProps<TData, TVariables>) => (
-    <Messages>
-      {pushMessage => (
-        <StrictTypedMutation
-          mutation={mutation}
-          onCompleted={onCompleted}
-          onError={err => {
-            const msg = i18n.t("Something went wrong: {{ message }}", {
-              message: err.message
-            });
-            pushMessage({ text: msg });
-            if (onError) {
-              onError(err);
-            }
-          }}
-          variables={variables}
-          update={update}
-        >
-          {children}
-        </StrictTypedMutation>
-      )}
-    </Messages>
-  );
+  return (props: TypedMutationInnerProps<TData, TVariables>) => {
+    const notify = useNotifier();
+    // Obviously, this is workaround to the problem described here:
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/32588
+    const {
+      children,
+      onCompleted,
+      onError,
+      variables
+    } = props as JSX.LibraryManagedAttributes<
+      typeof StrictTypedMutation,
+      typeof props
+    >;
+    return (
+      <StrictTypedMutation
+        mutation={mutation}
+        onCompleted={onCompleted}
+        onError={err => {
+          const msg = i18n.t("Something went wrong: {{ message }}", {
+            message: err.message
+          });
+          notify({ text: msg });
+          if (onError) {
+            onError(err);
+          }
+        }}
+        variables={variables}
+        update={update}
+      >
+        {children}
+      </StrictTypedMutation>
+    );
+  };
 }

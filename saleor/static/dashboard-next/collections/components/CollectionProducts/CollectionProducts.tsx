@@ -11,19 +11,20 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
-import TableCellAvatar from "../../../components/TableCellAvatar";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 
 const styles = (theme: Theme) =>
@@ -36,14 +37,12 @@ const styles = (theme: Theme) =>
     },
     tableRow: {
       cursor: "pointer"
-    },
-    textCenter: {
-      textAlign: "center"
     }
   });
 
 export interface CollectionProductsProps
   extends PageListProps,
+    ListActions,
     WithStyles<typeof styles> {
   collection: CollectionDetails_collection;
   onProductUnassign: (id: string, event: React.MouseEvent<any>) => void;
@@ -59,7 +58,12 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
     onPreviousPage,
     onProductUnassign,
     onRowClick,
-    pageInfo
+    pageInfo,
+    isChecked,
+    selected,
+    toggle,
+    toggleAll,
+    toolbar
   }: CollectionProductsProps) => (
     <Card>
       <CardTitle
@@ -76,7 +80,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           <Button
             disabled={disabled}
             variant="text"
-            color="secondary"
+            color="primary"
             onClick={onAdd}
           >
             {i18n.t("Assign product", {
@@ -86,23 +90,23 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
         }
       />
       <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell />
-            <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
-            <TableCell className={classes.textCenter}>
-              {i18n.t("Type", { context: "table header" })}
-            </TableCell>
-            <TableCell>
-              {i18n.t("Published", { context: "table header" })}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => collection.products.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
+          <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
+          <TableCell>
+            {i18n.t("Published", { context: "table header" })}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={5}
+              colSpan={6}
               hasNextPage={maybe(() => pageInfo.hasNextPage)}
               onNextPage={onNextPage}
               hasPreviousPage={maybe(() => pageInfo.hasPreviousPage)}
@@ -113,54 +117,66 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
         <TableBody>
           {renderCollection(
             maybe(() => collection.products.edges.map(edge => edge.node)),
-            product => (
-              <TableRow
-                className={classes.tableRow}
-                hover={!!product}
-                onClick={!!product ? onRowClick(product.id) : undefined}
-                key={product ? product.id : "skeleton"}
-              >
-                <TableCellAvatar
-                  thumbnail={maybe(() => product.thumbnail.url)}
-                />
-                <TableCell>
-                  {maybe<React.ReactNode>(() => product.name, <Skeleton />)}
-                </TableCell>
-                <TableCell className={classes.textCenter}>
-                  {maybe<React.ReactNode>(
-                    () => product.productType.name,
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell>
-                  {maybe(
-                    () => (
-                      <StatusLabel
-                        label={
-                          product.isPublished
-                            ? i18n.t("Published")
-                            : i18n.t("Not published")
-                        }
-                        status={product.isPublished ? "success" : "error"}
-                      />
-                    ),
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell className={classes.iconCell}>
-                  <IconButton
-                    disabled={!product}
-                    onClick={event => onProductUnassign(product.id, event)}
-                  >
-                    <DeleteIcon color="secondary" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ),
+            product => {
+              const isSelected = product ? isChecked(product.id) : false;
+
+              return (
+                <TableRow
+                  className={classes.tableRow}
+                  hover={!!product}
+                  onClick={!!product ? onRowClick(product.id) : undefined}
+                  key={product ? product.id : "skeleton"}
+                  selected={isSelected}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={isSelected}
+                      disabled={disabled}
+                      onChange={() => toggle(product.id)}
+                    />
+                  </TableCell>
+                  <TableCellAvatar
+                    thumbnail={maybe(() => product.thumbnail.url)}
+                  />
+                  <TableCell>
+                    {maybe<React.ReactNode>(() => product.name, <Skeleton />)}
+                  </TableCell>
+                  <TableCell>
+                    {maybe<React.ReactNode>(
+                      () => product.productType.name,
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {maybe(
+                      () => (
+                        <StatusLabel
+                          label={
+                            product.isPublished
+                              ? i18n.t("Published")
+                              : i18n.t("Not published")
+                          }
+                          status={product.isPublished ? "success" : "error"}
+                        />
+                      ),
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.iconCell}>
+                    <IconButton
+                      disabled={!product}
+                      onClick={event => onProductUnassign(product.id, event)}
+                    >
+                      <DeleteIcon color="primary" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            },
             () => (
               <TableRow>
                 <TableCell />
-                <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
+                <TableCell colSpan={6}>{i18n.t("No products found")}</TableCell>
               </TableRow>
             )
           )}

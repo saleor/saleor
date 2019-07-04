@@ -14,7 +14,7 @@
              data-src="{% static 'images/login-bg.png' %}"
              data-srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
         <p>
-          <a href="{% url 'checkout:index' %}" class="btn secondary narrow">
+          <a href="{% url 'checkout:start' %}" class="btn secondary narrow">
             {% trans "Continue" context "Checkout login page new users action" %}
           </a>
         </p>
@@ -22,7 +22,7 @@
       </div>
     </div>
     <div class="col-12 col-md-6 checkout__login__form">
-      {% url "checkout:index" as checkout_url %}
+      {% url "checkout:start" as checkout_url %}
       <h3>{% trans "Existing customer? Log in." context "Checkout login form title" %}</h3>
       {% include "account/partials/login_form.html" with REDIRECT_FIELD_VALUE=checkout_url %}
     </div>

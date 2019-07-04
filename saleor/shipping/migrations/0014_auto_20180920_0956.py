@@ -6,19 +6,19 @@ import django_countries.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('shipping', '0013_auto_20180822_0721'),
-    ]
+    dependencies = [("shipping", "0013_auto_20180822_0721")]
 
     operations = [
         migrations.AddField(
-            model_name='shippingzone',
-            name='default',
+            model_name="shippingzone",
+            name="default",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='shippingzone',
-            name='countries',
-            field=django_countries.fields.CountryField(blank=True, default=[], max_length=749, multiple=True),
+            model_name="shippingzone",
+            name="countries",
+            field=django_countries.fields.CountryField(
+                blank=True, default=[], max_length=749, multiple=True
+            ),
         ),
     ]

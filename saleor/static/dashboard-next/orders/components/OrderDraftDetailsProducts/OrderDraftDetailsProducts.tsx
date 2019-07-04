@@ -13,13 +13,13 @@ import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
-import * as React from "react";
+import React from "react";
 
-import { DebounceForm } from "../../../components/DebounceForm";
-import Form from "../../../components/Form";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import TableCellAvatar from "../../../components/TableCellAvatar";
+import { DebounceForm } from "@saleor/components/DebounceForm";
+import Form from "@saleor/components/Form";
+import Money from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { OrderDetails_order_lines } from "../../types/OrderDetails";
@@ -38,6 +38,7 @@ const styles = (theme: Theme) =>
     },
     quantityField: {
       "& input": {
+        padding: "12px 12px 10px",
         textAlign: "right"
       },
       width: 60
@@ -92,11 +93,11 @@ const OrderDraftDetailsProducts = withStyles(styles, {
         ) : (
           renderCollection(lines, line => (
             <TableRow key={line ? line.id : "skeleton"}>
-              <TableCellAvatar thumbnail={maybe(() => line.thumbnailUrl)} />
+              <TableCellAvatar thumbnail={maybe(() => line.thumbnail.url)} />
               <TableCell>
                 {maybe(() => line.productName && line.productSku) ? (
                   <>
-                    <Typography variant="body1">{line.productName}</Typography>
+                    <Typography variant="body2">{line.productName}</Typography>
                     <Typography variant="caption">{line.productSku}</Typography>
                   </>
                 ) : (
@@ -153,7 +154,7 @@ const OrderDraftDetailsProducts = withStyles(styles, {
               </TableCell>
               <TableCell className={classes.iconCell}>
                 <IconButton onClick={() => onOrderLineRemove(line.id)}>
-                  <DeleteIcon color="secondary" />
+                  <DeleteIcon color="primary" />
                 </IconButton>
               </TableCell>
             </TableRow>

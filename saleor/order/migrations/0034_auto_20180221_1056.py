@@ -7,24 +7,32 @@ import django_prices.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0033_auto_20180123_0832'),
-    ]
+    dependencies = [("order", "0033_auto_20180123_0832")]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='total_gross',
-            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True),
+            model_name="order",
+            name="total_gross",
+            field=django_prices.models.MoneyField(
+                blank=True,
+                currency=settings.DEFAULT_CURRENCY,
+                decimal_places=2,
+                max_digits=12,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='orderline',
-            name='unit_price_gross',
-            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=4, max_digits=12),
+            model_name="orderline",
+            name="unit_price_gross",
+            field=django_prices.models.MoneyField(
+                currency=settings.DEFAULT_CURRENCY, decimal_places=4, max_digits=12
+            ),
         ),
         migrations.AlterField(
-            model_name='orderline',
-            name='unit_price_net',
-            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=4, max_digits=12),
+            model_name="orderline",
+            name="unit_price_net",
+            field=django_prices.models.MoneyField(
+                currency=settings.DEFAULT_CURRENCY, decimal_places=4, max_digits=12
+            ),
         ),
     ]

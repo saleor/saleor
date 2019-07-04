@@ -6,34 +6,57 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0054_merge_20180320_1108'),
-    ]
+    dependencies = [("product", "0054_merge_20180320_1108")]
 
     operations = [
         migrations.AddField(
-            model_name='category',
-            name='seo_description',
-            field=models.CharField(blank=True, max_length=300, null=True, validators=[django.core.validators.MaxLengthValidator(300)]),
+            model_name="category",
+            name="seo_description",
+            field=models.CharField(
+                blank=True,
+                max_length=300,
+                null=True,
+                validators=[django.core.validators.MaxLengthValidator(300)],
+            ),
         ),
         migrations.AddField(
-            model_name='category',
-            name='seo_title',
-            field=models.CharField(blank=True, max_length=70, null=True, validators=[django.core.validators.MaxLengthValidator(70)]),
+            model_name="category",
+            name="seo_title",
+            field=models.CharField(
+                blank=True,
+                max_length=70,
+                null=True,
+                validators=[django.core.validators.MaxLengthValidator(70)],
+            ),
         ),
         migrations.AddField(
-            model_name='collection',
-            name='seo_description',
-            field=models.CharField(blank=True, max_length=300, null=True, validators=[django.core.validators.MaxLengthValidator(300)]),
+            model_name="collection",
+            name="seo_description",
+            field=models.CharField(
+                blank=True,
+                max_length=300,
+                null=True,
+                validators=[django.core.validators.MaxLengthValidator(300)],
+            ),
         ),
         migrations.AddField(
-            model_name='collection',
-            name='seo_title',
-            field=models.CharField(blank=True, max_length=70, null=True, validators=[django.core.validators.MaxLengthValidator(70)]),
+            model_name="collection",
+            name="seo_title",
+            field=models.CharField(
+                blank=True,
+                max_length=70,
+                null=True,
+                validators=[django.core.validators.MaxLengthValidator(70)],
+            ),
         ),
         migrations.AddField(
-            model_name='product',
-            name='seo_title',
-            field=models.CharField(blank=True, max_length=70, null=True, validators=[django.core.validators.MaxLengthValidator(70)]),
+            model_name="product",
+            name="seo_title",
+            field=models.CharField(
+                blank=True,
+                max_length=70,
+                null=True,
+                validators=[django.core.validators.MaxLengthValidator(70)],
+            ),
         ),
     ]

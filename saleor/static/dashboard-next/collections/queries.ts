@@ -9,10 +9,6 @@ import {
   CollectionList,
   CollectionListVariables
 } from "./types/CollectionList";
-import {
-  SearchProducts,
-  SearchProductsVariables
-} from "./types/SearchProducts";
 
 export const collectionFragment = gql`
   fragment CollectionFragment on Collection {
@@ -30,7 +26,8 @@ export const collectionDetailsFragment = gql`
       alt
       url
     }
-    description
+    descriptionJson
+    publicationDate
     seoDescription
     seoTitle
     isPublished
@@ -124,20 +121,3 @@ export const TypedCollectionDetailsQuery = TypedQuery<
   CollectionDetails,
   CollectionDetailsVariables
 >(collectionDetails);
-
-export const searchProducts = gql`
-  ${collectionProductFragment}
-  query SearchProducts($query: String!) {
-    products(first: 5, query: $query) {
-      edges {
-        node {
-          ...CollectionProductFragment
-        }
-      }
-    }
-  }
-`;
-export const TypedSearchProductsQuery = TypedQuery<
-  SearchProducts,
-  SearchProductsVariables
->(searchProducts);

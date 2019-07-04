@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -52,20 +53,15 @@ export interface CategoryDetails_category_products_pageInfo {
   startCursor: string | null;
 }
 
-export interface CategoryDetails_category_products_edges_node_availability {
-  __typename: "ProductAvailability";
-  available: boolean | null;
+export interface CategoryDetails_category_products_edges_node_basePrice {
+  __typename: "Money";
+  amount: number;
+  currency: string;
 }
 
 export interface CategoryDetails_category_products_edges_node_thumbnail {
   __typename: "Image";
   url: string;
-}
-
-export interface CategoryDetails_category_products_edges_node_price {
-  __typename: "Money";
-  amount: number;
-  currency: string;
 }
 
 export interface CategoryDetails_category_products_edges_node_productType {
@@ -78,9 +74,9 @@ export interface CategoryDetails_category_products_edges_node {
   __typename: "Product";
   id: string;
   name: string;
-  availability: CategoryDetails_category_products_edges_node_availability | null;
+  basePrice: CategoryDetails_category_products_edges_node_basePrice | null;
+  isAvailable: boolean | null;
   thumbnail: CategoryDetails_category_products_edges_node_thumbnail | null;
-  price: CategoryDetails_category_products_edges_node_price | null;
   productType: CategoryDetails_category_products_edges_node_productType;
 }
 
@@ -101,7 +97,7 @@ export interface CategoryDetails_category {
   id: string;
   backgroundImage: CategoryDetails_category_backgroundImage | null;
   name: string;
-  description: string;
+  descriptionJson: any;
   seoDescription: string | null;
   seoTitle: string | null;
   parent: CategoryDetails_category_parent | null;

@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { AttributeValueInput } from "./../../types/globalTypes";
@@ -63,7 +64,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_product_image
   __typename: "ProductImage";
   id: string;
   alt: string;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string;
 }
 

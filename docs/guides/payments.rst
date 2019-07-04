@@ -17,7 +17,7 @@ Your changes should live under the
     After completing those steps you will also need to integrate your payment
     gateway into your SPA Storefront's workflow.
 
-get_client_token(connection_params)
+get_client_token(config)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A client token is a signed data blob that includes configuration and
@@ -31,13 +31,21 @@ Example
 
 .. code-block:: python
 
-    def get_client_token(connection_params: Dict) -> str:
-        gateway = get_payment_gateway(**connection_params)
+    def get_client_token(config: GatewayConfig) -> str:
+        gateway = get_payment_gateway(**config.connection_params)
         client_token = gateway.client_token.generate()
         return client_token
 
-authorize(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note::
+
+    All the below functions receive ``payment_information`` as a dataclass: ``PaymentData`` and ``config`` as a dataclass: ``GatewayConfig``.
+    Those functions should return a response as a dataclass: ``GatewayResponse``.
+    The description of the given structures can be found below.
+
+
+authorize(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A process of reserving the amount of money against the customer's funding
 source. Money does not change hands until the authorization is captured.
@@ -48,26 +56,27 @@ Example
 .. code-block:: python
 
     def authorize(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+            payment_information: PaymentData,
+            config: GatewayConfig,
+        ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the auth request here
-        response = gateway.authorize(token=payment_information['token'])
+        response = gateway.authorize(token=payment_information.token)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'auth',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind=TransactionKind.AUTH,
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
-refund(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+refund(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Full or partial return of captured funds to the customer.
 
@@ -77,26 +86,27 @@ Example
 .. code-block:: python
 
     def refund(
-            payment_information: Dict,
-            **connection_params: Dict) -> Dict:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the refund request here
-        response = gateway.refund(token=payment_information['token'])
+        response = gateway.refund(token=payment_information.token)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'refund',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind=TransactionKind.REFUND,
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
-capture(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+capture(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A transfer of the money that was reserved during the authorization stage.
 
@@ -106,26 +116,27 @@ Example
 .. code-block:: python
 
     def capture(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the capture request here
-        response = gateway.capture(token=payment_information['token'])
+        response = gateway.capture(token=payment_information.token)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'refund',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind=TransactionKind.CAPTURE,
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
-void(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+void(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A cancellation of a pending authorization or capture.
 
@@ -135,26 +146,27 @@ Example
 .. code-block:: python
 
     def void(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the void request here
-        response = gateway.void(token=payment_information['token'])
+        response = gateway.void(token=payment_information.token)
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'refund',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind=TransactionKind.VOID,
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
-charge(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+charge(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Authorization and capture in a single step.
 
@@ -164,28 +176,30 @@ Example
 .. code-block:: python
 
     def charge(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Handle connecting to the gateway and sending the charge request here
         response = gateway.charge(
-            token=payment_information['token'],
-            amount=payment_information['amount'])
+            token=payment_information.token,
+            amount=payment_information.amount,
+        )
 
         # Return a correct response format so Saleor can process it,
         # the response must be json serializable
-        return {
-            'is_success': response.is_success,
-            'transaction_id': response.transaction.id,
-            'kind': 'refund',
-            'amount': response.amount,
-            'currency': response.currency,
-            'error': get_error(response),
-            'raw_response': get_payment_gateway_response(response),
-        }
+        return GatewayResponse(
+            is_success=response.is_success,
+            transaction_id=response.transaction.id,
+            kind=TransactionKind.CHARGE,
+            amount=response.amount,
+            currency=response.currency,
+            error=get_error(response),
+            raw_response=get_payment_gateway_response(response),
+        )
 
-process_payment(payment_information, connection_params)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+process_payment(payment_information, config)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Used for the checkout process, it should perform all the necessary
 steps to process a payment. It should use already defined functions,
@@ -197,84 +211,108 @@ Example
 .. code-block:: python
 
     def process_payment(
-            payment_information: Dict,
-            connection_params: Dict) -> Dict:
+        payment_information: PaymentData,
+        config: GatewayConfig,
+    ) -> GatewayResponse:
 
         # Authorize, update the token, then capture
-        authorize_response = authorize(
-            payment_information, connection_params)
-        payment_information['token'] = authorize_response['transaction_id']
+        authorize_response = authorize(payment_information, config)
+        payment_information.token = authorize_response.transaction_id
 
-        capture_response = capture(
-            payment_information, connection_params)
+        capture_response = capture(payment_information, config)
 
-        # Return a list of responses, each response must be json serializable
-        return [authorize_response, capture_response]
+        return capture_response
 
 Parameters
 ^^^^^^^^^^
 
-+-------------------------+----------+------------------------------------------------------------------------------------+
-| name                    | type     | description                                                                        |
-+-------------------------+----------+------------------------------------------------------------------------------------+
-| ``payment_information`` | ``dict`` | Payment information, containing the token, amount, currency and billing.           |
-+-------------------------+----------+------------------------------------------------------------------------------------+
-| ``connection_params``   | ``dict`` | List of parameters used for connecting to the payment's gateway.                   |
-+-------------------------+----------+------------------------------------------------------------------------------------+
++-------------------------+--------------------+---------------------------------------------------------------------------+
+| name                    | type               | description                                                               |
++-------------------------+--------------------+---------------------------------------------------------------------------+
+| ``payment_information`` | ``PaymentData``    | Payment information, containing the token, amount, currency and billing.  |
++-------------------------+--------------------+---------------------------------------------------------------------------+
+| ``config``              | ``GatewayConfig``  | Configuration of the payment gateway.                                     |
++-------------------------+--------------------+---------------------------------------------------------------------------+
 
-Example
-"""""""
+PaymentData
+"""""""""""
 
-.. code-block:: python
++---------------------+-----------------+-----------------------------------------------------------------+
+| name                | type            | description                                                     |
++---------------------+-----------------+-----------------------------------------------------------------+
+| token               | ``str``         | Token used for transaction, provided by the gateway.            |
++---------------------+-----------------+-----------------------------------------------------------------+
+| amount              | ``Decimal``     | Amount to be authorized/captured/charged/refunded.              |
++---------------------+-----------------+-----------------------------------------------------------------+
+| billing             | ``AddressData`` | Billing information.                                            |
++---------------------+-----------------+-----------------------------------------------------------------+
+| shipping            | ``AddressData`` | Shipping information.                                           |
++---------------------+-----------------+-----------------------------------------------------------------+
+| order_id            | ``int``         | Order id.                                                       |
++---------------------+-----------------+-----------------------------------------------------------------+
+| customer_ip_address | ``str``         | IP address of the customer                                      |
++---------------------+-----------------+-----------------------------------------------------------------+
+| customer_email      | ``str``         | Email address of the customer.                                  |
++---------------------+-----------------+-----------------------------------------------------------------+
 
-    payment_information = {
-        'token': 'token-used-for-transaction',  # provided by gateway
-        'amount': Decimal('174.32'),  # amount to be authorized/captured/charged/refunded
-        'currency': 'USD',  # ISO 4217 currency code
-        'billing': {  # billing information
-            'first_name': 'Joe',
-            'last_name': 'Doe',
-            'company_name': 'JoeDoe Inc.',
-            'street_address_1': '3417 Bridge Street',
-            'street_address_2': '',
-            'city': 'Pryor',
-            'city_area': '',
-            'postal_code': '74361',
-            'country': 'US',
-            'country_area': 'OK',
-            'phone': '+19188249023'},
-        'shipping': {  # shipping information
-            'first_name': 'Dollie',
-            'last_name': 'Sullivan',
-            'company_name': '',
-            'street_address_1': '2003 Progress Way',
-            'street_address_2': '',
-            'city': 'Waterloo',
-            'city_area': '',
-            'postal_code': '50797',
-            'country': 'US',
-            'country_area': 'IA',
-            'phone': '+19188249023'},
-        'order': 117,  # order id
-        'customer_ip_address': '10.0.0.1',  # ip address of the customer
-        'customer_email': 'joedoe@example.com',  # email of the customer
-    }
+
+AddressData
+"""""""""""
+
++------------------+---------+
+| name             | type    |
++------------------+---------+
+| first_name       | ``str`` |
++------------------+---------+
+| last_name        | ``str`` |
++------------------+---------+
+| company_name     | ``str`` |
++------------------+---------+
+| street_address_1 | ``str`` |
++------------------+---------+
+| street_address_2 | ``str`` |
++------------------+---------+
+| city             | ``str`` |
++------------------+---------+
+| city_area        | ``str`` |
++------------------+---------+
+| postal_code      | ``str`` |
++------------------+---------+
+| country          | ``str`` |
++------------------+---------+
+| country_area     | ``str`` |
++------------------+---------+
+| phone            | ``str`` |
++------------------+---------+
+
+GatewayConfig
+""""""""""
+
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
+| name                | type      | description                                                                                             |
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
+| auto_capture        | ``bool``  | Define if gateway should also capture funds from the card. If false, payment should be only authorized  |
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
+| template_path       | ``str``   | Path to a template that will be rendered for the checkout.                                              |
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
+| connection_params   | ``Dict``  | List of parameters used for connecting to the payment’s gateway.                                        |
++---------------------+-----------+---------------------------------------------------------------------------------------------------------+
 
 
 Returns
 ^^^^^^^
 
-+----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| name                 | type                       | description                                                                                                                              |
-+----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| ``gateway_response`` | ``dict`` or ``list[dict]`` | Dictionary or list of dictionaries containing details about every transaction, with ``is_success`` set to ``True`` if no error occurred. |
-+----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| ``client_token``     | ``str``                    | Unique client's token that will be used as his indentifier in the payment process.                                                       |
-+----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------+
+| name                 | type                       | description                                                                                                            |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------+
+| ``gateway_response`` | ``GatewayResponse``        | GatewayResponse containing details about every transaction, with ``is_success`` set to ``True`` if no error occurred.  |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------+
+| ``client_token``     | ``str``                    | Unique client's token that will be used as his indentifier in the payment process.                                     |
++----------------------+----------------------------+------------------------------------------------------------------------------------------------------------------------+
 
 
-Gateway response fields
-"""""""""""""""""""""""
+GatewayResponse
+"""""""""""""""
 
 +----------------+-------------+--------------------------------------------------------------------------+
 | name           | type        | description                                                              |
@@ -291,25 +329,8 @@ Gateway response fields
 +----------------+-------------+--------------------------------------------------------------------------+
 | error          | ``str``     | An error message if one occured. Should be ``None`` if no error occured. |
 +----------------+-------------+--------------------------------------------------------------------------+
-
-Additional fields can be sent for logging/debug purposes. The only requirement is that they're serializable by
-``DjangoJSONEncoder``. They will be saved in ``gateway_response`` field on Transaction model.
-
-
-Example
-=======
-
-.. code-block: python
-
-    response = {
-        'transaction_id': 'token-from-gateway',
-        'kind': 'auth',
-        'is_success': True,
-        'amount': Decimal(14.50),
-        'currency': 'USD',
-        'error': None,
-        'extra_field': 'additional information',
-        'raw_response': raw_gateway_response_as_dict}
+| raw_response   | ``dict``     | Raw gateway response as a dict object. By default it is ``None``        |
++----------------+-------------+--------------------------------------------------------------------------+
 
 
 Handling errors
@@ -345,7 +366,7 @@ Example
         payment_method_nonce = forms.CharField()
 
         def get_payment_token(self):
-            return self.cleaned_data['payment_method_nonce']
+            return self.cleaned_data["payment_method_nonce"]
 
 Implement create_form(data, payment_information, connection_params)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -362,20 +383,30 @@ Example
 
         def create_form(data, payment_information, connection_params):
             return BraintreePaymentForm(
-                data, payment_information, connection_params)
+                data,
+                payment_information,
+                connection_params,
+            )
 
 
-Implement TEMPLATE_PATH
+Implement template_path
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Should specify a path to a template that will be rendered for the checkout.
 
-Example
-"""""""
+.. code-block:: python
 
-    .. code-block:: python
+    PAYMENT_GATEWAYS = {
+        DUMMY: {
+            "module": "saleor.payment.gateways.dummy",
+            "config": {
+                "auto_capture": True,
+                "connection_params": {},
+                "template_path": "order/payment/dummy.html",
+            },
+        },
+    }
 
-        TEMPLATE_PATH = 'order/payment/braintree.html'
 
 Add template
 ^^^^^^^^^^^^
@@ -390,15 +421,19 @@ Adding new payment gateway to the settings
 .. code-block:: python
 
     PAYMENT_GATEWAYS = {
-        'braintree': {
-            'module': 'saleor.payment.gateways.braintree',
-            'connection_params': {
-                'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
-                'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
-                'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
-                'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
-            }
-        }
+        "braintree": {
+            "module": "saleor.payment.gateways.braintree",
+            "config": {
+                "auto_capture": True,
+                "template_path": "order/payment/braintree.html",
+                "connection_params": {
+                    "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
+                    "merchant_id": os.environ.get("BRAINTREE_MERCHANT_ID"),
+                    "public_key": os.environ.get("BRAINTREE_PUBLIC_KEY"),
+                    "private_key": os.environ.get("BRAINTREE_PRIVATE_KEY"),
+                },
+            },
+        },
     }
 
 Please take a moment to consider the example settings above.
@@ -415,6 +450,10 @@ Please take a moment to consider the example settings above.
 
 - ``connection_params``
     List of parameters used for connecting to the payment's gateway.
+
+- ``auto_capture``
+    Define if the gateway should also capture funds from the card. When ``auto_capture`` is set to ``False``, funds will be blocked by the customer's bank for a 7-days period, a manual capture will be required.
+
 
 .. note::
 
@@ -437,4 +476,3 @@ Tips
   In such case, you might want to charge the customer 70 dollars, but due
   to gateway misconfiguration, he will be charged 70 euros.
   Such a situation should be handled, and adequate error should be thrown.
-

@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -17,13 +18,18 @@ export interface UnassignCollectionProduct_collectionRemoveProducts_collection_p
   name: string;
 }
 
+export interface UnassignCollectionProduct_collectionRemoveProducts_collection_products_edges_node_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface UnassignCollectionProduct_collectionRemoveProducts_collection_products_edges_node {
   __typename: "Product";
   id: string;
   isPublished: boolean;
   name: string;
   productType: UnassignCollectionProduct_collectionRemoveProducts_collection_products_edges_node_productType;
-  thumbnailUrl: string | null;
+  thumbnail: UnassignCollectionProduct_collectionRemoveProducts_collection_products_edges_node_thumbnail | null;
 }
 
 export interface UnassignCollectionProduct_collectionRemoveProducts_collection_products_edges {
@@ -63,7 +69,7 @@ export interface UnassignCollectionProduct {
 
 export interface UnassignCollectionProductVariables {
   collectionId: string;
-  productId: string;
+  productIds: (string | null)[];
   first?: number | null;
   after?: string | null;
   last?: number | null;

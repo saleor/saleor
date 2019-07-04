@@ -1,67 +1,66 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import AddIcon from "@material-ui/icons/Add";
-import * as React from "react";
+import React from "react";
 
+import Container from "@saleor/components/Container";
+import PageHeader from "@saleor/components/PageHeader";
+import ProductList from "@saleor/components/ProductList";
 import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
-import ProductList from "../../../components/ProductList";
-import { Filter } from "../../../components/TableFilter";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
-import ProductListFilter, { ProductListFilterTabs } from "../ProductListFilter";
+import { FilterPageProps, ListActions, PageListProps } from "../../../types";
+import { ProductListUrlFilters } from "../../urls";
+import ProductListFilter from "../ProductListFilter";
 
-interface ProductListCardProps extends PageListProps {
-  currentTab: ProductListFilterTabs;
-  filtersList: Filter[];
+export interface ProductListCardProps
+  extends PageListProps,
+    ListActions,
+    FilterPageProps<ProductListUrlFilters> {
+  currencySymbol: string;
   products: CategoryDetails_category_products_edges_node[];
-  onAllProducts: () => void;
-  onAvailable: () => void;
-  onOfStock: () => void;
-  onCustomFilter: () => void;
 }
 
 export const ProductListCard: React.StatelessComponent<
   ProductListCardProps
 > = ({
-  products,
-  disabled,
-  pageInfo,
-  onAdd,
-  onNextPage,
-  onPreviousPage,
-  onRowClick,
-  filtersList,
+  currencySymbol,
   currentTab,
-  onAllProducts,
-  onAvailable,
-  onOfStock,
-  onCustomFilter
+  filtersList,
+  filterTabs,
+  initialSearch,
+  onAdd,
+  onAll,
+  onSearchChange,
+  onFilterAdd,
+  onFilterSave,
+  onTabChange,
+  onFilterDelete,
+  ...listProps
 }) => (
-  <Container width="md">
+  <Container>
     <PageHeader title={i18n.t("Products")}>
-      <Button onClick={onAdd} color="secondary" variant="contained">
+      <Button onClick={onAdd} color="primary" variant="contained">
         {i18n.t("Add product")} <AddIcon />
       </Button>
     </PageHeader>
     <Card>
       <ProductListFilter
+        allTabLabel={i18n.t("All Products")}
+        currencySymbol={currencySymbol}
         currentTab={currentTab}
+        filterLabel={i18n.t("Select all products where:")}
+        filterTabs={filterTabs}
         filtersList={filtersList}
-        onAvailable={onAvailable}
-        onAllProducts={onAllProducts}
-        onOfStock={onOfStock}
-        onCustomFilter={onCustomFilter}
+        initialSearch={initialSearch}
+        searchPlaceholder={i18n.t("Search Products...")}
+        onAll={onAll}
+        onSearchChange={onSearchChange}
+        onFilterAdd={onFilterAdd}
+        onFilterSave={onFilterSave}
+        onTabChange={onTabChange}
+        onFilterDelete={onFilterDelete}
       />
-      <ProductList
-        products={products}
-        disabled={disabled}
-        pageInfo={pageInfo}
-        onNextPage={onNextPage}
-        onPreviousPage={onPreviousPage}
-        onRowClick={onRowClick}
-      />
+      <ProductList {...listProps} />
     </Card>
   </Container>
 );

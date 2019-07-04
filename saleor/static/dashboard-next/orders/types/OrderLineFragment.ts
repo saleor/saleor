@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -23,6 +24,11 @@ export interface OrderLineFragment_unitPrice {
   net: OrderLineFragment_unitPrice_net;
 }
 
+export interface OrderLineFragment_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderLineFragment {
   __typename: "OrderLine";
   id: string;
@@ -32,5 +38,5 @@ export interface OrderLineFragment {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderLineFragment_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderLineFragment_thumbnail | null;
 }

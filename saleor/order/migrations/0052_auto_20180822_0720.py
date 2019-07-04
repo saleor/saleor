@@ -8,19 +8,25 @@ import saleor.core.weight
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0051_merge_20180807_0704'),
-    ]
+    dependencies = [("order", "0051_merge_20180807_0704")]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='weight',
-            field=django_measurement.models.MeasurementField(default=saleor.core.weight.zero_weight, measurement_class='Mass'),
+            model_name="order",
+            name="weight",
+            field=django_measurement.models.MeasurementField(
+                default=saleor.core.weight.zero_weight, measurement_class="Mass"
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='shipping_method',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='shipping.ShippingMethod'),
+            model_name="order",
+            name="shipping_method",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="orders",
+                to="shipping.ShippingMethod",
+            ),
         ),
     ]

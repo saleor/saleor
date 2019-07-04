@@ -5,12 +5,13 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as React from "react";
+import React from "react";
 
-import { Container } from "../../../components/Container";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import Skeleton from "../../../components/Skeleton";
+import AppHeader from "@saleor/components/AppHeader";
+import { Container } from "@saleor/components/Container";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe, renderCollection, translatedTaxRates } from "../../../misc";
 import { CountryList_shop_countries_vat_reducedRates } from "../../types/CountryList";
@@ -36,7 +37,8 @@ const CountryTaxesPage = withStyles(styles, { name: "CountryTaxesPage" })(
   }: CountryTaxesPageProps & WithStyles<typeof styles>) => {
     const taxRates = translatedTaxRates();
     return (
-      <Container width="md">
+      <Container>
+        <AppHeader onBack={onBack}>{i18n.t("Taxes")}</AppHeader>
         <PageHeader
           title={
             countryName
@@ -46,7 +48,6 @@ const CountryTaxesPage = withStyles(styles, { name: "CountryTaxesPage" })(
                 })
               : undefined
           }
-          onBack={onBack}
         />
         <Grid>
           <div>

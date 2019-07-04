@@ -9,8 +9,8 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 import i18n from "../../../i18n";
 import { ProductImage } from "../../types/ProductImage";
@@ -70,7 +70,7 @@ const ProductVariantImageSelectDialog = withStyles(styles, {
     onClose,
     onImageSelect
   }: ProductVariantImageSelectDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <DialogTitle>
         {i18n.t("Image selection", { context: "title" })}
       </DialogTitle>
@@ -84,7 +84,7 @@ const ProductVariantImageSelectDialog = withStyles(styles, {
                   classes.imageContainer,
                   {
                     [classes.selectedImageContainer]:
-                      selectedImages.indexOf(tile.id) === -1
+                      selectedImages.indexOf(tile.id) !== -1
                   }
                 ])}
                 onClick={onImageSelect(tile.id)}

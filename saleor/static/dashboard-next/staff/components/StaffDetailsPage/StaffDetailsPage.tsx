@@ -1,12 +1,14 @@
-import * as React from "react";
+import React from "react";
 
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import AppHeader from "@saleor/components/AppHeader";
+import CardSpacer from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import i18n from "../../../i18n";
 import { getUserName, maybe } from "../../../misc";
 import { PermissionEnum } from "../../../types/globalTypes";
 import {
@@ -27,22 +29,32 @@ interface FormData {
 }
 
 export interface StaffDetailsPageProps {
+  canEditAvatar: boolean;
+  canEditStatus: boolean;
+  canRemove: boolean;
   disabled: boolean;
   permissions: StaffMemberDetails_shop_permissions[];
   saveButtonBarState: ConfirmButtonTransitionState;
   staffMember: StaffMemberDetails_user;
   onBack: () => void;
   onDelete: () => void;
+  onImageDelete: () => void;
   onSubmit: (data: FormData) => void;
+  onImageUpload(file: File);
 }
 
 const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
+  canEditAvatar,
+  canEditStatus,
+  canRemove,
   disabled,
   permissions,
   saveButtonBarState,
   staffMember,
   onBack,
   onDelete,
+  onImageDelete,
+  onImageUpload,
   onSubmit
 }: StaffDetailsPageProps) => {
   const initialForm: FormData = {
@@ -65,34 +77,44 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
   return (
     <Form initial={initialForm} onSubmit={onSubmit} confirmLeave>
       {({ data, change, hasChanged, submit }) => (
-        <Container width="md">
-          <PageHeader title={getUserName(staffMember)} onBack={onBack} />
+        <Container>
+          <AppHeader onBack={onBack}>{i18n.t("Staff Members")}</AppHeader>
+          <PageHeader title={getUserName(staffMember)} />
           <Grid>
             <div>
               <StaffProperties
                 data={data}
                 disabled={disabled}
+                canEditAvatar={canEditAvatar}
                 staffMember={staffMember}
                 onChange={change}
+                onImageUpload={onImageUpload}
+                onImageDelete={onImageDelete}
               />
             </div>
-            <div>
-              <StaffPermissions
-                data={data}
-                disabled={disabled}
-                permissions={permissions}
-                onChange={change}
-              />
-              <CardSpacer />
-              <StaffStatus data={data} disabled={disabled} onChange={change} />
-            </div>
+            {canEditStatus && (
+              <div>
+                <StaffPermissions
+                  data={data}
+                  disabled={disabled}
+                  permissions={permissions}
+                  onChange={change}
+                />
+                <CardSpacer />
+                <StaffStatus
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+              </div>
+            )}
           </Grid>
           <SaveButtonBar
             disabled={disabled || !hasChanged}
             state={saveButtonBarState}
             onCancel={onBack}
             onSave={submit}
-            onDelete={onDelete}
+            onDelete={canRemove ? onDelete : undefined}
           />
         </Container>
       )}

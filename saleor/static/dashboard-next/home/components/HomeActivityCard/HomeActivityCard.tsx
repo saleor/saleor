@@ -4,11 +4,11 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import DateFormatter from "../../../components/DateFormatter";
-import Skeleton from "../../../components/Skeleton";
+import CardTitle from "@saleor/components/CardTitle";
+import { DateTime } from "@saleor/components/Date";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
 import { Home_activities_edges_node } from "../../types/Home";
@@ -44,7 +44,7 @@ const HomeProductListCard = withStyles(styles, { name: "HomeProductListCard" })(
                     primary={
                       <Typography>{getActivityMessage(activity)}</Typography>
                     }
-                    secondary={<DateFormatter date={activity.date} />}
+                    secondary={<DateTime date={activity.date} />}
                   />
                 ) : (
                   <ListItemText className={classes.loadingProducts}>

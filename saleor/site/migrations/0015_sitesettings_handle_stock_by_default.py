@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('site', '0014_handle_taxes'),
-    ]
+    dependencies = [("site", "0014_handle_taxes")]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='track_inventory_by_default',
+            model_name="sitesettings",
+            name="track_inventory_by_default",
             field=models.BooleanField(default=True),
-        ),
+        )
     ]

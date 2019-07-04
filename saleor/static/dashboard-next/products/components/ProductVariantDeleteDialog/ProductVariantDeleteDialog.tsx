@@ -10,11 +10,11 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
+} from "@saleor/components/ConfirmButton";
 import i18n from "../../../i18n";
 
 const styles = (theme: Theme) =>
@@ -48,7 +48,7 @@ const ProductVariantDeleteDialog = withStyles(styles, {
     onConfirm,
     onClose
   }: ProductVariantDeleteDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <DialogTitle>
         {i18n.t("Delete variant", { context: "title" })}
       </DialogTitle>

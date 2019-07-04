@@ -1,11 +1,13 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import PhoneField from "../../../components/PhoneField";
+import PhoneField from "@saleor/components/PhoneField";
 import { prefixes } from "../../../orders/fixtures";
+import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 
 storiesOf("Generics / PhoneField", module)
+  .addDecorator(CardDecorator)
   .addDecorator(Decorator)
   .add("default", () => (
     <PhoneField

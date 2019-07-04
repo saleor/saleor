@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -55,7 +56,7 @@ export interface ProductVariant_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string;
 }
 

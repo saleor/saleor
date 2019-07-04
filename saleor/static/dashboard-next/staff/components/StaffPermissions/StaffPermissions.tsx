@@ -7,11 +7,11 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
-import Skeleton from "../../../components/Skeleton";
+import CardTitle from "@saleor/components/CardTitle";
+import { ControlledCheckbox } from "@saleor/components/ControlledCheckbox";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { StaffMemberDetails_shop_permissions } from "../../types/StaffMemberDetails";
 
@@ -36,7 +36,7 @@ interface StaffPermissionsProps extends WithStyles<typeof styles> {
     permissions: string[];
   };
   disabled: boolean;
-  onChange: (event: React.ChangeEvent<any>) => void;
+  onChange: (event: React.ChangeEvent<any>, cb?: () => void) => void;
 }
 
 const StaffPermissions = withStyles(styles, { name: "StaffPermissions" })(
@@ -47,15 +47,15 @@ const StaffPermissions = withStyles(styles, { name: "StaffPermissions" })(
     permissions,
     onChange
   }: StaffPermissionsProps) => {
-    const handleFullAccessChange = (event: React.ChangeEvent<any>) => {
-      onChange(event);
-      onChange({
-        target: {
-          name: "permissions",
-          value: event.target.value ? permissions.map(perm => perm.code) : []
-        }
-      } as any);
-    };
+    const handleFullAccessChange = (event: React.ChangeEvent<any>) =>
+      onChange(event, () =>
+        onChange({
+          target: {
+            name: "permissions",
+            value: event.target.value ? permissions.map(perm => perm.code) : []
+          }
+        } as any)
+      );
     const handlePermissionChange = (event: React.ChangeEvent<any>) => {
       onChange({
         target: {
@@ -95,18 +95,19 @@ const StaffPermissions = withStyles(styles, { name: "StaffPermissions" })(
                 <Skeleton />
               ) : (
                 permissions.map(perm => (
-                  <ControlledCheckbox
-                    checked={
-                      data.permissions.filter(
-                        userPerm => userPerm === perm.code
-                      ).length === 1
-                    }
-                    disabled={disabled}
-                    label={perm.name.replace(/\./, "")}
-                    name={perm.code}
-                    onChange={handlePermissionChange}
-                    key={perm.code}
-                  />
+                  <div key={perm.code}>
+                    <ControlledCheckbox
+                      checked={
+                        data.permissions.filter(
+                          userPerm => userPerm === perm.code
+                        ).length === 1
+                      }
+                      disabled={disabled}
+                      label={perm.name.replace(/\./, "")}
+                      name={perm.code}
+                      onChange={handlePermissionChange}
+                    />
+                  </div>
                 ))
               )}
             </CardContent>

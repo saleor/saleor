@@ -1,4 +1,5 @@
 import { PaymentChargeStatusEnum } from "../types/globalTypes";
+import { CustomerAddresses_user } from "./types/CustomerAddresses";
 import { CustomerDetails_user } from "./types/CustomerDetails";
 import { ListCustomers_customers_edges_node } from "./types/ListCustomers";
 
@@ -943,8 +944,48 @@ export const customerList: ListCustomers_customers_edges_node[] = [
     }
   }
 ];
-export const customer: CustomerDetails_user = {
+export const customer: CustomerDetails_user & CustomerAddresses_user = {
   __typename: "User",
+  addresses: [
+    {
+      __typename: "Address",
+      city: "Port Danielshire",
+      cityArea: "",
+      companyName: "",
+      country: {
+        __typename: "CountryDisplay",
+        code: "SE",
+        country: "Szwecja"
+      },
+      countryArea: "",
+      firstName: "Elizabeth",
+      id: "QWRkcmVzczoy",
+      lastName: "Vaughn",
+      phone: "",
+      postalCode: "52203",
+      streetAddress1: "419 Ruiz Orchard Apt. 199",
+      streetAddress2: "0238 Cremin Freeway"
+    },
+    {
+      __typename: "Address",
+      city: "West Feliciamouth",
+      cityArea: "Montana",
+      companyName: null,
+      country: {
+        __typename: "CountryDisplay",
+        code: "JA",
+        country: "Japan"
+      },
+      countryArea: null,
+      firstName: "Timmy",
+      id: "33855",
+      lastName: "Macejkovic",
+      phone: "+41 460-907-9374",
+      postalCode: "15926",
+      streetAddress1: "0238 Cremin Freeway",
+      streetAddress2: null
+    }
+  ],
   dateJoined: "2017-05-07T09:37:30.124154+00:00",
   firstName: "Tom",
 
@@ -1015,7 +1056,7 @@ export const customer: CustomerDetails_user = {
           created: "2018-05-07T09:37:30.124154+00:00",
           id: "T3JkZXI6MTk=",
           number: "8234",
-          paymentStatus: PaymentChargeStatusEnum.CHARGED,
+          paymentStatus: PaymentChargeStatusEnum.FULLY_CHARGED,
           total: {
             __typename: "TaxedMoney",
             gross: {

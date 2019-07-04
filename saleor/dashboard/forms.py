@@ -15,7 +15,7 @@ class ModelChoiceOrCreationField(forms.ModelChoiceField):
         if value in self.empty_values:
             return None
         try:
-            key = self.to_field_name or 'pk'
+            key = self.to_field_name or "pk"
             obj = self.queryset.get(**{key: value})
         except (ValueError, TypeError, self.queryset.model.DoesNotExist):
             return value
@@ -37,14 +37,12 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
     initial - initial object
     """
 
-    def __init__(
-            self, fetch_data_url='', initial=None, min_input=2, *args,
-            **kwargs):
-        self.queryset = kwargs.pop('queryset', None)
+    def __init__(self, fetch_data_url="", initial=None, min_input=2, *args, **kwargs):
+        self.queryset = kwargs.pop("queryset", None)
         super().__init__(*args, **kwargs)
-        self.widget.attrs['class'] = 'enable-ajax-select2'
-        self.widget.attrs['data-url'] = fetch_data_url
-        self.widget.attrs['data-min-input'] = min_input
+        self.widget.attrs["class"] = "enable-ajax-select2"
+        self.widget.attrs["data-url"] = fetch_data_url
+        self.widget.attrs["data-min-input"] = min_input
         if initial:
             self.set_initial(initial)
 
@@ -55,7 +53,8 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
             value = self.queryset.get(pk=value)
         except (ValueError, TypeError, self.queryset.model.DoesNotExist):
             raise forms.ValidationError(
-                self.error_messages['invalid_choice'], code='invalid_choice')
+                self.error_messages["invalid_choice"], code="invalid_choice"
+            )
         return value
 
     def valid_value(self, value):
@@ -65,12 +64,13 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
     def set_initial(self, obj, obj_id=None, label=None):
         """Set initially selected objects on field's widget."""
         selected = {
-            'id': obj_id if obj_id is not None else obj.pk,
-            'text': label if label else str(obj)}
-        self.widget.attrs['data-initial'] = json.dumps(selected)
+            "id": obj_id if obj_id is not None else obj.pk,
+            "text": label if label else str(obj),
+        }
+        self.widget.attrs["data-initial"] = json.dumps(selected)
 
     def set_fetch_data_url(self, fetch_data_url):
-        self.widget.attrs['data-url'] = fetch_data_url
+        self.widget.attrs["data-url"] = fetch_data_url
 
 
 class AjaxSelect2CombinedChoiceField(AjaxSelect2ChoiceField):
@@ -84,24 +84,24 @@ class AjaxSelect2CombinedChoiceField(AjaxSelect2ChoiceField):
     """
 
     def __init__(self, *args, **kwargs):
-        self.querysets = kwargs.pop('querysets')
+        self.querysets = kwargs.pop("querysets")
         super().__init__(*args, **kwargs)
 
     def to_python(self, value):
         if value in self.empty_values:
             return None
 
-        pk, model_name = value.split('_')
+        pk, model_name = value.split("_")
         queryset = next(
-            (qs for qs in self.querysets if qs.model.__name__ == model_name),
-            None)
+            (qs for qs in self.querysets if qs.model.__name__ == model_name), None
+        )
 
         value = queryset.filter(pk=pk).first() if queryset else None
 
         if not value:
             raise forms.ValidationError(
-                self.error_messages['invalid_choice'],
-                code='invalid_choice')
+                self.error_messages["invalid_choice"], code="invalid_choice"
+            )
         return value
 
 
@@ -112,16 +112,15 @@ class AjaxSelect2MultipleChoiceField(forms.MultipleChoiceField):
     initial - list of initial objects
     """
 
-    def __init__(
-            self, fetch_data_url='', initial=[], min_input=2, *args, **kwargs):
-        self.queryset = kwargs.pop('queryset')
+    def __init__(self, fetch_data_url="", initial=[], min_input=2, *args, **kwargs):
+        self.queryset = kwargs.pop("queryset")
         super().__init__(*args, **kwargs)
-        self.widget.attrs['class'] = 'enable-ajax-select2'
-        self.widget.attrs['data-url'] = fetch_data_url
-        self.widget.attrs['data-min-input'] = min_input
+        self.widget.attrs["class"] = "enable-ajax-select2"
+        self.widget.attrs["data-url"] = fetch_data_url
+        self.widget.attrs["data-min-input"] = min_input
         if initial:
             self.set_initial(initial)
-        self.widget.attrs['multiple'] = True
+        self.widget.attrs["multiple"] = True
 
     def to_python(self, value):
         # Allow to set empty field
@@ -131,14 +130,15 @@ class AjaxSelect2MultipleChoiceField(forms.MultipleChoiceField):
             return None
         elif not isinstance(value, (list, tuple)):
             raise ValidationError(
-                self.error_messages['invalid_list'], code='invalid_list')
+                self.error_messages["invalid_list"], code="invalid_list"
+            )
         for choice in value:
             try:
                 self.queryset.get(pk=choice)
             except (ValueError, TypeError, self.queryset.model.DoesNotExist):
                 raise forms.ValidationError(
-                    self.error_messages['invalid_choice'],
-                    code='invalid_choice')
+                    self.error_messages["invalid_choice"], code="invalid_choice"
+                )
         return [str(val) for val in value]
 
     def valid_value(self, value):
@@ -147,8 +147,8 @@ class AjaxSelect2MultipleChoiceField(forms.MultipleChoiceField):
 
     def set_initial(self, objects):
         """Set initially selected objects on field's widget."""
-        selected = [{'id': obj.pk, 'text': str(obj)} for obj in objects]
-        self.widget.attrs['data-initial'] = json.dumps(selected)
+        selected = [{"id": obj.pk, "text": str(obj)} for obj in objects]
+        self.widget.attrs["data-initial"] = json.dumps(selected)
 
 
 class PermissionMultipleChoiceField(forms.ModelMultipleChoiceField):

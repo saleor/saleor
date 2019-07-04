@@ -5,19 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0079_default_tax_rate_instead_of_empty_field'),
-    ]
+    dependencies = [("product", "0079_default_tax_rate_instead_of_empty_field")]
 
     operations = [
         migrations.AddField(
-            model_name='category',
-            name='background_image_alt',
+            model_name="category",
+            name="background_image_alt",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AddField(
-            model_name='collection',
-            name='background_image_alt',
+            model_name="collection",
+            name="background_image_alt",
             field=models.CharField(blank=True, max_length=128),
         ),
     ]

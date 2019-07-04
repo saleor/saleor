@@ -1,6 +1,6 @@
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Typography, { TypographyProps } from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
 const styles = createStyles({
   link: {
@@ -26,7 +26,7 @@ const ExternalLink = withStyles(styles, { name: "ExternalLink" })(
     ...props
   }: ExternalLinkProps) => (
     <a href={href} className={classes.link} {...props}>
-      <Typography className={className} color="secondary" {...typographyProps}>
+      <Typography className={className} color="primary" {...typographyProps}>
         {children}
       </Typography>
     </a>

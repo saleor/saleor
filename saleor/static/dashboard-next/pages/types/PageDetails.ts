@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -8,12 +9,13 @@
 export interface PageDetails_page {
   __typename: "Page";
   id: string;
-  slug: string;
   title: string;
-  content: string;
-  created: any;
-  isVisible: boolean;
-  availableOn: any | null;
+  slug: string;
+  isPublished: boolean;
+  contentJson: any;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  publicationDate: any | null;
 }
 
 export interface PageDetails {

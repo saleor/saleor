@@ -1,6 +1,7 @@
 {% extends "order/payment/details.html" %}
 {% load bootstrap_form from bootstrap4 %}
 {% load i18n %}
+{% load l10n %}
 
 {% block forms %}
 <form method="POST" id="payment-form" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %} novalidate>
@@ -23,7 +24,7 @@
         </div>
 
       <input type="hidden" id="nonce" name="payment_method_nonce"/>
-      <input type="hidden" id="amount" name="amount" value="{{ payment.total }}"/>
+      <input type="hidden" id="amount" name="amount" value="{% localize off %}{{ payment.total }}{% endlocalize %}"/>
       <button type="submit" class="btn btn-primary">
         {% trans "Make payment" context "Payment form primary action" %}
       </button>

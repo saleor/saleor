@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Converting to different representations Properly converts to flat structure 1`] = `
+Array [
+  Object {
+    "data": null,
+    "id": "0",
+    "label": "1",
+    "parent": null,
+    "sort": 0,
+    "value": "1",
+  },
+  Object {
+    "data": null,
+    "id": "1",
+    "label": "2",
+    "parent": null,
+    "sort": 1,
+    "value": "2",
+  },
+  Object {
+    "data": null,
+    "id": "2",
+    "label": "3",
+    "parent": null,
+    "sort": 2,
+    "value": "3",
+  },
+  Object {
+    "data": null,
+    "id": "3",
+    "label": "4",
+    "parent": null,
+    "sort": 3,
+    "value": "4",
+  },
+  Object {
+    "data": null,
+    "id": "3:0",
+    "label": "4.1",
+    "parent": "3",
+    "sort": 0,
+    "value": "4.1",
+  },
+  Object {
+    "data": null,
+    "id": "3:1",
+    "label": "4.2",
+    "parent": "3",
+    "sort": 1,
+    "value": "4.2",
+  },
+]
+`;
+
+exports[`Walk through menu Properly returns all nodes on the path 1`] = `
+Array [
+  Object {
+    "children": Array [
+      Object {
+        "children": Array [],
+        "data": null,
+        "label": "4.1",
+        "value": "4.1",
+      },
+      Object {
+        "children": Array [],
+        "data": null,
+        "label": "4.2",
+        "value": "4.2",
+      },
+    ],
+    "data": null,
+    "label": "4",
+    "value": "4",
+  },
+  Object {
+    "children": Array [],
+    "data": null,
+    "label": "4.1",
+    "value": "4.1",
+  },
+]
+`;
+
+exports[`Walk through menu Properly returns all nodes on the path to root 1`] = `
+Array [
+  Object {
+    "children": Array [],
+    "data": null,
+    "label": "4.1",
+    "value": "4.1",
+  },
+  Object {
+    "children": Array [
+      Object {
+        "children": Array [],
+        "data": null,
+        "label": "4.1",
+        "value": "4.1",
+      },
+      Object {
+        "children": Array [],
+        "data": null,
+        "label": "4.2",
+        "value": "4.2",
+      },
+    ],
+    "data": null,
+    "label": "4",
+    "value": "4",
+  },
+]
+`;

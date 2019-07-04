@@ -3,6 +3,10 @@ import gql from "graphql-tag";
 import { TypedMutation } from "../mutations";
 import { categoryDetailsFragment } from "./queries";
 import {
+  CategoryBulkDelete,
+  CategoryBulkDeleteVariables
+} from "./types/CategoryBulkDelete";
+import {
   CategoryCreate,
   CategoryCreateVariables
 } from "./types/CategoryCreate";
@@ -67,3 +71,18 @@ export const TypedCategoryUpdateMutation = TypedMutation<
   CategoryUpdate,
   CategoryUpdateVariables
 >(categoryUpdateMutation);
+
+export const categoryBulkDeleteMutation = gql`
+  mutation CategoryBulkDelete($ids: [ID]!) {
+    categoryBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedCategoryBulkDeleteMutation = TypedMutation<
+  CategoryBulkDelete,
+  CategoryBulkDeleteVariables
+>(categoryBulkDeleteMutation);
