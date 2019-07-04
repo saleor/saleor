@@ -500,6 +500,7 @@ export interface ProductTypeInput {
   isDigital?: boolean | null;
   weight?: any | null;
   taxRate?: TaxRateType | null;
+  taxCode?: string | null;
 }
 
 export interface ProductVariantInput {
