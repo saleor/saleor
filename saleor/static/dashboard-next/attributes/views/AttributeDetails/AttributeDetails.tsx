@@ -167,7 +167,10 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                     attributeUpdate({
                                       variables: {
                                         id,
-                                        input
+                                        input: {
+                                          name: input.name,
+                                          slug: input.slug
+                                        }
                                       }
                                     })
                                   }
