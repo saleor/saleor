@@ -191,8 +191,11 @@ class SelectedAttribute(graphene.ObjectType):
     value = graphene.Field(
         AttributeValue,
         default_value=None,
-        description="Value of an attribute.",
-        required=True,
+        description="The value or the first value of an attribute.",
+        deprecation_reason="Use values instead.",
+    )
+    values = graphene.List(
+        AttributeValue, description="Values of an attribute.", required=True
     )
 
     class Meta:

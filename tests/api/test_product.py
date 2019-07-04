@@ -705,7 +705,7 @@ def test_create_product(
                                 attribute {
                                     slug
                                 }
-                                value {
+                                values {
                                     slug
                                 }
                             }
@@ -777,8 +777,8 @@ def test_create_product(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     values = (
-        data["product"]["attributes"][0]["value"]["slug"],
-        data["product"]["attributes"][1]["value"]["slug"],
+        data["product"]["attributes"][0]["values"][0]["slug"],
+        data["product"]["attributes"][1]["values"][0]["slug"],
     )
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
@@ -1024,7 +1024,7 @@ def test_update_product(
                                 attribute {
                                     name
                                 }
-                                value {
+                                values {
                                     name
                                 }
                             }
