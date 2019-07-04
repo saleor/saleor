@@ -1,5 +1,6 @@
 import { RawDraftContentState } from "draft-js";
 
+import { MultiAutocompleteChoiceType } from "@saleor/components/MultiAutocompleteSelectField";
 import { SingleAutocompleteChoiceType } from "@saleor/components/SingleAutocompleteSelectField";
 import { maybe } from "@saleor/misc";
 import {
@@ -27,7 +28,6 @@ export interface ProductType {
   productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
 }
 
-// TODO: Take attributes from product type
 export function getAttributeInputFromProduct(
   product: ProductDetails_product
 ): ProductAttributeInput[] {
@@ -40,7 +40,21 @@ export function getAttributeInputFromProduct(
         },
         id: attribute.attribute.id,
         label: attribute.attribute.name,
-        value: attribute.value.slug
+        value: [attribute.value.slug]
+      })),
+    []
+  );
+}
+
+export function getSelectedAttributesFromProduct(
+  product: ProductDetails_product
+): MultiAutocompleteChoiceType[] {
+  return maybe(
+    (): MultiAutocompleteChoiceType[] =>
+      product.attributes.map(attribute => ({
+        id: attribute.attribute.id,
+        label: attribute.attribute.name,
+        value: [attribute.value.slug]
       })),
     []
   );
@@ -56,7 +70,7 @@ export function getAttributeInputFromProductType(
     },
     id: attribute.id,
     label: attribute.name,
-    value: ""
+    value: [""]
   }));
 }
 
