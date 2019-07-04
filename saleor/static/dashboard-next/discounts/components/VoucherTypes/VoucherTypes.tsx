@@ -25,17 +25,14 @@ const VoucherTypes = ({
 }: VoucherTypesProps) => {
   const voucherTypeChoices = [
     {
-      hidden: false,
       label: i18n.t("Fixed Amount"),
       value: DiscountValueTypeEnum.FIXED
     },
     {
-      hidden: false,
       label: i18n.t("Percentage"),
       value: DiscountValueTypeEnum.PERCENTAGE
     },
     {
-      hidden: false,
       label: i18n.t("Free Shipping"),
       value: "SHIPPING"
     }
