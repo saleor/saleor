@@ -180,13 +180,4 @@ class Migration(migrations.Migration):
             name="storefront_search_position",
             field=models.IntegerField(default=0, blank=True),
         ),
-        migrations.AlterModelOptions(
-            name="attribute",
-            options={"ordering": ("storefront_search_position", "slug")},
-        ),
-        migrations.AddField(
-            model_name="attribute",
-            name="storefront_search_position",
-            field=models.IntegerField(default=0),
-        ),
     ]
