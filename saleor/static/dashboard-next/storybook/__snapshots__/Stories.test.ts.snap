@@ -31448,28 +31448,24 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="Grid-root-id Grid-uniform-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Minimal order value
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="minAmountSpent"
-                      type="text"
-                      value="0"
-                    />
-                  </div>
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="minAmountSpent"
+                    type="text"
+                    value="0"
+                  />
                 </div>
               </div>
             </div>
@@ -31499,7 +31495,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherLimits-root-id"
+              class="MuiCardContent-root-id"
             >
               <label
                 class="MuiFormControlLabel-root-id"
@@ -32002,34 +31998,30 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="Grid-root-id Grid-uniform-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Minimal order value
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="minAmountSpent"
-                      type="text"
-                      value="0"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="minAmountSpent"
+                    type="text"
+                    value="0"
+                  />
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
               </div>
             </div>
           </div>
@@ -32058,7 +32050,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherLimits-root-id"
+              class="MuiCardContent-root-id"
             >
               <label
                 class="MuiFormControlLabel-root-id"
@@ -32646,28 +32638,24 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="Grid-root-id Grid-uniform-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Minimal order value
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="minAmountSpent"
-                      type="text"
-                      value="200"
-                    />
-                  </div>
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="minAmountSpent"
+                    type="text"
+                    value="200"
+                  />
                 </div>
               </div>
             </div>
@@ -32697,7 +32685,7 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherLimits-root-id"
+              class="MuiCardContent-root-id"
             >
               <label
                 class="MuiFormControlLabel-root-id"
@@ -33423,34 +33411,30 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="Grid-root-id Grid-uniform-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Minimal order value
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="true"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id"
-                      name="minAmountSpent"
-                      type="text"
-                      value="200"
-                    />
-                  </div>
-                  <p
-                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                  >
-                    Generic form error
-                  </p>
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="minAmountSpent"
+                    type="text"
+                    value="200"
+                  />
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
               </div>
             </div>
           </div>
@@ -33479,7 +33463,7 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherLimits-root-id"
+              class="MuiCardContent-root-id"
             >
               <label
                 class="MuiFormControlLabel-root-id"
@@ -34213,29 +34197,25 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="Grid-root-id Grid-uniform-id"
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Minimal order value
-                  </label>
-                  <div
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
-                      disabled=""
-                      name="minAmountSpent"
-                      type="text"
-                      value="0"
-                    />
-                  </div>
+                  Minimal order value
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="minAmountSpent"
+                    type="text"
+                    value="0"
+                  />
                 </div>
               </div>
             </div>
@@ -34265,7 +34245,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id VoucherLimits-root-id"
+              class="MuiCardContent-root-id"
             >
               <label
                 class="MuiFormControlLabel-root-id"
