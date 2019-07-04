@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
@@ -11,5 +12,6 @@ def page_details(request, slug):
     today = datetime.date.today()
     is_visible = page.publication_date is None or page.publication_date <= today
     return TemplateResponse(
-        request, "page/details.html", {"page": page, "is_visible": is_visible}
+        request, "page/details.html", {"page": page, "is_visible": is_visible,
+                                       "content_json": json.dumps(page.translated.content_json)}
     )
