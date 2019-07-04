@@ -21,6 +21,8 @@ from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from saleor.settings import DEFAULT_PRICE_VISIBILITY
+
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils import build_absolute_uri
@@ -30,6 +32,14 @@ from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+
+
+# Choices
+PRICE_VISIBILITY_CHOICES = [
+    ('public', "Everyone"),
+    ('customer', "Customers and staff"),
+    ('staff', "Staff only"),
+]
 
 
 class Category(MPTTModel, SeoModel):
@@ -131,7 +141,11 @@ class Product(SeoModel, PublishableModel):
     price = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
+    price_visible = models.CharField(
+        default=DEFAULT_PRICE_VISIBILITY,
+        choices=PRICE_VISIBILITY_CHOICES,
+        max_length=128,
     )
     attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)

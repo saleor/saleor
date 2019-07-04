@@ -22,6 +22,7 @@ ProductAvailability = namedtuple(
         "discount",
         "price_range_local_currency",
         "discount_local_currency",
+        "price_visible"
     ),
 )
 
@@ -35,6 +36,7 @@ VariantAvailability = namedtuple(
         "discount",
         "price_local_currency",
         "discount_local_currency",
+        "price_visible"
     ),
 )
 
@@ -118,6 +120,7 @@ def get_product_availability(
     country=None,
     local_currency=None,
     taxes=None,
+    user_group='public'
 ) -> ProductAvailability:
 
     discounted_net_range = product.get_price_range(discounts=discounts)
@@ -146,6 +149,14 @@ def get_product_availability(
 
     is_on_sale = product.is_visible and discount is not None
 
+    # determine whether to show the product price
+    if user_group == 'staff':
+        price_visible = True
+    elif product.price_visible == user_group:
+        price_visible = True
+    else:
+        price_visible = False
+
     return ProductAvailability(
         available=product.is_available,
         on_sale=is_on_sale,
@@ -154,6 +165,7 @@ def get_product_availability(
         discount=discount,
         price_range_local_currency=price_range_local,
         discount_local_currency=discount_local_currency,
+        price_visible=price_visible
     )
 
 

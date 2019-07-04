@@ -127,37 +127,49 @@
       {% endif %}
       {% if availability.available %}
         {% if show_variant_picker %}
-          <div id="variant-price-component"></div>
+          {% if availability.price_visible %}
+            <div id="variant-price-component"></div>
+          {% else %}
+            <h2 class="product__info__price">
+              <span>{% trans 'Price not available.' %}</span>
+            </h2>
+          {% endif %}
         {% else %}
-          <h2 class="product__info__price">
-            <span>{% price_range availability.price_range %}</span>
-            {% if availability.on_sale %}
-              <small class="product__info__price__undiscounted">
-                {% price availability.price_range_undiscounted %}
-              </small>
-            {% endif %}
-            {% if availability.price_range_local_currency %}
-              <br>
-              <small class="text-info">
-                &asymp;
-                {% price availability.price_range_local_currency %}
-              </small>
-            {% endif %}
-            {% if request.taxes %}
-              <small>
-                {% tax_rate request.taxes product.tax_rate as tax_rate %}
-                {% if site.settings.display_gross_prices %}
-                  {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
-                    including {{ tax_rate }}% VAT
-                  {% endblocktrans %}
-                {% else %}
-                  {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
-                    excluding {{ tax_rate }}% VAT
-                  {% endblocktrans %}
-                {% endif %}
-              </small>
-            {% endif %}
-          </h2>
+          {% if availability.price_visible %}
+            <h2 class="product__info__price">
+              <span>{% price_range availability.price_range %}</span>
+              {% if availability.on_sale %}
+                <small class="product__info__price__undiscounted">
+                  {% price availability.price_range_undiscounted %}
+                </small>
+              {% endif %}
+              {% if availability.price_range_local_currency %}
+                <br>
+                <small class="text-info">
+                  &asymp;
+                  {% price availability.price_range_local_currency %}
+                </small>
+              {% endif %}
+              {% if request.taxes %}
+                <small>
+                  {% tax_rate request.taxes product.tax_rate as tax_rate %}
+                  {% if site.settings.display_gross_prices %}
+                    {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
+                      including {{ tax_rate }}% VAT
+                    {% endblocktrans %}
+                  {% else %}
+                    {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
+                      excluding {{ tax_rate }}% VAT
+                    {% endblocktrans %}
+                  {% endif %}
+                </small>
+              {% endif %}
+            </h2>
+          {% else %}
+            <h2 class="product__info__price">
+              <span>{% trans 'Price not available.' %}</span>
+            </h2>
+          {% endif %}
         {% endif %}
       {% endif %}
       {% if is_visible and product.is_in_stock %}

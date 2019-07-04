@@ -75,11 +75,22 @@ def product_details(request, slug, product_id, form=None):
     is_visible = product.publication_date is None or product.publication_date <= today
     if form is None:
         form = handle_checkout_form(request, product, create_checkout=False)[0]
+
+    # get the user type
+    if request.user.is_staff:
+        user_group = 'staff'
+    else:
+        if request.user.is_authenticated:
+            user_group = 'customer'
+        else:
+            user_group = 'public'
+
     availability = get_product_availability(
         product,
         discounts=request.discounts,
         country=request.country,
         local_currency=request.currency,
+        user_group=user_group
     )
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(

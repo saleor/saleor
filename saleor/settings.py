@@ -657,3 +657,11 @@ GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
 }
+
+# Control which user group product prices are visible to
+# either:
+#
+# 'public': anyone who access the API or product page
+# 'customer': anyone who is registered and authenticated
+# 'staff': only members with staff permissions
+DEFAULT_PRICE_VISIBILITY = 'public'
