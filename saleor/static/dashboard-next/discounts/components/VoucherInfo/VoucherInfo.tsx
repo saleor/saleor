@@ -25,25 +25,24 @@ const VoucherInfo = ({
   variant,
   onChange
 }: VoucherInfoProps) => {
-  const onGenerateCode = () => {
+  const onGenerateCode = () =>
     onChange({
       target: {
         name: "code",
         value: generateCode(10)
       }
     });
-  };
 
   return (
     <Card>
       <CardTitle
         title={i18n.t("General Information")}
         toolbar={
-          variant === "create" ? (
+          variant === "create" && (
             <Button color="primary" onClick={onGenerateCode}>
               {i18n.t("Generate Code")}
             </Button>
-          ) : null
+          )
         }
       />
       <CardContent>
