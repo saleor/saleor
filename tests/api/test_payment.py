@@ -1,5 +1,4 @@
 from decimal import Decimal
-from unittest.mock import patch
 
 import graphene
 import pytest
@@ -12,7 +11,6 @@ from saleor.graphql.payment.enums import (
     PaymentChargeStatusEnum,
     PaymentGatewayEnum,
 )
-from saleor.payment.gateways.braintree import list_client_sources
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from saleor.payment.utils import (
