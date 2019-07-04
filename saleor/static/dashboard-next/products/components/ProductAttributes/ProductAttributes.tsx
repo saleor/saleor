@@ -28,7 +28,8 @@ export interface ProductAttributeInputData {
   values: ProductDetails_product_attributes_attribute_values[];
 }
 export type ProductAttributeInput = FormsetAtomicData<
-  ProductAttributeInputData
+  ProductAttributeInputData,
+  string[]
 >;
 export interface ProductAttributesProps {
   attributes: ProductAttributeInput[];
@@ -143,13 +144,13 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                       displayValue={maybe(
                         () =>
                           attribute.data.values.find(
-                            value => value.slug === attribute.value
+                            value => value.slug === attribute.value[0]
                           ).name,
                         ""
                       )}
                       name={`attribute:${attribute.label}`}
                       label={i18n.t("Value")}
-                      value={attribute.value}
+                      value={attribute.value[0]}
                       onChange={event =>
                         onChange(attribute.id, event.target.value)
                       }
@@ -157,14 +158,7 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                   ) : (
                     <MultiAutocompleteSelectField
                       choices={getMultiChoices(attribute.data.values)}
-                      displayValues={maybe(
-                        () =>
-                          attribute.data.values.map(value => ({
-                            label: value.name,
-                            value: value.id
-                          })),
-                        []
-                      )}
+                      displayValues={attribute.value}
                       label={i18n.t("Values")}
                       name={`attribute:${attribute.label}`}
                       value={attribute.value}
