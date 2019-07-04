@@ -74,8 +74,16 @@ def test_checkout_create(api_client, variant, graphql_address_data):
     assert new_checkout.shipping_address.city == shipping_address["city"].upper()
 
 
-def test_checkout_create_cannot_add_too_many_quantities(
-    api_client, variant, graphql_address_data
+@pytest.mark.parametrize(
+    "quantity, expected_error_message",
+    (
+        (-1, "The quantity should be higher than zero."),
+        (0, "The quantity should be higher than zero."),
+        (51, "Cannot add more than 50 times this item."),
+    ),
+)
+def test_checkout_create_cannot_add_invalid_quantities(
+    api_client, variant, graphql_address_data, quantity, expected_error_message
 ):
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -83,7 +91,7 @@ def test_checkout_create_cannot_add_too_many_quantities(
     shipping_address = graphql_address_data
     variables = {
         "checkoutInput": {
-            "lines": [{"quantity": 51, "variantId": variant_id}],
+            "lines": [{"quantity": quantity, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
         }
@@ -93,7 +101,7 @@ def test_checkout_create_cannot_add_too_many_quantities(
     content = get_graphql_content(response)["data"]["checkoutCreate"]
     assert content["errors"]
     assert content["errors"] == [
-        {"field": "quantity", "message": "Cannot add more than 50 times this item."}
+        {"field": "quantity", "message": expected_error_message}
     ]
 
 
