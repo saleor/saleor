@@ -257,11 +257,11 @@ def test_authorize_error_response(
 
 @pytest.fixture
 def sandbox_braintree_gateway_config(gateway_config):
-    """ set up your environment variables to record sandbox """
+    """Set up your environment variables to record sandbox."""
     gateway_config.connection_params = {
-        "merchant_id": os.getenv("BRAINTREE_MERCHANT_ID", "9m6qhfxsqzm3cgzw"),
-        "public_key": os.getenv("BRAINTREE_PUBLIC_KEY", "fake_public_key"),
-        "private_key": os.getenv("BRAINTREE_PRIVATE_KEY", "fake_private_key"),
+        "merchant_id": "9m6qhfxsqzm3cgzw",  # CHANGE WHEN RECORDING, DO NOT COMMIT
+        "public_key": "fake_public_key",  # CHANGE WHEN RECORDING
+        "private_key": "fake_private_key",  # CHANGE WHEN RECORDING
         "sandbox_mode": True,
     }
     gateway_config.auto_capture = True
