@@ -20,7 +20,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
                         slug
                     }
                 }
-                value {
+                values {
                     id
                     name
                     slug
@@ -90,7 +90,7 @@ def test_create_variant(
                             attribute {
                                 slug
                             }
-                            value {
+                            values {
                                 slug
                             }
                         }
@@ -145,7 +145,7 @@ def test_create_variant(
     assert data["priceOverride"]["amount"] == price_override
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == variant_slug
-    assert data["attributes"][0]["value"]["slug"] == variant_value
+    assert data["attributes"][0]["values"][0]["slug"] == variant_value
     assert data["weight"]["unit"] == "kg"
     assert data["weight"]["value"] == weight
 
