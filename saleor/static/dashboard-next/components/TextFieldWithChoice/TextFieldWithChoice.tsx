@@ -78,7 +78,7 @@ const TextFieldWithChoice = withStyles(styles, {
                       <Typography component="span" variant="caption">
                         {ChoiceProps.label}
                       </Typography>
-                      <DropdownIcon />
+                      {ChoiceProps.values ? <DropdownIcon /> : null}
                     </div>
                     <Popper
                       open={menuOpen}

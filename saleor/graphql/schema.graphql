@@ -3119,7 +3119,7 @@ type VerifyToken {
 
 type Voucher implements Node {
   id: ID!
-  type: VoucherType!
+  type: VoucherTypeEnum!
   name: String
   code: String!
   usageLimit: Int
@@ -3127,7 +3127,7 @@ type Voucher implements Node {
   startDate: DateTime!
   endDate: DateTime
   applyOncePerOrder: Boolean!
-  discountValueType: VoucherDiscountValueType!
+  discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
   minAmountSpent: Money
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -3174,11 +3174,6 @@ enum VoucherDiscountType {
   SHIPPING
 }
 
-enum VoucherDiscountValueType {
-  FIXED
-  PERCENTAGE
-}
-
 input VoucherFilterInput {
   status: [DiscountStatusEnum]
   timesUsed: IntRangeInput
@@ -3201,6 +3196,7 @@ input VoucherInput {
   minAmountSpent: Decimal
   countries: [String]
   applyOncePerOrder: Boolean
+  usageLimit: Int
 }
 
 type VoucherRemoveCatalogues {
@@ -3217,15 +3213,6 @@ type VoucherTranslation implements Node {
   id: ID!
   name: String
   language: LanguageDisplay!
-}
-
-enum VoucherType {
-  ENTIRE_ORDER
-  PRODUCT
-  COLLECTION
-  CATEGORY
-  SHIPPING
-  SPECIFIC_PRODUCT
 }
 
 enum VoucherTypeEnum {
