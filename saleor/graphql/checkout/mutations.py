@@ -16,12 +16,13 @@ from ...checkout.utils import (
     change_shipping_address_in_checkout,
     clean_checkout,
     create_order,
-    get_or_create_user_checkout,
+    get_user_checkout,
     get_voucher_for_checkout,
     prepare_order_data,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
+    update_or_create_checkout_line,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
@@ -75,6 +76,10 @@ def clean_shipping_method(checkout, method, discounts, country_code=None, remove
 def check_lines_quantity(variants, quantities):
     """Check if stock is sufficient for each line in the list of dicts."""
     for variant, quantity in zip(variants, quantities):
+        if quantity < 1:
+            raise ValidationError(
+                {"quantity": "The quantity should be higher than zero."}
+            )
         if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
             raise ValidationError(
                 {
@@ -112,7 +117,7 @@ class CheckoutCreateInput(graphene.InputObjectType):
     )
     email = graphene.String(description="The customer's email address.")
     shipping_address = AddressInput(
-        description=("The mailing address to where the checkout will be shipped.")
+        description="The mailing address to where the checkout will be shipped."
     )
     billing_address = AddressInput(description="Billing address of the customer.")
 
@@ -144,7 +149,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def retrieve_shipping_address(cls, user, data: dict) -> Optional[models.Address]:
         if "shipping_address" in data:
             return cls.validate_address(data["shipping_address"])
-        elif user.is_authenticated:
+        if user.is_authenticated:
             return user.default_shipping_address
         return None
 
@@ -152,7 +157,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def retrieve_billing_address(cls, user, data: dict) -> Optional[models.Address]:
         if "billing_address" in data:
             return cls.validate_address(data["billing_address"])
-        elif user.is_authenticated:
+        if user.is_authenticated:
             return user.default_billing_address
         return None
 
@@ -179,9 +184,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
+    @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
-        # FIXME: we should add a atomic transaction here?
-
         shipping_address = cleaned_input.get("shipping_address")
         billing_address = cleaned_input.get("billing_address")
 
@@ -197,11 +201,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
-        # FIXME: move this logic out of save and then add by ignoring quantities check
+
+        # Update/create checkout lines
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
-                # FIXME: should we catch ValueError
-                add_variant_to_checkout(instance, variant, quantity)
+                update_or_create_checkout_line(instance, variant, quantity)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -210,14 +214,17 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
-            checkout, created = get_or_create_user_checkout(user)
-            # If user has an active checkout, return it without any
-            # modifications.
-            if not created:
+            checkout = get_user_checkout(user)
+
+            if checkout is not None:
+                # If user has an active checkout, return it without any
+                # modifications.
                 # FIXME: should we raise an error?
                 #        Nothing was created--which is invalid,
                 #        the user knows nothing about this.
                 return CheckoutCreate(checkout=checkout)
+
+            checkout = models.Checkout(user=user)
         else:
             checkout = models.Checkout()
 
