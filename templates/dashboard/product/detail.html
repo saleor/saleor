@@ -219,6 +219,15 @@
                       {% endif %}
                     </td>
                   </tr>
+                  <tr>
+                    <td>
+                      {% trans "Price visibility" %}
+                    </td>
+                    <td class="right-align">
+                      {{ product.get_price_visible_display }}
+                    </td>
+                  </tr>
+                  </tr>
                 </tbody>
               </table>
             </div>
