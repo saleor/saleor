@@ -1,6 +1,11 @@
 from ..celeryconf import app
+from ..discount.models import Sale
 from .models import Attribute, ProductType, ProductVariant
 from .utils.attributes import get_name_from_attributes
+from .utils.variant_prices import (
+    update_products_minimal_variant_prices,
+    update_products_minimal_variant_prices_of_discount,
+)
 
 
 def _update_variants_names(instance, saved_attributes):
@@ -31,3 +36,14 @@ def update_variants_names(product_type_pk, saved_attributes_ids):
     instance = ProductType.objects.get(pk=product_type_pk)
     saved_attributes = Attribute.objects.filter(pk__in=saved_attributes_ids)
     return _update_variants_names(instance, saved_attributes)
+
+
+@app.task
+def update_all_products_minimal_variant_prices_task():
+    update_products_minimal_variant_prices()
+
+
+@app.task
+def update_products_minimal_variant_prices_of_discount_task(discount_pk):
+    discount = Sale.objects.get(pk=discount_pk)
+    update_products_minimal_variant_prices_of_discount(discount)
