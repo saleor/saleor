@@ -12,7 +12,7 @@ from .models import Attribute, Product
 SORT_BY_FIELDS = OrderedDict(
     [
         ("name", pgettext_lazy("Product list sorting option", "name")),
-        ("price", pgettext_lazy("Product list sorting option", "price")),
+        ("minimal_variant_price", pgettext_lazy("Product list sorting option", "price")),
         ("updated_at", pgettext_lazy("Product list sorting option", "last updated")),
     ]
 )
