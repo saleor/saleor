@@ -114,3 +114,38 @@ Environment variables
   Set this to ``False`` for speedy performance, which is recommended for production.
   Every image should come with a pre-warm to ensure they're
   created and available at the appropriate URL.
+
+.. _tax_environment_variables:
+Tax variables
+^^^^^^^^^^^^^
+
+``VATLAYER_ACCESS_KEY``
+  Access key to `vatlayer API <https://vatlayer.com/>`_. Enables VAT support within European Union.
+
+  To update the tax rates run the following command at least once per day:
+
+  .. code-block:: console
+
+   $ python manage.py get_vat_rates
+
+``AVATAX_USERNAME_OR_ACCOUNT``
+  Avalara supports two ways of authentication - (``username``, ``password``) and (``account_id``, ``license``). This
+  field stores Avalara's ``username`` or Avalara's ``account``.
+
+
+``AVATAX_PASSWORD_OR_LICENSE``
+  Avalara supports two ways of authentication - (``username``, ``password``) and (``account_id``, ``license``). This
+  field stores Avalara's ``password`` or Avalara's ``license``.
+
+
+``AVATAX_USE_SANDBOX``
+  ``True`` when ```DEBUG`` is set to ``True``. Determines if Saleor should use Avatax sandbox API.
+
+
+``AVATAX_COMPANY_NAME``
+  Default "DEFAULT". Avalara needs to receive company code. Some more complicated systems can use more than one company
+  code, in that case, this variable should be changed based on data from Avalara's admin panel.
+
+
+``AVATAX_AUTOCOMMIT``
+  Default ``False``. Determines, if all transactions sent to Avalara should be committed by default.
