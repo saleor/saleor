@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop csrf token header from API client - #4357 by @dominik-zeglen
 - Improve vouchers ui - #4362 by @benekex2
 - Fix for random failing tests in test_discount - #4401 by @korycins
+- Fix internal error when users enters an invalid phone number in an address - #4404 by @NyanKiyoshi
 
 ## 2.7.0
 
