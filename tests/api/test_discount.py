@@ -901,9 +901,7 @@ def test_query_vouchers_with_filter_started(
                 name="Voucher2",
                 discount_value=123,
                 code="123",
-                start_date=timezone.now().replace(
-                    year=2012, month=1, day=5, microsecond=0
-                ),
+                start_date=timezone.now().replace(year=2012, month=1, day=5),
             ),
         ]
     )
