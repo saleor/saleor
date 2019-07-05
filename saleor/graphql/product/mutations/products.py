@@ -489,6 +489,8 @@ class ProductCreate(ModelMutation):
         price = data.get("base_price", data.get("price"))
         if price is not None:
             cleaned_input["price"] = price
+            # Set the default "minimal_variant_price" to the "price"
+            cleaned_input["minimal_variant_price"] = price
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")

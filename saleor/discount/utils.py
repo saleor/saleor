@@ -169,3 +169,7 @@ def fetch_discounts(date: datetime.date):
         )
         for sale in sales
     ]
+
+
+def fetch_active_discounts():
+    return fetch_discounts(datetime.date.today())
