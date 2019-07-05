@@ -1,7 +1,4 @@
 steps:
-  # Use Kaniko Build
-- name: "gcr.io/cloud-builders/gcloud"
-  args: ["config", "set", "builds/use_kaniko", "True"]
   # Download MM GCS Json Key
 - name: "gcr.io/cloud-builders/gsutil"
   args: ["cp", "gs://mercuriemartstorage/mercuriemartstorage.json", "."]
