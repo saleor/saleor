@@ -256,27 +256,21 @@ def get_or_create_anonymous_checkout_from_token(
 
 
 def get_user_checkout(
-    user: User, checkout_queryset=Checkout.objects.all()
-) -> Optional[Checkout]:
-    """Return an open checkout for given user or None."""
-    return checkout_queryset.filter(user=user).first()
-
-
-def get_or_create_user_checkout(
-    user: User, checkout_queryset=Checkout.objects.all()
-) -> Tuple[Checkout, bool]:
-    """Return an open checkout for given user or create a new one."""
-    defaults = {
-        "shipping_address": user.default_shipping_address,
-        "billing_address": user.default_billing_address,
-    }
-
-    checkout = get_user_checkout(user, checkout_queryset=checkout_queryset)
-
-    if checkout is None:
-        checkout = Checkout.objects.create(user=user, **defaults)
-        return checkout, True
-    return checkout, False
+    user: User, checkout_queryset=Checkout.objects.all(), auto_create=False
+) -> Tuple[Optional[Checkout], bool]:
+    """Return an active checkout for given user or None if no auto create.
+    If auto create is enabled, it will retrieve an active checkout or create it
+    (safer for concurrency).
+    """
+    if auto_create:
+        return checkout_queryset.get_or_create(
+            user=user,
+            defaults={
+                "shipping_address": user.default_shipping_address,
+                "billing_address": user.default_billing_address,
+            },
+        )
+    return checkout_queryset.filter(user=user).first(), False
 
 
 def get_anonymous_checkout_from_token(token, checkout_queryset=Checkout.objects.all()):
@@ -286,10 +280,10 @@ def get_anonymous_checkout_from_token(token, checkout_queryset=Checkout.objects.
 
 def get_or_create_checkout_from_request(
     request, checkout_queryset=Checkout.objects.all()
-):
+) -> Checkout:
     """Fetch checkout from database or create a new one based on cookie."""
     if request.user.is_authenticated:
-        return get_or_create_user_checkout(request.user, checkout_queryset)[0]
+        return get_user_checkout(request.user, checkout_queryset, auto_create=True)[0]
     token = request.get_signed_cookie(COOKIE_NAME, default=None)
     return get_or_create_anonymous_checkout_from_token(token, checkout_queryset)
 
@@ -297,7 +291,7 @@ def get_or_create_checkout_from_request(
 def get_checkout_from_request(request, checkout_queryset=Checkout.objects.all()):
     """Fetch checkout from database or return a new instance based on cookie."""
     if request.user.is_authenticated:
-        checkout = get_user_checkout(request.user, checkout_queryset)
+        checkout, _ = get_user_checkout(request.user, checkout_queryset)
         user = request.user
     else:
         token = request.get_signed_cookie(COOKIE_NAME, default=None)
