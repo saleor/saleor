@@ -17,6 +17,7 @@ from ...checkout.utils import (
     clean_checkout,
     create_order,
     get_user_checkout,
+    get_valid_shipping_methods,
     get_voucher_for_checkout,
     prepare_order_data,
     recalculate_checkout_discount,
@@ -27,13 +28,11 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.taxes.errors import TaxError
-from ...core.taxes.interface import calculate_checkout_subtotal
 from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.interface import AddressData
 from ...payment.utils import gateway_process_payment, store_customer_id
 from ...product import models as product_models
-from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
@@ -58,14 +57,15 @@ def clean_shipping_method(checkout, method, discounts, country_code=None, remove
             "shipping address."
         )
 
-    valid_methods = ShippingMethodModel.objects.applicable_shipping_methods(
-        price=calculate_checkout_subtotal(checkout, discounts).gross.amount,
-        weight=checkout.get_total_weight(),
-        country_code=country_code or checkout.shipping_address.country.code,
+    valid_methods = get_valid_shipping_methods(
+        checkout, discounts, country_code=country_code
     )
-    valid_methods = valid_methods.values_list("id", flat=True)
 
-    if method.pk not in valid_methods and not remove:
+    if (
+        valid_methods is None
+        or method.pk not in valid_methods.values_list("id", flat=True)
+        and not remove
+    ):
         raise ValidationError("Shipping method cannot be used with this checkout.")
 
     if remove:
@@ -219,9 +219,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             if checkout is not None:
                 # If user has an active checkout, return it without any
                 # modifications.
-                # FIXME: should we raise an error?
-                #        Nothing was created--which is invalid,
-                #        the user knows nothing about this.
                 return CheckoutCreate(checkout=checkout)
 
             checkout = models.Checkout(user=user)
