@@ -33,7 +33,7 @@ class ProductFilter(SortedFilterSet):
         fields=SORT_BY_FIELDS.keys(),
         field_labels=SORT_BY_FIELDS,
     )
-    price = RangeFilter(label=pgettext_lazy("Currency amount", "Price"))
+    minimal_variant_price = RangeFilter(label=pgettext_lazy("Currency amount", "Price"))
 
     class Meta:
         model = Product
