@@ -11,13 +11,18 @@ from django.db.models import Sum
 from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
-from prices import TaxedMoneyRange
+from prices import MoneyRange, TaxedMoneyRange
 
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import quantize_price, zero_money, zero_taxed_money
+from ..core.taxes import (
+    interface as tax_interface,
+    quantize_price,
+    zero_money,
+    zero_taxed_money,
+)
 from ..core.taxes.interface import (
     calculate_checkout_line_total,
     calculate_checkout_shipping,
@@ -50,7 +55,7 @@ from ..giftcard.utils import (
 from ..order import events
 from ..order.emails import send_order_confirmation
 from ..order.models import Order, OrderLine
-from ..shipping.models import ShippingMethod
+from ..shipping.utils import applicable_shipping_methods
 from . import AddressType, logger
 from .forms import (
     AddressChoiceForm,
@@ -976,20 +981,43 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
+def get_valid_shipping_methods(checkout: Checkout, discounts, country_code=None):
+    return applicable_shipping_methods(
+        checkout,
+        price=calculate_checkout_subtotal(checkout, discounts).gross.amount,
+        country_code=country_code,
+    )
+
+
 def is_valid_shipping_method(checkout, discounts):
     """Check if shipping method is valid and remove (if not)."""
     if not checkout.shipping_method:
         return False
 
-    valid_methods = ShippingMethod.objects.applicable_shipping_methods(
-        price=calculate_checkout_subtotal(checkout, discounts).gross,
-        weight=checkout.get_total_weight(),
-        country_code=checkout.shipping_address.country.code,
-    )
-    if checkout.shipping_method not in valid_methods:
+    valid_methods = get_valid_shipping_methods(checkout, discounts)
+    if valid_methods is None or checkout.shipping_method not in valid_methods:
         clear_shipping_method(checkout)
         return False
     return True
+
+
+def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
+    """Returns estimated price range for shipping for given order."""
+
+    shipping_methods = get_valid_shipping_methods(
+        checkout, discounts, country_code=country_code
+    )
+
+    if shipping_methods is None:
+        return
+
+    shipping_methods = shipping_methods.values_list("price", flat=True)
+
+    if not shipping_methods:
+        return
+
+    prices = MoneyRange(start=min(shipping_methods), stop=max(shipping_methods))
+    return tax_interface.apply_taxes_to_shipping_price_range(prices, country_code)
 
 
 def clear_shipping_method(checkout):

@@ -5,6 +5,7 @@ from graphene import relay
 
 from ...order import models
 from ...order.models import FulfillmentStatus
+from ...order.utils import get_valid_shipping_methods
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
@@ -15,7 +16,7 @@ from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
-from .utils import applicable_shipping_methods, validate_draft_order
+from .utils import validate_draft_order
 
 
 class OrderEventOrderLineObject(graphene.ObjectType):
@@ -455,7 +456,10 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Order, _info):
-        return applicable_shipping_methods(root, root.get_subtotal().gross.amount)
+        available = get_valid_shipping_methods(root)
+        if available is None:
+            return []
+        return available
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):

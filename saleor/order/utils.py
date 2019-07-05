@@ -23,6 +23,7 @@ from ..product.utils import (
     increase_stock,
 )
 from ..product.utils.digital_products import get_default_digital_content_settings
+from ..shipping.utils import applicable_shipping_methods
 from . import events
 
 
@@ -374,3 +375,7 @@ def sum_order_totals(qs):
     zero = Money(0, currency=settings.DEFAULT_CURRENCY)
     taxed_zero = TaxedMoney(zero, zero)
     return sum([order.total for order in qs], taxed_zero)
+
+
+def get_valid_shipping_methods(order: Order):
+    return applicable_shipping_methods(order, price=order.get_subtotal().gross.amount)

@@ -16,12 +16,12 @@ from saleor.checkout.utils import (
     add_variant_to_checkout,
     change_checkout_user,
     find_open_checkout_for_user,
+    get_shipping_price_estimate,
 )
 from saleor.checkout.views import clear_checkout, update_checkout_line
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount.models import Sale
 from saleor.product.models import Category
-from saleor.shipping.utils import get_shipping_price_estimate
 
 
 @pytest.fixture()
@@ -722,14 +722,16 @@ def test_update_checkout_line_qunatity_zero(
     assert data == expected_response
 
 
-def test_get_checkout_context(checkout_with_single_item, shipping_zone):
+def test_get_checkout_context(checkout_with_single_item, shipping_zone, address):
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+
     shipment_option = get_shipping_price_estimate(
-        checkout_with_single_item.get_subtotal(),
-        checkout_with_single_item.get_total_weight(),
-        "PL",
+        checkout, discounts=None, country_code="PL"
     )
     checkout_data = utils.get_checkout_context(
-        checkout_with_single_item, None, currency="USD", shipping_range=shipment_option
+        checkout, None, currency="USD", shipping_range=shipment_option
     )
     assert checkout_data["checkout_total"] == TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
@@ -739,14 +741,16 @@ def test_get_checkout_context(checkout_with_single_item, shipping_zone):
     )
 
 
-def test_get_checkout_context_no_shipping(checkout_with_single_item):
+def test_get_checkout_context_no_shipping(checkout_with_single_item, address):
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+
     shipment_option = get_shipping_price_estimate(
-        checkout_with_single_item.get_subtotal(),
-        checkout_with_single_item.get_total_weight(),
-        "PL",
+        checkout, discounts=None, country_code="PL"
     )
     checkout_data = utils.get_checkout_context(
-        checkout_with_single_item, None, currency="USD", shipping_range=shipment_option
+        checkout, None, currency="USD", shipping_range=shipment_option
     )
     checkout_total = checkout_data["checkout_total"]
     assert checkout_total == TaxedMoney(
