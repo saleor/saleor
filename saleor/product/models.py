@@ -169,6 +169,11 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
+    minimal_variant_price = MoneyField(
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
     attributes = FilterableJSONBField(
         default=dict, blank=True, validators=[validate_attribute_json]
     )
