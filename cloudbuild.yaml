@@ -1,14 +1,11 @@
 steps:
-  # Use Kaniko Build
-- name: "gcr.io/cloud-builders/gcloud"
-  args: ["config", "set", "builds/use_kaniko", "True"]
   # Download MM GCS Json Key
 - name: "gcr.io/cloud-builders/gsutil"
   args: ["cp", "gs://mercuriemartstorage/mercuriemartstorage.json", "."]
   # build & push the container image
 - name: "gcr.io/kaniko-project/executor:latest"
-  args: ["--cache=true", "--cache-ttl=6h", "--destination=gcr.io/mercuriemart/titan:latest"]
+  args: ["--cache=true", "--cache-ttl=48h", "--destination=gcr.io/mercuriemart/titan:latest"]
   # Deploy container image to Cloud Run
-- name: "gcr.io/cloud-builders/gcloud"
-  args: ["beta", "run", "deploy", "titan-master", "--image", "gcr.io/mercuriemart/titan:latest", "--region", "us-central1"]
+# - name: "gcr.io/cloud-builders/gcloud"
+#   args: ["beta", "run", "deploy", "titan-master", "--image", "gcr.io/mercuriemart/titan:latest", "--region", "us-central1"]
 timeout: 1200s
