@@ -114,6 +114,6 @@ class Command(BaseCommand):
         # domain = "{}.mercuriemart.com".format(storename)
         site =  Site.objects.get_current()
         # site.domain = domain
-        site.name = "A MercurieMart Store"
-        site.header_text = "A MercurieMart Store"
+        site.name = "MercurieMart"
+        site.header_text = "MercurieMart"
         site.save()
