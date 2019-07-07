@@ -7,6 +7,15 @@ RUN apt-get -y update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+# Copy the watchman executable binary directly from our image:
+COPY --from=elpatiostudio/watchman:latest /usr/local/bin/watchman* /usr/local/bin/
+
+# Create the watchman STATEDIR directory:
+COPY --from=elpatiostudio/watchman:latest /usr/local/var/run/watchman /usr/local/var/run/watchman
+
+# (Optional) Copy the compiled watchman documentation:
+COPY --from=elpatiostudio/watchman:latest /usr/local/share/doc/watchman* /usr/local/share/doc/
+
 # Install Python dependencies
 RUN pip install pipenv
 COPY Pipfile Pipfile.lock /app/
@@ -50,6 +59,10 @@ RUN apt-get update \
     mime-support \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+
+# Create the watchman STATEDIR directory:
+RUN mkdir -p /usr/local/var/run/watchman \
+ && touch /usr/local/var/run/watchman/.not-empty
 
 COPY . /app
 COPY --from=build-python /usr/local/lib/python3.7/site-packages/ /usr/local/lib/python3.7/site-packages/
