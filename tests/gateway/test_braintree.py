@@ -1,4 +1,3 @@
-import os
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
