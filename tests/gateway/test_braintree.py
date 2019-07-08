@@ -201,14 +201,39 @@ def test_get_client_token(mock_gateway, gateway_config):
     assert token == expected_token
 
 
+@pytest.fixture
+def gateway_config_with_store_enabled(gateway_config):
+    gateway_config.store_customer = True
+    return gateway_config
+
+
 @patch("saleor.payment.gateways.braintree.get_braintree_gateway")
-def test_get_client_token_with_customer_id(mock_gateway, gateway_config):
+def test_get_client_token_with_customer_id(
+    mock_gateway, gateway_config_with_store_enabled
+):
+    expected_token = "client-token"
+    mock_generate = Mock(return_value=expected_token)
+    mock_gateway.return_value = Mock(client_token=Mock(generate=mock_generate))
+    token = get_client_token(
+        gateway_config_with_store_enabled, TokenConfig(customer_id="1234")
+    )
+    mock_gateway.assert_called_once_with(
+        **gateway_config_with_store_enabled.connection_params
+    )
+    mock_generate.assert_called_once_with({"customer_id": "1234"})
+    assert token == expected_token
+
+
+@patch("saleor.payment.gateways.braintree.get_braintree_gateway")
+def test_get_client_token_with_no_customer_id_when_disabled(
+    mock_gateway, gateway_config
+):
     expected_token = "client-token"
     mock_generate = Mock(return_value=expected_token)
     mock_gateway.return_value = Mock(client_token=Mock(generate=mock_generate))
     token = get_client_token(gateway_config, TokenConfig(customer_id="1234"))
     mock_gateway.assert_called_once_with(**gateway_config.connection_params)
-    mock_generate.assert_called_once_with({"customer_id": "1234"})
+    mock_generate.assert_called_once_with({})
     assert token == expected_token
 
 
