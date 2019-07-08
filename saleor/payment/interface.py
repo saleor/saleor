@@ -65,6 +65,7 @@ class GatewayConfig:
     representation of config data. It is required to communicate between
     Saleor and given payment gateway."""
 
+    gateway_name: str
     auto_capture: bool
     template_path: str
     # Each gateway has different connection data so we are not able to create
