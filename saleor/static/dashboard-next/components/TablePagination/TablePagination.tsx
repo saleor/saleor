@@ -61,13 +61,13 @@ interface TablePaginationProps extends WithStyles<typeof styles> {
   backIconButtonProps?: Partial<IconButtonProps>;
   colSpan: number;
   component?: string | typeof TableCell;
-  currentRowNum: number;
+  currentRowNum?: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   nextIconButtonProps?: Partial<IconButtonProps>;
   onNextPage(event);
   onPreviousPage(event);
-  onRowNumChange(event);
+  onRowNumChange?(event);
 }
 
 const TablePagination = withStyles(styles, { name: "TablePagination" })(
@@ -96,11 +96,13 @@ const TablePagination = withStyles(styles, { name: "TablePagination" })(
       <Component className={classes.root} colSpan={colSpan} {...other}>
         <Toolbar className={classes.toolbar}>
           <div className={classes.spacer}>
-            <RowNumberSelect
-              choices={[20, 30, 50, 100]}
-              currentRowNum={currentRowNum}
-              onChange={onRowNumChange}
-            />
+            {currentRowNum && (
+              <RowNumberSelect
+                choices={[20, 30, 50, 100]}
+                currentRowNum={currentRowNum}
+                onChange={onRowNumChange}
+              />
+            )}
           </div>
           <Actions
             backIconButtonProps={backIconButtonProps}

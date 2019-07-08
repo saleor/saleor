@@ -16,8 +16,12 @@ const styles = (theme: Theme) =>
     label: {
       fontSize: "14px"
     },
+    root: {},
     select: {
       "& div": {
+        "&:focus": {
+          background: "none"
+        },
         color: theme.palette.primary.main,
         padding: "0 10px 0 5px"
       },
@@ -32,9 +36,8 @@ const styles = (theme: Theme) =>
 
 interface RowNumberSelectProps extends WithStyles<typeof styles> {
   choices: number[];
-  className: string;
+  className?: string;
   currentRowNum: number;
-  name: string;
   onChange(event: any);
 }
 
