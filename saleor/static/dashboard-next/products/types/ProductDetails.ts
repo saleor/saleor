@@ -66,7 +66,7 @@ export interface ProductDetails_product_attributes_attribute {
   values: (ProductDetails_product_attributes_attribute_values | null)[] | null;
 }
 
-export interface ProductDetails_product_attributes_value {
+export interface ProductDetails_product_attributes_values {
   __typename: "AttributeValue";
   id: string;
   name: string | null;
@@ -76,7 +76,7 @@ export interface ProductDetails_product_attributes_value {
 export interface ProductDetails_product_attributes {
   __typename: "SelectedAttribute";
   attribute: ProductDetails_product_attributes_attribute;
-  value: ProductDetails_product_attributes_value | null;
+  values: (ProductDetails_product_attributes_values | null)[];
 }
 
 export interface ProductDetails_product_pricing_priceRange_start_net {

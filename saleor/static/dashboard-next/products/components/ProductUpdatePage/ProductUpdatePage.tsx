@@ -36,7 +36,8 @@ import {
   createAttributeChangeHandler,
   createCategorySelectHandler,
   createCollectionSelectHandler,
-  AttributeValueChoice
+  AttributeValueChoice,
+  createAttributeMultiChangeHandler
 } from "../../utils/handlers";
 import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
@@ -108,20 +109,13 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   toggleAll,
   toolbar
 }) => {
-  const {
-    change: changeAttributeData,
-    data: attributes,
-    toggleItemValue: toggleAttributeValue
-  } = useFormset(getAttributeInputFromProduct(product));
+  const { change: changeAttributeData, data: attributes } = useFormset(
+    getAttributeInputFromProduct(product)
+  );
 
   const [selectedAttributes, setSelectedAttributes] = useStateFromProps<
     AttributeValueChoice[]
-  >(
-    getSelectedAttributesFromProduct(product).map(attribute => ({
-      id: attribute.id,
-      values: attribute.value
-    }))
-  );
+  >(getSelectedAttributesFromProduct(product));
 
   const [selectedCategory, setSelectedCategory] = useStateFromProps(
     maybe(() => product.category.name, "")
@@ -180,8 +174,11 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
           selectedAttributes,
           triggerChange
         );
-        const handleAttributeMultiChange = createAttributeChangeHandler(
-          toggleAttributeValue,
+        const handleAttributeMultiChange = createAttributeMultiChangeHandler(
+          changeAttributeData,
+          setSelectedAttributes,
+          selectedAttributes,
+          attributes,
           triggerChange
         );
 

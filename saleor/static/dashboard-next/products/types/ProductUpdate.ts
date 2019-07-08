@@ -72,7 +72,7 @@ export interface ProductUpdate_productUpdate_product_attributes_attribute {
   values: (ProductUpdate_productUpdate_product_attributes_attribute_values | null)[] | null;
 }
 
-export interface ProductUpdate_productUpdate_product_attributes_value {
+export interface ProductUpdate_productUpdate_product_attributes_values {
   __typename: "AttributeValue";
   id: string;
   name: string | null;
@@ -82,7 +82,7 @@ export interface ProductUpdate_productUpdate_product_attributes_value {
 export interface ProductUpdate_productUpdate_product_attributes {
   __typename: "SelectedAttribute";
   attribute: ProductUpdate_productUpdate_product_attributes_attribute;
-  value: ProductUpdate_productUpdate_product_attributes_value | null;
+  values: (ProductUpdate_productUpdate_product_attributes_values | null)[];
 }
 
 export interface ProductUpdate_productUpdate_product_pricing_priceRange_start_net {
