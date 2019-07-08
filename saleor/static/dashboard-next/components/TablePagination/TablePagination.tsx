@@ -51,8 +51,8 @@ const styles = (theme: Theme) =>
     toolbar: {
       height: 56,
       minHeight: 56,
-      paddingRight: 2,
-      paddingLeft: 2
+      paddingLeft: 2,
+      paddingRight: 2
     }
   });
 
@@ -67,7 +67,7 @@ interface TablePaginationProps extends WithStyles<typeof styles> {
   nextIconButtonProps?: Partial<IconButtonProps>;
   onNextPage(event);
   onPreviousPage(event);
-  onRowNumChange: (event: React.ChangeEvent<any>) => void;
+  onRowNumChange(event);
 }
 
 const TablePagination = withStyles(styles, { name: "TablePagination" })(

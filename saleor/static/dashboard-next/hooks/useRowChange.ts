@@ -10,8 +10,8 @@ function useRowChange() {
   }
 
   return {
-    rowNumber,
-    onRowChange
+    onRowChange,
+    rowNumber
   };
 }
 

@@ -17,18 +17,17 @@ const styles = (theme: Theme) =>
       fontSize: "14px"
     },
     select: {
-      "&:after, &:before, &:hover": {
-        border: "none !important"
-      },
       "& div": {
         color: theme.palette.primary.main,
         padding: "0 10px 0 5px"
       },
       "& svg": {
         color: theme.palette.primary.main
+      },
+      "&:after, &:before, &:hover": {
+        border: "none !important"
       }
-    },
-    ".MuiSelect-select": { padding: 0 }
+    }
   });
 
 interface RowNumberSelectProps extends WithStyles<typeof styles> {
