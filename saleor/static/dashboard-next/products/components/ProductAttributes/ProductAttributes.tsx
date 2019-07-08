@@ -80,7 +80,7 @@ function getMultiChoices(
 ): MultiAutocompleteChoiceType[] {
   return values.map(value => ({
     label: value.name,
-    value: value.slug
+    value: value.id
   }));
 }
 
@@ -89,7 +89,7 @@ function getSingleChoices(
 ): SingleAutocompleteChoiceType[] {
   return values.map(value => ({
     label: value.name,
-    value: value.slug
+    value: value.id
   }));
 }
 
@@ -144,7 +144,7 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                       displayValue={maybe(
                         () =>
                           attribute.data.values.find(
-                            value => value.slug === attribute.value[0]
+                            value => value.id === attribute.value[0]
                           ).name,
                         ""
                       )}
@@ -158,7 +158,17 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                   ) : (
                     <MultiAutocompleteSelectField
                       choices={getMultiChoices(attribute.data.values)}
-                      displayValues={attribute.value}
+                      displayValues={attribute.data.values
+                        .filter(
+                          value =>
+                            !!attribute.value.find(attributeValue =>
+                              attributeValue.includes(value.id)
+                            )
+                        )
+                        .map(value => ({
+                          label: value.name,
+                          value: value.id
+                        }))}
                       label={i18n.t("Values")}
                       name={`attribute:${attribute.label}`}
                       value={attribute.value}
