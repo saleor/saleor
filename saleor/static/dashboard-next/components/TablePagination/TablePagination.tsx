@@ -11,6 +11,7 @@ import TableCell from "@material-ui/core/TableCell";
 import Toolbar from "@material-ui/core/Toolbar";
 import React from "react";
 
+import RowNumberSelect from "@saleor/components/RowNumberSelect";
 import TablePaginationActions from "./TablePaginationActions";
 
 const styles = (theme: Theme) =>
@@ -50,7 +51,8 @@ const styles = (theme: Theme) =>
     toolbar: {
       height: 56,
       minHeight: 56,
-      paddingRight: 2
+      paddingRight: 2,
+      paddingLeft: 2
     }
   });
 
@@ -59,11 +61,13 @@ interface TablePaginationProps extends WithStyles<typeof styles> {
   backIconButtonProps?: Partial<IconButtonProps>;
   colSpan: number;
   component?: string | typeof TableCell;
+  currentRowNum: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   nextIconButtonProps?: Partial<IconButtonProps>;
   onNextPage(event);
   onPreviousPage(event);
+  onRowNumChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const TablePagination = withStyles(styles, { name: "TablePagination" })(
@@ -73,11 +77,13 @@ const TablePagination = withStyles(styles, { name: "TablePagination" })(
     classes,
     colSpan: colSpanProp,
     component: Component,
+    currentRowNum,
     hasNextPage,
     hasPreviousPage,
     nextIconButtonProps,
     onNextPage,
     onPreviousPage,
+    onRowNumChange,
     ...other
   }: TablePaginationProps) => {
     let colSpan;
@@ -89,7 +95,13 @@ const TablePagination = withStyles(styles, { name: "TablePagination" })(
     return (
       <Component className={classes.root} colSpan={colSpan} {...other}>
         <Toolbar className={classes.toolbar}>
-          <div className={classes.spacer} />
+          <div className={classes.spacer}>
+            <RowNumberSelect
+              choices={[20, 30, 50, 100]}
+              currentRowNum={currentRowNum}
+              onChange={onRowNumChange}
+            />
+          </div>
           <Actions
             backIconButtonProps={backIconButtonProps}
             hasNextPage={hasNextPage}

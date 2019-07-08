@@ -16,6 +16,7 @@ export interface ProductListCardProps
   extends PageListProps,
     ListActions,
     FilterPageProps<ProductListUrlFilters> {
+  currentRowNum: number;
   currencySymbol: string;
   products: CategoryDetails_category_products_edges_node[];
 }
@@ -36,33 +37,35 @@ export const ProductListCard: React.StatelessComponent<
   onTabChange,
   onFilterDelete,
   ...listProps
-}) => (
-  <Container>
-    <PageHeader title={i18n.t("Products")}>
-      <Button onClick={onAdd} color="primary" variant="contained">
-        {i18n.t("Add product")} <AddIcon />
-      </Button>
-    </PageHeader>
-    <Card>
-      <ProductListFilter
-        allTabLabel={i18n.t("All Products")}
-        currencySymbol={currencySymbol}
-        currentTab={currentTab}
-        filterLabel={i18n.t("Select all products where:")}
-        filterTabs={filterTabs}
-        filtersList={filtersList}
-        initialSearch={initialSearch}
-        searchPlaceholder={i18n.t("Search Products...")}
-        onAll={onAll}
-        onSearchChange={onSearchChange}
-        onFilterAdd={onFilterAdd}
-        onFilterSave={onFilterSave}
-        onTabChange={onTabChange}
-        onFilterDelete={onFilterDelete}
-      />
-      <ProductList {...listProps} />
-    </Card>
-  </Container>
-);
+}) => {
+  return (
+    <Container>
+      <PageHeader title={i18n.t("Products")}>
+        <Button onClick={onAdd} color="primary" variant="contained">
+          {i18n.t("Add product")} <AddIcon />
+        </Button>
+      </PageHeader>
+      <Card>
+        <ProductListFilter
+          allTabLabel={i18n.t("All Products")}
+          currencySymbol={currencySymbol}
+          currentTab={currentTab}
+          filterLabel={i18n.t("Select all products where:")}
+          filterTabs={filterTabs}
+          filtersList={filtersList}
+          initialSearch={initialSearch}
+          searchPlaceholder={i18n.t("Search Products...")}
+          onAll={onAll}
+          onSearchChange={onSearchChange}
+          onFilterAdd={onFilterAdd}
+          onFilterSave={onFilterSave}
+          onTabChange={onTabChange}
+          onFilterDelete={onFilterDelete}
+        />
+        <ProductList {...listProps} />
+      </Card>
+    </Container>
+  );
+};
 ProductListCard.displayName = "ProductListCard";
 export default ProductListCard;

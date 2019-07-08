@@ -16,6 +16,7 @@ import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
+import useRowChange from "@saleor/hooks/useRowChange";
 import useShop from "@saleor/hooks/useShop";
 import { PAGINATE_BY } from "../../../config";
 import i18n from "../../../i18n";
@@ -62,6 +63,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
+  const { rowNumber, onRowChange } = useRowChange();
 
   const tabs = getFilterTabs();
 
@@ -128,14 +130,14 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     handleTabChange(tabs.length + 1);
   };
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(rowNumber, params);
   const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
   const queryVariables = React.useMemo(
     () => ({
       ...paginationState,
       filter: getFilterVariables(params)
     }),
-    [params]
+    [params, rowNumber]
   );
 
   return (
@@ -196,6 +198,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                       <ProductListCard
                         currencySymbol={currencySymbol}
                         currentTab={currentTab}
+                        currentRowNum={rowNumber}
                         filtersList={createFilterChips(
                           params,
                           {
@@ -211,6 +214,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         )}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
+                        onRowNumChange={onRowChange}
                         pageInfo={pageInfo}
                         onRowClick={id => () => navigate(productUrl(id))}
                         onAll={() =>
