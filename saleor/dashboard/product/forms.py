@@ -7,11 +7,10 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
-from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
 
-from ...core import TaxRateType
-from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
+from ...core.taxes import include_taxes_in_prices
+from ...core.taxes.interface import get_tax_from_object_meta, get_tax_rate_type_choices
 from ...core.weight import WeightField
 from ...product.models import (
     Attribute,
@@ -67,17 +66,6 @@ class ProductTypeSelectorForm(forms.Form):
     )
 
 
-def get_tax_rate_type_choices():
-    rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME]
-    translations = dict(TaxRateType.CHOICES)
-    choices = [
-        (rate_name, translations.get(rate_name, "---------"))
-        for rate_name in rate_types
-    ]
-    # sort choices alphabetically by translations
-    return sorted(choices, key=lambda x: x[1])
-
-
 class ProductTypeForm(forms.ModelForm):
     tax_rate = forms.ChoiceField(
         required=False, label=pgettext_lazy("Product type tax rate type", "Tax rate")
@@ -118,7 +106,9 @@ class ProductTypeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["tax_rate"].choices = get_tax_rate_type_choices()
+        self.fields["tax_rate"].choices = [
+            (tax.code, tax.description) for tax in get_tax_rate_type_choices()
+        ]
         unassigned_attrs_q = Q(
             product_type__isnull=True, product_variant_type__isnull=True
         )
@@ -288,7 +278,10 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         product_type = self.instance.product_type
-        self.initial["tax_rate"] = self.instance.tax_rate or product_type.tax_rate
+        product_tax_rate = get_tax_from_object_meta(self.instance).code
+        self.initial["tax_rate"] = (
+            product_tax_rate or get_tax_from_object_meta(product_type).code
+        )
         self.available_attributes = product_type.product_attributes.prefetch_related(
             "values"
         ).all()
@@ -305,7 +298,9 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         self.fields["seo_title"] = SeoTitleField(
             extra_attrs={"data-bind": self["name"].auto_id}
         )
-        self.fields["tax_rate"].choices = get_tax_rate_type_choices()
+        self.fields["tax_rate"].choices = [
+            (tax.code, tax.description) for tax in get_tax_rate_type_choices()
+        ]
         if include_taxes_in_prices():
             self.fields["price"].label = pgettext_lazy(
                 "Currency gross amount", "Gross price"

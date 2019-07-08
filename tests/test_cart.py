@@ -19,7 +19,6 @@ from saleor.checkout.utils import (
 )
 from saleor.checkout.views import clear_checkout, update_checkout_line
 from saleor.core.exceptions import InsufficientStock
-from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
 from saleor.product.models import Category
 from saleor.shipping.utils import get_shipping_price_estimate
@@ -44,14 +43,6 @@ def checkout_request_factory(rf, monkeypatch):
 @pytest.fixture()
 def anonymous_checkout(db):
     return Checkout.objects.get_or_create(user=None)[0]
-
-
-@pytest.fixture()
-def local_currency(monkeypatch):
-    def side_effect(price, currency):
-        return price
-
-    monkeypatch.setattr("saleor.checkout.views.to_local_currency", side_effect)
 
 
 def test_get_or_create_anonymous_checkout_from_token(anonymous_checkout, user_checkout):
@@ -257,14 +248,14 @@ def test_adding_zero_quantity(checkout, product):
     assert len(checkout) == 0
 
 
-def test_adding_same_variant(checkout, product, taxes):
+def test_adding_same_variant(checkout, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 1)
     add_variant_to_checkout(checkout, variant, 2)
     assert len(checkout) == 1
     assert checkout.quantity == 3
-    checkout_total = TaxedMoney(net=Money("24.39", "USD"), gross=Money(30, "USD"))
-    assert checkout.get_subtotal(taxes=taxes) == checkout_total
+    subtotal = Money("30.00", "USD")
+    assert checkout.get_subtotal() == subtotal
 
 
 def test_replacing_same_variant(checkout, product):
@@ -547,49 +538,24 @@ def test_view_empty_checkout(client, request_checkout):
     assert response.status_code == 200
 
 
-def test_view_checkout_without_taxes(client, request_checkout_with_item):
+def test_view_checkout(client, request_checkout_with_item):
     response = client.get(reverse("checkout:index"))
     response_checkout_line = response.context[0]["checkout_lines"][0]
     checkout_line = request_checkout_with_item.lines.first()
+    assert response.status_code == 200
     assert not response_checkout_line["get_total"].tax.amount
-    assert response_checkout_line["get_total"] == checkout_line.get_total()
-    assert response.status_code == 200
+    total = checkout_line.get_total()
+    assert response_checkout_line["get_total"] == TaxedMoney(total, total)
 
 
-def test_view_checkout_with_taxes(
-    settings, client, request_checkout_with_item, vatlayer
-):
-    settings.DEFAULT_COUNTRY = "PL"
-    response = client.get(reverse("checkout:index"))
-    response_checkout_line = response.context[0]["checkout_lines"][0]
-    checkout_line = request_checkout_with_item.lines.first()
-    assert response_checkout_line["get_total"].tax.amount
-    assert response_checkout_line["get_total"] == checkout_line.get_total(
-        taxes=vatlayer
+def test_view_update_checkout_quantity(client, request_checkout_with_item, monkeypatch):
+    monkeypatch.setattr(
+        "saleor.checkout.views.to_local_currency", lambda price, currency: price
     )
-    assert response.status_code == 200
-
-
-def test_view_update_checkout_quantity(
-    client, local_currency, request_checkout_with_item
-):
     variant = request_checkout_with_item.lines.get().variant
     response = client.post(
         reverse("checkout:update-line", kwargs={"variant_id": variant.pk}),
         data={"quantity": 3},
-        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-    )
-    assert response.status_code == 200
-    assert request_checkout_with_item.quantity == 3
-
-
-def test_view_update_checkout_quantity_with_taxes(
-    client, local_currency, request_checkout_with_item, vatlayer
-):
-    variant = request_checkout_with_item.lines.get().variant
-    response = client.post(
-        reverse("checkout:update-line", kwargs={"variant_id": variant.id}),
-        {"quantity": 3},
         HTTP_X_REQUESTED_WITH="XMLHttpRequest",
     )
     assert response.status_code == 200
@@ -609,7 +575,7 @@ def test_view_invalid_update_checkout(client, request_checkout_with_item):
     assert request_checkout_with_item.quantity == 1
 
 
-def test_view_invalid_variant_update_checkout(client, request_checkout_with_item):
+def test_view_invalid_variant_update_checkout(client, checkout_with_single_item):
     response = client.post(
         reverse("checkout:update-line", kwargs={"variant_id": "123"}),
         data={},
@@ -619,7 +585,7 @@ def test_view_invalid_variant_update_checkout(client, request_checkout_with_item
 
 
 def test_checkout_page_without_openexchagerates(
-    client, request_checkout_with_item, settings
+    client, checkout_with_single_item, settings
 ):
     settings.OPENEXCHANGERATES_API_KEY = None
     response = client.get(reverse("checkout:index"))
@@ -628,7 +594,7 @@ def test_checkout_page_without_openexchagerates(
 
 
 def test_checkout_page_with_openexchagerates(
-    client, monkeypatch, request_checkout_with_item, settings
+    client, monkeypatch, checkout_with_single_item, settings
 ):
     settings.DEFAULT_COUNTRY = "PL"
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
@@ -644,14 +610,14 @@ def test_checkout_page_with_openexchagerates(
     assert context["local_checkout_total"].currency == "PLN"
 
 
-def test_checkout_summary_page(settings, client, request_checkout_with_item, vatlayer):
+def test_checkout_summary_page(settings, client, request_checkout_with_item):
     settings.DEFAULT_COUNTRY = "PL"
     response = client.get(reverse("checkout:dropdown"))
     assert response.status_code == 200
     content = response.context
     assert content["quantity"] == request_checkout_with_item.quantity
-    checkout_total = request_checkout_with_item.get_subtotal(taxes=vatlayer)
-    assert content["total"] == checkout_total
+    checkout_total = request_checkout_with_item.get_subtotal()
+    assert content["total"] == TaxedMoney(checkout_total, checkout_total)
     assert len(content["lines"]) == 1
     checkout_line = content["lines"][0]
     variant = request_checkout_with_item.lines.get().variant
@@ -664,15 +630,6 @@ def test_checkout_summary_page_empty_checkout(client, request_checkout):
     assert response.status_code == 200
     data = response.context
     assert data["quantity"] == 0
-
-
-def test_checkout_line_total_with_discount_and_taxes(
-    discount_info, request_checkout_with_item, taxes
-):
-    line = request_checkout_with_item.lines.first()
-    assert line.get_total(discounts=[discount_info], taxes=taxes) == TaxedMoney(
-        net=Money("4.07", "USD"), gross=Money("5.00", "USD")
-    )
 
 
 def test_find_open_checkout_for_user(customer_user, user_checkout):
@@ -692,11 +649,6 @@ def test_checkout_repr():
     assert repr(checkout) == "Checkout(quantity=1)"
 
 
-def test_checkout_get_total_empty(db):
-    checkout = Checkout.objects.create()
-    assert checkout.get_subtotal() == ZERO_TAXED_MONEY
-
-
 def test_checkout_change_user(customer_user):
     checkout1 = Checkout.objects.create()
     change_checkout_user(checkout1, customer_user)
@@ -707,18 +659,18 @@ def test_checkout_change_user(customer_user):
     assert not Checkout.objects.filter(pk=checkout1.pk).exists()
 
 
-def test_checkout_line_repr(product, request_checkout_with_item):
+def test_checkout_line_repr(product, checkout_with_single_item):
     variant = product.variants.get()
-    line = request_checkout_with_item.lines.first()
+    line = checkout_with_single_item.lines.first()
     assert repr(line) == "CheckoutLine(variant=%r, quantity=%r)" % (
         variant,
         line.quantity,
     )
 
 
-def test_checkout_line_state(product, request_checkout_with_item):
+def test_checkout_line_state(product, checkout_with_single_item):
     variant = product.variants.get()
-    line = request_checkout_with_item.lines.first()
+    line = checkout_with_single_item.lines.first()
 
     assert line.__getstate__() == (variant, line.quantity)
 
@@ -771,53 +723,37 @@ def test_update_checkout_line_qunatity_zero(
     assert data == expected_response
 
 
-def test_get_checkout_context(request_checkout_with_item, shipping_zone, vatlayer):
-    checkout = request_checkout_with_item
+def test_get_checkout_context(checkout_with_single_item, shipping_zone):
     shipment_option = get_shipping_price_estimate(
-        checkout.get_subtotal().gross, checkout.get_total_weight(), "PL", vatlayer
+        checkout_with_single_item.get_subtotal(),
+        checkout_with_single_item.get_total_weight(),
+        "PL",
     )
     checkout_data = utils.get_checkout_context(
-        checkout, None, vatlayer, currency="USD", shipping_range=shipment_option
+        checkout_with_single_item, None, currency="USD", shipping_range=shipment_option
     )
     assert checkout_data["checkout_total"] == TaxedMoney(
-        net=Money("8.13", "USD"), gross=Money(10, "USD")
+        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
     assert checkout_data["total_with_shipping"].start == TaxedMoney(
-        net=Money("16.26", "USD"), gross=Money(20, "USD")
+        net=Money("20.00", "USD"), gross=Money("20.00", "USD")
     )
 
 
-def test_get_checkout_context_no_shipping(request_checkout_with_item, vatlayer):
-    checkout = request_checkout_with_item
+def test_get_checkout_context_no_shipping(checkout_with_single_item):
     shipment_option = get_shipping_price_estimate(
-        checkout.get_subtotal().gross, checkout.get_total_weight(), "PL", vatlayer
+        checkout_with_single_item.get_subtotal(),
+        checkout_with_single_item.get_total_weight(),
+        "PL",
     )
     checkout_data = utils.get_checkout_context(
-        checkout, None, vatlayer, currency="USD", shipping_range=shipment_option
+        checkout_with_single_item, None, currency="USD", shipping_range=shipment_option
     )
     checkout_total = checkout_data["checkout_total"]
     assert checkout_total == TaxedMoney(
-        net=Money("8.13", "USD"), gross=Money(10, "USD")
+        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
     assert checkout_data["total_with_shipping"].start == checkout_total
-
-
-def test_checkout_total_with_discount(
-    request_checkout_with_item, discount_info, vatlayer
-):
-    total = request_checkout_with_item.get_total(
-        discounts=[discount_info], taxes=vatlayer
-    )
-    assert total == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
-
-
-def test_checkout_taxes(request_checkout_with_item, shipping_zone, vatlayer):
-    checkout = request_checkout_with_item
-    checkout.shipping_method = shipping_zone.shipping_methods.get()
-    checkout.save()
-    taxed_price = TaxedMoney(net=Money("8.13", "USD"), gross=Money(10, "USD"))
-    assert checkout.get_shipping_price(taxes=vatlayer) == taxed_price
-    assert checkout.get_subtotal(taxes=vatlayer) == taxed_price
 
 
 def test_clear_checkout_must_be_ajax(rf, customer_user):
@@ -829,12 +765,11 @@ def test_clear_checkout_must_be_ajax(rf, customer_user):
 
 
 def test_clear_checkout(request_checkout_with_item, client):
-    checkout = request_checkout_with_item
     response = client.post(
         reverse("checkout:clear"), data={}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
     )
     assert response.status_code == 200
-    assert len(checkout.lines.all()) == 0
+    assert len(request_checkout_with_item.lines.all()) == 0
 
 
 def test_get_total_weight(checkout_with_item):

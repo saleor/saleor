@@ -1,6 +1,7 @@
 import pytest
 from django.conf import settings
 from graphene import Node
+from prices import TaxedMoney
 
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.payment import ChargeStatus, TransactionKind
@@ -39,10 +40,12 @@ def checkout_with_billing_address(checkout_with_shipping_method, address):
 def checkout_with_charged_payment(checkout_with_billing_address):
     checkout = checkout_with_billing_address
 
+    total = checkout.get_total()
+    taxed_total = TaxedMoney(total, total)
     payment = Payment.objects.create(
         gateway=settings.DUMMY,
         is_active=True,
-        total=checkout.get_total().gross.amount,
+        total=taxed_total.gross.amount,
         currency="USD",
     )
 

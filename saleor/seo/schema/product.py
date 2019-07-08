@@ -48,7 +48,7 @@ def variant_json_ld(price, variant, in_stock):
         "@type": "Offer",
         "itemCondition": "http://schema.org/NewCondition",
         "priceCurrency": price.currency,
-        "price": price.net.amount,
+        "price": price.amount,
         "sku": variant.sku,
     }
     if in_stock:

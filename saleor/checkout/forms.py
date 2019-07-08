@@ -8,11 +8,12 @@ from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import npgettext_lazy, pgettext_lazy
-from django_countries.fields import LazyTypedChoiceField
+from django_countries.fields import Country, LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
+from ..core.taxes import display_gross_prices
+from ..core.taxes.interface import apply_taxes_to_shipping, calculate_checkout_subtotal
 from ..core.utils import format_money
-from ..core.utils.taxes import display_gross_prices, get_taxed_shipping_price
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod, ShippingZone
 from ..shipping.utils import get_shipping_price_estimate
@@ -69,7 +70,8 @@ class AddToCheckoutForm(forms.Form):
         self.checkout = kwargs.pop("checkout")
         self.product = kwargs.pop("product")
         self.discounts = kwargs.pop("discounts", ())
-        self.taxes = kwargs.pop("taxes", {})
+        self.country = kwargs.pop("country", {})
+        self.taxes = kwargs.pop("taxes", None)
         super().__init__(*args, **kwargs)
 
     def add_error_i18n(self, field, error_name, fmt: Any = tuple()):
@@ -188,7 +190,6 @@ class CountryForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        self.taxes = kwargs.pop("taxes", {})
         super().__init__(*args, **kwargs)
         available_countries = {
             (country.code, country.name)
@@ -203,8 +204,10 @@ class CountryForm(forms.Form):
         """Return a shipping price range for given order for the selected
         country.
         """
-        code = self.cleaned_data["country"]
-        return get_shipping_price_estimate(price, weight, code, self.taxes)
+        country = self.cleaned_data["country"]
+        if isinstance(country, str):
+            country = Country(country)
+        return get_shipping_price_estimate(price, weight, country)
 
 
 class AnonymousUserShippingForm(forms.ModelForm):
@@ -289,16 +292,17 @@ class ShippingMethodChoiceField(forms.ModelChoiceField):
     prices.
     """
 
-    taxes = None
+    shipping_address = None
     widget = forms.RadioSelect()
 
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
-        price = get_taxed_shipping_price(obj.price, self.taxes)
         if display_gross_prices():
-            price = price.gross
+            price = apply_taxes_to_shipping(
+                obj.price, shipping_address=self.shipping_address
+            ).gross
         else:
-            price = price.net
+            price = obj.price
         price_html = format_money(price)
         label = mark_safe("%s %s" % (obj.name, price_html))
         return label
@@ -317,16 +321,16 @@ class CheckoutShippingMethodForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         discounts = kwargs.pop("discounts")
-        taxes = kwargs.pop("taxes")
         super().__init__(*args, **kwargs)
-        country_code = self.instance.shipping_address.country.code
+        shipping_address = self.instance.shipping_address
+        country_code = shipping_address.country.code
         qs = ShippingMethod.objects.applicable_shipping_methods(
-            price=self.instance.get_subtotal(discounts, taxes).gross,
+            price=calculate_checkout_subtotal(self.instance, discounts).gross,
             weight=self.instance.get_total_weight(),
             country_code=country_code,
         )
         self.fields["shipping_method"].queryset = qs
-        self.fields["shipping_method"].taxes = taxes
+        self.fields["shipping_method"].shipping_address = shipping_address
 
         if self.initial.get("shipping_method") is None:
             shipping_methods = qs.all()

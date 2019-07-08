@@ -102,7 +102,7 @@
       "name": "Paint",
       "has_variants": true,
       "is_shipping_required": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -113,7 +113,7 @@
       "name": "Music",
       "has_variants": true,
       "is_shipping_required": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.2 kg"
     }
   },
@@ -124,7 +124,7 @@
       "name": "Juice",
       "has_variants": true,
       "is_shipping_required": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -135,7 +135,7 @@
       "name": "Wine",
       "has_variants": false,
       "is_shipping_required": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -146,7 +146,7 @@
       "name": "Beer",
       "has_variants": false,
       "is_shipping_required": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -157,7 +157,7 @@
       "name": "Cushion",
       "has_variants": true,
       "is_shipping_required": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.5 kg"
     }
   },
@@ -168,7 +168,7 @@
       "name": "Shoe",
       "has_variants": true,
       "is_shipping_required": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -179,7 +179,7 @@
       "name": "Top (clothing)",
       "has_variants": true,
       "is_shipping_required": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -213,7 +213,7 @@
       "attributes": "{}",
       "updated_at": "2019-03-06T12:47:35.666Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -247,7 +247,7 @@
       "attributes": "{}",
       "updated_at": "2019-03-06T12:47:35.878Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -281,7 +281,7 @@
       "attributes": "{}",
       "updated_at": "2019-03-06T12:47:36.096Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -315,7 +315,7 @@
       "attributes": "{}",
       "updated_at": "2019-03-06T12:47:36.309Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -349,7 +349,7 @@
       "attributes": "{}",
       "updated_at": "2019-03-06T12:47:36.514Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -383,7 +383,7 @@
       "attributes": "{\"16\": \"49\"}",
       "updated_at": "2019-03-06T12:47:36.727Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -417,7 +417,7 @@
       "attributes": "{\"16\": \"3\"}",
       "updated_at": "2019-03-06T12:47:36.885Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -451,7 +451,7 @@
       "attributes": "{\"16\": \"52\"}",
       "updated_at": "2019-03-06T12:47:37.040Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -485,7 +485,7 @@
       "attributes": "{\"16\": \"50\"}",
       "updated_at": "2019-03-06T12:47:37.201Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -519,7 +519,7 @@
       "attributes": "{\"16\": \"1\"}",
       "updated_at": "2019-03-06T12:47:37.363Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -553,7 +553,7 @@
       "attributes": "{\"16\": \"2\"}",
       "updated_at": "2019-03-06T12:47:37.517Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -587,7 +587,7 @@
       "attributes": "{\"16\": \"54\"}",
       "updated_at": "2019-03-06T12:47:37.679Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -621,7 +621,7 @@
       "attributes": "{\"16\": \"53\"}",
       "updated_at": "2019-03-06T12:47:37.844Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -655,7 +655,7 @@
       "attributes": "{\"16\": \"51\"}",
       "updated_at": "2019-03-06T12:47:38.007Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -689,7 +689,7 @@
       "attributes": "{\"20\": \"67\"}",
       "updated_at": "2019-03-06T12:47:38.171Z",
       "charge_taxes": true,
-      "tax_rate": "",
+      "meta": {"taxes":{"vatlayer": {"code": "", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -723,7 +723,7 @@
       "attributes": "{\"20\": \"67\"}",
       "updated_at": "2019-03-06T12:47:38.362Z",
       "charge_taxes": true,
-      "tax_rate": "",
+      "meta": {"taxes":{"vatlayer": {"code": "", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -757,7 +757,7 @@
       "attributes": "{\"15\": \"46\", \"21\": \"68\"}",
       "updated_at": "2019-03-06T12:47:38.530Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -791,7 +791,7 @@
       "attributes": "{\"15\": \"46\", \"21\": \"69\"}",
       "updated_at": "2019-03-06T12:47:38.875Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -825,7 +825,7 @@
       "attributes": "{\"23\": \"72\"}",
       "updated_at": "2019-03-06T12:47:39.256Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -859,7 +859,7 @@
       "attributes": "{\"23\": \"72\"}",
       "updated_at": "2019-03-06T12:47:39.501Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -893,7 +893,7 @@
       "attributes": "{}",
       "updated_at": "2019-03-06T12:47:39.769Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -927,7 +927,7 @@
       "attributes": "{}",
       "updated_at": "2019-03-06T12:47:40.537Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "1.0 kg"
     }
   },
@@ -961,7 +961,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:41.280Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -995,7 +995,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:41.681Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1029,7 +1029,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:41.972Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1063,7 +1063,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:42.283Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1097,7 +1097,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:42.524Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1131,7 +1131,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:42.771Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1165,7 +1165,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:43.640Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1199,7 +1199,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:44.067Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1233,7 +1233,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:44.582Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1267,7 +1267,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:45.080Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1301,7 +1301,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:45.376Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1335,7 +1335,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:45.669Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },
@@ -1369,7 +1369,7 @@
       "attributes": "{\"25\": \"82\"}",
       "updated_at": "2019-03-06T12:47:45.937Z",
       "charge_taxes": true,
-      "tax_rate": "standard",
+      "meta": {"taxes":{"vatlayer": {"code": "standard", "description": ""}}},
       "weight": "0.0 kg"
     }
   },

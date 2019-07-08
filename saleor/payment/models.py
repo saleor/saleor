@@ -9,7 +9,7 @@ from django.db import models
 from prices import Money
 
 from ..checkout.models import Checkout
-from ..core.utils.taxes import zero_money
+from ..core.taxes import zero_money
 from ..order.models import Order
 from . import (
     ChargeStatus,

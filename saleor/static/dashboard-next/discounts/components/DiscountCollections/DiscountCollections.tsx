@@ -71,9 +71,7 @@ const DiscountCollections = withStyles(styles, {
   }: DiscountCollectionsProps & WithStyles<typeof styles>) => (
     <Card>
       <CardTitle
-        title={i18n.t("Collections assigned to {{ saleName }}", {
-          saleName: maybe(() => sale.name)
-        })}
+        title={i18n.t("Eligible Collections")}
         toolbar={
           <Button color="primary" onClick={onCollectionAssign}>
             {i18n.t("Assign collections")}

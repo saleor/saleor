@@ -6,9 +6,10 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
+from prices import Money, TaxedMoney
 
 from saleor.account.models import CustomerEvent
-from saleor.core.utils.taxes import ZERO_TAXED_MONEY
+from saleor.core.taxes import zero_taxed_money
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
@@ -184,8 +185,10 @@ def test_order_query(
     assert order_data["paymentStatusDisplay"] == payment_status_display
     assert order_data["isPaid"] == order.is_fully_paid()
     assert order_data["userEmail"] == order.user_email
-    expected_price = order_data["shippingPrice"]["gross"]["amount"]
-    assert expected_price == order.shipping_price.gross.amount
+    expected_price = Money(
+        amount=str(order_data["shippingPrice"]["gross"]["amount"]), currency="USD"
+    )
+    assert expected_price == order.shipping_price.gross
     assert len(order_data["lines"]) == order.lines.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data["fulfillments"][0]["fulfillmentOrder"]
@@ -414,7 +417,7 @@ def test_payment_information_order_events_query(
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
 
     assert data["message"] is None
-    assert data["amount"] == amount
+    assert Money(str(data["amount"]), "USD") == order.total.gross
     assert data["emailType"] is None
     assert data["quantity"] is None
     assert data["composedId"] is None
@@ -1679,7 +1682,8 @@ def test_order_update_shipping(
     assert data["order"]["id"] == order_id
 
     order.refresh_from_db()
-    shipping_price = shipping_method.get_total()
+    shipping_total = shipping_method.get_total()
+    shipping_price = TaxedMoney(shipping_total, shipping_total)
     assert order.shipping_method == shipping_method
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
@@ -1690,7 +1694,9 @@ def test_order_update_shipping_clear_shipping_method(
     staff_api_client, permission_manage_orders, order, staff_user, shipping_method
 ):
     order.shipping_method = shipping_method
-    order.shipping_price = shipping_method.get_total()
+    shipping_total = shipping_method.get_total()
+    shipping_price = TaxedMoney(shipping_total, shipping_total)
+    order.shipping_price = shipping_price
     order.shipping_method_name = "Example shipping"
     order.save()
 
@@ -1706,7 +1712,7 @@ def test_order_update_shipping_clear_shipping_method(
 
     order.refresh_from_db()
     assert order.shipping_method is None
-    assert order.shipping_price == ZERO_TAXED_MONEY
+    assert order.shipping_price == zero_taxed_money()
     assert order.shipping_method_name is None
 
 
@@ -1795,7 +1801,7 @@ def test_draft_order_clear_shipping_method(
     assert data["order"]["id"] == order_id
     draft_order.refresh_from_db()
     assert draft_order.shipping_method is None
-    assert draft_order.shipping_price == ZERO_TAXED_MONEY
+    assert draft_order.shipping_price == zero_taxed_money()
     assert draft_order.shipping_method_name is None
 
 
@@ -1819,10 +1825,8 @@ def test_orders_total(staff_api_client, permission_manage_orders, order_with_lin
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert (
-        content["data"]["ordersTotal"]["gross"]["amount"]
-        == order_with_lines.total.gross.amount
-    )
+    amount = str(content["data"]["ordersTotal"]["gross"]["amount"])
+    assert Money(amount, "USD") == order_with_lines.total.gross
 
 
 def test_order_by_token_query(api_client, order):

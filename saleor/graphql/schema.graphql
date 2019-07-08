@@ -1506,6 +1506,7 @@ type Mutations {
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
   shopFetchTaxRates: ShopFetchTaxRates
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
+  shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -2139,7 +2140,8 @@ type Product implements Node {
   isAvailable: Boolean
   basePrice: Money
   price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
-  taxRate: TaxRateType
+  taxRate: TaxRateType @deprecated(reason: "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway")
+  taxType: TaxType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
   margin: Margin
@@ -2190,6 +2192,7 @@ input ProductCreateInput {
   price: Decimal
   basePrice: Decimal
   taxRate: TaxRateType
+  taxCode: String
   seo: SeoInput
   weight: WeightScalar
   sku: String
@@ -2273,6 +2276,7 @@ input ProductInput {
   price: Decimal
   basePrice: Decimal
   taxRate: TaxRateType
+  taxCode: String
   seo: SeoInput
   weight: WeightScalar
   sku: String
@@ -2379,6 +2383,7 @@ input ProductTypeInput {
   isDigital: Boolean
   weight: WeightScalar
   taxRate: TaxRateType
+  taxCode: String
 }
 
 type ProductTypeUpdate {
@@ -2519,6 +2524,7 @@ type Query {
   sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
   vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
@@ -2787,6 +2793,12 @@ type Shop {
   automaticFulfillmentDigitalProducts: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
+  companyAddress: Address
+}
+
+type ShopAddressUpdate {
+  errors: [Error!]
+  shop: Shop
 }
 
 type ShopDomainUpdate {
@@ -2919,6 +2931,11 @@ enum TaxRateType {
   STANDARD
   WATER
   WINE
+}
+
+type TaxType {
+  description: String
+  taxCode: String
 }
 
 type TaxedMoney {
@@ -3103,7 +3120,7 @@ type VerifyToken {
 
 type Voucher implements Node {
   id: ID!
-  type: VoucherType!
+  type: VoucherTypeEnum!
   name: String
   code: String!
   usageLimit: Int
@@ -3111,7 +3128,7 @@ type Voucher implements Node {
   startDate: DateTime!
   endDate: DateTime
   applyOncePerOrder: Boolean!
-  discountValueType: VoucherDiscountValueType!
+  discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
   minAmountSpent: Money
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -3158,11 +3175,6 @@ enum VoucherDiscountType {
   SHIPPING
 }
 
-enum VoucherDiscountValueType {
-  FIXED
-  PERCENTAGE
-}
-
 input VoucherFilterInput {
   status: [DiscountStatusEnum]
   timesUsed: IntRangeInput
@@ -3185,6 +3197,7 @@ input VoucherInput {
   minAmountSpent: Decimal
   countries: [String]
   applyOncePerOrder: Boolean
+  usageLimit: Int
 }
 
 type VoucherRemoveCatalogues {
@@ -3201,15 +3214,6 @@ type VoucherTranslation implements Node {
   id: ID!
   name: String
   language: LanguageDisplay!
-}
-
-enum VoucherType {
-  ENTIRE_ORDER
-  PRODUCT
-  COLLECTION
-  CATEGORY
-  SHIPPING
-  SPECIFIC_PRODUCT
 }
 
 enum VoucherTypeEnum {

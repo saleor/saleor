@@ -3,18 +3,12 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
-from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from saleor.account import events as account_events
 from saleor.account.models import User
 from saleor.checkout.utils import create_order, prepare_order_data
 from saleor.core.exceptions import InsufficientStock
-from saleor.core.utils.taxes import (
-    DEFAULT_TAX_RATE_NAME,
-    get_tax_rate_by_name,
-    get_taxes_for_country,
-)
 from saleor.core.weight import zero_weight
 from saleor.order import FulfillmentStatus, OrderStatus, events as order_events, models
 from saleor.order.models import Fulfillment, Order
@@ -59,44 +53,22 @@ def test_order_get_subtotal(order_with_lines):
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
-def test_get_tax_rate_by_name(taxes):
-    rate_name = "pharmaceuticals"
-    tax_rate = get_tax_rate_by_name(rate_name, taxes)
-
-    assert tax_rate == taxes[rate_name]["value"]
-
-
-def test_get_tax_rate_by_name_fallback_to_standard(taxes):
-    rate_name = "unexisting tax rate"
-    tax_rate = get_tax_rate_by_name(rate_name, taxes)
-
-    assert tax_rate == taxes[DEFAULT_TAX_RATE_NAME]["value"]
-
-
-def test_get_tax_rate_by_name_empty_taxes(product):
-    rate_name = "unexisting tax rate"
-    tax_rate = get_tax_rate_by_name(rate_name)
-
-    assert tax_rate == 0
-
-
 def test_add_variant_to_order_adds_line_for_new_variant(
-    order_with_lines, product, taxes, product_translation_fr, settings
+    order_with_lines, product, product_translation_fr, settings
 ):
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    add_variant_to_order(order, variant, 1, taxes=taxes)
+    add_variant_to_order(order, variant, 1)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(
-        net=Money("8.13", "USD"), gross=Money(10, "USD")
+        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
-    assert line.tax_rate == taxes[product.tax_rate]["value"]
     assert line.translated_product_name == variant.display_product(translated=True)
 
 
@@ -427,16 +399,18 @@ def test_queryset_ready_to_capture():
 
 
 def test_update_order_prices(order_with_lines):
-    taxes = get_taxes_for_country(Country("DE"))
     address = order_with_lines.shipping_address
     address.country = "DE"
     address.save()
 
     line_1 = order_with_lines.lines.first()
     line_2 = order_with_lines.lines.last()
-    price_1 = line_1.variant.get_price(taxes=taxes)
-    price_2 = line_2.variant.get_price(taxes=taxes)
-    shipping_price = order_with_lines.shipping_method.get_total(taxes)
+    price_1 = line_1.variant.get_price()
+    price_1 = TaxedMoney(net=price_1, gross=price_1)
+    price_2 = line_2.variant.get_price()
+    price_2 = TaxedMoney(net=price_2, gross=price_2)
+    shipping_price = order_with_lines.shipping_method.get_total()
+    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
 
     update_order_prices(order_with_lines, None)
 
@@ -464,7 +438,6 @@ def test_order_payment_flow(
             checkout=request_checkout_with_item,
             tracking_code="tracking_code",
             discounts=None,
-            taxes=None,
         ),
         user=customer_user,
     )
