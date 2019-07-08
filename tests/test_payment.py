@@ -71,6 +71,7 @@ def transaction_data(payment_dummy, gateway_response):
 @pytest.fixture
 def gateway_config():
     return GatewayConfig(
+        gateway_name="dummy",
         auto_capture=True,
         template_path="template.html",
         connection_params={"secret-key": "nobodylikesspanishinqusition"},

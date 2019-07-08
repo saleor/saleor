@@ -285,10 +285,12 @@ def list_client_sources(
     customer = gateway.customer.find(customer_id)
     if not customer:
         return []
-    return [extract_credit_card_data(card) for card in customer.credit_cards]
+    return [
+        extract_credit_card_data(card, "braintree") for card in customer.credit_cards
+    ]
 
 
-def extract_credit_card_data(card):
+def extract_credit_card_data(card, gateway_name):
     credit_card = CreditCardInfo(
         exp_year=int(card.expiration_year),
         exp_month=int(card.expiration_month),
@@ -297,6 +299,6 @@ def extract_credit_card_data(card):
     )
     return CustomerSource(
         id=card.unique_number_identifier,
-        gateway="braintree",
+        gateway=gateway_name,
         credit_card_info=credit_card,
     )
