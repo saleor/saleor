@@ -75,6 +75,24 @@ def test_address_form_postal_code_validation():
 
 
 @pytest.mark.parametrize(
+    "country, phone, is_valid",
+    (
+        ("US", "123-456-7890", False),
+        ("US", "(541) 754-3010", True),
+        ("FR", "0600000000", True),
+    ),
+)
+def test_address_form_phone_number_validation(country, phone, is_valid):
+    data = {"country": country, "phone": phone}
+    form = forms.get_address_form(data, country_code="PL")[0]
+    errors = form.errors
+    if not is_valid:
+        assert "phone" in errors
+    else:
+        assert "phone" not in errors
+
+
+@pytest.mark.parametrize(
     "form_data, form_valid, expected_preview, expected_country",
     [
         ({"preview": True}, False, True, "PL"),
@@ -127,21 +145,32 @@ def test_country_aware_form_has_only_supported_countries():
 
 
 @pytest.mark.parametrize(
-    "input,exception",
-    [
-        ("123", ValidationError),
-        ("+48123456789", None),
-        ("+12025550169", None),
-        ("+481234567890", ValidationError),
-        ("testext", ValidationError),
-    ],
+    "input_data, is_valid",
+    (
+        ({"phone": "123"}, False),
+        ({"phone": "+48123456789"}, True),
+        ({"phone": "+12025550169"}, True),
+        ({"phone": "+481234567890"}, False),
+        ({"phone": "testext"}, False),
+        ({"phone": "1-541-754-3010"}, False),
+        ({"phone": "001-541-754-3010"}, False),
+        ({"phone": "+1-541-754-3010"}, True),
+        ({"country": "US", "phone": "123-456-7890"}, False),
+        ({"country": "US", "phone": "555-555-5555"}, False),
+        ({"country": "US", "phone": "754-3010"}, False),
+        ({"country": "US", "phone": "001-541-754-3010"}, False),
+        ({"country": "US", "phone": "(541) 754-3010"}, True),
+        ({"country": "US", "phone": "1-541-754-3010"}, True),
+        ({"country": "FR", "phone": "1234567890"}, False),
+        ({"country": "FR", "phone": "0600000000"}, True),
+    ),
 )
-def test_validate_possible_number(input, exception):
-    if exception is not None:
-        with pytest.raises(exception):
-            validate_possible_number(input)
+def test_validate_possible_number(input_data, is_valid):
+    if not is_valid:
+        with pytest.raises(ValidationError):
+            validate_possible_number(**input_data)
     else:
-        validate_possible_number(input)
+        validate_possible_number(**input_data)
 
 
 def test_order_with_lines_pagination(authorized_client, order_list, settings):
