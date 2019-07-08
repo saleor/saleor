@@ -17,7 +17,6 @@ import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import { productTypeUrl } from "../../productTypes/urls";
 import ProductUpdatePage, {
-  FormData,
   ProductUpdatePageSubmitData
 } from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
