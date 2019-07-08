@@ -121,14 +121,14 @@ def get_client_token(config: GatewayConfig, token_config: TokenConfig = None) ->
     gateway = get_braintree_gateway(**config.connection_params)
     if not token_config:
         return gateway.client_token.generate()
-    parameters = create_token_params(token_config)
+    parameters = create_token_params(config, token_config)
     return gateway.client_token.generate(parameters)
 
 
-def create_token_params(token_config: TokenConfig) -> dict:
+def create_token_params(config: GatewayConfig, token_config: TokenConfig) -> dict:
     params = {}
     customer_id = token_config.customer_id
-    if customer_id:
+    if customer_id and config.store_customer:
         params["customer_id"] = customer_id
     return params
 
