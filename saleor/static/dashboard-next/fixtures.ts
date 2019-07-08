@@ -7,6 +7,7 @@ const pageInfo = {
 };
 export const pageListProps: { [key: string]: PageListProps } = {
   default: {
+    currentRowNum: 20,
     disabled: false,
     onAdd: undefined,
     onNextPage: undefined,
@@ -15,6 +16,7 @@ export const pageListProps: { [key: string]: PageListProps } = {
     pageInfo
   },
   loading: {
+    currentRowNum: undefined,
     disabled: true,
     onAdd: undefined,
     onNextPage: undefined,

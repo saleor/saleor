@@ -10,7 +10,7 @@ export interface UserError {
 }
 
 export interface ListProps {
-  currentRowNum: number;
+  currentRowNum?: number;
   disabled: boolean;
   pageInfo?: {
     hasNextPage: boolean;
@@ -19,7 +19,7 @@ export interface ListProps {
   onNextPage: () => void;
   onPreviousPage: () => void;
   onRowClick: (id: string) => () => void;
-  onRowNumChange: (event: React.ChangeEvent<any>) => void;
+  onRowNumChange?: (event: React.ChangeEvent<any>) => void;
 }
 export interface ListActionsWithoutToolbar {
   toggle: (id: string) => void;

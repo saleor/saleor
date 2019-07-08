@@ -16,7 +16,7 @@ export interface ProductListCardProps
   extends PageListProps,
     ListActions,
     FilterPageProps<ProductListUrlFilters> {
-  currentRowNum: number;
+  currentRowNum?: number;
   currencySymbol: string;
   products: CategoryDetails_category_products_edges_node[];
 }

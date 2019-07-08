@@ -18,7 +18,6 @@ import usePaginator, {
 } from "@saleor/hooks/usePaginator";
 import useRowChange from "@saleor/hooks/useRowChange";
 import useShop from "@saleor/hooks/useShop";
-import { PAGINATE_BY } from "../../../config";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
 import ProductListCard from "../../components/ProductListCard";
