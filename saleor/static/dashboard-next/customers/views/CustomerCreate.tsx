@@ -67,14 +67,8 @@ export const CustomerCreate: React.StatelessComponent<{}> = () => {
                   createCustomer({
                     variables: {
                       input: {
-                        defaultBillingAddress: {
-                          ...address,
-                          country: address.country.value
-                        },
-                        defaultShippingAddress: {
-                          ...address,
-                          country: address.country.value
-                        },
+                        defaultBillingAddress: address,
+                        defaultShippingAddress: address,
                         email: formData.email,
                         firstName: formData.customerFirstName,
                         lastName: formData.customerLastName,
