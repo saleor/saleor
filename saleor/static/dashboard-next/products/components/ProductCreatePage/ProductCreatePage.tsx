@@ -7,6 +7,7 @@ import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
 import Container from "@saleor/components/Container";
 import Form from "@saleor/components/Form";
 import Grid from "@saleor/components/Grid";
+import { MultiAutocompleteChoiceType } from "@saleor/components/MultiAutocompleteSelectField";
 import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import SeoForm from "@saleor/components/SeoForm";
@@ -14,19 +15,19 @@ import VisibilityCard from "@saleor/components/VisibilityCard";
 import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
 import useFormset from "@saleor/hooks/useFormset";
-import useMultiAutocomplete from "@saleor/hooks/useMultiAutocomplete";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
 import {
   getAttributeInputFromProductType,
   getChoices,
   ProductType
 } from "@saleor/products/utils/data";
+import createMultiAutocompleteSelectHandler from "@saleor/utils/handlers/multiAutocompleteSelectChangeHandler";
+import createSingleAutocompleteSelectHandler from "@saleor/utils/handlers/singleAutocompleteSelectChangeHandler";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
 import {
   createAttributeChangeHandler,
-  createCategorySelectHandler,
-  createCollectionSelectHandler,
   createProductTypeSelectHandler
 } from "../../utils/handlers";
 import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
@@ -39,6 +40,7 @@ interface FormData {
   basePrice: number;
   publicationDate: string;
   category: string;
+  collections: string[];
   chargeTaxes: boolean;
   description: RawDraftContentState;
   isPublished: boolean;
@@ -51,7 +53,6 @@ interface FormData {
 }
 export interface ProductCreatePageSubmitData extends FormData {
   attributes: ProductAttributeInput[];
-  collections: string[];
 }
 
 interface ProductCreatePageProps {
@@ -94,23 +95,29 @@ export const ProductCreatePage: React.StatelessComponent<
   const initialDescription = convertToRaw(ContentState.createFromText(""));
 
   const [selectedCategory, setSelectedCategory] = React.useState("");
+  const [selectedCollections, setSelectedCollections] = useStateFromProps<
+    MultiAutocompleteChoiceType[]
+  >([]);
+
   const [productType, setProductType] = React.useState<ProductType>({
     hasVariants: false,
     id: "",
     name: "",
     productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
   });
+
   const {
-    change: selectCollection,
-    data: selectedCollections
-  } = useMultiAutocomplete();
-  const { change: changeAttributeData, data: attributes } = useFormset(
-    getAttributeInputFromProductType(productType)
-  );
+    change: changeAttributeData,
+    data: attributes,
+    set: setAttributeData,
+    toggleItemValue: toggleAttributeValue
+  } = useFormset(getAttributeInputFromProductType(productType));
+
   const initialData: FormData = {
     basePrice: 0,
     category: "",
     chargeTaxes: false,
+    collections: [],
     description: {} as any,
     isPublished: false,
     name: "",
@@ -129,7 +136,6 @@ export const ProductCreatePage: React.StatelessComponent<
   const handleSubmit = (data: FormData) =>
     onSubmit({
       attributes,
-      collections: selectedCollections.map(({ value }) => value),
       ...data
     });
 
@@ -140,25 +146,40 @@ export const ProductCreatePage: React.StatelessComponent<
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, submit, triggerChange }) => {
-        const handleCollectionSelect = createCollectionSelectHandler(
-          event => selectCollection(event, collections),
-          triggerChange
+      {({
+        change,
+        data,
+        errors,
+        hasChanged,
+        submit,
+        triggerChange,
+        toggleValue
+      }) => {
+        const handleCollectionSelect = createMultiAutocompleteSelectHandler(
+          toggleValue,
+          setSelectedCollections,
+          selectedCollections,
+          collections
         );
-        const handleCategorySelect = createCategorySelectHandler(
-          categoryChoiceList,
+        const handleCategorySelect = createSingleAutocompleteSelectHandler(
+          change,
           setSelectedCategory,
-          change
+          categories
         );
         const handleAttributeChange = createAttributeChangeHandler(
           changeAttributeData,
+          triggerChange
+        );
+        const handleAttributeMultiChange = createAttributeChangeHandler(
+          toggleAttributeValue,
           triggerChange
         );
 
         const handleProductTypeSelect = createProductTypeSelectHandler(
           productTypeChoiceList,
           setProductType,
-          change
+          change,
+          setAttributeData
         );
 
         return (
@@ -179,6 +200,7 @@ export const ProductCreatePage: React.StatelessComponent<
                   attributes={attributes}
                   disabled={disabled}
                   onChange={handleAttributeChange}
+                  onMultiChange={handleAttributeMultiChange}
                 />
                 <CardSpacer />
                 <ProductPricing
@@ -226,10 +248,10 @@ export const ProductCreatePage: React.StatelessComponent<
                   productType={productType}
                   productTypeInputDisplayValue={productType.name}
                   productTypes={productTypes}
-                  selectedCollections={selectedCollections}
                   onCategoryChange={handleCategorySelect}
                   onCollectionChange={handleCollectionSelect}
                   onProductTypeChange={handleProductTypeSelect}
+                  collectionsInputDisplayValue={selectedCollections}
                 />
                 <CardSpacer />
                 <VisibilityCard
