@@ -40,21 +40,27 @@ export function getAttributeInputFromProduct(
         },
         id: attribute.attribute.id,
         label: attribute.attribute.name,
-        value: [attribute.value.slug]
+        value: attribute.values.map(value => value.id)
       })),
     []
   );
 }
 
+export interface ProductAttributeValueChoices {
+  id: string;
+  values: MultiAutocompleteChoiceType[];
+}
 export function getSelectedAttributesFromProduct(
   product: ProductDetails_product
-): MultiAutocompleteChoiceType[] {
+): ProductAttributeValueChoices[] {
   return maybe(
-    (): MultiAutocompleteChoiceType[] =>
+    () =>
       product.attributes.map(attribute => ({
         id: attribute.attribute.id,
-        label: attribute.attribute.name,
-        value: [attribute.value.slug]
+        values: attribute.values.map(value => ({
+          label: value.name,
+          value: value.id
+        }))
       })),
     []
   );
