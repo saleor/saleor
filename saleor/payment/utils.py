@@ -254,12 +254,6 @@ def gateway_get_client_token(gateway_name: str, token_config: TokenConfig = None
     return gateway.get_client_token(config=gateway_config, token_config=token_config)
 
 
-def gateway_list_client_sources(gateway_name: str, customer_id: str):
-    """Lists all stored customer sources for customer with ID"""
-    gateway, gateway_config = get_payment_gateway(gateway_name)
-    return gateway.list_client_sources(config=gateway_config, customer_id=customer_id)
-
-
 def clean_capture(payment: Payment, amount: Decimal):
     """Check if payment can be captured."""
     if amount <= 0:
