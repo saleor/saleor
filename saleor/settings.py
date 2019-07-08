@@ -621,7 +621,7 @@ PAYMENT_GATEWAYS = {
     RAZORPAY: {
         "module": "saleor.payment.gateways.razorpay",
         "config": {
-            "store_card": get_bool_from_env("RAZORAY_STORE_CARD", False),
+            "store_card": get_bool_from_env("RAZORPAY_STORE_CARD", False),
             "auto_capture": get_bool_from_env("RAZORPAY_AUTO_CAPTURE", None),
             "template_path": "order/payment/razorpay.html",
             "connection_params": {
