@@ -12,9 +12,11 @@ import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
 import Form from "@saleor/components/Form";
-import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
-import { UserError } from "../../../types";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
+import i18n from "@saleor/i18n";
+import { maybe } from "@saleor/misc";
+import { UserError } from "@saleor/types";
+import createSingleAutocompleteSelectHandler from "@saleor/utils/handlers/singleAutocompleteSelectChangeHandler";
 import { AddressTypeInput } from "../../types";
 import { CustomerAddresses_user_addresses } from "../../types/CustomerAddresses";
 
@@ -50,14 +52,14 @@ const CustomerAddressDialog = withStyles(styles, {})(
     onClose,
     onConfirm
   }: CustomerAddressDialogProps & WithStyles<typeof styles>) => {
+    const [countryDisplayName, setCountryDisplayName] = useStateFromProps(
+      maybe(() => address.country.country, "")
+    );
     const initialForm: AddressTypeInput = {
       city: maybe(() => address.city, ""),
       cityArea: maybe(() => address.cityArea, ""),
       companyName: maybe(() => address.companyName, ""),
-      country: {
-        label: maybe(() => address.country.country, ""),
-        value: maybe(() => address.country.code, "")
-      },
+      country: maybe(() => address.country.code, ""),
       countryArea: maybe(() => address.countryArea, ""),
       firstName: maybe(() => address.firstName, ""),
       lastName: maybe(() => address.lastName, ""),
@@ -66,6 +68,16 @@ const CustomerAddressDialog = withStyles(styles, {})(
       streetAddress1: maybe(() => address.streetAddress1, ""),
       streetAddress2: maybe(() => address.streetAddress2, "")
     };
+
+    const countryChoices = maybe(
+      () =>
+        countries.map(country => ({
+          label: country.label,
+          value: country.code
+        })),
+      []
+    );
+
     return (
       <Dialog
         onClose={onClose}
@@ -75,38 +87,48 @@ const CustomerAddressDialog = withStyles(styles, {})(
         maxWidth="sm"
       >
         <Form initial={initialForm} errors={errors} onSubmit={onConfirm}>
-          {({ change, data, errors, submit }) => (
-            <>
-              <DialogTitle>
-                {variant === "create"
-                  ? i18n.t("Add Address")
-                  : i18n.t("Edit Address")}
-              </DialogTitle>
-              <DialogContent className={classes.overflow}>
-                <AddressEdit
-                  countries={countries}
-                  data={data}
-                  errors={errors}
-                  onChange={change}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={onClose}>
-                  {i18n.t("Cancel", { context: "button" })}
-                </Button>
-                <ConfirmButton
-                  transitionState={confirmButtonState}
-                  color="primary"
-                  variant="contained"
-                  onClick={submit}
-                  type="submit"
-                >
-                  {i18n.t("Save Address", { context: "button" })}
-                  <AddIcon />
-                </ConfirmButton>
-              </DialogActions>
-            </>
-          )}
+          {({ change, data, errors, submit }) => {
+            const handleCountrySelect = createSingleAutocompleteSelectHandler(
+              change,
+              setCountryDisplayName,
+              countryChoices
+            );
+
+            return (
+              <>
+                <DialogTitle>
+                  {variant === "create"
+                    ? i18n.t("Add Address")
+                    : i18n.t("Edit Address")}
+                </DialogTitle>
+                <DialogContent className={classes.overflow}>
+                  <AddressEdit
+                    countries={countryChoices}
+                    data={data}
+                    countryDisplayValue={countryDisplayName}
+                    errors={errors}
+                    onChange={change}
+                    onCountryChange={handleCountrySelect}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={onClose}>
+                    {i18n.t("Cancel", { context: "button" })}
+                  </Button>
+                  <ConfirmButton
+                    transitionState={confirmButtonState}
+                    color="primary"
+                    variant="contained"
+                    onClick={submit}
+                    type="submit"
+                  >
+                    {i18n.t("Save Address", { context: "button" })}
+                    <AddIcon />
+                  </ConfirmButton>
+                </DialogActions>
+              </>
+            );
+          }}
         </Form>
       </Dialog>
     );

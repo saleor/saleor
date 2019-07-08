@@ -9,30 +9,38 @@ import {
 } from "./data";
 
 export function createAttributeChangeHandler(
-  changeAttributeData: FormsetChange<string>,
+  changeAttributeData: FormsetChange<string[]>,
   setSelectedAttributes: (data: ProductAttributeValueChoices[]) => void,
   selectedAttributes: ProductAttributeValueChoices[],
+  attributes: FormsetData<ProductAttributeInputData>,
   triggerChange: () => void
 ): FormsetChange {
-  return (id: string, value: string) => {
-    const itemIndex = selectedAttributes.findIndex(item => item.id === id);
+  return (attributeId: string, value: string) => {
+    const attributeValue = attributes
+      .find(attribute => attribute.id === attributeId)
+      .data.values.find(attributeValue => attributeValue.slug === value);
+
+    const valueChoice = {
+      label: attributeValue.name,
+      value
+    };
+
+    const itemIndex = selectedAttributes.findIndex(
+      item => item.id === attributeId
+    );
     const attribute = selectedAttributes[itemIndex];
 
     setSelectedAttributes([
       ...selectedAttributes.slice(0, itemIndex),
       {
         ...attribute,
-        values: [
-          attribute.values.find(
-            attributeValue => attributeValue.value === value
-          )
-        ]
+        values: [valueChoice]
       },
       ...selectedAttributes.slice(itemIndex + 1)
     ]);
 
     triggerChange();
-    changeAttributeData(id, value);
+    changeAttributeData(attributeId, [value]);
   };
 }
 
@@ -43,17 +51,19 @@ export function createAttributeMultiChangeHandler(
   attributes: FormsetData<ProductAttributeInputData>,
   triggerChange: () => void
 ): FormsetChange {
-  return (id: string, value: string) => {
+  return (attributeId: string, value: string) => {
     const attributeValue = attributes
-      .find(attribute => attribute.id === id)
-      .data.values.find(attributeValue => attributeValue.id === value);
+      .find(attribute => attribute.id === attributeId)
+      .data.values.find(attributeValue => attributeValue.slug === value);
 
     const valueChoice = {
       label: attributeValue.name,
       value
     };
 
-    const itemIndex = selectedAttributes.findIndex(item => item.id === id);
+    const itemIndex = selectedAttributes.findIndex(
+      item => item.id === attributeId
+    );
     const field = selectedAttributes[itemIndex].values;
 
     const attributeValues = toggle(
@@ -73,7 +83,7 @@ export function createAttributeMultiChangeHandler(
     setSelectedAttributes(newSelectedAttributes);
 
     triggerChange();
-    changeAttributeData(id, attributeValues.map(({ value }) => value));
+    changeAttributeData(attributeId, attributeValues.map(({ value }) => value));
   };
 }
 
