@@ -19,6 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improve vouchers ui - #4362 by @benekex2
 - Fix for random failing tests in test_discount - #4401 by @korycins
 - Fix internal error when users enters an invalid phone number in an address - #4404 by @NyanKiyoshi
+- New translations:
+  - Icelandic
 
 ## 2.7.0
 

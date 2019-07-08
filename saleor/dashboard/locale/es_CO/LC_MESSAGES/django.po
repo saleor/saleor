@@ -5,15 +5,16 @@
 # 
 # Translators:
 # C0D3C <gomezgleonardob@gmail.com>, 2019
+# ildebrando mora <diskaunco@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-06-04 11:45-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: C0D3C <gomezgleonardob@gmail.com>, 2019\n"
+"Last-Translator: ildebrando mora <diskaunco@gmail.com>, 2019\n"
 "Language-Team: Spanish (Colombia) (https://www.transifex.com/mirumee/teams/34782/es_CO/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -34,7 +35,7 @@ msgstr "descripción"
 #: saleor/dashboard/category/filters.py:15
 msgctxt "Category list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/category/filters.py:19
 msgctxt "Category list sorting filter label"
@@ -52,22 +53,22 @@ msgstr[1] ""
 #: saleor/dashboard/category/forms.py:27
 #: saleor/dashboard/collection/forms.py:26
 #: saleor/dashboard/discount/forms.py:93 saleor/dashboard/product/forms.py:112
-#: saleor/dashboard/product/forms.py:277 saleor/dashboard/product/forms.py:511
+#: saleor/dashboard/product/forms.py:277 saleor/dashboard/product/forms.py:513
 #: saleor/dashboard/sites/forms.py:54
 msgctxt "Item name"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/category/forms.py:28 saleor/dashboard/product/forms.py:259
-#: saleor/dashboard/product/forms.py:461 saleor/dashboard/sites/forms.py:29
+#: saleor/dashboard/product/forms.py:463 saleor/dashboard/sites/forms.py:29
 msgctxt "Description"
 msgid "Description"
-msgstr ""
+msgstr "Descripción"
 
 #: saleor/dashboard/category/forms.py:29
 msgctxt "Category form"
 msgid "Background Image"
-msgstr ""
+msgstr "Imagen de Fondo"
 
 #: saleor/dashboard/category/forms.py:31
 msgctxt "Description of a category image"
@@ -112,7 +113,7 @@ msgstr ""
 #: saleor/dashboard/collection/filters.py:18
 msgctxt "Collection list name filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/collection/filters.py:22
 msgctxt "Collection list filter label"
@@ -172,7 +173,7 @@ msgstr ""
 #: saleor/dashboard/collection/forms.py:40
 msgctxt "Description field of a collection"
 msgid "Description"
-msgstr ""
+msgstr "Descripción"
 
 #: saleor/dashboard/collection/views.py:28
 msgctxt "Dashboard message"
@@ -250,82 +251,82 @@ msgid_plural "Found %(counter)d matching customers"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/customer/forms.py:10
+#: saleor/dashboard/customer/forms.py:11
 #, python-format
 msgctxt "Customer form: Name field placeholder"
 msgid "%(name)s (Inherit from default billing address)"
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:29
+#: saleor/dashboard/customer/forms.py:30
 msgctxt "Edit customer details in order form error"
 msgid ""
 "You can't delete your own account via dashboard, please try from the "
 "storefront."
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:37
+#: saleor/dashboard/customer/forms.py:38
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:45
+#: saleor/dashboard/customer/forms.py:46
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:77 saleor/dashboard/staff/forms.py:30
+#: saleor/dashboard/customer/forms.py:104 saleor/dashboard/staff/forms.py:30
 msgctxt "Customer form: Given name field"
 msgid "Given name"
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:80 saleor/dashboard/staff/forms.py:33
+#: saleor/dashboard/customer/forms.py:107 saleor/dashboard/staff/forms.py:33
 msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:82
+#: saleor/dashboard/customer/forms.py:109
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/dashboard/customer/forms.py:83
+#: saleor/dashboard/customer/forms.py:110
 msgctxt "Customer form: customer note field"
 msgid "Notes"
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:85
+#: saleor/dashboard/customer/forms.py:112
 msgctxt "Customer form: is active toggle"
 msgid "User is active"
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:96
+#: saleor/dashboard/customer/forms.py:123
 msgctxt "Customer note"
 msgid "Note"
 msgstr ""
 
-#: saleor/dashboard/customer/forms.py:98
+#: saleor/dashboard/customer/forms.py:125
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr ""
 
-#: saleor/dashboard/customer/views.py:63
+#: saleor/dashboard/customer/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
 msgstr ""
 
-#: saleor/dashboard/customer/views.py:78
+#: saleor/dashboard/customer/views.py:79
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
 msgstr ""
 
-#: saleor/dashboard/customer/views.py:110
+#: saleor/dashboard/customer/views.py:111
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
 msgstr ""
 
-#: saleor/dashboard/customer/views.py:131
+#: saleor/dashboard/customer/views.py:133
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(customer_name)s successfully removed"
@@ -399,7 +400,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:57
 msgctxt "Sale list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/discount/filters.py:60
 msgctxt "Sale list filter label"
@@ -437,7 +438,7 @@ msgstr[1] ""
 #: saleor/dashboard/discount/filters.py:99
 msgctxt "Voucher list name filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/discount/filters.py:104
 msgctxt "Sale list is sale type filter label"
@@ -485,7 +486,7 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:39
 msgctxt "Sale name"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/discount/forms.py:40
 msgctxt "Discount type"
@@ -630,12 +631,12 @@ msgstr ""
 #: saleor/dashboard/menu/filters.py:8
 msgctxt "Menu list sorting option"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/menu/filters.py:11
 msgctxt "Menu item list sorting option"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/menu/filters.py:17
 msgctxt "Menu list filter label"
@@ -658,7 +659,7 @@ msgstr[1] ""
 #: saleor/dashboard/menu/filters.py:42
 msgctxt "Menu item list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/menu/filters.py:46
 msgctxt "Menu item list filter label"
@@ -691,7 +692,7 @@ msgstr "Enlace"
 #: saleor/dashboard/menu/forms.py:55
 msgctxt "Menu item name"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/menu/forms.py:56
 msgctxt "Menu item url"
@@ -1173,18 +1174,18 @@ msgid_plural "Fulfilled %(quantity_fulfilled)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/views.py:659
+#: saleor/dashboard/order/views.py:658
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:685
+#: saleor/dashboard/order/views.py:684
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:724
+#: saleor/dashboard/order/views.py:723
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number updated"
@@ -1297,7 +1298,7 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:36
 msgctxt "Product list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/product/filters.py:40
 msgctxt "Product list filter label"
@@ -1335,7 +1336,7 @@ msgstr[1] ""
 #: saleor/dashboard/product/filters.py:82
 msgctxt "Attribute list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/product/filters.py:86
 msgctxt "Attribute list filter label"
@@ -1353,7 +1354,7 @@ msgstr[1] ""
 #: saleor/dashboard/product/filters.py:107
 msgctxt "Product type list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/product/filters.py:111
 msgctxt "Product type list filter label"
@@ -1555,17 +1556,17 @@ msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:460 saleor/dashboard/product/forms.py:564
+#: saleor/dashboard/product/forms.py:462 saleor/dashboard/product/forms.py:566
 msgctxt "Product image"
 msgid "Image"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:501
+#: saleor/dashboard/product/forms.py:503
 msgctxt "Product display name"
 msgid "Display name"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:502
+#: saleor/dashboard/product/forms.py:504
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr ""
@@ -1788,7 +1789,7 @@ msgstr ""
 #: saleor/dashboard/shipping/forms.py:137
 msgctxt "Shipping Method name"
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: saleor/dashboard/shipping/forms.py:143
 msgctxt "Shipping method name help text"
