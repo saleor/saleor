@@ -17,16 +17,14 @@ from django_prices.templatetags import prices_i18n
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import TaxedMoneyRange
+from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from saleor.core.utils import build_absolute_uri
-
-from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
-from ..core.utils.taxes import apply_tax_to_price
+from ..core.utils import build_absolute_uri
+from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
@@ -90,10 +88,10 @@ class ProductType(models.Model):
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
-    tax_rate = models.CharField(max_length=128, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
+    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         app_label = "product"
@@ -138,10 +136,10 @@ class Product(SeoModel, PublishableModel):
     attributes = HStoreField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
-    tax_rate = models.CharField(max_length=128, blank=True, choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
@@ -192,18 +190,12 @@ class Product(SeoModel, PublishableModel):
         images = list(self.images.all())
         return images[0] if images else None
 
-    def get_price_range(self, discounts: Iterable[DiscountInfo] = None, taxes=None):
+    def get_price_range(self, discounts: Iterable[DiscountInfo] = None):
         if self.variants.all():
-            prices = [
-                variant.get_price(discounts=discounts, taxes=taxes) for variant in self
-            ]
-            return TaxedMoneyRange(min(prices), max(prices))
+            prices = [variant.get_price(discounts) for variant in self]
+            return MoneyRange(min(prices), max(prices))
         price = calculate_discounted_price(self, self.price, discounts)
-        if not self.charge_taxes:
-            taxes = None
-        tax_rate = self.tax_rate or self.product_type.tax_rate
-        price = apply_tax_to_price(taxes, tax_rate, price)
-        return TaxedMoneyRange(start=price, stop=price)
+        return MoneyRange(start=price, stop=price)
 
 
 class ProductTranslation(SeoModelTranslation):
@@ -298,12 +290,8 @@ class ProductVariant(models.Model):
             else self.product.price
         )
 
-    def get_price(self, discounts: Iterable[DiscountInfo] = None, taxes=None):
-        price = calculate_discounted_price(self.product, self.base_price, discounts)
-        if not self.product.charge_taxes:
-            taxes = None
-        tax_rate = self.product.tax_rate or self.product.product_type.tax_rate
-        return apply_tax_to_price(taxes, tax_rate, price)
+    def get_price(self, discounts: Iterable[DiscountInfo] = None):
+        return calculate_discounted_price(self.product, self.base_price, discounts)
 
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight
@@ -342,7 +330,7 @@ class ProductVariant(models.Model):
         return images[0] if images else self.product.get_first_image()
 
     def get_ajax_label(self, discounts=None):
-        price = self.get_price(discounts).gross
+        price = self.get_price(discounts)
         return "%s, %s, %s" % (
             self.sku,
             self.display_product(),

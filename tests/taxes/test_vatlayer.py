@@ -7,15 +7,114 @@ from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.core.utils import get_country_name_by_code
-from saleor.core.utils.taxes import (
+from saleor.core.taxes.vatlayer import (
+    DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
+    get_tax_rate_by_name,
+    get_taxed_shipping_price,
     get_taxes_for_address,
     get_taxes_for_country,
 )
+from saleor.core.utils import get_country_name_by_code
 from saleor.dashboard.taxes.filters import get_country_choices_for_vat
 
-from ..utils import compare_taxes, get_redirect_location
+from ..utils import get_redirect_location
+
+
+@pytest.fixture
+def compare_taxes():
+    def fun(taxes_1, taxes_2):
+        assert len(taxes_1) == len(taxes_2)
+
+        for rate_name, tax in taxes_1.items():
+            value_1 = tax["value"]
+            value_2 = taxes_2.get(rate_name)["value"]
+            assert value_1 == value_2
+
+    return fun
+
+
+def test_get_tax_rate_by_name(taxes):
+    rate_name = "pharmaceuticals"
+    tax_rate = get_tax_rate_by_name(rate_name, taxes)
+
+    assert tax_rate == taxes[rate_name]["value"]
+
+
+def test_get_tax_rate_by_name_fallback_to_standard(taxes):
+    rate_name = "unexisting tax rate"
+    tax_rate = get_tax_rate_by_name(rate_name, taxes)
+
+    assert tax_rate == taxes[DEFAULT_TAX_RATE_NAME]["value"]
+
+
+def test_get_tax_rate_by_name_empty_taxes(product):
+    rate_name = "unexisting tax rate"
+    tax_rate = get_tax_rate_by_name(rate_name)
+
+    assert tax_rate == 0
+
+
+def test_view_checkout_with_taxes(
+    settings, client, request_checkout_with_item, vatlayer, address
+):
+    settings.DEFAULT_COUNTRY = "PL"
+    checkout = request_checkout_with_item
+    checkout.shipping_address = address
+    checkout.save()
+    product = checkout.lines.first().variant.product
+    product.meta = {"taxes": {"vatlayer": {"code": "standard", "description": ""}}}
+    product.save()
+    response = client.get(reverse("checkout:index"))
+    response_checkout_line = response.context[0]["checkout_lines"][0]
+    line_net = Money(amount="8.13", currency="USD")
+    line_gross = Money(amount="10.00", currency="USD")
+
+    assert response_checkout_line["get_total"].tax.amount
+    assert response_checkout_line["get_total"] == TaxedMoney(line_net, line_gross)
+    assert response.status_code == 200
+
+
+def test_view_update_checkout_quantity_with_taxes(
+    client, request_checkout_with_item, vatlayer, monkeypatch
+):
+    monkeypatch.setattr(
+        "saleor.checkout.views.to_local_currency", lambda price, currency: price
+    )
+    variant = request_checkout_with_item.lines.get().variant
+    response = client.post(
+        reverse("checkout:update-line", kwargs={"variant_id": variant.id}),
+        {"quantity": 3},
+        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+    )
+    assert response.status_code == 200
+    assert request_checkout_with_item.quantity == 3
+
+
+@pytest.mark.parametrize(
+    "price, charge_taxes, expected_price",
+    [
+        (
+            Money(10, "USD"),
+            False,
+            TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD")),
+        ),
+        (
+            Money(10, "USD"),
+            True,
+            TaxedMoney(net=Money("8.13", "USD"), gross=Money(10, "USD")),
+        ),
+    ],
+)
+def test_get_taxed_shipping_price(
+    site_settings, vatlayer, price, charge_taxes, expected_price
+):
+    site_settings.charge_taxes_on_shipping = charge_taxes
+    site_settings.save()
+
+    shipping_price = get_taxed_shipping_price(price, taxes=vatlayer)
+
+    assert shipping_price == expected_price
 
 
 def test_view_taxes_list(admin_client, vatlayer):
@@ -149,18 +248,18 @@ def test_get_country_choices_for_vat(vatlayer):
     assert choices == expected_choices
 
 
-def test_get_taxes_for_address(address, vatlayer):
+def test_get_taxes_for_address(address, vatlayer, compare_taxes):
     taxes = get_taxes_for_address(address)
     compare_taxes(taxes, vatlayer)
 
 
-def test_get_taxes_for_address_fallback_default(settings, vatlayer):
+def test_get_taxes_for_address_fallback_default(settings, vatlayer, compare_taxes):
     settings.DEFAULT_COUNTRY = "PL"
     taxes = get_taxes_for_address(None)
     compare_taxes(taxes, vatlayer)
 
 
-def test_get_taxes_for_address_other_country(address, vatlayer):
+def test_get_taxes_for_address_other_country(address, vatlayer, compare_taxes):
     address.country = "DE"
     address.save()
     tax_rates = get_taxes_for_country(Country("DE"))
@@ -169,7 +268,7 @@ def test_get_taxes_for_address_other_country(address, vatlayer):
     compare_taxes(taxes, tax_rates)
 
 
-def test_get_taxes_for_country(vatlayer):
+def test_get_taxes_for_country(vatlayer, compare_taxes):
     taxes = get_taxes_for_country(Country("PL"))
     compare_taxes(taxes, vatlayer)
 

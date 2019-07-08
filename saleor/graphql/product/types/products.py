@@ -5,6 +5,8 @@ from graphene import relay
 from graphql.error import GraphQLError
 from graphql_jwt.decorators import permission_required
 
+from ....core.taxes import interface as tax_interface
+from ....core.taxes.vatlayer import interface as vatlayer_interface
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
@@ -19,7 +21,7 @@ from ....product.utils.costs import get_margin_for_variant, get_product_costs_da
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import PrefetchingConnectionField
-from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxType
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import (
@@ -283,7 +285,11 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_pricing(root: models.ProductVariant, info):
         context = info.context
         availability = get_variant_availability(
-            root, context.discounts, context.taxes, context.currency
+            root,
+            context.discounts,
+            context.country,
+            context.currency,
+            taxes=context.taxes,
         )
         return VariantPricingInfo(**availability._asdict())
 
@@ -372,7 +378,16 @@ class Product(CountableDjangoObjectType):
         description="The product's default base price.",
         deprecation_reason=("Has been replaced by 'basePrice'"),
     )
-    tax_rate = TaxRateType(description="A type of tax rate.")
+    tax_rate = TaxRateType(
+        description="A type of tax rate.",
+        deprecation_reason=(
+            "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway"
+        ),
+    )
+
+    tax_type = graphene.Field(
+        TaxType, description="A type of tax. Assigned by enabled tax gateway"
+    )
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute),
         required=True,
@@ -437,6 +452,17 @@ class Product(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    def resolve_tax_rate(root: models.ProductType, info, **_kwargs):
+        # FIXME this resolver should be dropped after we drop tax_rate from API
+        tax_rate = vatlayer_interface.get_tax_from_object_meta(root).code
+        return tax_rate or None
+
+    @staticmethod
+    def resolve_tax_type(root: models.Product, _info):
+        tax_data = tax_interface.get_tax_from_object_meta(root)
+        return TaxType(tax_code=tax_data.code, description=tax_data.description)
+
+    @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="images")
     def resolve_thumbnail_url(root: models.Product, info, *, size=None):
         if not size:
@@ -464,12 +490,12 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price", "tax_rate"],
+        only=["publication_date", "charge_taxes", "price", "meta"],
     )
     def resolve_pricing(root: models.Product, info):
         context = info.context
         availability = get_product_availability(
-            root, context.discounts, context.taxes, context.currency
+            root, context.discounts, context.country, context.currency, context.taxes
         )
         return ProductPricingInfo(**availability._asdict())
 
@@ -487,11 +513,14 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price", "tax_rate"],
+        only=["publication_date", "charge_taxes", "price", "meta"],
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
-        return price_range.start.net
+        price = tax_interface.apply_taxes_to_product(
+            root, price_range.start, info.context.country, taxes=info.context.taxes
+        )
+        return price.net
 
     @staticmethod
     @gql_optimizer.resolver_hints(
@@ -574,6 +603,12 @@ class ProductType(CountableDjangoObjectType):
             "name",
             "weight",
         ]
+
+    @staticmethod
+    def resolve_tax_rate(root: models.ProductType, info, **_kwargs):
+        # FIXME this resolver should be dropped after we drop tax_rate from API
+        tax_rate = vatlayer_interface.get_tax_from_object_meta(root).code
+        return tax_rate or None
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="product_attributes")

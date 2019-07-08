@@ -2,9 +2,9 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import User
-from ....core.utils.taxes import ZERO_TAXED_MONEY
+from ....core.taxes import interface as tax_interface, zero_taxed_money
 from ....order import events, models
-from ....order.utils import cancel_order
+from ....order.utils import cancel_order, recalculate_order
 from ....payment import CustomPaymentChoices, PaymentError
 from ....payment.utils import (
     clean_mark_order_as_paid,
@@ -150,7 +150,7 @@ class OrderUpdateShipping(BaseMutation):
                 )
 
             order.shipping_method = None
-            order.shipping_price = ZERO_TAXED_MONEY
+            order.shipping_price = zero_taxed_money()
             order.shipping_method_name = None
             order.save(
                 update_fields=[
@@ -172,7 +172,7 @@ class OrderUpdateShipping(BaseMutation):
         clean_order_update_shipping(order, method)
 
         order.shipping_method = method
-        order.shipping_price = method.get_total(info.context.taxes)
+        order.shipping_price = tax_interface.calculate_order_shipping(order)
         order.shipping_method_name = method.name
         order.save(
             update_fields=[
@@ -182,6 +182,9 @@ class OrderUpdateShipping(BaseMutation):
                 "shipping_price_gross",
             ]
         )
+        # Post-process the results
+        recalculate_order(order)
+
         return OrderUpdateShipping(order=order)
 
 
