@@ -128,7 +128,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             updateProduct.mutate({
                               attributes: data.attributes.map(attribute => ({
                                 id: attribute.id,
-                                values: [attribute.value]
+                                values: attribute.value
                               })),
                               basePrice: decimal(data.basePrice),
                               category: data.category,
@@ -151,7 +151,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             updateSimpleProduct.mutate({
                               attributes: data.attributes.map(attribute => ({
                                 id: attribute.id,
-                                values: [attribute.value]
+                                values: attribute.value
                               })),
                               basePrice: decimal(data.basePrice),
                               category: data.category,
@@ -247,9 +247,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             header={maybe(() => product.name)}
                             placeholderImage={placeholderImg}
                             product={product}
-                            productCollections={maybe(
-                              () => product.collections
-                            )}
                             variants={maybe(() => product.variants)}
                             onAttributesEdit={() =>
                               navigate(
