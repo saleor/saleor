@@ -30,13 +30,11 @@ import {
   getChoices,
   getProductUpdatePageFormData,
   getSelectedAttributesFromProduct,
+  ProductAttributeValueChoices,
   ProductUpdatePageFormData
 } from "../../utils/data";
 import {
   createAttributeChangeHandler,
-  createCategorySelectHandler,
-  createCollectionSelectHandler,
-  AttributeValueChoice,
   createAttributeMultiChangeHandler
 } from "../../utils/handlers";
 import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
@@ -109,12 +107,16 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
   toggleAll,
   toolbar
 }) => {
+  const attributeInput = React.useMemo(
+    () => getAttributeInputFromProduct(product),
+    [product]
+  );
   const { change: changeAttributeData, data: attributes } = useFormset(
-    getAttributeInputFromProduct(product)
+    attributeInput
   );
 
   const [selectedAttributes, setSelectedAttributes] = useStateFromProps<
-    AttributeValueChoice[]
+    ProductAttributeValueChoices[]
   >(getSelectedAttributesFromProduct(product));
 
   const [selectedCategory, setSelectedCategory] = useStateFromProps(
@@ -172,6 +174,7 @@ export const ProductUpdatePage: React.FC<ProductUpdatePageProps> = ({
           changeAttributeData,
           setSelectedAttributes,
           selectedAttributes,
+          attributes,
           triggerChange
         );
         const handleAttributeMultiChange = createAttributeMultiChangeHandler(
