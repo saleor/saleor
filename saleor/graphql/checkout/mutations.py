@@ -469,7 +469,10 @@ class CheckoutComplete(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID", required=True)
-        store_source = graphene.Boolean(default_value=False)
+        store_source = graphene.Boolean(
+            default_value=False,
+            description="Determines whether to store the payment source for future usage.",
+        )
 
     class Meta:
         description = (
