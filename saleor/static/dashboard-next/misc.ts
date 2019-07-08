@@ -96,10 +96,7 @@ export const transformAddressToForm = (data: AddressType) => ({
   city: maybe(() => data.city, ""),
   cityArea: maybe(() => data.cityArea, ""),
   companyName: maybe(() => data.companyName, ""),
-  country: {
-    label: maybe(() => data.country.country, ""),
-    value: maybe(() => data.country.code, "")
-  },
+  country: maybe(() => data.country.code, ""),
   countryArea: maybe(() => data.countryArea, ""),
   firstName: maybe(() => data.firstName, ""),
   lastName: maybe(() => data.lastName, ""),

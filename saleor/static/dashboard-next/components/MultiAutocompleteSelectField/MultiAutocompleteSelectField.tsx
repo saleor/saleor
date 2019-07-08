@@ -234,7 +234,7 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
         </Downshift>
         <div className={classes.chipContainer}>
           {displayValues.map(value => (
-            <div className={classes.chip}>
+            <div className={classes.chip} key={value.value}>
               <div className={classes.chipInner}>
                 <Typography className={classes.chipLabel} variant="caption">
                   {value.label}

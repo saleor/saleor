@@ -40,6 +40,9 @@ export interface ProductAttributesProps {
 
 const useStyles = makeStyles((theme: Theme) => ({
   attributeSection: {
+    "&:last-of-type": {
+      paddingBottom: 0
+    },
     padding: `${theme.spacing.unit * 2}px 0`
   },
   attributeSectionLabel: {
@@ -50,6 +53,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     overflow: "visible"
   },
   cardContent: {
+    "&:last-child": {
+      paddingBottom: theme.spacing.unit
+    },
     paddingTop: theme.spacing.unit
   },
   expansionBar: {
@@ -80,7 +86,7 @@ function getMultiChoices(
 ): MultiAutocompleteChoiceType[] {
   return values.map(value => ({
     label: value.name,
-    value: value.id
+    value: value.slug
   }));
 }
 
@@ -89,7 +95,7 @@ function getSingleChoices(
 ): SingleAutocompleteChoiceType[] {
   return values.map(value => ({
     label: value.name,
-    value: value.id
+    value: value.slug
   }));
 }
 
@@ -127,61 +133,64 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
             />
           </IconButton>
         </div>
-        <Hr />
-        {expanded &&
-          attributes.map(attribute => (
-            <>
-              <Grid className={classes.attributeSection} variant="uniform">
-                <div className={classes.attributeSectionLabel}>
-                  <Typography>{attribute.label}</Typography>
-                </div>
-                <div>
-                  {attribute.data.inputType ===
-                  AttributeInputTypeEnum.DROPDOWN ? (
-                    <SingleAutocompleteSelectField
-                      choices={getSingleChoices(attribute.data.values)}
-                      disabled={disabled}
-                      displayValue={maybe(
-                        () =>
-                          attribute.data.values.find(
-                            value => value.id === attribute.value[0]
-                          ).name,
-                        ""
-                      )}
-                      name={`attribute:${attribute.label}`}
-                      label={i18n.t("Value")}
-                      value={attribute.value[0]}
-                      onChange={event =>
-                        onChange(attribute.id, event.target.value)
-                      }
-                    />
-                  ) : (
-                    <MultiAutocompleteSelectField
-                      choices={getMultiChoices(attribute.data.values)}
-                      displayValues={attribute.data.values
-                        .filter(
-                          value =>
-                            !!attribute.value.find(attributeValue =>
-                              attributeValue.includes(value.id)
-                            )
-                        )
-                        .map(value => ({
-                          label: value.name,
-                          value: value.id
-                        }))}
-                      label={i18n.t("Values")}
-                      name={`attribute:${attribute.label}`}
-                      value={attribute.value}
-                      onChange={event =>
-                        onMultiChange(attribute.id, event.target.value)
-                      }
-                    />
-                  )}
-                </div>
-              </Grid>
-              <Hr />
-            </>
-          ))}
+        {expanded && (
+          <>
+            <Hr />
+            {attributes.map((attribute, attributeIndex) => (
+              <React.Fragment key={attribute.id}>
+                {attributeIndex > 0 && <Hr />}
+                <Grid className={classes.attributeSection} variant="uniform">
+                  <div className={classes.attributeSectionLabel}>
+                    <Typography>{attribute.label}</Typography>
+                  </div>
+                  <div>
+                    {attribute.data.inputType ===
+                    AttributeInputTypeEnum.DROPDOWN ? (
+                      <SingleAutocompleteSelectField
+                        choices={getSingleChoices(attribute.data.values)}
+                        disabled={disabled}
+                        displayValue={maybe(
+                          () =>
+                            attribute.data.values.find(
+                              value => value.slug === attribute.value[0]
+                            ).name,
+                          ""
+                        )}
+                        name={`attribute:${attribute.label}`}
+                        label={i18n.t("Value")}
+                        value={attribute.value[0]}
+                        onChange={event =>
+                          onChange(attribute.id, event.target.value)
+                        }
+                      />
+                    ) : (
+                      <MultiAutocompleteSelectField
+                        choices={getMultiChoices(attribute.data.values)}
+                        displayValues={attribute.data.values
+                          .filter(
+                            value =>
+                              !!attribute.value.find(attributeValue =>
+                                attributeValue.includes(value.slug)
+                              )
+                          )
+                          .map(value => ({
+                            label: value.name,
+                            value: value.slug
+                          }))}
+                        label={i18n.t("Values")}
+                        name={`attribute:${attribute.label}`}
+                        value={attribute.value}
+                        onChange={event =>
+                          onMultiChange(attribute.id, event.target.value)
+                        }
+                      />
+                    )}
+                  </div>
+                </Grid>
+              </React.Fragment>
+            ))}
+          </>
+        )}
       </CardContent>
     </Card>
   );
