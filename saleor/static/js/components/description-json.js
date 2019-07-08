@@ -1,7 +1,6 @@
-
 import draftToHtml from 'draftjs-to-html';
 
-export default $(document).ready((e) => {
+export default $(document).ready(e => {
   const data = 'data-description-json';
   const description = document.querySelector(`[${data}]`);
   if (description) {
@@ -10,4 +9,3 @@ export default $(document).ready((e) => {
     description.innerHTML = content;
   }
 });
-
