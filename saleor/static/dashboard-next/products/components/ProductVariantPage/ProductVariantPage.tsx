@@ -18,6 +18,17 @@ import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
 
+export interface ProductVariantPageFormData {
+  attributes: Array<{
+    slug: string;
+    value: string;
+  }>;
+  costPrice: number;
+  priceOverride: number;
+  quantity: number;
+  sku: string;
+}
+
 interface ProductVariantPageProps {
   variant?: ProductVariant;
   errors: UserError[];
@@ -50,17 +61,33 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
   const [isModalOpened, setModalStatus] = React.useState(false);
   const toggleModal = () => setModalStatus(!isModalOpened);
 
-  const variantImages = variant ? variant.images.map(image => image.id) : [];
-  const productImages = variant
-    ? variant.product.images.sort((prev, next) =>
-        prev.sortOrder > next.sortOrder ? 1 : -1
-      )
-    : undefined;
-  const images = productImages
-    ? productImages
-        .filter(image => variantImages.indexOf(image.id) !== -1)
-        .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
-    : undefined;
+  const variantImages = maybe(() => variant.images.map(image => image.id), []);
+  const productImages = maybe(() =>
+    variant.product.images.sort((prev, next) =>
+      prev.sortOrder > next.sortOrder ? 1 : -1
+    )
+  );
+  const images = maybe(() =>
+    productImages
+      .filter(image => variantImages.indexOf(image.id) !== -1)
+      .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
+  );
+
+  const initialForm: ProductVariantPageFormData = {
+    attributes: maybe(
+      () =>
+        variant.attributes.map(a => ({
+          slug: a.attribute.slug,
+          value: a.value.slug
+        })),
+      []
+    ),
+    costPrice: maybe(() => variant.costPrice.amount, null),
+    priceOverride: maybe(() => variant.priceOverride.amount, null),
+    quantity: maybe(() => variant.quantity, 0),
+    sku: maybe(() => variant.sku, "")
+  };
+
   return (
     <>
       <Container>
@@ -69,27 +96,7 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
         </AppHeader>
         <PageHeader title={header} />
         <Form
-          initial={{
-            attributes: maybe(
-              () =>
-                variant.attributes.map(a => ({
-                  name: a.attribute.name,
-                  slug: a.attribute.slug,
-                  value: a.value.slug
-                })),
-              []
-            ),
-            costPrice:
-              variant && variant.costPrice
-                ? variant.costPrice.amount.toString()
-                : null,
-            priceOverride:
-              variant && variant.priceOverride
-                ? variant.priceOverride.amount.toString()
-                : null,
-            quantity: variant && variant.quantity ? variant.quantity : "",
-            sku: variant && variant.sku
-          }}
+          initial={initialForm}
           errors={formErrors}
           onSubmit={onSubmit}
           confirmLeave
