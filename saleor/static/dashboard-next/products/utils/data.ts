@@ -40,7 +40,7 @@ export function getAttributeInputFromProduct(
         },
         id: attribute.attribute.id,
         label: attribute.attribute.name,
-        value: attribute.values.map(value => value.id)
+        value: attribute.values.map(value => value.slug)
       })),
     []
   );
@@ -59,7 +59,7 @@ export function getSelectedAttributesFromProduct(
         id: attribute.attribute.id,
         values: attribute.values.map(value => ({
           label: value.name,
-          value: value.id
+          value: value.slug
         }))
       })),
     []
@@ -124,18 +124,19 @@ export function getProductUpdatePageFormData(
   variants: ProductDetails_product_variants[]
 ): ProductUpdatePageFormData {
   return {
-    basePrice: maybe(() => product.basePrice.amount),
-    category: maybe(() => product.category.id),
+    basePrice: maybe(() => product.basePrice.amount, 0),
+    category: maybe(() => product.category.id, ""),
     chargeTaxes: maybe(() => product.chargeTaxes, false),
-    collections: maybe(() =>
-      product.collections.map(collection => collection.id)
+    collections: maybe(
+      () => product.collections.map(collection => collection.id),
+      []
     ),
     description: maybe(() => JSON.parse(product.descriptionJson)),
     isPublished: maybe(() => product.isPublished, false),
-    name: maybe(() => product.name),
-    publicationDate: maybe(() => product.publicationDate),
-    seoDescription: maybe(() => product.seoDescription) || "",
-    seoTitle: maybe(() => product.seoTitle) || "",
+    name: maybe(() => product.name, ""),
+    publicationDate: maybe(() => product.publicationDate, ""),
+    seoDescription: maybe(() => product.seoDescription, ""),
+    seoTitle: maybe(() => product.seoTitle, ""),
     sku: maybe(() =>
       product.productType.hasVariants
         ? undefined

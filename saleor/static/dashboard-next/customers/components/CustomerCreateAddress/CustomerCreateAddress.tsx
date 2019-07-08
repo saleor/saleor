@@ -7,10 +7,10 @@ import React from "react";
 import AddressEdit from "@saleor/components/AddressEdit";
 import CardTitle from "@saleor/components/CardTitle";
 import { FormSpacer } from "@saleor/components/FormSpacer";
+import { SingleAutocompleteChoiceType } from "@saleor/components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
 import { AddressTypeInput } from "../../types";
-import { CustomerCreateData_shop_countries } from "../../types/CustomerCreateData";
 
 const styles = createStyles({
   overflow: {
@@ -19,11 +19,13 @@ const styles = createStyles({
 });
 
 export interface CustomerCreateAddressProps extends WithStyles<typeof styles> {
-  countries: CustomerCreateData_shop_countries[];
+  countries: SingleAutocompleteChoiceType[];
+  countryDisplayName: string;
   data: AddressTypeInput;
   disabled: boolean;
   errors: FormErrors<keyof AddressTypeInput>;
   onChange(event: React.ChangeEvent<any>);
+  onCountryChange(event: React.ChangeEvent<any>);
 }
 
 const CustomerCreateAddress = withStyles(styles, {
@@ -32,10 +34,12 @@ const CustomerCreateAddress = withStyles(styles, {
   ({
     classes,
     countries,
+    countryDisplayName,
     data,
     disabled,
     errors,
-    onChange
+    onChange,
+    onCountryChange
   }: CustomerCreateAddressProps) => (
     <Card className={classes.overflow}>
       <CardTitle title={i18n.t("Primary address")} />
@@ -45,14 +49,13 @@ const CustomerCreateAddress = withStyles(styles, {
         </Typography>
         <FormSpacer />
         <AddressEdit
-          countries={countries.map(country => ({
-            code: country.code,
-            label: country.country
-          }))}
+          countries={countries}
           data={data}
           disabled={disabled}
+          countryDisplayValue={countryDisplayName}
           errors={errors}
           onChange={onChange}
+          onCountryChange={onCountryChange}
         />
       </CardContent>
     </Card>

@@ -38,10 +38,8 @@ const styles = (theme: Theme) =>
 interface OrderCustomerEditDialogProps extends WithStyles<typeof styles> {
   confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
-  user?: {
-    label: string;
-    value: string;
-  };
+  user: string;
+  userDisplayValue: string;
   users?: Array<{
     id: string;
     email: string;
@@ -62,6 +60,7 @@ const OrderCustomerEditDialog = withStyles(styles, {
     open,
     loading,
     user,
+    userDisplayValue,
     users,
     fetchUsers,
     onChange,
@@ -83,6 +82,7 @@ const OrderCustomerEditDialog = withStyles(styles, {
             choices={choices}
             allowCustomValues
             loading={loading}
+            displayValue={userDisplayValue}
             name="user"
             value={user}
             fetchChoices={fetchUsers}
