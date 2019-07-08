@@ -102,7 +102,7 @@ export const productFragmentDetails = gql`
           slug
         }
       }
-      value {
+      values {
         id
         name
         slug
