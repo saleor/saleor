@@ -41,6 +41,7 @@ REQUIRED_GATEWAY_KEYS = {
     "currency",
 }
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+GATEWAYS_LABEL = "gateways"
 
 
 def list_enabled_gateways() -> List[str]:
@@ -516,9 +517,6 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
 
     _gateway_postprocess(transaction, payment)
     return transaction
-
-
-GATEWAYS_LABEL = "gateways"
 
 
 def extract_id_for_payment_gateway(user, gateway):
