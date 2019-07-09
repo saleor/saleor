@@ -78,7 +78,7 @@ class GatewayConfig:
 class CreditCardInfo:
     """Uniform way to represent Credit Card information"""
 
-    last4: str
+    last_4: str
     exp_year: int
     exp_month: int
     name_on_card: Optional[str] = None

@@ -294,7 +294,7 @@ def extract_credit_card_data(card, gateway_name):
     credit_card = CreditCardInfo(
         exp_year=int(card.expiration_year),
         exp_month=int(card.expiration_month),
-        last4=card.last_4,
+        last_4=card.last_4,
         name_on_card=card.cardholder_name,
     )
     return CustomerSource(

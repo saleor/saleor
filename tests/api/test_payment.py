@@ -559,7 +559,7 @@ def test_list_payment_sources(
     }
     """
     card = CreditCardInfo(
-        last4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
+        last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
     )
     source = CustomerSource(id="test1", gateway="braintree", credit_card_info=card)
     mock_get_source_list = mocker.patch(
