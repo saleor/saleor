@@ -54,7 +54,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
             {
                 "gateway": src.gateway,
                 "credit_card_info": {
-                    "last_digits": src.credit_card_info.last4,
+                    "last_digits": src.credit_card_info.last_4,
                     "exp_year": src.credit_card_info.exp_year,
                     "exp_month": src.credit_card_info.exp_month,
                     "brand": "",
