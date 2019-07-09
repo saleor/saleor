@@ -767,10 +767,11 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=Non
         voucher,
         calculate_checkout_subtotal(checkout, discounts).gross,
         calculate_checkout_shipping(checkout, discounts).gross,
+        checkout.quantity,
     )
 
 
-def _get_products_voucher_discount(checkout, voucher):
+def _get_products_voucher_discount(checkout, voucher, discounts=None):
     """Calculate products discount value for a voucher, depending on its type.
     """
     prices = None
@@ -791,7 +792,12 @@ def _get_products_voucher_discount(checkout, voucher):
             "Voucher not applicable", "This offer is only valid for selected items."
         )
         raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices)
+    return get_products_voucher_discount(
+        voucher,
+        prices,
+        calculate_checkout_subtotal(checkout, discounts).gross,
+        checkout.quantity,
+    )
 
 
 def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
@@ -801,7 +807,9 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
     """
     if voucher.type == VoucherType.ENTIRE_ORDER:
         return get_value_voucher_discount(
-            voucher, calculate_checkout_subtotal(checkout, discounts).gross
+            voucher,
+            calculate_checkout_subtotal(checkout, discounts).gross,
+            checkout.quantity,
         )
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
@@ -811,7 +819,7 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
         VoucherType.CATEGORY,
         VoucherType.SPECIFIC_PRODUCT,
     ):
-        return _get_products_voucher_discount(checkout, voucher)
+        return _get_products_voucher_discount(checkout, voucher, discounts)
     raise NotImplementedError("Unknown discount type")
 
 

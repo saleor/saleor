@@ -128,7 +128,7 @@ class ShippingVoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        fields = ["countries", "min_amount_spent"]
+        fields = ["countries", "min_amount_spent", "min_quantity_of_products"]
 
 
 class EntireOrderVoucherForm(forms.ModelForm):
@@ -136,7 +136,7 @@ class EntireOrderVoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        fields = ["min_amount_spent"]
+        fields = ["min_amount_spent", "min_quantity_of_products"]
 
     def save(self, commit=True):
         self.instance.category = None
@@ -187,6 +187,7 @@ class SpecificProductVoucherForm(CommonVoucherForm):
             "categories",
             "apply_once_per_order",
             "min_amount_spent",
+            "min_quantity_of_products",
         ]
         labels = {
             "collections": pgettext_lazy(
@@ -212,7 +213,12 @@ class ProductVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
-        fields = ["products", "apply_once_per_order", "min_amount_spent"]
+        fields = [
+            "products",
+            "apply_once_per_order",
+            "min_amount_spent",
+            "min_quantity_of_products",
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -223,7 +229,12 @@ class ProductVoucherForm(CommonVoucherForm):
 class CollectionVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
-        fields = ["collections", "apply_once_per_order", "min_amount_spent"]
+        fields = [
+            "collections",
+            "apply_once_per_order",
+            "min_amount_spent",
+            "min_quantity_of_products",
+        ]
         labels = {"collections": pgettext_lazy("Collections", "Collections")}
 
     def __init__(self, *args, **kwargs):
@@ -240,4 +251,9 @@ class CategoryVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
-        fields = ["categories", "apply_once_per_order", "min_amount_spent"]
+        fields = [
+            "categories",
+            "apply_once_per_order",
+            "min_amount_spent",
+            "min_quantity_of_products",
+        ]
