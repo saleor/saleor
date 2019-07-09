@@ -130,7 +130,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                     onSubmit={(data: FormData) => {
                       if (variant) {
                         updateVariant.mutate({
-                          attributes: data.attributes ? data.attributes : null,
+                          attributes: data.attributes
+                            ? data.attributes.map(attribute => ({
+                                slug: attribute.slug,
+                                value: attribute.value
+                              }))
+                            : null,
                           costPrice: decimal(data.costPrice),
                           id: variantId,
                           priceOverride: decimal(data.priceOverride),
