@@ -41,7 +41,7 @@ REQUIRED_GATEWAY_KEYS = {
     "currency",
 }
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
-GATEWAYS_LABEL = "gateways"
+GATEWAYS_META_LABEL = "gateways"
 
 
 def list_enabled_gateways() -> List[str]:
@@ -516,14 +516,14 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
 def fetch_customer_id(user, gateway):
     """Retrieves users customer_id stored for desired gateway"""
     key = prepare_label_name(gateway)
-    gateway_config = user.get_private_meta(label=GATEWAYS_LABEL).get(key, {})
+    gateway_config = user.get_private_meta(label=GATEWAYS_META_LABEL).get(key, {})
     return gateway_config.get("customer_id", None)
 
 
 def store_customer_id(user, gateway, customer_id):
     """Stores customer_id in users private meta for desired gateway"""
     user.store_private_meta(
-        label=GATEWAYS_LABEL,
+        label=GATEWAYS_META_LABEL,
         key=prepare_label_name(gateway),
         value={"customer_id": customer_id},
     )
