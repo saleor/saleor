@@ -152,7 +152,7 @@ class Voucher(models.Model):
 
     def validate_min_quantity_of_products(self, quantity):
         min_quantity_of_products = self.min_quantity_of_products
-        if min_quantity_of_products > quantity:
+        if min_quantity_of_products and min_quantity_of_products > quantity:
             msg = pgettext(
                 "Voucher not applicable",
                 (
