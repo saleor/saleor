@@ -28,7 +28,7 @@ from ...core.taxes.interface import calculate_checkout_subtotal
 from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.interface import AddressData
-from ...payment.utils import gateway_process_payment, store_id_for_payment_gateway
+from ...payment.utils import gateway_process_payment, store_customer_id
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
@@ -521,7 +521,7 @@ class CheckoutComplete(BaseMutation):
                 store_source=store_source,
             )
             if txn.is_success and txn.customer_id and user.is_authenticated:
-                store_id_for_payment_gateway(user, payment.gateway, txn.customer_id)
+                store_customer_id(user, payment.gateway, txn.customer_id)
 
         except PaymentError as e:
             abort_order_data(order_data)
