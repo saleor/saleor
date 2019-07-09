@@ -18,15 +18,16 @@ import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
 
 interface FormData {
-  attributes?: Array<{
+  attributes: Array<{
+    name: string;
     slug: string;
     value: string;
   }>;
-  costPrice?: string;
-  images?: string[];
-  priceOverride?: string;
-  quantity?: number;
-  sku?: string;
+  costPrice: string;
+  images: string[];
+  priceOverride: string;
+  quantity: number;
+  sku: string;
 }
 
 interface ProductVariantCreatePageProps {
@@ -55,11 +56,14 @@ const ProductVariantCreatePage: React.StatelessComponent<
   onVariantClick
 }) => {
   const initialForm = {
-    attributes: maybe(() =>
-      product.productType.variantAttributes.map(attribute => ({
-        slug: attribute.slug,
-        value: ""
-      }))
+    attributes: maybe(
+      () =>
+        product.productType.variantAttributes.map(attribute => ({
+          name: attribute.name,
+          slug: attribute.slug,
+          value: ""
+        })),
+      []
     ),
     costPrice: "",
     images: maybe(() => product.images.map(image => image.id)),
