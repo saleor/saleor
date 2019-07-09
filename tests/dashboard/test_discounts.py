@@ -153,18 +153,40 @@ def test_shipping_voucher_order_discount(
     assert discount == Money(expected_value, "USD")
 
 
-def test_shipping_voucher_checkout_discount_not_applicable_returns_zero():
+@pytest.mark.parametrize(
+    "total, total_quantity, min_amount_spent, min_quantity_of_products, voucher_type",
+    [
+        (99, 10, 100, 10, VoucherType.SHIPPING),
+        (100, 9, 100, 10, VoucherType.SHIPPING),
+        (99, 9, 100, 10, VoucherType.SHIPPING),
+        (99, 10, 100, 10, VoucherType.ENTIRE_ORDER),
+        (100, 9, 100, 10, VoucherType.ENTIRE_ORDER),
+        (99, 9, 100, 10, VoucherType.ENTIRE_ORDER),
+        (99, 10, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+        (100, 9, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+        (99, 9, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+    ],
+)
+def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
+    total, total_quantity, min_amount_spent, min_quantity_of_products, voucher_type
+):
     voucher = Voucher(
         code="unique",
-        type=VoucherType.SHIPPING,
+        type=voucher_type,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
-        min_amount_spent=Money(20, "USD"),
+        min_amount_spent=(
+            Money(min_amount_spent, "USD") if min_amount_spent is not None else None
+        ),
+        min_quantity_of_products=min_quantity_of_products,
     )
-    price = Money(10, "USD")
+    price = Money(total, "USD")
     price = TaxedMoney(net=price, gross=price)
     order = Mock(
-        get_subtotal=Mock(return_value=price), shipping_price=price, voucher=voucher
+        get_subtotal=Mock(return_value=price),
+        get_total_quantity=Mock(return_value=total_quantity),
+        shipping_price=price,
+        voucher=voucher,
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_order(order)
