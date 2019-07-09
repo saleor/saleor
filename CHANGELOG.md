@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix internal error when users enters an invalid phone number in an address - #4404 by @NyanKiyoshi
 - New translations:
   - Icelandic
+- Fix various bugs across product section - #4429 by @dominik-zeglen
 
 ## 2.7.0
 
