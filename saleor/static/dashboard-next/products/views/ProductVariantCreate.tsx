@@ -60,7 +60,10 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
               const handleSubmit = (formData: FormData) =>
                 variantCreate({
                   variables: {
-                    attributes: formData.attributes,
+                    attributes: formData.attributes.map(attribute => ({
+                      slug: attribute.slug,
+                      value: attribute.value
+                    })),
                     costPrice: decimal(formData.costPrice),
                     priceOverride: decimal(formData.priceOverride),
                     product: productId,
