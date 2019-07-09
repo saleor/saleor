@@ -175,9 +175,8 @@ mutation  voucherCreate(
 
 @freeze_time("2010-05-31 12:00:01")
 def test_create_voucher(staff_api_client, permission_manage_discounts):
-    with freeze_time("2012-01-14 11:00:00"):
-        start_date = timezone.now() - timedelta(days=365)
-        end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.ENTIRE_ORDER.name,
@@ -210,9 +209,8 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
 
 @freeze_time("2010-05-31 12:00:01")
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
-    with freeze_time("2012-01-14 11:00:00"):
-        start_date = timezone.now() - timedelta(days=365)
-        end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.ENTIRE_ORDER.name,
@@ -238,9 +236,8 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
 def test_create_voucher_with_deprecated_type(
     staff_api_client, permission_manage_discounts
 ):
-    with freeze_time("2012-01-14 11:00:00"):
-        start_date = timezone.now() - timedelta(days=365)
-        end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.VALUE.name,
@@ -267,9 +264,8 @@ def test_create_voucher_with_deprecated_type(
 def test_create_voucher_with_existing_gift_card_code(
     staff_api_client, gift_card, permission_manage_discounts
 ):
-    with freeze_time("2012-01-14 11:00:00"):
-        start_date = timezone.now() - timedelta(days=365)
-        end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.ENTIRE_ORDER.name,
@@ -296,9 +292,8 @@ def test_create_voucher_with_existing_gift_card_code(
 def test_create_voucher_with_existing_voucher_code(
     staff_api_client, voucher_shipping_type, permission_manage_discounts
 ):
-    with freeze_time("2012-01-14 11:00:00"):
-        start_date = timezone.now() - timedelta(days=365)
-        end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test voucher",
         "type": VoucherTypeEnum.ENTIRE_ORDER.name,
@@ -574,9 +569,8 @@ def test_create_sale(staff_api_client, permission_manage_discounts):
         }
     }
     """
-    with freeze_time("2012-01-14 11:00:00"):
-        start_date = timezone.now() - timedelta(days=365)
-        end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
     variables = {
         "name": "test sale",
         "type": DiscountValueTypeEnum.FIXED.name,
