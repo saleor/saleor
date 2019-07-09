@@ -160,13 +160,8 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
           ...event,
           target: {
             ...event.target,
-            name: "attributes",
-            value: event.target.value.value.productAttributes.map(
-              attribute => ({
-                slug: attribute.slug,
-                value: ""
-              })
-            )
+            name: "productType",
+            value: event.target.value
           }
         })
       );

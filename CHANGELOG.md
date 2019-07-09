@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix internal error when users enters an invalid phone number in an address - #4404 by @NyanKiyoshi
 - New translations:
   - Icelandic
+- Fix product type input on the product creation page in dashboard 2.0 - #4423 by @NyanKiyoshi
 
 ## 2.7.0
 
