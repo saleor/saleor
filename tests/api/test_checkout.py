@@ -1,18 +1,143 @@
 import uuid
+from unittest import mock
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
-from prices import TaxedMoney
+from django_countries import countries
+from prices import Money, TaxedMoney
 
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.taxes import zero_money
+from saleor.graphql.checkout.mutations import (
+    clean_shipping_method,
+    update_checkout_shipping_method_if_invalid,
+)
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from saleor.payment import PaymentError
+from saleor.shipping import ShippingMethodType
+from saleor.shipping.models import ShippingMethod
 from tests.api.utils import get_graphql_content
+
+
+@pytest.fixture
+def other_shipping_method(shipping_zone):
+    return ShippingMethod.objects.create(
+        name="DPD",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(9, "USD"),
+        shipping_zone=shipping_zone,
+    )
+
+
+def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
+    checkout_with_single_item, address, shipping_method, other_shipping_method
+):
+    """If current shipping method applies to new address
+    then it doesn't need to be changed."""
+
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+
+    alternative_method, is_valid_method = clean_shipping_method(
+        checkout, shipping_method, None, retrieve_alternative=True
+    )
+    assert is_valid_method is True
+    assert alternative_method is None
+
+
+def test_clean_shipping_method_does_nothing_if_no_shipping_method(
+    checkout_with_single_item, address, other_shipping_method
+):
+    """If no shipping method was selected, it shouldn't return an error."""
+
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+
+    alternative_method, is_valid_method = clean_shipping_method(
+        checkout, None, None, retrieve_alternative=True
+    )
+    assert is_valid_method is True
+    assert alternative_method is None
+
+
+@pytest.mark.parametrize("request_alternative_method", (True, False))
+def test_clean_shipping_method_invalid_shipping_method_select_cheapest_method(
+    checkout_with_single_item,
+    address,
+    shipping_method,
+    other_shipping_method,
+    shipping_zone_without_countries,
+    request_alternative_method,
+):
+    """If current shipping method doesn't apply to the current checkout,
+    then it needs to be changed, suggest the cheapest one."""
+
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+
+    shipping_method.shipping_zone = shipping_zone_without_countries
+    shipping_method.save(update_fields=["shipping_zone"])
+
+    alternative_method, is_valid_method = clean_shipping_method(
+        checkout, shipping_method, None, retrieve_alternative=request_alternative_method
+    )
+    assert is_valid_method is False
+
+    if request_alternative_method:
+        assert alternative_method == other_shipping_method
+    else:
+        assert alternative_method is None
+
+
+def test_clean_shipping_method_invalid_shipping_method_without_alternatives(
+    checkout_with_single_item, address, shipping_method
+):
+    """If current shipping method doesn't apply to the current checkout,
+    then it needs to be changed, suggest the cheapest one. But if none are available,
+    it should return None as suggestion."""
+
+    shipping_method.shipping_zone.countries = [countries.alpha2("FR")]
+    shipping_method.shipping_zone.save(update_fields=["countries"])
+
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+
+    alternative_method, is_valid_method = clean_shipping_method(
+        checkout, shipping_method, None, retrieve_alternative=True
+    )
+    assert is_valid_method is False
+    assert alternative_method is None
+
+
+def test_update_checkout_shipping_method_if_invalid(
+    checkout_with_single_item,
+    address,
+    shipping_method,
+    other_shipping_method,
+    shipping_zone_without_countries,
+):
+    """If the shipping method is invalid, it should replace it."""
+
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+
+    shipping_method.shipping_zone = shipping_zone_without_countries
+    shipping_method.save(update_fields=["shipping_zone"])
+
+    update_checkout_shipping_method_if_invalid(checkout, None)
+
+    assert checkout.shipping_method == other_shipping_method
+
+    # Ensure the checkout's shipping method was saved
+    checkout.refresh_from_db(fields=["shipping_method"])
+    assert checkout.shipping_method == other_shipping_method
+
 
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
@@ -366,7 +491,13 @@ MUTATION_CHECKOUT_LINES_ADD = """
     }"""
 
 
-def test_checkout_lines_add(user_api_client, checkout_with_item, variant):
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_lines_add(
+    mocked_update_shipping_method, user_api_client, checkout_with_item, variant
+):
     checkout = checkout_with_item
     line = checkout.lines.first()
     assert line.quantity == 3
@@ -385,6 +516,8 @@ def test_checkout_lines_add(user_api_client, checkout_with_item, variant):
     line = checkout.lines.latest("pk")
     assert line.variant == variant
     assert line.quantity == 1
+
+    mocked_update_shipping_method.assert_called_once_with(checkout, mock.ANY)
 
 
 def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, variant):
@@ -481,7 +614,13 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
     """
 
 
-def test_checkout_lines_update(user_api_client, checkout_with_item):
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_lines_update(
+    mocked_update_shipping_method, user_api_client, checkout_with_item
+):
     checkout = checkout_with_item
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
@@ -505,6 +644,8 @@ def test_checkout_lines_update(user_api_client, checkout_with_item):
     line = checkout.lines.first()
     assert line.variant == variant
     assert line.quantity == 1
+
+    mocked_update_shipping_method.assert_called_once_with(checkout, mock.ANY)
 
 
 def test_checkout_lines_update_invalid_checkout_id(user_api_client):
@@ -560,7 +701,13 @@ MUTATION_CHECKOUT_LINES_DELETE = """
 """
 
 
-def test_checkout_line_delete(user_api_client, checkout_with_item):
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_line_delete(
+    mocked_update_shipping_method, user_api_client, checkout_with_item
+):
     checkout = checkout_with_item
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
@@ -577,6 +724,7 @@ def test_checkout_line_delete(user_api_client, checkout_with_item):
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
+    mocked_update_shipping_method.assert_called_once_with(checkout, mock.ANY)
 
 
 def test_checkout_customer_attach(user_api_client, checkout_with_item, customer_user):
@@ -660,8 +808,15 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     }"""
 
 
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
 def test_checkout_shipping_address_update(
-    user_api_client, checkout_with_item, graphql_address_data
+    mocked_update_shipping_method,
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
@@ -689,6 +844,7 @@ def test_checkout_shipping_address_update(
     assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
+    mocked_update_shipping_method.assert_called_once_with(checkout, mock.ANY)
 
 
 def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
@@ -1150,11 +1306,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     )
 
 
-@patch("saleor.graphql.checkout.mutations.clean_shipping_method")
-def test_checkout_shipping_method_update(
-    mock_clean_shipping, staff_api_client, shipping_method, checkout_with_item
-):
-    query = """
+UPDATE_SHIPPING_METHOD_QUERY = """
     mutation checkoutShippingMethodUpdate(
             $checkoutId:ID!, $shippingMethodId:ID!){
         checkoutShippingMethodUpdate(
@@ -1168,22 +1320,48 @@ def test_checkout_shipping_method_update(
             }
         }
     }
-    """
+"""
+
+
+@pytest.mark.parametrize("is_valid_shipping_method", (True, False))
+@patch("saleor.graphql.checkout.mutations.clean_shipping_method")
+def test_checkout_shipping_method_update(
+    mock_clean_shipping,
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    is_valid_shipping_method,
+):
     checkout = checkout_with_item
+    query = UPDATE_SHIPPING_METHOD_QUERY
+    mock_clean_shipping.return_value = [None, is_valid_shipping_method]
+
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-    variables = {"checkoutId": checkout_id, "shippingMethodId": method_id}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["checkoutShippingMethodUpdate"]
-    assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
+
+    response = staff_api_client.post_graphql(
+        query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
 
     checkout.refresh_from_db()
-    assert checkout.shipping_method == shipping_method
+
     mock_clean_shipping.assert_called_once_with(
-        checkout=checkout, method=shipping_method, discounts=ANY, remove=False
+        checkout=checkout, method=shipping_method, discounts=ANY
     )
+
+    if is_valid_shipping_method:
+        assert not data["errors"]
+        assert data["checkout"]["id"] == checkout_id
+        assert checkout.shipping_method == shipping_method
+    else:
+        assert data["errors"] == [
+            {
+                "field": "shippingMethod",
+                "message": "This shipping method is not applicable.",
+            }
+        ]
+        assert checkout.shipping_method is None
 
 
 def test_query_checkout_line(checkout_with_item, user_api_client):

@@ -43,10 +43,24 @@ from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
 
 
-def clean_shipping_method(checkout, method, discounts, country_code=None, remove=True):
-    # FIXME Add tests for this function
+def clean_shipping_method(
+    checkout: models.Checkout,
+    method: Optional[models.ShippingMethod],
+    discounts,
+    *,
+    retrieve_alternative=False,
+) -> Tuple[Optional[models.ShippingMethod], bool]:
+    """Check if current shipping method is valid. If so - return True.
+    If current method is invalid, return the cheapest shipping method available.
+
+    Returns:
+        - The cheapest shipping method if the selected one is invalid
+        - Whether the selected shipping method is valid
+    """
+
     if not method:
-        return None
+        # no shipping method was provided, it is valid
+        return None, True
 
     if not checkout.is_shipping_required():
         raise ValidationError("This checkout does not requires shipping.")
@@ -57,19 +71,32 @@ def clean_shipping_method(checkout, method, discounts, country_code=None, remove
             "shipping address."
         )
 
-    valid_methods = get_valid_shipping_methods(
-        checkout, discounts, country_code=country_code
+    valid_methods = get_valid_shipping_methods(checkout, discounts)
+
+    if method not in valid_methods:
+        if retrieve_alternative:
+            # Return the alternative shipping method
+            # to replace the invalid one
+            return valid_methods.first(), False
+    else:
+        # the shipping method is in the valid list,
+        # we can return True
+        return None, True
+
+    # There was no alternative, return: we failed
+    return None, False
+
+
+def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discounts):
+    new_shipping_method, is_valid = clean_shipping_method(
+        checkout=checkout,
+        method=checkout.shipping_method,
+        discounts=discounts,
+        retrieve_alternative=True,
     )
 
-    if (
-        valid_methods is None
-        or method.pk not in valid_methods.values_list("id", flat=True)
-        and not remove
-    ):
-        raise ValidationError("Shipping method cannot be used with this checkout.")
-
-    if remove:
-        checkout.shipping_method = None
+    if new_shipping_method or not is_valid:
+        checkout.shipping_method = new_shipping_method
         checkout.save(update_fields=["shipping_method"])
 
 
@@ -261,13 +288,7 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities)
-
-        # FIXME test if below function is called
-        clean_shipping_method(
-            checkout=checkout,
-            method=checkout.shipping_method,
-            discounts=info.context.discounts,
-        )
+        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
@@ -311,13 +332,7 @@ class CheckoutLineDelete(BaseMutation):
         if line and line in checkout.lines.all():
             line.delete()
 
-        # FIXME test if below function is called
-        clean_shipping_method(
-            checkout=checkout,
-            method=checkout.shipping_method,
-            discounts=info.context.discounts,
-        )
-
+        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
         recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutLineDelete(checkout=checkout)
@@ -387,12 +402,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             shipping_address, instance=checkout.shipping_address
         )
 
-        # FIXME test if below function is called
-        clean_shipping_method(
-            checkout=checkout,
-            method=checkout.shipping_method,
-            discounts=info.context.discounts,
-        )
+        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
 
         with transaction.atomic():
             shipping_address.save()
@@ -476,12 +486,14 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             field="shipping_method_id",
         )
 
-        clean_shipping_method(
-            checkout=checkout,
-            method=shipping_method,
-            discounts=info.context.discounts,
-            remove=False,
+        _, shipping_method_is_valid = clean_shipping_method(
+            checkout=checkout, method=shipping_method, discounts=info.context.discounts
         )
+
+        if not shipping_method_is_valid:
+            raise ValidationError(
+                {"shipping_method": "This shipping method is not applicable."}
+            )
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method"])

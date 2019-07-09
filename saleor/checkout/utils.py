@@ -1009,12 +1009,12 @@ def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
     )
 
     if shipping_methods is None:
-        return
+        return None
 
     shipping_methods = shipping_methods.values_list("price", flat=True)
 
     if not shipping_methods:
-        return
+        return None
 
     prices = MoneyRange(start=min(shipping_methods), stop=max(shipping_methods))
     return tax_interface.apply_taxes_to_shipping_price_range(prices, country_code)
