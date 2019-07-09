@@ -55,8 +55,8 @@ class CreditCard(graphene.ObjectType):
 class PaymentSource(graphene.ObjectType):
     class Meta:
         description = (
-            "Represents a payment source stored"
-            " for user in payment gateway, such as credit card."
+            "Represents a payment source stored "
+            "for user in payment gateway, such as credit card."
         )
 
     gateway = graphene.String(description="Payment gateway name", required=True)
