@@ -17,12 +17,12 @@ interface ProductUpdateProps {
 }
 
 interface FormData {
-  attributes?: Array<{
+  attributes: Array<{
     slug: string;
     value: string;
   }>;
-  costPrice?: string;
-  priceOverride?: string;
+  costPrice: string;
+  priceOverride: string;
   quantity: number;
   sku: string;
 }

@@ -61,8 +61,7 @@ const ProductVariantAttributes = withStyles(styles, {
     <Card className={classes.card}>
       <CardTitle title={i18n.t("General Information")} />
       <CardContent className={classes.grid}>
-        {attributes === undefined &&
-        (console.log(data) || data.attributes.length) === 0 ? (
+        {attributes === undefined && data.attributes.length === 0 ? (
           <Skeleton />
         ) : (
           data.attributes.map((attribute, attributeIndex) => {
