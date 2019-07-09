@@ -472,7 +472,7 @@ class CheckoutComplete(BaseMutation):
         store_source = graphene.Boolean(
             default_value=False,
             description=(
-                "Determines whether to stor" "the payment source for future usage."
+                "Determines whether to store the payment source for future usage."
             ),
         )
 
