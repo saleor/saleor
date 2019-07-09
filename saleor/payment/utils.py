@@ -513,13 +513,13 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
     return transaction
 
 
-def extract_id_for_payment_gateway(user, gateway):
+def fetch_customer_id(user, gateway):
     key = prepare_label_name(gateway)
     gateway_config = user.get_private_meta(label=GATEWAYS_LABEL).get(key, {})
     return gateway_config.get("customer_id", None)
 
 
-def store_id_for_payment_gateway(user, gateway, customer_id):
+def store_customer_id(user, gateway, customer_id):
     user.store_private_meta(
         label=GATEWAYS_LABEL,
         key=prepare_label_name(gateway),

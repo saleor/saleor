@@ -13,10 +13,7 @@ from saleor.graphql.payment.enums import (
 )
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
-from saleor.payment.utils import (
-    extract_id_for_payment_gateway,
-    store_id_for_payment_gateway,
-)
+from saleor.payment.utils import fetch_customer_id, store_customer_id
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
@@ -472,13 +469,10 @@ def braintree_customer_id():
 def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
     gateway_name = PaymentGatewayEnum.BRAINTREE.name
     META = {"gateways": {gateway_name.upper(): {"customer_id": braintree_customer_id}}}
-    store_id_for_payment_gateway(customer_user, gateway_name, braintree_customer_id)
+    store_customer_id(customer_user, gateway_name, braintree_customer_id)
     assert customer_user.private_meta == META
     customer_user.refresh_from_db()
-    assert (
-        extract_id_for_payment_gateway(customer_user, gateway_name)
-        == braintree_customer_id
-    )
+    assert fetch_customer_id(customer_user, gateway_name) == braintree_customer_id
 
 
 def test_query_payment_client_token(mocker, user_api_client):
@@ -509,7 +503,7 @@ def token_config_with_customer(braintree_customer_id):
 @pytest.fixture
 def set_braintree_customer_id(customer_user, braintree_customer_id):
     gateway_name = "braintree"
-    store_id_for_payment_gateway(customer_user, gateway_name, braintree_customer_id)
+    store_customer_id(customer_user, gateway_name, braintree_customer_id)
     return customer_user
 
 

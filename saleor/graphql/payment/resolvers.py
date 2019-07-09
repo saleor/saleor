@@ -5,7 +5,7 @@ import graphene_django_optimizer as gql_optimizer
 from ...payment import models
 from ...payment.interface import TokenConfig
 from ...payment.utils import (
-    extract_id_for_payment_gateway,
+    fetch_customer_id,
     gateway_get_client_token,
     list_enabled_gateways,
     retrieve_customer_sources,
@@ -23,7 +23,7 @@ def resolve_payments(info, query):
 
 def resolve_payment_client_token(gateway=None, user=None):
     if user is not None:
-        customer_id = extract_id_for_payment_gateway(user, gateway)
+        customer_id = fetch_customer_id(user, gateway)
         if customer_id:
             token_config = TokenConfig(customer_id=customer_id)
             return gateway_get_client_token(gateway, token_config)
@@ -32,8 +32,7 @@ def resolve_payment_client_token(gateway=None, user=None):
 
 def resolve_payment_sources(user):
     stored_customer_accounts = {
-        gateway: extract_id_for_payment_gateway(user, gateway)
-        for gateway in list_enabled_gateways()
+        gateway: fetch_customer_id(user, gateway) for gateway in list_enabled_gateways()
     }
     return list(
         chain(
