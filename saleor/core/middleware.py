@@ -23,6 +23,7 @@ from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
 from . import analytics
+from .extensions.manager import get_enabled_manager
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 
 logger = logging.getLogger(__name__)
@@ -172,6 +173,19 @@ def taxes(get_response):
             )
         else:
             request.taxes = None
+        return get_response(request)
+
+    return middleware
+
+
+def extensions(get_response):
+    """Assign extensions manager"""
+
+    def _get_manager():
+        return get_enabled_manager()
+
+    def middleware(request):
+        request.extensions = SimpleLazyObject(_get_manager)
         return get_response(request)
 
     return middleware
