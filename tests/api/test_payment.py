@@ -3,7 +3,6 @@ from decimal import Decimal
 import graphene
 import pytest
 from prices import TaxedMoney
-from tests.api.utils import get_graphql_content
 
 from saleor.core.utils import get_country_name_by_code
 from saleor.graphql.payment.enums import (
@@ -14,6 +13,7 @@ from saleor.graphql.payment.enums import (
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from saleor.payment.utils import fetch_customer_id, store_customer_id
+from tests.api.utils import get_graphql_content
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
