@@ -131,7 +131,7 @@ def get_prices_of_discounted_specific_product(lines, voucher, discounts=None):
         discounted_lines.extend(list(lines))
 
     for line in discounted_lines:
-        line_total = calculate_checkout_line_total(line, discounts).gross
+        line_total = calculate_checkout_line_total(line, discounts or []).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
         )
@@ -148,7 +148,7 @@ def get_prices_of_discounted_products(checkout, discounted_products, discounts=N
     if discounted_products:
         for line in checkout:
             if line.variant.product in discounted_products:
-                line_total = calculate_checkout_line_total(line, discounts).gross
+                line_total = calculate_checkout_line_total(line, discounts or []).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -169,7 +169,7 @@ def get_prices_of_products_in_discounted_collections(
                 continue
             product_collections = line.variant.product.collections.all()
             if set(product_collections).intersection(discounted_collections):
-                line_total = calculate_checkout_line_total(line, discounts).gross
+                line_total = calculate_checkout_line_total(line, discounts or []).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -195,7 +195,7 @@ def get_prices_of_products_in_discounted_categories(
                 continue
             product_category = line.variant.product.category
             if product_category in discounted_categories:
-                line_total = calculate_checkout_line_total(line, discounts).gross
+                line_total = calculate_checkout_line_total(line, discounts or []).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )

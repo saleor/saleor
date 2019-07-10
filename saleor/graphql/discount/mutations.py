@@ -101,8 +101,8 @@ class VoucherInput(graphene.InputObjectType):
     min_amount_spent = Decimal(
         description="Min purchase amount required to apply the voucher."
     )
-    min_quantity_of_products = graphene.Int(
-        description="Minimal quantity of products required to apply the voucher."
+    min_checkout_items_quantity = graphene.Int(
+        description="Minimal quantity of checkout items required to apply the voucher."
     )
     countries = graphene.List(
         graphene.String,

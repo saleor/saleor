@@ -3131,7 +3131,7 @@ type Voucher implements Node {
   discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
   minAmountSpent: Money
-  minQuantityOfProducts: Int
+  minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -3196,7 +3196,7 @@ input VoucherInput {
   collections: [ID]
   categories: [ID]
   minAmountSpent: Decimal
-  minQuantityOfProducts: Int
+  minCheckoutItemsQuantity: Int
   countries: [String]
   applyOncePerOrder: Boolean
   usageLimit: Int

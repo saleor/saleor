@@ -850,7 +850,7 @@ def test_get_discount_for_checkout_value_voucher(
 
 @pytest.mark.parametrize(
     "total, total_quantity, discount_value, discount_type, min_amount_spent, "
-    "min_quantity_of_products",
+    "min_checkout_items_quantity",
     [
         ("99", 9, 10, DiscountValueType.FIXED, None, 10),
         ("99", 9, 10, DiscountValueType.FIXED, 100, None),
@@ -865,7 +865,7 @@ def test_get_discount_for_checkout_value_voucher_not_applicable(
     discount_value,
     discount_type,
     min_amount_spent,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
 ):
     voucher = Voucher(
         code="unique",
@@ -875,7 +875,7 @@ def test_get_discount_for_checkout_value_voucher_not_applicable(
         min_amount_spent=(
             Money(min_amount_spent, "USD") if min_amount_spent is not None else None
         ),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     checkout = Mock(
         get_subtotal=Mock(return_value=Money(total, "USD")), quantity=total_quantity
@@ -917,7 +917,7 @@ def test_get_discount_for_checkout_specific_products_voucher(
 
 @pytest.mark.parametrize(
     "total, total_quantity, discount_value, discount_type, min_amount_spent,"
-    "min_quantity_of_products",
+    "min_checkout_items_quantity",
     [
         ("99", 9, 10, DiscountValueType.FIXED, None, 10),
         ("99", 9, 10, DiscountValueType.FIXED, 100, None),
@@ -933,7 +933,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     discount_value,
     discount_type,
     min_amount_spent,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
 ):
     discounts = []
     monkeypatch.setattr(
@@ -948,7 +948,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         min_amount_spent=(
             Money(min_amount_spent, "USD") if min_amount_spent is not None else None
         ),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     checkout = Mock(
         get_subtotal=Mock(return_value=Money(total, "USD")), quantity=total_quantity
@@ -1041,8 +1041,8 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries():
 
 @pytest.mark.parametrize(
     "is_shipping_required, shipping_method, discount_value, discount_type,"
-    "countries, min_amount_spent, min_quantity_of_products, subtotal, total_quantity,"
-    "error_msg",
+    "countries, min_amount_spent, min_checkout_items_quantity, subtotal,"
+    "total_quantity, error_msg",
     [
         (
             True,
@@ -1125,7 +1125,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     discount_type,
     countries,
     min_amount_spent,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
     subtotal,
     total_quantity,
     error_msg,
@@ -1145,7 +1145,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         min_amount_spent=(
             Money(min_amount_spent, "USD") if min_amount_spent is not None else None
         ),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
         countries=countries,
     )
     with pytest.raises(NotApplicable) as e:
