@@ -80269,7 +80269,7 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
           Company information
         </h6>
         <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id SiteSettingsAddress-root-id"
         >
           <div
             class="CardTitle-root-id"
@@ -80404,7 +80404,7 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="postalCode"
                     type="text"
-                    value="Kenstad"
+                    value="89880-6342"
                   />
                 </div>
               </div>
@@ -80769,7 +80769,7 @@ exports[`Storyshots Views / Site settings / Page form errors 1`] = `
           Company information
         </h6>
         <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id SiteSettingsAddress-root-id"
         >
           <div
             class="CardTitle-root-id"
@@ -80904,7 +80904,7 @@ exports[`Storyshots Views / Site settings / Page form errors 1`] = `
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="postalCode"
                     type="text"
-                    value="Kenstad"
+                    value="89880-6342"
                   />
                 </div>
               </div>
@@ -81267,7 +81267,7 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
           Company information
         </h6>
         <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id SiteSettingsAddress-root-id"
         >
           <div
             class="CardTitle-root-id"
