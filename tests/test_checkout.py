@@ -935,9 +935,10 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     min_amount_spent,
     min_quantity_of_products,
 ):
+    discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_specific_product",
-        lambda checkout, product: [],
+        lambda checkout, discounts, product: [],
     )
     voucher = Voucher(
         code="unique",
@@ -953,7 +954,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         get_subtotal=Mock(return_value=Money(total, "USD")), quantity=total_quantity
     )
     with pytest.raises(NotApplicable):
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_checkout(voucher, checkout, discounts)
 
 
 @pytest.mark.parametrize(
