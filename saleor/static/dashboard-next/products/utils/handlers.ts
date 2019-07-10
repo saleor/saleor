@@ -1,5 +1,6 @@
 import { FormChange } from "@saleor/hooks/useForm";
 import { FormsetChange, FormsetData } from "@saleor/hooks/useFormset";
+import { maybe } from "@saleor/misc";
 import { toggle } from "@saleor/utils/lists";
 import { ProductAttributeInputData } from "../components/ProductAttributes";
 import {
@@ -21,7 +22,7 @@ export function createAttributeChangeHandler(
       .data.values.find(attributeValue => attributeValue.slug === value);
 
     const valueChoice = {
-      label: attributeValue.name,
+      label: maybe(() => attributeValue.name, value),
       value
     };
 
@@ -57,18 +58,18 @@ export function createAttributeMultiChangeHandler(
       .data.values.find(attributeValue => attributeValue.slug === value);
 
     const valueChoice = {
-      label: attributeValue.name,
+      label: attributeValue ? attributeValue.name : value,
       value
     };
 
     const itemIndex = selectedAttributes.findIndex(
       item => item.id === attributeId
     );
-    const field = selectedAttributes[itemIndex].values;
+    const attributeValues = selectedAttributes[itemIndex].values;
 
-    const attributeValues = toggle(
+    const newAttributeValues = toggle(
       valueChoice,
-      field,
+      attributeValues,
       (a, b) => a.value === b.value
     );
 
@@ -76,22 +77,26 @@ export function createAttributeMultiChangeHandler(
       ...selectedAttributes.slice(0, itemIndex),
       {
         ...selectedAttributes[itemIndex],
-        values: attributeValues
+        values: newAttributeValues
       },
       ...selectedAttributes.slice(itemIndex + 1)
     ];
     setSelectedAttributes(newSelectedAttributes);
 
     triggerChange();
-    changeAttributeData(attributeId, attributeValues.map(({ value }) => value));
+    changeAttributeData(
+      attributeId,
+      newAttributeValues.map(({ value }) => value)
+    );
   };
 }
 
 export function createProductTypeSelectHandler(
-  productTypeChoiceList: ProductType[],
-  setProductType: (productType: ProductType) => void,
   change: FormChange,
-  set: (data: FormsetData<ProductAttributeInputData>) => void
+  setAttributes: (data: FormsetData<ProductAttributeInputData>) => void,
+  setSelectedAttributes: (data: ProductAttributeValueChoices[]) => void,
+  setProductType: (productType: ProductType) => void,
+  productTypeChoiceList: ProductType[]
 ): FormChange {
   return (event: React.ChangeEvent<any>) => {
     const id = event.target.value;
@@ -101,6 +106,12 @@ export function createProductTypeSelectHandler(
     setProductType(selectedProductType);
     change(event);
 
-    set(getAttributeInputFromProductType(selectedProductType));
+    setAttributes(getAttributeInputFromProductType(selectedProductType));
+    setSelectedAttributes(
+      selectedProductType.productAttributes.map(attribute => ({
+        id: attribute.id,
+        values: []
+      }))
+    );
   };
 }

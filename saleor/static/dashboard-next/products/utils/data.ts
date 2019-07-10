@@ -76,7 +76,7 @@ export function getAttributeInputFromProductType(
     },
     id: attribute.id,
     label: attribute.name,
-    value: [""]
+    value: []
   }));
 }
 
