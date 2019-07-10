@@ -1174,9 +1174,10 @@ def test_get_discount_for_checkout_product_voucher_not_applicable(monkeypatch):
 
 
 def test_get_discount_for_checkout_collection_voucher_not_applicable(monkeypatch):
+    discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_products_in_discounted_collections",  # noqa
-        lambda checkout, product: [],
+        lambda checkout, discounts, product: [],
     )
     voucher = Voucher(
         code="unique",
@@ -1188,7 +1189,7 @@ def test_get_discount_for_checkout_collection_voucher_not_applicable(monkeypatch
     checkout = Mock()
 
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_checkout(voucher, checkout, discounts)
     assert str(e.value) == "This offer is only valid for selected items."
 
 
