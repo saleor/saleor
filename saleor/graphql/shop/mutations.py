@@ -85,8 +85,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
             company_address = Address()
         else:
             company_address = site_settings.company_address
-        company_address = cls.construct_instance(company_address, data)
-        company_address.save()
+        company_address = cls.validate_address(data, company_address)
         site_settings.company_address = company_address
         site_settings.save()
         return ShopAddressUpdate(shop=Shop())
