@@ -101,7 +101,7 @@ def remove_unavailable_variants(checkout):
             add_variant_to_checkout(checkout, line.variant, quantity, replace=True)
 
 
-def get_prices_of_discounted_specific_product(lines, voucher):
+def get_prices_of_discounted_specific_product(lines, voucher, discounts=None):
     """Get prices of variants belonging to the discounted specific products.
 
     Specific products are products, collections and categories.
@@ -131,7 +131,7 @@ def get_prices_of_discounted_specific_product(lines, voucher):
         discounted_lines.extend(list(lines))
 
     for line in discounted_lines:
-        line_total = calculate_checkout_line_total(line, []).gross
+        line_total = calculate_checkout_line_total(line, discounts).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
         )
@@ -776,7 +776,7 @@ def _get_products_voucher_discount(checkout, voucher, discounts=None):
     """
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(checkout, voucher)
+        prices = get_prices_of_discounted_specific_product(checkout, voucher, discounts)
     elif voucher.type == VoucherType.PRODUCT:
         prices = get_prices_of_discounted_products(checkout, voucher.products.all())
     elif voucher.type == VoucherType.COLLECTION:
