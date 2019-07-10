@@ -31,8 +31,8 @@ from ...core.utils import (
     perform_reordering,
     validate_image_file,
 )
-from ...product.types import AttributeValue
 from ..types import (
+    Attribute,
     Category,
     Collection,
     MoveProductInput,
@@ -678,9 +678,9 @@ class ProductVariantCreate(ModelMutation):
 
             if attr_id:
                 attr_id = from_global_id_strict_type(
-                    info, attr_id, only_type=AttributeValue, field="attributes"
+                    info, attr_id, only_type=Attribute, field="attributes"
                 )
-                input_id_map[attr_id] = values
+                input_id_map[int(attr_id)] = values
             elif slug:
                 input_slug_map[slug] = values
             else:

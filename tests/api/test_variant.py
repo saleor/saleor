@@ -194,6 +194,92 @@ def test_create_product_variant_not_all_attributes(
     assert not product.variants.filter(sku=sku).exists()
 
 
+def test_create_product_variant_update_with_new_attributes(
+    staff_api_client, permission_manage_products, product, size_attribute
+):
+    query = """
+        mutation VariantUpdate(
+          $id: ID!
+          $attributes: [AttributeValueInput]
+          $costPrice: Decimal
+          $priceOverride: Decimal
+          $sku: String
+          $quantity: Int
+          $trackInventory: Boolean!
+        ) {
+          productVariantUpdate(
+            id: $id
+            input: {
+              attributes: $attributes
+              costPrice: $costPrice
+              priceOverride: $priceOverride
+              sku: $sku
+              quantity: $quantity
+              trackInventory: $trackInventory
+            }
+          ) {
+            errors {
+              field
+              message
+            }
+            productVariant {
+              id
+              attributes {
+                attribute {
+                  id
+                  name
+                  slug
+                  values {
+                    id
+                    name
+                    slug
+                    __typename
+                  }
+                  __typename
+                }
+                value {
+                  id
+                  name
+                  slug
+                  __typename
+                }
+                __typename
+              }
+            }
+          }
+        }
+    """
+
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    variant_id = graphene.Node.to_global_id(
+        "ProductVariant", product.variants.first().pk
+    )
+
+    variables = {
+        "attributes": [{"id": size_attribute_id, "values": ["XXXL"]}],
+        "costPrice": 10,
+        "id": variant_id,
+        "priceOverride": 0,
+        "quantity": 4,
+        "sku": "21599567",
+        "trackInventory": True,
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
+    )["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    assert data["productVariant"]["id"] == variant_id
+
+    attributes = data["productVariant"]["attributes"]
+    assert len(attributes) == 1
+    assert attributes[0]["attribute"]["id"] == size_attribute_id
+    assert attributes[0]["value"]["name"] == "XXXL"
+    assert attributes[0]["value"]["slug"] == "xxxl"
+
+
 def test_update_product_variant(staff_api_client, product, permission_manage_products):
     query = """
         mutation updateVariant (
@@ -253,6 +339,10 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
 def test_update_product_variant_not_all_attributes(
     staff_api_client, product, product_type, color_attribute, permission_manage_products
 ):
+    """Ensures updating a variant with missing attributes (all attributes must
+    be provided) raises an error. We expect the color attribute
+    to be flagged as missing."""
+
     query = """
         mutation updateVariant (
             $id: ID!,
@@ -294,7 +384,7 @@ def test_update_product_variant_not_all_attributes(
     content = get_graphql_content(response)
     assert content["data"]["productVariantUpdate"]["errors"]
     assert content["data"]["productVariantUpdate"]["errors"][0]["field"] == (
-        "attributes"
+        "attributes:color"
     )
     assert not product.variants.filter(sku=sku).exists()
 
