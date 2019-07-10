@@ -140,7 +140,7 @@ def get_prices_of_discounted_specific_product(lines, voucher, discounts=None):
     return line_prices
 
 
-def get_prices_of_discounted_products(checkout, discounted_products):
+def get_prices_of_discounted_products(checkout, discounted_products, discounts=None):
     """Get prices of variants belonging to the discounted products."""
     # If there's no discounted_products,
     # it means that all products are discounted
@@ -148,7 +148,7 @@ def get_prices_of_discounted_products(checkout, discounted_products):
     if discounted_products:
         for line in checkout:
             if line.variant.product in discounted_products:
-                line_total = calculate_checkout_line_total(line, []).gross
+                line_total = calculate_checkout_line_total(line, discounts).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -778,7 +778,9 @@ def _get_products_voucher_discount(checkout, voucher, discounts=None):
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(checkout, voucher, discounts)
     elif voucher.type == VoucherType.PRODUCT:
-        prices = get_prices_of_discounted_products(checkout, voucher.products.all())
+        prices = get_prices_of_discounted_products(
+            checkout, voucher.products.all(), discounts
+        )
     elif voucher.type == VoucherType.COLLECTION:
         prices = get_prices_of_products_in_discounted_collections(
             checkout, voucher.collections.all()
