@@ -974,6 +974,7 @@ def test_update_product(
     permission_manage_products,
     settings,
     monkeypatch,
+    color_attribute,
 ):
     query = """
         mutation updateProduct(
@@ -1018,10 +1019,12 @@ def test_update_product(
                             }
                             attributes {
                                 attribute {
+                                    id
                                     name
                                 }
                                 values {
                                     name
+                                    slug
                                 }
                             }
                           }
@@ -1051,6 +1054,8 @@ def test_update_product(
         lambda x: TaxType(description="", code=product_tax_rate),
     )
 
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+
     variables = {
         "productId": product_id,
         "categoryId": category_id,
@@ -1060,6 +1065,7 @@ def test_update_product(
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
         "basePrice": product_price,
+        "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
     }
 
     response = staff_api_client.post_graphql(
@@ -1074,6 +1080,15 @@ def test_update_product(
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert len(attributes[0]["values"]) == 1
+
+    assert attributes[0]["attribute"]["id"] == attribute_id
+    assert attributes[0]["values"][0]["name"] == "Rainbow"
+    assert attributes[0]["values"][0]["slug"] == "rainbow"
 
 
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
