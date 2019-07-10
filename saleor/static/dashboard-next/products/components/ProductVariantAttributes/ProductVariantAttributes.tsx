@@ -31,6 +31,7 @@ interface ProductVariantAttributesProps extends WithStyles<typeof styles> {
   attributes?: ProductVariant_attributes_attribute[];
   data: {
     attributes?: Array<{
+      name: string;
       slug: string;
       value: string;
     }>;
@@ -56,84 +57,84 @@ const ProductVariantAttributes = withStyles(styles, {
     data,
     disabled,
     onChange
-  }: ProductVariantAttributesProps) => {
-    return (
-      <Card className={classes.card}>
-        <CardTitle title={i18n.t("General Information")} />
-        <CardContent className={classes.grid}>
-          {attributes === undefined ? (
-            <Skeleton />
-          ) : (
-            attributes.map((item, index) => {
-              const getAttributeValue = (slug: string) => {
-                const valueMatches = attributes.filter(a => a.slug === slug);
-                if (valueMatches.length > 0) {
-                  const value = data.attributes.filter(a => a.slug === slug)[0]
-                    .value;
-                  const labelMatches = valueMatches[0].values.filter(
-                    v => v.slug === value
-                  );
-                  const label =
-                    labelMatches.length > 0 ? labelMatches[0].name : value;
-                  return {
-                    label,
-                    value
-                  };
-                }
+  }: ProductVariantAttributesProps) => (
+    <Card className={classes.card}>
+      <CardTitle title={i18n.t("General Information")} />
+      <CardContent className={classes.grid}>
+        {attributes === undefined && data.attributes.length === 0 ? (
+          <Skeleton />
+        ) : (
+          data.attributes.map((attribute, attributeIndex) => {
+            const getAttributeValue = (slug: string) => {
+              const valueMatch = attributes.find(a => a.slug === slug);
+              if (valueMatch) {
+                const value = data.attributes.find(a => a.slug === slug).value;
+                const labelMatch = valueMatch.values.find(
+                  v => v.slug === value
+                );
+                const label = labelMatch ? labelMatch.name : value;
                 return {
-                  label: "",
-                  value: ""
+                  label,
+                  value
                 };
+              }
+              return {
+                label: "",
+                value: ""
               };
-              const getAttributeValues = (slug: string) => {
-                const matches = attributes.filter(a => a.slug === slug);
-                return matches.length > 0
-                  ? matches[0].values.map(v => ({
-                      label: v.name,
-                      value: v.slug
-                    }))
-                  : [];
-              };
-              const handleAttributeValueSelect = (
-                event: React.ChangeEvent<{
-                  name: string;
-                  value: {
-                    label: string;
-                    value: string;
-                  };
-                }>
-              ) =>
-                onChange({
-                  ...(event as any),
-                  target: {
-                    ...event.target,
-                    name: "attributes",
-                    value: data.attributes.map(a =>
-                      a.slug === event.target.name
-                        ? { slug: a.slug, value: event.target.value.value }
-                        : a
-                    )
-                  }
-                });
+            };
+            const getAttributeValues = (slug: string) => {
+              const matches = attributes.filter(a => a.slug === slug);
+              return matches.length > 0
+                ? matches[0].values.map(v => ({
+                    label: v.name,
+                    value: v.slug
+                  }))
+                : [];
+            };
+            const handleAttributeValueSelect = (
+              event: React.ChangeEvent<{
+                name: string;
+                value: {
+                  label: string;
+                  value: string;
+                };
+              }>
+            ) =>
+              onChange({
+                ...(event as any),
+                target: {
+                  ...event.target,
+                  name: "attributes",
+                  value: data.attributes.map(a =>
+                    a.slug === event.target.name
+                      ? {
+                          name: a.name,
+                          slug: a.slug,
+                          value: event.target.value.value
+                        }
+                      : a
+                  )
+                }
+              });
 
-              return (
-                <SingleAutocompleteSelectField
-                  key={index}
-                  disabled={disabled}
-                  name={item.slug}
-                  label={item.name}
-                  onChange={handleAttributeValueSelect}
-                  value={getAttributeValue(item.slug)}
-                  choices={getAttributeValues(item.slug)}
-                  custom
-                />
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
+            return (
+              <SingleAutocompleteSelectField
+                key={attributeIndex}
+                disabled={disabled}
+                name={attribute.slug}
+                label={attribute.name}
+                onChange={handleAttributeValueSelect}
+                value={getAttributeValue(attribute.slug)}
+                choices={getAttributeValues(attribute.slug)}
+                custom
+              />
+            );
+          })
+        )}
+      </CardContent>
+    </Card>
+  )
 );
 ProductVariantAttributes.displayName = "ProductVariantAttributes";
 export default ProductVariantAttributes;
