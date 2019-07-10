@@ -50,6 +50,7 @@ export enum LanguageCodeEnum {
   HU = "HU",
   HY = "HY",
   ID = "ID",
+  IS = "IS",
   IT = "IT",
   JA = "JA",
   KO = "KO",
@@ -452,6 +453,7 @@ export interface ProductTypeInput {
   isDigital?: boolean | null;
   weight?: any | null;
   taxRate?: TaxRateType | null;
+  taxCode?: string | null;
 }
 
 export interface ProductVariantInput {
