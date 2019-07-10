@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - New translations:
   - Icelandic
 - Add ability to store used payment sources in gateways, first implemented in Braintree - #4195 by @salwator
+- Fix various bugs across product section - #4429 by @dominik-zeglen
 
 ## 2.7.0
 
