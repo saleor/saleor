@@ -345,6 +345,29 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     voucher.type = VoucherType.PRODUCT
     voucher.save()
     voucher.products.add(product)
+
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount.amount == 1.5
+
+
+def test_checkout_add_collection_voucher_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_percentage, discount_info, collection
+):
+    checkout = checkout_with_item
+    voucher = voucher_percentage
+    product = checkout.lines.first().variant.product
+    product.collections.add(collection)
+    voucher.type = VoucherType.COLLECTION
+    voucher.save()
+    voucher.collections.add(collection)
+
     assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
