@@ -177,7 +177,9 @@ def get_prices_of_products_in_discounted_collections(
     return line_prices
 
 
-def get_prices_of_products_in_discounted_categories(checkout, discounted_categories):
+def get_prices_of_products_in_discounted_categories(
+    checkout, discounted_categories, discounts=None
+):
     """Get prices of variants belonging to the discounted categories.
 
     Product must be assigned directly to the discounted category, assigning
@@ -193,7 +195,7 @@ def get_prices_of_products_in_discounted_categories(checkout, discounted_categor
                 continue
             product_category = line.variant.product.category
             if product_category in discounted_categories:
-                line_total = calculate_checkout_line_total(line, []).gross
+                line_total = calculate_checkout_line_total(line, discounts).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -789,19 +791,15 @@ def _get_products_voucher_discount(checkout, voucher, discounts=None):
         )
     elif voucher.type == VoucherType.CATEGORY:
         prices = get_prices_of_products_in_discounted_categories(
-            checkout, voucher.categories.all()
+            checkout, voucher.categories.all(), discounts
         )
     if not prices:
         msg = pgettext(
             "Voucher not applicable", "This offer is only valid for selected items."
         )
         raise NotApplicable(msg)
-    return get_products_voucher_discount(
-        voucher,
-        prices,
-        calculate_checkout_subtotal(checkout, discounts).gross,
-        checkout.quantity,
-    )
+    subtotal = calculate_checkout_subtotal(checkout, discounts).gross
+    return get_products_voucher_discount(voucher, prices, subtotal, checkout.quantity)
 
 
 def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
@@ -810,11 +808,8 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if voucher.type == VoucherType.ENTIRE_ORDER:
-        return get_value_voucher_discount(
-            voucher,
-            calculate_checkout_subtotal(checkout, discounts).gross,
-            checkout.quantity,
-        )
+        subtotal = calculate_checkout_subtotal(checkout, discounts).gross
+        return get_value_voucher_discount(voucher, subtotal, checkout.quantity)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
     if voucher.type in (
