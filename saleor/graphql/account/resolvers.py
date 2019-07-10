@@ -1,4 +1,5 @@
 from itertools import chain
+
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q
 from i18naddress import get_validation_rules
