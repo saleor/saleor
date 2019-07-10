@@ -96,28 +96,12 @@ export const ProductCreatePage: React.StatelessComponent<
   onBack,
   onSubmit
 }: ProductCreatePageProps) => {
+  // Form values
   const {
     change: changeAttributeData,
     data: attributes,
     set: setAttributeData
   } = useFormset<ProductAttributeInputData>([]);
-
-  const [selectedAttributes, setSelectedAttributes] = useStateFromProps<
-    ProductAttributeValueChoices[]
-  >([]);
-
-  const [selectedCategory, setSelectedCategory] = useStateFromProps("");
-
-  const [selectedCollections, setSelectedCollections] = useStateFromProps<
-    MultiAutocompleteChoiceType[]
-  >([]);
-
-  const [productType, setProductType] = React.useState<ProductType>({
-    hasVariants: false,
-    id: "",
-    name: "",
-    productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
-  });
 
   const initialDescription = convertToRaw(ContentState.createFromText(""));
   const initialData: FormData = {
@@ -135,6 +119,24 @@ export const ProductCreatePage: React.StatelessComponent<
     sku: null,
     stockQuantity: null
   };
+
+  // Display values
+  const [selectedAttributes, setSelectedAttributes] = useStateFromProps<
+    ProductAttributeValueChoices[]
+  >([]);
+
+  const [selectedCategory, setSelectedCategory] = useStateFromProps("");
+
+  const [selectedCollections, setSelectedCollections] = useStateFromProps<
+    MultiAutocompleteChoiceType[]
+  >([]);
+
+  const [productType, setProductType] = React.useState<ProductType>({
+    hasVariants: false,
+    id: "",
+    name: "",
+    productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
+  });
 
   const categories = getChoices(categoryChoiceList);
   const collections = getChoices(collectionChoiceList);
@@ -189,10 +191,11 @@ export const ProductCreatePage: React.StatelessComponent<
         );
 
         const handleProductTypeSelect = createProductTypeSelectHandler(
-          productTypeChoiceList,
-          setProductType,
           change,
-          setAttributeData
+          setAttributeData,
+          setSelectedAttributes,
+          setProductType,
+          productTypeChoiceList
         );
 
         return (
