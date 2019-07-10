@@ -69,7 +69,7 @@ const SiteSettingsPage: React.StatelessComponent<SiteSettingsPageProps> = ({
     domain: maybe(() => shop.domain.host, ""),
     name: maybe(() => shop.name, ""),
     phone: maybe(() => shop.companyAddress.phone, ""),
-    postalCode: maybe(() => shop.companyAddress.city, ""),
+    postalCode: maybe(() => shop.companyAddress.postalCode, ""),
     streetAddress1: maybe(() => shop.companyAddress.streetAddress1, ""),
     streetAddress2: maybe(() => shop.companyAddress.streetAddress2, "")
   };
