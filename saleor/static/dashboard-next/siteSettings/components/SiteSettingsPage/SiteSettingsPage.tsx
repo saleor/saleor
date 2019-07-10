@@ -12,13 +12,25 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { AuthorizationKeyType } from "../../../types/globalTypes";
 import { SiteSettings_shop } from "../../types/SiteSettings";
+import SiteSettingsAddress from "../SiteSettingsAddress/SiteSettingsAddress";
 import SiteSettingsDetails from "../SiteSettingsDetails/SiteSettingsDetails";
 import SiteSettingsKeys from "../SiteSettingsKeys/SiteSettingsKeys";
 
 export interface SiteSettingsPageFormData {
+  city: string;
+  companyName: string;
+  country: {
+    code: string;
+    country: string;
+  };
+  countryArea: string;
   description: string;
   domain: string;
   name: string;
+  phone: string;
+  postalCode: string;
+  streetAddress1: string;
+  streetAddress2: string;
 }
 
 export interface SiteSettingsPageProps {
@@ -46,9 +58,20 @@ const SiteSettingsPage: React.StatelessComponent<SiteSettingsPageProps> = ({
   onSubmit
 }) => {
   const initialForm: SiteSettingsPageFormData = {
+    city: maybe(() => shop.companyAddress.city, ""),
+    companyName: maybe(() => shop.companyAddress.companyName, ""),
+    country: maybe(() => shop.companyAddress.country, {
+      code: "",
+      country: ""
+    }),
+    countryArea: maybe(() => shop.companyAddress.countryArea, ""),
     description: maybe(() => shop.description, ""),
     domain: maybe(() => shop.domain.host, ""),
-    name: maybe(() => shop.name, "")
+    name: maybe(() => shop.name, ""),
+    phone: maybe(() => shop.companyAddress.phone, ""),
+    postalCode: maybe(() => shop.companyAddress.city, ""),
+    streetAddress1: maybe(() => shop.companyAddress.streetAddress1, ""),
+    streetAddress2: maybe(() => shop.companyAddress.streetAddress2, "")
   };
   return (
     <Form
@@ -69,6 +92,23 @@ const SiteSettingsPage: React.StatelessComponent<SiteSettingsPageProps> = ({
             <Typography variant="h6">{i18n.t("Site Settings")}</Typography>
             <SiteSettingsDetails
               data={data}
+              errors={formErrors}
+              disabled={disabled}
+              onChange={change}
+            />
+            <Typography variant="h6">
+              {i18n.t("Company information")}
+            </Typography>
+            <SiteSettingsAddress
+              data={data}
+              countries={maybe(
+                () =>
+                  shop.countries.map(country => ({
+                    code: country.code,
+                    label: country.country
+                  })),
+                []
+              )}
               errors={formErrors}
               disabled={disabled}
               onChange={change}
