@@ -182,7 +182,7 @@ def test_decrease_voucher_usage():
 
 
 @pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_quantity_of_products, "
+    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
     "discount_value, discount_value_type, expected_value",
     [
         (20, 20, 2, 2, 50, DiscountValueType.PERCENTAGE, 10),
@@ -195,7 +195,7 @@ def test_get_value_voucher_discount(
     total,
     min_amount_spent,
     total_quantity,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
     discount_value,
     discount_value_type,
     expected_value,
@@ -206,7 +206,7 @@ def test_get_value_voucher_discount(
         discount_value_type=discount_value_type,
         discount_value=discount_value,
         min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     voucher.save()
     total_price = Money(total, "USD")
@@ -215,7 +215,7 @@ def test_get_value_voucher_discount(
 
 
 @pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_quantity_of_products, "
+    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
     "discount_value, discount_value_type",
     [
         (20, 50, 2, 10, 50, DiscountValueType.PERCENTAGE),
@@ -227,7 +227,7 @@ def test_get_value_voucher_discount_not_applicable(
     total,
     min_amount_spent,
     total_quantity,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
     discount_value,
     discount_value_type,
 ):
@@ -237,7 +237,7 @@ def test_get_value_voucher_discount_not_applicable(
         discount_value_type=discount_value_type,
         discount_value=discount_value,
         min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     voucher.save()
     total_price = Money(total, "USD")
@@ -246,7 +246,7 @@ def test_get_value_voucher_discount_not_applicable(
 
 
 @pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_quantity_of_products, "
+    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
     "shipping_price, discount_value, discount_value_type, expected_value",
     [
         (20, 20, 2, 2, 10, 50, DiscountValueType.PERCENTAGE, 5),
@@ -259,7 +259,7 @@ def test_get_shipping_voucher_discount(
     total,
     min_amount_spent,
     total_quantity,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
     shipping_price,
     discount_value,
     discount_value_type,
@@ -271,7 +271,7 @@ def test_get_shipping_voucher_discount(
         discount_value_type=discount_value_type,
         discount_value=discount_value,
         min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     voucher.save()
     total = Money(total, "USD")
@@ -283,7 +283,7 @@ def test_get_shipping_voucher_discount(
 
 
 @pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_quantity_of_products, "
+    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
     "shipping_price, discount_value, discount_value_type",
     [
         (20, 50, 2, 10, 10, 50, DiscountValueType.PERCENTAGE),
@@ -295,7 +295,7 @@ def test_get_shipping_voucher_discount_not_applicable(
     total,
     min_amount_spent,
     total_quantity,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
     shipping_price,
     discount_value,
     discount_value_type,
@@ -306,7 +306,7 @@ def test_get_shipping_voucher_discount_not_applicable(
         discount_value_type=discount_value_type,
         discount_value=discount_value,
         min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     voucher.save()
     total = Money(total, "USD")
@@ -316,7 +316,7 @@ def test_get_shipping_voucher_discount_not_applicable(
 
 
 @pytest.mark.parametrize(
-    "prices, total, min_amount_spent, total_quantity, min_quantity_of_products, "
+    "prices, total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
     "discount_value_type, discount_value, voucher_type, apply_once_per_order, "
     "expected_value",
     [  # noqa
@@ -375,7 +375,7 @@ def test_get_voucher_discount_all_products(
     total,
     min_amount_spent,
     total_quantity,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
     discount_value_type,
     discount_value,
     voucher_type,
@@ -390,7 +390,7 @@ def test_get_voucher_discount_all_products(
         discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
         min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     voucher.save()
     total = Money(total, "USD")
@@ -399,7 +399,7 @@ def test_get_voucher_discount_all_products(
 
 
 @pytest.mark.parametrize(
-    "prices, total, min_amount_spent, total_quantity, min_quantity_of_products, "
+    "prices, total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
     "discount_value_type, discount_value, voucher_type, apply_once_per_order, ",
     [  # noqa
         (
@@ -453,7 +453,7 @@ def test_get_voucher_discount_all_products_not_applicable(
     total,
     min_amount_spent,
     total_quantity,
-    min_quantity_of_products,
+    min_checkout_items_quantity,
     discount_value_type,
     discount_value,
     voucher_type,
@@ -467,7 +467,7 @@ def test_get_voucher_discount_all_products_not_applicable(
         discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
         min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     voucher.save()
     total = Money(total, "USD")

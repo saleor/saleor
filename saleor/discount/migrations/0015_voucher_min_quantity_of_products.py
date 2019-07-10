@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="voucher",
-            name="min_quantity_of_products",
+            name="min_checkout_items_quantity",
             field=models.PositiveIntegerField(blank=True, null=True),
         )
     ]

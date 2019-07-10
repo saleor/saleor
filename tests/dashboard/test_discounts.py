@@ -154,7 +154,8 @@ def test_shipping_voucher_order_discount(
 
 
 @pytest.mark.parametrize(
-    "total, total_quantity, min_amount_spent, min_quantity_of_products, voucher_type",
+    "total, total_quantity, min_amount_spent, min_checkout_items_quantity,"
+    "voucher_type",
     [
         (99, 10, 100, 10, VoucherType.SHIPPING),
         (100, 9, 100, 10, VoucherType.SHIPPING),
@@ -168,7 +169,7 @@ def test_shipping_voucher_order_discount(
     ],
 )
 def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
-    total, total_quantity, min_amount_spent, min_quantity_of_products, voucher_type
+    total, total_quantity, min_amount_spent, min_checkout_items_quantity, voucher_type
 ):
     voucher = Voucher(
         code="unique",
@@ -178,7 +179,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
         min_amount_spent=(
             Money(min_amount_spent, "USD") if min_amount_spent is not None else None
         ),
-        min_quantity_of_products=min_quantity_of_products,
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
     price = Money(total, "USD")
     price = TaxedMoney(net=price, gross=price)

@@ -93,7 +93,7 @@ class VoucherForm(forms.ModelForm):
             "name": pgettext_lazy("Item name", "Name"),
             "code": pgettext_lazy("Coupon code", "Code"),
             "usage_limit": pgettext_lazy("Usage limit", "Usage limit"),
-            "min_quantity_of_products": pgettext_lazy(
+            "min_checkout_items_quantity": pgettext_lazy(
                 "Voucher: discount with", "Minimal quantity of products"
             ),
             "start_date": pgettext_lazy("Voucher date restrictions", "Start date"),
@@ -128,7 +128,7 @@ class ShippingVoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        fields = ["countries", "min_amount_spent", "min_quantity_of_products"]
+        fields = ["countries", "min_amount_spent", "min_checkout_items_quantity"]
 
 
 class EntireOrderVoucherForm(forms.ModelForm):
@@ -136,7 +136,7 @@ class EntireOrderVoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        fields = ["min_amount_spent", "min_quantity_of_products"]
+        fields = ["min_amount_spent", "min_checkout_items_quantity"]
 
     def save(self, commit=True):
         self.instance.category = None
@@ -187,7 +187,7 @@ class SpecificProductVoucherForm(CommonVoucherForm):
             "categories",
             "apply_once_per_order",
             "min_amount_spent",
-            "min_quantity_of_products",
+            "min_checkout_items_quantity",
         ]
         labels = {
             "collections": pgettext_lazy(
@@ -217,7 +217,7 @@ class ProductVoucherForm(CommonVoucherForm):
             "products",
             "apply_once_per_order",
             "min_amount_spent",
-            "min_quantity_of_products",
+            "min_checkout_items_quantity",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -233,7 +233,7 @@ class CollectionVoucherForm(CommonVoucherForm):
             "collections",
             "apply_once_per_order",
             "min_amount_spent",
-            "min_quantity_of_products",
+            "min_checkout_items_quantity",
         ]
         labels = {"collections": pgettext_lazy("Collections", "Collections")}
 
@@ -255,5 +255,5 @@ class CategoryVoucherForm(CommonVoucherForm):
             "categories",
             "apply_once_per_order",
             "min_amount_spent",
-            "min_quantity_of_products",
+            "min_checkout_items_quantity",
         ]
