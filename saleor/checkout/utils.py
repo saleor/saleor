@@ -156,7 +156,9 @@ def get_prices_of_discounted_products(checkout, discounted_products, discounts=N
     return line_prices
 
 
-def get_prices_of_products_in_discounted_collections(checkout, discounted_collections):
+def get_prices_of_products_in_discounted_collections(
+    checkout, discounted_collections, discounts=None
+):
     """Get prices of variants belonging to the discounted collections."""
     # If there's no discounted collections,
     # it means that all of them are discounted
@@ -167,7 +169,7 @@ def get_prices_of_products_in_discounted_collections(checkout, discounted_collec
                 continue
             product_collections = line.variant.product.collections.all()
             if set(product_collections).intersection(discounted_collections):
-                line_total = calculate_checkout_line_total(line, []).gross
+                line_total = calculate_checkout_line_total(line, discounts).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -783,7 +785,7 @@ def _get_products_voucher_discount(checkout, voucher, discounts=None):
         )
     elif voucher.type == VoucherType.COLLECTION:
         prices = get_prices_of_products_in_discounted_collections(
-            checkout, voucher.collections.all()
+            checkout, voucher.collections.all(), discounts
         )
     elif voucher.type == VoucherType.CATEGORY:
         prices = get_prices_of_products_in_discounted_categories(
