@@ -64,7 +64,7 @@ export const ProductUpdate: React.StatelessComponent<
                           variables: {
                             attributes: formData.attributes.map(attribute => ({
                               id: attribute.id,
-                              values: [attribute.value]
+                              values: attribute.value
                             })),
                             basePrice: decimal(formData.basePrice),
                             category: formData.category,
