@@ -17,8 +17,8 @@ import { SearchCollections_collections_edges_node } from "@saleor/containers/Sea
 import useFormset from "@saleor/hooks/useFormset";
 import useStateFromProps from "@saleor/hooks/useStateFromProps";
 import {
-  getAttributeInputFromProductType,
   getChoices,
+  ProductAttributeValueChoices,
   ProductType
 } from "@saleor/products/utils/data";
 import createMultiAutocompleteSelectHandler from "@saleor/utils/handlers/multiAutocompleteSelectChangeHandler";
@@ -28,9 +28,13 @@ import { UserError } from "../../../types";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
 import {
   createAttributeChangeHandler,
+  createAttributeMultiChangeHandler,
   createProductTypeSelectHandler
 } from "../../utils/handlers";
-import ProductAttributes, { ProductAttributeInput } from "../ProductAttributes";
+import ProductAttributes, {
+  ProductAttributeInput,
+  ProductAttributeInputData
+} from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
@@ -92,7 +96,18 @@ export const ProductCreatePage: React.StatelessComponent<
   onBack,
   onSubmit
 }: ProductCreatePageProps) => {
-  const [selectedCategory, setSelectedCategory] = React.useState("");
+  const {
+    change: changeAttributeData,
+    data: attributes,
+    set: setAttributeData
+  } = useFormset<ProductAttributeInputData>([]);
+
+  const [selectedAttributes, setSelectedAttributes] = useStateFromProps<
+    ProductAttributeValueChoices[]
+  >([]);
+
+  const [selectedCategory, setSelectedCategory] = useStateFromProps("");
+
   const [selectedCollections, setSelectedCollections] = useStateFromProps<
     MultiAutocompleteChoiceType[]
   >([]);
@@ -103,13 +118,6 @@ export const ProductCreatePage: React.StatelessComponent<
     name: "",
     productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
   });
-
-  const {
-    change: changeAttributeData,
-    data: attributes,
-    set: setAttributeData,
-    toggleItemValue: toggleAttributeValue
-  } = useFormset(getAttributeInputFromProductType(productType));
 
   const initialData: FormData = {
     basePrice: 0,
@@ -166,10 +174,16 @@ export const ProductCreatePage: React.StatelessComponent<
         );
         const handleAttributeChange = createAttributeChangeHandler(
           changeAttributeData,
+          setSelectedAttributes,
+          selectedAttributes,
+          attributes,
           triggerChange
         );
-        const handleAttributeMultiChange = createAttributeChangeHandler(
-          toggleAttributeValue,
+        const handleAttributeMultiChange = createAttributeMultiChangeHandler(
+          changeAttributeData,
+          setSelectedAttributes,
+          selectedAttributes,
+          attributes,
           triggerChange
         );
 
