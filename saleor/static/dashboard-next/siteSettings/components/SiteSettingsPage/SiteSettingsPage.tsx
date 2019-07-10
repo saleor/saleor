@@ -16,7 +16,7 @@ import SiteSettingsAddress from "../SiteSettingsAddress/SiteSettingsAddress";
 import SiteSettingsDetails from "../SiteSettingsDetails/SiteSettingsDetails";
 import SiteSettingsKeys from "../SiteSettingsKeys/SiteSettingsKeys";
 
-export interface SiteSettingsPageFormData {
+export interface SiteSettingsPageAddressFormData {
   city: string;
   companyName: string;
   country: {
@@ -24,13 +24,17 @@ export interface SiteSettingsPageFormData {
     country: string;
   };
   countryArea: string;
-  description: string;
-  domain: string;
-  name: string;
   phone: string;
   postalCode: string;
   streetAddress1: string;
   streetAddress2: string;
+}
+
+export interface SiteSettingsPageFormData
+  extends SiteSettingsPageAddressFormData {
+  description: string;
+  domain: string;
+  name: string;
 }
 
 export interface SiteSettingsPageProps {
