@@ -105,9 +105,12 @@ def test_products_voucher_checkout_discount_not(
     apply_once_per_order,
     checkout_with_item,
 ):
+    discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_products",
-        lambda lines, discounted_products: (Money(price, "USD") for price in prices),
+        lambda lines, discounts, discounted_products: (
+            Money(price, "USD") for price in prices
+        ),
     )
     voucher = Voucher(
         code="unique",
@@ -118,7 +121,7 @@ def test_products_voucher_checkout_discount_not(
     )
     voucher.save()
     checkout = checkout_with_item
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
     assert discount == Money(expected_value, "USD")
 
 
