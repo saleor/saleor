@@ -550,10 +550,12 @@ def test_list_payment_sources(
 ):
     query = """
     {
-        paymentStoredSources {
-            gateway
-            creditCardInfo {
-                lastDigits
+        me {
+            storedPaymentSources {
+                gateway
+                creditCardInfo {
+                    lastDigits
+                }
             }
         }
     }
@@ -563,14 +565,14 @@ def test_list_payment_sources(
     )
     source = CustomerSource(id="test1", gateway="braintree", credit_card_info=card)
     mock_get_source_list = mocker.patch(
-        "saleor.graphql.payment.resolvers.retrieve_customer_sources",
+        "saleor.graphql.account.resolvers.retrieve_customer_sources",
         return_value=[source],
         autospec=True,
     )
     response = user_api_client.post_graphql(query)
 
     mock_get_source_list.assert_called_once_with("braintree", braintree_customer_id)
-    content = get_graphql_content(response)["data"]["paymentStoredSources"]
+    content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
     assert content[0] == {
         "gateway": "braintree",

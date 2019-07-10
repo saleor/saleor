@@ -1,23 +1,16 @@
 import graphene
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
 from .enums import PaymentGatewayEnum
 from .mutations import PaymentCapture, PaymentRefund, PaymentVoid
-from .resolvers import (
-    resolve_payment_client_token,
-    resolve_payment_sources,
-    resolve_payments,
-)
-from .types import Payment, PaymentSource
+from .resolvers import resolve_payment_client_token, resolve_payments
+from .types import Payment
 
 
 class PaymentQueries(graphene.ObjectType):
     payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
     payments = PrefetchingConnectionField(Payment, description="List of payments")
-    payment_stored_sources = graphene.List(
-        PaymentSource, description="List of stored payment sources"
-    )
     payment_client_token = graphene.Field(
         graphene.String, args={"gateway": PaymentGatewayEnum()}
     )
@@ -29,10 +22,6 @@ class PaymentQueries(graphene.ObjectType):
     @permission_required("order.manage_orders")
     def resolve_payments(self, info, query=None, **_kwargs):
         return resolve_payments(info, query)
-
-    @login_required
-    def resolve_payment_stored_sources(self, info):
-        return resolve_payment_sources(info.context.user)
 
     def resolve_payment_client_token(self, info, gateway=None):
         user = info.context.user if info.context.user.is_authenticated else None
