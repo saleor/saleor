@@ -90,6 +90,27 @@ function getMultiChoices(
   }));
 }
 
+function getMultiDisplayValue(
+  attribute: ProductAttributeInput
+): MultiAutocompleteChoiceType[] {
+  return attribute.value.map(attributeValue => {
+    const definedAttributeValue = attribute.data.values.find(
+      definedValue => definedValue.slug === attributeValue
+    );
+    if (!!definedAttributeValue) {
+      return {
+        label: definedAttributeValue.name,
+        value: definedAttributeValue.slug
+      };
+    }
+
+    return {
+      label: attributeValue,
+      value: attributeValue
+    };
+  });
+}
+
 function getSingleChoices(
   values: ProductDetails_product_attributes_attribute_values[]
 ): SingleAutocompleteChoiceType[] {
@@ -133,7 +154,7 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
             />
           </IconButton>
         </div>
-        {expanded && (
+        {expanded && attributes.length > 0 && (
           <>
             <Hr />
             {attributes.map((attribute, attributeIndex) => (
@@ -154,7 +175,7 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                             attribute.data.values.find(
                               value => value.slug === attribute.value[0]
                             ).name,
-                          ""
+                          attribute.value[0]
                         )}
                         name={`attribute:${attribute.label}`}
                         label={i18n.t("Value")}
@@ -162,27 +183,30 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                         onChange={event =>
                           onChange(attribute.id, event.target.value)
                         }
+                        allowCustomValues
                       />
                     ) : (
                       <MultiAutocompleteSelectField
                         choices={getMultiChoices(attribute.data.values)}
-                        displayValues={attribute.data.values
-                          .filter(
-                            value =>
-                              !!attribute.value.find(attributeValue =>
-                                attributeValue.includes(value.slug)
-                              )
-                          )
-                          .map(value => ({
-                            label: value.name,
-                            value: value.slug
-                          }))}
+                        // displayValues={attribute.data.values
+                        //   .filter(
+                        //     value =>
+                        //       !!attribute.value.find(attributeValue =>
+                        //         attributeValue.includes(value.slug)
+                        //       )
+                        //   )
+                        //   .map(value => ({
+                        //     label: value.name,
+                        //     value: value.slug
+                        //   }))}
+                        displayValues={getMultiDisplayValue(attribute)}
                         label={i18n.t("Values")}
                         name={`attribute:${attribute.label}`}
                         value={attribute.value}
                         onChange={event =>
                           onMultiChange(attribute.id, event.target.value)
                         }
+                        allowCustomValues
                       />
                     )}
                   </div>
