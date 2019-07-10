@@ -80266,6 +80266,248 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
         <h6
           class="MuiTypography-root-id MuiTypography-h6-id"
         >
+          Company information
+        </h6>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="CardTitle-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+            >
+              Store information
+            </span>
+            <div
+              class="CardTitle-toolbar-id"
+            />
+          </div>
+          <div
+            class="CardTitle-children-id"
+          />
+          <hr
+            class="CardTitle-hr-id"
+          />
+          <div
+            class="MuiCardContent-root-id"
+          >
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                data-shrink="true"
+              >
+                Company
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id"
+                  name="companyName"
+                  type="text"
+                  value="Saleor e-commerce"
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                data-shrink="true"
+              >
+                Address line 1
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id"
+                  name="streetAddress1"
+                  type="text"
+                  value="01419 Bernhard Plain"
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                data-shrink="false"
+              >
+                Address line 2
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id"
+                  name="streetAddress2"
+                  type="text"
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="Grid-root-id Grid-default-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  City
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="city"
+                    type="text"
+                    value="Kenstad"
+                  />
+                </div>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  ZIP / Postal code
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="postalCode"
+                    type="text"
+                    value="Kenstad"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="Grid-root-id Grid-default-id"
+            >
+              <div
+                class="SingleAutocompleteSelectField-container-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
+                  >
+                    Country
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="false"
+                      autocomplete="off"
+                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                      type="text"
+                      value="United Arab Emirates"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <g
+                        style="fill-rule:evenodd"
+                      >
+                        <path
+                          d="M7 10l5 5 5-5z"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  Country area
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="countryArea"
+                    type="text"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                data-shrink="true"
+              >
+                Phone
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id"
+                  name="phone"
+                  type="text"
+                  value="+41 876-373-9137"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <h6
+          class="MuiTypography-root-id MuiTypography-h6-id"
+        >
           Authentication keys
         </h6>
         <div
@@ -80524,6 +80766,248 @@ exports[`Storyshots Views / Site settings / Page form errors 1`] = `
         <h6
           class="MuiTypography-root-id MuiTypography-h6-id"
         >
+          Company information
+        </h6>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="CardTitle-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+            >
+              Store information
+            </span>
+            <div
+              class="CardTitle-toolbar-id"
+            />
+          </div>
+          <div
+            class="CardTitle-children-id"
+          />
+          <hr
+            class="CardTitle-hr-id"
+          />
+          <div
+            class="MuiCardContent-root-id"
+          >
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                data-shrink="true"
+              >
+                Company
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id"
+                  name="companyName"
+                  type="text"
+                  value="Saleor e-commerce"
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                data-shrink="true"
+              >
+                Address line 1
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id"
+                  name="streetAddress1"
+                  type="text"
+                  value="01419 Bernhard Plain"
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                data-shrink="false"
+              >
+                Address line 2
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id"
+                  name="streetAddress2"
+                  type="text"
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="Grid-root-id Grid-default-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  City
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="city"
+                    type="text"
+                    value="Kenstad"
+                  />
+                </div>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  ZIP / Postal code
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="postalCode"
+                    type="text"
+                    value="Kenstad"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="Grid-root-id Grid-default-id"
+            >
+              <div
+                class="SingleAutocompleteSelectField-container-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
+                  >
+                    Country
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="false"
+                      autocomplete="off"
+                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                      type="text"
+                      value="United Arab Emirates"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <g
+                        style="fill-rule:evenodd"
+                      >
+                        <path
+                          d="M7 10l5 5 5-5z"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  Country area
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="countryArea"
+                    type="text"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                data-shrink="true"
+              >
+                Phone
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id"
+                  name="phone"
+                  type="text"
+                  value="+41 876-373-9137"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <h6
+          class="MuiTypography-root-id MuiTypography-h6-id"
+        >
           Authentication keys
         </h6>
         <div
@@ -80774,6 +81258,258 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
               >
                 Store description is shown on taskbar after your store name
               </p>
+            </div>
+          </div>
+        </div>
+        <h6
+          class="MuiTypography-root-id MuiTypography-h6-id"
+        >
+          Company information
+        </h6>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="CardTitle-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+            >
+              Store information
+            </span>
+            <div
+              class="CardTitle-toolbar-id"
+            />
+          </div>
+          <div
+            class="CardTitle-children-id"
+          />
+          <hr
+            class="CardTitle-hr-id"
+          />
+          <div
+            class="MuiCardContent-root-id"
+          >
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                data-shrink="false"
+              >
+                Company
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                  disabled=""
+                  name="companyName"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                data-shrink="false"
+              >
+                Address line 1
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                  disabled=""
+                  name="streetAddress1"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                data-shrink="false"
+              >
+                Address line 2
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                  disabled=""
+                  name="streetAddress2"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="Grid-root-id Grid-default-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  City
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="city"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  ZIP / Postal code
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="postalCode"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="Grid-root-id Grid-default-id"
+            >
+              <div
+                class="SingleAutocompleteSelectField-container-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                    data-shrink="false"
+                  >
+                    Country
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="false"
+                      autocomplete="off"
+                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                      disabled=""
+                      type="text"
+                      value=""
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <g
+                        style="fill-rule:evenodd"
+                      >
+                        <path
+                          d="M7 10l5 5 5-5z"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  Country area
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="countryArea"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="FormSpacer-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                data-shrink="false"
+              >
+                Phone
+              </label>
+              <div
+                class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                  disabled=""
+                  name="phone"
+                  type="text"
+                  value=""
+                />
+              </div>
             </div>
           </div>
         </div>

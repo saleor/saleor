@@ -16,7 +16,7 @@ export const shop: SiteSettings_shop = {
     cityArea: "Alabama",
     companyName: "Saleor e-commerce",
     country: {
-      __typename: "CountryDisplay";
+      __typename: "CountryDisplay",
       code: "UA",
       country: "United Arab Emirates"
     },
