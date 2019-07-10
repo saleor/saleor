@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix internal error when users enters an invalid phone number in an address - #4404 by @NyanKiyoshi
 - New translations:
   - Icelandic
+- Add company address configuration - #4432 by @benekex2
 
 ## 2.7.0
 
