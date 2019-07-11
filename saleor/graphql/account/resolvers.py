@@ -1,9 +1,16 @@
+from itertools import chain
+
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q
 from i18naddress import get_validation_rules
 
 from ...account import models
 from ...core.utils import get_client_ip, get_country_by_ip
+from ...payment.utils import (
+    fetch_customer_id,
+    list_enabled_gateways,
+    retrieve_customer_sources,
+)
 from ..utils import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
 
@@ -79,3 +86,38 @@ def resolve_address_validator(info, country_code, country_area, city_area):
         postal_code_examples=rules.postal_code_examples,
         postal_code_prefix=rules.postal_code_prefix,
     )
+
+
+def resolve_payment_sources(user: models.User):
+    stored_customer_accounts = {
+        gateway: fetch_customer_id(user, gateway) for gateway in list_enabled_gateways()
+    }
+    return list(
+        chain(
+            *[
+                prepare_graphql_payment_sources_type(
+                    retrieve_customer_sources(gateway, customer_id)
+                )
+                for gateway, customer_id in stored_customer_accounts.items()
+                if customer_id is not None
+            ]
+        )
+    )
+
+
+def prepare_graphql_payment_sources_type(payment_sources):
+    sources = []
+    for src in payment_sources:
+        sources.append(
+            {
+                "gateway": src.gateway,
+                "credit_card_info": {
+                    "last_digits": src.credit_card_info.last_4,
+                    "exp_year": src.credit_card_info.exp_year,
+                    "exp_month": src.credit_card_info.exp_month,
+                    "brand": "",
+                    "first_digits": "",
+                },
+            }
+        )
+    return sources
