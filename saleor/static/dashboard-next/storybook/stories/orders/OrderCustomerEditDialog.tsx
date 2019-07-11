@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import OrderCustomerEditDialog from "../../../orders/components/OrderCustomerEditDialog";
 import { clients as users } from "../../../orders/fixtures";

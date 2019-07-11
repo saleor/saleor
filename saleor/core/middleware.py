@@ -1,5 +1,4 @@
 import logging
-from datetime import date
 from functools import wraps
 from typing import Callable
 
@@ -17,14 +16,14 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
-from ..discount.models import Sale
+from ..discount.utils import fetch_discounts
 from . import analytics
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
-from .utils.taxes import get_taxes_for_country
 
 logger = logging.getLogger(__name__)
 
@@ -106,9 +105,7 @@ def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
 
     def middleware(request):
-        request.discounts = Sale.objects.active(date.today()).prefetch_related(
-            "products", "categories", "collections"
-        )
+        request.discounts = SimpleLazyObject(lambda: fetch_discounts(timezone.now()))
         return get_response(request)
 
     return middleware
@@ -166,6 +163,10 @@ def taxes(get_response):
 
     def middleware(request):
         if settings.VATLAYER_ACCESS_KEY:
+            # FIXME this should be disabled after we will introduce plugin architecure.
+            # For now, a lot of templates use tax_rate function.
+            from .taxes.vatlayer import get_taxes_for_country
+
             request.taxes = SimpleLazyObject(
                 lambda: get_taxes_for_country(request.country)
             )

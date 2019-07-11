@@ -1,5 +1,5 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
-import * as React from "react";
+import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import useNavigator from "@saleor/hooks/useNavigator";

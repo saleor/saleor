@@ -1,5 +1,5 @@
 import { DocumentNode } from "graphql";
-import * as React from "react";
+import React from "react";
 
 import Debounce from "../components/Debounce";
 import { TypedQuery, TypedQueryResult } from "../queries";

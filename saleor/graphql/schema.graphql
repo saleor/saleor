@@ -971,6 +971,11 @@ input DateRangeInput {
 
 scalar DateTime
 
+input DateTimeRangeInput {
+  gte: DateTime
+  lte: DateTime
+}
+
 scalar Decimal
 
 type DigitalContent implements Node {
@@ -1304,6 +1309,7 @@ enum LanguageCodeEnum {
   HU
   HY
   ID
+  IS
   IT
   JA
   KO
@@ -1500,6 +1506,7 @@ type Mutations {
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
   shopFetchTaxRates: ShopFetchTaxRates
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
+  shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -1623,7 +1630,7 @@ type Mutations {
   tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID!): CheckoutComplete
+  checkoutComplete(checkoutId: ID!, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
@@ -2081,6 +2088,11 @@ type PaymentRefund {
   payment: Payment
 }
 
+type PaymentSource {
+  gateway: String!
+  creditCardInfo: CreditCard
+}
+
 type PaymentVoid {
   errors: [Error!]
   payment: Payment
@@ -2133,7 +2145,8 @@ type Product implements Node {
   isAvailable: Boolean
   basePrice: Money
   price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
-  taxRate: TaxRateType
+  taxRate: TaxRateType @deprecated(reason: "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway")
+  taxType: TaxType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
   margin: Margin
@@ -2184,6 +2197,7 @@ input ProductCreateInput {
   price: Decimal
   basePrice: Decimal
   taxRate: TaxRateType
+  taxCode: String
   seo: SeoInput
   weight: WeightScalar
   sku: String
@@ -2267,6 +2281,7 @@ input ProductInput {
   price: Decimal
   basePrice: Decimal
   taxRate: TaxRateType
+  taxCode: String
   seo: SeoInput
   weight: WeightScalar
   sku: String
@@ -2319,6 +2334,7 @@ type ProductType implements Node {
   weight: Weight
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   taxRate: TaxRateType
+  taxType: TaxType
   variantAttributes: [Attribute]
   productAttributes: [Attribute]
 }
@@ -2373,6 +2389,7 @@ input ProductTypeInput {
   isDigital: Boolean
   weight: WeightScalar
   taxRate: TaxRateType
+  taxCode: String
 }
 
 type ProductTypeUpdate {
@@ -2513,6 +2530,7 @@ type Query {
   sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
   vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
@@ -2545,8 +2563,8 @@ type Sale implements Node {
   name: String!
   type: SaleType!
   value: Float!
-  startDate: Date!
-  endDate: Date
+  startDate: DateTime!
+  endDate: DateTime
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -2587,7 +2605,7 @@ type SaleDelete {
 input SaleFilterInput {
   status: [DiscountStatusEnum]
   saleType: DiscountValueTypeEnum
-  started: DateRangeInput
+  started: DateTimeRangeInput
   search: String
 }
 
@@ -2598,8 +2616,8 @@ input SaleInput {
   products: [ID]
   categories: [ID]
   collections: [ID]
-  startDate: Date
-  endDate: Date
+  startDate: DateTime
+  endDate: DateTime
 }
 
 type SaleRemoveCatalogues {
@@ -2781,6 +2799,12 @@ type Shop {
   automaticFulfillmentDigitalProducts: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
+  companyAddress: Address
+}
+
+type ShopAddressUpdate {
+  errors: [Error!]
+  shop: Shop
 }
 
 type ShopDomainUpdate {
@@ -2915,6 +2939,11 @@ enum TaxRateType {
   WINE
 }
 
+type TaxType {
+  description: String
+  taxCode: String
+}
+
 type TaxedMoney {
   currency: String!
   gross: Money!
@@ -3018,6 +3047,7 @@ type User implements Node {
   permissions: [PermissionDisplay]
   avatar(size: Int): Image
   events: [CustomerEvent]
+  storedPaymentSources: [PaymentSource]
 }
 
 input UserAddressInput {
@@ -3097,17 +3127,18 @@ type VerifyToken {
 
 type Voucher implements Node {
   id: ID!
-  type: VoucherType!
+  type: VoucherTypeEnum!
   name: String
   code: String!
   usageLimit: Int
   used: Int!
-  startDate: Date!
-  endDate: Date
+  startDate: DateTime!
+  endDate: DateTime
   applyOncePerOrder: Boolean!
-  discountValueType: VoucherDiscountValueType!
+  discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
   minAmountSpent: Money
+  minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -3152,16 +3183,11 @@ enum VoucherDiscountType {
   SHIPPING
 }
 
-enum VoucherDiscountValueType {
-  FIXED
-  PERCENTAGE
-}
-
 input VoucherFilterInput {
   status: [DiscountStatusEnum]
   timesUsed: IntRangeInput
   discountType: [VoucherDiscountType]
-  started: DateRangeInput
+  started: DateTimeRangeInput
   search: String
 }
 
@@ -3169,15 +3195,18 @@ input VoucherInput {
   type: VoucherTypeEnum
   name: String
   code: String
-  startDate: Date
-  endDate: Date
+  startDate: DateTime
+  endDate: DateTime
   discountValueType: DiscountValueTypeEnum
   discountValue: Decimal
   products: [ID]
   collections: [ID]
   categories: [ID]
   minAmountSpent: Decimal
+  minCheckoutItemsQuantity: Int
   countries: [String]
+  applyOncePerOrder: Boolean
+  usageLimit: Int
 }
 
 type VoucherRemoveCatalogues {
@@ -3196,20 +3225,14 @@ type VoucherTranslation implements Node {
   language: LanguageDisplay!
 }
 
-enum VoucherType {
-  VALUE
-  PRODUCT
-  COLLECTION
-  CATEGORY
-  SHIPPING
-}
-
 enum VoucherTypeEnum {
   PRODUCT
   COLLECTION
   CATEGORY
   SHIPPING
   VALUE
+  ENTIRE_ORDER
+  SPECIFIC_PRODUCT
 }
 
 type VoucherUpdate {

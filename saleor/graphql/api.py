@@ -2,7 +2,7 @@ import graphene
 
 from .account.schema import AccountMutations, AccountQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
-from .core.schema import CoreMutations
+from .core.schema import CoreMutations, CoreQueries
 from .discount.schema import DiscountMutations, DiscountQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .menu.schema import MenuMutations, MenuQueries
@@ -18,6 +18,7 @@ from .translations.schema import TranslationQueries
 class Query(
     AccountQueries,
     CheckoutQueries,
+    CoreQueries,
     DiscountQueries,
     GiftCardQueries,
     MenuQueries,

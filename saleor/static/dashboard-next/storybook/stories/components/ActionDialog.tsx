@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import Decorator from "../../Decorator";

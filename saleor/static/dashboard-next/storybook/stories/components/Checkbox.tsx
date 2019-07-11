@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import Checkbox, { CheckboxProps } from "@saleor/components/Checkbox";
 import Form from "@saleor/components/Form";

@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { TypedShopInfoQuery } from "./query";
 import { ShopInfo_shop } from "./types/ShopInfo";

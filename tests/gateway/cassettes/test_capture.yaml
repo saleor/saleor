@@ -1,0 +1,91 @@
+interactions:
+- request:
+    body: <transaction><amount>80.00</amount></transaction>
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '49'
+      Content-type:
+      - application/xml
+      User-Agent:
+      - Braintree Python 3.49.0
+      X-ApiVersion:
+      - '5'
+    method: PUT
+    uri: https://api.sandbox.braintreegateway.com/merchants/9m6qhfxsqzm3cgzw/transactions/m30bcfym/submit_for_settlement
+  response:
+    body:
+      string: !!binary |
+        H4sIAICXFF0AA+xY33ObOBB+71+R8bsCOHHqZBx6nbk2d51pOtNL2qYvGYEWowQkKgnH7l9/K8AY
+        jHByc324h3uD3U+LtNof37J4s86zoxUozaW4nATH/uQIRCwZF8vLye3NezKfvAlfLYyiQtPYICp8
+        dXS04CzMT/woTjb5wsMXK9OGmlKHuoxybgyw+0Sqew3GZJCDMAuvAVis2RQQaprBwqserSwulcJv
+        bwjXkuAWIHx3+3nhDcUWTHNZChPO/WPfX3jNm1XkoOKUCkNoHFshsVvlqswBtEzME1X4TReoOkIZ
+        EYfuSPDscmJUCROv/gjVBtSLoFIxRKL96cJrn6vjKqDoJULNkXXB5YThq+E5TMKpH5wT/4xMX98E
+        /kUwuziZfkdHtAuq9WXBXrj+rF6/W9C4WxuJJ7Av9Y3OzmeBfz6fnW6vFMUJV9oQQXPYPxkqMzqu
+        i2VeULFxaCCnPAsNaPMbrGleZHCM4IVXy2vME0SaG5fdIpXCJU/o2iFdZjKimXX53cmXn+zq3Hz/
+        9iG5vnkMPt68nX36/RaDZ4exbvG6fllEPMswFVofuT786z2kjQLAqGJMgdYuF64NCGbvchSSyZhm
+        3LjMK1hiHrt8KzFFsyrJnPvFEFeb8ePUarua0KxI6fRFqJPnUAJzV/F4kFle53LwTEkpmCsBW41u
+        8oQqRTc9JTqyU+BcRgqqDEfX7MrZ3gqXcVqaVCr+83nzHbMRNXHqxKS8KP6Pxf9oLHZvpymtJOGQ
+        Md3EwkoTUEoqgj4qpNDgPFqF6xy9jw7/xFZ3ELA10b81t5WDmOoYq9Vw5VBooUvsLE90g5oHqKMc
+        m5UeXuyiUDLGr6EfttlBK3hl6Wb+8dsV9smDoL6V/lYC37KBMe3ISoMRHL4tULMC5lxdISrXMsbt
+        TtD5Q9jgrCvJY3tBCV48rsDYiUANPVJaEoFfqdlBjQpxH055RZ7omtSMZ2DMqmANebElBZGUGVAx
+        CROaacu2WsCWhOCJSEzVtuEb+QgiPJ3HydkPhFdvtSbiKPeD6XxuS6/oVpXTMJjPg4XXvDSJg0ZJ
+        xe6+cE0xctr3beEouKovNpfCpGGAVz8QDrAboAoZztTvgStp892mgRNbdirGevvXrq3vpLtdpjKr
+        XOwuJjynSyClysLUmEJfeB7VWLD1caQoFzaJmui3NMYr6MbW8fscMHLZfSaX0lvh+Y8LsXwDYsWV
+        FBZwqalgkVwj12rtN5VPQUGRjVxLG4z1c61JgWYmxR1DeCsehXwSC68jq0EMIm52+vq1UZUKLw4j
+        cllmlgp2UPuati1YjoudbwftyJr90o2SWQexFTTu07rEwoiNTTzuMD1pv9DKhFgtFTF0vzpUbt0l
+        WRlXFH63g51snwfGV+9n0dcvJbsKMnaVrr6/P3+4C+b+p6vr/Fq826ODNucbbm8j1xEdpeA/SmjS
+        E1fh1XIs/CpkfjSbxnM/OjudU5jDjAanwFhMk+kpm1qSPbq0trwCkUui2eNIKrf6hrf2U7kZx0jK
+        Me7VpkdP2tZeIQANNRFi8x8nCFTkxQunkhbfWmjGvB376U5+tUtHhrfaoRo98MAUXVIBj+glvfWI
+        3V2HR2mJFRLCGMsEhts98hfIcD9DRH1ab3jcf+mBs2c88JJJ+Nf7gxb8n3ihlTSBUvekjLp5ahnp
+        WPFilMd29G3XqEg6KZA3SUaQKhLrUEcm7SFxW8o4sbjlve/YxkywBztIOOO6yl+nDmorcptyIx1g
+        bObEmj3cW98oElz7AwPPNZLFrb7uxykVGMaOAUGtLJlIAMZav/2sfCL1bQ606IaoVLqeMRgYHLX1
+        tiv0VO676Qwo7s/3MYN/Ni+Ew9o6ALuhcm/DDmsYqUirXQbLOHbMH3gjI2e3Jy9KA4dmt5pdUPaA
+        9MGud2Gblk+4QEpd1sOhpTl1Rb63FXnhjYH6pLTjlD537fLSUdDztiom+5ytlu6aFMkNwVS0MQq4
+        9UQ6x1JNEoXzzoGRrZ1ex6J3m6ZjegHmSarHvUE69G1J9s+mrwM/mJ0gfxzBjVF/ewP0IPXf3lE/
+        ICrmCXr859tr4p922+TY8u4vipZ5uIPs4B+Ig2udfznaFcMZ1P3fYnzBjjKxPz6kkbhO704+F9F0
+        lkQ3H5/u8uscvvZ/tPU6VPjqbwAAAP//AwDsdykahxYAAA==
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Encoding:
+      - gzip
+      Content-Security-Policy:
+      - frame-ancestors 'self'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Thu, 27 Jun 2019 10:16:32 GMT
+      ETag:
+      - W/"7a366120ce51506866b65bb1c9efd773"
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Authentication:
+      - basic_auth
+      X-BroxyId:
+      - 02-1561630591.877-79.110.196.19-1517576
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Request-Id:
+      - 02-1561630591.877-79.110.196.19-1517576
+      X-Runtime:
+      - '0.436030'
+      X-User:
+      - wgs3tg8h39pyypyc
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
