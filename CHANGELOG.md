@@ -18,6 +18,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop csrf token header from API client - #4357 by @dominik-zeglen
 - Improve vouchers ui - #4362 by @benekex2
 - Update documentation for taxes - #4405 by @korycins
+- Fix for random failing tests in test_discount - #4401 by @korycins
+- Fix internal error when users enters an invalid phone number in an address - #4404 by @NyanKiyoshi
+- Add minimal quantity of products for voucher - #4427 by @fowczarek
+- New translations:
+  - Icelandic
+- Add ability to store used payment sources in gateways, first implemented in Braintree - #4195 by @salwator
+- Fix various bugs across product section - #4429 by @dominik-zeglen
+- Add company address configuration - #4432 by @benekex2
 
 ## 2.7.0
 

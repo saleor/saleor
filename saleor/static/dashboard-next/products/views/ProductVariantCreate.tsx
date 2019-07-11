@@ -17,12 +17,12 @@ interface ProductUpdateProps {
 }
 
 interface FormData {
-  attributes?: Array<{
+  attributes: Array<{
     slug: string;
     value: string;
   }>;
-  costPrice?: string;
-  priceOverride?: string;
+  costPrice: string;
+  priceOverride: string;
   quantity: number;
   sku: string;
 }
@@ -60,7 +60,10 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
               const handleSubmit = (formData: FormData) =>
                 variantCreate({
                   variables: {
-                    attributes: formData.attributes,
+                    attributes: formData.attributes.map(attribute => ({
+                      slug: attribute.slug,
+                      value: attribute.value
+                    })),
                     costPrice: decimal(formData.costPrice),
                     priceOverride: decimal(formData.priceOverride),
                     product: productId,

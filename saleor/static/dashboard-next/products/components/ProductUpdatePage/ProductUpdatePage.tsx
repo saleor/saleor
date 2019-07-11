@@ -206,7 +206,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, submit }) => (
+      {({ change, data, errors, hasChanged, set, submit }) => (
         <>
           <Container>
             <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
@@ -287,6 +287,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   data={data}
                   disabled={disabled}
                   onChange={change}
+                  onSet={set}
                 />
                 <CardSpacer />
                 <VisibilityCard

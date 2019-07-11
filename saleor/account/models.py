@@ -151,6 +151,8 @@ class User(PermissionsMixin, AbstractBaseUser):
     )
     avatar = VersatileImageField(upload_to="user-avatars", blank=True, null=True)
 
+    private_meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+
     USERNAME_FIELD = "email"
 
     objects = UserManager()
@@ -186,6 +188,14 @@ class User(PermissionsMixin, AbstractBaseUser):
         if address:
             return "%s %s (%s)" % (address.first_name, address.last_name, self.email)
         return self.email
+
+    def get_private_meta(self, label):
+        return self.private_meta.get(label, {})
+
+    def store_private_meta(self, label, key, value):
+        if label not in self.private_meta:
+            self.private_meta[label] = {}
+        self.private_meta[label][str(key)] = value
 
 
 class CustomerNote(models.Model):

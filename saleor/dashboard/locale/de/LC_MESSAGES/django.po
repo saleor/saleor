@@ -11,19 +11,19 @@
 # Till Hinrichs <till@eightdyasaweek.cc>, 2018
 # NyаnKiyoshi <hello@vanille.bid>, 2018
 # Julian Böhnke <admin@julianb.de>, 2019
-# Steffen Exler <exelstore@googlemail.com>, 2019
 # Max Wessendorf <m.wessendorf@ukd.de>, 2019
 # H3 iM <coding.cs@pm.me>, 2019
 # Michael Bykovski <bykof@me.com>, 2019
+# Steffen Exler <exelstore@googlemail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-06-04 11:45-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Michael Bykovski <bykof@me.com>, 2019\n"
+"Last-Translator: Steffen Exler <exelstore@googlemail.com>, 2019\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -62,14 +62,14 @@ msgstr[1] "%(counter)d passende Kategorien gefunden"
 #: saleor/dashboard/category/forms.py:27
 #: saleor/dashboard/collection/forms.py:26
 #: saleor/dashboard/discount/forms.py:93 saleor/dashboard/product/forms.py:112
-#: saleor/dashboard/product/forms.py:277 saleor/dashboard/product/forms.py:511
+#: saleor/dashboard/product/forms.py:277 saleor/dashboard/product/forms.py:513
 #: saleor/dashboard/sites/forms.py:54
 msgctxt "Item name"
 msgid "Name"
 msgstr "Name"
 
 #: saleor/dashboard/category/forms.py:28 saleor/dashboard/product/forms.py:259
-#: saleor/dashboard/product/forms.py:461 saleor/dashboard/sites/forms.py:29
+#: saleor/dashboard/product/forms.py:463 saleor/dashboard/sites/forms.py:29
 msgctxt "Description"
 msgid "Description"
 msgstr "Beschreibung"
@@ -260,13 +260,13 @@ msgid_plural "Found %(counter)d matching customers"
 msgstr[0] "%(counter)d passenden Kunden gefunden"
 msgstr[1] "%(counter)d passende Kunden gefunden"
 
-#: saleor/dashboard/customer/forms.py:10
+#: saleor/dashboard/customer/forms.py:11
 #, python-format
 msgctxt "Customer form: Name field placeholder"
 msgid "%(name)s (Inherit from default billing address)"
 msgstr "%(name)s (Standard Rechnungsadresse)"
 
-#: saleor/dashboard/customer/forms.py:29
+#: saleor/dashboard/customer/forms.py:30
 msgctxt "Edit customer details in order form error"
 msgid ""
 "You can't delete your own account via dashboard, please try from the "
@@ -275,69 +275,69 @@ msgstr ""
 "Du kannst deinen Account nicht im Dashboard löschen, bitte versuche es auf "
 "der Storefront."
 
-#: saleor/dashboard/customer/forms.py:37
+#: saleor/dashboard/customer/forms.py:38
 msgctxt "Edit customer details in order form error"
 msgid "Only superuser can delete his own account."
 msgstr "Nur Superuser können ihren eigenen Account löschen."
 
-#: saleor/dashboard/customer/forms.py:45
+#: saleor/dashboard/customer/forms.py:46
 msgctxt "Edit customer details in order form error"
 msgid "You have insufficient permissions, to edit staff users."
 msgstr "Du hast unzureichende Rechte, um Mitarbeiter zu löschen."
 
-#: saleor/dashboard/customer/forms.py:77 saleor/dashboard/staff/forms.py:30
+#: saleor/dashboard/customer/forms.py:104 saleor/dashboard/staff/forms.py:30
 msgctxt "Customer form: Given name field"
 msgid "Given name"
 msgstr "Vorname"
 
-#: saleor/dashboard/customer/forms.py:80 saleor/dashboard/staff/forms.py:33
+#: saleor/dashboard/customer/forms.py:107 saleor/dashboard/staff/forms.py:33
 msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr "Nachname"
 
-#: saleor/dashboard/customer/forms.py:82
+#: saleor/dashboard/customer/forms.py:109
 msgctxt "Customer form: email address field"
 msgid "Email"
 msgstr "E-Mail"
 
-#: saleor/dashboard/customer/forms.py:83
+#: saleor/dashboard/customer/forms.py:110
 msgctxt "Customer form: customer note field"
 msgid "Notes"
 msgstr "Notizen"
 
-#: saleor/dashboard/customer/forms.py:85
+#: saleor/dashboard/customer/forms.py:112
 msgctxt "Customer form: is active toggle"
 msgid "User is active"
 msgstr "Benutzer aktiv"
 
-#: saleor/dashboard/customer/forms.py:96
+#: saleor/dashboard/customer/forms.py:123
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Notiz"
 
-#: saleor/dashboard/customer/forms.py:98
+#: saleor/dashboard/customer/forms.py:125
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "Kunden können diese Notiz sehen"
 
-#: saleor/dashboard/customer/views.py:63
+#: saleor/dashboard/customer/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
 msgstr "Kunde %s hinzugefügt"
 
-#: saleor/dashboard/customer/views.py:78
+#: saleor/dashboard/customer/views.py:79
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
 msgstr "Kunde %s aktualisiert"
 
-#: saleor/dashboard/customer/views.py:110
+#: saleor/dashboard/customer/views.py:111
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
 msgstr "Notiz hinzugefügt"
 
-#: saleor/dashboard/customer/views.py:131
+#: saleor/dashboard/customer/views.py:133
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(customer_name)s successfully removed"
@@ -1202,18 +1202,18 @@ msgid_plural "Fulfilled %(quantity_fulfilled)d items"
 msgstr[0] "%(quantity_fulfilled)dProdukt abgewickelt "
 msgstr[1] "%(quantity_fulfilled)d Produkte abgewickelt"
 
-#: saleor/dashboard/order/views.py:659
+#: saleor/dashboard/order/views.py:658
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
 msgstr "Keine Produkte abgewickelt"
 
-#: saleor/dashboard/order/views.py:685
+#: saleor/dashboard/order/views.py:684
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr "Auftragsabwicklung #%(fulfillment)s abgebrochen"
 
-#: saleor/dashboard/order/views.py:724
+#: saleor/dashboard/order/views.py:723
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number updated"
@@ -1593,17 +1593,17 @@ msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr "Netto-Preis"
 
-#: saleor/dashboard/product/forms.py:460 saleor/dashboard/product/forms.py:564
+#: saleor/dashboard/product/forms.py:462 saleor/dashboard/product/forms.py:566
 msgctxt "Product image"
 msgid "Image"
 msgstr "Bild"
 
-#: saleor/dashboard/product/forms.py:501
+#: saleor/dashboard/product/forms.py:503
 msgctxt "Product display name"
 msgid "Display name"
 msgstr "Anzeigename"
 
-#: saleor/dashboard/product/forms.py:502
+#: saleor/dashboard/product/forms.py:504
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr "Interner Name"
@@ -2020,7 +2020,7 @@ msgstr "Benutzer aktiv"
 #: saleor/dashboard/staff/forms.py:37
 msgctxt "User staff toggle"
 msgid "User is staff"
-msgstr ""
+msgstr "Benutzer ist ein Mitarbeiter"
 
 #: saleor/dashboard/staff/views.py:45
 #, python-format
@@ -2138,7 +2138,7 @@ msgstr "Bestellbestätigung"
 #: saleor/dashboard/templatetags/orders.py:49
 msgctxt "Dashboard message related to an order"
 msgid "Order placed from draft order"
-msgstr ""
+msgstr "Bestellung wurde aus Bestellungsentwurf erstellt."
 
 #: saleor/dashboard/templatetags/orders.py:54
 #, python-format
@@ -2166,15 +2166,15 @@ msgstr "Bestellung manuell als bezahlt markiert"
 #: saleor/dashboard/templatetags/orders.py:76
 msgctxt "Dashboard message related to an order"
 msgid "Order was canceled"
-msgstr ""
+msgstr "Bestellung wurde storniert"
 
 #: saleor/dashboard/templatetags/orders.py:81
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "We restocked %(quantity)d item"
 msgid_plural "We restocked %(quantity)d items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "We haben %(quantity)d Produkt aufgefüllt"
+msgstr[1] "We haben %(quantity)d Produkte aufgefüllt"
 
 #: saleor/dashboard/templatetags/orders.py:88
 #, python-format
@@ -2191,7 +2191,7 @@ msgstr "Auftragsabwickung #%(fulfillment)s abgebrochen von %(user_name)s"
 #: saleor/dashboard/templatetags/orders.py:98
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled some items"
-msgstr ""
+msgstr "Teillieferung erfolgt"
 
 #: saleor/dashboard/templatetags/orders.py:102
 msgctxt "Dashboard message related to an order"
@@ -2223,19 +2223,19 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "The draft was created by %(user_name)s"
-msgstr ""
+msgstr "Der Bestellentwurf wurde von %(user_name)s erstellt"
 
 #: saleor/dashboard/templatetags/orders.py:133
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(user_name)s added some products"
-msgstr ""
+msgstr "%(user_name)s hat einige Produkte hinzugefügt"
 
 #: saleor/dashboard/templatetags/orders.py:138
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(user_name)s removed some products"
-msgstr ""
+msgstr "%(user_name)s entfernte einige Produkte"
 
 #: saleor/dashboard/templatetags/orders.py:143
 #, python-format
@@ -2247,10 +2247,10 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "The order address was updated by %(user_name)s"
-msgstr ""
+msgstr "Lieferadresse wurde von %(user_name)s aktualisiert"
 
 #: saleor/dashboard/templatetags/orders.py:153
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "The payment was failed by %(user_name)s"
-msgstr ""
+msgstr "Der Bezahlvorgang von %(user_name)s ist fehlgeschlagen"

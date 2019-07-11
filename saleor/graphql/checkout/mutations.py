@@ -28,7 +28,7 @@ from ...core.taxes.interface import calculate_checkout_subtotal
 from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.interface import AddressData
-from ...payment.utils import gateway_process_payment
+from ...payment.utils import gateway_process_payment, store_customer_id
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
@@ -469,6 +469,12 @@ class CheckoutComplete(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID", required=True)
+        store_source = graphene.Boolean(
+            default_value=False,
+            description=(
+                "Determines whether to store the payment source for future usage."
+            ),
+        )
 
     class Meta:
         description = (
@@ -478,11 +484,12 @@ class CheckoutComplete(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id):
+    def perform_mutation(cls, _root, info, checkout_id, store_source):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
 
+        user = info.context.user
         clean_checkout(checkout, info.context.discounts)
 
         payment = checkout.get_last_active_payment()
@@ -506,20 +513,22 @@ class CheckoutComplete(BaseMutation):
         try:
             billing_address = order_data["billing_address"]  # type: models.Address
             shipping_address = order_data["shipping_address"]  # type: models.Address
-            gateway_process_payment(
+            txn = gateway_process_payment(
                 payment=payment,
                 payment_token=payment.token,
                 billing_address=AddressData(**billing_address.as_data()),
                 shipping_address=AddressData(**shipping_address.as_data()),
+                store_source=store_source,
             )
+            if txn.is_success and txn.customer_id and user.is_authenticated:
+                store_customer_id(user, payment.gateway, txn.customer_id)
+
         except PaymentError as e:
             abort_order_data(order_data)
             raise ValidationError(str(e))
 
         # create the order into the database
-        order = create_order(
-            checkout=checkout, order_data=order_data, user=info.context.user
-        )
+        order = create_order(checkout=checkout, order_data=order_data, user=user)
 
         # remove checkout after order is successfully paid
         checkout.delete()
