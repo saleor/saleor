@@ -2,6 +2,7 @@ import {
   ProductCreateData_productTypes_edges_node,
   ProductCreateData_productTypes_edges_node_productAttributes
 } from "../products/types/ProductCreateData";
+import { AttributeInputTypeEnum } from "../types/globalTypes";
 import { ProductTypeDetails_productType } from "./types/ProductTypeDetails";
 import { ProductTypeList_productTypes_edges_node } from "./types/ProductTypeList";
 
@@ -10,6 +11,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo5",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Author",
       slug: "author",
       values: [
@@ -38,6 +40,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo2",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Box Size",
       slug: "box-size",
       values: [
@@ -84,6 +87,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToz",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Brand",
       slug: "brand",
       values: [
@@ -103,6 +107,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo4",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Candy Box Size",
       slug: "candy-box-size",
       values: [
@@ -140,6 +145,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo1",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Coffee Genre",
       slug: "coffee-genre",
       values: [
@@ -168,6 +174,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToy",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Collar",
       slug: "collar",
       values: [
@@ -205,6 +212,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTox",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Color",
       slug: "color",
       values: [
@@ -233,6 +241,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMg==",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Cover",
       slug: "cover",
       values: [
@@ -297,6 +306,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo3",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Flavor",
       slug: "flavor",
       values: [
@@ -325,6 +335,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMQ==",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Language",
       slug: "language",
       values: [
@@ -353,6 +364,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMA==",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Publisher",
       slug: "publisher",
       values: [
@@ -381,6 +393,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo0",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Size",
       slug: "size",
       values: [
