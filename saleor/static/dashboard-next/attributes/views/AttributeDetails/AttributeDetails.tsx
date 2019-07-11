@@ -168,8 +168,11 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                       variables: {
                                         id,
                                         input: {
-                                          name: input.name,
-                                          slug: input.slug
+                                          ...input,
+                                          storefrontSearchPosition: parseInt(
+                                            input.storefrontSearchPosition,
+                                            0
+                                          )
                                         }
                                       }
                                     })

@@ -14,6 +14,7 @@ import TablePagination from "@saleor/components/TablePagination";
 import i18n from "@saleor/i18n";
 import { renderCollection } from "@saleor/misc";
 import { ListActions, ListProps } from "@saleor/types";
+import { translateBoolean } from "@saleor/utils/i18n";
 import { AttributeList_attributes_edges_node } from "../../types/AttributeList";
 
 export interface AttributeListProps extends ListProps, ListActions {
@@ -22,15 +23,33 @@ export interface AttributeListProps extends ListProps, ListActions {
 
 const useStyles = makeStyles((theme: Theme) => ({
   [theme.breakpoints.up("lg")]: {
+    colFaceted: {
+      width: 150
+    },
     colName: {
       width: "auto"
     },
+    colSearchable: {
+      width: 150
+    },
     colSlug: {
       width: 200
+    },
+    colVisible: {
+      width: 150
     }
   },
+  colFaceted: {
+    textAlign: "center"
+  },
   colName: {},
+  colSearchable: {
+    textAlign: "center"
+  },
   colSlug: {},
+  colVisible: {
+    textAlign: "center"
+  },
   link: {
     cursor: "pointer"
   }
@@ -66,11 +85,24 @@ const AttributeList: React.StatelessComponent<AttributeListProps> = ({
         <TableCell className={classes.colName}>
           {i18n.t("Default Label", { context: "attribute name" })}
         </TableCell>
+        <TableCell className={classes.colVisible}>
+          {i18n.t("Visible", { context: "attribute visibility" })}
+        </TableCell>
+        <TableCell className={classes.colSearchable}>
+          {i18n.t("Searchable", {
+            context: "attribute can be searched in dashboard"
+          })}
+        </TableCell>
+        <TableCell className={classes.colFaceted}>
+          {i18n.t("Use in faceted search", {
+            context: "attribute can be searched in storefront"
+          })}
+        </TableCell>
       </TableHead>
       <TableFooter>
         <TableRow>
           <TablePagination
-            colSpan={3}
+            colSpan={6}
             hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
             onNextPage={onNextPage}
             hasPreviousPage={
@@ -106,6 +138,27 @@ const AttributeList: React.StatelessComponent<AttributeListProps> = ({
                 </TableCell>
                 <TableCell className={classes.colName}>
                   {attribute ? attribute.name : <Skeleton />}
+                </TableCell>
+                <TableCell className={classes.colVisible}>
+                  {attribute ? (
+                    translateBoolean(attribute.visibleInStorefront)
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell className={classes.colSearchable}>
+                  {attribute ? (
+                    translateBoolean(attribute.filterableInDashboard)
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell className={classes.colFaceted}>
+                  {attribute ? (
+                    translateBoolean(attribute.filterableInStorefront)
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
               </TableRow>
             );
