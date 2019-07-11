@@ -79,9 +79,16 @@ def test_percentage_discounts(product):
 
 def test_voucher_queryset_active(voucher):
     vouchers = Voucher.objects.all()
-    assert len(vouchers) == 1
+    assert vouchers.count() == 1
     active_vouchers = Voucher.objects.active(date=timezone.now() - timedelta(days=1))
-    assert len(active_vouchers) == 0
+    assert active_vouchers.count() == 0
+
+
+def test_voucher_queryset_active_usage_limit_zero(voucher):
+    voucher.usage_limit = 0
+    voucher.save()
+    active_vouchers = Voucher.objects.active(date=timezone.now())
+    assert active_vouchers.count() == 1
 
 
 @pytest.mark.parametrize(
