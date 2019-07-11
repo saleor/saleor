@@ -12,6 +12,7 @@ import { ProductAttributeInput } from "../components/ProductAttributes";
 import { VariantAttributeInput } from "../components/ProductVariantAttributes";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../types/ProductCreateData";
 import { ProductVariant } from "../types/ProductVariant";
+import { ProductVariantCreateData_product } from "../types/ProductVariantCreateData";
 
 export interface Collection {
   id: string;
@@ -96,6 +97,21 @@ export function getAttributeInputFromVariant(
         value: attribute.value.slug
       })),
     []
+  );
+}
+
+export function getVariantAttributeInputFromProduct(
+  product: ProductVariantCreateData_product
+): VariantAttributeInput[] {
+  return maybe(() =>
+    product.productType.variantAttributes.map(attribute => ({
+      data: {
+        values: attribute.values
+      },
+      id: attribute.id,
+      label: attribute.name,
+      value: ""
+    }))
   );
 }
 
