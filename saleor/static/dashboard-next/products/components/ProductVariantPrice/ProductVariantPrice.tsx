@@ -23,8 +23,8 @@ const styles = (theme: Theme) =>
 
 interface ProductVariantPriceProps extends WithStyles<typeof styles> {
   currencySymbol?: string;
-  priceOverride?: number;
-  costPrice?: number;
+  priceOverride?: string;
+  costPrice?: string;
   errors: { [key: string]: string };
   loading?: boolean;
   onChange(event: any);
