@@ -8,10 +8,17 @@ import Form from "@saleor/components/Form";
 import Grid from "@saleor/components/Grid";
 import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import useFormset, {
+  FormsetChange,
+  FormsetData
+} from "@saleor/hooks/useFormset";
+import { getAttributeInputFromVariant } from "@saleor/products/utils/data";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { ProductVariant } from "../../types/ProductVariant";
-import ProductVariantAttributes from "../ProductVariantAttributes";
+import ProductVariantAttributes, {
+  VariantAttributeInputData
+} from "../ProductVariantAttributes";
 import ProductVariantImages from "../ProductVariantImages";
 import ProductVariantImageSelectDialog from "../ProductVariantImageSelectDialog";
 import ProductVariantNavigation from "../ProductVariantNavigation";
@@ -19,14 +26,15 @@ import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
 
 export interface ProductVariantPageFormData {
-  attributes: Array<{
-    slug: string;
-    value: string;
-  }>;
   costPrice: number;
   priceOverride: number;
   quantity: number;
   sku: string;
+}
+
+export interface ProductVariantPageSubmitData
+  extends ProductVariantPageFormData {
+  attributes: FormsetData<VariantAttributeInputData, string>;
 }
 
 interface ProductVariantPageProps {
@@ -39,12 +47,12 @@ interface ProductVariantPageProps {
   onAdd();
   onBack();
   onDelete();
-  onSubmit(data: any);
+  onSubmit(data: ProductVariantPageSubmitData);
   onImageSelect(id: string);
   onVariantClick(variantId: string);
 }
 
-const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
+const ProductVariantPage: React.FC<ProductVariantPageProps> = ({
   errors: formErrors,
   loading,
   header,
@@ -58,6 +66,14 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
   onSubmit,
   onVariantClick
 }) => {
+  const attributeInput = React.useMemo(
+    () => getAttributeInputFromVariant(variant),
+    [variant]
+  );
+  const { change: changeAttributeData, data: attributes } = useFormset(
+    attributeInput
+  );
+
   const [isModalOpened, setModalStatus] = React.useState(false);
   const toggleModal = () => setModalStatus(!isModalOpened);
 
@@ -74,19 +90,17 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
   );
 
   const initialForm: ProductVariantPageFormData = {
-    attributes: maybe(
-      () =>
-        variant.attributes.map(a => ({
-          slug: a.attribute.slug,
-          value: a.value.slug
-        })),
-      []
-    ),
-    costPrice: maybe(() => variant.costPrice.amount, null),
-    priceOverride: maybe(() => variant.priceOverride.amount, null),
+    costPrice: maybe(() => variant.costPrice.amount, 0),
+    priceOverride: maybe(() => variant.priceOverride.amount, 0),
     quantity: maybe(() => variant.quantity, 0),
     sku: maybe(() => variant.sku, "")
   };
+
+  const handleSubmit = (data: ProductVariantPageFormData) =>
+    onSubmit({
+      ...data,
+      attributes
+    });
 
   return (
     <>
@@ -98,82 +112,84 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
         <Form
           initial={initialForm}
           errors={formErrors}
-          onSubmit={onSubmit}
+          onSubmit={handleSubmit}
           confirmLeave
         >
-          {({ change, data, errors, hasChanged, submit }) => (
-            <>
-              <Grid variant="inverted">
-                <div>
-                  <ProductVariantNavigation
-                    current={variant ? variant.id : undefined}
-                    fallbackThumbnail={maybe(
-                      () => variant.product.thumbnail.url
-                    )}
-                    variants={maybe(() => variant.product.variants)}
-                    onAdd={onAdd}
-                    onRowClick={(variantId: string) => {
-                      if (variant) {
-                        return onVariantClick(variantId);
+          {({ change, data, errors, hasChanged, submit, triggerChange }) => {
+            const handleAttributeChange: FormsetChange = (id, value) => {
+              changeAttributeData(id, value);
+              triggerChange();
+            };
+
+            return (
+              <>
+                <Grid variant="inverted">
+                  <div>
+                    <ProductVariantNavigation
+                      current={variant ? variant.id : undefined}
+                      fallbackThumbnail={maybe(
+                        () => variant.product.thumbnail.url
+                      )}
+                      variants={maybe(() => variant.product.variants)}
+                      onAdd={onAdd}
+                      onRowClick={(variantId: string) => {
+                        if (variant) {
+                          return onVariantClick(variantId);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <ProductVariantAttributes
+                      attributes={attributes}
+                      disabled={loading}
+                      onChange={handleAttributeChange}
+                    />
+                    <CardSpacer />
+                    <ProductVariantImages
+                      disabled={loading}
+                      images={images}
+                      placeholderImage={placeholderImage}
+                      onImageAdd={toggleModal}
+                    />
+                    <CardSpacer />
+                    <ProductVariantPrice
+                      errors={errors}
+                      priceOverride={data.priceOverride}
+                      currencySymbol={
+                        variant && variant.priceOverride
+                          ? variant.priceOverride.currency
+                          : variant && variant.costPrice
+                          ? variant.costPrice.currency
+                          : ""
                       }
-                    }}
-                  />
-                </div>
-                <div>
-                  <ProductVariantAttributes
-                    attributes={
-                      variant && variant.attributes
-                        ? variant.attributes.map(a => a.attribute)
-                        : undefined
-                    }
-                    data={data}
-                    disabled={loading}
-                    onChange={change}
-                  />
-                  <CardSpacer />
-                  <ProductVariantImages
-                    disabled={loading}
-                    images={images}
-                    placeholderImage={placeholderImage}
-                    onImageAdd={toggleModal}
-                  />
-                  <CardSpacer />
-                  <ProductVariantPrice
-                    errors={errors}
-                    priceOverride={data.priceOverride}
-                    currencySymbol={
-                      variant && variant.priceOverride
-                        ? variant.priceOverride.currency
-                        : variant && variant.costPrice
-                        ? variant.costPrice.currency
-                        : ""
-                    }
-                    costPrice={data.costPrice}
-                    loading={loading}
-                    onChange={change}
-                  />
-                  <CardSpacer />
-                  <ProductVariantStock
-                    errors={errors}
-                    sku={data.sku}
-                    quantity={data.quantity}
-                    stockAllocated={
-                      variant ? variant.quantityAllocated : undefined
-                    }
-                    loading={loading}
-                    onChange={change}
-                  />
-                </div>
-              </Grid>
-              <SaveButtonBar
-                disabled={loading || !hasChanged}
-                state={saveButtonBarState}
-                onCancel={onBack}
-                onDelete={onDelete}
-                onSave={submit}
-              />
-            </>
-          )}
+                      costPrice={data.costPrice}
+                      loading={loading}
+                      onChange={change}
+                    />
+                    <CardSpacer />
+                    <ProductVariantStock
+                      errors={errors}
+                      sku={data.sku}
+                      quantity={data.quantity}
+                      stockAllocated={
+                        variant ? variant.quantityAllocated : undefined
+                      }
+                      loading={loading}
+                      onChange={change}
+                    />
+                  </div>
+                </Grid>
+                <SaveButtonBar
+                  disabled={loading || !hasChanged}
+                  state={saveButtonBarState}
+                  onCancel={onBack}
+                  onDelete={onDelete}
+                  onSave={submit}
+                />
+              </>
+            );
+          }}
         </Form>
       </Container>
       {variant && (
