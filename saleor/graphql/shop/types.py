@@ -10,6 +10,7 @@ from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
 from ...site import models as site_models
+from ..account.types import Address
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
 from ..core.utils import get_node_optimized, str_to_enum
@@ -132,6 +133,9 @@ class Shop(graphene.ObjectType):
     )
     default_digital_url_valid_days = graphene.Int(
         description=("Default number of days which digital content url will be valid")
+    )
+    company_address = graphene.Field(
+        Address, description="Company address", required=False
     )
 
     class Meta:
@@ -258,6 +262,10 @@ class Shop(graphene.ObjectType):
         else:
             default_country = None
         return default_country
+
+    @staticmethod
+    def resolve_company_address(_, info):
+        return info.context.site.settings.company_address
 
     @staticmethod
     def resolve_translation(_, info, language_code):

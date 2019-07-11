@@ -12,14 +12,14 @@
 # Thiago reis <thiagoth.reis@gmail.com>, 2018
 # Danrley Pereira <danrleywillyan@outlook.com>, 2018
 # Andre PS <andreuece@gmail.com>, 2018
-# Roberto Junior <roberto.junior.hbl@gmail.com>, 2018
 # Jean Marcos da Rosa <jeanmarcosdarosa@gmail.com>, 2019
 # Murilo Gonçalves Pereira <murilogp12@gmail.com>, 2019
 # Eduardo Menezes Rocha <eduardomenezesr@gmail.com>, 2019
 # wcreis <wesley.c.reis@gmail.com>, 2019
-# Rafael Lima <rafael.liverpool@gmail.com>, 2019
 # Kaiê Guex <kaie.guex@gmail.com>, 2019
 # Kelvin Prado <kelvinpfw@gmail.com>, 2019
+# Rafael Lima <rafael.liverpool@gmail.com>, 2019
+# Roberto Junior <roberto.junior.hbl@gmail.com>, 2019
 # Geovani Lopes <dedhio@gmail.com>, 2019
 # 
 #, fuzzy
@@ -27,7 +27,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-06-04 11:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Geovani Lopes <dedhio@gmail.com>, 2019\n"
 "Language-Team: Portuguese (Brazil) (https://www.transifex.com/mirumee/teams/34782/pt_BR/)\n"
@@ -37,32 +37,82 @@ msgstr ""
 "Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: saleor/account/forms.py:70
+#: saleor/account/__init__.py:28
+msgctxt "Event from a customer that got their account created"
+msgid "The account account was created"
+msgstr ""
+
+#: saleor/account/__init__.py:35
+msgctxt "Event from a customer that got the password reset link sent by email"
+msgid "Password reset link was sent to the customer"
+msgstr ""
+
+#: saleor/account/__init__.py:42
+msgctxt "Event from a customer that reset their password"
+msgid "The account password was reset"
+msgstr ""
+
+#: saleor/account/__init__.py:48
+msgctxt "Event from a customer that placed an order"
+msgid "An order was placed"
+msgstr ""
+
+#: saleor/account/__init__.py:55
+msgctxt "Event from a customer that added a note to one of their orders"
+msgid "A note was added"
+msgstr ""
+
+#: saleor/account/__init__.py:62
+msgctxt "Event from a customer that downloaded an ordered digital good"
+msgid "A digital good was downloaded"
+msgstr ""
+
+#: saleor/account/__init__.py:69
+msgctxt "Event from a staff user that deleted a customer"
+msgid "A customer was deleted"
+msgstr ""
+
+#: saleor/account/__init__.py:76
+msgctxt "Event from a staff user assigned a new name to a customer"
+msgid "A customer's name was edited"
+msgstr ""
+
+#: saleor/account/__init__.py:83
+msgctxt "Event from a staff user assigned a new email address to a customer"
+msgid "A customer's email address was edited"
+msgstr ""
+
+#: saleor/account/__init__.py:90
+msgctxt "Event from a staff user assigned a new email address to a customer"
+msgid "A note was added to the customer"
+msgstr ""
+
+#: saleor/account/forms.py:71
 msgctxt "Form field"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/account/forms.py:82
+#: saleor/account/forms.py:83
 msgctxt "Password"
 msgid "Password"
 msgstr "Senha"
 
-#: saleor/account/forms.py:85
+#: saleor/account/forms.py:86
 msgctxt "Email"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/account/forms.py:88
+#: saleor/account/forms.py:89
 msgctxt "Registration error"
 msgid "This email has already been registered."
 msgstr "Este e-mail já foi registrado."
 
-#: saleor/account/forms.py:145
+#: saleor/account/forms.py:147
 msgctxt "Customer form: Given name field"
 msgid "Given name"
 msgstr "Nome"
 
-#: saleor/account/forms.py:148
+#: saleor/account/forms.py:150
 msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr "Sobrenome"
@@ -236,17 +286,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Este valor é inválido para país selecionado"
 
-#: saleor/account/models.py:159
+#: saleor/account/models.py:162
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "Gerenciar clientes."
 
-#: saleor/account/models.py:161
+#: saleor/account/models.py:164
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "Gerenciar equipe."
 
-#: saleor/account/models.py:164
+#: saleor/account/models.py:167
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr "Personificar clientes."
@@ -267,40 +317,40 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: saleor/account/views.py:35
+#: saleor/account/views.py:36
 msgid "You have been successfully logged out."
 msgstr "Você foi desconectado com sucesso."
 
-#: saleor/account/views.py:48
+#: saleor/account/views.py:49
 msgid "User has been created"
 msgstr "Usuário foi criado"
 
-#: saleor/account/views.py:105
+#: saleor/account/views.py:111
 msgctxt "Storefront message"
 msgid "Password successfully changed."
 msgstr "Senha mudada com sucesso."
 
-#: saleor/account/views.py:115
+#: saleor/account/views.py:121
 msgctxt "Storefront message"
 msgid "Account successfully updated."
 msgstr "Conta atualizada com sucesso."
 
-#: saleor/account/views.py:128
+#: saleor/account/views.py:134
 msgctxt "Storefront message"
 msgid "Address successfully updated."
 msgstr "Endereço atualizado com sucesso."
 
-#: saleor/account/views.py:142
+#: saleor/account/views.py:148
 msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "Endereço removido com sucesso"
 
-#: saleor/account/views.py:159
+#: saleor/account/views.py:165
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
 msgstr "Por favor verifique sua caixa de entrada por um e-mail de confirmação"
 
-#: saleor/account/views.py:176
+#: saleor/account/views.py:182
 msgctxt "Account deleted"
 msgid ""
 "Your account was deleted successfully. In case of any trouble or questions "
@@ -353,52 +403,52 @@ msgid_plural "Only %d remaining in stock."
 msgstr[0] "Somente %d restante em estoque."
 msgstr[1] "Somente %d restantes em estoque."
 
-#: saleor/checkout/forms.py:188
+#: saleor/checkout/forms.py:187
 msgctxt "Country form field label"
 msgid "Country"
 msgstr "País"
 
-#: saleor/checkout/forms.py:216 saleor/checkout/forms.py:229
+#: saleor/checkout/forms.py:215 saleor/checkout/forms.py:228
 msgctxt "Address form field label"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/checkout/forms.py:244
+#: saleor/checkout/forms.py:243
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
 msgstr "Insira seu novo endereço"
 
-#: saleor/checkout/forms.py:249
+#: saleor/checkout/forms.py:248
 msgctxt "Shipping addresses form field label"
 msgid "Address"
 msgstr "Endereço"
 
-#: saleor/checkout/forms.py:270
+#: saleor/checkout/forms.py:269
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
 msgstr "Insira seu novo endereço"
 
-#: saleor/checkout/forms.py:274
+#: saleor/checkout/forms.py:273
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
 msgstr "Mesmo que o transporte"
 
-#: saleor/checkout/forms.py:279
+#: saleor/checkout/forms.py:278
 msgctxt "Billing addresses form field label"
 msgid "Address"
 msgstr "Endereço"
 
-#: saleor/checkout/forms.py:311
+#: saleor/checkout/forms.py:310
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
 msgstr "Método de envio"
 
-#: saleor/checkout/forms.py:358
+#: saleor/checkout/forms.py:357
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
 msgstr "Código de desconto incorreto ou expirado"
 
-#: saleor/checkout/forms.py:371
+#: saleor/checkout/forms.py:370
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr "Cartão de presente ou código de desconto"
@@ -412,27 +462,27 @@ msgstr ""
 "Desculpa. Não temos itens o suficiente em estoque. Quantidade foi ajustado "
 "para o máximo disponível no momento."
 
-#: saleor/checkout/utils.py:677
+#: saleor/checkout/utils.py:676
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Seu pedido não requer transporte."
 
-#: saleor/checkout/utils.py:683
+#: saleor/checkout/utils.py:682
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Por favor, selecione um método de envio primeiro."
 
-#: saleor/checkout/utils.py:691
+#: saleor/checkout/utils.py:690
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "Esta promoção não é valida em seu pais."
 
-#: saleor/checkout/utils.py:717
+#: saleor/checkout/utils.py:716
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "Esta oferta é válida apenas para os itens selecionados."
 
-#: saleor/checkout/utils.py:862
+#: saleor/checkout/utils.py:861
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "Cupom expirei. Pedido abortado."
@@ -913,17 +963,17 @@ msgctxt "An email containing a or some digital link was sent"
 msgid "The email containing the digital links was sent"
 msgstr "O email contendo os links foi enviado"
 
-#: saleor/order/forms.py:15
+#: saleor/order/forms.py:16
 msgctxt "Payments form label"
 msgid "Payment Method"
 msgstr "Método de pagamento"
 
-#: saleor/order/forms.py:35
+#: saleor/order/forms.py:36
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
 msgstr "O pagamento não existe"
 
-#: saleor/order/forms.py:41
+#: saleor/order/forms.py:42
 msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr "Pagamento não pode ser cancelado"
@@ -939,7 +989,7 @@ msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
 msgstr "Fulfillment #%s"
 
-#: saleor/order/views.py:203
+#: saleor/order/views.py:204
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
@@ -948,7 +998,7 @@ msgstr ""
 "Nós não podemos vincular o pedido a sua conta pois o endereço de e-mail está"
 " incorreto"
 
-#: saleor/order/views.py:210
+#: saleor/order/views.py:211
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "O pedido foi vinculado a sua conta"
@@ -958,62 +1008,57 @@ msgctxt "Permission description"
 msgid "Manage pages."
 msgstr "Gerenciar páginas."
 
-#: saleor/payment/__init__.py:22
+#: saleor/payment/__init__.py:24
 msgctxt "Custom payment choice type"
 msgid "Manual"
 msgstr "Manual"
 
-#: saleor/payment/__init__.py:71
+#: saleor/payment/__init__.py:70
 msgctxt "transaction kind"
 msgid "Authorization"
 msgstr "Autorização"
 
-#: saleor/payment/__init__.py:72
-msgctxt "transaction kind"
-msgid "Charge"
-msgstr "Cobrança"
-
-#: saleor/payment/__init__.py:73
+#: saleor/payment/__init__.py:71
 msgctxt "transaction kind"
 msgid "Refund"
 msgstr "Restituição"
 
-#: saleor/payment/__init__.py:74
+#: saleor/payment/__init__.py:72
 msgctxt "transaction kind"
 msgid "Capture"
 msgstr "Receber"
 
-#: saleor/payment/__init__.py:75
+#: saleor/payment/__init__.py:73
 msgctxt "transaction kind"
 msgid "Void"
 msgstr "Vazio"
 
-#: saleor/payment/__init__.py:99
+#: saleor/payment/__init__.py:97
 msgctxt "payment status"
 msgid "Not charged"
 msgstr "Sem cobrança"
 
-#: saleor/payment/__init__.py:100
+#: saleor/payment/__init__.py:98
 msgctxt "payment status"
 msgid "Partially charged"
 msgstr "Parcialmente cobrado"
 
-#: saleor/payment/__init__.py:101
+#: saleor/payment/__init__.py:99
 msgctxt "payment status"
 msgid "Fully charged"
 msgstr "Totalmente cobrado"
 
-#: saleor/payment/__init__.py:102
+#: saleor/payment/__init__.py:100
 msgctxt "payment status"
 msgid "Partially refunded"
 msgstr "Parcialmente reembolsado"
 
-#: saleor/payment/__init__.py:103
+#: saleor/payment/__init__.py:101
 msgctxt "payment status"
 msgid "Fully refunded"
 msgstr "Totalmente reembolsado"
 
-#: saleor/payment/gateways/braintree/__init__.py:69
+#: saleor/payment/gateways/braintree/__init__.py:61
 #: saleor/payment/gateways/braintree/forms.py:33
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
@@ -1080,7 +1125,7 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr "Pagamento total"
 
-#: saleor/payment/utils.py:272
+#: saleor/payment/utils.py:259
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr "Pedidos com pagamentos não podem ser marcados manualmente como pagos."
@@ -1156,12 +1201,12 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:142
+#: saleor/product/models.py:153
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "Gerenciar produtos."
 
-#: saleor/product/models.py:364
+#: saleor/product/models.py:379
 msgctxt "File as a digital product"
 msgid "digital_product"
 msgstr "produto_digital"
@@ -1212,123 +1257,135 @@ msgid "Spanish"
 msgstr "Espanhol"
 
 #: saleor/settings.py:71
+msgid "Colombian Spanish"
+msgstr ""
+
+#: saleor/settings.py:72
 msgid "Estonian"
 msgstr "Estoniano"
 
-#: saleor/settings.py:72
+#: saleor/settings.py:73
 msgid "Persian"
 msgstr "Persa"
 
-#: saleor/settings.py:73
+#: saleor/settings.py:74
 msgid "French"
 msgstr "Francês"
 
-#: saleor/settings.py:74
+#: saleor/settings.py:75
 msgid "Hindi"
 msgstr "Hindi"
 
-#: saleor/settings.py:75
+#: saleor/settings.py:76
 msgid "Hungarian"
 msgstr "Húngaro"
 
-#: saleor/settings.py:76
+#: saleor/settings.py:77
 msgid "Armenian"
 msgstr "Armênio"
 
-#: saleor/settings.py:77
+#: saleor/settings.py:78
 msgid "Indonesian"
 msgstr "Indonésio"
 
-#: saleor/settings.py:78
+#: saleor/settings.py:79
 msgid "Italian"
 msgstr "Italiano"
 
-#: saleor/settings.py:79
+#: saleor/settings.py:80
 msgid "Japanese"
 msgstr "Japonês"
 
-#: saleor/settings.py:80
+#: saleor/settings.py:81
 msgid "Korean"
 msgstr "Coreano"
 
-#: saleor/settings.py:81
+#: saleor/settings.py:82
+msgid "Lithuanian"
+msgstr ""
+
+#: saleor/settings.py:83
 msgid "Mongolian"
 msgstr "Mongol"
 
-#: saleor/settings.py:82
+#: saleor/settings.py:84
 msgid "Norwegian"
 msgstr "Norueguês"
 
-#: saleor/settings.py:83
+#: saleor/settings.py:85
 msgid "Dutch"
 msgstr "Holandês"
 
-#: saleor/settings.py:84
+#: saleor/settings.py:86
 msgid "Polish"
 msgstr "Polonês"
 
-#: saleor/settings.py:85
+#: saleor/settings.py:87
 msgid "Portuguese"
 msgstr "Português"
 
-#: saleor/settings.py:86
+#: saleor/settings.py:88
 msgid "Brazilian Portuguese"
-msgstr "Português Brasileiro"
+msgstr "Português Brasil"
 
-#: saleor/settings.py:87
+#: saleor/settings.py:89
 msgid "Romanian"
 msgstr "Romena"
 
-#: saleor/settings.py:88
+#: saleor/settings.py:90
 msgid "Russian"
 msgstr "Russo"
 
-#: saleor/settings.py:89
+#: saleor/settings.py:91
 msgid "Slovak"
 msgstr "Eslovaco"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:92
+msgid "Albanian"
+msgstr ""
+
+#: saleor/settings.py:93
 msgid "Serbian"
 msgstr "Sérvio"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:94
 msgid "Swahili"
 msgstr "Suaíli"
 
-#: saleor/settings.py:92
+#: saleor/settings.py:95
 msgid "Swedish"
 msgstr "Sueco"
 
-#: saleor/settings.py:93
+#: saleor/settings.py:96
 msgid "Thai"
 msgstr "Tailandês"
 
-#: saleor/settings.py:94
+#: saleor/settings.py:97
 msgid "Turkish"
 msgstr "Turco"
 
-#: saleor/settings.py:95
+#: saleor/settings.py:98
 msgid "Ukrainian"
 msgstr "Ucraniano"
 
-#: saleor/settings.py:96
+#: saleor/settings.py:99
 msgid "Vietnamese"
 msgstr "Vietinamita"
 
-#: saleor/settings.py:97
+#: saleor/settings.py:100
 msgid "Simplified Chinese"
 msgstr "Chinês simplificado"
 
-#: saleor/settings.py:98
+#: saleor/settings.py:101
 msgid "Traditional Chinese"
 msgstr "Chinês tradicional"
 
-#: saleor/settings.py:340
+#: saleor/settings.py:342
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "União Européia"
 
-#: saleor/settings.py:575
+#: saleor/settings.py:593
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr "Gateway fictício"
@@ -1802,7 +1859,7 @@ msgstr "Entrar"
 #: templates/account/signup.html:28
 msgctxt "Signup form title"
 msgid "Create an account"
-msgstr "Registar"
+msgstr "Criar uma conta"
 
 #: templates/account/signup.html:36
 msgctxt "Signup form primary action"
@@ -1844,8 +1901,8 @@ msgstr "Pesquisar"
 
 #: templates/base.html:148 templates/base.html:208
 msgctxt "Main navigation item"
-msgid "Your Checkout"
-msgstr "Seu pedido"
+msgid "Your cart"
+msgstr "Seu carrinho"
 
 #: templates/base.html:202
 msgid "Account"
@@ -1935,13 +1992,13 @@ msgstr "Total"
 
 #: templates/checkout/index.html:7
 msgctxt "Checkout page title"
-msgid "Your checkout"
-msgstr "Seu pedido"
+msgid "Your cart"
+msgstr "Seu carrinho"
 
 #: templates/checkout/index.html:12
 msgctxt "Checkout breadcrumb"
-msgid "Checkout"
-msgstr "Pedido"
+msgid "Cart"
+msgstr "Carrinho"
 
 #: templates/checkout/index.html:22
 msgctxt "Checkout message"
@@ -1970,13 +2027,13 @@ msgstr "Pedido"
 
 #: templates/checkout/index.html:84
 msgctxt "checkout page: secondary action, empty the checkout"
-msgid "Clear checkout"
-msgstr "Limpar pedido"
+msgid "Clear cart"
+msgstr "Limpar carrinho"
 
 #: templates/checkout/index.html:91 templates/checkout_dropdown.html:62
 msgctxt "Empty checkout message"
-msgid "There are no products in your shopping checkout."
-msgstr "Não há produtos em seu pedido de compra"
+msgid "There are no products in your shopping cart."
+msgstr "Está vazio!"
 
 #: templates/checkout/index.html:92 templates/checkout_dropdown.html:67
 msgctxt "Empty checkout link"
@@ -2125,8 +2182,8 @@ msgstr "Frete e Impostos calculados no checkout"
 
 #: templates/checkout_dropdown.html:54
 msgctxt "Checkout dropdown secondary action"
-msgid "Go to checkout"
-msgstr "Ir para pedido"
+msgid "Go to cart"
+msgstr "Ir ao carrinho"
 
 #: templates/checkout_dropdown.html:57
 msgctxt "Checkout dropdown primary action"
@@ -2256,7 +2313,7 @@ msgstr "Liquidações"
 #: templates/dashboard/order/list.html:29
 msgctxt "Dashboard orders list"
 msgid "Orders"
-msgstr "Encomendas"
+msgstr "Pedidos"
 
 #: templates/dashboard/base.html:158
 #: templates/dashboard/customer/detail.html:9
@@ -5857,7 +5914,7 @@ msgstr "Promoção e Liquidação"
 #: templates/home.html:13
 msgctxt "Homepage title"
 msgid "from the Northpole"
-msgstr "do Northpole"
+msgstr "do Polo Norte"
 
 #: templates/home.html:15 templates/home.html:30 templates/home.html:42
 msgctxt "Homepage action"
@@ -6270,8 +6327,8 @@ msgstr "Excluindo %(tax_rate)s%% de ICMS"
 
 #: templates/product/details.html:178
 msgctxt "Product details primary action"
-msgid "Add to checkout"
-msgstr "Adicionar à compra"
+msgid "Add to cart"
+msgstr "Adicionar ao carrinho"
 
 #: templates/product/details.html:190
 msgctxt "Product details text"

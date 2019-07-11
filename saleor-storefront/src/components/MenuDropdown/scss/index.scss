@@ -1,0 +1,34 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.menu-dropdown {
+  position: relative;
+
+  &__body {
+    display: none;
+    position: absolute;
+    right: 1rem;
+    top: 1.5rem;
+    box-shadow: $message-shadow;
+    background-color: $white;
+    padding: $spacer;
+    width: 15rem;
+
+    &--visible {
+      display: block;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: column;
+      font-style: normal;
+      font-weight: normal;
+
+      line-height: 2rem;
+      align-items: flex-start;
+
+      li {
+        width: 80%;
+      }
+    }
+  }
+}

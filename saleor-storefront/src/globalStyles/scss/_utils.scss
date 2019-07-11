@@ -1,0 +1,23 @@
+.u- {
+  &lead {
+    font-size: $h3-font-size;
+    font-weight: $bold-font-weight;
+    line-height: normal;
+    padding-bottom: 10px;
+
+    &--bold {
+      color: $gray-dark;
+      font-weight: $extra-bold-font-weight;
+    }
+  }
+
+  &uppercase {
+    text-transform: uppercase;
+  }
+
+  &link {
+    color: $blue;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}

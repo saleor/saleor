@@ -1,0 +1,290 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.main-menu {
+  align-items: center;
+  align-items: stretch;
+  background-color: $white;
+  border-bottom: 1px solid $gray-light;
+  display: flex;
+  flex-direction: row;
+  height: 3.55rem;
+  position: relative;
+
+  &__left {
+    flex-basis: calc(50% - 2rem);
+
+    @media (min-width: $small-screen) {
+      flex-basis: calc(50% - 4rem);
+    }
+
+    ul {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+  }
+
+  &__right {
+    flex-basis: calc(50% - 2rem);
+
+    @media (min-width: $small-screen) {
+      flex-basis: calc(50% - 4rem);
+    }
+
+    ul {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+  }
+
+  &__center {
+    align-self: center;
+
+    svg {
+      width: 4rem;
+
+      @media (min-width: $small-screen) {
+        width: 6rem;
+      }
+    }
+  }
+
+  &__item {
+    font-weight: $bold-font-weight;
+    height: 100%;
+    text-transform: uppercase;
+
+    a {
+      text-decoration: none;
+      color: $base-font-color;
+      position: relative;
+      transition: 0.3s;
+
+      &:hover {
+        color: $turquoise;
+      }
+    }
+  }
+
+  &__hamburger {
+    border-right: 1px solid $gray-light;
+    cursor: pointer;
+    padding: $spacer;
+
+    &--hover {
+      display: none;
+    }
+
+    &:hover {
+      .main-menu__hamburger--icon {
+        display: none;
+      }
+
+      .main-menu__hamburger--hover {
+        display: block;
+      }
+    }
+
+    svg {
+      vertical-align: bottom;
+    }
+  }
+
+  &__item,
+  &__hamburger {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  &__icon {
+    padding: 0 $spacer;
+    cursor: pointer;
+
+    svg * {
+      transition: 0.3s;
+    }
+
+    &:hover {
+      svg * {
+        fill: $turquoise;
+      }
+    }
+
+    svg {
+      vertical-align: bottom;
+    }
+  }
+
+  &__cart {
+    position: relative;
+
+    &__quantity {
+      position: absolute;
+      top: -0.3rem;
+      right: 0.6rem;
+      background-color: $blue;
+      border-radius: 1rem;
+      padding: 0 0.3rem;
+      min-width: 1rem;
+      height: 1rem;
+      color: $white;
+      font-size: $small-font-size;
+      text-align: center;
+      line-height: 1rem;
+      transition: 0.3s;
+    }
+  }
+
+  &__user {
+    &--active * {
+      fill: $turquoise;
+      fill-rule: inherit;
+    }
+  }
+
+  &__dropdown {
+    text-transform: uppercase;
+    font-weight: $bold-font-weight;
+
+    li {
+      cursor: pointer;
+      margin: 0 auto;
+
+      &:hover {
+        color: $gray;
+      }
+
+      &:not(:last-of-type) {
+        border-bottom: 1px solid $gray-light;
+      }
+    }
+  }
+
+  &__offline {
+    line-height: 24px;
+    padding: $spacer;
+
+    span {
+      text-transform: uppercase;
+      font-weight: $bold-font-weight;
+      vertical-align: bottom;
+    }
+  }
+
+  &__search {
+    padding: $spacer;
+    cursor: pointer;
+    line-height: 24px;
+    transition: 0.3s;
+
+    @media (min-width: $medium-screen) {
+      border-left: 1px solid $gray-light;
+    }
+
+    svg * {
+      transition: 0.3s;
+    }
+
+    &:hover {
+      color: $turquoise;
+      svg * {
+        fill: $turquoise;
+      }
+    }
+
+    span {
+      text-transform: uppercase;
+      font-weight: $bold-font-weight;
+      margin-right: $spacer;
+    }
+
+    div {
+      display: inline-block;
+    }
+
+    svg {
+      vertical-align: bottom;
+    }
+  }
+
+  &__nav-dropdown {
+    padding: 0 1.5rem;
+
+    &--active {
+      background-color: $turquoise-light;
+    }
+
+    & > li:first-child {
+      text-align: center;
+    }
+
+    &__body {
+      background: $white;
+      border-top-color: $gray-light;
+      border-top-style: solid;
+      border-top-width: 1px;
+      display: none;
+      left: 0;
+      padding: 2rem;
+      position: absolute;
+      top: 100%;
+      width: 100%;
+      z-index: 3;
+
+      &--visible {
+        display: block;
+      }
+
+      li *,
+      ul * {
+        display: block !important;
+      }
+
+      > ul > li {
+        align-self: flex-start;
+        margin-left: 2rem;
+        position: relative;
+        width: 188px;
+
+        // 2nd level name
+        > a {
+          font-size: $base-font-size;
+          position: relative;
+          text-transform: uppercase;
+          padding-bottom: 9px;
+          margin-bottom: 3px;
+        }
+        > ul > li:first-child {
+          position: relative;
+
+          &:before {
+            background-color: $turquoise-light;
+            content: "";
+            height: 1px;
+            left: 0;
+            position: absolute;
+            top: -3px;
+            width: 100%;
+          }
+        }
+
+        ul {
+          // 3rd+ level names
+          a {
+            font-size: $small-font-size;
+            font-weight: normal;
+            padding: 6px 0;
+            text-transform: capitalize;
+          }
+
+          li > ul {
+            margin-left: 10px;
+          }
+        }
+      }
+    }
+  }
+}

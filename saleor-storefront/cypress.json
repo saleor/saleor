@@ -1,0 +1,10 @@
+{
+  "baseUrl": "http://localhost:3000",
+  "env": {
+    "BACKEND_URL": "http://localhost:8000",
+    "GRAPHQL_ID": "graphql"
+  },
+  "viewportWidth": 1400,
+  "viewportHeight": 660,
+  "projectId": "ftxg4w"
+}

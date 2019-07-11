@@ -1,0 +1,33 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.search-page {
+  &__header {
+    background-color: $blue-dark;
+    padding: $spacer * 4 0;
+
+    &__input {
+      .input {
+        &__label {
+          text-transform: uppercase;
+          font-size: $h3-font-size;
+          font-weight: $extra-bold-font-weight;
+        }
+
+        &__field {
+          border: none;
+          box-shadow: none;
+          border-bottom: 1px solid $white;
+          font-size: $h1-font-size;
+          padding: $spacer / 2 0;
+          color: $white;
+          text-transform: uppercase;
+          font-weight: $extra-bold-font-weight;
+
+          &:focus {
+            box-shadow: none;
+          }
+        }
+      }
+    }
+  }
+}

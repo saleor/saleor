@@ -1,0 +1,50 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+.cart-summary {
+  background-color: $gray-light;
+  padding: $spacer;
+
+  p,
+  h4 {
+    text-transform: uppercase;
+    font-weight: $bold-font-weight;
+  }
+
+  &__header {
+    padding-bottom: $spacer;
+  }
+
+  &__product-item {
+    border-top: 1px solid $gray;
+    padding: $spacer 0;
+    display: flex;
+    align-items: flex-start;
+
+    img {
+      width: 4.6rem;
+      height: 4.6rem;
+      margin-right: $spacer;
+    }
+
+    div {
+      width: 100%;
+    }
+
+    &__details {
+      color: $gray;
+      display: flex;
+      justify-content: space-between;
+
+      span {
+        font-size: $small-font-size;
+      }
+    }
+  }
+
+  &__totals {
+    display: flex;
+    justify-content: space-between;
+    padding: $spacer 0;
+    border-top: 1px solid $gray;
+  }
+}

@@ -1,0 +1,87 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.product-description {
+  h3 {
+    text-transform: uppercase;
+    font-weight: $bold-font-weight;
+    margin-bottom: $spacer;
+  }
+
+  h4 {
+    font-weight: $bold-font-weight;
+    margin-bottom: $spacer;
+  }
+
+  &__about {
+    margin: $spacer * 2 0;
+
+    h4 {
+      font-weight: $bold-font-weight;
+      color: $gray;
+      border-bottom: 1px solid $gray;
+      padding-bottom: $spacer / 2;
+      margin-bottom: $spacer / 2;
+    }
+
+    p {
+      font-size: $small-font-size;
+    }
+
+    img {
+      max-width: 100%;
+    }
+  }
+
+  &__action {
+    margin-left: $spacer * 1.5;
+    min-width: 280px;
+    min-height: 49px;
+
+    &--fade {
+      $animation-speed: 200ms;
+      background-color: $turquoise-dark;
+
+      &-enter {
+        opacity: 0;
+
+        @at-root #{&}#{&}-active {
+          opacity: 1;
+          transition: opacity $animation-speed ease-in;
+        }
+      }
+
+      &-leave {
+        opacity: 1;
+
+        @at-root #{&}#{&}-active {
+          opacity: 0;
+          display: none;
+          transition: opacity $animation-speed ease-out;
+        }
+      }
+    }
+  }
+
+  &__variant-picker {
+    display: grid;
+
+    .react-select-wrapper,
+    .input {
+      width: 50%;
+      margin-bottom: 1rem;
+    }
+
+    &__quantity {
+      display: flex;
+
+      .input {
+        margin-left: $spacer * 2;
+        max-width: 6rem;
+
+        .input__field {
+          max-width: 100%;
+        }
+      }
+    }
+  }
+}

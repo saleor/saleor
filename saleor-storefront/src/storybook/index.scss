@@ -1,0 +1,97 @@
+@import "../globalStyles/scss/variables.scss";
+
+.storybook {
+  padding: 1rem;
+
+  .typography-section {
+    p,
+    h3 {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .colors-section {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+
+    span {
+      width: 10rem;
+      padding: 1rem;
+
+      &:before {
+        content: "";
+        display: block;
+        height: 4rem;
+        margin-bottom: 0.5rem;
+      }
+    }
+
+    &__turquoise-dark {
+      &:before {
+        background-color: $turquoise-dark;
+      }
+    }
+
+    &__turquoise {
+      &:before {
+        background-color: $turquoise;
+      }
+    }
+
+    &__blue {
+      &:before {
+        background-color: $blue;
+      }
+    }
+
+    &__rose {
+      &:before {
+        background-color: $rose;
+      }
+    }
+
+    &__green {
+      &:before {
+        background-color: $green;
+      }
+    }
+
+    &__gray {
+      &:before {
+        background-color: $gray;
+      }
+    }
+  }
+
+  .button-section {
+    padding: $spacer $spacer * 2;
+
+    button {
+      display: block;
+      margin-bottom: $spacer * 3;
+    }
+  }
+
+  .input-section {
+    .input {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .message-section {
+    .message {
+      position: relative;
+      margin-bottom: 1rem;
+      bottom: 0;
+      right: 0;
+    }
+  }
+
+  .product-item-section {
+    .product-list-item {
+      max-width: 16.5rem;
+    }
+  }
+}

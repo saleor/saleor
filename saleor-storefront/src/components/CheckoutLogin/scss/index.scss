@@ -1,0 +1,59 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.checkout-login {
+  margin: $spacer * 10 0;
+  display: flex;
+
+  @media (max-width: $medium-screen) {
+    display: block;
+    margin: $spacer * 2 0;
+  }
+
+  h3 {
+    margin-bottom: $spacer;
+  }
+
+  &__guest {
+    width: 50%;
+    padding: 0 $spacer * 4;
+
+    @media (max-width: $medium-screen) {
+      width: 60%;
+      margin: 0 auto $spacer * 4;
+      padding: 0 $spacer;
+    }
+
+    @media (max-width: $small-screen) {
+      width: 100%;
+      padding: 0 0 $spacer * 4;
+    }
+
+    p {
+      color: $gray-dark;
+    }
+
+    button {
+      margin: $spacer * 2 0 $spacer * 2 $spacer * 2;
+    }
+  }
+
+  &__user {
+    width: 50%;
+    padding: 0 $spacer * 4;
+
+    @media (max-width: $medium-screen) {
+      width: 60%;
+      margin: 0 auto;
+      padding: 0 $spacer;
+    }
+
+    @media (max-width: $small-screen) {
+      width: 100%;
+      padding: 0;
+    }
+
+    .input {
+      margin-bottom: $spacer;
+    }
+  }
+}

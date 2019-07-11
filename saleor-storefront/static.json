@@ -1,0 +1,4 @@
+{
+    "root": "dist/",
+    "https_only": true
+}

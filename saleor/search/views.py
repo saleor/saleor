@@ -23,8 +23,9 @@ def evaluate_search_query(form, request):
     return products_with_availability(
         results,
         discounts=request.discounts,
-        taxes=request.taxes,
+        country=request.country,
         local_currency=request.currency,
+        taxes=request.taxes,
     )
 
 

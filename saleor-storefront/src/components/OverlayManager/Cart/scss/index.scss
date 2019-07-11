@@ -1,0 +1,120 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+.cart {
+  width: 25rem;
+  max-width: 100vw;
+
+  .overlay__header {
+    justify-content: initial;
+
+    &__close-icon {
+      margin-left: auto;
+    }
+  }
+
+  &__list {
+    padding: 0 $spacer;
+    height: calc(100vh - 17.5rem);
+    overflow: auto;
+
+    &__item {
+      padding: $spacer 0;
+      border-bottom: 1px solid $gray-light;
+      display: flex;
+      align-content: stretch;
+
+      img {
+        max-width: 6.25rem;
+        height: 6.25rem;
+      }
+
+      &__details {
+        width: 100%;
+        padding: 0 $spacer;
+
+        p {
+          font-weight: $bold-font-weight;
+          text-transform: uppercase;
+          line-height: 1.5;
+        }
+
+        &__variant {
+          display: flex;
+          justify-content: space-between;
+          margin-top: $spacer / 2;
+
+          span {
+            color: $gray;
+            font-size: $small-font-size;
+          }
+        }
+
+        &__delete-icon {
+          background-color: $gray-light;
+          border-radius: $spacer;
+          width: 1.5rem;
+          height: 1.5rem;
+          text-align: center;
+          line-height: 1.5rem;
+          margin-top: $spacer / 2;
+          cursor: pointer;
+
+          svg * {
+            transition: 0.3s;
+          }
+
+          &:hover {
+            svg * {
+              fill: $turquoise;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &__footer {
+    background-color: $gray-light;
+    padding: $spacer;
+    position: absolute;
+    bottom: 0;
+    width: 25rem;
+
+    &__subtotoal {
+      display: flex;
+      padding-bottom: $spacer;
+      text-transform: uppercase;
+      font-weight: $bold-font-weight;
+      justify-content: space-between;
+      border-bottom: 1px solid $gray;
+    }
+
+    &__button {
+      margin: 1.3rem auto 1.3rem;
+      text-align: center;
+
+      button {
+        width: 85%;
+      }
+    }
+  }
+
+  &__empty {
+    padding: $spacer * 2 $spacer;
+
+    h4 {
+      font-weight: $bold-font-weight;
+      text-transform: uppercase;
+      margin-bottom: $spacer;
+    }
+
+    p {
+      color: $gray;
+    }
+
+    &__action {
+      text-align: center;
+      margin-top: $spacer;
+    }
+  }
+}

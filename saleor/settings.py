@@ -76,6 +76,7 @@ LANGUAGES = [
     ("hu", _("Hungarian")),
     ("hy", _("Armenian")),
     ("id", _("Indonesian")),
+    ("is", _("Icelandic")),
     ("it", _("Italian")),
     ("ja", _("Japanese")),
     ("ko", _("Korean")),
@@ -196,9 +197,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     "saleor.core.middleware.django_session_middleware",
     "saleor.core.middleware.django_security_middleware",
-    "saleor.core.middleware.django_csrf_view_middleware",
     "saleor.core.middleware.django_auth_middleware",
     "saleor.core.middleware.django_messages_middleware",
     "saleor.core.middleware.django_locale_middleware",
@@ -343,6 +344,13 @@ OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
 # If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
 VATLAYER_ACCESS_KEY = os.environ.get("VATLAYER_ACCESS_KEY")
 VATLAYER_USE_HTTPS = get_bool_from_env("VATLAYER_USE_HTTPS", False)
+
+# Avatax supports two ways of log in - username:password or account:license
+AVATAX_USERNAME_OR_ACCOUNT = os.environ.get("AVATAX_USERNAME_OR_ACCOUNT")
+AVATAX_PASSWORD_OR_LICENSE = os.environ.get("AVATAX_PASSWORD_OR_LICENSE")
+AVATAX_USE_SANDBOX = os.environ.get("AVATAX_USE_SANDBOX", DEBUG)
+AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
+AVATAX_AUTOCOMMIT = os.environ.get("AVATAX_AUTOCOMMIT", False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 

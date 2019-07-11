@@ -1,0 +1,44 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.order-confirmation {
+  h3 {
+    color: $gray-dark;
+    font-weight: $extra-bold-font-weight;
+    line-height: normal;
+    margin: ($spacer * 4) 0 ($spacer * 2);
+    text-align: center;
+    text-transform: uppercase;
+
+    @media (min-width: $medium-screen) {
+      font-size: 3rem;
+    }
+  }
+
+  &__info {
+    color: $gray-dark;
+    margin: ($spacer * 2.5) 0 ($spacer * 7.5);
+    text-align: center;
+  }
+
+  &__actions {
+    margin: 0 auto;
+
+    button {
+      display: block;
+      margin: 0 auto ($spacer / 2);
+      width: 88%;
+    }
+
+    @media (min-width: $medium-screen) {
+      text-align: center;
+
+      button {
+        display: inline-block;
+        margin: 0 1rem;
+        padding-left: 0;
+        padding-right: 0;
+        width: 300px;
+      }
+    }
+  }
+}

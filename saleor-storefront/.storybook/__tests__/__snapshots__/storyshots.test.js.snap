@@ -1,0 +1,3458 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Storyshots @components/atoms/Button Primary 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  background-color: #3ee7cd;
+  -webkit-transform: skew(45deg);
+  -ms-transform: skew(45deg);
+  transform: skew(45deg);
+  padding: 0.9rem 3.7rem;
+  border: none;
+  box-shadow: -5px 5px 14px 0px rgba(0,0,0,0.2);
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+  outline: none;
+  font-family: montserrat;
+  cursor: pointer;
+  color: #fff;
+}
+
+.c1:hover {
+  background-color: #42beab;
+  color: #fff;
+}
+
+.c1:active {
+  background-color: #42beab;
+  box-shadow: -3px 3px 14px 0px rgba(129,67,67,0.2);
+}
+
+.c1:disabled {
+  background-color: $gray;
+}
+
+.c1:disabled,
+.c1:disabled:hover {
+  cursor: default;
+}
+
+.c2 {
+  display: inline-block;
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1.25rem;
+  -webkit-transform: skew(-45deg);
+  -ms-transform: skew(-45deg);
+  transform: skew(-45deg);
+}
+
+@media (max-width:540px) {
+  .c1 {
+    padding: 0.9rem 1rem;
+    width: 88%;
+    max-width: 88%;
+  }
+}
+
+<div
+  className="c0"
+>
+  <button
+    className="c1"
+    color="primary"
+  >
+    <span
+      className="c2"
+    >
+      Primary Button
+    </span>
+  </button>
+  <div
+    className="c3"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Button Secondary 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  background-color: #fff;
+  -webkit-transform: skew(45deg);
+  -ms-transform: skew(45deg);
+  transform: skew(45deg);
+  padding: 0.9rem 3.7rem;
+  border: none;
+  box-shadow: -5px 5px 14px 0px rgba(0,0,0,0.2);
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+  outline: none;
+  font-family: montserrat;
+  cursor: pointer;
+  color: #21125e;
+  box-shadow: inset 0px 0px 0px 3px #21125e;
+  border-left: 1px solid #21125e;
+  border-right: 1px solid #21125e;
+}
+
+.c1:hover {
+  background-color: #21125e;
+  color: #fff;
+}
+
+.c1:active {
+  background-color: #190c4e;
+  box-shadow: -3px 3px 14px 0px rgba(129,67,67,0.2);
+}
+
+.c1:disabled {
+  background-color: $gray;
+}
+
+.c1:disabled,
+.c1:disabled:hover {
+  cursor: default;
+}
+
+.c2 {
+  display: inline-block;
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1.25rem;
+  -webkit-transform: skew(-45deg);
+  -ms-transform: skew(-45deg);
+  transform: skew(-45deg);
+}
+
+@media (max-width:540px) {
+  .c1 {
+    padding: 0.9rem 1rem;
+    width: 88%;
+    max-width: 88%;
+  }
+}
+
+<div
+  className="c0"
+>
+  <button
+    className="c1"
+    color="secondary"
+  >
+    <span
+      className="c2"
+    >
+      Secondary Button
+    </span>
+  </button>
+  <div
+    className="c3"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/CreditCardIcon AMEX 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div />
+  </div>
+  <div
+    className="c2"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/CreditCardIcon DISCOVER 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div />
+  </div>
+  <div
+    className="c2"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/CreditCardIcon JCB 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div />
+  </div>
+  <div
+    className="c2"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/CreditCardIcon MAESTRO 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div />
+  </div>
+  <div
+    className="c2"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/CreditCardIcon MASTERCARD 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div />
+  </div>
+  <div
+    className="c2"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/CreditCardIcon VISA 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div />
+  </div>
+  <div
+    className="c2"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/ErrorMessage default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  color: #c22d74;
+  font-size: 0.75rem;
+}
+
+.c2 {
+  margin: 0;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <p
+      className="c2"
+    >
+      Error Message
+    </p>
+  </div>
+  <div
+    className="c3"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/ErrorMessage with multiple errors 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  color: #c22d74;
+  font-size: 0.75rem;
+}
+
+.c2 {
+  margin: 0;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <p
+      className="c2"
+    >
+      Error Message
+    </p>
+    <p
+      className="c2"
+    >
+      Error Message
+    </p>
+  </div>
+  <div
+    className="c3"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Icon sample icon 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c1 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+<div
+  className="c0"
+>
+  <svg
+    height={32}
+    viewBox="0 0 32 32"
+    width={32}
+  >
+    <path
+      d="M4.965 17.333h25.684c0.353 0 0.689-0.14 0.939-0.39s0.393-0.59 0.393-0.943-0.143-0.693-0.393-0.943c-0.25-0.25-0.586-0.39-0.939-0.39h-25.691l6.613-5.653c0.266-0.23 0.433-0.557 0.463-0.91 0.027-0.35-0.087-0.7-0.316-0.97-0.23-0.267-0.556-0.433-0.909-0.463-0.35-0.027-0.699 0.087-0.969 0.317l-9.354 8c-0.27 0.23-0.436 0.557-0.463 0.91-0.027 0.35 0.087 0.7 0.313 0.97 0.076 0.088 0.162 0.165 0.257 0.23l9.247 7.917c0.27 0.23 0.616 0.343 0.969 0.317s0.679-0.193 0.909-0.463c0.23-0.27 0.343-0.617 0.316-0.97s-0.193-0.68-0.463-0.91l-6.606-5.653z"
+      fill="#949494"
+    />
+  </svg>
+  <div
+    className="c1"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/IconButton edit icon button 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  background-color: #fff;
+  border-radius: 50%;
+  border-width: 0;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c1 svg {
+  display: block;
+}
+
+.c1 svg path {
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c1:hover {
+  background-color: #21125e;
+}
+
+.c1:hover svg path {
+  fill: #fff;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <svg
+      height={19}
+      viewBox="0 0 32 32"
+      width={19}
+    >
+      <path
+        d="M15.001 9.478l-3.1 3.104c-1.142 1.144-2.291 2.287-3.426 3.444-0.268 0.274-0.47 0.64-0.548 1-0.411 1.889-0.809 3.777-1.207 5.666l-0.222 1.046c-0.104 0.51 0.033 1.020 0.378 1.366 0.268 0.268 0.64 0.418 1.031 0.418 0.111 0 0.222-0.013 0.333-0.033l1.149-0.242c1.827-0.386 3.661-0.778 5.488-1.157 0.424-0.092 0.783-0.281 1.090-0.588 5.13-5.143 10.259-10.28 15.388-15.411 0.378-0.379 0.587-0.83 0.64-1.386 0.006-0.091 0-0.183-0.020-0.268-0.033-0.131-0.059-0.268-0.091-0.399-0.072-0.333-0.15-0.712-0.307-1.078-0.959-2.196-2.552-3.764-4.731-4.647-0.437-0.176-0.9-0.235-1.305-0.288l-0.111-0.013c-0.587-0.072-1.122 0.124-1.586 0.595-2.937 2.954-5.893 5.915-8.843 8.869zM25.214 1.59c0.013 0 0.020 0 0.033 0l0.111 0.013c0.339 0.039 0.653 0.078 0.901 0.183 1.775 0.719 3.080 2 3.87 3.804 0.091 0.209 0.15 0.477 0.209 0.758 0.020 0.105 0.046 0.209 0.065 0.314-0.026 0.118-0.072 0.196-0.163 0.281-5.136 5.13-10.265 10.274-15.395 15.411-0.085 0.085-0.163 0.124-0.281 0.15-1.834 0.386-3.661 0.771-5.495 1.157l-0.966 0.203 0.183-0.856c0.398-1.882 0.796-3.771 1.201-5.653 0.013-0.059 0.065-0.15 0.124-0.216 1.136-1.15 2.271-2.294 3.413-3.431l3.1-3.104c2.956-2.961 5.913-5.921 8.862-8.888 0.124-0.105 0.183-0.124 0.228-0.124z M2.539 7.126h11.394c0.444 0 0.803-0.359 0.803-0.804s-0.359-0.804-0.803-0.804h-11.394c-1.403 0-2.539 1.144-2.539 2.542v21.398c0 1.405 1.142 2.542 2.539 2.542h21.36c1.403 0 2.539-1.144 2.539-2.542v-10.947c0-0.444-0.359-0.804-0.803-0.804s-0.803 0.359-0.803 0.804v10.947c0 0.516-0.424 0.941-0.94 0.941h-21.353c-0.516 0-0.94-0.425-0.94-0.941v-21.391c0-0.516 0.424-0.941 0.94-0.941z"
+        fill="#323232"
+      />
+    </svg>
+  </div>
+  <div
+    className="c2"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/IconButton trash icon button 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  background-color: #fff;
+  border-radius: 50%;
+  border-width: 0;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c1 svg {
+  display: block;
+}
+
+.c1 svg path {
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c1:hover {
+  background-color: #21125e;
+}
+
+.c1:hover svg path {
+  fill: #fff;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <svg
+      height={22}
+      viewBox="0 0 32 32"
+      width={22}
+    >
+      <path
+        d="M28.496 5.327h-6.236v-1.017c0-1.818-1.479-3.297-3.297-3.297h-5.928c-1.818 0-3.297 1.479-3.297 3.297v1.017h-6.236c-0.462 0-0.832 0.37-0.832 0.832s0.37 0.832 0.832 0.832h1.504v19.546c0 2.452 1.996 4.449 4.449 4.449h13.088c2.452 0 4.449-1.997 4.449-4.449v-19.546h1.504c0.462 0 0.832-0.37 0.832-0.832s-0.37-0.832-0.832-0.832zM11.403 4.311c0-0.9 0.733-1.633 1.633-1.633h5.928c0.9 0 1.633 0.733 1.633 1.633v1.017h-9.194v-1.017zM25.329 26.537c0 1.534-1.251 2.785-2.785 2.785h-13.088c-1.534 0-2.785-1.251-2.785-2.785v-19.546h18.665v19.546h-0.006z M16 26.341c0.462 0 0.832-0.37 0.832-0.832v-14.702c0-0.462-0.37-0.832-0.832-0.832s-0.832 0.37-0.832 0.832v14.696c0 0.462 0.37 0.838 0.832 0.838z M10.571 25.423c0.462 0 0.832-0.37 0.832-0.832v-12.872c0-0.462-0.37-0.832-0.832-0.832s-0.832 0.37-0.832 0.832v12.872c0 0.462 0.376 0.832 0.832 0.832z M21.428 25.423c0.462 0 0.832-0.37 0.832-0.832v-12.872c0-0.462-0.37-0.832-0.832-0.832s-0.832 0.37-0.832 0.832v12.872c0 0.462 0.37 0.832 0.832 0.832z"
+        fill="#323232"
+      />
+    </svg>
+  </div>
+  <div
+    className="c2"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Input default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #323232;
+  color: #323232;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c1:hover {
+  color: #21125e;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #21125e;
+  outline-color: #21125e;
+}
+
+.c2 {
+  position: relative;
+  width: 100%;
+}
+
+.c3 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c4 {
+  position: absolute;
+  left: 1rem;
+  padding: 0 0rem;
+  background-color: transparent;
+  font-size: 1rem;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+    disabled={false}
+  >
+    <div
+      className="c2"
+    >
+      <input
+        className="c3"
+        disabled={false}
+        onBlur={[Function]}
+        onFocus={[Function]}
+        value=""
+      />
+      <label
+        className="c4"
+      >
+        Empty
+      </label>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Input disabled 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #7d7d7d;
+  color: #7d7d7d;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c1:hover {
+  color: #7d7d7d;
+  outline-width: 0px;
+  outline-style: solid;
+  border-color: #7d7d7d;
+  outline-color: #7d7d7d;
+}
+
+.c2 {
+  position: relative;
+  width: 100%;
+}
+
+.c3 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c4 {
+  position: absolute;
+  left: 1rem;
+  padding: 0 0rem;
+  background-color: transparent;
+  font-size: 1rem;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+    disabled={true}
+  >
+    <div
+      className="c2"
+    >
+      <input
+        className="c3"
+        disabled={true}
+        onBlur={[Function]}
+        onFocus={[Function]}
+        value=""
+      />
+      <label
+        className="c4"
+      >
+        Text goes here
+      </label>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Input error 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #c22d74;
+  color: #c22d74;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c1:hover {
+  color: #c22d74;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #c22d74;
+  outline-color: #c22d74;
+}
+
+.c2 {
+  position: relative;
+  width: 100%;
+}
+
+.c3 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c4 {
+  position: absolute;
+  left: 0.5rem;
+  padding: 0 0.5rem;
+  background-color: #fff;
+  font-size: 0.875rem;
+  top: 0;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+    disabled={false}
+  >
+    <div
+      className="c2"
+    >
+      <input
+        className="c3"
+        disabled={false}
+        onBlur={[Function]}
+        onFocus={[Function]}
+        value="Some text"
+      />
+      <label
+        className="c4"
+      >
+        Text goes here
+      </label>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Input with value 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c6 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #323232;
+  color: #323232;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c1:hover {
+  color: #21125e;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #21125e;
+  outline-color: #21125e;
+}
+
+.c5 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c2 {
+  position: relative;
+  width: 100%;
+}
+
+.c3 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c4 {
+  position: absolute;
+  left: 0.5rem;
+  padding: 0 0.5rem;
+  background-color: #fff;
+  font-size: 0.875rem;
+  top: 0;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+    disabled={false}
+  >
+    <div
+      className="c2"
+    >
+      <input
+        className="c3"
+        disabled={false}
+        onBlur={[Function]}
+        onFocus={[Function]}
+        value="Example text"
+      />
+      <label
+        className="c4"
+      >
+        Text goes here
+      </label>
+    </div>
+    <span
+      className="c5"
+    >
+      <div>
+        Content right
+      </div>
+    </span>
+  </div>
+  <div
+    className="c6"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Loader default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 1rem 0;
+}
+
+.c2 {
+  position: relative;
+  width: 5rem;
+  height: 1rem;
+  margin: 0 auto;
+}
+
+.c2 span {
+  background-color: #21125e;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 1rem;
+  position: absolute;
+}
+
+.c2 span:nth-child(1) {
+  left: 0;
+  -webkit-animation: hKcKTr 2s infinite;
+  animation: hKcKTr 2s infinite;
+  -webkit-animation-timing-function: linear;
+  animation-timing-function: linear;
+}
+
+.c2 span:nth-child(2) {
+  left: 2rem;
+  -webkit-animation: jcXNMq 2s infinite;
+  animation: jcXNMq 2s infinite;
+  -webkit-animation-timing-function: linear;
+  animation-timing-function: linear;
+}
+
+.c2 span:nth-child(3) {
+  right: 0;
+  -webkit-animation: ggvZqn 2s infinite;
+  animation: ggvZqn 2s infinite;
+  -webkit-animation-timing-function: linear;
+  animation-timing-function: linear;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <span />
+      <span />
+      <span />
+    </div>
+  </div>
+  <div
+    className="c3"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Message action card 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c6 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  width: 25rem;
+  padding: 1rem 1.5rem;
+  background-color: #fff;
+  box-shadow: 0px 6px 15px 3px rgba(0,0,0,0.25);
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  border-left: 0.4rem solid;
+  border-color: #c22d74;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c3 {
+  text-transform: uppercase;
+  font-weight: 800;
+  -webkit-letter-spacing: 0.5px;
+  -moz-letter-spacing: 0.5px;
+  -ms-letter-spacing: 0.5px;
+  letter-spacing: 0.5px;
+  margin: 0 1.5rem 0 0;
+}
+
+.c4 {
+  margin: 1rem 0 0;
+}
+
+.c5 {
+  color: #21125e;
+  cursor: pointer;
+  font-size: 1rem;
+  -webkit-text-decoration: underline;
+  text-decoration: underline;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <p
+        className="c3"
+      >
+        Sample Message
+      </p>
+    </div>
+    <div
+      className="c4"
+    >
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut rutrum arcu lectus, ac viverra sapien volutpat eu. Nam et eros nunc. Nunc rutrum erat eu massa facilisis faucibus. Mauris ultrices eleifend sollicitudin. Vestibulum eleifend cursus arcu, et vehicula turpis blandit a. Fusce vitae arcu bibendum, dapibus felis eu, dignissim orci.
+    </div>
+    <button
+      className="c5"
+      onClick={[Function]}
+      style={
+        Object {
+          "marginTop": "1rem",
+        }
+      }
+    >
+      Refresh
+    </button>
+  </div>
+  <div
+    className="c6"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Message action snackbar 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  width: 25rem;
+  padding: 1rem 1.5rem;
+  background-color: #fff;
+  box-shadow: 0px 6px 15px 3px rgba(0,0,0,0.25);
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  border-left: 0.4rem solid;
+  border-color: #c22d74;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c3 {
+  text-transform: uppercase;
+  font-weight: 800;
+  -webkit-letter-spacing: 0.5px;
+  -moz-letter-spacing: 0.5px;
+  -ms-letter-spacing: 0.5px;
+  letter-spacing: 0.5px;
+  margin: 0 1.5rem 0 0;
+}
+
+.c4 {
+  color: #21125e;
+  cursor: pointer;
+  font-size: 1rem;
+  -webkit-text-decoration: underline;
+  text-decoration: underline;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <p
+        className="c3"
+      >
+        Sample Message
+      </p>
+      <button
+        className="c4"
+        onClick={[Function]}
+      >
+        Try again
+      </button>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Message error w/ children 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c6 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  width: 25rem;
+  padding: 1rem 1.5rem;
+  background-color: #fff;
+  box-shadow: 0px 6px 15px 3px rgba(0,0,0,0.25);
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  border-left: 0.4rem solid;
+  border-color: #c22d74;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c3 {
+  text-transform: uppercase;
+  font-weight: 800;
+  -webkit-letter-spacing: 0.5px;
+  -moz-letter-spacing: 0.5px;
+  -ms-letter-spacing: 0.5px;
+  letter-spacing: 0.5px;
+  margin: 0 1.5rem 0 0;
+}
+
+.c4 {
+  cursor: pointer;
+}
+
+.c4 path {
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c4:hover path {
+  fill: #3ee7cd;
+}
+
+.c5 {
+  margin: 1rem 0 0;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <p
+        className="c3"
+      >
+        Sample Message
+      </p>
+      <button
+        className="c4"
+        onClick={[Function]}
+      >
+        <svg
+          height={15}
+          viewBox="0 0 32 32"
+          width={15}
+        >
+          <path
+            d="M16 12.8l-12.8-12.8-3.2 3.2 12.8 12.8-12.8 12.8 3.2 3.2 12.8-12.8 12.8 12.8 3.2-3.2-12.8-12.8 12.8-12.8-3.2-3.2-12.8 12.8z"
+            fill="#c4c4c4"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      className="c5"
+    >
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut rutrum arcu lectus, ac viverra sapien volutpat eu. Nam et eros nunc. Nunc rutrum erat eu massa facilisis faucibus. Mauris ultrices eleifend sollicitudin. Vestibulum eleifend cursus arcu, et vehicula turpis blandit a. Fusce vitae arcu bibendum, dapibus felis eu, dignissim orci.
+    </div>
+  </div>
+  <div
+    className="c6"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Message neutral snackbar 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  width: 25rem;
+  padding: 1rem 1.5rem;
+  background-color: #fff;
+  box-shadow: 0px 6px 15px 3px rgba(0,0,0,0.25);
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  border-left: 0.4rem solid;
+  border-color: #42beab;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c3 {
+  text-transform: uppercase;
+  font-weight: 800;
+  -webkit-letter-spacing: 0.5px;
+  -moz-letter-spacing: 0.5px;
+  -ms-letter-spacing: 0.5px;
+  letter-spacing: 0.5px;
+  margin: 0 1.5rem 0 0;
+}
+
+.c4 {
+  cursor: pointer;
+}
+
+.c4 path {
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c4:hover path {
+  fill: #3ee7cd;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <p
+        className="c3"
+      >
+        Sample Message
+      </p>
+      <button
+        className="c4"
+        onClick={[Function]}
+      >
+        <svg
+          height={15}
+          viewBox="0 0 32 32"
+          width={15}
+        >
+          <path
+            d="M16 12.8l-12.8-12.8-3.2 3.2 12.8 12.8-12.8 12.8 3.2 3.2 12.8-12.8 12.8 12.8 3.2-3.2-12.8-12.8 12.8-12.8-3.2-3.2-12.8 12.8z"
+            fill="#c4c4c4"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Message success w/ children 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c6 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  width: 25rem;
+  padding: 1rem 1.5rem;
+  background-color: #fff;
+  box-shadow: 0px 6px 15px 3px rgba(0,0,0,0.25);
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  border-left: 0.4rem solid;
+  border-color: #3ed256;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c3 {
+  text-transform: uppercase;
+  font-weight: 800;
+  -webkit-letter-spacing: 0.5px;
+  -moz-letter-spacing: 0.5px;
+  -ms-letter-spacing: 0.5px;
+  letter-spacing: 0.5px;
+  margin: 0 1.5rem 0 0;
+}
+
+.c4 {
+  cursor: pointer;
+}
+
+.c4 path {
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c4:hover path {
+  fill: #3ee7cd;
+}
+
+.c5 {
+  margin: 1rem 0 0;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <p
+        className="c3"
+      >
+        Sample Message
+      </p>
+      <button
+        className="c4"
+        onClick={[Function]}
+      >
+        <svg
+          height={15}
+          viewBox="0 0 32 32"
+          width={15}
+        >
+          <path
+            d="M16 12.8l-12.8-12.8-3.2 3.2 12.8 12.8-12.8 12.8 3.2 3.2 12.8-12.8 12.8 12.8 3.2-3.2-12.8-12.8 12.8-12.8-3.2-3.2-12.8 12.8z"
+            fill="#c4c4c4"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      className="c5"
+    >
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut rutrum arcu lectus, ac viverra sapien volutpat eu. Nam et eros nunc. Nunc rutrum erat eu massa facilisis faucibus. Mauris ultrices eleifend sollicitudin. Vestibulum eleifend cursus arcu, et vehicula turpis blandit a. Fusce vitae arcu bibendum, dapibus felis eu, dignissim orci.
+    </div>
+  </div>
+  <div
+    className="c6"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/RichTextContent custom 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c1 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+<div
+  className="c0"
+>
+  <div
+    dangerouslySetInnerHTML={
+      Object {
+        "__html": "<p><strong>bold</strong></p>
+<p><em>italic</em></p>
+<p><del>strikethrough</del></p>
+<h1>h1</h1>
+<h2>h2</h2>
+<h3>h3</h3>
+<blockquote>blockquote</blockquote>
+<ul>
+<li>ul</li>
+</ul>
+<ol>
+<li>ol</li>
+</ol>
+<p><a href=\\"#\\" target=\\"_self\\">link</a></p>
+",
+      }
+    }
+  />
+  <div
+    className="c1"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/RichTextContent default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c1 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+<div
+  className="c0"
+>
+  <div
+    dangerouslySetInnerHTML={
+      Object {
+        "__html": "<p>They say polo is the sport of kings.Or was that stamp collecting ? Either way, this shirt is fit for a king of Saturday night.</p>
+",
+      }
+    }
+  />
+  <div
+    className="c1"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/SocialMediaIcon sample medium 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  padding: 1rem NaNrem;
+}
+
+.c2 path {
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c2:hover path {
+  fill: #3ee7cd;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <a
+      aria-label="facebook"
+      className="c2"
+      href="https://www.facebook.com/mirumeelabs/"
+      target="_blank"
+    >
+      <svg
+        height={36}
+        viewBox="0 0 32 32"
+        width={36}
+      >
+        <path
+          d="M16 0c-8.822 0-16 7.178-16 16s7.178 16 16 16c8.822 0 16-7.178 16-16s-7.177-16-16-16zM19.979 16.563h-2.603c0 4.159 0 9.278 0 9.278h-3.857c0 0 0-5.070 0-9.278h-1.834v-3.279h1.834v-2.121c0-1.519 0.722-3.893 3.893-3.893l2.858 0.011v3.183c0 0-1.737 0-2.075 0s-0.818 0.169-0.818 0.893v1.927h2.939l-0.337 3.279z"
+          fill="#21125e"
+        />
+      </svg>
+    </a>
+  </div>
+  <div
+    className="c3"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Tile default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  background-color: #f1f5f5;
+  border: 1px transparent solid;
+  padding: 0;
+}
+
+.c2 {
+  border-bottom: 2px solid #7d7d7d;
+}
+
+.c3 {
+  padding: 1rem 1.25rem;
+}
+
+.c4 {
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <div
+        className="c3"
+      >
+        <h3>
+          This is header
+        </h3>
+      </div>
+    </div>
+    <div
+      className="c3"
+    >
+      <div>
+        This is body
+      </div>
+    </div>
+    <div
+      className="c4"
+    />
+  </div>
+  <div
+    className="c5"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/atoms/Tile with hover 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  background-color: #f1f5f5;
+  border: 1px transparent solid;
+  padding: 0;
+}
+
+.c1:hover {
+  cursor: pointer;
+  border-color: #190c4e;
+}
+
+.c2 {
+  border-bottom: 2px solid #7d7d7d;
+}
+
+.c3 {
+  padding: 1rem 1.25rem;
+}
+
+.c4 {
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <div
+        className="c3"
+      >
+        <h3>
+          This is header
+        </h3>
+      </div>
+    </div>
+    <div
+      className="c3"
+    >
+      <div>
+        This is body
+      </div>
+    </div>
+    <div
+      className="c4"
+    >
+      <p>
+        And this is footer
+      </p>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/CreditCardForm default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c9 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c4 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #323232;
+  color: #323232;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c4:hover {
+  color: #21125e;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #21125e;
+  outline-color: #21125e;
+}
+
+.c5 {
+  position: relative;
+  width: 100%;
+}
+
+.c6 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c7 {
+  position: absolute;
+  left: 1rem;
+  padding: 0 0rem;
+  background-color: transparent;
+  font-size: 1rem;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+.c3 {
+  margin-bottom: 1rem;
+}
+
+.c1 {
+  width: 100%;
+}
+
+.c2 {
+  width: 100%;
+}
+
+.c8 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c8 > div {
+  padding-right: 1rem;
+}
+
+.c8 > div:last-child {
+  padding-right: 0;
+}
+
+@media (max-width:540px) {
+  .c8 {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+}
+
+@media (max-width:540px) {
+  .c8 > div {
+    padding-right: 0;
+  }
+}
+
+<div
+  className="c0"
+>
+  <form
+    className="c1"
+    onSubmit={[Function]}
+  >
+    <div
+      className="c2"
+    >
+      <div
+        className="c3"
+      >
+        <div
+          className="c4"
+          disabled={false}
+        >
+          <div
+            className="c5"
+          >
+            <input
+              autoComplete="cc-number"
+              autoFocus={true}
+              className="c6"
+              disabled={false}
+              name="ccNumber"
+              onBlur={[Function]}
+              onChange={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onMouseUp={[Function]}
+              type="text"
+              value=""
+            />
+            <label
+              className="c7"
+            >
+              Number
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="c8"
+    >
+      <div
+        className="c2"
+      >
+        <div
+          className="c3"
+        >
+          <div
+            className="c4"
+            disabled={false}
+          >
+            <div
+              className="c5"
+            >
+              <input
+                autoComplete="cc-csc"
+                className="c6"
+                disabled={false}
+                name="ccCsc"
+                onBlur={[Function]}
+                onChange={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onMouseUp={[Function]}
+                type="text"
+                value=""
+              />
+              <label
+                className="c7"
+              >
+                CVC
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="c2"
+      >
+        <div
+          className="c3"
+        >
+          <div
+            className="c4"
+            disabled={false}
+          >
+            <div
+              className="c5"
+            >
+              <input
+                autoComplete="cc-exp"
+                className="c6"
+                disabled={false}
+                name="ccExp"
+                onBlur={[Function]}
+                onChange={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onMouseUp={[Function]}
+                type="text"
+                value=""
+              />
+              <label
+                className="c7"
+              >
+                Expiry Date
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div
+    className="c9"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/CreditCardForm disabled 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c9 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c4 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #7d7d7d;
+  color: #7d7d7d;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c4:hover {
+  color: #7d7d7d;
+  outline-width: 0px;
+  outline-style: solid;
+  border-color: #7d7d7d;
+  outline-color: #7d7d7d;
+}
+
+.c5 {
+  position: relative;
+  width: 100%;
+}
+
+.c6 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c7 {
+  position: absolute;
+  left: 1rem;
+  padding: 0 0rem;
+  background-color: transparent;
+  font-size: 1rem;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+.c3 {
+  margin-bottom: 1rem;
+}
+
+.c1 {
+  width: 100%;
+}
+
+.c2 {
+  width: 100%;
+}
+
+.c8 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c8 > div {
+  padding-right: 1rem;
+}
+
+.c8 > div:last-child {
+  padding-right: 0;
+}
+
+@media (max-width:540px) {
+  .c8 {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+}
+
+@media (max-width:540px) {
+  .c8 > div {
+    padding-right: 0;
+  }
+}
+
+<div
+  className="c0"
+>
+  <form
+    className="c1"
+    onSubmit={[Function]}
+  >
+    <div
+      className="c2"
+    >
+      <div
+        className="c3"
+      >
+        <div
+          className="c4"
+          disabled={true}
+        >
+          <div
+            className="c5"
+          >
+            <input
+              autoComplete="cc-number"
+              autoFocus={true}
+              className="c6"
+              disabled={true}
+              name="ccNumber"
+              onBlur={[Function]}
+              onChange={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onMouseUp={[Function]}
+              type="text"
+              value=""
+            />
+            <label
+              className="c7"
+            >
+              Number
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="c8"
+    >
+      <div
+        className="c2"
+      >
+        <div
+          className="c3"
+        >
+          <div
+            className="c4"
+            disabled={true}
+          >
+            <div
+              className="c5"
+            >
+              <input
+                autoComplete="cc-csc"
+                className="c6"
+                disabled={true}
+                name="ccCsc"
+                onBlur={[Function]}
+                onChange={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onMouseUp={[Function]}
+                type="text"
+                value=""
+              />
+              <label
+                className="c7"
+              >
+                CVC
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="c2"
+      >
+        <div
+          className="c3"
+        >
+          <div
+            className="c4"
+            disabled={true}
+          >
+            <div
+              className="c5"
+            >
+              <input
+                autoComplete="cc-exp"
+                className="c6"
+                disabled={true}
+                name="ccExp"
+                onBlur={[Function]}
+                onChange={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onMouseUp={[Function]}
+                type="text"
+                value=""
+              />
+              <label
+                className="c7"
+              >
+                Expiry Date
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div
+    className="c9"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/CreditCardForm error 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c12 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c8 {
+  color: #c22d74;
+  font-size: 0.75rem;
+}
+
+.c9 {
+  margin: 0;
+}
+
+.c11 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #323232;
+  color: #323232;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c11:hover {
+  color: #21125e;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #21125e;
+  outline-color: #21125e;
+}
+
+.c4 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #c22d74;
+  color: #c22d74;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c4:hover {
+  color: #c22d74;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #c22d74;
+  outline-color: #c22d74;
+}
+
+.c5 {
+  position: relative;
+  width: 100%;
+}
+
+.c6 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c7 {
+  position: absolute;
+  left: 1rem;
+  padding: 0 0rem;
+  background-color: transparent;
+  font-size: 1rem;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+.c3 {
+  margin-bottom: 1rem;
+}
+
+.c1 {
+  width: 100%;
+}
+
+.c2 {
+  width: 100%;
+}
+
+.c10 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c10 > div {
+  padding-right: 1rem;
+}
+
+.c10 > div:last-child {
+  padding-right: 0;
+}
+
+@media (max-width:540px) {
+  .c10 {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+}
+
+@media (max-width:540px) {
+  .c10 > div {
+    padding-right: 0;
+  }
+}
+
+<div
+  className="c0"
+>
+  <form
+    className="c1"
+    onSubmit={[Function]}
+  >
+    <div
+      className="c2"
+    >
+      <div
+        className="c3"
+      >
+        <div
+          className="c4"
+          disabled={false}
+        >
+          <div
+            className="c5"
+          >
+            <input
+              autoComplete="cc-number"
+              autoFocus={true}
+              className="c6"
+              disabled={false}
+              name="ccNumber"
+              onBlur={[Function]}
+              onChange={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onMouseUp={[Function]}
+              type="text"
+              value=""
+            />
+            <label
+              className="c7"
+            >
+              Number
+            </label>
+          </div>
+        </div>
+        <div
+          className="c8"
+        >
+          <p
+            className="c9"
+          >
+            Wrong number
+          </p>
+        </div>
+      </div>
+    </div>
+    <div
+      className="c10"
+    >
+      <div
+        className="c2"
+      >
+        <div
+          className="c3"
+        >
+          <div
+            className="c11"
+            disabled={false}
+          >
+            <div
+              className="c5"
+            >
+              <input
+                autoComplete="cc-csc"
+                className="c6"
+                disabled={false}
+                name="ccCsc"
+                onBlur={[Function]}
+                onChange={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onMouseUp={[Function]}
+                type="text"
+                value=""
+              />
+              <label
+                className="c7"
+              >
+                CVC
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="c2"
+      >
+        <div
+          className="c3"
+        >
+          <div
+            className="c11"
+            disabled={false}
+          >
+            <div
+              className="c5"
+            >
+              <input
+                autoComplete="cc-exp"
+                className="c6"
+                disabled={false}
+                name="ccExp"
+                onBlur={[Function]}
+                onChange={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onMouseUp={[Function]}
+                type="text"
+                value=""
+              />
+              <label
+                className="c7"
+              >
+                Expiry Date
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div
+    className="c12"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/CreditCardNumberWithIcon default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c1 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.c2 {
+  padding: 0 1rem;
+}
+
+<div
+  className="c0"
+>
+  <div>
+    <div
+      className="c1"
+    >
+      <div />
+    </div>
+    <span
+      className="c2"
+    >
+      XXXX XXXX XXXX 
+      1234
+    </span>
+  </div>
+  <div
+    className="c3"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/CreditCardTile default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c11 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c4 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.c10 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  background-color: #fff;
+  border-radius: 50%;
+  border-width: 0;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c10 svg {
+  display: block;
+}
+
+.c10 svg path {
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
+}
+
+.c10:hover {
+  background-color: #21125e;
+}
+
+.c10:hover svg path {
+  fill: #fff;
+}
+
+.c1 {
+  background-color: #f1f5f5;
+  border: 1px transparent solid;
+  padding: 0;
+}
+
+.c2 {
+  border-bottom: 2px solid #7d7d7d;
+}
+
+.c3 {
+  padding: 1rem 1.25rem;
+}
+
+.c8 {
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+}
+
+.c5 {
+  padding: 0 1rem;
+}
+
+.c6 {
+  font-weight: 600;
+}
+
+.c7 {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.c9 > div {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  margin-right: 0.6rem;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+    >
+      <div
+        className="c3"
+      >
+        <div>
+          <div
+            className="c4"
+          >
+            <div />
+          </div>
+          <span
+            className="c5"
+          >
+            XXXX XXXX XXXX 
+            9876
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      className="c3"
+    >
+      <div
+        className="c6"
+      >
+        Expires on
+      </div>
+      <div
+        className="c7"
+      >
+        05/2019
+      </div>
+      <div
+        className="c6"
+      >
+        Name on card
+      </div>
+      <div
+        className="c7"
+      >
+        John Doe
+      </div>
+    </div>
+    <div
+      className="c8"
+    >
+      <div
+        className="c9"
+      >
+        <div>
+          <div
+            className="c10"
+            onClick={[Function]}
+          >
+            <svg
+              height={19}
+              viewBox="0 0 32 32"
+              width={19}
+            >
+              <path
+                d="M15.001 9.478l-3.1 3.104c-1.142 1.144-2.291 2.287-3.426 3.444-0.268 0.274-0.47 0.64-0.548 1-0.411 1.889-0.809 3.777-1.207 5.666l-0.222 1.046c-0.104 0.51 0.033 1.020 0.378 1.366 0.268 0.268 0.64 0.418 1.031 0.418 0.111 0 0.222-0.013 0.333-0.033l1.149-0.242c1.827-0.386 3.661-0.778 5.488-1.157 0.424-0.092 0.783-0.281 1.090-0.588 5.13-5.143 10.259-10.28 15.388-15.411 0.378-0.379 0.587-0.83 0.64-1.386 0.006-0.091 0-0.183-0.020-0.268-0.033-0.131-0.059-0.268-0.091-0.399-0.072-0.333-0.15-0.712-0.307-1.078-0.959-2.196-2.552-3.764-4.731-4.647-0.437-0.176-0.9-0.235-1.305-0.288l-0.111-0.013c-0.587-0.072-1.122 0.124-1.586 0.595-2.937 2.954-5.893 5.915-8.843 8.869zM25.214 1.59c0.013 0 0.020 0 0.033 0l0.111 0.013c0.339 0.039 0.653 0.078 0.901 0.183 1.775 0.719 3.080 2 3.87 3.804 0.091 0.209 0.15 0.477 0.209 0.758 0.020 0.105 0.046 0.209 0.065 0.314-0.026 0.118-0.072 0.196-0.163 0.281-5.136 5.13-10.265 10.274-15.395 15.411-0.085 0.085-0.163 0.124-0.281 0.15-1.834 0.386-3.661 0.771-5.495 1.157l-0.966 0.203 0.183-0.856c0.398-1.882 0.796-3.771 1.201-5.653 0.013-0.059 0.065-0.15 0.124-0.216 1.136-1.15 2.271-2.294 3.413-3.431l3.1-3.104c2.956-2.961 5.913-5.921 8.862-8.888 0.124-0.105 0.183-0.124 0.228-0.124z M2.539 7.126h11.394c0.444 0 0.803-0.359 0.803-0.804s-0.359-0.804-0.803-0.804h-11.394c-1.403 0-2.539 1.144-2.539 2.542v21.398c0 1.405 1.142 2.542 2.539 2.542h21.36c1.403 0 2.539-1.144 2.539-2.542v-10.947c0-0.444-0.359-0.804-0.803-0.804s-0.803 0.359-0.803 0.804v10.947c0 0.516-0.424 0.941-0.94 0.941h-21.353c-0.516 0-0.94-0.425-0.94-0.941v-21.391c0-0.516 0.424-0.941 0.94-0.941z"
+                fill="#323232"
+              />
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div
+            className="c10"
+            onClick={[Function]}
+          >
+            <svg
+              height={22}
+              viewBox="0 0 32 32"
+              width={22}
+            >
+              <path
+                d="M28.496 5.327h-6.236v-1.017c0-1.818-1.479-3.297-3.297-3.297h-5.928c-1.818 0-3.297 1.479-3.297 3.297v1.017h-6.236c-0.462 0-0.832 0.37-0.832 0.832s0.37 0.832 0.832 0.832h1.504v19.546c0 2.452 1.996 4.449 4.449 4.449h13.088c2.452 0 4.449-1.997 4.449-4.449v-19.546h1.504c0.462 0 0.832-0.37 0.832-0.832s-0.37-0.832-0.832-0.832zM11.403 4.311c0-0.9 0.733-1.633 1.633-1.633h5.928c0.9 0 1.633 0.733 1.633 1.633v1.017h-9.194v-1.017zM25.329 26.537c0 1.534-1.251 2.785-2.785 2.785h-13.088c-1.534 0-2.785-1.251-2.785-2.785v-19.546h18.665v19.546h-0.006z M16 26.341c0.462 0 0.832-0.37 0.832-0.832v-14.702c0-0.462-0.37-0.832-0.832-0.832s-0.832 0.37-0.832 0.832v14.696c0 0.462 0.37 0.838 0.832 0.838z M10.571 25.423c0.462 0 0.832-0.37 0.832-0.832v-12.872c0-0.462-0.37-0.832-0.832-0.832s-0.832 0.37-0.832 0.832v12.872c0 0.462 0.376 0.832 0.832 0.832z M21.428 25.423c0.462 0 0.832-0.37 0.832-0.832v-12.872c0-0.462-0.37-0.832-0.832-0.832s-0.832 0.37-0.832 0.832v12.872c0 0.462 0.37 0.832 0.832 0.832z"
+                fill="#323232"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    className="c11"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/TextField default 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c6 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #323232;
+  color: #323232;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c2:hover {
+  color: #21125e;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #21125e;
+  outline-color: #21125e;
+}
+
+.c3 {
+  position: relative;
+  width: 100%;
+}
+
+.c4 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c5 {
+  position: absolute;
+  left: 0.5rem;
+  padding: 0 0.5rem;
+  background-color: #fff;
+  font-size: 0.875rem;
+  top: 0;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+.c1 {
+  margin-bottom: 1rem;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+      disabled={false}
+    >
+      <div
+        className="c3"
+      >
+        <input
+          className="c4"
+          disabled={false}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          value="Value"
+        />
+        <label
+          className="c5"
+        >
+          Label
+        </label>
+      </div>
+    </div>
+  </div>
+  <div
+    className="c6"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/TextField with content left 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c7 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #323232;
+  color: #323232;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c2:hover {
+  color: #21125e;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #21125e;
+  outline-color: #21125e;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 {
+  position: relative;
+  width: 100%;
+}
+
+.c5 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c6 {
+  position: absolute;
+  left: 0.5rem;
+  padding: 0 0.5rem;
+  background-color: #fff;
+  font-size: 0.875rem;
+  top: 0;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+.c1 {
+  margin-bottom: 1rem;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+      disabled={false}
+    >
+      <span
+        className="c3"
+      >
+        <span>
+          Content Left
+        </span>
+      </span>
+      <div
+        className="c4"
+      >
+        <input
+          className="c5"
+          disabled={false}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          value="Value"
+        />
+        <label
+          className="c6"
+        >
+          Label
+        </label>
+      </div>
+    </div>
+  </div>
+  <div
+    className="c7"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/TextField with content right 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c7 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #323232;
+  color: #323232;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c2:hover {
+  color: #21125e;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #21125e;
+  outline-color: #21125e;
+}
+
+.c6 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c3 {
+  position: relative;
+  width: 100%;
+}
+
+.c4 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c5 {
+  position: absolute;
+  left: 0.5rem;
+  padding: 0 0.5rem;
+  background-color: #fff;
+  font-size: 0.875rem;
+  top: 0;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+.c1 {
+  margin-bottom: 1rem;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+      disabled={false}
+    >
+      <div
+        className="c3"
+      >
+        <input
+          className="c4"
+          disabled={false}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          value="Value"
+        />
+        <label
+          className="c5"
+        >
+          Label
+        </label>
+      </div>
+      <span
+        className="c6"
+      >
+        <span>
+          Content Right
+        </span>
+      </span>
+    </div>
+  </div>
+  <div
+    className="c7"
+  />
+</div>
+`;
+
+exports[`Storyshots @components/molecules/TextField with errors 1`] = `
+.c0 {
+  position: relative;
+  margin: 20px;
+}
+
+.c8 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.c6 {
+  color: #c22d74;
+  font-size: 0.75rem;
+}
+
+.c7 {
+  margin: 0;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  border: 1px solid #c22d74;
+  color: #c22d74;
+  outline: none;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.c2:hover {
+  color: #c22d74;
+  outline-width: 1px;
+  outline-style: solid;
+  border-color: #c22d74;
+  outline-color: #c22d74;
+}
+
+.c3 {
+  position: relative;
+  width: 100%;
+}
+
+.c4 {
+  padding: 0.8rem 1rem;
+  margin: 0;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  outline: none;
+  background-color: transparent;
+}
+
+.c5 {
+  position: absolute;
+  left: 0.5rem;
+  padding: 0 0.5rem;
+  background-color: #fff;
+  font-size: 0.875rem;
+  top: 0;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  -webkit-transition: all 0.3s ease,color 0s;
+  transition: all 0.3s ease,color 0s;
+  pointer-events: none;
+}
+
+.c1 {
+  margin-bottom: 1rem;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1"
+  >
+    <div
+      className="c2"
+      disabled={false}
+    >
+      <div
+        className="c3"
+      >
+        <input
+          className="c4"
+          disabled={false}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          value="Value"
+        />
+        <label
+          className="c5"
+        >
+          Label
+        </label>
+      </div>
+    </div>
+    <div
+      className="c6"
+    >
+      <p
+        className="c7"
+      >
+        Some error
+      </p>
+    </div>
+  </div>
+  <div
+    className="c8"
+  />
+</div>
+`;

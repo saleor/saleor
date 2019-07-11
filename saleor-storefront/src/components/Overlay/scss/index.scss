@@ -1,0 +1,95 @@
+@import "../../../globalStyles/scss/variables";
+@import "../../../globalStyles/scss/animations";
+
+.overlay {
+  background-color: rgba(199, 207, 207, 0.8);
+  height: 100%;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  transition: 300ms;
+  width: 100%;
+  z-index: 2;
+
+  &--search,
+  &--main-menu-nav {
+    top: 3.55rem;
+  }
+
+  &--search {
+    .overlay__right {
+      background-color: transparent;
+      height: auto;
+    }
+  }
+
+  &--no-background {
+    background-color: transparent;
+  }
+
+  &__left {
+    position: fixed;
+    min-height: 100%;
+    background-color: $white;
+    animation: sidenavLeftOpen 0.3s;
+  }
+
+  &__right {
+    position: fixed;
+    background-color: $white;
+    right: 0;
+    top: 0;
+    height: 100%;
+    animation: sidenavRightOpen 0.3s;
+  }
+
+  &__header {
+    align-items: center;
+    border-bottom: 1px solid $gray-light;
+    display: flex;
+    flex: 1;
+    font-weight: $bold-font-weight;
+    height: 3.6rem;
+    justify-content: space-between;
+    text-transform: uppercase;
+
+    &-text {
+      margin: 0 $spacer;
+      text-align: center;
+
+      &-items {
+        color: $gray;
+      }
+    }
+
+    &__close-icon {
+      cursor: pointer;
+      margin: 0 $spacer;
+
+      &:hover,
+      &:focus {
+        svg {
+          * {
+            fill: $turquoise;
+          }
+        }
+      }
+      div {
+        display: flex;
+      }
+    }
+
+    &__cart-icon {
+      margin: 0 $spacer;
+
+      div {
+        display: flex;
+        svg {
+          * {
+            fill: $turquoise;
+          }
+        }
+      }
+    }
+  }
+}

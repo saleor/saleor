@@ -1,0 +1,16 @@
+import { shallow } from "enzyme";
+{{#if componentHasStyles}}
+import "jest-styled-components";
+{{/if}}
+import React from "react";
+
+import { {{> p_componentName}} } from ".";
+
+describe("<{{> p_componentName}} />", () => {
+  // Example test
+  it("exists", () => {
+    const wrapper = shallow(<{{> p_componentName}} />);
+
+    expect(wrapper.exists()).toEqual(true);
+  });
+});

@@ -198,24 +198,13 @@ export enum TaxRateType {
   WINE = "WINE",
 }
 
-export enum VoucherDiscountValueType {
-  FIXED = "FIXED",
-  PERCENTAGE = "PERCENTAGE",
-}
-
-export enum VoucherType {
-  CATEGORY = "CATEGORY",
-  COLLECTION = "COLLECTION",
-  PRODUCT = "PRODUCT",
-  SHIPPING = "SHIPPING",
-  VALUE = "VALUE",
-}
-
 export enum VoucherTypeEnum {
   CATEGORY = "CATEGORY",
   COLLECTION = "COLLECTION",
+  ENTIRE_ORDER = "ENTIRE_ORDER",
   PRODUCT = "PRODUCT",
   SHIPPING = "SHIPPING",
+  SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT",
   VALUE = "VALUE",
 }
 
@@ -577,6 +566,8 @@ export interface VoucherInput {
   categories?: (string | null)[] | null;
   minAmountSpent?: any | null;
   countries?: (string | null)[] | null;
+  applyOncePerOrder?: boolean | null;
+  usageLimit?: number | null;
 }
 
 //==============================================================

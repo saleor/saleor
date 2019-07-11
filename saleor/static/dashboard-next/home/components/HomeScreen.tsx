@@ -1,7 +1,7 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
 import Container from "@saleor/components/Container";

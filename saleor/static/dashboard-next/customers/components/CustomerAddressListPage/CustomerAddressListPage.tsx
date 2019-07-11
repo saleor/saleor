@@ -7,7 +7,7 @@ import {
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
-import * as React from "react";
+import React from "react";
 
 import AppHeader from "@saleor/components/AppHeader";
 import Container from "@saleor/components/Container";

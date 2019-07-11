@@ -1,0 +1,25 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.price-filter {
+  position: relative;
+
+  &__dropdown {
+    display: none;
+    position: absolute;
+    background-color: $white;
+    border: 1px solid $blue;
+    box-shadow: 0 0 0 1px $blue;
+    padding: $spacer;
+    width: 20rem;
+    justify-content: space-between;
+    z-index: 2;
+
+    &--visible {
+      display: flex;
+    }
+
+    .input {
+      width: 8rem;
+    }
+  }
+}

@@ -66,7 +66,12 @@ class BaseDiscountCatalogueMutation(BaseMutation):
 
 class VoucherInput(graphene.InputObjectType):
     type = VoucherTypeEnum(
-        description="Voucher type: product, category shipping or value."
+        description=(
+            "Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER. "
+            "Deprecated fields: "
+            "PRODUCT, COLLECTION, CATEGORY use SPECIFIC_PRODUCT instead. "
+            "VALUE use ENTIRE_ORDER instead."
+        )
     )
     name = graphene.String(description="Voucher name.")
     code = graphene.String(decription="Code to use the voucher.")
@@ -96,12 +101,18 @@ class VoucherInput(graphene.InputObjectType):
     min_amount_spent = Decimal(
         description="Min purchase amount required to apply the voucher."
     )
+    min_checkout_items_quantity = graphene.Int(
+        description="Minimal quantity of checkout items required to apply the voucher."
+    )
     countries = graphene.List(
         graphene.String,
-        description="Country codes that can be used with the shipping voucher",
+        description="Country codes that can be used with the shipping voucher.",
     )
     apply_once_per_order = graphene.Boolean(
-        description="Voucher should be applied to the cheapest item or entire order"
+        description="Voucher should be applied to the cheapest item or entire order."
+    )
+    usage_limit = graphene.Int(
+        description="Limit number of times this voucher can be used in total"
     )
 
 
@@ -123,6 +134,9 @@ class VoucherCreate(ModelMutation):
             data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
             raise PromoCodeAlreadyExists()
+        voucher_type = data.get("type", None)
+        if voucher_type == VoucherTypeEnum.VALUE:
+            data["type"] = VoucherTypeEnum.ENTIRE_ORDER.value
         cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
 

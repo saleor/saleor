@@ -1,0 +1,85 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+.checkout-review {
+  &__back {
+    color: $gray-dark;
+    display: block;
+    padding-bottom: $spacer * 1.5;
+    text-decoration: underline;
+
+    @media (min-width: $medium-screen) {
+      margin-left: $spacer * 3;
+    }
+  }
+
+  &__content {
+    margin: $spacer * 3 0;
+
+    &__summary {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-gap: $spacer * 2;
+      margin-top: $spacer * 5;
+
+      @media (min-width: $small-screen) {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      @media (min-width: $medium-screen) {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+      }
+
+      h4 {
+        border-bottom: 1px solid $gray-light;
+        font-weight: $bold-font-weight;
+        margin-bottom: $spacer;
+        padding-bottom: $spacer;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      p {
+        color: $gray-dark;
+      }
+    }
+
+    &__thumbnail {
+      img {
+        width: 50px;
+        height: auto;
+      }
+    }
+
+    &__submit {
+      text-align: right;
+      margin-top: $spacer * 6;
+    }
+  }
+
+  &__summary-copy {
+    $bcg-height: 2.25rem;
+    display: flex;
+    align-items: center;
+    background-color: $turquoise-light;
+    border-radius: 30px;
+    height: $bcg-height;
+    justify-content: center;
+    width: $bcg-height;
+    align-items: center;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    @media (min-width: $medium-screen) {
+      $bcg-height: 1.5rem;
+      height: $bcg-height;
+      width: $bcg-height;
+
+      svg {
+        transform: scale(0.7);
+      }
+    }
+  }
+}

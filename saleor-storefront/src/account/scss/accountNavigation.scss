@@ -1,0 +1,20 @@
+@import "../../globalStyles/scss/variables.scss";
+
+.account-navigation {
+  display: flex;
+  width: 100%;
+  overflow: scroll;
+  flex-wrap: nowrap;
+  padding: 1rem;
+  justify-content: space-between;
+  -ms-overflow-style: none; // IE 10+
+  scrollbar-width: none; // Firefox
+
+  @media screen and(min-width: $small-screen) and (max-width: $medium-screen) {
+    flex-wrap: wrap;
+  }
+}
+
+.account-navigation::-webkit-scrollbar {
+  display: none; // Safari and Chrome
+}

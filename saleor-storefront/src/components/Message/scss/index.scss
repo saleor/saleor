@@ -1,0 +1,51 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.message {
+  width: $message-width;
+  padding: $message-padding;
+  background-color: $message-background-color;
+  box-shadow: $message-shadow;
+  position: fixed;
+  bottom: $message-right-position;
+  right: $message-botttom-position;
+  border-left: $message-border-left;
+
+  &--hidden {
+    display: none;
+  }
+
+  &__status-success {
+    border-color: $message-success-color;
+  }
+
+  &__status-error {
+    border-color: $message-error-color;
+  }
+
+  &__title {
+    text-transform: $message-title-transform;
+    font-weight: $message-title-weight;
+    margin: $message-title-margin;
+  }
+
+  &__content {
+    margin: $message-content-margin;
+  }
+
+  &__close-icon {
+    position: absolute;
+    top: 1.8rem;
+    right: 1.5rem;
+    transition: 0.3s;
+
+    svg * {
+      transition: 0.3s;
+    }
+
+    &:hover {
+      svg * {
+        fill: $gray;
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+.*
+!.storybook
+!.gitignore
+!.babelrc
+!.plop
+!.jest
+dist
+node_modules
+
+cypress/videos
+cypress/screenshots

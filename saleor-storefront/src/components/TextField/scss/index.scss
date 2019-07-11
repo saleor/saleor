@@ -1,0 +1,133 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+@mixin focusedLabel {
+  font-size: $label-font-size;
+  left: 17px;
+  top: 0;
+}
+
+.input {
+  box-sizing: border-box;
+  margin-bottom: $spacer;
+
+  &__content {
+    position: relative;
+  }
+
+  &__field {
+    display: block;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: $base-font-size;
+    color: $base-font-color;
+    border: 1px solid $blue;
+    outline: none;
+    box-shadow: 0 0 0 1px $white;
+    background-color: transparent;
+
+    &:focus,
+    &:not([value=""]) {
+      box-shadow: 0 0 0 1px $blue;
+      & + .input__label {
+        background-color: $white;
+        @include focusedLabel();
+      }
+    }
+
+    &:-webkit-autofill {
+      box-shadow: 0 0 0 1px $blue;
+      & + .input__label {
+        @include focusedLabel();
+      }
+    }
+
+    &--grey {
+      &:focus,
+      &:not([value=""]) {
+        & + .input__label {
+          background-color: $turquoise-light;
+        }
+      }
+      &:-webkit-autofill {
+        & + .input__label {
+          background-color: $turquoise-light;
+        }
+      }
+    }
+
+    &:not([value=""]) {
+      & + .input__label {
+        color: $base-font-color;
+      }
+    }
+    &:focus {
+      & + .input__label {
+        color: $blue;
+      }
+    }
+    &:hover {
+      box-shadow: 0 0 0 1px $blue;
+      color: $blue;
+      transition: all 0.3s ease;
+      & + .input__label {
+        color: $blue;
+      }
+    }
+
+    &--error {
+      border: 1px solid $rose;
+      & + .input__label {
+        color: $rose;
+      }
+
+      &:focus {
+        box-shadow: 0 0 0 1px $rose;
+      }
+    }
+
+    &--left-icon {
+      padding-left: $spacer * 3;
+    }
+  }
+
+  &__label {
+    display: inline-block;
+    position: absolute;
+    color: $label-color;
+    top: 50%;
+    left: 0.8rem;
+    transform: translate(0, -50%);
+    padding: 0 6px;
+    z-index: 1;
+    pointer-events: none;
+    transition: all 0.4s ease;
+    &--focus {
+      background-color: $white;
+      @include focusedLabel();
+    }
+  }
+
+  &__error {
+    color: $rose;
+    font-size: $label-font-size;
+  }
+
+  &__help-text {
+    color: $label-color;
+    font-size: $label-font-size;
+  }
+
+  &__icon-left {
+    position: absolute;
+    left: $spacer;
+    top: 50%;
+    transform: translate(0, -50%);
+  }
+
+  &__icon-right {
+    position: absolute;
+    right: $spacer;
+    top: 50%;
+    transform: translate(0, -50%);
+  }
+}

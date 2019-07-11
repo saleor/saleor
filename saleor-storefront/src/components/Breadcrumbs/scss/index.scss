@@ -1,0 +1,40 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.breadcrumbs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin: $spacer 0;
+
+  li {
+    &:not(:last-of-type) {
+      &:after {
+        content: url("../../../images/breadcrumbs-arrow.svg");
+        display: inline-block;
+        margin: 0 $spacer / 2;
+      }
+    }
+
+    a {
+      color: $gray-dark;
+      text-decoration: none;
+      vertical-align: middle;
+      transition: 0.3s;
+
+      &:hover,
+      &:focus {
+        color: $blue;
+      }
+    }
+  }
+
+  &__active {
+    a {
+      color: $base-font-color;
+      font-weight: $bold-font-weight;
+
+      &:hover {
+        color: $base-font-color;
+      }
+    }
+  }
+}

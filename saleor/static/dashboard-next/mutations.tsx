@@ -1,6 +1,6 @@
 import { ApolloError } from "apollo-client";
 import { DocumentNode } from "graphql";
-import * as React from "react";
+import React from "react";
 import {
   Mutation,
   MutationFn,

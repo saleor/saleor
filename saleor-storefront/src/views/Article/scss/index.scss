@@ -1,0 +1,100 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.article-page {
+  &__container {
+    column-gap: $spacer * 1.5;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 60px 0;
+
+    @media (max-width: $medium-screen) {
+      display: block;
+    }
+  }
+
+  &__header {
+    text-align: center;
+    padding-top: $spacer * 4.5;
+    padding-bottom: $spacer * 4.5;
+    background-size: cover;
+    background-color: $blue-overlay;
+    background-blend-mode: multiply;
+
+    &__title {
+      background-color: $white;
+      display: inline-block;
+      transform: skew(45deg);
+      padding: 1.5vw 9vw;
+
+      h1 {
+        display: inline-block;
+        transform: skew(-45deg);
+        font-weight: $bold-font-weight;
+        text-transform: uppercase;
+        color: $blue;
+        font-size: 8vw;
+        font-weight: 900;
+
+        @media (min-width: $small-screen) {
+          font-size: 4vw;
+        }
+      }
+    }
+  }
+
+  &__content {
+    grid-column-end: span 2;
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 600;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: $spacer * 1.5;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin-bottom: $spacer;
+    }
+
+    img {
+      max-width: 100%;
+    }
+  }
+
+  &__navigation {
+    @media (max-width: $medium-screen) {
+      margin-bottom: $spacer * 2;
+    }
+
+    &-element {
+      font-family: "Montserrat";
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-transform: uppercase;
+
+      &--active {
+        a {
+          display: inline-block;
+          position: relative;
+
+          &:before {
+            background-color: $turquoise;
+            content: "";
+            height: 7px;
+            left: 0;
+            position: absolute;
+            top: 6px;
+            transform: skew(45deg);
+            width: 100%;
+            z-index: -1;
+          }
+        }
+      }
+    }
+  }
+}

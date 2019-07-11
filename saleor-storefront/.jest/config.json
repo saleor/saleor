@@ -1,0 +1,19 @@
+{
+  "rootDir": "../",
+  "setupFiles": ["<rootDir>/.jest/register-context.js"],
+  "moduleNameMapper": {
+    "^@styles": "<rootDir>/src/@next/globalStyles/index.ts",
+    "@app/([^\\.]*)$": "<rootDir>/src/@next/$1",
+    "@utils/([^\\.]*)$": "<rootDir>/src/@next/utils/$1",
+    "images/([^\\.]*.*)$": "<rootDir>/src/images/$1",
+    "@components/atoms": "<rootDir>/src/@next/components/atoms/index.ts",
+    "@components/molecules": "<rootDir>/src/@next/components/molecules/index.ts",
+    "@components/organisms": "<rootDir>/src/@next/components/organisms/index.ts",
+    "@components/views": "<rootDir>/src/@next/components/views/index.ts"
+  },
+  "setupFilesAfterEnv": ["<rootDir>/.jest/setupTests.js"],
+  "transform": {
+    "^.+\\.(j|t)sx?$": "babel-jest",
+    "^.+\\.svg$": "jest-svg-transformer"
+  }
+}

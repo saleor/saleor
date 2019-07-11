@@ -1,0 +1,98 @@
+// colors
+$base-font-color: #323232;
+$black: #000;
+$blue-dark: #190c4e;
+$blue: #21125e;
+$gray-dark: #7d7d7d;
+$gray-light: #f6f6f6;
+$gray: #c4c4c4;
+$green: #3ed256;
+$rose: #c22d74;
+$turquoise-dark: #55c4b3;
+$turquoise-light: #f1f5f5;
+$turquoise: #51e9d2;
+$white: #fff;
+$blue-overlay: rgba($blue, 0.15);
+$autofillColor: rgb(250, 255, 189);
+$autofillColorSelected: rgb(232, 240, 254);
+
+// typography
+$base-font-family: "montserrat";
+$base-font-size: 1rem; // 16px
+$small-font-size: 0.875rem; // 14px
+$base-line-height: 1.25rem; // 20px
+$h1-font-size: 4rem; // 64px
+$h1-line-height: 1;
+$h3-font-size: 1.5rem; // 24px
+$h4-font-size: 1.125rem; // 18px
+$bold-font-weight: 600;
+$extra-bold-font-weight: 900;
+
+// spacing
+$spacer: 1rem; // 16px
+
+// grid
+$container-width: 1140px;
+
+// button
+$button-font-size: 1.125rem;
+$button-line-height: $base-line-height;
+$button-box-shadow: -5px 5px 14px 0px rgba(0, 0, 0, 0.2);
+$button-box-shadow-clicked: -3px 3px 14px 0px rgba(129, 67, 67, 0.2);
+$button-padding: 0.9rem 3.7rem;
+$button-padding-small-screen: 0.9rem 1rem;
+$button-transition: 0.3s;
+$button-transform: skew(45deg);
+$button-content-transform: skew(-45deg);
+$button-text-transform: uppercase;
+$button-font-weight: $bold-font-weight;
+
+// input
+$label-font-size: 0.75rem; // 12px
+$label-color: $gray-dark;
+$select-menu-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.15);
+
+// message
+$message-width: 25rem;
+$message-padding: 1.5rem;
+$message-background-color: $white;
+$message-shadow: 0px 6px 15px 3px rgba(0, 0, 0, 0.25);
+$message-right-position: $spacer;
+$message-botttom-position: $spacer;
+$message-success-color: $green;
+$message-error-color: $rose;
+$message-neutral-color: $turquoise-dark;
+$message-border-left: 0.3rem solid $message-neutral-color;
+$message-title-transform: uppercase;
+$message-title-weight: $bold-font-weight;
+$message-title-margin: 0 $spacer * 1.5 0 0;
+$message-content-margin: $spacer 0 0;
+
+// product item
+$product-item-title-text-transform: uppercase;
+$product-item-title-font-weight: $bold-font-weight;
+$product-item-title-margin: $spacer / 2 0 0;
+$product-item-title-height: 2.5rem;
+$product-item-category-color: $gray;
+$product-item-price-font-weight: $bold-font-weight;
+$product-item-price-margin: $spacer 0 0;
+
+// breakpoints
+$medium-screen: 992px;
+$small-screen: 540px;
+
+// carousel
+$carousel-control-padding: 0.2rem 0.5rem;
+$carousel-control-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.25);
+
+// container
+$container-width: 1140px;
+
+// modal
+$modal-width: 555px;
+$modal-min-height: 455px;
+
+:export {
+  mediumScreen: $medium-screen;
+  smallScreen: $small-screen;
+}

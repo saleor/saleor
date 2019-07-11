@@ -1,0 +1,76 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+$transition: 0.3s;
+
+.address-picker {
+  display: grid;
+  grid-auto-rows: 1fr;
+  grid-column-gap: $spacer * 1.25;
+  grid-row-gap: $spacer * 1.25;
+  grid-template-columns: 1fr;
+
+  @media (min-width: $medium-screen) {
+    grid-column-gap: $spacer * 2;
+    grid-row-gap: $spacer * 2;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  &__address {
+    background-color: $turquoise-light;
+    border: 1px transparent solid;
+    display: flex;
+    flex-direction: column;
+    padding: $spacer * 1.75;
+    transition: $transition border-color;
+
+    &:hover {
+      cursor: pointer;
+      border-color: $blue-dark;
+    }
+
+    &--add-new {
+      align-items: center;
+      color: $blue-dark;
+      font-size: 1.125rem;
+      font-weight: $bold-font-weight;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      transition: $transition background-color, $transition color;
+
+      &:hover {
+        background-color: $blue-dark;
+        color: $white;
+
+        svg path {
+          fill: $white;
+        }
+      }
+
+      svg {
+        margin-bottom: $spacer / 2;
+
+        path {
+          transition: $transition fill;
+        }
+      }
+    }
+
+    &--selected {
+      border: 1px $blue-dark solid;
+      outline: 1px $blue-dark solid;
+    }
+
+    .address-summary {
+      color: $base-font-color;
+      flex-grow: 1;
+    }
+
+    .c-option {
+      background-color: inherit;
+      font-size: $small-font-size;
+      margin: auto 0 -#{$spacer} -#{$spacer};
+    }
+  }
+}

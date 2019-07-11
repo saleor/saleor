@@ -1,0 +1,39 @@
+{
+  "extends": [
+    "tslint:latest",
+    "tslint-config-prettier",
+    "tslint-plugin-cypress"
+  ],
+  "rules": {
+    "interface-name": false,
+    "member-access": [true, "no-public"],
+    "no-console": [true, "log"],
+    "max-classes-per-file": false,
+    "no-implicit-dependencies": false,
+    "no-shadowed-variable": false,
+    "no-submodule-imports": [false],
+    "no-var-requires": false,
+    "interface-over-type-literal": false,
+    "variable-name": {
+      "options": [
+        "ban-keywords",
+        "check-format",
+        "allow-leading-underscore",
+        "allow-pascal-case"
+      ]
+    },
+    "trailing-comma": [
+      true,
+      {
+        "singleline": "never",
+        "multiline": {
+          "objects": "always",
+          "arrays": "always",
+          "functions": "never",
+          "typeLiterals": "ignore"
+        },
+        "esSpecCompliant": true
+      }
+    ]
+  }
+}

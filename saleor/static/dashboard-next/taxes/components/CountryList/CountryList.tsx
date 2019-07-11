@@ -5,8 +5,8 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";

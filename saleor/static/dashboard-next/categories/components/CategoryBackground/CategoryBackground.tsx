@@ -5,7 +5,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import * as React from "react";
+import React from "react";
 
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";

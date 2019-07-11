@@ -1,0 +1,20 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+.checkout-payment {
+  &__form {
+    display: grid;
+    grid-column-gap: 1.25rem;
+    grid-row-gap: 1.25rem;
+    grid-template-columns: 1fr;
+
+    > .c-option__content {
+      @media (min-width: $medium-screen) {
+        padding: 0 3rem 0 6rem;
+      }
+
+      .c-option {
+        background-color: $white;
+      }
+    }
+  }
+}

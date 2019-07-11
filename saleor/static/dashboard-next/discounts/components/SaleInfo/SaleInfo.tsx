@@ -7,7 +7,7 @@ import {
   withStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import * as React from "react";
+import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
 import i18n from "../../../i18n";

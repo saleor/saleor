@@ -7,7 +7,7 @@ import {
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 import ImageIcon from "../../icons/Image";

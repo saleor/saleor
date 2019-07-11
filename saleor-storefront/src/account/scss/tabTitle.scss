@@ -1,0 +1,34 @@
+@import "../../globalStyles/scss/variables.scss";
+
+.tab-title {
+  display: flex;
+  flex-direction: column;
+  width: 16rem;
+  white-space: nowrap;
+  margin: 1rem;
+
+  &__link {
+    font-weight: bold;
+    line-height: 2rem;
+    font-size: 1.5rem;
+
+    @media screen and (max-width: $small-screen) {
+      font-size: 0.8rem;
+      line-height: 1rem;
+    }
+    text-align: center;
+    outline: none;
+  }
+
+  &__link__underline {
+    margin: 0.25rem 0;
+    height: 0.5rem;
+    width: 16rem;
+    background-color: $turquoise;
+    transform: skew(70deg);
+    @media screen and (max-width: $small-screen) {
+      width: 8rem;
+      height: 0.15rem;
+    }
+  }
+}

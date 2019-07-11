@@ -1,0 +1,127 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.home-page {
+  &__hero {
+    background-color: $blue-overlay;
+    background-blend-mode: multiply;
+    background-size: cover;
+    background-position: center;
+    text-align: center;
+    padding: 12rem 0;
+
+    &-text {
+      overflow: hidden;
+    }
+
+    @media (max-width: $small-screen) {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 56px);
+      justify-content: space-between;
+      padding: $spacer;
+
+      &-text {
+        margin-top: $spacer * 5;
+        width: 100%;
+      }
+
+      &-action {
+        margin-bottom: $spacer * 3;
+        width: 100%;
+      }
+    }
+
+    &__title {
+      background-color: $white;
+      display: inline-block;
+      transform: skew(45deg);
+      padding: $spacer $spacer * 3;
+      margin-bottom: $spacer / 2;
+
+      @media (max-width: $small-screen) {
+        padding: 0.6rem $spacer;
+        width: calc(100% - 4rem);
+      }
+
+      h1 {
+        display: inline-block;
+        transform: skew(-45deg);
+        font-weight: $bold-font-weight;
+        text-transform: uppercase;
+        color: $blue;
+        font-size: $h1-font-size;
+        font-weight: 900;
+
+        @media (max-width: $small-screen) {
+          font-size: $h4-font-size;
+        }
+
+        @media (min-width: $small-screen) and (max-width: $medium-screen) {
+          font-size: 48px;
+        }
+      }
+    }
+  }
+
+  &__categories {
+    margin-bottom: 2rem;
+
+    h3 {
+      text-transform: uppercase;
+      font-weight: $bold-font-weight;
+      margin-bottom: 1rem;
+    }
+
+    &__list {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-gap: 2rem;
+
+      @media (min-width: $small-screen) {
+        grid-template-columns: 1fr 1fr;
+
+        > div {
+          &:nth-child(3) {
+            grid-column: 3 / 1;
+          }
+
+          &:nth-child(n + 4) {
+            display: none;
+          }
+        }
+      }
+
+      a {
+        text-decoration: none;
+        color: $base-font-color;
+
+        h3 {
+          text-transform: uppercase;
+          font-weight: $bold-font-weight;
+
+          &:after {
+            content: url("../../../images/carousel-arrow.svg");
+            display: inline-block;
+            transform: rotate(180deg);
+            margin-left: 1rem;
+          }
+        }
+      }
+
+      &__image {
+        width: 100%;
+        height: 30rem;
+        background-size: cover;
+        background-position: center;
+        margin-bottom: 1rem;
+
+        &--no-photo {
+          background-color: $turquoise-light;
+          background-repeat: no-repeat;
+          background-size: contain;
+        }
+      }
+    }
+  }
+}

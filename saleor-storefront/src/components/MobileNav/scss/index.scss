@@ -1,0 +1,103 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.side-nav {
+  $item-height: 3.7rem;
+  max-width: calc(100vw - 5rem);
+  width: 30rem;
+
+  &__menu-item {
+    border-bottom: 1px solid $gray-light;
+    display: grid;
+    height: $item-height;
+
+    &-link,
+    &-back span {
+      align-items: center;
+      color: $base-font-color;
+      display: flex;
+      font-weight: 600;
+      padding: $spacer;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: 0.3s;
+
+      svg * {
+        fill: currentColor;
+      }
+    }
+
+    &-logo {
+      align-self: center;
+      padding: 0.75rem $spacer;
+
+      svg {
+        width: 5rem;
+      }
+    }
+
+    &-link,
+    &-more,
+    &-back,
+    &-close {
+      transition: 0.3s;
+
+      &:hover {
+        color: $turquoise;
+      }
+
+      svg * {
+        fill: currentColor;
+      }
+    }
+
+    &-close,
+    &-more,
+    &-back {
+      &:hover {
+        cursor: pointer;
+      }
+    }
+
+    &-more {
+      align-self: center;
+      padding: 1.25rem 1.75rem;
+    }
+
+    &-back {
+      svg {
+        margin-right: 1rem;
+      }
+    }
+
+    &-close {
+      align-items: center;
+      display: flex;
+      height: $item-height;
+      justify-content: center;
+
+      span {
+        background-color: currentColor;
+        border-radius: 1px;
+        height: 3px;
+        width: 24px;
+      }
+
+      &:hover {
+        color: $turquoise;
+      }
+    }
+
+    &--has-subnavigation,
+    &--parent {
+      grid-template-columns: 1fr $item-height;
+    }
+
+    &--parent {
+      color: $gray;
+
+      a {
+        color: inherit;
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
-import * as React from "react";
+import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import AssignCategoriesDialog from "@saleor/components/AssignCategoryDialog";

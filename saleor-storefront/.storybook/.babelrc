@@ -1,0 +1,9 @@
+{
+  "env": {
+    "test": {
+      "presets": [["@babel/preset-env", { "modules": "commonjs" }]],
+      "plugins": ["require-context-hook"]
+    }
+  },
+  "presets": ["@babel/preset-env", "@babel/preset-react"]
+}

@@ -8,7 +8,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 import { stopPropagation } from "../../misc";
 
 export type CheckboxProps = Omit<

@@ -10,7 +10,7 @@ import {
 import TextField from "@material-ui/core/TextField";
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import Downshift from "downshift";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 import {

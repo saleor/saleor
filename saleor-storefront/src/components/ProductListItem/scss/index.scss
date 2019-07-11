@@ -1,0 +1,39 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.product-list-item {
+  text-align: center;
+
+  &__title {
+    text-transform: $product-item-title-text-transform;
+    font-weight: $product-item-title-font-weight;
+    margin-top: $spacer;
+    text-align: left;
+  }
+
+  &__category {
+    color: $product-item-category-color;
+    text-align: left;
+  }
+
+  &__price {
+    font-weight: $product-item-price-font-weight;
+    margin: $product-item-price-margin;
+    text-align: left;
+  }
+
+  &__image {
+    background-color: $turquoise-light;
+    display: flex;
+    height: 350px;
+    justify-content: center;
+
+    img {
+      object-fit: contain;
+      max-width: 100%;
+    }
+
+    @media (max-width: $small-screen) {
+      height: 210px;
+    }
+  }
+}

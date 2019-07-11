@@ -1,0 +1,111 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+@keyframes firstItem {
+  0% {
+    left: 0;
+  }
+  12.5% {
+    left: 2rem;
+  }
+  25% {
+    left: 4rem;
+  }
+  37.5% {
+    left: 2rem;
+  }
+  50% {
+    left: 0;
+  }
+  100% {
+    left: 0;
+  }
+}
+
+@keyframes secondItem {
+  0% {
+    left: 2rem;
+  }
+  12.5% {
+    left: 2rem;
+  }
+  25% {
+    left: 4rem;
+  }
+  37.5% {
+    left: 2rem;
+  }
+  62.5% {
+    left: 2rem;
+  }
+  75% {
+    left: 0;
+  }
+  87.5% {
+    left: 2rem;
+  }
+  100% {
+    left: 2rem;
+  }
+}
+
+@keyframes thirdItem {
+  0% {
+    left: 4rem;
+  }
+  50% {
+    left: 4rem;
+  }
+  62.5% {
+    left: 2rem;
+  }
+  75% {
+    left: 0;
+  }
+  87.5% {
+    left: 2rem;
+  }
+  100% {
+    left: 4rem;
+  }
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: $spacer 0;
+
+  &__items {
+    position: relative;
+    width: 5rem;
+    height: 1rem;
+    margin: 0 auto;
+
+    span {
+      background-color: $blue;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 1rem;
+      position: absolute;
+
+      &:nth-child(1) {
+        left: 0;
+        animation: firstItem 2s infinite;
+        animation-timing-function: linear;
+      }
+
+      &:nth-child(2) {
+        left: 2rem;
+        animation: secondItem 2s infinite;
+        animation-timing-function: linear;
+      }
+
+      &:nth-child(3) {
+        right: 0;
+        animation: thirdItem 2s infinite;
+        animation-timing-function: linear;
+      }
+    }
+  }
+}

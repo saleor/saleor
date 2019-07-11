@@ -1,0 +1,17 @@
+@keyframes sidenavLeftOpen {
+  from {
+    left: -100rem;
+  }
+  to {
+    left: 0;
+  }
+}
+
+@keyframes sidenavRightOpen {
+  from {
+    right: -100rem;
+  }
+  to {
+    right: 0;
+  }
+}

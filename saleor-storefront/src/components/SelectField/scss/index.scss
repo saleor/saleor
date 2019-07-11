@@ -1,0 +1,106 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.react-select-wrapper {
+  position: relative;
+
+  .input__label {
+    background-color: $white;
+    font-size: $label-font-size;
+    left: 17px;
+    top: 0;
+  }
+
+  &--grey {
+    .input__label,
+    .react-select__control {
+      background-color: $turquoise-light;
+    }
+  }
+
+  .react-select {
+    &__control {
+      border-radius: 0;
+      border-color: $blue;
+
+      &:hover {
+        border-color: $blue;
+      }
+
+      &--is-focused {
+        box-shadow: 0 0 0 1px $blue;
+      }
+    }
+
+    &__placeholder {
+      font-weight: $bold-font-weight;
+      color: $gray-dark;
+    }
+
+    &__value-container {
+      padding: $spacer / 2 $spacer;
+    }
+
+    &__indicator-separator {
+      display: none;
+    }
+
+    &__dropdown-indicator {
+      background: url("../../../images/arrow.svg");
+      background-repeat: no-repeat;
+      background-position: center;
+      margin-right: $spacer;
+
+      svg {
+        display: none;
+      }
+    }
+
+    &__menu {
+      margin-top: 0;
+      border-radius: 0;
+      box-shadow: 0 0 0 1px $blue;
+      border: 1px solid $blue;
+      z-index: 2;
+    }
+
+    &__menu-list {
+      box-shadow: $select-menu-shadow;
+      padding-bottom: 0;
+      padding-top: 0;
+
+      div {
+        padding: $spacer $spacer + $spacer / 2;
+        width: auto;
+        position: relative;
+
+        &:not(:last-child)::after {
+          background-color: $gray;
+          bottom: 0;
+          content: "";
+          height: 1px;
+          left: $spacer;
+          position: absolute;
+          width: calc(100% - #{$spacer * 2});
+        }
+      }
+    }
+
+    &__option {
+      &:hover {
+        cursor: pointer;
+        background-color: rgba(33, 18, 94, 0.1);
+      }
+
+      &--is-focused {
+        background-color: $white;
+      }
+
+      &--is-selected,
+      &--is-focused &--is-selected,
+      &:active {
+        background-color: $turquoise-light;
+        color: $base-font-color;
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+.order-details {
+  h3 {
+    font-weight: $bold-font-weight;
+    margin: ($spacer * 2.5) 0 ($spacer * 0.5);
+  }
+
+  &__link {
+    text-decoration: underline;
+    font-size: $small-font-size;
+    color: $gray-dark;
+    margin-top: 2rem;
+    display: inline-block;
+
+    @media (min-width: $small-screen) {
+      margin-top: 2.5rem;
+    }
+  }
+
+  &__status {
+    color: $gray-dark;
+  }
+
+  &__summary {
+    margin-top: $spacer * 1.5;
+
+    h4 {
+      border-bottom: 1px solid $gray-light;
+      font-weight: $bold-font-weight;
+      margin-bottom: $spacer;
+      padding-bottom: $spacer;
+      text-transform: uppercase;
+    }
+
+    @media (min-width: $small-screen) {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+}

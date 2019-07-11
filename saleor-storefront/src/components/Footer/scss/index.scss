@@ -1,0 +1,81 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.footer {
+  &__favicons {
+    border-top: 1px solid $gray-light;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__menu {
+    background-color: $gray-light;
+    padding: $spacer * 3 0 $spacer * 2;
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+
+      div {
+        &:not(:last-of-type) {
+          padding-right: $spacer * 3;
+        }
+      }
+    }
+
+    &-section {
+      &-header {
+        font-weight: $bold-font-weight;
+        margin-bottom: $spacer;
+      }
+
+      &-content {
+        p {
+          font-weight: $bold-font-weight;
+          margin-bottom: $spacer;
+          font-size: $small-font-size;
+          color: $gray;
+
+          a {
+            text-decoration: none;
+            color: $gray;
+          }
+        }
+      }
+    }
+  }
+
+  &-nav {
+    background-color: $gray-light;
+    padding: $spacer * 3 0 $spacer * 2;
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+
+      div:not(:last-of-type) {
+        padding-right: $spacer * 3;
+      }
+    }
+
+    &__section {
+      &-header {
+        font-weight: $bold-font-weight;
+        margin-bottom: $spacer;
+        text-transform: uppercase;
+      }
+
+      &-content {
+        p {
+          margin-bottom: $spacer;
+          font-size: $small-font-size;
+          color: $gray;
+
+          a {
+            text-decoration: none;
+            color: $gray;
+          }
+        }
+      }
+    }
+  }
+}

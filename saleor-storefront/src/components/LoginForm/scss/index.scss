@@ -1,0 +1,13 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.login-form {
+  .input {
+    margin-bottom: $spacer;
+  }
+
+  &__button {
+    margin-top: $spacer * 2;
+    padding: 0 $spacer * 1.5;
+    text-align: center;
+  }
+}

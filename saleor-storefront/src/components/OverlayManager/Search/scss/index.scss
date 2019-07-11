@@ -1,0 +1,120 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+$drawer-width: 25rem;
+
+.search {
+  width: 100vw;
+
+  @media (min-width: $medium-screen) {
+    width: $drawer-width;
+  }
+
+  &--has-results {
+    min-height: 100vh;
+  }
+
+  &__input {
+    .input__icon-right {
+      svg * {
+        fill: $turquoise;
+      }
+    }
+
+    .input__icon-left {
+      svg * {
+        fill: $base-font-color;
+      }
+    }
+
+    .input__field {
+      background-color: $turquoise-light;
+      border: none;
+      box-shadow: none;
+      padding-bottom: 1.2rem;
+      padding-top: 1.25rem;
+      width: 100%;
+
+      &:focus {
+        box-shadow: none;
+      }
+
+      &::placeholder {
+        text-transform: uppercase;
+        font-size: $base-font-size;
+        color: $black;
+      }
+    }
+  }
+
+  &__products {
+    background: $white;
+    overflow: auto;
+    padding: $spacer / 2 0;
+    position: relative;
+    right: 0;
+    transition: 300ms;
+    height: calc(100vh - 3rem);
+
+    @media (min-width: $medium-screen) {
+      right: -$drawer-width;
+    }
+
+    &--expanded {
+      right: 0;
+    }
+
+    &--not-found {
+      padding: 14px;
+    }
+
+    &__item {
+      padding: $spacer / 2 $spacer;
+
+      img {
+        width: 3.6rem;
+        height: 3.6rem;
+        display: inline-block;
+        margin-right: $spacer;
+        vertical-align: top;
+      }
+
+      span {
+        display: inline-block;
+        width: calc(100% - 4.6rem);
+      }
+
+      h4 {
+        text-transform: uppercase;
+        font-weight: $bold-font-weight;
+        padding: $spacer / 4 0;
+        color: $base-font-color;
+      }
+
+      p {
+        color: $gray;
+      }
+
+      &:hover {
+        background-color: $gray-light;
+      }
+
+      ul {
+        max-height: calc(100vh - 9rem);
+      }
+    }
+
+    &__footer {
+      position: fixed;
+      bottom: 0;
+      border-top: 1px solid $gray-light;
+      text-align: center;
+      padding: $spacer 0;
+      background-color: $white;
+      width: 100vw;
+
+      @media (min-width: $medium-screen) {
+        width: 25rem;
+      }
+    }
+  }
+}

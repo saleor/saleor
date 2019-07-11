@@ -1,0 +1,41 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.dropdown-component {
+  .dropdown {
+    &__control {
+      border: none;
+      background: transparent;
+
+      &--is-focused {
+        box-shadow: none;
+      }
+    }
+
+    &__menu {
+      border-radius: 0;
+    }
+
+    &__indicator-separator {
+      display: none;
+    }
+
+    &__dropdown-indicator {
+      background: url("../../../images/arrow.svg");
+      background-repeat: no-repeat;
+      background-position: center;
+
+      svg {
+        display: none;
+      }
+    }
+
+    &__option {
+      &--is-focused,
+      &--is-selected,
+      &:active {
+        background-color: $turquoise-light;
+        color: $base-font-color;
+      }
+    }
+  }
+}

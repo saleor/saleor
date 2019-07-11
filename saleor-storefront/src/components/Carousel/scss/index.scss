@@ -1,0 +1,42 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.carousel {
+  &__control {
+    padding: $carousel-control-padding;
+    background-color: $white;
+    box-shadow: $carousel-control-shadow;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    &--right {
+      margin-right: -1.3rem;
+
+      @media (max-width: $container-width) {
+        margin-right: 0;
+      }
+
+      svg {
+        transform: rotate(180deg);
+        margin-top: 0.5rem;
+      }
+    }
+
+    &--left {
+      margin-left: -1.3rem;
+
+      @media (max-width: $container-width) {
+        margin-left: 0;
+      }
+
+      svg {
+        margin-top: 0.4rem;
+      }
+    }
+  }
+
+  .slider-slide {
+    text-align: center;
+  }
+}

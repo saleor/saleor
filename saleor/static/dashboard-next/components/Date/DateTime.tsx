@@ -1,6 +1,6 @@
 import Tooltip from "@material-ui/core/Tooltip";
-import * as moment from "moment-timezone";
-import * as React from "react";
+import moment from "moment-timezone";
+import React from "react";
 import ReactMoment from "react-moment";
 
 import { LocaleConsumer } from "../Locale";

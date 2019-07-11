@@ -1,0 +1,111 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+.overlay--modal {
+  display: flex;
+  overflow-y: auto;
+  @media (min-width: $small-screen) {
+    align-items: center;
+  }
+
+  .overlay__modal {
+    background-color: $white;
+    display: flex;
+    flex-direction: column;
+    height: inherit;
+    width: 100%;
+
+    @media (min-width: $small-screen) {
+      height: auto;
+      margin: 0 auto;
+      min-height: $modal-min-height;
+      width: $modal-width;
+    }
+    .modal {
+      display: flex;
+      flex-direction: column;
+      height: inherit;
+      min-height: inherit;
+
+      a,
+      &__action {
+        color: $blue;
+        font-weight: bold;
+        text-decoration: underline;
+      }
+
+      &__title,
+      &__body,
+      &__footer {
+        padding: $spacer;
+      }
+
+      &__title {
+        align-items: center;
+        border-bottom: 1px $turquoise-light solid;
+        color: $base-font-color;
+        display: flex;
+        font-weight: bold;
+        text-transform: uppercase;
+
+        p {
+          margin-right: auto;
+        }
+      }
+
+      &__body {
+        border-bottom: 1px $gray solid;
+        flex: 1;
+
+        &__lead {
+          color: rgba($base-font-color, 0.6);
+          font-size: $h3-font-size;
+          font-weight: 900;
+          padding: $spacer 0;
+          text-transform: uppercase;
+        }
+      }
+
+      &__footer {
+        text-align: right;
+
+        a {
+          padding: $spacer;
+        }
+      }
+
+      &__button {
+        box-shadow: none;
+        margin: 0 $spacer;
+        padding: 0.1rem $spacer * 2.7;
+        width: auto;
+
+        span {
+          font-size: $base-font-size;
+        }
+      }
+
+      &__action {
+        display: inline-block;
+        font-size: $base-font-size;
+        padding: 0 $spacer;
+      }
+
+      &__close {
+        $height: 19px;
+
+        div,
+        svg {
+          height: $height;
+          width: $height;
+        }
+      }
+
+      &__close,
+      &__action {
+        &:hover {
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,126 @@
+@import "../../globalStyles/scss/variables.scss";
+
+.checkout {
+  @media (max-width: $medium-screen) {
+    overflow-x: hidden;
+  }
+
+  &__menu {
+    &__bar {
+      text-align: center;
+      border-bottom: 1px solid $gray-light;
+      padding: $spacer 0;
+    }
+
+    svg {
+      width: 8rem;
+    }
+
+    a {
+      text-transform: uppercase;
+      text-decoration: none;
+      color: $gray;
+      font-weight: $bold-font-weight;
+      margin: $spacer;
+      display: block;
+
+      @media (min-width: $small-screen) {
+        position: absolute;
+        top: $spacer;
+        left: $spacer;
+      }
+
+      &:hover {
+        color: $gray-dark;
+      }
+    }
+  }
+
+  &__step {
+    margin-bottom: $spacer;
+    display: flex;
+    align-items: center;
+
+    span {
+      float: left;
+      border: 2px solid $blue;
+      border-radius: 1rem;
+      width: 2rem;
+      height: 2rem;
+      padding: 0.3rem;
+      text-align: center;
+      font-weight: $bold-font-weight;
+      color: $blue;
+      margin-right: $spacer;
+    }
+
+    &--inactive {
+      span {
+        color: $white;
+        background-color: $blue;
+      }
+    }
+  }
+
+  &__content {
+    margin: 0 0 ($spacer * 3) ($spacer * 3);
+
+    @media (max-width: $medium-screen) {
+      margin-left: 0;
+    }
+
+    button[type="submit"] {
+      margin: ($spacer * 2.5) ($spacer * 1.5) 0 ($spacer * 1.5);
+
+      @media (max-width: $medium-screen) {
+        display: block;
+        width: calc(100% - #{$spacer * 3});
+        margin: 2.5 * $spacer auto;
+        max-width: inherit;
+      }
+    }
+
+    & > .address-summary {
+      font-size: $base-font-size;
+    }
+  }
+
+  &__header {
+    text-transform: uppercase;
+    font-weight: $bold-font-weight;
+    font-size: $h3-font-size;
+  }
+
+  &__grid {
+    display: flex;
+    justify-content: space-between;
+    margin: $spacer * 1.5 0;
+    align-items: flex-start;
+
+    @media (min-width: $medium-screen) {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      grid-gap: 2rem;
+    }
+
+    &__content {
+      width: 100%;
+
+      @media (min-width: $small-screen) and (max-width: $medium-screen) {
+        margin: 0 auto;
+        width: 32rem;
+        max-width: 32rem;
+      }
+
+      @media (min-width: $small-screen) {
+        form {
+          width: 100%;
+        }
+      }
+    }
+
+    &__cart-summary {
+      width: 100%;
+    }
+  }
+}

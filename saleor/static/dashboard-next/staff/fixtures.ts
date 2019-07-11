@@ -1,4 +1,4 @@
-import * as avatarImage from "../../images/avatars/avatar1.png";
+import avatarImage from "../../images/avatars/avatar1.png";
 import { PermissionEnum } from "../types/globalTypes";
 import { StaffList_staffUsers_edges_node } from "./types/StaffList";
 import { StaffMemberDetails_user } from "./types/StaffMemberDetails";

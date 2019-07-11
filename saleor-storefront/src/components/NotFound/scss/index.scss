@@ -1,0 +1,44 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.not-found-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: $spacer * 2 $spacer;
+
+  &__header {
+    font-size: 15rem;
+    font-family: "Montserrat";
+    font-weight: 900;
+    line-height: 100%;
+    color: $blue;
+    padding-bottom: 20px;
+
+    @media (max-width: $small-screen) {
+      font-size: 9rem;
+    }
+  }
+
+  &__ruler {
+    background: $blue;
+    min-width: $spacer * 10;
+    height: 2px;
+    margin-top: $spacer;
+    margin-bottom: $spacer * 3;
+  }
+
+  &__message {
+    @media (max-width: $small-screen) {
+      p {
+        display: inline;
+      }
+    }
+  }
+
+  &__button {
+    margin: $spacer * 2 0;
+    min-width: 88%;
+  }
+}

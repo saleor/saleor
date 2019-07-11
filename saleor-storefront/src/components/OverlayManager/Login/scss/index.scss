@@ -1,0 +1,54 @@
+@import "../../../../globalStyles/scss/variables.scss";
+
+.login {
+  width: 25rem;
+  max-width: 100vw;
+
+  &__tabs {
+    display: flex;
+
+    span {
+      flex-grow: 1;
+      width: 100%;
+      background-color: $gray-light;
+      text-transform: uppercase;
+      font-weight: $bold-font-weight;
+      text-align: center;
+      padding: $spacer;
+      border-bottom: 1px solid $gray-light;
+      cursor: pointer;
+
+      &:first-of-type {
+        border-right: 1px solid $white;
+      }
+
+      &:last-of-type {
+        border-left: 1px solid $white;
+      }
+
+      &.active-tab {
+        border-bottom: 1px solid $turquoise;
+      }
+    }
+  }
+
+  &__content {
+    padding: $spacer;
+
+    .input {
+      margin-bottom: $spacer;
+    }
+
+    &__button {
+      margin-top: $spacer * 2;
+      padding: 0 $spacer * 1.5;
+      text-align: center;
+    }
+
+    &__password-reminder {
+      color: $gray;
+      font-size: $small-font-size;
+      margin-top: $spacer * 2;
+    }
+  }
+}

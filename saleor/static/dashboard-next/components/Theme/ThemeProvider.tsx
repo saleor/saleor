@@ -1,7 +1,7 @@
 // FIXME: https://github.com/mirumee/saleor/issues/4174
 import OldMuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import MuiThemeProvider from "@material-ui/styles/ThemeProvider";
-import * as React from "react";
+import React from "react";
 
 import Baseline from "../../Baseline";
 import createTheme, { IThemeColors } from "../../theme";

@@ -1,0 +1,138 @@
+@import url("~reset-css");
+@import url("~typeface-montserrat");
+
+@import "./variables";
+@import "./utils";
+@import "./components";
+
+body {
+  font-family: $base-font-family;
+  font-size: $base-font-size;
+  line-height: $base-line-height;
+  color: $base-font-color;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  h1 {
+    font-size: $h1-font-size;
+    line-height: $h1-line-height;
+  }
+
+  h3 {
+    font-size: $h3-font-size;
+    line-height: 1.7rem;
+  }
+
+  h4 {
+    font-size: $h4-font-size;
+  }
+
+  a {
+    text-decoration: none;
+    font-weight: normal;
+    color: inherit;
+  }
+
+  p {
+    line-height: 1.5rem;
+  }
+
+  #root {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+
+    & > div:first-of-type {
+      flex: 1;
+    }
+  }
+
+  .container {
+    width: $container-width;
+    max-width: 100vw;
+    margin: 0 auto;
+    padding: 0 $spacer;
+
+    @media (max-width: $medium-screen) {
+      width: 100%;
+    }
+  }
+
+  table {
+    width: 100%;
+    margin: $spacer * 3 0;
+    font-size: $small-font-size;
+
+    th {
+      color: $gray-dark;
+      text-align: left;
+      padding: $spacer $spacer / 2;
+    }
+
+    tr {
+      color: $base-font-color;
+      border-bottom: 1px solid $gray-light;
+    }
+
+    td {
+      padding: $spacer $spacer / 2;
+      vertical-align: middle;
+
+      img {
+        vertical-align: middle;
+        margin-right: $spacer;
+      }
+    }
+  }
+
+  .checkbox {
+    position: relative;
+    display: inline;
+
+    &:before {
+      content: "";
+      display: block;
+      position: absolute;
+      left: 0.4rem;
+      top: 0.05rem;
+      width: 0.3rem;
+      height: 0.6rem;
+      border: solid $white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+      z-index: 1;
+    }
+
+    input {
+      display: none;
+
+      &:checked ~ span {
+        &:before {
+          background-color: $blue;
+        }
+      }
+    }
+
+    span {
+      margin-left: $spacer * 2;
+
+      &:before {
+        background-color: $white;
+        border-radius: 0.2rem;
+        border: 1px solid $blue;
+        content: "";
+        display: block;
+        height: 1rem;
+        position: absolute;
+        top: 0;
+        width: 1rem;
+      }
+    }
+  }
+}
+
+.form-error {
+  color: $rose;
+}

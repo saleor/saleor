@@ -1,0 +1,69 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+button {
+  background-color: $turquoise;
+  transform: $button-transform;
+  padding: $button-padding;
+  border: none;
+  box-shadow: $button-box-shadow;
+  transition: $button-transition;
+  outline: none;
+  font-family: $base-font-family;
+  cursor: pointer;
+
+  @media (max-width: $small-screen) {
+    padding: $button-padding-small-screen;
+    width: 88%;
+    max-width: 88%;
+  }
+
+  > span {
+    display: inline-block;
+    color: $white;
+    font-size: $button-font-size;
+    text-transform: $button-text-transform;
+    font-weight: $button-font-weight;
+    line-height: $button-line-height;
+    transform: $button-content-transform;
+  }
+
+  &:hover {
+    background-color: $turquoise-dark;
+  }
+
+  &:active {
+    box-shadow: $button-box-shadow-clicked;
+  }
+
+  &.secondary {
+    background-color: $white;
+    box-shadow: inset 0px 0px 0px 3px $blue;
+    border-left: 1px solid $blue;
+    border-right: 1px solid $blue;
+
+    * {
+      color: $blue;
+    }
+
+    &:hover {
+      background-color: $blue;
+
+      * {
+        color: $white;
+      }
+    }
+
+    &:active {
+      background-color: $blue-dark;
+    }
+  }
+
+  &:disabled {
+    background-color: $gray;
+
+    &,
+    &:hover {
+      cursor: default;
+    }
+  }
+}

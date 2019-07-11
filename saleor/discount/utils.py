@@ -5,7 +5,7 @@ from typing import Iterable
 from django.db.models import F
 from django.utils.translation import pgettext
 
-from ..core.utils.taxes import ZERO_MONEY
+from ..core.taxes import zero_money
 from . import DiscountInfo
 from .models import NotApplicable, Sale
 
@@ -61,24 +61,28 @@ def calculate_discounted_price(product, price, discounts: Iterable[DiscountInfo]
     return price
 
 
-def get_value_voucher_discount(voucher, total_price):
+def get_value_voucher_discount(voucher, total_price, quantity):
     """Calculate discount value for a voucher of value type."""
     voucher.validate_min_amount_spent(total_price)
+    voucher.validate_min_checkout_items_quantity(quantity)
     return voucher.get_discount_amount_for(total_price)
 
 
-def get_shipping_voucher_discount(voucher, total_price, shipping_price):
+def get_shipping_voucher_discount(voucher, total_price, shipping_price, quantity):
     """Calculate discount value for a voucher of shipping type."""
     voucher.validate_min_amount_spent(total_price)
+    voucher.validate_min_checkout_items_quantity(quantity)
     return voucher.get_discount_amount_for(shipping_price)
 
 
-def get_products_voucher_discount(voucher, prices):
+def get_products_voucher_discount(voucher, prices, total_price, quantity):
     """Calculate discount value for a voucher of product or category type."""
+    voucher.validate_min_amount_spent(total_price)
+    voucher.validate_min_checkout_items_quantity(quantity)
     if voucher.apply_once_per_order:
         return voucher.get_discount_amount_for(min(prices))
     discounts = (voucher.get_discount_amount_for(price) for price in prices)
-    total_amount = sum(discounts, ZERO_MONEY)
+    total_amount = sum(discounts, zero_money())
     return total_amount
 
 

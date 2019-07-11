@@ -1,0 +1,52 @@
+@import "../../../globalStyles/scss/variables.scss";
+
+.address-form {
+  button {
+    margin: $spacer * 2 0 0 $spacer * 2;
+  }
+
+  .react-select-wrapper {
+    margin-bottom: 1rem;
+  }
+
+  &__grid {
+    display: grid;
+    grid-gap: 0 $spacer;
+
+    @media (min-width: $medium-screen) {
+      grid-template-columns: 1fr 1fr;
+    }
+    &--modal {
+      @media (min-width: $small-screen) {
+        grid-template-columns: 1fr 1fr;
+      }
+      &.address-form__grid--full {
+        @media (min-width: $small-screen) {
+          grid-template-columns: none;
+        }
+      }
+    }
+    &--uneven {
+      @media (min-width: $medium-screen) {
+        grid-template-columns: 1fr 3fr;
+        margin-right: 9rem;
+      }
+    }
+    &--full {
+      @media (min-width: $medium-screen) {
+        grid-template-columns: none;
+      }
+    }
+  }
+
+  &__copy-address {
+    padding: $spacer 0 ($spacer * 2);
+  }
+
+  .checkbox {
+    &__bottom {
+      display: block;
+      margin-top: 1.5rem;
+    }
+  }
+}
