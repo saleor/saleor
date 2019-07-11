@@ -36,7 +36,10 @@ storiesOf("Views / Attributes / Attribute details", module)
   ))
   .add("no values", () => <AttributePage {...props} values={undefined} />)
   .add("form errors", () => (
-    <AttributePage {...props} errors={["name", "slug"].map(formError)} />
+    <AttributePage
+      {...props}
+      errors={["name", "slug", "storefrontSearchPosition"].map(formError)}
+    />
   ))
   .add("multiple select input", () => (
     <AttributePage
