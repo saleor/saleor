@@ -65,7 +65,9 @@ export const SiteSettings: React.StatelessComponent<SiteSettingsProps> = ({
       (!data.shopDomainUpdate.errors ||
         data.shopDomainUpdate.errors.length === 0) &&
       (!data.shopSettingsUpdate.errors ||
-        data.shopSettingsUpdate.errors.length === 0)
+        data.shopSettingsUpdate.errors.length === 0) &&
+      (!data.shopAddressUpdate.errors ||
+        data.shopAddressUpdate.errors.length === 0)
     ) {
       notify({
         text: i18n.t("Site settings updated", {
@@ -94,6 +96,11 @@ export const SiteSettings: React.StatelessComponent<SiteSettingsProps> = ({
                       ...maybe(
                         () =>
                           updateShopSettingsOpts.data.shopSettingsUpdate.errors,
+                        []
+                      ),
+                      ...maybe(
+                        () =>
+                          updateShopSettingsOpts.data.shopAddressUpdate.errors,
                         []
                       )
                     ];
