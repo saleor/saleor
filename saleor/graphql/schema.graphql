@@ -2334,6 +2334,7 @@ type ProductType implements Node {
   weight: Weight
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   taxRate: TaxRateType
+  taxType: TaxType
   variantAttributes: [Attribute]
   productAttributes: [Attribute]
 }
