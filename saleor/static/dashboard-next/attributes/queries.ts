@@ -12,6 +12,9 @@ export const attributeFragment = gql`
     id
     name
     slug
+    visibleInStorefront
+    filterableInDashboard
+    filterableInStorefront
   }
 `;
 
@@ -20,6 +23,7 @@ export const attributeDetailsFragment = gql`
   fragment AttributeDetailsFragment on Attribute {
     ...AttributeFragment
     inputType
+    storefrontSearchPosition
     values {
       id
       name

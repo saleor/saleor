@@ -25,6 +25,9 @@ export interface AssignAttribute_attributeAssign_productType_productAttributes {
   id: string;
   name: string | null;
   slug: string | null;
+  visibleInStorefront: boolean | null;
+  filterableInDashboard: boolean | null;
+  filterableInStorefront: boolean | null;
 }
 
 export interface AssignAttribute_attributeAssign_productType_variantAttributes {
@@ -32,6 +35,9 @@ export interface AssignAttribute_attributeAssign_productType_variantAttributes {
   id: string;
   name: string | null;
   slug: string | null;
+  visibleInStorefront: boolean | null;
+  filterableInDashboard: boolean | null;
+  filterableInStorefront: boolean | null;
 }
 
 export interface AssignAttribute_attributeAssign_productType_weight {
