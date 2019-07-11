@@ -9,7 +9,9 @@ import {
   ProductDetails_product_variants
 } from "@saleor/products/types/ProductDetails";
 import { ProductAttributeInput } from "../components/ProductAttributes";
+import { VariantAttributeInput } from "../components/ProductVariantAttributes";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../types/ProductCreateData";
+import { ProductVariant } from "../types/ProductVariant";
 
 export interface Collection {
   id: string;
@@ -78,6 +80,23 @@ export function getAttributeInputFromProductType(
     label: attribute.name,
     value: []
   }));
+}
+
+export function getAttributeInputFromVariant(
+  product: ProductVariant
+): VariantAttributeInput[] {
+  return maybe(
+    (): VariantAttributeInput[] =>
+      product.attributes.map(attribute => ({
+        data: {
+          values: attribute.attribute.values
+        },
+        id: attribute.attribute.id,
+        label: attribute.attribute.name,
+        value: attribute.value.slug
+      })),
+    []
+  );
 }
 
 export function getCollectionInput(
