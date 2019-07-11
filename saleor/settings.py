@@ -599,6 +599,7 @@ PAYMENT_GATEWAYS = {
         "module": "saleor.payment.gateways.dummy",
         "config": {
             "auto_capture": True,
+            "store_card": False,
             "connection_params": {},
             "template_path": "order/payment/dummy.html",
         },
@@ -606,7 +607,8 @@ PAYMENT_GATEWAYS = {
     BRAINTREE: {
         "module": "saleor.payment.gateways.braintree",
         "config": {
-            "auto_capture": True,
+            "auto_capture": get_bool_from_env("BRAINTREE_AUTO_CAPTURE", True),
+            "store_card": get_bool_from_env("BRAINTREE_STORE_CARD", False),
             "template_path": "order/payment/braintree.html",
             "connection_params": {
                 "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
@@ -619,7 +621,8 @@ PAYMENT_GATEWAYS = {
     RAZORPAY: {
         "module": "saleor.payment.gateways.razorpay",
         "config": {
-            "auto_capture": None,
+            "store_card": get_bool_from_env("RAZORPAY_STORE_CARD", False),
+            "auto_capture": get_bool_from_env("RAZORPAY_AUTO_CAPTURE", None),
             "template_path": "order/payment/razorpay.html",
             "connection_params": {
                 "public_key": os.environ.get("RAZORPAY_PUBLIC_KEY"),
@@ -633,7 +636,8 @@ PAYMENT_GATEWAYS = {
     STRIPE: {
         "module": "saleor.payment.gateways.stripe",
         "config": {
-            "auto_capture": True,
+            "store_card": get_bool_from_env("STRIPE_STORE_CARD", False),
+            "auto_capture": get_bool_from_env("STRIPE_AUTO_CAPTURE", True),
             "template_path": "order/payment/stripe.html",
             "connection_params": {
                 "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),

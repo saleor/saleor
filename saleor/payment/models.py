@@ -210,6 +210,7 @@ class Transaction(models.Model):
         max_length=256,
         null=True,
     )
+    customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
 
     class Meta:

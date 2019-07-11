@@ -1,0 +1,97 @@
+interactions:
+- request:
+    body: <transaction><amount>100.0</amount><payment_method_nonce>fake-valid-nonce</payment_method_nonce><options><submit_for_settlement
+      type="boolean">true</submit_for_settlement><store_in_vault_on_success type="boolean">true</store_in_vault_on_success><three_d_secure><required
+      type="boolean">false</required></three_d_secure></options><order_id type="integer">8</order_id><billing><first_name>John</first_name><last_name>Doe</last_name><company>Mirumee
+      Software</company><postal_code>53-601</postal_code><street_address>T&#281;czowa
+      7</street_address><extended_address></extended_address><locality>WROC&#321;AW</locality><region></region><country_code_alpha2>PL</country_code_alpha2></billing><risk_data><customer_ip></customer_ip></risk_data><customer><email>test@example.com</email></customer><type>sale</type></transaction>
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '820'
+      Content-type:
+      - application/xml
+      User-Agent:
+      - Braintree Python 3.49.0
+      X-ApiVersion:
+      - '5'
+    method: POST
+    uri: https://api.sandbox.braintreegateway.com/merchants/9m6qhfxsqzm3cgzw/transactions
+  response:
+    body:
+      string: !!binary |
+        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
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Encoding:
+      - gzip
+      Content-Security-Policy:
+      - frame-ancestors 'self'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Wed, 26 Jun 2019 14:58:29 GMT
+      ETag:
+      - W/"56150bda74a4f07c25cb1c1b05c341cd"
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Authentication:
+      - basic_auth
+      X-BroxyId:
+      - 01-1561561108.960-79.110.196.19-4474532
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Request-Id:
+      - 01-1561561108.960-79.110.196.19-4474532
+      X-Runtime:
+      - '0.603314'
+      X-User:
+      - wgs3tg8h39pyypyc
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 201
+      message: Created
+version: 1
