@@ -5,7 +5,7 @@ from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
 from saleor.site.models import Site
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_read_only_mode, get_graphql_content
 
 from .utils import assert_read_only_mode
 
