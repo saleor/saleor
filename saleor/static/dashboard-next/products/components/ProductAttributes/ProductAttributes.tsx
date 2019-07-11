@@ -188,17 +188,6 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                     ) : (
                       <MultiAutocompleteSelectField
                         choices={getMultiChoices(attribute.data.values)}
-                        // displayValues={attribute.data.values
-                        //   .filter(
-                        //     value =>
-                        //       !!attribute.value.find(attributeValue =>
-                        //         attributeValue.includes(value.slug)
-                        //       )
-                        //   )
-                        //   .map(value => ({
-                        //     label: value.name,
-                        //     value: value.slug
-                        //   }))}
                         displayValues={getMultiDisplayValue(attribute)}
                         label={i18n.t("Values")}
                         name={`attribute:${attribute.label}`}
