@@ -6,10 +6,13 @@ import { AttributeList_attributes_edges_node } from "./types/AttributeList";
 
 export const attribute = {
   __typename: "Attribute" as "Attribute",
+  filterableInDashboard: false,
+  filterableInStorefront: true,
   id: "UHJvZHVjdEF0dHJpYnV0ZTo5",
   inputType: AttributeInputTypeEnum.DROPDOWN,
   name: "Author",
   slug: "author",
+  storefrontSearchPosition: 2,
   values: [
     {
       __typename: "AttributeValue" as "AttributeValue",
@@ -29,13 +32,16 @@ export const attribute = {
       type: AttributeValueType.STRING,
       value: ""
     }
-  ]
+  ],
+  visibleInStorefront: true
 };
 
 export const attributes: AttributeList_attributes_edges_node[] = [
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZTo5",
       name: "Author",
       slug: "author",
@@ -58,12 +64,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: true
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZTo2",
       name: "Box Size",
       slug: "box-size",
@@ -104,12 +113,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: false
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: false,
+      filterableInStorefront: true,
       id: "UHJvZHVjdEF0dHJpYnV0ZToz",
       name: "Brand",
       slug: "brand",
@@ -123,12 +135,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: false
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: true,
       id: "UHJvZHVjdEF0dHJpYnV0ZTo4",
       name: "Candy Box Size",
       slug: "candy-box-size",
@@ -160,12 +175,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: false
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: true,
       id: "UHJvZHVjdEF0dHJpYnV0ZTo1",
       name: "Coffee Genre",
       slug: "coffee-genre",
@@ -188,12 +206,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: true
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: false,
+      filterableInStorefront: true,
       id: "UHJvZHVjdEF0dHJpYnV0ZToy",
       name: "Collar",
       slug: "collar",
@@ -225,12 +246,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: true
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: false,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZTox",
       name: "Color",
       slug: "color",
@@ -253,12 +277,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: true
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMg==",
       name: "Cover",
       slug: "cover",
@@ -317,12 +344,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: false
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: true,
       id: "UHJvZHVjdEF0dHJpYnV0ZTo3",
       name: "Flavor",
       slug: "flavor",
@@ -345,12 +375,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: true
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: false,
+      filterableInStorefront: true,
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMQ==",
       name: "Language",
       slug: "language",
@@ -373,12 +406,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: true
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: true,
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMA==",
       name: "Publisher",
       slug: "publisher",
@@ -401,12 +437,15 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: true
     }
   },
   {
     node: {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: true,
       id: "UHJvZHVjdEF0dHJpYnV0ZTo0",
       name: "Size",
       slug: "size",
@@ -465,7 +504,8 @@ export const attributes: AttributeList_attributes_edges_node[] = [
           type: AttributeValueType.STRING,
           value: ""
         }
-      ]
+      ],
+      visibleInStorefront: true
     }
   }
 ].map(edge => edge.node);
