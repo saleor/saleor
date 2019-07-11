@@ -140,7 +140,9 @@ def get_products_voucher_discount_for_order(order, voucher):
             "Voucher not applicable", "This offer is only valid for selected items."
         )
         raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices)
+    return get_products_voucher_discount(
+        voucher, prices, order.get_subtotal().gross, order.get_total_quantity()
+    )
 
 
 def get_voucher_discount_for_order(order):
@@ -152,10 +154,15 @@ def get_voucher_discount_for_order(order):
         return zero_money()
     subtotal = order.get_subtotal()
     if order.voucher.type == VoucherType.ENTIRE_ORDER:
-        return get_value_voucher_discount(order.voucher, subtotal.gross)
+        return get_value_voucher_discount(
+            order.voucher, subtotal.gross, order.get_total_quantity()
+        )
     if order.voucher.type == VoucherType.SHIPPING:
         return get_shipping_voucher_discount(
-            order.voucher, subtotal.gross, order.shipping_price
+            order.voucher,
+            subtotal.gross,
+            order.shipping_price,
+            order.get_total_quantity(),
         )
     if order.voucher.type in (
         VoucherType.PRODUCT,

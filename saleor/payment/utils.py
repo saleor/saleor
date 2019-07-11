@@ -1,8 +1,9 @@
 import json
 import logging
+
 from decimal import Decimal
 from functools import wraps
-from typing import Dict
+from typing import Dict, List
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
@@ -24,7 +25,8 @@ from . import (
     TransactionKind,
     get_payment_gateway,
 )
-from .interface import AddressData, GatewayResponse, PaymentData
+
+from .interface import AddressData, GatewayResponse, PaymentData, TokenConfig
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
@@ -39,6 +41,11 @@ REQUIRED_GATEWAY_KEYS = {
     "currency",
 }
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+GATEWAYS_META_LABEL = "gateways"
+
+
+def list_enabled_gateways() -> List[str]:
+    return list(settings.CHECKOUT_PAYMENT_GATEWAYS.keys())
 
 
 def get_gateway_operation_func(gateway, operation_type):
@@ -61,6 +68,8 @@ def create_payment_information(
     amount: Decimal = None,
     billing_address: AddressData = None,
     shipping_address: AddressData = None,
+    customer_id: str = None,
+    store_source: bool = False,
 ) -> PaymentData:
     """Extracts order information along with payment details.
 
@@ -81,11 +90,13 @@ def create_payment_information(
         token=payment_token,
         amount=amount or payment.total,
         currency=payment.currency,
-        billing=billing,
-        shipping=shipping,
+        billing=billing or billing_address,
+        shipping=shipping or shipping_address,
         order_id=order_id,
         customer_ip_address=payment.customer_ip_address,
+        customer_id=customer_id,
         customer_email=payment.billing_email,
+        reuse_source=store_source,
     )
 
 
@@ -227,17 +238,20 @@ def create_transaction(
         amount=gateway_response.amount,
         currency=gateway_response.currency,
         error=gateway_response.error,
+        customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
     )
     return txn
 
 
-def gateway_get_client_token(gateway_name: str):
+def gateway_get_client_token(gateway_name: str, token_config: TokenConfig = None):
     """Gets client token, that will be used as a customer's identificator for
     client-side tokenization of the chosen payment method.
     """
+    if not token_config:
+        token_config = TokenConfig()
     gateway, gateway_config = get_payment_gateway(gateway_name)
-    return gateway.get_client_token(config=gateway_config)
+    return gateway.get_client_token(config=gateway_config, token_config=token_config)
 
 
 def clean_capture(payment: Payment, amount: Decimal):
@@ -275,9 +289,11 @@ def call_gateway(operation_type, payment, payment_token, **extra_params):
     gateway, gateway_config = get_payment_gateway(payment.gateway)
     gateway_response = None
     error_msg = None
-
+    store_source = (
+        extra_params.pop("store_source", False) and gateway_config.store_customer
+    )
     payment_information = create_payment_information(
-        payment, payment_token, **extra_params
+        payment, payment_token, store_source=store_source, **extra_params
     )
 
     try:
@@ -495,3 +511,30 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
 
     _gateway_postprocess(transaction, payment)
     return transaction
+
+
+def fetch_customer_id(user, gateway):
+    """Retrieves users customer_id stored for desired gateway"""
+    key = prepare_label_name(gateway)
+    gateway_config = user.get_private_meta(label=GATEWAYS_META_LABEL).get(key, {})
+    return gateway_config.get("customer_id", None)
+
+
+def store_customer_id(user, gateway, customer_id):
+    """Stores customer_id in users private meta for desired gateway"""
+    user.store_private_meta(
+        label=GATEWAYS_META_LABEL,
+        key=prepare_label_name(gateway),
+        value={"customer_id": customer_id},
+    )
+    user.save(update_fields=["private_meta"])
+
+
+def prepare_label_name(s):
+    return s.strip().upper()
+
+
+def retrieve_customer_sources(gateway_name, customer_id):
+    """ Fetches all customer payment sources stored in gateway"""
+    gateway, config = get_payment_gateway(gateway_name)
+    return gateway.list_client_sources(config, customer_id)
