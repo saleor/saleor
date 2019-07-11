@@ -15,6 +15,7 @@ from ..core.types import CountryDisplay, Image, PermissionDisplay
 from ..core.utils import get_node_optimized
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum
+from .types_meta import MetaStore
 
 
 class AddressInput(graphene.InputObjectType):
@@ -185,6 +186,9 @@ class User(CountableDjangoObjectType):
     stored_payment_sources = graphene.List(
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources",
+    )
+    private_meta = graphene.List(
+        MetaStore, description="List of privately stored metadata groups."
     )
 
     class Meta:
