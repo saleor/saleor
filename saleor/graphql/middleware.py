@@ -1,30 +1,25 @@
-from functools import wraps
-from typing import Callable
-
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from graphene_django.settings import graphene_settings
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
+from ..core.middleware import restricted_middleware
 
-def api_only_request_handler(get_response: Callable, handler: Callable):
-    @wraps(handler)
-    def handle_request(request):
-        api_path = reverse("api")
-        if request.path != api_path:
-            return get_response(request)
-        return handler(request)
 
-    return handle_request
+def is_request_from_api():
+    """Resolves the API path and returns a check function
+    that returns True if the request was done on the API."""
+
+    api_path = reverse("api")
+
+    def middleware_condition(request):
+        return request.path == api_path
+
+    return middleware_condition
 
 
 def api_only_middleware(middleware):
-    @wraps(middleware)
-    def wrapped(get_response):
-        handler = middleware(get_response)
-        return api_only_request_handler(get_response, handler)
-
-    return wrapped
+    return restricted_middleware(middleware, is_request_from_api())
 
 
 @api_only_middleware

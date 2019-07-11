@@ -1,6 +1,6 @@
+import inspect
 import logging
 from functools import wraps
-from typing import Callable
 
 import django.contrib.auth.middleware
 import django.contrib.messages.middleware
@@ -8,7 +8,6 @@ import django.contrib.sessions.middleware
 import django.middleware.common
 import django.middleware.csrf
 import django.middleware.locale
-import django.middleware.security
 import django_babel.middleware
 import impersonate.middleware
 import social_django.middleware
@@ -17,6 +16,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 from django_countries.fields import Country
@@ -28,25 +28,96 @@ from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 logger = logging.getLogger(__name__)
 
 
-def django_only_request_handler(get_response: Callable, handler: Callable):
+class RestrictedPathRequestHandler(MiddlewareMixin):
+    """Wraps a middleware to restrict it to only perform
+    when a given condition is True.
+
+    Refer to https://docs.djangoproject.com/en/2.2/topics/http/middleware/
+    for the list of methods to be wrapped."""
+
+    _MIDDLEWARE_CHECK = None
+
+    def process_view(self, request, *args):
+        method = getattr(super(), "process_view", None)
+
+        if method and self.__class__._MIDDLEWARE_CHECK(request):
+            return method(request, *args)
+        return None
+
+    def process_exception(self, request, exception):
+        method = getattr(super(), "process_exception", None)
+
+        if method and self.__class__._MIDDLEWARE_CHECK(request):
+            return method(request, exception)
+        return None
+
+    def process_template_response(self, request, response):
+        method = getattr(super(), "process_template_response", None)
+
+        if method and self.__class__._MIDDLEWARE_CHECK(request):
+            return method(request, response)
+        return response
+
+    def process_request(self, request):
+        method = getattr(super(), "process_request", None)
+
+        if method and self.__class__._MIDDLEWARE_CHECK(request):
+            return method(request)
+        return self.get_response(request)
+
+
+def is_request_from_django_view():
+    """Resolves the API path and returns a check function
+    that returns True if the request was not done on the API."""
+
     api_path = reverse("api")
 
-    @wraps(handler)
-    def handle_request(request):
-        if request.path == api_path:
-            return get_response(request)
-        return handler(request)
+    def middleware_condition(request):
+        return request.path != api_path
 
-    return handle_request
+    return middleware_condition
+
+
+def restricted_middleware_wrap_function_middleware(middleware, check_handler):
+    """Wraps a middleware defined as a function against a given checker.
+
+    It will initialize the middleware with the received `get_response` and
+    call the returned handler with the request every time a request is being done
+    if the check returns True.
+
+    Otherwise, it will ignore the call, and simply
+    tell django to continue processing the middleware chain."""
+
+    @wraps(middleware)
+    def wrapped_middleware(get_response):
+        handler = middleware(get_response)
+
+        @wraps(handler)
+        def process_request(request):
+            if check_handler(request):
+                return handler(request)
+            return get_response(request)
+
+        return process_request
+
+    return wrapped_middleware
+
+
+def restricted_middleware(middleware, check_handler):
+    if not inspect.isclass(middleware):
+        return restricted_middleware_wrap_function_middleware(middleware, check_handler)
+
+    name = f"Wrapped{middleware.__name__}"
+
+    class Wrapped(RestrictedPathRequestHandler, middleware):
+        _MIDDLEWARE_CHECK = check_handler
+
+    Wrapped.__name__ = name
+    return Wrapped
 
 
 def django_only_middleware(middleware):
-    @wraps(middleware)
-    def wrapped(get_response):
-        handler = middleware(get_response)
-        return django_only_request_handler(get_response, handler)
-
-    return wrapped
+    return restricted_middleware(middleware, is_request_from_django_view())
 
 
 social_auth_exception_middleware = django_only_middleware(
@@ -69,9 +140,6 @@ django_auth_middleware = django_only_middleware(
 )
 django_csrf_view_middleware = django_only_middleware(
     django.middleware.csrf.CsrfViewMiddleware
-)
-django_security_middleware = django_only_middleware(
-    django.middleware.security.SecurityMiddleware
 )
 django_session_middleware = django_only_middleware(
     django.contrib.sessions.middleware.SessionMiddleware
