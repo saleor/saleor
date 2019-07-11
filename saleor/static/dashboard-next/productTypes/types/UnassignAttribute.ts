@@ -19,6 +19,9 @@ export interface UnassignAttribute_attributeUnassign_productType_productAttribut
   id: string;
   name: string | null;
   slug: string | null;
+  visibleInStorefront: boolean | null;
+  filterableInDashboard: boolean | null;
+  filterableInStorefront: boolean | null;
 }
 
 export interface UnassignAttribute_attributeUnassign_productType_variantAttributes {
@@ -26,6 +29,9 @@ export interface UnassignAttribute_attributeUnassign_productType_variantAttribut
   id: string;
   name: string | null;
   slug: string | null;
+  visibleInStorefront: boolean | null;
+  filterableInDashboard: boolean | null;
+  filterableInStorefront: boolean | null;
 }
 
 export interface UnassignAttribute_attributeUnassign_productType_weight {

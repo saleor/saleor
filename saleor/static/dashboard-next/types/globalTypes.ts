@@ -62,6 +62,7 @@ export enum LanguageCodeEnum {
   HU = "HU",
   HY = "HY",
   ID = "ID",
+  IS = "IS",
   IT = "IT",
   JA = "JA",
   KO = "KO",
