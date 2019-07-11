@@ -33,7 +33,9 @@ class NotApplicable(ValueError):
 class VoucherQueryset(models.QuerySet):
     def active(self, date):
         return self.filter(
-            Q(usage_limit__isnull=True) | Q(used__lt=F("usage_limit")),
+            Q(usage_limit__isnull=True)
+            | Q(used__lt=F("usage_limit"))
+            | Q(usage_limit=0),
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date,
         )
