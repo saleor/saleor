@@ -6,7 +6,14 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
 from ... import TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from ...interface import (
+    CreditCardInfo,
+    CustomerSource,
+    GatewayConfig,
+    GatewayResponse,
+    PaymentData,
+    TokenConfig,
+)
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
@@ -32,6 +39,7 @@ ERROR_CODES_WHITELIST = {
 
 
 def get_customer_data(payment_information: PaymentData) -> Dict:
+    """Provides customer info, use only for new customer creation"""
     billing = payment_information.billing
     return {
         "order_id": payment_information.order_id,
@@ -74,16 +82,16 @@ def extract_gateway_response(braintree_result) -> Dict:
             {"code": error.code, "message": error.message}
             for error in braintree_result.errors.deep_errors
         ]
-
     bt_transaction = braintree_result.transaction
+
     if not bt_transaction:
         return {"errors": errors}
-
     return {
         "transaction_id": getattr(bt_transaction, "id", ""),
         "currency": bt_transaction.currency_iso_code,
         "amount": bt_transaction.amount,  # Decimal type
         "credit_card": bt_transaction.credit_card,
+        "customer_id": bt_transaction.customer_details.id,
         "errors": errors,
     }
 
@@ -109,29 +117,30 @@ def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
     return gateway
 
 
-def get_client_token(config: GatewayConfig) -> str:
+def get_client_token(config: GatewayConfig, token_config: TokenConfig = None) -> str:
     gateway = get_braintree_gateway(**config.connection_params)
-    client_token = gateway.client_token.generate()
-    return client_token
+    if not token_config:
+        return gateway.client_token.generate()
+    parameters = create_token_params(config, token_config)
+    return gateway.client_token.generate(parameters)
+
+
+def create_token_params(config: GatewayConfig, token_config: TokenConfig) -> dict:
+    params = {}
+    customer_id = token_config.customer_id
+    if customer_id and config.store_customer:
+        params["customer_id"] = customer_id
+    return params
 
 
 def authorize(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    gateway = get_braintree_gateway(**config.connection_params)
-
     try:
-        result = gateway.transaction.sale(
-            {
-                "amount": str(payment_information.amount),
-                "payment_method_nonce": payment_information.token,
-                "options": {
-                    "submit_for_settlement": config.auto_capture,
-                    "three_d_secure": {"required": THREE_D_SECURE_REQUIRED},
-                },
-                **get_customer_data(payment_information),
-            }
-        )
+        if not payment_information.customer_id:
+            result = transaction_for_new_customer(payment_information, config)
+        else:
+            result = transaction_for_existing_customer(payment_information, config)
     except braintree_sdk.exceptions.NotFoundError:
         raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
@@ -143,11 +152,44 @@ def authorize(
         kind=kind,
         amount=gateway_response.get("amount", payment_information.amount),
         currency=gateway_response.get("currency", payment_information.currency),
+        customer_id=gateway_response.get("customer_id"),
         transaction_id=gateway_response.get(
             "transaction_id", payment_information.token
         ),
         error=error,
         raw_response=gateway_response,
+    )
+
+
+def transaction_for_new_customer(
+    payment_information: PaymentData, config: GatewayConfig
+):
+    gateway = get_braintree_gateway(**config.connection_params)
+    return gateway.transaction.sale(
+        {
+            "amount": str(payment_information.amount),
+            "payment_method_nonce": payment_information.token,
+            "options": {
+                "submit_for_settlement": config.auto_capture,
+                "store_in_vault_on_success": payment_information.reuse_source,
+                "three_d_secure": {"required": THREE_D_SECURE_REQUIRED},
+            },
+            **get_customer_data(payment_information),
+        }
+    )
+
+
+def transaction_for_existing_customer(
+    payment_information: PaymentData, config: GatewayConfig
+):
+    gateway = get_braintree_gateway(**config.connection_params)
+    return gateway.transaction.sale(
+        {
+            "amount": str(payment_information.amount),
+            "customer_id": payment_information.customer_id,
+            "options": {"submit_for_settlement": config.auto_capture},
+            **get_customer_data(payment_information),
+        }
     )
 
 
@@ -234,3 +276,29 @@ def process_payment(
 ) -> GatewayResponse:
     auth_resp = authorize(payment_information, config)
     return auth_resp
+
+
+def list_client_sources(
+    config: GatewayConfig, customer_id: str
+) -> List[CustomerSource]:
+    gateway = get_braintree_gateway(**config.connection_params)
+    customer = gateway.customer.find(customer_id)
+    if not customer:
+        return []
+    return [
+        extract_credit_card_data(card, "braintree") for card in customer.credit_cards
+    ]
+
+
+def extract_credit_card_data(card, gateway_name):
+    credit_card = CreditCardInfo(
+        exp_year=int(card.expiration_year),
+        exp_month=int(card.expiration_month),
+        last_4=card.last_4,
+        name_on_card=card.cardholder_name,
+    )
+    return CustomerSource(
+        id=card.unique_number_identifier,
+        gateway=gateway_name,
+        credit_card_info=credit_card,
+    )

@@ -1630,7 +1630,7 @@ type Mutations {
   tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID!): CheckoutComplete
+  checkoutComplete(checkoutId: ID!, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
@@ -2086,6 +2086,11 @@ input PaymentInput {
 type PaymentRefund {
   errors: [Error!]
   payment: Payment
+}
+
+type PaymentSource {
+  gateway: String!
+  creditCardInfo: CreditCard
 }
 
 type PaymentVoid {
@@ -3042,6 +3047,7 @@ type User implements Node {
   permissions: [PermissionDisplay]
   avatar(size: Int): Image
   events: [CustomerEvent]
+  storedPaymentSources: [PaymentSource]
 }
 
 input UserAddressInput {
@@ -3132,6 +3138,7 @@ type Voucher implements Node {
   discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
   minAmountSpent: Money
+  minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -3196,6 +3203,7 @@ input VoucherInput {
   collections: [ID]
   categories: [ID]
   minAmountSpent: Decimal
+  minCheckoutItemsQuantity: Int
   countries: [String]
   applyOncePerOrder: Boolean
   usageLimit: Int

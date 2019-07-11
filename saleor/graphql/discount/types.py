@@ -116,6 +116,7 @@ class Voucher(CountableDjangoObjectType):
             "end_date",
             "id",
             "min_amount_spent",
+            "min_checkout_items_quantity",
             "name",
             "start_date",
             "type",
