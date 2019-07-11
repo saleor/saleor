@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate the slug field for value input in attributes, and pass by ID instead. - #4348 by @NyanKiyoshi
 - Add filtering and sorting capabilities to the top-level attributes' field. - #4387 by @NyanKiyoshi
 - The `SelectedAttribute` type now returns multiple values and will always return all the attributes assigned to the product type. - #4394 by @NyanKiyoshi
+- Add attribute visibility config - #4449 by @dominik-zeglen
 
 ## [Unreleased]
 
