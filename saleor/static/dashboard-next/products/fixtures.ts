@@ -33,12 +33,14 @@ export const product: (
           }
         ]
       },
-      value: {
-        __typename: "AttributeValue",
-        id: "ptav47282",
-        name: "portals",
-        slug: "portals"
-      }
+      values: [
+        {
+          __typename: "AttributeValue",
+          id: "ptav47282",
+          name: "portals",
+          slug: "portals"
+        }
+      ]
     },
     {
       __typename: "SelectedAttribute",
@@ -75,12 +77,14 @@ export const product: (
           }
         ]
       },
-      value: {
-        __typename: "AttributeValue",
-        id: "ptav14907",
-        name: "Auto Loan Account",
-        slug: "Auto-Loan-Account"
-      }
+      values: [
+        {
+          __typename: "AttributeValue",
+          id: "ptav14907",
+          name: "Auto Loan Account",
+          slug: "Auto-Loan-Account"
+        }
+      ]
     }
   ],
   basePrice: {

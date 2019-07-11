@@ -45,7 +45,7 @@ import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
 
-interface ProductUpdatePageProps extends ListActions {
+export interface ProductUpdatePageProps extends ListActions {
   errors: UserError[];
   placeholderImage: string;
   collections: SearchCollections_collections_edges_node[];
