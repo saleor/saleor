@@ -1,7 +1,9 @@
+.. _taxes_configuration:
+
 Taxes
 =====
 
-Saleor gives a possibility to configure taxes. It supports external tax provides: ``Avarala``, ``Vatlayer``. Currently only one provider can be enabled at the same time.
+Saleor provides the possibility to configure taxes. It supports the following external tax providers: ``Avarala``, ``Vatlayer``. Currently only one provider can be enabled at the same time.
 
 Configuring taxes
 -----------------
@@ -23,28 +25,30 @@ There are three ways in which you can configure taxes:
 Vatlayer
 --------
 
-Configuration can be done in dashboard ``Taxes`` tab.
-
-Taxes are charged according to the rates applicable in the country to which the order is delivered. If tax rate set for the product is not available, standard tax rate is used by default.
+Taxes are charged according to the rates applicable in the country to which the order is delivered. If tax rate set
+for the product is not available, standard tax rate is used by default.
 
 Vatlayer handles taxes only in European Union.
+
+You can configure taxes calculations in the ``Taxes`` section in the Dashboard.
 
 
 Tax rates preview
 ^^^^^^^^^^^^^^^^^
 
-You can preview tax rates in dashboard ``Taxes`` tab. It lists all countries taxes are handled for. You can see all available tax rates for each country in its details view.
+You can preview tax rates in dashboard ``Taxes`` tab. It lists all countries taxes are handled for. You can see all
+available tax rates for each country in its details view.
 
 
 Fetching taxes
 ^^^^^^^^^^^^^^
 
-  Assuming you have provided a valid ``VATLAYER_ACCESS_KEY``, taxes can be fetched via following command:
+  Assuming you have provided a valid ``VATLAYER_ACCESS_KEY``. To update the tax rates, go to the dashboard settings in
+  the tax section and click "fetch taxes".
 
-  .. code-block:: console
+  .. note:
 
-    $ python manage.py get_vat_rates
-
+    You can run `python manage.py get_vat_rates` as a cron job to automatically fetch them.
 
   If you do not have a VatLayer API key, you can get one by `subscribing for free here <https://vatlayer.com/signup?plan=9>`_.
 
@@ -58,23 +62,30 @@ Fetching taxes
 Avalara
 -------
 
-All configuration and account setup should be done on the Avalara's admin panel. Saleor uses standard Avalata's  API to fetch tax codes, calculate taxes during the checkout process and transfer data directly to the Avalara's system.
+All configuration and account setup should be done on the Avalara's admin panel. Saleor uses the standard API of
+Avalata's to fetch tax codes, to calculate taxes during the checkout process and to transfer data directly to the
+Avalara's system.
 
 Configuration
 ^^^^^^^^^^^^^
 
-Only basic data needs to be provided on Saleor side. You need to fill up variables:
-``AVATAX_USERNAME_OR_ACCOUNT``, ``AVATAX_PASSWORD_OR_LICENSE``, ``AVATAX_USE_SANDBOX``, ``AVATAX_COMPANY_NAME``, ``AVATAX_AUTOCOMMIT``, (:ref:`see description of variables.<tax_environment_variables>`)
+Only basic data needs to be provided on Saleor's side. You need to fill up the following variables:
+``AVATAX_USERNAME_OR_ACCOUNT``, ``AVATAX_PASSWORD_OR_LICENSE``, ``AVATAX_USE_SANDBOX``, ``AVATAX_COMPANY_NAME``, ``AVATAX_AUTOCOMMIT`` (:ref:`refer to the variables descriptions.<tax_environment_variables>`)
 
+Avalara supports two ways of authentications:
+    1. Through login information (``username`` + ``password``)
+    2. Through the account information (``account_id`` + ``license``)
+
+Use ``AVATAX_USERNAME_OR_ACCOUNT`` and ``AVATAX_PASSWORD_OR_LICENSE`` to pass one of these authentication pairs
 
 Avalara requires a company address to properly calculate taxes.
-The address must be assigned in the dashboard's general section.
+The address must be assigned in general section of Saleor's dashboard.
 
 .. warning::
-  Avalara will not work without company address provided in the dashboard.
+  Avalara will not work without the company address provided in the dashboard.
 
 
 Tax codes
 ^^^^^^^^^
-Avalara has own system for classification of product type and expected taxes. On Saleor side, store owner needs to assign Avalara's tax code to the given product type or product itself. If you skip this step, Saleor will use common code for all products (which is not recommended).
-Assigning a tax code can be done from dashboard in product type or product section. Both of these sections have a field for assigning tax code for enabled tax gateway.
+Avalara has its own system for classifing the product types and expected taxes. On Saleor's side, the store owner must assign Avalara's tax code to the given product types or product itself. If you skip this step, Saleor will use the common code for all products (which is not recommended).
+Assigning a tax code can be done from the dashboard in the product type or the product section. Both of these sections have a field for assigning a tax code for enabled tax gateway.
