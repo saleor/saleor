@@ -99,6 +99,10 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
                   variables: {
                     input: {
                       ...input,
+                      storefrontSearchPosition: parseInt(
+                        input.storefrontSearchPosition,
+                        0
+                      ),
                       values: values.map(value => ({
                         name: value.name,
                         value: value.slug
