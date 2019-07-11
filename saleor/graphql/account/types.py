@@ -258,7 +258,7 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     @login_required
-    def resolve_stored_payment_sources(root: models.User, _):
+    def resolve_stored_payment_sources(root: models.User, _info):
         from .resolvers import resolve_payment_sources
 
         return resolve_payment_sources(root)
