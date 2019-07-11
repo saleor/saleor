@@ -1184,21 +1184,23 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
                   type="text"
                   value="Szwecja"
                 />
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root-id"
-                  focusable="false"
-                  role="presentation"
-                  viewBox="0 0 24 24"
-                >
-                  <g
-                    style="fill-rule:evenodd"
+                <div>
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    role="presentation"
+                    viewBox="0 0 24 24"
                   >
-                    <path
-                      d="M7 10l5 5 5-5z"
-                    />
-                  </g>
-                </svg>
+                    <g
+                      style="fill-rule:evenodd"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </g>
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -2154,6 +2156,115 @@ exports[`Storyshots Generics / Money range to 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / MultiAutocompleteSelectField with custom option 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    style="margin:auto;overflow:visible;width:400px"
+  >
+    <div
+      class="MuiCardContent-root-id"
+    >
+      <div
+        class="MultiAutocompleteSelectField-container-id"
+      >
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+        >
+          <label
+            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+            data-shrink="false"
+          >
+            Country
+          </label>
+          <div
+            aria-autocomplete="list"
+            aria-expanded="false"
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+            role="combobox"
+          >
+            <input
+              aria-invalid="false"
+              autocomplete="off"
+              class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+              placeholder="Select country"
+              type="text"
+              value=""
+            />
+            <div>
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <g
+                  style="fill-rule:evenodd"
+                >
+                  <path
+                    d="M7 10l5 5 5-5z"
+                  />
+                </g>
+              </svg>
+            </div>
+          </div>
+          <p
+            class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+          >
+            Value: Afghanistan
+          </p>
+        </div>
+      </div>
+      <div
+        class="MultiAutocompleteSelectField-chipContainer-id"
+      >
+        <div
+          class="MultiAutocompleteSelectField-chip-id"
+        >
+          <div
+            class="MultiAutocompleteSelectField-chipInner-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
+            >
+              Afghanistan
+            </span>
+            <button
+              class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiIconButton-label-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
+                  focusable="false"
+                  role="presentation"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                  />
+                  <path
+                    d="M0 0h24v24H0z"
+                    fill="none"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Generics / MultiAutocompleteSelectField with loaded data 1`] = `
 <div
   style="padding:24px"
@@ -2165,100 +2276,99 @@ exports[`Storyshots Generics / MultiAutocompleteSelectField with loaded data 1`]
     <div
       class="MuiCardContent-root-id"
     >
-      <form>
+      <div
+        class="MultiAutocompleteSelectField-container-id"
+      >
         <div
-          class="MultiAutocompleteSelectField-container-id"
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+        >
+          <label
+            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+            data-shrink="false"
+          >
+            Country
+          </label>
+          <div
+            aria-autocomplete="list"
+            aria-expanded="false"
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+            role="combobox"
+          >
+            <input
+              aria-invalid="false"
+              autocomplete="off"
+              class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+              placeholder="Select country"
+              type="text"
+              value=""
+            />
+            <div>
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id"
+                focusable="false"
+                role="presentation"
+                viewBox="0 0 24 24"
+              >
+                <g
+                  style="fill-rule:evenodd"
+                >
+                  <path
+                    d="M7 10l5 5 5-5z"
+                  />
+                </g>
+              </svg>
+            </div>
+          </div>
+          <p
+            class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+          >
+            Value: Afghanistan
+          </p>
+        </div>
+      </div>
+      <div
+        class="MultiAutocompleteSelectField-chipContainer-id"
+      >
+        <div
+          class="MultiAutocompleteSelectField-chip-id"
         >
           <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            class="MultiAutocompleteSelectField-chipInner-id"
           >
-            <label
-              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-              data-shrink="false"
+            <span
+              class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
             >
-              Countries
-            </label>
-            <div
-              aria-autocomplete="list"
-              aria-expanded="false"
-              class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-              role="combobox"
+              Afghanistan
+            </span>
+            <button
+              class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+              tabindex="0"
+              type="button"
             >
-              <input
-                aria-invalid="false"
-                autocomplete="off"
-                class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                placeholder="Select country"
-                type="text"
-              />
-              <div>
+              <span
+                class="MuiIconButton-label-id"
+              >
                 <svg
                   aria-hidden="true"
-                  class="MuiSvgIcon-root-id"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
                   focusable="false"
                   role="presentation"
                   viewBox="0 0 24 24"
                 >
-                  <g
-                    style="fill-rule:evenodd"
-                  >
-                    <path
-                      d="M7 10l5 5 5-5z"
-                    />
-                  </g>
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                  />
+                  <path
+                    d="M0 0h24v24H0z"
+                    fill="none"
+                  />
                 </svg>
-              </div>
-            </div>
-            <p
-              class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
-            >
-              Value: afghanistan
-            </p>
-          </div>
-          <div
-            style="margin-top:16px"
-          >
-            <div
-              style="align-items:center;display:flex;justify-content:space-between"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
-              >
-                Afghanistan
-              </p>
-              <div
-                style="flex:1"
-              />
-              <button
-                class="MuiButtonBase-root-id MuiIconButton-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiIconButton-label-id"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    role="presentation"
-                    style="font-size:16px"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                    />
-                    <path
-                      d="M0 0h24v24H0z"
-                      fill="none"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
+              </span>
+            </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 </div>
@@ -2275,104 +2385,103 @@ exports[`Storyshots Generics / MultiAutocompleteSelectField with loading data 1`
     <div
       class="MuiCardContent-root-id"
     >
-      <form>
+      <div
+        class="MultiAutocompleteSelectField-container-id"
+      >
         <div
-          class="MultiAutocompleteSelectField-container-id"
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
         >
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+          <label
+            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+            data-shrink="false"
           >
-            <label
-              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-              data-shrink="false"
-            >
-              Countries
-            </label>
-            <div
-              aria-autocomplete="list"
-              aria-expanded="false"
-              class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-              role="combobox"
-            >
-              <input
-                aria-invalid="false"
-                autocomplete="off"
-                class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                placeholder="Select country"
-                type="text"
-              />
-              <div>
-                <div
-                  class="MuiCircularProgress-root-id MuiCircularProgress-colorPrimary-id MuiCircularProgress-indeterminate-id"
-                  role="progressbar"
-                  style="width:20px;height:20px"
+            Country
+          </label>
+          <div
+            aria-autocomplete="list"
+            aria-expanded="false"
+            class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+            role="combobox"
+          >
+            <input
+              aria-invalid="false"
+              autocomplete="off"
+              class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+              placeholder="Select country"
+              type="text"
+              value=""
+            />
+            <div>
+              <div
+                class="MuiCircularProgress-root-id MuiCircularProgress-colorPrimary-id MuiCircularProgress-indeterminate-id"
+                role="progressbar"
+                style="width:20px;height:20px"
+              >
+                <svg
+                  class="MuiCircularProgress-svg-id"
+                  viewBox="22 22 44 44"
                 >
-                  <svg
-                    class="MuiCircularProgress-svg-id"
-                    viewBox="22 22 44 44"
-                  >
-                    <circle
-                      class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
-                      cx="44"
-                      cy="44"
-                      fill="none"
-                      r="20.2"
-                      stroke-width="3.6"
-                    />
-                  </svg>
-                </div>
+                  <circle
+                    class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                    cx="44"
+                    cy="44"
+                    fill="none"
+                    r="20.2"
+                    stroke-width="3.6"
+                  />
+                </svg>
               </div>
             </div>
-            <p
-              class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
-            >
-              Value: afghanistan
-            </p>
           </div>
-          <div
-            style="margin-top:16px"
+          <p
+            class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
           >
-            <div
-              style="align-items:center;display:flex;justify-content:space-between"
+            Value: Afghanistan
+          </p>
+        </div>
+      </div>
+      <div
+        class="MultiAutocompleteSelectField-chipContainer-id"
+      >
+        <div
+          class="MultiAutocompleteSelectField-chip-id"
+        >
+          <div
+            class="MultiAutocompleteSelectField-chipInner-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
             >
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id"
+              Afghanistan
+            </span>
+            <button
+              class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiIconButton-label-id"
               >
-                Afghanistan
-              </p>
-              <div
-                style="flex:1"
-              />
-              <button
-                class="MuiButtonBase-root-id MuiIconButton-root-id"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiIconButton-label-id"
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
+                  focusable="false"
+                  role="presentation"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    role="presentation"
-                    style="font-size:16px"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                    />
-                    <path
-                      d="M0 0h24v24H0z"
-                      fill="none"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
+                  <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                  />
+                  <path
+                    d="M0 0h24v24H0z"
+                    fill="none"
+                  />
+                </svg>
+              </span>
+            </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 </div>
@@ -4014,21 +4123,23 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with custom option 
                 type="text"
                 value="Afghanistan"
               />
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <g
-                  style="fill-rule:evenodd"
+              <div>
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id"
+                  focusable="false"
+                  role="presentation"
+                  viewBox="0 0 24 24"
                 >
-                  <path
-                    d="M7 10l5 5 5-5z"
-                  />
-                </g>
-              </svg>
+                  <g
+                    style="fill-rule:evenodd"
+                  >
+                    <path
+                      d="M7 10l5 5 5-5z"
+                    />
+                  </g>
+                </svg>
+              </div>
             </div>
             <p
               class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
@@ -4081,21 +4192,23 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with loaded data 1`
                 type="text"
                 value="Afghanistan"
               />
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <g
-                  style="fill-rule:evenodd"
+              <div>
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id"
+                  focusable="false"
+                  role="presentation"
+                  viewBox="0 0 24 24"
                 >
-                  <path
-                    d="M7 10l5 5 5-5z"
-                  />
-                </g>
-              </svg>
+                  <g
+                    style="fill-rule:evenodd"
+                  >
+                    <path
+                      d="M7 10l5 5 5-5z"
+                    />
+                  </g>
+                </svg>
+              </div>
             </div>
             <p
               class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
@@ -4148,21 +4261,27 @@ exports[`Storyshots Generics / SingleAutocompleteSelectField with loading data 1
                 type="text"
                 value="Afghanistan"
               />
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <g
-                  style="fill-rule:evenodd"
+              <div>
+                <div
+                  class="MuiCircularProgress-root-id MuiCircularProgress-colorPrimary-id MuiCircularProgress-indeterminate-id"
+                  role="progressbar"
+                  style="width:20px;height:20px"
                 >
-                  <path
-                    d="M7 10l5 5 5-5z"
-                  />
-                </g>
-              </svg>
+                  <svg
+                    class="MuiCircularProgress-svg-id"
+                    viewBox="22 22 44 44"
+                  >
+                    <circle
+                      class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+                      cx="44"
+                      cy="44"
+                      fill="none"
+                      r="20.2"
+                      stroke-width="3.6"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
             <p
               class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
@@ -6734,6 +6853,58 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                     value=""
                   />
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                >
+                  This is used internally. Make sure you don’t use spaces
+                </p>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Catalog Input type for Store Owner
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id"
+                      id="select-inputType"
+                      role="button"
+                      tabindex="0"
+                    >
+                      Dropdown
+                    </div>
+                    <input
+                      name="inputType"
+                      type="hidden"
+                      value="DROPDOWN"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -6991,6 +7162,57 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     value="author"
                   />
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
+                >
+                  This is used internally. Make sure you don’t use spaces
+                </p>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Catalog Input type for Store Owner
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                      id="select-inputType"
+                      role="button"
+                    >
+                      Dropdown
+                    </div>
+                    <input
+                      name="inputType"
+                      type="hidden"
+                      value="DROPDOWN"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -7040,13 +7262,13 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-zhk826"
                     scope="col"
                   >
                     Admin
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-4rbw70"
                     scope="col"
                   >
                     Default Store View
@@ -7061,7 +7283,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -7074,7 +7296,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     John Doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -7104,7 +7326,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -7117,7 +7339,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     Milionare Pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -7258,6 +7480,52 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                 >
                   Generic form error
                 </p>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Catalog Input type for Store Owner
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                      id="select-inputType"
+                      role="button"
+                    >
+                      Dropdown
+                    </div>
+                    <input
+                      name="inputType"
+                      type="hidden"
+                      value="DROPDOWN"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -7522,6 +7790,57 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                     value=""
                   />
                 </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-disabled-id"
+                >
+                  This is used internally. Make sure you don’t use spaces
+                </p>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Catalog Input type for Store Owner
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                      id="select-inputType"
+                      role="button"
+                    >
+                      Dropdown
+                    </div>
+                    <input
+                      name="inputType"
+                      type="hidden"
+                      value="DROPDOWN"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -7592,16 +7911,55 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
-                    <span
-                      class="Skeleton-skeleton-id"
+                    john-doe
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    John Doe
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
                     >
-                      ‌
-                    </span>
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    milionare-pirate
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -7619,6 +7977,314 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                       class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
                       disabled=""
                       tabindex="-1"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Attributes / Attribute details multiple select input 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <h5
+          class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
+        >
+          Author
+        </h5>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                General Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Default Label
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="name"
+                    type="text"
+                    value="Author"
+                  />
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Attribute Code
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="slug"
+                    type="text"
+                    value="author"
+                  />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
+                >
+                  This is used internally. Make sure you don’t use spaces
+                </p>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Catalog Input type for Store Owner
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                      id="select-inputType"
+                      role="button"
+                    >
+                      Multiple Select
+                    </div>
+                    <input
+                      name="inputType"
+                      type="hidden"
+                      value="MULTISELECT"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Attribute Values
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Add value
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-id"
+                    scope="col"
+                  >
+                    Admin
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-id"
+                    scope="col"
+                  >
+                    Default Store View
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    john-doe
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    John Doe
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    milionare-pirate
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Milionare Pirate
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
                       type="button"
                     >
                       <span
@@ -7744,6 +8410,57 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                     type="text"
                     value="author"
                   />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
+                >
+                  This is used internally. Make sure you don’t use spaces
+                </p>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
+                class="MuiFormControl-root-id SingleSelectField-formControl-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Catalog Input type for Store Owner
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <div
+                    class="MuiSelect-root-id"
+                  >
+                    <div
+                      aria-haspopup="true"
+                      aria-pressed="false"
+                      class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiSelect-filled-id MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                      id="select-inputType"
+                      role="button"
+                    >
+                      Dropdown
+                    </div>
+                    <input
+                      name="inputType"
+                      type="hidden"
+                      value="DROPDOWN"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
@@ -18972,6 +19689,158 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               </div>
             </td>
           </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id CollectionList-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colName-id"
+            >
+              Vintage vibes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colProducts-id"
+            >
+              4
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colAvailability-id"
+            >
+              <div
+                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id CollectionList-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colName-id"
+            >
+              Merry Christmas
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colProducts-id"
+            >
+              4
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colAvailability-id"
+            >
+              <div
+                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id CollectionList-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colName-id"
+            >
+              80s Miami
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colProducts-id"
+            >
+              4
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colAvailability-id"
+            >
+              <div
+                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id CollectionList-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colName-id"
+            >
+              Yellow Submarine 2019
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colProducts-id"
+            >
+              4
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id CollectionList-colAvailability-id"
+            >
+              <div
+                class="StatusLabel-root-id undefined StatusLabel-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -22215,21 +23084,23 @@ exports[`Storyshots Views / Customers / Create customer default 1`] = `
                           type="text"
                           value=""
                         />
-                        <svg
-                          aria-hidden="true"
-                          class="MuiSvgIcon-root-id"
-                          focusable="false"
-                          role="presentation"
-                          viewBox="0 0 24 24"
-                        >
-                          <g
-                            style="fill-rule:evenodd"
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
                           >
-                            <path
-                              d="M7 10l5 5 5-5z"
-                            />
-                          </g>
-                        </svg>
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -22776,21 +23647,23 @@ exports[`Storyshots Views / Customers / Create customer form errors 1`] = `
                           type="text"
                           value=""
                         />
-                        <svg
-                          aria-hidden="true"
-                          class="MuiSvgIcon-root-id"
-                          focusable="false"
-                          role="presentation"
-                          viewBox="0 0 24 24"
-                        >
-                          <g
-                            style="fill-rule:evenodd"
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
                           >
-                            <path
-                              d="M7 10l5 5 5-5z"
-                            />
-                          </g>
-                        </svg>
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
                       </div>
                       <p
                         class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
@@ -23319,21 +24192,23 @@ exports[`Storyshots Views / Customers / Create customer loading 1`] = `
                           type="text"
                           value=""
                         />
-                        <svg
-                          aria-hidden="true"
-                          class="MuiSvgIcon-root-id"
-                          focusable="false"
-                          role="presentation"
-                          viewBox="0 0 24 24"
-                        >
-                          <g
-                            style="fill-rule:evenodd"
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
                           >
-                            <path
-                              d="M7 10l5 5 5-5z"
-                            />
-                          </g>
-                        </svg>
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -66380,6 +67255,73 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Attributes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+            >
+              <div
+                class="Hook-expansionBar-ojarxu"
+              >
+                <div
+                  class="Hook-expansionBarLabelContainer-x38vpy"
+                >
+                  <span
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                  >
+                    0 Attributes
+                  </span>
+                </div>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
@@ -66637,21 +67579,23 @@ Ctrl + K"
                       type="text"
                       value=""
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -66659,7 +67603,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="SingleAutocompleteSelectField-container-id"
@@ -66687,21 +67634,23 @@ Ctrl + K"
                       type="text"
                       value=""
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -66709,7 +67658,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="MultiAutocompleteSelectField-container-id"
@@ -66734,6 +67686,7 @@ Ctrl + K"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       type="text"
+                      value=""
                     />
                     <div>
                       <svg
@@ -66753,12 +67706,16 @@ Ctrl + K"
                       </svg>
                     </div>
                   </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                  >
+                    *Optional. Adding product to collection helps users find it.
+                  </p>
                 </div>
-                <div
-                  class="FormSpacer-spacer-id"
-                />
-                <div />
               </div>
+              <div
+                class="MultiAutocompleteSelectField-chipContainer-id"
+              />
             </div>
           </div>
           <div
@@ -67260,6 +68217,73 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Attributes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+            >
+              <div
+                class="Hook-expansionBar-ojarxu"
+              >
+                <div
+                  class="Hook-expansionBarLabelContainer-x38vpy"
+                >
+                  <span
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                  >
+                    0 Attributes
+                  </span>
+                </div>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
@@ -67511,21 +68535,23 @@ Ctrl + K"
                       type="text"
                       value=""
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -67533,7 +68559,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="SingleAutocompleteSelectField-container-id"
@@ -67560,21 +68589,23 @@ Ctrl + K"
                       type="text"
                       value=""
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -67582,7 +68613,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="MultiAutocompleteSelectField-container-id"
@@ -67607,6 +68641,7 @@ Ctrl + K"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       type="text"
+                      value=""
                     />
                     <div>
                       <svg
@@ -67626,12 +68661,16 @@ Ctrl + K"
                       </svg>
                     </div>
                   </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                  >
+                    *Optional. Adding product to collection helps users find it.
+                  </p>
                 </div>
-                <div
-                  class="FormSpacer-spacer-id"
-                />
-                <div />
               </div>
+              <div
+                class="MultiAutocompleteSelectField-chipContainer-id"
+              />
             </div>
           </div>
           <div
@@ -68135,6 +69174,73 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Attributes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+            >
+              <div
+                class="Hook-expansionBar-ojarxu"
+              >
+                <div
+                  class="Hook-expansionBarLabelContainer-x38vpy"
+                >
+                  <span
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                  >
+                    0 Attributes
+                  </span>
+                </div>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
@@ -68391,21 +69497,23 @@ Ctrl + K"
                       type="text"
                       value=""
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                   <p
                     class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
@@ -68418,7 +69526,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="SingleAutocompleteSelectField-container-id"
@@ -68445,21 +69556,23 @@ Ctrl + K"
                       type="text"
                       value=""
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                   <p
                     class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
@@ -68472,7 +69585,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="MultiAutocompleteSelectField-container-id"
@@ -68497,6 +69613,7 @@ Ctrl + K"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       type="text"
+                      value=""
                     />
                     <div>
                       <svg
@@ -68516,12 +69633,16 @@ Ctrl + K"
                       </svg>
                     </div>
                   </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                  >
+                    *Optional. Adding product to collection helps users find it.
+                  </p>
                 </div>
-                <div
-                  class="FormSpacer-spacer-id"
-                />
-                <div />
               </div>
+              <div
+                class="MultiAutocompleteSelectField-chipContainer-id"
+              />
             </div>
           </div>
           <div
@@ -68771,7 +69892,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
         </div>
         <div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantAttributes-card-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -68792,48 +69913,54 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id ProductVariantAttributes-grid-id"
+              class="MuiCardContent-root-id"
             >
               <div
-                class="SingleAutocompleteSelectField-container-id"
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  class="SingleAutocompleteSelectField-container-id"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
-                  >
-                    Color
-                  </label>
                   <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value=""
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
+                    <label
+                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                      data-shrink="false"
                     >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                      Color
+                    </label>
+                    <div
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      role="combobox"
+                    >
+                      <input
+                        aria-invalid="false"
+                        autocomplete="off"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                        type="text"
+                        value=""
+                      />
+                      <div>
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -69172,7 +70299,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
         </div>
         <div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantAttributes-card-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -69193,13 +70320,11 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id ProductVariantAttributes-grid-id"
+              class="MuiCardContent-root-id"
             >
-              <span
-                class="Skeleton-skeleton-id"
-              >
-                ‌
-              </span>
+              <div
+                class="Grid-root-id Grid-uniform-id"
+              />
             </div>
           </div>
           <div
@@ -69545,7 +70670,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
         </div>
         <div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantAttributes-card-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -69566,48 +70691,54 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id ProductVariantAttributes-grid-id"
+              class="MuiCardContent-root-id"
             >
               <div
-                class="SingleAutocompleteSelectField-container-id"
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  class="SingleAutocompleteSelectField-container-id"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                    data-shrink="false"
-                  >
-                    Color
-                  </label>
                   <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value=""
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
+                    <label
+                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                      data-shrink="false"
                     >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                      Color
+                    </label>
+                    <div
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      role="combobox"
+                    >
+                      <input
+                        aria-invalid="false"
+                        autocomplete="off"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                        type="text"
+                        value=""
+                      />
+                      <div>
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -70596,6 +71727,241 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Attributes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+            >
+              <div
+                class="Hook-expansionBar-ojarxu"
+              >
+                <div
+                  class="Hook-expansionBarLabelContainer-x38vpy"
+                >
+                  <span
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                  >
+                    2 Attributes
+                  </span>
+                </div>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="Hook-attributeSectionLabel-t3suwb"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body2-id"
+                  >
+                    Borders
+                  </p>
+                </div>
+                <div>
+                  <div
+                    class="SingleAutocompleteSelectField-container-id"
+                  >
+                    <div
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    >
+                      <label
+                        class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                        data-shrink="true"
+                      >
+                        Value
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                        role="combobox"
+                      >
+                        <input
+                          aria-invalid="false"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                          type="text"
+                          value="portals"
+                        />
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="Hook-attributeSectionLabel-t3suwb"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body2-id"
+                  >
+                    Legacy
+                  </p>
+                </div>
+                <div>
+                  <div
+                    class="MultiAutocompleteSelectField-container-id"
+                  >
+                    <div
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    >
+                      <label
+                        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                        data-shrink="false"
+                      >
+                        Values
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                        role="combobox"
+                      >
+                        <input
+                          aria-invalid="false"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                          type="text"
+                          value=""
+                        />
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="MultiAutocompleteSelectField-chipContainer-id"
+                  >
+                    <div
+                      class="MultiAutocompleteSelectField-chip-id"
+                    >
+                      <div
+                        class="MultiAutocompleteSelectField-chipInner-id"
+                      >
+                        <span
+                          class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
+                        >
+                          Auto Loan Account
+                        </span>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
@@ -70956,110 +72322,13 @@ Ctrl + K"
                 Configurable
               </p>
               <div
-                class="CardSpacer-spacer-id"
-              />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
-              <hr
-                class="ProductOrganization-hr-id"
-              />
-              <div
-                class="SingleAutocompleteSelectField-container-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Borders
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value="portals"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="SingleAutocompleteSelectField-container-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Legacy
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value="Auto Loan Account"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="SingleAutocompleteSelectField-container-id"
@@ -71086,21 +72355,23 @@ Ctrl + K"
                       type="text"
                       value="Apparel"
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -71108,7 +72379,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="MultiAutocompleteSelectField-container-id"
@@ -71133,6 +72407,7 @@ Ctrl + K"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       type="text"
+                      value=""
                     />
                     <div>
                       <svg
@@ -71152,34 +72427,52 @@ Ctrl + K"
                       </svg>
                     </div>
                   </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                  >
+                    *Optional. Adding product to collection helps users find it.
+                  </p>
                 </div>
+              </div>
+              <div
+                class="MultiAutocompleteSelectField-chipContainer-id"
+              >
                 <div
-                  class="FormSpacer-spacer-id"
-                />
-                <div>
+                  class="MultiAutocompleteSelectField-chip-id"
+                >
                   <div
-                    class="Chip-root-id"
+                    class="MultiAutocompleteSelectField-chipInner-id"
                   >
                     <span
-                      class="MuiTypography-root-id MuiTypography-caption-id Chip-label-id"
+                      class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
                     >
                       Winter sale
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id Chip-closeIcon-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
                     </span>
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -71731,6 +73024,73 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Attributes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+            >
+              <div
+                class="Hook-expansionBar-ojarxu"
+              >
+                <div
+                  class="Hook-expansionBarLabelContainer-x38vpy"
+                >
+                  <span
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                  >
+                    0 Attributes
+                  </span>
+                </div>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
@@ -71981,7 +73341,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="SingleAutocompleteSelectField-container-id"
@@ -72009,21 +73372,23 @@ Ctrl + K"
                       type="text"
                       value=""
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -72031,7 +73396,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="MultiAutocompleteSelectField-container-id"
@@ -72056,6 +73424,7 @@ Ctrl + K"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       type="text"
+                      value=""
                     />
                     <div>
                       <svg
@@ -72075,12 +73444,16 @@ Ctrl + K"
                       </svg>
                     </div>
                   </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                  >
+                    *Optional. Adding product to collection helps users find it.
+                  </p>
                 </div>
-                <div
-                  class="FormSpacer-spacer-id"
-                />
-                <div />
               </div>
+              <div
+                class="MultiAutocompleteSelectField-chipContainer-id"
+              />
             </div>
           </div>
           <div
@@ -72884,6 +74257,241 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Attributes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+            >
+              <div
+                class="Hook-expansionBar-ojarxu"
+              >
+                <div
+                  class="Hook-expansionBarLabelContainer-x38vpy"
+                >
+                  <span
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                  >
+                    2 Attributes
+                  </span>
+                </div>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="Hook-attributeSectionLabel-t3suwb"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body2-id"
+                  >
+                    Borders
+                  </p>
+                </div>
+                <div>
+                  <div
+                    class="SingleAutocompleteSelectField-container-id"
+                  >
+                    <div
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    >
+                      <label
+                        class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                        data-shrink="true"
+                      >
+                        Value
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                        role="combobox"
+                      >
+                        <input
+                          aria-invalid="false"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                          type="text"
+                          value="portals"
+                        />
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="Hook-attributeSectionLabel-t3suwb"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body2-id"
+                  >
+                    Legacy
+                  </p>
+                </div>
+                <div>
+                  <div
+                    class="MultiAutocompleteSelectField-container-id"
+                  >
+                    <div
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    >
+                      <label
+                        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                        data-shrink="false"
+                      >
+                        Values
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                        role="combobox"
+                      >
+                        <input
+                          aria-invalid="false"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                          type="text"
+                          value=""
+                        />
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="MultiAutocompleteSelectField-chipContainer-id"
+                  >
+                    <div
+                      class="MultiAutocompleteSelectField-chip-id"
+                    >
+                      <div
+                        class="MultiAutocompleteSelectField-chipInner-id"
+                      >
+                        <span
+                          class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
+                        >
+                          Auto Loan Account
+                        </span>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
@@ -73244,110 +74852,13 @@ Ctrl + K"
                 Configurable
               </p>
               <div
-                class="CardSpacer-spacer-id"
-              />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
-              <hr
-                class="ProductOrganization-hr-id"
-              />
-              <div
-                class="SingleAutocompleteSelectField-container-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Borders
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value="portals"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="SingleAutocompleteSelectField-container-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Legacy
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value="Auto Loan Account"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="SingleAutocompleteSelectField-container-id"
@@ -73374,21 +74885,23 @@ Ctrl + K"
                       type="text"
                       value="Apparel"
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -73396,7 +74909,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="MultiAutocompleteSelectField-container-id"
@@ -73421,6 +74937,7 @@ Ctrl + K"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       type="text"
+                      value=""
                     />
                     <div>
                       <svg
@@ -73440,34 +74957,52 @@ Ctrl + K"
                       </svg>
                     </div>
                   </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                  >
+                    *Optional. Adding product to collection helps users find it.
+                  </p>
                 </div>
+              </div>
+              <div
+                class="MultiAutocompleteSelectField-chipContainer-id"
+              >
                 <div
-                  class="FormSpacer-spacer-id"
-                />
-                <div>
+                  class="MultiAutocompleteSelectField-chip-id"
+                >
                   <div
-                    class="Chip-root-id"
+                    class="MultiAutocompleteSelectField-chipInner-id"
                   >
                     <span
-                      class="MuiTypography-root-id MuiTypography-caption-id Chip-label-id"
+                      class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
                     >
                       Winter sale
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id Chip-closeIcon-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
                     </span>
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -74341,6 +75876,241 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Attributes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+            >
+              <div
+                class="Hook-expansionBar-ojarxu"
+              >
+                <div
+                  class="Hook-expansionBarLabelContainer-x38vpy"
+                >
+                  <span
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                  >
+                    2 Attributes
+                  </span>
+                </div>
+                <button
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                      <path
+                        d="M0 0h24v24H0z"
+                        fill="none"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="Hook-attributeSectionLabel-t3suwb"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body2-id"
+                  >
+                    Borders
+                  </p>
+                </div>
+                <div>
+                  <div
+                    class="SingleAutocompleteSelectField-container-id"
+                  >
+                    <div
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    >
+                      <label
+                        class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                        data-shrink="true"
+                      >
+                        Value
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                        role="combobox"
+                      >
+                        <input
+                          aria-invalid="false"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                          type="text"
+                          value="portals"
+                        />
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="Hook-attributeSectionLabel-t3suwb"
+                >
+                  <p
+                    class="MuiTypography-root-id MuiTypography-body2-id"
+                  >
+                    Legacy
+                  </p>
+                </div>
+                <div>
+                  <div
+                    class="MultiAutocompleteSelectField-container-id"
+                  >
+                    <div
+                      class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                    >
+                      <label
+                        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                        data-shrink="false"
+                      >
+                        Values
+                      </label>
+                      <div
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                        role="combobox"
+                      >
+                        <input
+                          aria-invalid="false"
+                          autocomplete="off"
+                          class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                          type="text"
+                          value=""
+                        />
+                        <div>
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root-id"
+                            focusable="false"
+                            role="presentation"
+                            viewBox="0 0 24 24"
+                          >
+                            <g
+                              style="fill-rule:evenodd"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </g>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="MultiAutocompleteSelectField-chipContainer-id"
+                  >
+                    <div
+                      class="MultiAutocompleteSelectField-chip-id"
+                    >
+                      <div
+                        class="MultiAutocompleteSelectField-chipInner-id"
+                      >
+                        <span
+                          class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
+                        >
+                          Auto Loan Account
+                        </span>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                              />
+                              <path
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
@@ -74598,110 +76368,13 @@ Ctrl + K"
                 Simple
               </p>
               <div
-                class="CardSpacer-spacer-id"
-              />
-              <p
-                class="MuiTypography-root-id MuiTypography-body2-id ProductOrganization-cardSubtitle-id"
-              >
-                Attributes
-              </p>
-              <hr
-                class="ProductOrganization-hr-id"
-              />
-              <div
-                class="SingleAutocompleteSelectField-container-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Borders
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value="portals"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="FormSpacer-spacer-id"
-              />
-              <div
-                class="SingleAutocompleteSelectField-container-id"
-              >
-                <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-                >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Legacy
-                  </label>
-                  <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
-                  >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value="Auto Loan Account"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="SingleAutocompleteSelectField-container-id"
@@ -74728,21 +76401,23 @@ Ctrl + K"
                       type="text"
                       value="Apparel"
                     />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
                       >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -74750,7 +76425,10 @@ Ctrl + K"
                 class="FormSpacer-spacer-id"
               />
               <hr
-                class="ProductOrganization-hr-id"
+                class="Hr-root-id"
+              />
+              <div
+                class="FormSpacer-spacer-id"
               />
               <div
                 class="MultiAutocompleteSelectField-container-id"
@@ -74775,6 +76453,7 @@ Ctrl + K"
                       autocomplete="off"
                       class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                       type="text"
+                      value=""
                     />
                     <div>
                       <svg
@@ -74794,34 +76473,52 @@ Ctrl + K"
                       </svg>
                     </div>
                   </div>
+                  <p
+                    class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                  >
+                    *Optional. Adding product to collection helps users find it.
+                  </p>
                 </div>
+              </div>
+              <div
+                class="MultiAutocompleteSelectField-chipContainer-id"
+              >
                 <div
-                  class="FormSpacer-spacer-id"
-                />
-                <div>
+                  class="MultiAutocompleteSelectField-chip-id"
+                >
                   <div
-                    class="Chip-root-id"
+                    class="MultiAutocompleteSelectField-chipInner-id"
                   >
                     <span
-                      class="MuiTypography-root-id MuiTypography-caption-id Chip-label-id"
+                      class="MuiTypography-root-id MuiTypography-caption-id MultiAutocompleteSelectField-chipLabel-id"
                     >
                       Winter sale
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root-id Chip-closeIcon-id"
-                        focusable="false"
-                        role="presentation"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                        />
-                        <path
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        />
-                      </svg>
                     </span>
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MultiAutocompleteSelectField-chipClose-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeSmall-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -78287,7 +79984,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
         </div>
         <div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantAttributes-card-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -78308,91 +80005,99 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id ProductVariantAttributes-grid-id"
+              class="MuiCardContent-root-id"
             >
               <div
-                class="SingleAutocompleteSelectField-container-id"
+                class="Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  class="SingleAutocompleteSelectField-container-id"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Borders
-                  </label>
                   <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value="portals"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
+                    <label
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
                     >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                      Borders
+                    </label>
+                    <div
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      role="combobox"
+                    >
+                      <input
+                        aria-invalid="false"
+                        autocomplete="off"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                        type="text"
+                        value="portals"
+                      />
+                      <div>
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div
-                class="SingleAutocompleteSelectField-container-id"
-              >
                 <div
-                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  class="SingleAutocompleteSelectField-container-id"
                 >
-                  <label
-                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
-                    data-shrink="true"
-                  >
-                    Legacy
-                  </label>
                   <div
-                    aria-autocomplete="list"
-                    aria-expanded="false"
-                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
-                    role="combobox"
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
-                    <input
-                      aria-invalid="false"
-                      autocomplete="off"
-                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
-                      type="text"
-                      value="Auto Loan Account"
-                    />
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      role="presentation"
-                      viewBox="0 0 24 24"
+                    <label
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
                     >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M7 10l5 5 5-5z"
-                        />
-                      </g>
-                    </svg>
+                      Legacy
+                    </label>
+                    <div
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      role="combobox"
+                    >
+                      <input
+                        aria-invalid="false"
+                        autocomplete="off"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                        type="text"
+                        value="Auto Loan Account"
+                      />
+                      <div>
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -78791,7 +80496,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
         </div>
         <div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductVariantAttributes-card-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="CardTitle-root-id"
@@ -78812,13 +80517,11 @@ exports[`Storyshots Views / Products / Product variant details when loading data
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id ProductVariantAttributes-grid-id"
+              class="MuiCardContent-root-id"
             >
-              <span
-                class="Skeleton-skeleton-id"
-              >
-                ‌
-              </span>
+              <div
+                class="Grid-root-id Grid-uniform-id"
+              />
             </div>
           </div>
           <div
@@ -78921,6 +80624,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                         disabled=""
                         name="priceOverride"
                         type="number"
+                        value=""
                       />
                       <span />
                     </div>
@@ -78950,6 +80654,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                         disabled=""
                         name="costPrice"
                         type="number"
+                        value=""
                       />
                       <span />
                     </div>
@@ -78998,8 +80703,8 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
-                      data-shrink="false"
+                      class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
                     >
                       Inventory
                     </label>
@@ -79012,7 +80717,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                         disabled=""
                         name="quantity"
                         type="text"
-                        value=""
+                        value="0"
                       />
                     </div>
                   </div>
@@ -79036,6 +80741,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                         disabled=""
                         name="sku"
                         type="text"
+                        value=""
                       />
                     </div>
                   </div>
