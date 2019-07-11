@@ -23,7 +23,11 @@ export interface AttributeDetails_attribute {
   id: string;
   name: string | null;
   slug: string | null;
+  visibleInStorefront: boolean | null;
+  filterableInDashboard: boolean | null;
+  filterableInStorefront: boolean | null;
   inputType: AttributeInputTypeEnum | null;
+  storefrontSearchPosition: number | null;
   values: (AttributeDetails_attribute_values | null)[] | null;
 }
 

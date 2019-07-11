@@ -29,7 +29,11 @@ export interface AttributeCreate_attributeCreate_attribute {
   id: string;
   name: string | null;
   slug: string | null;
+  visibleInStorefront: boolean | null;
+  filterableInDashboard: boolean | null;
+  filterableInStorefront: boolean | null;
   inputType: AttributeInputTypeEnum | null;
+  storefrontSearchPosition: number | null;
   values: (AttributeCreate_attributeCreate_attribute_values | null)[] | null;
 }
 
