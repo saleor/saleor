@@ -1,0 +1,95 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/app
+    docker:
+      - image: circleci/node:10.7.0
+    steps:
+      - checkout
+      - run:
+          name: Install system dependencies
+          command: sudo apt-get install -y libpng-dev
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Run typescript checker
+          command: npx tsc --noEmit
+      - run:
+          name: Run tslint
+          command: npm run tslint
+      - run:
+          name: Build application
+          command: npm run build
+      - run:
+          name: Run tests
+          command: npm run test
+      - persist_to_workspace:
+          root: ~/app
+          paths:
+            - dist/*
+  cypress/run:
+    docker:
+      - image: cypress/base:8
+        environment:
+          TERM: xterm
+    parallelism: 1
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cache-{{ .Branch }}-{{ checksum "package.json" }}
+      - run:
+          name: Npm CI
+          command: npm ci
+      - run:
+          command: npx cypress verify
+      - save_cache:
+          key: cache-{{ .Branch }}-{{ checksum "package.json" }}
+          paths:
+            - ~/.npm
+            - ~/.cache
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
+            - .cache/Cypress
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Running E2E tests
+          command: npm run test:e2e:run
+      - store_artifacts:
+          path: cypress/videos
+      - store_artifacts:
+          path: cypress/screenshots
+  deploy:
+    working_directory: ~/app
+    docker:
+      - image: circleci/python:2.7-jessie
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Deploy to S3
+          command: aws s3 sync dist s3://saleor-store-front/ --acl public-read
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^v.*/
+      - deploy:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - cypress/run
