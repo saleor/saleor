@@ -8,23 +8,33 @@ import Form from "@saleor/components/Form";
 import Grid from "@saleor/components/Grid";
 import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
-import useFormset, { FormsetChange } from "@saleor/hooks/useFormset";
+import useFormset, {
+  FormsetChange,
+  FormsetData
+} from "@saleor/hooks/useFormset";
 import { getVariantAttributeInputFromProduct } from "@saleor/products/utils/data";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { ProductVariantCreateData_product } from "../../types/ProductVariantCreateData";
-import ProductVariantAttributes from "../ProductVariantAttributes";
+import ProductVariantAttributes, {
+  VariantAttributeInputData
+} from "../ProductVariantAttributes";
 import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
 
-interface FormData {
+interface ProductVariantCreatePageFormData {
   costPrice: string;
   images: string[];
   priceOverride: string;
   quantity: number;
   sku: string;
+}
+
+export interface ProductVariantCreatePageSubmitData
+  extends ProductVariantCreatePageFormData {
+  attributes: FormsetData<VariantAttributeInputData>;
 }
 
 interface ProductVariantCreatePageProps {
@@ -35,7 +45,7 @@ interface ProductVariantCreatePageProps {
   product: ProductVariantCreateData_product;
   saveButtonBarState: ConfirmButtonTransitionState;
   onBack: () => void;
-  onSubmit: (data: FormData) => void;
+  onSubmit: (data: ProductVariantCreatePageSubmitData) => void;
   onVariantClick: (variantId: string) => void;
 }
 
@@ -74,8 +84,15 @@ const ProductVariantCreatePage: React.FC<ProductVariantCreatePageProps> = ({
     quantity: 0,
     sku: ""
   };
+
+  const handleSubmit = (data: ProductVariantCreatePageFormData) =>
+    onSubmit({
+      ...data,
+      attributes
+    });
+
   return (
-    <Form initial={initialForm} errors={formErrors} onSubmit={onSubmit}>
+    <Form initial={initialForm} errors={formErrors} onSubmit={handleSubmit}>
       {({ change, data, errors, hasChanged, submit, triggerChange }) => {
         const handleAttributeChange: FormsetChange = (id, value) => {
           changeAttributeData(id, value);
