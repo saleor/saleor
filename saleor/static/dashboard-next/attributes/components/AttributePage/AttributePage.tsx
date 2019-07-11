@@ -17,6 +17,7 @@ import {
   AttributeDetailsFragment_values
 } from "../../types/AttributeDetailsFragment";
 import AttributeDetails from "../AttributeDetails";
+import AttributeProperties from "../AttributeProperties";
 import AttributeValues from "../AttributeValues";
 
 export interface AttributePageProps {
@@ -34,9 +35,13 @@ export interface AttributePageProps {
 }
 
 export interface AttributePageFormData {
+  filterableInDashboard: boolean;
   inputType: AttributeInputTypeEnum;
+  filterableInStorefront: boolean;
   name: string;
   slug: string;
+  storefrontSearchPosition: string;
+  visibleInStorefront: boolean;
 }
 
 const AttributePage: React.FC<AttributePageProps> = ({
@@ -55,17 +60,34 @@ const AttributePage: React.FC<AttributePageProps> = ({
   const initialForm: AttributePageFormData =
     attribute === null
       ? {
+          filterableInDashboard: false,
+          filterableInStorefront: false,
           inputType: AttributeInputTypeEnum.DROPDOWN,
           name: "",
-          slug: ""
+          slug: "",
+          storefrontSearchPosition: "",
+          visibleInStorefront: false
         }
       : {
+          filterableInDashboard: maybe(
+            () => attribute.filterableInDashboard,
+            false
+          ),
+          filterableInStorefront: maybe(
+            () => attribute.filterableInStorefront,
+            false
+          ),
           inputType: maybe(
             () => attribute.inputType,
             AttributeInputTypeEnum.DROPDOWN
           ),
           name: maybe(() => attribute.name, ""),
-          slug: maybe(() => attribute.slug, "")
+          slug: maybe(() => attribute.slug, ""),
+          storefrontSearchPosition: maybe(
+            () => attribute.storefrontSearchPosition.toString(),
+            ""
+          ),
+          visibleInStorefront: maybe(() => attribute.visibleInStorefront, false)
         };
 
   return (
@@ -100,14 +122,14 @@ const AttributePage: React.FC<AttributePageProps> = ({
                 onValueUpdate={onValueUpdate}
               />
             </div>
-            {/* TODO: Uncomment after restricting some attributes to be only product attributes */}
-            {/* <div>
+            <div>
               <AttributeProperties
                 data={data}
+                errors={formErrors}
                 disabled={disabled}
                 onChange={change}
               />
-            </div> */}
+            </div>
           </Grid>
           <SaveButtonBar
             disabled={disabled}
