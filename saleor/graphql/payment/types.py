@@ -52,6 +52,19 @@ class CreditCard(graphene.ObjectType):
     )
 
 
+class PaymentSource(graphene.ObjectType):
+    class Meta:
+        description = (
+            "Represents a payment source stored "
+            "for user in payment gateway, such as credit card."
+        )
+
+    gateway = graphene.String(description="Payment gateway name", required=True)
+    credit_card_info = graphene.Field(
+        CreditCard, description="Stored credit card details if available"
+    )
+
+
 class Payment(CountableDjangoObjectType):
     charge_status = PaymentChargeStatusEnum(
         description="Internal payment status.", required=True

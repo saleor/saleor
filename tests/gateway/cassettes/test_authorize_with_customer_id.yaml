@@ -1,0 +1,96 @@
+interactions:
+- request:
+    body: <transaction><amount>100.0</amount><customer_id>810066863</customer_id><options><submit_for_settlement
+      type="boolean">true</submit_for_settlement></options><order_id type="integer">1</order_id><billing><first_name>John</first_name><last_name>Doe</last_name><company>Mirumee
+      Software</company><postal_code>53-601</postal_code><street_address>T&#281;czowa
+      7</street_address><extended_address></extended_address><locality>WROC&#321;AW</locality><region></region><country_code_alpha2>PL</country_code_alpha2></billing><risk_data><customer_ip></customer_ip></risk_data><customer><email>test@example.com</email></customer><type>sale</type></transaction>
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '647'
+      Content-type:
+      - application/xml
+      User-Agent:
+      - Braintree Python 3.49.0
+      X-ApiVersion:
+      - '5'
+    method: POST
+    uri: https://api.sandbox.braintreegateway.com/merchants/9m6qhfxsqzm3cgzw/transactions
+  response:
+    body:
+      string: !!binary |
+        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
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Encoding:
+      - gzip
+      Content-Security-Policy:
+      - frame-ancestors 'self'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Wed, 26 Jun 2019 15:28:13 GMT
+      ETag:
+      - W/"28e2684be1cc92eb4a235606b105596c"
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Authentication:
+      - basic_auth
+      X-BroxyId:
+      - 01-1561562892.756-79.110.196.19-4630334
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Request-Id:
+      - 01-1561562892.756-79.110.196.19-4630334
+      X-Runtime:
+      - '0.707386'
+      X-User:
+      - wgs3tg8h39pyypyc
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 201
+      message: Created
+version: 1

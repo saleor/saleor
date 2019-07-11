@@ -30,6 +30,7 @@ TRANSACTION_AMOUNT = Decimal("61.33")
 @pytest.fixture
 def gateway_config():
     return GatewayConfig(
+        gateway_name="razorpay",
         auto_capture=False,
         template_path="template.html",
         connection_params={

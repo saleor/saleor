@@ -41,6 +41,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <FilterTab
             onClick={() => onTabChange(tabIndex + 1)}
             label={tab.name}
+            key={tabIndex}
           />
         ))}
         {isCustom && (

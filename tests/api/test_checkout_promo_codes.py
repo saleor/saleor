@@ -4,7 +4,7 @@ import graphene
 from prices import TaxedMoney
 
 from saleor.checkout.utils import add_voucher_to_checkout
-from saleor.discount import DiscountInfo
+from saleor.discount import DiscountInfo, VoucherType
 from tests.api.test_checkout import (
     MUTATION_CHECKOUT_LINES_DELETE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
@@ -314,10 +314,90 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     variables = {"checkoutId": checkout_id, "promoCode": voucher_percentage.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    checkout_with_item.refresh_from_db()
     assert not data["errors"]
-    assert data["checkout"]["id"] == checkout_id
-    assert data["checkout"]["voucherCode"] == voucher_percentage.code
-    assert data["checkout"]["totalPrice"]["gross"]["amount"] == 13.5
+    assert checkout_with_item.voucher_code == voucher_percentage.code
+    assert checkout_with_item.discount_amount.amount == 1.5
+
+
+def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_specific_product_type, discount_info
+):
+    voucher = voucher_specific_product_type
+    checkout = checkout_with_item
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount.amount == 1.5
+
+
+def test_checkout_add_products_voucher_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_percentage, discount_info
+):
+    checkout = checkout_with_item
+    product = checkout.lines.first().variant.product
+    voucher = voucher_percentage
+    voucher.type = VoucherType.PRODUCT
+    voucher.save()
+    voucher.products.add(product)
+
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount.amount == 1.5
+
+
+def test_checkout_add_collection_voucher_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_percentage, discount_info, collection
+):
+    checkout = checkout_with_item
+    voucher = voucher_percentage
+    product = checkout.lines.first().variant.product
+    product.collections.add(collection)
+    voucher.type = VoucherType.COLLECTION
+    voucher.save()
+    voucher.collections.add(collection)
+
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount.amount == 1.5
+
+
+def test_checkout_add_category_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_percentage, discount_info
+):
+    checkout = checkout_with_item
+    category = checkout.lines.first().variant.product.category
+    voucher = voucher_percentage
+    voucher.type = VoucherType.CATEGORY
+    voucher.save()
+    voucher.categories.add(category)
+
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount.amount == 1.5
 
 
 def test_checkout_add_voucher_code_not_applicable_voucher(

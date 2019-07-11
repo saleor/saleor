@@ -70,13 +70,15 @@ const ProductVariantPage: React.StatelessComponent<ProductVariantPageProps> = ({
         <PageHeader title={header} />
         <Form
           initial={{
-            attributes:
-              variant && variant.attributes
-                ? variant.attributes.map(a => ({
-                    slug: a.attribute.slug,
-                    value: a.value.slug
-                  }))
-                : [],
+            attributes: maybe(
+              () =>
+                variant.attributes.map(a => ({
+                  name: a.attribute.name,
+                  slug: a.attribute.slug,
+                  value: a.value.slug
+                })),
+              []
+            ),
             costPrice:
               variant && variant.costPrice
                 ? variant.costPrice.amount.toString()
