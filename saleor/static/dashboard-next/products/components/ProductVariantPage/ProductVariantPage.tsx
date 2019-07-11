@@ -26,8 +26,8 @@ import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
 
 export interface ProductVariantPageFormData {
-  costPrice: number;
-  priceOverride: number;
+  costPrice: string;
+  priceOverride: string;
   quantity: number;
   sku: string;
 }
@@ -90,8 +90,8 @@ const ProductVariantPage: React.FC<ProductVariantPageProps> = ({
   );
 
   const initialForm: ProductVariantPageFormData = {
-    costPrice: maybe(() => variant.costPrice.amount, 0),
-    priceOverride: maybe(() => variant.priceOverride.amount, 0),
+    costPrice: maybe(() => variant.costPrice.amount.toString(), ""),
+    priceOverride: maybe(() => variant.priceOverride.amount.toString(), ""),
     quantity: maybe(() => variant.quantity, 0),
     sku: maybe(() => variant.sku, "")
   };
