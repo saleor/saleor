@@ -82,19 +82,19 @@ const ProductTypeCreatePage: React.StatelessComponent<
                 disabled={disabled}
                 onChange={change}
               />
+              <CardSpacer />
+              <ProductTypeTaxes
+                disabled={disabled}
+                data={data}
+                taxTypes={taxTypes}
+                onChange={change}
+              />
             </div>
             <div>
               <ProductTypeShipping
                 disabled={disabled}
                 data={data}
                 defaultWeightUnit={defaultWeightUnit}
-                onChange={change}
-              />
-              <CardSpacer />
-              <ProductTypeTaxes
-                disabled={disabled}
-                data={data}
-                taxTypes={taxTypes}
                 onChange={change}
               />
             </div>
