@@ -15,7 +15,8 @@ const props: Omit<ProductTypeCreatePageProps, "classes"> = {
   onBack: () => undefined,
   onSubmit: () => undefined,
   pageTitle: "Create product type",
-  saveButtonBarState: "default"
+  saveButtonBarState: "default",
+  taxTypes: []
 };
 
 storiesOf("Views / Product types / Create product type", module)
