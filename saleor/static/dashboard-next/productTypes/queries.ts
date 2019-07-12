@@ -29,7 +29,10 @@ export const productTypeFragment = gql`
     name
     hasVariants
     isShippingRequired
-    taxRate
+    taxType {
+      description
+      taxCode
+    }
   }
 `;
 
@@ -88,6 +91,10 @@ export const productTypeDetailsQuery = gql`
     shop {
       defaultWeightUnit
     }
+    taxTypes {
+      taxCode
+      description
+    }
   }
 `;
 export const TypedProductTypeDetailsQuery = TypedQuery<
@@ -99,6 +106,10 @@ export const productTypeCreateDataQuery = gql`
   query ProductTypeCreateData {
     shop {
       defaultWeightUnit
+    }
+    taxTypes {
+      taxCode
+      description
     }
   }
 `;
