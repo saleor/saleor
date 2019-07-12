@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 class DummyPlugin(BasePlugin):
     """Dummy plugin class which overwrites all base plugin methods. It should be used
-    when any other plugins are enabled"""
+    when any other plugins are disabled"""
 
     def calculate_checkout_total(
         self, checkout: "Checkout", discounts: List["DiscountInfo"]
