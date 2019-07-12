@@ -19,10 +19,10 @@ def check_extensions(app_configs, **kwargs):
 
 
 def check_manager(errors: List[Error]):
-    if not hasattr(settings, "EXTENSION_MANAGER") or not settings.EXTENSION_MANAGER:
-        errors.append(Error("Settings should contain EXTENSION_MANAGER env"))
+    if not hasattr(settings, "EXTENSIONS_MANAGER") or not settings.EXTENSIONS_MANAGER:
+        errors.append(Error("Settings should contain EXTENSIONS_MANAGER env"))
         return
-    manager_path = settings.EXTENSION_MANAGER
+    manager_path = settings.EXTENSIONS_MANAGER
     manager_path, _, manager_name = manager_path.rpartition(".")
     try:
         manager_module = importlib.import_module(manager_path)
