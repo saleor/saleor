@@ -134,6 +134,7 @@
                 <input class="form-control" type="text" name="q"
                        value="{% if query %}{{ query }}{% endif %}"
                        placeholder="{% trans "Search for product" %}"
+                       autocomplete="off"
                        required>
                 <button class="btn btn-primary" type="submit">
                   {% trans "Search" %} <svg data-src="{% static "images/search.svg" %}" width="18" height="18"/>
