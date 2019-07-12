@@ -131,6 +131,15 @@ const ProductTypeDetailsPage: React.StatelessComponent<
                   onChange={change}
                 />
                 <CardSpacer />
+                <ProductTypeTaxes
+                  disabled={disabled}
+                  data={data}
+                  taxTypes={maybe(() => taxTypes, [
+                    { description: "", taxCode: "" }
+                  ])}
+                  onChange={change}
+                />
+                <CardSpacer />
                 <ProductTypeAttributes
                   attributes={maybe(() => productType.productAttributes)}
                   type={AttributeTypeEnum.PRODUCT}
@@ -164,15 +173,6 @@ const ProductTypeDetailsPage: React.StatelessComponent<
                   disabled={disabled}
                   data={data}
                   defaultWeightUnit={defaultWeightUnit}
-                  onChange={change}
-                />
-                <CardSpacer />
-                <ProductTypeTaxes
-                  disabled={disabled}
-                  data={data}
-                  taxTypes={maybe(() => taxTypes, [
-                    { description: "", taxCode: "" }
-                  ])}
                   onChange={change}
                 />
               </div>
