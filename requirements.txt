@@ -26,7 +26,7 @@ django-bootstrap4==0.0.8
 django-cache-url==3.0.0
 django-countries==5.3.3
 django-debug-toolbar-request-history==0.0.11
-django-debug-toolbar==2.0
+django-debug-toolbar==1.11
 django-elasticsearch-dsl==0.5.1
 django-filter==2.1.0
 django-graphql-jwt==0.2.1
