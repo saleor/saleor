@@ -7,7 +7,7 @@ from saleor.core.extensions.checks import check_extensions
     "manager_path", [None, "", "saleor.core.extension.wrong_path.Manager"]
 )
 def test_check_extensions_missing_manager(manager_path, settings):
-    settings.EXTENSION_MANAGER = manager_path
+    settings.EXTENSIONS_MANAGER = manager_path
     errors = check_extensions({})
     assert errors
 
