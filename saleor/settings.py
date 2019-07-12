@@ -196,22 +196,22 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "saleor.core.middleware.django_session_middleware",
-    "saleor.core.middleware.django_security_middleware",
-    "saleor.core.middleware.django_auth_middleware",
-    "saleor.core.middleware.django_messages_middleware",
-    "saleor.core.middleware.django_locale_middleware",
-    "saleor.core.middleware.babel_locale_middleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django_babel.middleware.LocaleMiddleware",
     "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.taxes",
-    "saleor.core.middleware.social_auth_exception_middleware",
-    "saleor.core.middleware.impersonate_middleware",
+    "social_django.middleware.SocialAuthExceptionMiddleware",
+    "impersonate.middleware.ImpersonateMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
 ]
 
