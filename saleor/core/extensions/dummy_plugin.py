@@ -4,6 +4,7 @@ from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ..taxes import TaxType, quantize_price
+from .plugin import BasePlugin
 
 if TYPE_CHECKING:
     from ...checkout.models import Checkout, CheckoutLine
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
     from ...order.models import OrderLine, Order
 
 
-class DummyPlugin:
+class DummyPlugin(BasePlugin):
     """Dummy plugin class which overwrites all base plugin methods. It should be used
     when any other plugins are enabled"""
 
@@ -86,10 +87,12 @@ class DummyPlugin:
     def postprocess_order_creation(self, order: "Order"):
         return
 
-    def assign_tax_to_object_meta(
+    def assign_data_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str
     ):
         return
 
-    def get_tax_from_object_meta(self, obj: Union["Product", "ProductType"]) -> TaxType:
+    def get_data_from_object_meta(
+        self, obj: Union["Product", "ProductType"]
+    ) -> TaxType:
         return TaxType(code="", description="")
