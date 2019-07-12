@@ -1,4 +1,5 @@
 import graphene
+import json
 import pytest
 from tests.api.utils import get_graphql_content
 
@@ -48,3 +49,29 @@ def test_get_private_meta(
     assert meta["clients"] == [
         {"metadata": [{"key": KEY, "value": VALUE}], "name": META_CLIENT}
     ]
+
+
+MY_PRIVATE_META_QUERY = """
+    {
+        me {
+            email
+            privateMeta {
+                label
+                clients {
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_user_has_no_access_to_private_meta(user_api_client, customer_with_meta):
+    response = user_api_client.post_graphql(MY_PRIVATE_META_QUERY)
+    data = json.loads(response.content.decode("utf8"))
+    assert data["errors"] is not None
+    assert data["data"]["me"]["privateMeta"] is None
