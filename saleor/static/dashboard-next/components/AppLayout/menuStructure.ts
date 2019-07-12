@@ -1,3 +1,4 @@
+import { configure } from "enzyme";
 import { categoryListUrl } from "../../categories/urls";
 import { collectionListUrl } from "../../collections/urls";
 import { customerListUrl } from "../../customers/urls";
@@ -8,9 +9,17 @@ import { productListUrl } from "../../products/urls";
 import { languageListUrl } from "../../translations/urls";
 import { PermissionEnum } from "../../types/globalTypes";
 
+import homeIcon from "../../../images/menu-home-icon.svg";
+import catalogIcon from "../../../images/menu-catalog-icon.svg";
+import ordersIcon from "../../../images/menu-orders-icon.svg";
+import customerIcon from "../../../images/menu-customers-icon.svg";
+import discountsIcon from "../../../images/menu-discounts-icon.svg";
+import translationIcon from "../../../images/menu-translation-icon.svg";
+
 export interface IMenuItem {
   ariaLabel: string;
   children?: IMenuItem[];
+  icon?: any;
   label: string;
   permission?: PermissionEnum;
   url?: string;
@@ -19,11 +28,13 @@ export interface IMenuItem {
 const menuStructure: IMenuItem[] = [
   {
     ariaLabel: "home",
+    icon: homeIcon,
     label: i18n.t("Home", { context: "Menu label" }),
     url: "/"
   },
   {
     ariaLabel: "catalogue",
+    icon: catalogIcon,
     children: [
       {
         ariaLabel: "products",
@@ -46,6 +57,7 @@ const menuStructure: IMenuItem[] = [
   },
   {
     ariaLabel: "orders",
+    icon: ordersIcon,
     children: [
       {
         ariaLabel: "orders",
@@ -65,6 +77,7 @@ const menuStructure: IMenuItem[] = [
   },
   {
     ariaLabel: "customers",
+    icon: customerIcon,
     label: i18n.t("Customers", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_USERS,
     url: customerListUrl()
@@ -72,6 +85,7 @@ const menuStructure: IMenuItem[] = [
 
   {
     ariaLabel: "discounts",
+    icon: discountsIcon,
     children: [
       {
         ariaLabel: "sales",
@@ -89,6 +103,7 @@ const menuStructure: IMenuItem[] = [
   },
   {
     ariaLabel: "translations",
+    icon: translationIcon,
     label: i18n.t("Translations", { context: "Menu label" }),
     permission: PermissionEnum.MANAGE_TRANSLATIONS,
     url: languageListUrl
