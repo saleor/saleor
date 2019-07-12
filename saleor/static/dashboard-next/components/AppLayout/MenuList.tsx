@@ -8,6 +8,7 @@ import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
 import React from "react";
 import { matchPath } from "react-router";
+import SVG from "react-inlinesvg";
 
 import { User } from "../../auth/types/User";
 import { configurationMenu, configurationMenuUrl } from "../../configuration";
@@ -17,8 +18,19 @@ import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
 import MenuNested from "./MenuNested";
 import { IMenuItem } from "./menuStructure";
 
+import configureIcon from "../../../images/menu-configure-icon.svg";
+
 const styles = (theme: Theme) =>
   createStyles({
+    menuIcon: {
+      display: "inline-block",
+      position: "relative",
+      top: 8,
+      "& svg": {
+        width: 32,
+        height: 32
+      }
+    },
     menuList: {
       display: "flex",
       flexDirection: "column",
@@ -54,8 +66,10 @@ const styles = (theme: Theme) =>
         color: theme.palette.primary.main
       },
       cursor: "pointer",
+      display: "inline-block",
       fontSize: "1rem",
       fontWeight: 500,
+      paddingLeft: 16,
       textTransform: "uppercase",
       transition: theme.transitions.duration.standard + "ms"
     },
@@ -144,6 +158,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             onClick={event => onMenuItemClick(menuItem.url, event)}
             key={menuItem.label}
           >
+            <SVG className={classes.menuIcon} src={menuItem.icon} />
             <Typography
               aria-label={menuItem.ariaLabel}
               className={classes.menuListItemText}
@@ -162,6 +177,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             href={createHref(configurationMenuUrl)}
             onClick={event => onMenuItemClick(configurationMenuUrl, event)}
           >
+            <SVG className={classes.menuIcon} src={configureIcon} />
             <Typography
               aria-label="configure"
               className={classes.menuListItemText}

@@ -1,6 +1,7 @@
 import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
 import React from "react";
+import SVG from "react-inlinesvg";
 
 import { User } from "../../auth/types/User";
 import MenuList from "./MenuList";
@@ -8,6 +9,7 @@ import { IMenuItem } from "./menuStructure";
 
 export interface MenuNestedProps {
   classes: Record<
+    | "menuIcon"
     | "menuListItem"
     | "menuListItemActive"
     | "menuListItemText"
@@ -38,6 +40,7 @@ const MenuNested: React.FC<MenuNestedProps> = ({
         [classes.menuListItemActive]: isAnyChildActive
       })}
     >
+      <SVG className={classes.menuIcon} src={menuItem.icon} />
       <Typography
         aria-label={menuItem.ariaLabel}
         className={classes.menuListItemText}
