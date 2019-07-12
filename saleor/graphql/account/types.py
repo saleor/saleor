@@ -268,6 +268,7 @@ class User(CountableDjangoObjectType):
         return resolve_payment_sources(root)
 
     @staticmethod
+    @permission_required("account.manage_users")
     def resolve_private_meta(root: models.User, _info):
         return [
             {"label": label, "metadata": data}
