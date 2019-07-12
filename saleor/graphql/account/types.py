@@ -267,6 +267,13 @@ class User(CountableDjangoObjectType):
 
         return resolve_payment_sources(root)
 
+    @staticmethod
+    def resolve_private_meta(root: models.User, _info):
+        return [
+            {"label": label, "metadata": data}
+            for label, data in root.private_meta.items()
+        ]
+
 
 class ChoiceValue(graphene.ObjectType):
     raw = graphene.String()
