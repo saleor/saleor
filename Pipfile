@@ -82,7 +82,7 @@ pylint = "*"
 pylint_celery = "*"
 isort = "*"
 yapf = "*"
-django-debug-toolbar = "==1.11" # The Request History plugin isn't compatible with 2.0
+django-debug-toolbar = "<2" # The Request History plugin isn't compatible with 2.0
 django-debug-toolbar-request-history = "*"
 django-extensions = "*"
 pylint-plugin-utils = "*"
