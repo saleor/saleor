@@ -567,6 +567,7 @@ export interface VoucherInput {
   collections?: (string | null)[] | null;
   categories?: (string | null)[] | null;
   minAmountSpent?: any | null;
+  minCheckoutItemsQuantity?: number | null;
   countries?: (string | null)[] | null;
   applyOncePerOrder?: boolean | null;
   usageLimit?: number | null;
