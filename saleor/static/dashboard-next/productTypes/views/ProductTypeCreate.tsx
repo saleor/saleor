@@ -4,7 +4,7 @@ import { WindowTitle } from "@saleor/components/WindowTitle";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "../../i18n";
-import { maybe } from "../../misc";
+import { getMutationState, maybe } from "../../misc";
 import ProductTypeCreatePage, {
   ProductTypeForm
 } from "../components/ProductTypeCreatePage";
@@ -29,8 +29,9 @@ export const ProductTypeCreate: React.StatelessComponent = () => {
     <TypedProductTypeCreateMutation onCompleted={handleCreateSuccess}>
       {(
         createProductType,
-        { loading: loadingCreate, data: createProductTypeData }
+        { called, loading, data: createProductTypeData }
       ) => {
+        const formTransitionState = getMutationState(loading, called);
         const handleCreate = (formData: ProductTypeForm) =>
           createProductType({
             variables: {
@@ -50,7 +51,7 @@ export const ProductTypeCreate: React.StatelessComponent = () => {
                 <WindowTitle title={i18n.t("Create product type")} />
                 <ProductTypeCreatePage
                   defaultWeightUnit={maybe(() => data.shop.defaultWeightUnit)}
-                  disabled={loadingCreate || loading}
+                  disabled={loading}
                   errors={
                     createProductTypeData
                       ? createProductTypeData.productTypeCreate.errors
@@ -59,14 +60,8 @@ export const ProductTypeCreate: React.StatelessComponent = () => {
                   pageTitle={i18n.t("Create Product Type", {
                     context: "page title"
                   })}
-                  saveButtonBarState={loadingCreate ? "loading" : "default"}
-                  taxTypes={maybe(() => data.taxTypes, [
-                    {
-                      __typename: "TaxType",
-                      description: "",
-                      taxCode: ""
-                    }
-                  ])}
+                  saveButtonBarState={formTransitionState}
+                  taxTypes={maybe(() => data.taxTypes, [])}
                   onBack={() => navigate(productTypeListUrl())}
                   onSubmit={handleCreate}
                 />
