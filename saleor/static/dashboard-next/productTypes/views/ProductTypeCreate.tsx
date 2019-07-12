@@ -38,7 +38,7 @@ export const ProductTypeCreate: React.StatelessComponent = () => {
                 hasVariants: false,
                 isShippingRequired: formData.isShippingRequired,
                 name: formData.name,
-                taxRate: formData.chargeTaxes ? formData.taxRate : null,
+                taxCode: formData.taxType.value,
                 weight: formData.weight
               }
             }
@@ -60,6 +60,13 @@ export const ProductTypeCreate: React.StatelessComponent = () => {
                     context: "page title"
                   })}
                   saveButtonBarState={loadingCreate ? "loading" : "default"}
+                  taxTypes={maybe(() => data.taxTypes, [
+                    {
+                      __typename: "TaxType",
+                      description: "",
+                      taxCode: ""
+                    }
+                  ])}
                   onBack={() => navigate(productTypeListUrl())}
                   onSubmit={handleCreate}
                 />
