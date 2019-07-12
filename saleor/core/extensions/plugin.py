@@ -82,28 +82,3 @@ class BasePlugin:
         self, obj: Union["Product", "ProductType"]
     ) -> TaxType:
         raise NotImplementedError()
-
-
-class VatlayerPlugin(BasePlugin):
-    """"""
-
-    taxes = None
-    # SimpleLazyObject(
-    #     lambda: get_taxes_for_country(request.country)
-    # )
-
-    def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country, **kwargs
-    ):
-        from ..taxes.vatlayer import get_taxes_for_country
-        from ..taxes.vatlayer.interface import apply_taxes_to_product
-
-        if not self.taxes:
-            self.taxes = get_taxes_for_country(country)
-        return apply_taxes_to_product(
-            product, price, country, taxes=self.taxes, **kwargs
-        )
-
-
-class AvalaraPlugin(BasePlugin):
-    """"""
