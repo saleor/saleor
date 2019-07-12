@@ -1,6 +1,9 @@
+from decimal import Decimal
+
 from django.urls import reverse
 from prices import Money
 
+from saleor.discount import DiscountValueType
 from saleor.product.models import Product, ProductVariant
 from saleor.product.utils.variant_prices import update_product_minimal_variant_price
 
@@ -158,3 +161,68 @@ def test_dashboard_product_variant_delete_view_updates_minimal_variant_price(
 
     product.refresh_from_db()
     assert product.minimal_variant_price == product.price
+
+
+def test_dashboard_sale_of_product_create_view_updates_minimal_variant_price(
+    admin_client, product
+):
+    # Store the old "minimal_variant_price"
+    old_minimal_variant_price = product.minimal_variant_price
+    # Create the "Sale" object of the given product
+    url = reverse("dashboard:sale-add")
+    data = {
+        "name": "Half price products",
+        "type": DiscountValueType.PERCENTAGE,
+        "value": 50,
+        "start_date": "2019-07-11 00:00:01",
+        "products": [product.pk],
+    }
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+
+    product.refresh_from_db()
+    assert product.minimal_variant_price == Decimal("0.5") * old_minimal_variant_price
+
+
+def test_dashboard_sale_of_category_create_view_updates_minimal_variant_price(
+    admin_client, product
+):
+    category = product.category
+    # Store the old "minimal_variant_price"
+    old_minimal_variant_price = product.minimal_variant_price
+    # Create the "Sale" object of the given product
+    url = reverse("dashboard:sale-add")
+    data = {
+        "name": "Half price products",
+        "type": DiscountValueType.PERCENTAGE,
+        "value": 50,
+        "start_date": "2019-07-11 00:00:01",
+        "categories": [category.pk],
+    }
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+
+    product.refresh_from_db()
+    assert product.minimal_variant_price == Decimal("0.5") * old_minimal_variant_price
+
+
+def test_dashboard_sale_of_collection_create_view_updates_minimal_variant_price(
+    admin_client, product, collection
+):
+    collection.products.add(product)
+    # Store the old "minimal_variant_price"
+    old_minimal_variant_price = product.minimal_variant_price
+    # Create the "Sale" object of the given product
+    url = reverse("dashboard:sale-add")
+    data = {
+        "name": "Half price products",
+        "type": DiscountValueType.PERCENTAGE,
+        "value": 50,
+        "start_date": "2019-07-11 00:00:01",
+        "collections": [collection.pk],
+    }
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+
+    product.refresh_from_db()
+    assert product.minimal_variant_price == Decimal("0.5") * old_minimal_variant_price
