@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Iterable
 
 from django.db.models import F
+from django.utils import timezone
 from django.utils.translation import pgettext
 
 from ..core.taxes import zero_money
@@ -172,4 +173,4 @@ def fetch_discounts(date: datetime.date):
 
 
 def fetch_active_discounts():
-    return fetch_discounts(datetime.date.today())
+    return fetch_discounts(timezone.now())
