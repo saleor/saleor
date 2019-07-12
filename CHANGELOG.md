@@ -17,6 +17,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use hooks instead of class component in forms - #4374 by @dominik-zeglen
 - Drop csrf token header from API client - #4357 by @dominik-zeglen
 - Improve vouchers ui - #4362 by @benekex2
+- Update documentation for taxes - #4405 by @korycins
 - Fix for random failing tests in test_discount - #4401 by @korycins
 - Fix internal error when users enters an invalid phone number in an address - #4404 by @NyanKiyoshi
 - Add minimal quantity of products for voucher - #4427 by @fowczarek
