@@ -63,8 +63,7 @@ Avalara
 -------
 
 All configuration and account setup should be done on the Avalara's admin panel. Saleor uses the standard API of
-Avalata's to fetch tax codes, to calculate taxes during the checkout process and to transfer data directly to the
-Avalara's system.
+Avalara to fetch tax codes, calculate taxes during the checkout process and transfer data directly to Avalara.
 
 Configuration
 ^^^^^^^^^^^^^
@@ -76,13 +75,10 @@ Avalara supports two ways of authentications:
     1. Through login information (``username`` + ``password``)
     2. Through the account information (``account_id`` + ``license``)
 
-Use ``AVATAX_USERNAME_OR_ACCOUNT`` and ``AVATAX_PASSWORD_OR_LICENSE`` to pass one of these authentication pairs
+Use ``AVATAX_USERNAME_OR_ACCOUNT`` and ``AVATAX_PASSWORD_OR_LICENSE`` to pass one of these authentication pairs.
 
 Avalara requires a company address to properly calculate taxes.
-The address must be assigned in general section of Saleor's dashboard.
-
-.. warning::
-  Avalara will not work without the company address provided in the dashboard.
+Your company's address can be assigned in the dashboard in ``Configure`` > ``Site Settings`` > ``Company Information`` section.
 
 
 Tax codes
