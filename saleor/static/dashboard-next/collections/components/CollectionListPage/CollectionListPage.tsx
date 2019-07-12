@@ -1,6 +1,6 @@
 import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
-import * as React from "react";
+import React from "react";
 
 import { Container } from "@saleor/components/Container";
 import PageHeader from "@saleor/components/PageHeader";

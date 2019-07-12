@@ -1,5 +1,5 @@
 import { convertFromRaw, RawDraftContentState } from "draft-js";
-import * as React from "react";
+import React from "react";
 
 import AppHeader from "@saleor/components/AppHeader";
 import CardSpacer from "@saleor/components/CardSpacer";
@@ -206,7 +206,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, submit }) => (
+      {({ change, data, errors, hasChanged, set, submit }) => (
         <>
           <Container>
             <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
@@ -287,6 +287,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   data={data}
                   disabled={disabled}
                   onChange={change}
+                  onSet={set}
                 />
                 <CardSpacer />
                 <VisibilityCard

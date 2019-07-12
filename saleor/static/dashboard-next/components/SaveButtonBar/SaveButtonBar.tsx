@@ -7,7 +7,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 import useScroll from "@saleor/hooks/useScroll";
 import i18n from "../../i18n";

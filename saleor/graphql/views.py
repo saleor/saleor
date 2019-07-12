@@ -37,9 +37,9 @@ DEFAULT_QUERY = """# Welcome to Saleor GraphQL API!
 {
   product(id: "%(product_id)s") {
     name
-    price {
-      amount
-      currency
+    description
+    category {
+      name
     }
   }
 }

@@ -46,6 +46,7 @@ ERROR_MESSAGE = "error-message"
 @pytest.fixture()
 def gateway_config():
     return GatewayConfig(
+        gateway_name="stripe",
         auto_capture=False,
         template_path="template.html",
         connection_params={

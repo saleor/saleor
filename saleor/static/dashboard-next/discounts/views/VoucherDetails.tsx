@@ -1,6 +1,6 @@
 import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
-import * as React from "react";
+import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import AssignCategoriesDialog from "@saleor/components/AssignCategoryDialog";
@@ -21,11 +21,11 @@ import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
 import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
-import { decimal, getMutationState, maybe } from "../../misc";
+import { decimal, getMutationState, joinDateTime, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
 import {
   DiscountValueTypeEnum,
-  VoucherDiscountValueType
+  VoucherTypeEnum
 } from "../../types/globalTypes";
 import DiscountCountrySelectDialog from "../components/DiscountCountrySelectDialog";
 import VoucherDetailsPage, {
@@ -52,14 +52,6 @@ import {
 interface VoucherDetailsProps {
   id: string;
   params: VoucherUrlQueryParams;
-}
-
-function discountValueTypeEnum(
-  type: VoucherDiscountValueType
-): DiscountValueTypeEnum {
-  return type.toString() === DiscountValueTypeEnum.FIXED
-    ? DiscountValueTypeEnum.FIXED
-    : DiscountValueTypeEnum.PERCENTAGE;
 }
 
 export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
@@ -323,19 +315,33 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   variables: {
                                     id,
                                     input: {
-                                      discountValue: decimal(formData.value),
-                                      discountValueType: discountValueTypeEnum(
-                                        formData.discountType
+                                      applyOncePerOrder:
+                                        formData.applyOncePerOrder,
+                                      discountValue:
+                                        formData.discountType.toString() ===
+                                        "SHIPPING"
+                                          ? 100
+                                          : decimal(formData.value),
+                                      discountValueType:
+                                        formData.discountType.toString() ===
+                                        "SHIPPING"
+                                          ? DiscountValueTypeEnum.PERCENTAGE
+                                          : formData.discountType,
+                                      endDate: joinDateTime(
+                                        formData.endDate,
+                                        formData.endTime
                                       ),
-                                      endDate:
-                                        formData.endDate === ""
-                                          ? null
-                                          : formData.endDate,
-                                      name: formData.name,
-                                      startDate:
-                                        formData.startDate === ""
-                                          ? null
-                                          : formData.startDate
+                                      minAmountSpent: formData.minAmountSpent,
+                                      startDate: joinDateTime(
+                                        formData.startDate,
+                                        formData.startTime
+                                      ),
+                                      type:
+                                        formData.discountType.toString() ===
+                                        "SHIPPING"
+                                          ? VoucherTypeEnum.SHIPPING
+                                          : formData.type,
+                                      usageLimit: formData.usageLimit
                                     }
                                   }
                                 })
@@ -597,10 +603,10 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               <DialogContentText
                                 dangerouslySetInnerHTML={{
                                   __html: i18n.t(
-                                    "Are you sure you want to remove <strong>{{ voucherName }}</strong>?",
+                                    "Are you sure you want to remove <strong>{{ voucherCode }}</strong>?",
                                     {
-                                      voucherName: maybe(
-                                        () => data.voucher.name,
+                                      voucherCode: maybe(
+                                        () => data.voucher.code,
                                         "..."
                                       )
                                     }

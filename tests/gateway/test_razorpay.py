@@ -30,6 +30,7 @@ TRANSACTION_AMOUNT = Decimal("61.33")
 @pytest.fixture
 def gateway_config():
     return GatewayConfig(
+        gateway_name="razorpay",
         auto_capture=False,
         template_path="template.html",
         connection_params={
@@ -81,7 +82,7 @@ def test_checkout_widget_render_without_prefill(razorpay_payment, gateway_config
         **gateway_config.connection_params,
     )
     assert widget.render() == (
-        '<script data-amount="8000" data-buttontext="Pay now with Razorpay" '
+        '<script data-amount="9840" data-buttontext="Pay now with Razorpay" '
         'data-currency="INR" data-custom="123" '
         'data-description="Total payment" '
         'data-image="image.png" data-key="public" data-name="Saleor" '
@@ -95,7 +96,7 @@ def test_checkout_widget_render_with_prefill(razorpay_payment, gateway_config):
         payment_information=payment_info, **gateway_config.connection_params
     )
     assert widget.render() == (
-        '<script data-amount="8000" data-buttontext="Pay now with Razorpay" '
+        '<script data-amount="9840" data-buttontext="Pay now with Razorpay" '
         'data-currency="INR" data-description="Total payment" '
         'data-image="image.png" data-key="public" data-name="Saleor" '
         'data-prefill.email="test@example.com" '

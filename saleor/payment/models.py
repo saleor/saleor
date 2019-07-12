@@ -9,7 +9,7 @@ from django.db import models
 from prices import Money
 
 from ..checkout.models import Checkout
-from ..core.utils.taxes import zero_money
+from ..core.taxes import zero_money
 from ..order.models import Order
 from . import (
     ChargeStatus,
@@ -210,6 +210,7 @@ class Transaction(models.Model):
         max_length=256,
         null=True,
     )
+    customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
 
     class Meta:

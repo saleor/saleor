@@ -8,7 +8,7 @@ import { createStyles, WithStyles, withStyles } from "@material-ui/core/styles";
 import TextField, { TextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import DropdownIcon from "@material-ui/icons/ArrowDropDown";
-import * as React from "react";
+import React from "react";
 
 import MenuToggle from "../MenuToggle";
 
@@ -78,7 +78,7 @@ const TextFieldWithChoice = withStyles(styles, {
                       <Typography component="span" variant="caption">
                         {ChoiceProps.label}
                       </Typography>
-                      <DropdownIcon />
+                      {ChoiceProps.values ? <DropdownIcon /> : null}
                     </div>
                     <Popper
                       open={menuOpen}

@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import pytest
 from django.shortcuts import reverse
 from django.templatetags.static import static
-from django.test import override_settings
+from django.test import Client, override_settings
 from django.urls import translate_url
 from measurement.measures import Weight
 from prices import Money
@@ -125,11 +125,12 @@ def test_create_fake_order(db, monkeypatch, image, media_root):
     for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
-        random_data.create_products_by_schema("/", 10)
-    how_many = 5
+        pass
+    random_data.create_products_by_schema("/", False)
+    how_many = 2
     for _ in random_data.create_orders(how_many):
         pass
-    assert Order.objects.all().count() == 5
+    assert Order.objects.all().count() == 2
 
 
 def test_create_product_sales(db):
@@ -284,3 +285,10 @@ def test_delete_sort_order_with_null_value(menu_item):
     menu_item.sort_order = None
     menu_item.save(update_fields=["sort_order"])
     menu_item.delete()
+
+
+def test_csrf_middleware_is_enabled():
+    csrf_client = Client(enforce_csrf_checks=True)
+    checkout_url = reverse("checkout:index")
+    response = csrf_client.post(checkout_url)
+    assert response.status_code == 403

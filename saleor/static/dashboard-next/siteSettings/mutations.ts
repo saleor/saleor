@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
+import { fragmentAddress } from "../orders/queries";
 import { shopFragment } from "./queries";
 import {
   AuthorizationKeyAdd,
@@ -58,9 +59,11 @@ export const TypedAuthorizationKeyDelete = TypedMutation<
 
 const shopSettingsUpdate = gql`
   ${shopFragment}
+  ${fragmentAddress}
   mutation ShopSettingsUpdate(
     $shopDomainInput: SiteDomainInput!
     $shopSettingsInput: ShopSettingsInput!
+    $addressInput: AddressInput!
   ) {
     shopSettingsUpdate(input: $shopSettingsInput) {
       errors {
@@ -80,6 +83,17 @@ const shopSettingsUpdate = gql`
         domain {
           host
           url
+        }
+      }
+    }
+    shopAddressUpdate(input: $addressInput) {
+      errors {
+        field
+        message
+      }
+      shop {
+        companyAddress {
+          ...AddressFragment
         }
       }
     }

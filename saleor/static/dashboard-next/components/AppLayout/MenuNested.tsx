@@ -1,6 +1,6 @@
 import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 import { User } from "../../auth/types/User";
 import MenuList from "./MenuList";

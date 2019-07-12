@@ -1,6 +1,6 @@
 import { storiesOf } from "@storybook/react";
 import { RawDraftContentState } from "draft-js";
-import * as React from "react";
+import React from "react";
 
 import RichTextEditor from "@saleor/components/RichTextEditor";
 import CardDecorator from "../../CardDecorator";
@@ -25,6 +25,24 @@ export const content: RawDraftContentState = {
       key: "6tbch",
       text: "italic",
       type: "unstyled"
+    },
+    {
+      data: {},
+      depth: 0,
+      entityRanges: [],
+      inlineStyleRanges: [{ offset: 0, length: 13, style: "STRIKETHROUGH" }],
+      key: "1p044",
+      text: "strikethrough",
+      type: "unstyled"
+    },
+    {
+      data: {},
+      depth: 0,
+      entityRanges: [],
+      inlineStyleRanges: [],
+      key: "aven6",
+      text: "h1",
+      type: "header-one"
     },
     {
       data: {},
@@ -82,12 +100,12 @@ export const content: RawDraftContentState = {
     }
   ],
   entityMap: {
-    "0": { type: "LINK", mutability: "MUTABLE", data: { href: "#" } }
+    "0": { type: "LINK", mutability: "MUTABLE", data: { url: "#" } }
   }
 };
 storiesOf("Generics / Rich text editor", module)
-.addDecorator(CardDecorator)
-.addDecorator(Decorator)
+  .addDecorator(CardDecorator)
+  .addDecorator(Decorator)
   .add("default", () => (
     <RichTextEditor
       disabled={false}

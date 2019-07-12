@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import * as placeholderImage from "../../../../images/placeholder60x60.png";
+import placeholderImage from "../../../../images/placeholder60x60.png";
 import OrderProductAddDialog from "../../../orders/components/OrderProductAddDialog";
 import { orderLineSearch } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";

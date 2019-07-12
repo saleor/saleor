@@ -11,14 +11,13 @@ from django.core.serializers.base import DeserializationError
 from django.http import JsonResponse
 from django.urls import reverse
 from freezegun import freeze_time
-from prices import Money, TaxedMoney, TaxedMoneyRange
+from prices import Money, MoneyRange, TaxedMoney
 
 from saleor.account import events as account_events
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.dashboard.menu.utils import update_menu
-from saleor.discount.models import Sale
 from saleor.menu.models import MenuItemTranslation
 from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.models import DigitalContentUrl
@@ -161,7 +160,7 @@ def test_render_home_page_with_sale(client, product, sale):
     assert response.status_code == 200
 
 
-def test_render_home_page_with_taxes(client, product, vatlayer):
+def test_render_home_page_with_taxes(client, product):
     response = client.get(reverse("home"))
     assert response.status_code == 200
 
@@ -176,7 +175,7 @@ def test_render_category_with_sale(client, category, product, sale):
     assert response.status_code == 200
 
 
-def test_render_category_with_taxes(client, category, product, vatlayer):
+def test_render_category_with_taxes(client, category, product):
     response = client.get(category.get_absolute_url())
     assert response.status_code == 200
 
@@ -191,7 +190,7 @@ def test_render_product_detail_with_sale(client, product, sale):
     assert response.status_code == 200
 
 
-def test_render_product_detail_with_taxes(client, product, vatlayer):
+def test_render_product_detail_with_taxes(client, product):
     response = client.get(product.get_absolute_url())
     assert response.status_code == 200
 
@@ -418,52 +417,31 @@ def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
 
 
 @pytest.mark.parametrize(
-    "product_price, include_taxes_in_prices, include_taxes, include_discounts,"
-    "product_net, product_gross",
-    [
-        ("10.00", False, False, False, "10.00", "10.00"),
-        ("10.00", False, True, False, "10.00", "12.30"),
-        ("15.00", False, False, True, "10.00", "10.00"),
-        ("15.00", False, True, True, "10.00", "12.30"),
-        ("10.00", True, False, False, "10.00", "10.00"),
-        ("10.00", True, True, False, "8.13", "10.00"),
-        ("15.00", True, False, True, "10.00", "10.00"),
-        ("15.00", True, True, True, "8.13", "10.00"),
-    ],
+    "expected_price, include_discounts",
+    [(Decimal("10.00"), True), (Decimal("15.0"), False)],
 )
 def test_get_price(
     product_type,
     category,
-    taxes,
     sale,
-    product_price,
-    include_taxes_in_prices,
-    include_taxes,
+    expected_price,
     include_discounts,
-    product_net,
-    product_gross,
     site_settings,
+    discount_info,
 ):
-    site_settings.include_taxes_in_prices = include_taxes_in_prices
-    site_settings.save()
     product = models.Product.objects.create(
-        product_type=product_type, category=category, price=Money(product_price, "USD")
+        product_type=product_type,
+        category=category,
+        price=Money(Decimal("15.00"), "USD"),
     )
     variant = product.variants.create()
 
-    price = variant.get_price(
-        taxes=taxes if include_taxes else None,
-        discounts=Sale.objects.all() if include_discounts else None,
-    )
+    price = variant.get_price(discounts=[discount_info] if include_discounts else [])
 
-    assert price == TaxedMoney(
-        net=Money(product_net, "USD"), gross=Money(product_gross, "USD")
-    )
+    assert price.amount == expected_price
 
 
-def test_product_get_price_variant_has_no_price(
-    product_type, category, taxes, site_settings
-):
+def test_product_get_price_variant_has_no_price(product_type, category, site_settings):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
     product = models.Product.objects.create(
@@ -471,31 +449,23 @@ def test_product_get_price_variant_has_no_price(
     )
     variant = product.variants.create()
 
-    price = variant.get_price(taxes=taxes)
+    price = variant.get_price()
 
-    assert price == TaxedMoney(net=Money("10.00", "USD"), gross=Money("12.30", "USD"))
+    assert price == Money("10.00", "USD")
 
 
-def test_product_get_price_variant_with_price(
-    product_type, category, taxes, site_settings
-):
-    site_settings.include_taxes_in_prices = False
-    site_settings.save()
+def test_product_get_price_variant_with_price(product_type, category):
     product = models.Product.objects.create(
         product_type=product_type, category=category, price=Money("10.00", "USD")
     )
     variant = product.variants.create(price_override=Money("20.00", "USD"))
 
-    price = variant.get_price(taxes=taxes)
+    price = variant.get_price()
 
-    assert price == TaxedMoney(net=Money("20.00", "USD"), gross=Money("24.60", "USD"))
+    assert price == Money("20.00", "USD")
 
 
-def test_product_get_price_range_with_variants(
-    product_type, category, taxes, site_settings
-):
-    site_settings.include_taxes_in_prices = False
-    site_settings.save()
+def test_product_get_price_range_with_variants(product_type, category):
     product = models.Product.objects.create(
         product_type=product_type, category=category, price=Money("15.00", "USD")
     )
@@ -503,29 +473,25 @@ def test_product_get_price_range_with_variants(
     product.variants.create(sku="2", price_override=Money("20.00", "USD"))
     product.variants.create(sku="3", price_override=Money("11.00", "USD"))
 
-    price = product.get_price_range(taxes=taxes)
+    price = product.get_price_range()
 
-    start = TaxedMoney(net=Money("11.00", "USD"), gross=Money("13.53", "USD"))
-    stop = TaxedMoney(net=Money("20.00", "USD"), gross=Money("24.60", "USD"))
-    assert price == TaxedMoneyRange(start=start, stop=stop)
+    start = Money("11.00", "USD")
+    stop = Money("20.00", "USD")
+    assert price == MoneyRange(start=start, stop=stop)
 
 
-def test_product_get_price_range_no_variants(
-    product_type, category, taxes, site_settings
-):
-    site_settings.include_taxes_in_prices = False
-    site_settings.save()
+def test_product_get_price_range_no_variants(product_type, category):
     product = models.Product.objects.create(
         product_type=product_type, category=category, price=Money("10.00", "USD")
     )
 
-    price = product.get_price_range(taxes=taxes)
+    price = product.get_price_range()
 
-    expected_price = TaxedMoney(net=Money("10.00", "USD"), gross=Money("12.30", "USD"))
-    assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
+    expected_price = Money("10.00", "USD")
+    assert price == MoneyRange(start=expected_price, stop=expected_price)
 
 
-def test_product_get_price_do_not_charge_taxes(product_type, category, taxes, sale):
+def test_product_get_price_do_not_charge_taxes(product_type, category, discount_info):
     product = models.Product.objects.create(
         product_type=product_type,
         category=category,
@@ -534,13 +500,13 @@ def test_product_get_price_do_not_charge_taxes(product_type, category, taxes, sa
     )
     variant = product.variants.create()
 
-    price = variant.get_price(taxes=taxes, discounts=Sale.objects.all())
+    price = variant.get_price(discounts=[discount_info])
 
-    assert price == TaxedMoney(net=Money("5.00", "USD"), gross=Money("5.00", "USD"))
+    assert price == Money("5.00", "USD")
 
 
 def test_product_get_price_range_do_not_charge_taxes(
-    product_type, category, taxes, sale
+    product_type, category, discount_info
 ):
     product = models.Product.objects.create(
         product_type=product_type,
@@ -549,10 +515,10 @@ def test_product_get_price_range_do_not_charge_taxes(
         charge_taxes=False,
     )
 
-    price = product.get_price_range(taxes=taxes, discounts=Sale.objects.all())
+    price = product.get_price_range(discounts=[discount_info])
 
-    expected_price = TaxedMoney(net=Money("5.00", "USD"), gross=Money("5.00", "USD"))
-    assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
+    expected_price = MoneyRange(start=Money("5.00", "USD"), stop=Money("5.00", "USD"))
+    assert price == expected_price
 
 
 @pytest.mark.parametrize("price_override", ["15.00", "0.00"])
@@ -777,11 +743,7 @@ def test_digital_product_view_url_expired(client, digital_content):
     assert response.status_code == 404
 
 
-def test_variant_picker_data_price_range(product_type, category, taxes, site_settings):
-
-    site_settings.include_taxes_in_prices = False
-    site_settings.save()
-
+def test_variant_picker_data_price_range(product_type, category):
     product = models.Product.objects.create(
         product_type=product_type, category=category, price=Money("15.00", "USD")
     )
@@ -789,12 +751,10 @@ def test_variant_picker_data_price_range(product_type, category, taxes, site_set
     product.variants.create(sku="2", price_override=Money("20.00", "USD"))
     product.variants.create(sku="3", price_override=Money("11.00", "USD"))
 
-    start = TaxedMoney(net=Money("11.00", "USD"), gross=Money("13.53", "USD"))
-    stop = TaxedMoney(net=Money("20.00", "USD"), gross=Money("24.60", "USD"))
+    start = TaxedMoney(net=Money("11.00", "USD"), gross=Money("11.00", "USD"))
+    stop = TaxedMoney(net=Money("20.00", "USD"), gross=Money("20.00", "USD"))
 
-    picker_data = get_variant_picker_data(
-        product, discounts=None, taxes=taxes, local_currency=None
-    )
+    picker_data = get_variant_picker_data(product, discounts=None, local_currency=None)
 
     min_price = picker_data["availability"]["priceRange"]["minPrice"]
     min_price = TaxedMoney(

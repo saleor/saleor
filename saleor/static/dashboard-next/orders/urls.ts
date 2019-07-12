@@ -1,5 +1,5 @@
 import { stringify as stringifyQs } from "qs";
-import * as urlJoin from "url-join";
+import urlJoin from "url-join";
 
 import {
   ActiveTab,

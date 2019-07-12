@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import CategoryListPage from "../../../categories/components/CategoryListPage";
 import { categories } from "../../../categories/fixtures";

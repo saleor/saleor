@@ -4,7 +4,7 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import React from "react";
 
 export interface TabContainerProps {
   children: React.ReactNode | React.ReactNodeArray;

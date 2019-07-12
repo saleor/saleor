@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import graphene
@@ -8,6 +9,7 @@ from django.utils.dateparse import parse_datetime
 from graphql_relay import to_global_id
 from prices import Money
 
+from saleor.core.taxes import TaxType, interface as tax_interface
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.graphql.product.types import resolve_attribute_list
@@ -63,7 +65,6 @@ def test_fetch_all_products(user_api_client, product):
     assert len(content["data"]["products"]["edges"]) == num_products
 
 
-@pytest.mark.djangodb
 def test_fetch_unavailable_products(user_api_client, product):
     Product.objects.update(is_published=False)
     query = """
@@ -452,7 +453,12 @@ def test_sort_products(user_api_client, product):
 
 
 def test_create_product(
-    staff_api_client, product_type, category, size_attribute, permission_manage_products
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    permission_manage_products,
+    monkeypatch,
 ):
     query = """
         mutation createProduct(
@@ -463,7 +469,7 @@ def test_create_product(
             $descriptionJson: JSONString!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $taxRate: TaxRateType!,
+            $taxCode: String!,
             $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productCreate(
@@ -475,7 +481,7 @@ def test_create_product(
                         descriptionJson: $descriptionJson,
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
-                        taxRate: $taxRate,
+                        taxCode: $taxCode,
                         basePrice: $basePrice,
                         attributes: $attributes
                     }) {
@@ -487,7 +493,10 @@ def test_create_product(
                             descriptionJson
                             isPublished
                             chargeTaxes
-                            taxRate
+                            taxType {
+                                taxCode
+                                description
+                            }
                             name
                             basePrice {
                                 amount
@@ -522,6 +531,12 @@ def test_create_product(
     product_tax_rate = "STANDARD"
     product_price = 22.33
 
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        "saleor.graphql.product.types.products.tax_interface.get_tax_from_object_meta",
+        lambda x: TaxType(description="", code=product_tax_rate),
+    )
+
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name="Color")
     color_value_slug = color_attr.values.first().slug
@@ -541,7 +556,7 @@ def test_create_product(
         "descriptionJson": product_description_json,
         "isPublished": product_is_published,
         "chargeTaxes": product_charge_taxes,
-        "taxRate": product_tax_rate,
+        "taxCode": product_tax_rate,
         "basePrice": product_price,
         "attributes": [
             {"slug": color_attr_slug, "value": color_value_slug},
@@ -736,6 +751,7 @@ def test_update_product(
     non_default_category,
     product,
     permission_manage_products,
+    monkeypatch,
 ):
     query = """
         mutation updateProduct(
@@ -745,7 +761,7 @@ def test_update_product(
             $description: String!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $taxRate: TaxRateType!,
+            $taxCode: String!,
             $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
@@ -756,7 +772,7 @@ def test_update_product(
                         description: $description,
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
-                        taxRate: $taxRate,
+                        taxCode: $taxCode,
                         basePrice: $basePrice,
                         attributes: $attributes
                     }) {
@@ -767,7 +783,10 @@ def test_update_product(
                             description
                             isPublished
                             chargeTaxes
-                            taxRate
+                            taxType {
+                                taxCode
+                                description
+                            }
                             name
                             basePrice {
                                 amount
@@ -795,19 +814,25 @@ def test_update_product(
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_description = "updated description"
     product_name = "updated name"
-    product_isPublished = True
-    product_chargeTaxes = True
-    product_taxRate = "STANDARD"
+    product_is_published = True
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
     product_price = "33.12"
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        "saleor.graphql.product.types.products.tax_interface.get_tax_from_object_meta",
+        lambda x: TaxType(description="", code=product_tax_rate),
+    )
 
     variables = {
         "productId": product_id,
         "categoryId": category_id,
         "name": product_name,
         "description": product_description,
-        "isPublished": product_isPublished,
-        "chargeTaxes": product_chargeTaxes,
-        "taxRate": product_taxRate,
+        "isPublished": product_is_published,
+        "chargeTaxes": product_charge_taxes,
+        "taxCode": product_tax_rate,
         "basePrice": product_price,
     }
 
@@ -962,8 +987,23 @@ def test_product_type(user_api_client, product_type):
 
 
 def test_product_type_query(
-    user_api_client, staff_api_client, product_type, product, permission_manage_products
+    user_api_client,
+    staff_api_client,
+    product_type,
+    product,
+    permission_manage_products,
+    monkeypatch,
 ):
+    monkeypatch.setattr(
+        "saleor.graphql.product.types.products."
+        "vatlayer_interface.get_tax_from_object_meta",
+        lambda x: TaxType(code="standard", description=""),
+    )
+    monkeypatch.setattr(
+        "saleor.graphql.product.types.products."
+        "tax_interface.get_tax_from_object_meta",
+        lambda x: TaxType(code="123", description="Standard Taxes"),
+    )
     query = """
             query getProductType($id: ID!) {
                 productType(id: $id) {
@@ -977,6 +1017,10 @@ def test_product_type_query(
                         }
                     }
                     taxRate
+                    taxType {
+                        taxCode
+                        description
+                    }
                 }
             }
         """
@@ -995,16 +1039,24 @@ def test_product_type_query(
     content = get_graphql_content(response)
     data = content["data"]
     assert data["productType"]["products"]["totalCount"] == no_products
-    assert data["productType"]["taxRate"] == product_type.tax_rate.upper()
+    assert data["productType"]["taxRate"] == "STANDARD"
+    assert data["productType"]["taxType"]["taxCode"] == "123"
+    assert data["productType"]["taxType"]["description"] == "Standard Taxes"
 
 
 def test_product_type_create_mutation(
-    staff_api_client, product_type, permission_manage_products
+    staff_api_client, product_type, permission_manage_products, monkeypatch, settings
 ):
+    settings.VATLAYER_ACCESS_KEY = "test"
+    monkeypatch.setattr(
+        "saleor.graphql.product.types.products."
+        "vatlayer_interface.get_tax_from_object_meta",
+        lambda x: TaxType(code="standard", description=""),
+    )
     query = """
     mutation createProductType(
         $name: String!,
-        $taxRate: TaxRateType!,
+        $taxCode: String!,
         $hasVariants: Boolean!,
         $isShippingRequired: Boolean!,
         $productAttributes: [ID],
@@ -1012,7 +1064,7 @@ def test_product_type_create_mutation(
         productTypeCreate(
             input: {
                 name: $name,
-                taxRate: $taxRate,
+                taxCode: $taxCode,
                 hasVariants: $hasVariants,
                 isShippingRequired: $isShippingRequired,
                 productAttributes: $productAttributes,
@@ -1053,7 +1105,7 @@ def test_product_type_create_mutation(
     variables = {
         "name": product_type_name,
         "hasVariants": has_variants,
-        "taxRate": "STANDARD",
+        "taxCode": "STANDARD",
         "isShippingRequired": require_shipping,
         "productAttributes": product_attributes_ids,
         "variantAttributes": variant_attributes_ids,
@@ -1603,18 +1655,14 @@ def test_report_product_sales(
     node_a = edges[0]["node"]
     line_a = order_with_lines.lines.get(product_sku=node_a["sku"])
     assert node_a["quantityOrdered"] == line_a.quantity
-    assert (
-        node_a["revenue"]["gross"]["amount"]
-        == line_a.quantity * line_a.unit_price_gross.amount
-    )
+    amount = str(node_a["revenue"]["gross"]["amount"])
+    assert Decimal(amount) == line_a.quantity * line_a.unit_price_gross.amount
 
     node_b = edges[1]["node"]
     line_b = order_with_lines.lines.get(product_sku=node_b["sku"])
     assert node_b["quantityOrdered"] == line_b.quantity
-    assert (
-        node_b["revenue"]["gross"]["amount"]
-        == line_b.quantity * line_b.unit_price_gross.amount
-    )
+    amount = str(node_b["revenue"]["gross"]["amount"])
+    assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross.amount
 
 
 def test_variant_revenue_permissions(

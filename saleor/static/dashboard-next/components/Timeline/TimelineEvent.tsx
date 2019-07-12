@@ -9,7 +9,7 @@ import {
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import * as React from "react";
+import React from "react";
 
 import { DateTime } from "../Date";
 
