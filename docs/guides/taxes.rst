@@ -3,7 +3,7 @@
 Taxes
 =====
 
-Saleor provides the possibility to configure taxes. It supports the following external tax providers: ``Avarala``, ``Vatlayer``. Currently only one provider can be enabled at the same time.
+Saleor provides the possibility to configure taxes. It supports the following external tax providers: ``Avalara``, ``Vatlayer``. Currently, only one provider can be enabled at the same time.
 
 Configuring taxes
 -----------------
