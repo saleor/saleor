@@ -6,10 +6,6 @@ from django.conf import settings
 from .plugin import BasePlugin
 
 
-class PluginError(BaseException):
-    """ Default plugin exception """
-
-
 class BaseManager(BasePlugin):
     """Base manager for handling a plugins logic. It inherits BasePlugin to support
     IDEs' hints"""
@@ -22,7 +18,7 @@ class BaseManager(BasePlugin):
             plugin_path, _, plugin_name = plugin_path.rpartition(".")
             plugin_module = importlib.import_module(plugin_path)
             plugin_class = getattr(plugin_module, plugin_name)
-            self.plugins.append(plugin_class)
+            self.plugins.append(plugin_class())
 
     def __getattribute__(self, item: str):
         for name, func in vars(BasePlugin).items():
@@ -39,8 +35,10 @@ class BaseManager(BasePlugin):
             value = None
             for p in self.plugins:
                 try:
-                    value = getattr(p, name)(p, *args, **kwargs)
-                    print(value)
+                    plugin_value = getattr(p, name)(*args, **kwargs)
+                    # FIXME
+                    if plugin_value:
+                        value = plugin_value
                 except NotImplementedError:
                     continue
                 except AttributeError:
@@ -50,8 +48,11 @@ class BaseManager(BasePlugin):
         return run_plugin_method
 
 
-def get_enabled_manager(manager_path: str = settings.EXTENSION_MANAGER) -> BaseManager:
+def get_extensions_manager(
+    manager_path: str = settings.EXTENSIONS_MANAGER,
+    plugins: List[str] = settings.PLUGINS,
+) -> BaseManager:
     manager_path, _, manager_name = manager_path.rpartition(".")
     manager_module = importlib.import_module(manager_path)
     manager_class = getattr(manager_module, manager_name, None)
-    return manager_class()
+    return manager_class(plugins)
