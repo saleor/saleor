@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Other notable changes
+
+- Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
+
 ## 2.8.0
 
 ### Core
