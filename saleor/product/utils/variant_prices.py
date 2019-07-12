@@ -1,7 +1,6 @@
 from prices.taxed_money import TaxedMoney
 
 from ...discount.utils import fetch_active_discounts
-from ..models import Product
 
 
 def _get_product_minimal_variant_price(product, discounts):
@@ -31,7 +30,9 @@ def update_product_minimal_variant_price(product, discounts=None):
 
 def update_products_minimal_variant_prices(products=None, discounts=None):
     if products is None:
-        products = Product.objects.prefetch_related("variants").iterator()
+        from ..models import Product
+
+        products = Product.objects.iterator()
     if discounts is None:
         discounts = fetch_active_discounts()
     for product in products:
