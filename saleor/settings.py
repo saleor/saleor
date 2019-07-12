@@ -498,7 +498,7 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 # SEARCH CONFIGURATION
 DB_SEARCH_ENABLED = True
 
-# support deployment-dependant elastic enviroment variable
+# support deployment-dependant elastic environment variable
 ES_URL = (
     os.environ.get("ELASTICSEARCH_URL")
     or os.environ.get("SEARCHBOX_URL")

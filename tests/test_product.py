@@ -500,7 +500,9 @@ def test_product_filter_product_does_not_exist(authorized_client, product, categ
 
 def test_product_filter_form(authorized_client, product, category):
     products = (
-        models.Product.objects.all().filter(category__name=category).order_by("-minimal_variant_price")
+        models.Product.objects.all()
+        .filter(category__name=category)
+        .order_by("-minimal_variant_price")
     )
     url = reverse(
         "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
@@ -853,7 +855,8 @@ def test_product_json_deserialization(category, product_type):
             "description": "Future almost cup national",
             "category": {category_pk},
             "price": {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
-            "minimal_variant_price": {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
+            "minimal_variant_price":
+                {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
             "publication_date": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
