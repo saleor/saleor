@@ -95,12 +95,14 @@ export const productFragmentDetails = gql`
         id
         slug
         name
+        inputType
         values {
+          id
           name
           slug
         }
       }
-      value {
+      values {
         id
         name
         slug
@@ -273,6 +275,7 @@ const productCreateQuery = gql`
           hasVariants
           productAttributes {
             id
+            inputType
             slug
             name
             values {

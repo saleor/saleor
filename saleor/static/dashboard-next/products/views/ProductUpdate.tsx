@@ -16,7 +16,9 @@ import SearchCollections from "../../containers/SearchCollections";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import { productTypeUrl } from "../../productTypes/urls";
-import ProductUpdatePage, { FormData } from "../components/ProductUpdatePage";
+import ProductUpdatePage, {
+  ProductUpdatePageSubmitData
+} from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import { TypedProductDetailsQuery } from "../queries";
 import {
@@ -117,17 +119,20 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         deleteProductImage.mutate({ id });
                       const handleImageEdit = (imageId: string) => () =>
                         navigate(productImageUrl(id, imageId));
-                      const handleSubmit = (data: FormData) => {
+                      const handleSubmit = (
+                        data: ProductUpdatePageSubmitData
+                      ) => {
                         if (product) {
                           if (product.productType.hasVariants) {
                             updateProduct.mutate({
-                              attributes: data.attributes,
+                              attributes: data.attributes.map(attribute => ({
+                                id: attribute.id,
+                                values: attribute.value
+                              })),
                               basePrice: decimal(data.basePrice),
-                              category: data.category.value,
+                              category: data.category,
                               chargeTaxes: data.chargeTaxes,
-                              collections: data.collections.map(
-                                collection => collection.value
-                              ),
+                              collections: data.collections,
                               descriptionJson: JSON.stringify(data.description),
                               id: product.id,
                               isPublished: data.isPublished,
@@ -138,18 +143,19 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                   : null,
                               seo: {
                                 description: data.seoDescription,
-                                title: data.seoTitle,
+                                title: data.seoTitle
                               }
                             });
                           } else {
                             updateSimpleProduct.mutate({
-                              attributes: data.attributes,
+                              attributes: data.attributes.map(attribute => ({
+                                id: attribute.id,
+                                values: attribute.value
+                              })),
                               basePrice: decimal(data.basePrice),
-                              category: data.category.value,
+                              category: data.category,
                               chargeTaxes: data.chargeTaxes,
-                              collections: data.collections.map(
-                                collection => collection.value
-                              ),
+                              collections: data.collections,
                               descriptionJson: JSON.stringify(data.description),
                               id: product.id,
                               isPublished: data.isPublished,
@@ -165,7 +171,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                   : null,
                               seo: {
                                 description: data.seoDescription,
-                                title: data.seoTitle,
+                                title: data.seoTitle
                               }
                             });
                           }
@@ -240,9 +246,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             header={maybe(() => product.name)}
                             placeholderImage={placeholderImg}
                             product={product}
-                            productCollections={maybe(
-                              () => product.collections
-                            )}
                             variants={maybe(() => product.variants)}
                             onAttributesEdit={() =>
                               navigate(

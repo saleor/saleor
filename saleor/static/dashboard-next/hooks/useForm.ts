@@ -5,22 +5,25 @@ import { UserError } from "@saleor/types";
 import { toggle } from "@saleor/utils/lists";
 import useStateFromProps from "./useStateFromProps";
 
-export interface ChangeEvent<TName = string, TData = any> {
+export interface ChangeEvent<TData = any> {
   target: {
-    name: keyof TName | string;
+    name: string;
     value: TData;
   };
 }
 
+export type FormChange = (event: ChangeEvent, cb?: () => void) => void;
+
 export interface UseFormResult<T> {
-  change: (event: ChangeEvent<T>, cb?: () => void) => void;
+  change: FormChange;
   data: T;
   errors: Record<string, string>;
   hasChanged: boolean;
   reset: () => void;
   set: (data: T) => void;
   submit: () => void;
-  toggleValue: (event: ChangeEvent<T>) => void;
+  triggerChange: () => void;
+  toggleValue: FormChange;
 }
 
 function parseErrors(errors: UserError[]): Record<string, string> {
@@ -43,19 +46,26 @@ function useForm<T extends Record<keyof T, any | any[]>>(
   const [data, setData] = useStateFromProps(initial);
   const [hasChanged, setChanged] = useState(false);
 
-  function toggleValue(event: ChangeEvent<T>) {
+  function toggleValue(event: ChangeEvent, cb?: () => void) {
     const { name, value } = event.target;
     const field = data[name as keyof T];
 
     if (Array.isArray(field)) {
+      if (!hasChanged) {
+        setChanged(true);
+      }
       setData({
         ...data,
         [name]: toggle(value, field, isEqual)
       });
     }
+
+    if (typeof cb === "function") {
+      cb();
+    }
   }
 
-  function change(event: ChangeEvent<T>) {
+  function change(event: ChangeEvent) {
     const { name, value } = event.target;
 
     if (!(name in data)) {
@@ -87,6 +97,10 @@ function useForm<T extends Record<keyof T, any | any[]>>(
     return onSubmit(data);
   }
 
+  function triggerChange() {
+    setChanged(true);
+  }
+
   return {
     change,
     data,
@@ -95,7 +109,8 @@ function useForm<T extends Record<keyof T, any | any[]>>(
     reset,
     set,
     submit,
-    toggleValue
+    toggleValue,
+    triggerChange
   };
 }
 
