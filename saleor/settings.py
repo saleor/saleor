@@ -212,6 +212,7 @@ MIDDLEWARE = [
     "saleor.core.middleware.taxes",
     "saleor.core.middleware.social_auth_exception_middleware",
     "saleor.core.middleware.impersonate_middleware",
+    "saleor.core.middleware.extensions",
     "saleor.graphql.middleware.jwt_middleware",
 ]
 
