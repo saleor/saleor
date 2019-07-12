@@ -311,7 +311,6 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               onBack={() => navigate(voucherListUrl())}
                               onTabClick={changeTab}
                               onSubmit={formData => {
-                                console.log(formData);
                                 voucherUpdate({
                                   variables: {
                                     id,
