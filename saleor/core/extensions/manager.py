@@ -1,4 +1,5 @@
 import importlib
+from typing import List
 
 from django.conf import settings
 
@@ -15,7 +16,7 @@ class BaseManager(BasePlugin):
 
     plugins = None
 
-    def __init__(self, plugins):
+    def __init__(self, plugins: List[str]):
         self.plugins = []
         for plugin_path in plugins:
             plugin_path, _, plugin_name = plugin_path.rpartition(".")
@@ -23,7 +24,7 @@ class BaseManager(BasePlugin):
             plugin_class = getattr(plugin_module, plugin_name)
             self.plugins.append(plugin_class)
 
-    def __getattribute__(self, item):
+    def __getattribute__(self, item: str):
         for name, func in vars(BasePlugin).items():
             # Run custom getattribute for all plugin methods
             if name == item and not name.startswith("__"):
@@ -33,7 +34,7 @@ class BaseManager(BasePlugin):
 
         return super().__getattribute__(item)
 
-    def __get_plugin_method(self, name):
+    def __get_plugin_method(self, name: str):
         def run_plugin_method(*args, **kwargs):
             value = None
             for p in self.plugins:
@@ -49,8 +50,7 @@ class BaseManager(BasePlugin):
         return run_plugin_method
 
 
-def get_enabled_manager() -> BaseManager:
-    manager_path = settings.EXTENSION_MANAGER
+def get_enabled_manager(manager_path: str = settings.EXTENSION_MANAGER) -> BaseManager:
     manager_path, _, manager_name = manager_path.rpartition(".")
     manager_module = importlib.import_module(manager_path)
     manager_class = getattr(manager_module, manager_name, None)
