@@ -6,7 +6,7 @@ from django.db import migrations
 
 def populate_product_minimal_variant_price(apps, schema_editor):
     Product = apps.get_model("product", "Product")
-    for product in Product.objects.prefetch_related("variants").iterator():
+    for product in Product.objects.iterator():
         # Set the "minimal variant price" to the default product's price
         product.minimal_variant_price = product.price
         product.save(update_fields=["minimal_variant_price"])
