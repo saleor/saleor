@@ -1,8 +1,8 @@
-import * as placeholderImage from "../../images/placeholder60x60.png";
+import placeholderImage from "../../images/placeholder60x60.png";
 import {
+  DiscountValueTypeEnum,
   SaleType,
-  VoucherDiscountValueType,
-  VoucherType
+  VoucherTypeEnum
 } from "../types/globalTypes";
 import { SaleDetails_sale } from "./types/SaleDetails";
 import { SaleList_sales_edges_node } from "./types/SaleList";
@@ -60,6 +60,7 @@ export const saleList: SaleList_sales_edges_node[] = [
 export const voucherList: VoucherList_vouchers_edges_node[] = [
   {
     __typename: "Voucher" as "Voucher",
+    code: "FREE2019",
     countries: [
       {
         __typename: "CountryDisplay",
@@ -68,19 +69,19 @@ export const voucherList: VoucherList_vouchers_edges_node[] = [
       }
     ],
     discountValue: 100,
-    discountValueType: "PERCENTAGE" as VoucherDiscountValueType,
+    discountValueType: "PERCENTAGE" as DiscountValueTypeEnum,
     endDate: null,
     id: "Vm91Y2hlcjox",
     minAmountSpent: null,
-    name: "Free shipping",
     startDate: "2019-01-03",
     usageLimit: null
   },
   {
     __typename: "Voucher" as "Voucher",
+    code: "FREE2020",
     countries: [],
     discountValue: 25,
-    discountValueType: "FIXED" as VoucherDiscountValueType,
+    discountValueType: "FIXED" as DiscountValueTypeEnum,
     endDate: null,
     id: "Vm91Y2hlcjoy",
     minAmountSpent: {
@@ -88,7 +89,6 @@ export const voucherList: VoucherList_vouchers_edges_node[] = [
       amount: 200,
       currency: "USD"
     },
-    name: "Big order discount",
     startDate: "2019-01-03",
     usageLimit: 150
   }
@@ -275,7 +275,7 @@ export const voucherDetails: VoucherDetails_voucher = {
     }
   ],
   discountValue: 25,
-  discountValueType: VoucherDiscountValueType.FIXED,
+  discountValueType: DiscountValueTypeEnum.FIXED,
   endDate: null,
   id: "Vm91Y2hlcjoy",
   minAmountSpent: {
@@ -283,7 +283,6 @@ export const voucherDetails: VoucherDetails_voucher = {
     amount: 200,
     currency: "USD"
   },
-  name: "Big order discount",
   products: {
     __typename: "ProductCountableConnection",
     edges: [],
@@ -297,7 +296,7 @@ export const voucherDetails: VoucherDetails_voucher = {
     totalCount: 0
   },
   startDate: "2018-11-27",
-  type: VoucherType.VALUE,
+  type: VoucherTypeEnum.ENTIRE_ORDER,
   usageLimit: null,
   used: 0
 };

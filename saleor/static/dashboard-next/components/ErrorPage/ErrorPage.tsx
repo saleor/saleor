@@ -6,10 +6,10 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 import SVG from "react-inlinesvg";
 
-import * as notFoundImage from "../../../images/what.svg";
+import notFoundImage from "../../../images/what.svg";
 import i18n from "../../i18n";
 
 export interface ErrorPageProps extends WithStyles<typeof styles> {

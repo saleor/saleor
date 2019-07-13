@@ -6,7 +6,7 @@ import {
 } from "@material-ui/core/styles";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
-import * as classNames from "classnames";
+import classNames from "classnames";
 import { RawDraftContentState } from "draft-js";
 import {
   BLOCK_TYPE,
@@ -14,7 +14,7 @@ import {
   ENTITY_TYPE,
   INLINE_STYLE
 } from "draftail";
-import * as React from "react";
+import React from "react";
 
 import BoldIcon from "../../icons/BoldIcon";
 import HeaderOne from "../../icons/HeaderOne";
@@ -188,7 +188,11 @@ const styles = (theme: Theme) =>
           background: theme.palette.background.default,
           border: `1px ${theme.overrides.MuiCard.root.borderColor} solid`,
           display: "inline-flex",
-          marginBottom: theme.spacing.unit
+          flexWrap: "wrap",
+          marginBottom: theme.spacing.unit,
+          [theme.breakpoints.down(460)]: {
+            width: "min-content"
+          }
         },
         "&-block": {
           "&--blockquote": {
@@ -302,7 +306,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
           enableLineBreak
           entityTypes={[
             {
-              attributes: ["href"],
+              attributes: ["url"],
               decorator: LinkEntity,
               icon: <LinkIcon className={classes.linkIcon} />,
               source: LinkSource,

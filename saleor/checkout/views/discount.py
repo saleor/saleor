@@ -1,9 +1,9 @@
-from datetime import date
 from functools import wraps
 
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.utils import timezone
 from django.utils.translation import pgettext
 from django.views.decorators.http import require_POST
 
@@ -12,7 +12,6 @@ from ..forms import CheckoutVoucherForm
 from ..models import Checkout
 from ..utils import (
     get_or_empty_db_checkout,
-    get_taxes_for_checkout,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
@@ -38,8 +37,7 @@ def add_voucher_form(view):
                 # if only discount form was used we clear post for other forms
                 request.POST = {}
         else:
-            taxes = get_taxes_for_checkout(checkout, request.taxes)
-            recalculate_checkout_discount(checkout, request.discounts, taxes)
+            recalculate_checkout_discount(checkout, request.discounts)
         response = view(request, checkout)
         if isinstance(response, TemplateResponse):
             response.context_data["voucher_form"] = voucher_form
@@ -59,7 +57,7 @@ def validate_voucher(view):
     def func(request, checkout):
         if checkout.voucher_code:
             try:
-                Voucher.objects.active(date=date.today()).get(
+                Voucher.objects.active(date=timezone.now()).get(
                     code=checkout.voucher_code
                 )
             except Voucher.DoesNotExist:

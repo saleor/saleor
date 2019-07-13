@@ -9,7 +9,7 @@ import {
 } from "@material-ui/core/styles";
 import CheckIcon from "@material-ui/icons/Check";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 

@@ -6,6 +6,8 @@ from django.db import transaction
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 
+from ....core.taxes import interface as tax_interface
+from ....core.taxes.vatlayer import interface as vatlayer_interface
 from ....product import models
 from ....product.tasks import update_variants_names
 from ....product.thumbnails import (
@@ -358,7 +360,11 @@ class ProductInput(graphene.InputObjectType):
         Product price. Note: this field is deprecated, use basePrice instead."""
     )
     base_price = Decimal(description="Product price.")
-    tax_rate = TaxRateType(description="Tax rate.")
+    tax_rate = TaxRateType(
+        description="Tax rate.",
+        deprecation_reason=("taxRate is deprecated, Use taxCode"),
+    )
+    tax_code = graphene.String(description="Tax rate for enabled tax gateway")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     sku = graphene.String(
@@ -415,6 +421,15 @@ class ProductCreate(ModelMutation):
         price = data.get("base_price", data.get("price"))
         if price is not None:
             cleaned_input["price"] = price
+
+        # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
+        tax_rate = cleaned_input.pop("tax_rate", "")
+        if tax_rate:
+            vatlayer_interface.assign_tax_to_object_meta(instance, tax_rate)
+
+        tax_code = cleaned_input.pop("tax_code", "")
+        if tax_code:
+            tax_interface.assign_tax_to_object_meta(instance, tax_code)
 
         if attributes and product_type:
             qs = product_type.product_attributes.prefetch_related("values")
@@ -662,7 +677,11 @@ class ProductTypeInput(graphene.InputObjectType):
         description="Determines if products are digital.", required=False
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
-    tax_rate = TaxRateType(description="A type of goods.")
+    tax_rate = TaxRateType(
+        description="Tax rate.",
+        deprecation_reason=("taxRate is deprecated, Use taxCode"),
+    )
+    tax_code = graphene.String(description="Tax rate for enabled tax gateway")
 
 
 class ProductTypeCreate(ModelMutation):
@@ -675,6 +694,21 @@ class ProductTypeCreate(ModelMutation):
         description = "Creates a new product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+
+        # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
+        tax_rate = cleaned_input.pop("tax_rate", "")
+        if tax_rate:
+            vatlayer_interface.assign_tax_to_object_meta(instance, tax_rate)
+
+        tax_code = cleaned_input.pop("tax_code", "")
+        if tax_code:
+            tax_interface.assign_tax_to_object_meta(instance, tax_code)
+
+        return cleaned_input
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):

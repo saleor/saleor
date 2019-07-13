@@ -1,5 +1,4 @@
-// tslint:disable:no-submodule-imports
-import * as throttle from "lodash/throttle";
+import throttle from "lodash-es/throttle";
 import { useEffect, useState } from "react";
 
 function getPosition() {

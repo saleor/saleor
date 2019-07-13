@@ -6,7 +6,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TableCell from "@material-ui/core/TableCell";
-import * as React from "react";
+import React from "react";
 
 import { stopPropagation } from "../../misc";
 import { ICONBUTTON_SIZE } from "../../theme";

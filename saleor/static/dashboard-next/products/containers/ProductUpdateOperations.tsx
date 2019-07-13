@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 
 import { getMutationProviderData, maybe } from "../../misc";
 import { PartialMutationProviderOutput } from "../../types";

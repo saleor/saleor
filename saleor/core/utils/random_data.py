@@ -1,16 +1,16 @@
+import itertools
 import json
 import os
 import random
 import unicodedata
 import uuid
 from collections import defaultdict
-from datetime import date
 from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django_countries.fields import Country
+from django.utils import timezone
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
@@ -20,13 +20,14 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.utils.json_serializer import object_hook
-from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.weight import zero_weight
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
+from ...discount.utils import fetch_discounts
+from ...giftcard.models import GiftCard
 from ...menu.models import Menu
-from ...order.models import Fulfillment, Order
+from ...order.models import Fulfillment, Order, OrderLine
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment.utils import (
@@ -39,7 +40,7 @@ from ...product.thumbnails import (
     create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails, create_product_thumbnails)
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from ...shipping.utils import get_taxed_shipping_price
+from ..taxes import interface as tax_interface
 
 fake = Factory.create()
 
@@ -285,7 +286,8 @@ def create_address():
         street_address_1=fake.street_address(),
         city=fake.city(),
         postal_code=fake.postcode(),
-        country=fake.country_code())
+        country=settings.DEFAULT_COUNTRY,
+    )
     return address
 
 
@@ -338,26 +340,44 @@ def create_fake_payment(mock_email_confirmation, order):
     return payment
 
 
-def create_order_line(order, discounts, taxes):
-    product = Product.objects.filter(variants__isnull=False).order_by('?')[0]
-    variant = product.variants.all()[0]
-    quantity = random.randrange(1, 5)
-    variant.quantity += quantity
-    variant.quantity_allocated += quantity
-    variant.save()
-    return order.lines.create(
-        product_name=variant.display_product(),
-        product_sku=variant.sku,
-        is_shipping_required=variant.is_shipping_required(),
-        quantity=quantity,
-        variant=variant,
-        unit_price=variant.get_price(discounts=discounts, taxes=taxes),
-        tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
-
-
-def create_order_lines(order, discounts, taxes, how_many=10):
+def create_order_lines(order, discounts, how_many=10):
+    variants = (
+        ProductVariant.objects.filter()
+        .order_by("?")
+        .prefetch_related("product__product_type")[:how_many]
+    )
+    variants_iter = itertools.cycle(variants)
+    lines = []
     for dummy in range(how_many):
-        yield create_order_line(order, discounts, taxes)
+        variant = next(variants_iter)
+        quantity = random.randrange(1, 5)
+        variant.quantity += quantity
+        variant.quantity_allocated += quantity
+        unit_price = variant.get_price(discounts)
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name=variant.display_product(),
+                product_sku=variant.sku,
+                is_shipping_required=variant.is_shipping_required(),
+                quantity=quantity,
+                variant=variant,
+                unit_price_net=unit_price,
+                unit_price_gross=unit_price,
+                tax_rate=0,
+            )
+        )
+    ProductVariant.objects.bulk_update(variants, ["quantity", "quantity_allocated"])
+    lines = OrderLine.objects.bulk_create(lines)
+    for line in lines:
+        unit_price = tax_interface.calculate_order_line_unit(line)
+        line.unit_price_net = unit_price.net
+        line.unit_price_gross = unit_price.gross
+        line.tax_rate = unit_price.tax / unit_price.net
+    OrderLine.objects.bulk_update(
+        lines, ["unit_price_net", "unit_price_gross", "tax_rate"]
+    )
+    return lines
 
 
 def create_fulfillments(order):
@@ -372,14 +392,17 @@ def create_fulfillments(order):
     update_order_status(order)
 
 
-def create_fake_order(discounts, taxes):
-    user = random.choice([None, User.objects.filter(
-        is_superuser=False).order_by('?').first()])
+def create_fake_order(discounts, max_order_lines=5):
+    user = random.choice(
+        [None, User.objects.filter(is_superuser=False).order_by("?").first()]
+    )
     if user:
+        address = user.default_shipping_address
         order_data = {
-            'user': user,
-            'billing_address': user.default_billing_address,
-            'shipping_address': user.default_shipping_address}
+            "user": user,
+            "billing_address": user.default_billing_address,
+            "shipping_address": address,
+        }
     else:
         address = create_address()
         order_data = {
@@ -390,17 +413,15 @@ def create_fake_order(discounts, taxes):
 
     shipping_method = ShippingMethod.objects.order_by('?').first()
     shipping_price = shipping_method.price
-    shipping_price = get_taxed_shipping_price(shipping_price, taxes)
-    order_data.update({
-        'shipping_method_name': shipping_method.name,
-        'shipping_price': shipping_price})
+    shipping_price = tax_interface.apply_taxes_to_shipping(shipping_price, address)
+    order_data.update(
+        {"shipping_method_name": shipping_method.name, "shipping_price": shipping_price}
+    )
 
     order = Order.objects.create(**order_data)
 
-    lines = create_order_lines(order, discounts, taxes, random.randrange(1, 5))
-
-    order.total = sum(
-        [line.get_total() for line in lines], order.shipping_price)
+    lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
+    order.total = sum([line.get_total() for line in lines], shipping_price)
     weight = Weight(kg=0)
     for line in order:
         weight += line.variant.get_weight()
@@ -429,12 +450,10 @@ def create_users(how_many=10):
 
 
 def create_orders(how_many=10):
-    taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
-    discounts = Sale.objects.active(date.today()).prefetch_related(
-        'products', 'categories', 'collections')
-    for dummy in range(how_many):
-        order = create_fake_order(discounts, taxes)
-        yield 'Order: %s' % (order,)
+    discounts = fetch_discounts(timezone.now())
+    for _ in range(how_many):
+        order = create_fake_order(discounts)
+        yield "Order: %s" % (order,)
 
 
 def create_product_sales(how_many=5):
@@ -520,16 +539,33 @@ def create_vouchers():
         yield 'Shipping voucher already exists'
 
     voucher, created = Voucher.objects.get_or_create(
-        code='DISCOUNT', defaults={
-            'type': VoucherType.VALUE,
-            'name': 'Big order discount',
-            'discount_value_type': DiscountValueType.FIXED,
-            'discount_value': 25,
-            'min_amount_spent': 200})
+        code="DISCOUNT",
+        defaults={
+            "type": VoucherType.ENTIRE_ORDER,
+            "name": "Big order discount",
+            "discount_value_type": DiscountValueType.FIXED,
+            "discount_value": 25,
+            "min_amount_spent": 200,
+        },
+    )
     if created:
         yield 'Voucher #%d' % voucher.id
     else:
-        yield 'Value voucher already exists'
+        yield "Value voucher already exists"
+
+
+def create_gift_card():
+    user = random.choice(
+        [User.objects.filter(is_superuser=False).order_by("?").first()]
+    )
+    gift_card, created = GiftCard.objects.get_or_create(
+        code="Gift_card_10",
+        defaults={"user": user, "initial_balance": 10, "current_balance": 10},
+    )
+    if created:
+        yield "Gift card #%d" % gift_card.id
+    else:
+        yield "Gift card already exists"
 
 
 def set_homepage_collection():

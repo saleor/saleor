@@ -65,45 +65,50 @@ DATABASES = {
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
-    ('ar', _('Arabic')),
-    ('az', _('Azerbaijani')),
-    ('bg', _('Bulgarian')),
-    ('bn', _('Bengali')),
-    ('ca', _('Catalan')),
-    ('cs', _('Czech')),
-    ('da', _('Danish')),
-    ('de', _('German')),
-    ('en', _('English')),
-    ('es', _('Spanish')),
-    ('et', _('Estonian')),
-    ('fa', _('Persian')),
-    ('fr', _('French')),
-    ('hi', _('Hindi')),
-    ('hu', _('Hungarian')),
-    ('hy', _('Armenian')),
-    ('id', _('Indonesian')),
-    ('it', _('Italian')),
-    ('ja', _('Japanese')),
-    ('ko', _('Korean')),
-    ('mn', _('Mongolian')),
-    ('nb', _('Norwegian')),
-    ('nl', _('Dutch')),
-    ('pl', _('Polish')),
-    ('pt', _('Portuguese')),
-    ('pt-br', _('Brazilian Portuguese')),
-    ('ro', _('Romanian')),
-    ('ru', _('Russian')),
-    ('sk', _('Slovak')),
-    ('sr', _('Serbian')),
-    ('sw', _('Swahili')),
-    ('sv', _('Swedish')),
-    ('th', _('Thai')),
-    ('tr', _('Turkish')),
-    ('uk', _('Ukrainian')),
-    ('vi', _('Vietnamese')),
-    ('zh-hans', _('Simplified Chinese')),
-    ('zh-hant', _('Traditional Chinese'))]
-LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
+    ("ar", _("Arabic")),
+    ("az", _("Azerbaijani")),
+    ("bg", _("Bulgarian")),
+    ("bn", _("Bengali")),
+    ("ca", _("Catalan")),
+    ("cs", _("Czech")),
+    ("da", _("Danish")),
+    ("de", _("German")),
+    ("en", _("English")),
+    ("es", _("Spanish")),
+    ("es-co", _("Colombian Spanish")),
+    ("et", _("Estonian")),
+    ("fa", _("Persian")),
+    ("fr", _("French")),
+    ("hi", _("Hindi")),
+    ("hu", _("Hungarian")),
+    ("hy", _("Armenian")),
+    ("id", _("Indonesian")),
+    ("is", _("Icelandic")),
+    ("it", _("Italian")),
+    ("ja", _("Japanese")),
+    ("ko", _("Korean")),
+    ("lt", _("Lithuanian")),
+    ("mn", _("Mongolian")),
+    ("nb", _("Norwegian")),
+    ("nl", _("Dutch")),
+    ("pl", _("Polish")),
+    ("pt", _("Portuguese")),
+    ("pt-br", _("Brazilian Portuguese")),
+    ("ro", _("Romanian")),
+    ("ru", _("Russian")),
+    ("sk", _("Slovak")),
+    ("sq", _("Albanian")),
+    ("sr", _("Serbian")),
+    ("sw", _("Swahili")),
+    ("sv", _("Swedish")),
+    ("th", _("Thai")),
+    ("tr", _("Turkish")),
+    ("uk", _("Ukrainian")),
+    ("vi", _("Vietnamese")),
+    ("zh-hans", _("Simplified Chinese")),
+    ("zh-hant", _("Traditional Chinese")),
+]
+LOCALE_PATHS = [os.path.join(PROJECT_ROOT, "locale")]
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -188,23 +193,23 @@ TEMPLATES = [{
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 MIDDLEWARE = [
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django_babel.middleware.LocaleMiddleware',
-    'saleor.core.middleware.discounts',
-    'saleor.core.middleware.google_analytics',
-    'saleor.core.middleware.country',
-    'saleor.core.middleware.currency',
-    'saleor.core.middleware.site',
-    'saleor.core.middleware.taxes',
-    'social_django.middleware.SocialAuthExceptionMiddleware',
-    'impersonate.middleware.ImpersonateMiddleware',
-    'saleor.graphql.middleware.jwt_middleware'
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django_babel.middleware.LocaleMiddleware",
+    "saleor.core.middleware.discounts",
+    "saleor.core.middleware.google_analytics",
+    "saleor.core.middleware.country",
+    "saleor.core.middleware.currency",
+    "saleor.core.middleware.site",
+    "saleor.core.middleware.taxes",
+    "social_django.middleware.SocialAuthExceptionMiddleware",
+    "impersonate.middleware.ImpersonateMiddleware",
+    "saleor.graphql.middleware.jwt_middleware",
 ]
 
 INSTALLED_APPS = [
@@ -269,21 +274,12 @@ if ENABLE_DEBUG_TOOLBAR:
     INSTALLED_APPS.append('debug_toolbar')
     DEBUG_TOOLBAR_PANELS = [
         # adds a request history to the debug toolbar
-        'ddt_request_history.panels.request_history.RequestHistoryPanel',
-
-        'debug_toolbar.panels.versions.VersionsPanel',
-        'debug_toolbar.panels.timer.TimerPanel',
-        'debug_toolbar.panels.settings.SettingsPanel',
-        'debug_toolbar.panels.headers.HeadersPanel',
-        'debug_toolbar.panels.request.RequestPanel',
-        'debug_toolbar.panels.sql.SQLPanel',
-        'debug_toolbar.panels.templates.TemplatesPanel',
-        'debug_toolbar.panels.staticfiles.StaticFilesPanel',
-        'debug_toolbar.panels.cache.CachePanel',
-        'debug_toolbar.panels.signals.SignalsPanel',
-        'debug_toolbar.panels.logging.LoggingPanel',
-        'debug_toolbar.panels.redirects.RedirectsPanel',
-        'debug_toolbar.panels.profiling.ProfilingPanel',
+        "ddt_request_history.panels.request_history.RequestHistoryPanel",
+        "debug_toolbar.panels.timer.TimerPanel",
+        "debug_toolbar.panels.headers.HeadersPanel",
+        "debug_toolbar.panels.request.RequestPanel",
+        "debug_toolbar.panels.sql.SQLPanel",
+        "debug_toolbar.panels.profiling.ProfilingPanel",
     ]
     DEBUG_TOOLBAR_CONFIG = {
         'RESULTS_CACHE_SIZE': 100}
@@ -294,50 +290,47 @@ if ENABLE_SILK:
     INSTALLED_APPS.append('silk')
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'root': {
-        'level': 'INFO',
-        'handlers': ['console']},
-    'formatters': {
-        'verbose': {
-            'format': (
-                '%(levelname)s %(name)s %(message)s'
-                ' [PID:%(process)d:%(threadName)s]')},
-        'simple': {
-            'format': '%(levelname)s %(message)s'}},
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'}},
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'},
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'}},
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'mail_admins'],
-            'level': 'INFO',
-            'propagate': True},
-        'django.server': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True},
-        'saleor': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True}}}
+    "version": 1,
+    "disable_existing_loggers": False,
+    "root": {"level": "INFO", "handlers": ["console"]},
+    "formatters": {
+        "verbose": {
+            "format": (
+                "%(levelname)s %(name)s %(message)s [PID:%(process)d:%(threadName)s]"
+            )
+        },
+        "simple": {"format": "%(levelname)s %(message)s"},
+    },
+    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
+    "handlers": {
+        "mail_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "django.utils.log.AdminEmailHandler",
+        },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "mail_admins"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "django.server": {"handlers": ["console"], "level": "INFO", "propagate": True},
+        "saleor": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+    },
+}
 
-AUTH_USER_MODEL = 'account.User'
+AUTH_USER_MODEL = "account.User"
 
-LOGIN_URL = '/account/login/'
+LOGIN_URL = "/account/login/"
 
-DEFAULT_COUNTRY = os.environ.get('DEFAULT_COUNTRY', 'NG')
-DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY', 'NGN')
+DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
+DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 DEFAULT_MAX_DIGITS = 12
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
@@ -353,6 +346,13 @@ OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 # If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
 VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
 VATLAYER_USE_HTTPS = get_bool_from_env('VATLAYER_USE_HTTPS', False)
+
+# Avatax supports two ways of log in - username:password or account:license
+AVATAX_USERNAME_OR_ACCOUNT = os.environ.get("AVATAX_USERNAME_OR_ACCOUNT")
+AVATAX_PASSWORD_OR_LICENSE = os.environ.get("AVATAX_PASSWORD_OR_LICENSE")
+AVATAX_USE_SANDBOX = os.environ.get("AVATAX_USE_SANDBOX", DEBUG)
+AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
+AVATAX_AUTOCOMMIT = os.environ.get("AVATAX_AUTOCOMMIT", False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
@@ -592,6 +592,7 @@ PAYMENT_GATEWAYS = {
         "module": "saleor.payment.gateways.dummy",
         "config": {
             "auto_capture": True,
+            "store_card": False,
             "connection_params": {},
             "template_path": "order/payment/dummy.html",
         },
@@ -615,7 +616,8 @@ PAYMENT_GATEWAYS = {
     BRAINTREE: {
         "module": "saleor.payment.gateways.braintree",
         "config": {
-            "auto_capture": True,
+            "auto_capture": get_bool_from_env("BRAINTREE_AUTO_CAPTURE", True),
+            "store_card": get_bool_from_env("BRAINTREE_STORE_CARD", False),
             "template_path": "order/payment/braintree.html",
             "connection_params": {
                 "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
@@ -628,7 +630,8 @@ PAYMENT_GATEWAYS = {
     RAZORPAY: {
         "module": "saleor.payment.gateways.razorpay",
         "config": {
-            "auto_capture": None,
+            "store_card": get_bool_from_env("RAZORPAY_STORE_CARD", False),
+            "auto_capture": get_bool_from_env("RAZORPAY_AUTO_CAPTURE", None),
             "template_path": "order/payment/razorpay.html",
             "connection_params": {
                 "public_key": os.environ.get("RAZORPAY_PUBLIC_KEY"),
@@ -642,7 +645,8 @@ PAYMENT_GATEWAYS = {
     STRIPE: {
         "module": "saleor.payment.gateways.stripe",
         "config": {
-            "auto_capture": True,
+            "store_card": get_bool_from_env("STRIPE_STORE_CARD", False),
+            "auto_capture": get_bool_from_env("STRIPE_AUTO_CAPTURE", True),
             "template_path": "order/payment/stripe.html",
             "connection_params": {
                 "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
