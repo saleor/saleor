@@ -76,6 +76,7 @@ LANGUAGES = [
     ("hu", _("Hungarian")),
     ("hy", _("Armenian")),
     ("id", _("Indonesian")),
+    ("is", _("Icelandic")),
     ("it", _("Italian")),
     ("ja", _("Japanese")),
     ("ko", _("Korean")),
@@ -195,22 +196,22 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "saleor.core.middleware.django_session_middleware",
-    "saleor.core.middleware.django_security_middleware",
-    "saleor.core.middleware.django_csrf_view_middleware",
-    "saleor.core.middleware.django_auth_middleware",
-    "saleor.core.middleware.django_messages_middleware",
-    "saleor.core.middleware.django_locale_middleware",
-    "saleor.core.middleware.babel_locale_middleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django_babel.middleware.LocaleMiddleware",
     "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.taxes",
-    "saleor.core.middleware.social_auth_exception_middleware",
-    "saleor.core.middleware.impersonate_middleware",
+    "social_django.middleware.SocialAuthExceptionMiddleware",
+    "impersonate.middleware.ImpersonateMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
 ]
 
@@ -272,18 +273,10 @@ if ENABLE_DEBUG_TOOLBAR:
     DEBUG_TOOLBAR_PANELS = [
         # adds a request history to the debug toolbar
         "ddt_request_history.panels.request_history.RequestHistoryPanel",
-        "debug_toolbar.panels.versions.VersionsPanel",
         "debug_toolbar.panels.timer.TimerPanel",
-        "debug_toolbar.panels.settings.SettingsPanel",
         "debug_toolbar.panels.headers.HeadersPanel",
         "debug_toolbar.panels.request.RequestPanel",
         "debug_toolbar.panels.sql.SQLPanel",
-        "debug_toolbar.panels.templates.TemplatesPanel",
-        "debug_toolbar.panels.staticfiles.StaticFilesPanel",
-        "debug_toolbar.panels.cache.CachePanel",
-        "debug_toolbar.panels.signals.SignalsPanel",
-        "debug_toolbar.panels.logging.LoggingPanel",
-        "debug_toolbar.panels.redirects.RedirectsPanel",
         "debug_toolbar.panels.profiling.ProfilingPanel",
     ]
     DEBUG_TOOLBAR_CONFIG = {"RESULTS_CACHE_SIZE": 100}
@@ -300,7 +293,7 @@ LOGGING = {
     "formatters": {
         "verbose": {
             "format": (
-                "%(levelname)s %(name)s %(message)s" " [PID:%(process)d:%(threadName)s]"
+                "%(levelname)s %(name)s %(message)s [PID:%(process)d:%(threadName)s]"
             )
         },
         "simple": {"format": "%(levelname)s %(message)s"},
@@ -351,6 +344,13 @@ OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
 # If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
 VATLAYER_ACCESS_KEY = os.environ.get("VATLAYER_ACCESS_KEY")
 VATLAYER_USE_HTTPS = get_bool_from_env("VATLAYER_USE_HTTPS", False)
+
+# Avatax supports two ways of log in - username:password or account:license
+AVATAX_USERNAME_OR_ACCOUNT = os.environ.get("AVATAX_USERNAME_OR_ACCOUNT")
+AVATAX_PASSWORD_OR_LICENSE = os.environ.get("AVATAX_PASSWORD_OR_LICENSE")
+AVATAX_USE_SANDBOX = os.environ.get("AVATAX_USE_SANDBOX", DEBUG)
+AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
+AVATAX_AUTOCOMMIT = os.environ.get("AVATAX_AUTOCOMMIT", False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
@@ -599,6 +599,7 @@ PAYMENT_GATEWAYS = {
         "module": "saleor.payment.gateways.dummy",
         "config": {
             "auto_capture": True,
+            "store_card": False,
             "connection_params": {},
             "template_path": "order/payment/dummy.html",
         },
@@ -606,7 +607,8 @@ PAYMENT_GATEWAYS = {
     BRAINTREE: {
         "module": "saleor.payment.gateways.braintree",
         "config": {
-            "auto_capture": True,
+            "auto_capture": get_bool_from_env("BRAINTREE_AUTO_CAPTURE", True),
+            "store_card": get_bool_from_env("BRAINTREE_STORE_CARD", False),
             "template_path": "order/payment/braintree.html",
             "connection_params": {
                 "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
@@ -619,7 +621,8 @@ PAYMENT_GATEWAYS = {
     RAZORPAY: {
         "module": "saleor.payment.gateways.razorpay",
         "config": {
-            "auto_capture": None,
+            "store_card": get_bool_from_env("RAZORPAY_STORE_CARD", False),
+            "auto_capture": get_bool_from_env("RAZORPAY_AUTO_CAPTURE", None),
             "template_path": "order/payment/razorpay.html",
             "connection_params": {
                 "public_key": os.environ.get("RAZORPAY_PUBLIC_KEY"),
@@ -633,7 +636,8 @@ PAYMENT_GATEWAYS = {
     STRIPE: {
         "module": "saleor.payment.gateways.stripe",
         "config": {
-            "auto_capture": True,
+            "store_card": get_bool_from_env("STRIPE_STORE_CARD", False),
+            "auto_capture": get_bool_from_env("STRIPE_AUTO_CAPTURE", True),
             "template_path": "order/payment/stripe.html",
             "connection_params": {
                 "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),

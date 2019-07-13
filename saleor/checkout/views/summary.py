@@ -7,12 +7,12 @@ from django.utils.translation import pgettext
 from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
+from ...core.taxes.errors import TaxError
 from ...discount.models import NotApplicable
 from ..forms import CheckoutNoteForm
 from ..utils import (
     create_order,
     get_checkout_context,
-    get_taxes_for_checkout,
     prepare_order_data,
     update_billing_address_in_anonymous_checkout,
     update_billing_address_in_checkout,
@@ -34,13 +34,20 @@ def _handle_order_placement(request, checkout):
             checkout=checkout,
             tracking_code=analytics.get_client_id(request),
             discounts=request.discounts,
-            taxes=get_taxes_for_checkout(checkout, request.taxes),
         )
     except InsufficientStock:
         return redirect("checkout:index")
     except NotApplicable:
         messages.warning(
             request, pgettext("Checkout warning", "Please review your checkout.")
+        )
+        return redirect("checkout:summary")
+    except TaxError as tax_error:
+        messages.warning(
+            request,
+            pgettext(
+                "Checkout warning", "Unable to calculate taxes - %s" % str(tax_error)
+            ),
         )
         return redirect("checkout:summary")
 
@@ -74,8 +81,7 @@ def summary_with_shipping_view(request, checkout):
     if updated:
         return _handle_order_placement(request, checkout)
 
-    taxes = get_taxes_for_checkout(checkout, request.taxes)
-    ctx = get_checkout_context(checkout, request.discounts, taxes)
+    ctx = get_checkout_context(checkout, request.discounts)
     ctx.update(
         {
             "additional_addresses": user_addresses,
@@ -103,8 +109,7 @@ def anonymous_summary_without_shipping(request, checkout):
     if updated:
         return _handle_order_placement(request, checkout)
 
-    taxes = get_taxes_for_checkout(checkout, request.taxes)
-    ctx = get_checkout_context(checkout, request.discounts, taxes)
+    ctx = get_checkout_context(checkout, request.discounts)
     ctx.update(
         {"address_form": address_form, "note_form": note_form, "user_form": user_form}
     )
@@ -129,8 +134,7 @@ def summary_without_shipping(request, checkout):
     if updated:
         return _handle_order_placement(request, checkout)
 
-    taxes = get_taxes_for_checkout(checkout, request.taxes)
-    ctx = get_checkout_context(checkout, request.discounts, taxes)
+    ctx = get_checkout_context(checkout, request.discounts)
     ctx.update(
         {
             "additional_addresses": user_addresses,

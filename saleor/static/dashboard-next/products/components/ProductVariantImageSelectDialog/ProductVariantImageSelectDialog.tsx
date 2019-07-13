@@ -9,8 +9,8 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 import i18n from "../../../i18n";
 import { ProductImage } from "../../types/ProductImage";

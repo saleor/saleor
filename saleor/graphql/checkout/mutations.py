@@ -1,9 +1,8 @@
-from datetime import date
-
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 
 from ...checkout import models
 from ...checkout.utils import (
@@ -16,7 +15,6 @@ from ...checkout.utils import (
     clean_checkout,
     create_order,
     get_or_create_user_checkout,
-    get_taxes_for_checkout,
     get_voucher_for_checkout,
     prepare_order_data,
     recalculate_checkout_discount,
@@ -25,11 +23,12 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
-from ...core.utils.taxes import get_taxes_for_address
+from ...core.taxes.errors import TaxError
+from ...core.taxes.interface import calculate_checkout_subtotal
 from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.interface import AddressData
-from ...payment.utils import gateway_process_payment
+from ...payment.utils import gateway_process_payment, store_customer_id
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
@@ -41,9 +40,7 @@ from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
 
 
-def clean_shipping_method(
-    checkout, method, discounts, taxes, country_code=None, remove=True
-):
+def clean_shipping_method(checkout, method, discounts, country_code=None, remove=True):
     # FIXME Add tests for this function
     if not method:
         return None
@@ -58,7 +55,7 @@ def clean_shipping_method(
         )
 
     valid_methods = ShippingMethodModel.objects.applicable_shipping_methods(
-        price=checkout.get_subtotal(discounts, taxes).gross.amount,
+        price=calculate_checkout_subtotal(checkout, discounts).gross.amount,
         weight=checkout.get_total_weight(),
         country_code=country_code or checkout.shipping_address.country.code,
     )
@@ -244,16 +241,13 @@ class CheckoutLinesAdd(BaseMutation):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=get_taxes_for_address(checkout.shipping_address),
         )
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_checkout(checkout, variant, quantity, replace=replace)
 
-        recalculate_checkout_discount(
-            checkout, info.context.discounts, info.context.taxes
-        )
+        recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutLinesAdd(checkout=checkout)
 
@@ -296,12 +290,9 @@ class CheckoutLineDelete(BaseMutation):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=get_taxes_for_address(checkout.shipping_address),
         )
 
-        recalculate_checkout_discount(
-            checkout, info.context.discounts, info.context.taxes
-        )
+        recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutLineDelete(checkout=checkout)
 
@@ -375,15 +366,12 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             checkout=checkout,
             method=checkout.shipping_method,
             discounts=info.context.discounts,
-            taxes=get_taxes_for_address(shipping_address),
         )
 
         with transaction.atomic():
             shipping_address.save()
             change_shipping_address_in_checkout(checkout, shipping_address)
-        recalculate_checkout_discount(
-            checkout, info.context.discounts, info.context.taxes
-        )
+        recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutShippingAddressUpdate(checkout=checkout)
 
@@ -466,15 +454,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout=checkout,
             method=shipping_method,
             discounts=info.context.discounts,
-            taxes=info.context.taxes,
             remove=False,
         )
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method"])
-        recalculate_checkout_discount(
-            checkout, info.context.discounts, info.context.taxes
-        )
+        recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
@@ -484,6 +469,12 @@ class CheckoutComplete(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID", required=True)
+        store_source = graphene.Boolean(
+            default_value=False,
+            description=(
+                "Determines whether to store the payment source for future usage."
+            ),
+        )
 
     class Meta:
         description = (
@@ -493,13 +484,13 @@ class CheckoutComplete(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id):
+    def perform_mutation(cls, _root, info, checkout_id, store_source):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
 
-        taxes = get_taxes_for_checkout(checkout, info.context.taxes)
-        clean_checkout(checkout, taxes, info.context.discounts)
+        user = info.context.user
+        clean_checkout(checkout, info.context.discounts)
 
         payment = checkout.get_last_active_payment()
 
@@ -509,30 +500,35 @@ class CheckoutComplete(BaseMutation):
                     checkout=checkout,
                     tracking_code=analytics.get_client_id(info.context),
                     discounts=info.context.discounts,
-                    taxes=taxes,
                 )
             except InsufficientStock as e:
                 raise ValidationError(f"Insufficient product stock: {e.item}")
             except voucher_model.NotApplicable:
                 raise ValidationError("Voucher not applicable")
+            except TaxError as tax_error:
+                return ValidationError(
+                    "Unable to calculate taxes - %s" % str(tax_error)
+                )
 
         try:
             billing_address = order_data["billing_address"]  # type: models.Address
             shipping_address = order_data["shipping_address"]  # type: models.Address
-            gateway_process_payment(
+            txn = gateway_process_payment(
                 payment=payment,
                 payment_token=payment.token,
                 billing_address=AddressData(**billing_address.as_data()),
                 shipping_address=AddressData(**shipping_address.as_data()),
+                store_source=store_source,
             )
+            if txn.is_success and txn.customer_id and user.is_authenticated:
+                store_customer_id(user, payment.gateway, txn.customer_id)
+
         except PaymentError as e:
             abort_order_data(order_data)
             raise ValidationError(str(e))
 
         # create the order into the database
-        order = create_order(
-            checkout=checkout, order_data=order_data, user=info.context.user
-        )
+        order = create_order(checkout=checkout, order_data=order_data, user=user)
 
         # remove checkout after order is successfully paid
         checkout.delete()
@@ -563,7 +559,7 @@ class CheckoutUpdateVoucher(BaseMutation):
 
         if voucher_code:
             try:
-                voucher = voucher_model.Voucher.objects.active(date=date.today()).get(
+                voucher = voucher_model.Voucher.objects.active(date=timezone.now()).get(
                     code=voucher_code
                 )
             except voucher_model.Voucher.DoesNotExist:
@@ -604,7 +600,7 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        add_promo_code_to_checkout(checkout, promo_code)
+        add_promo_code_to_checkout(checkout, promo_code, info.context.discounts)
         return CheckoutAddPromoCode(checkout=checkout)
 
 

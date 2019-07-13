@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
@@ -9,7 +10,7 @@ from measurement.measures import Weight
 from prices import MoneyRange
 
 from ..core.utils import format_money
-from ..core.utils.taxes import get_taxed_shipping_price
+from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from . import ShippingMethodType
@@ -49,7 +50,7 @@ class ShippingZone(models.Model):
             for shipping_method in self.shipping_methods.all()
         ]
         if prices:
-            return MoneyRange(min(prices).net, max(prices).net)
+            return MoneyRange(min(prices), max(prices))
         return None
 
     class Meta:
@@ -126,6 +127,7 @@ class ShippingMethod(models.Model):
     maximum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     objects = ShippingMethodQueryset.as_manager()
     translated = TranslationProxy()
@@ -160,8 +162,8 @@ class ShippingMethod(models.Model):
             ),
         )
 
-    def get_total(self, taxes=None):
-        return get_taxed_shipping_price(self.price, taxes)
+    def get_total(self):
+        return self.price
 
     def get_ajax_label(self):
         price_html = format_money(self.price)

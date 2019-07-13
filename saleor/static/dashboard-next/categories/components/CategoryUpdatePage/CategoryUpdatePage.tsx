@@ -1,5 +1,5 @@
 import { RawDraftContentState } from "draft-js";
-import * as React from "react";
+import React from "react";
 
 import AppHeader from "@saleor/components/AppHeader";
 import { CardSpacer } from "@saleor/components/CardSpacer";

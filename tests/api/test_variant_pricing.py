@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+from prices import Money, TaxedMoney
+
 from saleor.product.models import ProductVariant
 from saleor.product.utils.availability import get_variant_availability
 from tests.api.utils import get_graphql_content
@@ -97,9 +99,15 @@ def test_get_variant_pricing_not_on_sale(api_client, product):
     assert pricing["price"]["net"]["amount"] == product.price.amount
 
 
-def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, taxes):
+def test_variant_pricing(variant: ProductVariant, monkeypatch, settings):
+    taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
+    monkeypatch.setattr(
+        "saleor.product.utils.availability.apply_taxes_to_product",
+        Mock(return_value=taxed_price),
+    )
+
     pricing = get_variant_availability(variant)
-    assert pricing.price == variant.get_price()
+    assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
 
     monkeypatch.setattr(
@@ -114,7 +122,7 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, taxes):
     assert pricing.price_local_currency.currency == "PLN"
     assert pricing.available
 
-    pricing = get_variant_availability(variant, taxes=taxes)
+    pricing = get_variant_availability(variant)
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount
     assert pricing.price_undiscounted.tax.amount

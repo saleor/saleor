@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import AddressFormatter from "@saleor/components/AddressFormatter";
 import { customer } from "../../../customers/fixtures";

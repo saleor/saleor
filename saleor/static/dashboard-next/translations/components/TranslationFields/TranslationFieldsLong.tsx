@@ -1,6 +1,6 @@
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
 import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
 import Form from "@saleor/components/Form";

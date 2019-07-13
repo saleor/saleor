@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-04 11:45-0500\n"
+"POT-Creation-Date: 2019-07-03 05:42-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -574,48 +574,63 @@ msgid ""
 "order."
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:167
+#: saleor/dashboard/discount/forms.py:168
+msgctxt "Products that can be discounted with the voucher"
+msgid "Products"
+msgstr ""
+
+#: saleor/dashboard/discount/forms.py:175
+msgctxt "Categories that can be discounted with the voucher"
+msgid "Categories"
+msgstr ""
+
+#: saleor/dashboard/discount/forms.py:190
+msgctxt "Collections that can be discounted with the voucher"
+msgid "Collections"
+msgstr ""
+
+#: saleor/dashboard/discount/forms.py:207
 msgctxt "Product"
 msgid "Products"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:184
+#: saleor/dashboard/discount/forms.py:224
 msgctxt "Collections"
 msgid "Collections"
 msgstr ""
 
-#: saleor/dashboard/discount/forms.py:195
+#: saleor/dashboard/discount/forms.py:235
 msgctxt "Categories"
 msgid "Categories"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:64
+#: saleor/dashboard/discount/views.py:66
 msgctxt "Sale (discount) message"
 msgid "Added sale"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:78
+#: saleor/dashboard/discount/views.py:80
 msgctxt "Sale (discount) message"
 msgid "Updated sale"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:91
+#: saleor/dashboard/discount/views.py:93
 #, python-format
 msgctxt "Sale (discount) message"
 msgid "Removed sale %s"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:136
+#: saleor/dashboard/discount/views.py:138
 msgctxt "Voucher message"
 msgid "Added voucher"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:164
+#: saleor/dashboard/discount/views.py:166
 msgctxt "Voucher message"
 msgid "Updated voucher"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:182
+#: saleor/dashboard/discount/views.py:184
 #, python-format
 msgctxt "Voucher message"
 msgid "Removed voucher %s"
@@ -1563,25 +1578,25 @@ msgctxt "Product internal name"
 msgid "Internal name"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:141
+#: saleor/dashboard/product/views.py:138
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:173
+#: saleor/dashboard/product/views.py:170
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:186
+#: saleor/dashboard/product/views.py:183
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:204
+#: saleor/dashboard/product/views.py:201
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
@@ -1589,81 +1604,81 @@ msgid_plural "%(count)d products have been updated"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/product/views.py:261
+#: saleor/dashboard/product/views.py:258
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product type %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:277
+#: saleor/dashboard/product/views.py:274
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product type %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:292
+#: saleor/dashboard/product/views.py:289
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product type %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:340 saleor/dashboard/product/views.py:357
+#: saleor/dashboard/product/views.py:335 saleor/dashboard/product/views.py:352
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:373
+#: saleor/dashboard/product/views.py:368
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:452
+#: saleor/dashboard/product/views.py:447
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:471
+#: saleor/dashboard/product/views.py:466
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:487
+#: saleor/dashboard/product/views.py:482
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:579
+#: saleor/dashboard/product/views.py:574
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:593
+#: saleor/dashboard/product/views.py:588
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:606
+#: saleor/dashboard/product/views.py:601
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:626
+#: saleor/dashboard/product/views.py:621
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:643
+#: saleor/dashboard/product/views.py:638
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:658
+#: saleor/dashboard/product/views.py:653
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"

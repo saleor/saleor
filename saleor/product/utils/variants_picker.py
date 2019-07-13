@@ -1,15 +1,26 @@
 from collections import defaultdict
+from typing import Iterable
 
 from django_prices.templatetags import prices_i18n
 
+from ...core.taxes import display_gross_prices
+from ...core.taxes.interface import apply_taxes_to_product, show_taxes_on_storefront
 from ...core.utils import to_local_currency
-from ...core.utils.taxes import display_gross_prices, get_tax_rate_by_name
+from ...discount import DiscountInfo
 from ...seo.schema.product import variant_json_ld
 from .availability import get_product_availability
 
 
-def get_variant_picker_data(product, discounts=None, taxes=None, local_currency=None):
-    availability = get_product_availability(product, discounts, taxes, local_currency)
+def get_variant_picker_data(
+    product,
+    discounts: Iterable[DiscountInfo] = None,
+    taxes=None,
+    local_currency=None,
+    country=None,
+):
+    availability = get_product_availability(
+        product, discounts, country, local_currency, taxes
+    )
     variants = product.variants.all()
     data = {"variantAttributes": [], "variants": []}
 
@@ -19,14 +30,18 @@ def get_variant_picker_data(product, discounts=None, taxes=None, local_currency=
     filter_available_variants = defaultdict(list)
 
     for variant in variants:
-        price = variant.get_price(discounts, taxes)
-        price_undiscounted = variant.get_price(taxes=taxes)
+        price = apply_taxes_to_product(
+            variant.product, variant.get_price(discounts), country, taxes=taxes
+        )
+        price_undiscounted = apply_taxes_to_product(
+            variant.product, variant.get_price(), country, taxes=taxes
+        )
         if local_currency:
             price_local_currency = to_local_currency(price, local_currency)
         else:
             price_local_currency = None
         in_stock = variant.is_in_stock()
-        schema_data = variant_json_ld(price, variant, in_stock)
+        schema_data = variant_json_ld(price.net, variant, in_stock)
         variant_data = {
             "id": variant.id,
             "availability": in_stock,
@@ -63,9 +78,14 @@ def get_variant_picker_data(product, discounts=None, taxes=None, local_currency=
                 }
             )
 
+    product_price = apply_taxes_to_product(product, product.price, country, taxes=taxes)
+    tax_rates = 0
+    if product_price.tax and product_price.net:
+        tax_rates = int((product_price.tax / product_price.net) * 100)
+
     data["availability"] = {
         "discount": price_as_dict(availability.discount),
-        "taxRate": get_tax_rate_by_name(product.tax_rate, taxes),
+        "taxRate": tax_rates,
         "priceRange": price_range_as_dict(availability.price_range),
         "priceRangeUndiscounted": price_range_as_dict(
             availability.price_range_undiscounted
@@ -76,7 +96,7 @@ def get_variant_picker_data(product, discounts=None, taxes=None, local_currency=
     }
     data["priceDisplay"] = {
         "displayGross": display_gross_prices(),
-        "handleTaxes": bool(taxes),
+        "handleTaxes": show_taxes_on_storefront(),
     }
     return data
 

@@ -10,7 +10,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
-import * as React from "react";
+import React from "react";
 
 import Checkbox from "@saleor/components/Checkbox";
 import Date from "@saleor/components/Date";
@@ -22,7 +22,7 @@ import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
-import { VoucherDiscountValueType } from "../../../types/globalTypes";
+import { DiscountValueTypeEnum } from "../../../types/globalTypes";
 import { VoucherList_vouchers_edges_node } from "../../types/VoucherList";
 
 export interface VoucherListProps extends ListProps, ListActions {
@@ -102,7 +102,7 @@ const VoucherList = withStyles(styles, {
           toolbar={toolbar}
         >
           <TableCell className={classes.colName}>
-            {i18n.t("Name", {
+            {i18n.t("Code", {
               context: "voucher list table header"
             })}
           </TableCell>
@@ -167,7 +167,7 @@ const VoucherList = withStyles(styles, {
                     />
                   </TableCell>
                   <TableCell className={classes.colName}>
-                    {maybe<React.ReactNode>(() => voucher.name, <Skeleton />)}
+                    {maybe<React.ReactNode>(() => voucher.code, <Skeleton />)}
                   </TableCell>
                   <TableCell className={classes.colMinSpent}>
                     {voucher && voucher.minAmountSpent ? (
@@ -202,7 +202,7 @@ const VoucherList = withStyles(styles, {
                     voucher.discountValueType &&
                     voucher.discountValue ? (
                       voucher.discountValueType ===
-                      VoucherDiscountValueType.FIXED ? (
+                      DiscountValueTypeEnum.FIXED ? (
                         <Money
                           money={{
                             amount: voucher.discountValue,

@@ -107,7 +107,7 @@ def test_void_gateway_error(payment_txn_preauth, monkeypatch):
 
 @pytest.mark.parametrize(
     "amount, charge_status",
-    [(80, ChargeStatus.FULLY_CHARGED), (70, ChargeStatus.PARTIALLY_CHARGED)],
+    [("98.40", ChargeStatus.FULLY_CHARGED), (70, ChargeStatus.PARTIALLY_CHARGED)],
 )
 def test_capture_success(amount, charge_status, payment_txn_preauth):
     txn = gateway_capture(payment=payment_txn_preauth, amount=Decimal(amount))

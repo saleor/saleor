@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { SiteDomainInput, ShopSettingsInput, AuthorizationKeyType } from "./../../types/globalTypes";
+import { SiteDomainInput, ShopSettingsInput, AddressInput, AuthorizationKeyType } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: ShopSettingsUpdate
@@ -20,6 +20,34 @@ export interface ShopSettingsUpdate_shopSettingsUpdate_shop_authorizationKeys {
   name: AuthorizationKeyType;
 }
 
+export interface ShopSettingsUpdate_shopSettingsUpdate_shop_companyAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
+export interface ShopSettingsUpdate_shopSettingsUpdate_shop_companyAddress {
+  __typename: "Address";
+  city: string;
+  cityArea: string;
+  companyName: string;
+  country: ShopSettingsUpdate_shopSettingsUpdate_shop_companyAddress_country;
+  countryArea: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  phone: string | null;
+  postalCode: string;
+  streetAddress1: string;
+  streetAddress2: string;
+}
+
+export interface ShopSettingsUpdate_shopSettingsUpdate_shop_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface ShopSettingsUpdate_shopSettingsUpdate_shop_domain {
   __typename: "Domain";
   host: string;
@@ -28,6 +56,8 @@ export interface ShopSettingsUpdate_shopSettingsUpdate_shop_domain {
 export interface ShopSettingsUpdate_shopSettingsUpdate_shop {
   __typename: "Shop";
   authorizationKeys: (ShopSettingsUpdate_shopSettingsUpdate_shop_authorizationKeys | null)[];
+  companyAddress: ShopSettingsUpdate_shopSettingsUpdate_shop_companyAddress | null;
+  countries: (ShopSettingsUpdate_shopSettingsUpdate_shop_countries | null)[];
   description: string | null;
   domain: ShopSettingsUpdate_shopSettingsUpdate_shop_domain;
   name: string;
@@ -62,12 +92,53 @@ export interface ShopSettingsUpdate_shopDomainUpdate {
   shop: ShopSettingsUpdate_shopDomainUpdate_shop | null;
 }
 
+export interface ShopSettingsUpdate_shopAddressUpdate_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
+
+export interface ShopSettingsUpdate_shopAddressUpdate_shop_companyAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
+export interface ShopSettingsUpdate_shopAddressUpdate_shop_companyAddress {
+  __typename: "Address";
+  city: string;
+  cityArea: string;
+  companyName: string;
+  country: ShopSettingsUpdate_shopAddressUpdate_shop_companyAddress_country;
+  countryArea: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  phone: string | null;
+  postalCode: string;
+  streetAddress1: string;
+  streetAddress2: string;
+}
+
+export interface ShopSettingsUpdate_shopAddressUpdate_shop {
+  __typename: "Shop";
+  companyAddress: ShopSettingsUpdate_shopAddressUpdate_shop_companyAddress | null;
+}
+
+export interface ShopSettingsUpdate_shopAddressUpdate {
+  __typename: "ShopAddressUpdate";
+  errors: ShopSettingsUpdate_shopAddressUpdate_errors[] | null;
+  shop: ShopSettingsUpdate_shopAddressUpdate_shop | null;
+}
+
 export interface ShopSettingsUpdate {
   shopSettingsUpdate: ShopSettingsUpdate_shopSettingsUpdate | null;
   shopDomainUpdate: ShopSettingsUpdate_shopDomainUpdate | null;
+  shopAddressUpdate: ShopSettingsUpdate_shopAddressUpdate | null;
 }
 
 export interface ShopSettingsUpdateVariables {
   shopDomainInput: SiteDomainInput;
   shopSettingsInput: ShopSettingsInput;
+  addressInput: AddressInput;
 }

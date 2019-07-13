@@ -11,8 +11,8 @@ import {
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import Typography from "@material-ui/core/Typography";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 import { FilterContent } from ".";
 import i18n from "../../i18n";

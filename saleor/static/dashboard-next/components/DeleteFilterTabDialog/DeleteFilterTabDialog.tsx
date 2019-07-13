@@ -1,5 +1,5 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 import ActionDialog from "../ActionDialog";
