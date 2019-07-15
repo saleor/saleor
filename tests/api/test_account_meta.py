@@ -132,6 +132,36 @@ def test_update_metadata_through_mutation(
     ]
 
 
+def test_add_new_key_value_pair_to_metadata_using_mutation(
+    staff_api_client, permission_manage_users, customer_with_meta
+):
+    NEW_KEY = "NEW_KEY"
+    NEW_VALUE = "NEW_VALUE"
+    user_id = graphene.Node.to_global_id("User", customer_with_meta.id)
+    variables = {
+        "id": user_id,
+        "input": {
+            "storeLabel": META_LABEL,
+            "clientName": META_CLIENT,
+            "key": NEW_KEY,
+            "value": NEW_VALUE,
+        },
+    }
+    response = staff_api_client.post_graphql(
+        UPDATE_METADATA_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    meta = get_graphql_content(response)["data"]["userUpdatePrivateMetadata"]["user"][
+        "privateMeta"
+    ][0]
+
+    expected_metadata = [
+        {"key": NEW_KEY, "value": NEW_VALUE},
+        {"key": KEY, "value": VALUE},
+    ]
+    assert meta["label"] == META_LABEL
+    assert meta["clients"] == [{"metadata": expected_metadata, "name": META_CLIENT}]
+
+
 CLEAR_METADATA_MUTATION = """
     mutation UserClearStoredMetadata($id: ID!, $input: MetaPath!) {
       userClearStoredMetadata(

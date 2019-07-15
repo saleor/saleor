@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
@@ -272,10 +274,13 @@ class User(CountableDjangoObjectType):
     @staticmethod
     @permission_required("account.manage_users")
     def resolve_private_meta(root: models.User, _info):
-        return [
-            {"label": label, "metadata": data}
-            for label, data in root.private_meta.items()
-        ]
+        return sorted(
+            [
+                {"label": label, "metadata": data}
+                for label, data in root.private_meta.items()
+            ],
+            key=itemgetter("label"),
+        )
 
 
 class ChoiceValue(graphene.ObjectType):

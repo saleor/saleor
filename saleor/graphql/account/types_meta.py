@@ -1,3 +1,4 @@
+from operator import itemgetter
 import graphene
 
 
@@ -14,7 +15,10 @@ class MetaClientStore(graphene.ObjectType):
 
     @staticmethod
     def resolve_metadata(root, _info):
-        return [{"key": k, "value": v} for k, v in root["metadata"].items()]
+        return sorted(
+            [{"key": k, "value": v} for k, v in root["metadata"].items()],
+            key=itemgetter("key"),
+        )
 
 
 class MetaStore(graphene.ObjectType):
@@ -27,9 +31,13 @@ class MetaStore(graphene.ObjectType):
 
     @staticmethod
     def resolve_clients(root: dict, _info):
-        return [
-            {"name": key, "metadata": value} for key, value in root["metadata"].items()
-        ]
+        return sorted(
+            [
+                {"name": key, "metadata": value}
+                for key, value in root["metadata"].items()
+            ],
+            key=itemgetter("name"),
+        )
 
 
 class MetaPath(graphene.InputObjectType):
