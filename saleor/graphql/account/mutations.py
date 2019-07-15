@@ -803,9 +803,6 @@ class UserUpdatePrivateMeta(BaseMutation):
     @classmethod
     @staff_member_required
     def perform_mutation(cls, root, info, **data):
-        if not cls.check_permissions(info.context.user):
-            raise PermissionDenied()
-
         user_id = data.pop("id")
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
 
@@ -837,9 +834,6 @@ class UserClearStoredMeta(BaseMutation):
     @classmethod
     @staff_member_required
     def perform_mutation(cls, root, info, **data):
-        if not cls.check_permissions(info.context.user):
-            raise PermissionDenied()
-
         user_id = data.pop("id")
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
 
