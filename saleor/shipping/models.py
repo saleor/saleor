@@ -45,8 +45,6 @@ def _applicable_price_based_methods(price, qs):
 
 
 def _get_price_type_display(min_price, max_price):
-    from ..core.utils import format_money
-
     if max_price is None:
         return pgettext_lazy(
             "Applies to orders more expensive than the min value",

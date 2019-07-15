@@ -378,4 +378,4 @@ def sum_order_totals(qs):
 
 
 def get_valid_shipping_methods(order: Order):
-    return applicable_shipping_methods(order, price=order.get_subtotal().gross.amount)
+    return applicable_shipping_methods(order, price=order.get_subtotal().gross)

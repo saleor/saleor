@@ -5,7 +5,6 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
-from django_countries import countries
 from prices import Money, TaxedMoney
 
 from saleor.checkout.models import Checkout
@@ -43,11 +42,8 @@ def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
     checkout = checkout_with_single_item
     checkout.shipping_address = address
 
-    alternative_method, is_valid_method = clean_shipping_method(
-        checkout, shipping_method, None, retrieve_alternative=True
-    )
+    is_valid_method = clean_shipping_method(checkout, shipping_method, [])
     assert is_valid_method is True
-    assert alternative_method is None
 
 
 def test_clean_shipping_method_does_nothing_if_no_shipping_method(
@@ -58,60 +54,8 @@ def test_clean_shipping_method_does_nothing_if_no_shipping_method(
     checkout = checkout_with_single_item
     checkout.shipping_address = address
 
-    alternative_method, is_valid_method = clean_shipping_method(
-        checkout, None, None, retrieve_alternative=True
-    )
+    is_valid_method = clean_shipping_method(checkout, None, [])
     assert is_valid_method is True
-    assert alternative_method is None
-
-
-@pytest.mark.parametrize("request_alternative_method", (True, False))
-def test_clean_shipping_method_invalid_shipping_method_select_cheapest_method(
-    checkout_with_single_item,
-    address,
-    shipping_method,
-    other_shipping_method,
-    shipping_zone_without_countries,
-    request_alternative_method,
-):
-    """If current shipping method doesn't apply to the current checkout,
-    then it needs to be changed, suggest the cheapest one."""
-
-    checkout = checkout_with_single_item
-    checkout.shipping_address = address
-
-    shipping_method.shipping_zone = shipping_zone_without_countries
-    shipping_method.save(update_fields=["shipping_zone"])
-
-    alternative_method, is_valid_method = clean_shipping_method(
-        checkout, shipping_method, None, retrieve_alternative=request_alternative_method
-    )
-    assert is_valid_method is False
-
-    if request_alternative_method:
-        assert alternative_method == other_shipping_method
-    else:
-        assert alternative_method is None
-
-
-def test_clean_shipping_method_invalid_shipping_method_without_alternatives(
-    checkout_with_single_item, address, shipping_method
-):
-    """If current shipping method doesn't apply to the current checkout,
-    then it needs to be changed, suggest the cheapest one. But if none are available,
-    it should return None as suggestion."""
-
-    shipping_method.shipping_zone.countries = [countries.alpha2("FR")]
-    shipping_method.shipping_zone.save(update_fields=["countries"])
-
-    checkout = checkout_with_single_item
-    checkout.shipping_address = address
-
-    alternative_method, is_valid_method = clean_shipping_method(
-        checkout, shipping_method, None, retrieve_alternative=True
-    )
-    assert is_valid_method is False
-    assert alternative_method is None
 
 
 def test_update_checkout_shipping_method_if_invalid(
@@ -1334,7 +1278,7 @@ def test_checkout_shipping_method_update(
 ):
     checkout = checkout_with_item
     query = UPDATE_SHIPPING_METHOD_QUERY
-    mock_clean_shipping.return_value = [None, is_valid_shipping_method]
+    mock_clean_shipping.return_value = is_valid_shipping_method
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)

@@ -23,7 +23,6 @@ from ...checkout.utils import (
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
-    update_or_create_checkout_line,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
@@ -44,23 +43,16 @@ from .types import Checkout, CheckoutLine
 
 
 def clean_shipping_method(
-    checkout: models.Checkout,
-    method: Optional[models.ShippingMethod],
-    discounts,
-    *,
-    retrieve_alternative=False,
-) -> Tuple[Optional[models.ShippingMethod], bool]:
-    """Check if current shipping method is valid. If so - return True.
-    If current method is invalid, return the cheapest shipping method available.
-
-    Returns:
-        - The cheapest shipping method if the selected one is invalid
-        - Whether the selected shipping method is valid
+    checkout: models.Checkout, method: Optional[models.ShippingMethod], discounts
+) -> bool:
+    """
+    Check if current shipping method is valid. If so - return True.
+    It returns whether the selected shipping method is valid
     """
 
     if not method:
         # no shipping method was provided, it is valid
-        return None, True
+        return True
 
     if not checkout.is_shipping_required():
         raise ValidationError("This checkout does not requires shipping.")
@@ -72,31 +64,17 @@ def clean_shipping_method(
         )
 
     valid_methods = get_valid_shipping_methods(checkout, discounts)
-
-    if method not in valid_methods:
-        if retrieve_alternative:
-            # Return the alternative shipping method
-            # to replace the invalid one
-            return valid_methods.first(), False
-    else:
-        # the shipping method is in the valid list,
-        # we can return True
-        return None, True
-
-    # There was no alternative, return: we failed
-    return None, False
+    return method in valid_methods
 
 
 def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discounts):
-    new_shipping_method, is_valid = clean_shipping_method(
-        checkout=checkout,
-        method=checkout.shipping_method,
-        discounts=discounts,
-        retrieve_alternative=True,
+    is_valid = clean_shipping_method(
+        checkout=checkout, method=checkout.shipping_method, discounts=discounts
     )
 
-    if new_shipping_method or not is_valid:
-        checkout.shipping_method = new_shipping_method
+    if not is_valid:
+        cheapest_alternative = get_valid_shipping_methods(checkout, discounts).first()
+        checkout.shipping_method = cheapest_alternative
         checkout.save(update_fields=["shipping_method"])
 
 
@@ -216,7 +194,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         shipping_address = cleaned_input.get("shipping_address")
         billing_address = cleaned_input.get("billing_address")
 
-        # FIXME: check if we actually need a shipping address
         if shipping_address:
             shipping_address.save()
             instance.shipping_address = shipping_address.get_copy()
@@ -232,7 +209,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Update/create checkout lines
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
-                update_or_create_checkout_line(instance, variant, quantity)
+                try:
+                    add_variant_to_checkout(instance, variant, quantity)
+                except InsufficientStock as exc:
+                    raise ValidationError(f"Insufficient product stock: {exc.item}")
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -292,7 +272,12 @@ class CheckoutLinesAdd(BaseMutation):
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
-                add_variant_to_checkout(checkout, variant, quantity, replace=replace)
+                try:
+                    add_variant_to_checkout(
+                        checkout, variant, quantity, replace=replace
+                    )
+                except InsufficientStock as exc:
+                    raise ValidationError(f"Insufficient product stock: {exc.item}")
 
         recalculate_checkout_discount(checkout, info.context.discounts)
 
@@ -486,7 +471,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             field="shipping_method_id",
         )
 
-        _, shipping_method_is_valid = clean_shipping_method(
+        shipping_method_is_valid = clean_shipping_method(
             checkout=checkout, method=shipping_method, discounts=info.context.discounts
         )
 
