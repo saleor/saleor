@@ -4,6 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Fix product type taxes select - #4453 by @benekex2
+
 ## 2.8.0
 
 ### Core
@@ -35,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `SPECIFIC_PRODUCT` type to `VoucherType` - #4344 by @fowczarek
 - New translations:
   - Icelandic
+
 
 ## 2.7.0
 
