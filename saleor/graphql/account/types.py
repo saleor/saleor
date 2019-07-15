@@ -188,7 +188,9 @@ class User(CountableDjangoObjectType):
         description="List of stored payment sources",
     )
     private_meta = graphene.List(
-        MetaStore, description="List of privately stored metadata groups."
+        MetaStore,
+        required=True,
+        description="List of privately stored metadata groups.",
     )
 
     class Meta:
