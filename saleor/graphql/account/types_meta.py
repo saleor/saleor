@@ -30,3 +30,12 @@ class MetaStore(graphene.ObjectType):
         return [
             {"name": key, "metadata": value} for key, value in root["metadata"].items()
         ]
+
+
+class MetaInput(graphene.InputObjectType):
+    store_label = graphene.String(
+        required=True, description="Name of metadata client group."
+    )
+    client_name = graphene.String(required=True, description="Metadata clients name.")
+    key = graphene.String(required=True, description="Key for stored data.")
+    value = graphene.String(required=True, description="Stored metadata value.")

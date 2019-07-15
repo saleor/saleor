@@ -22,6 +22,7 @@ from ...dashboard.staff.utils import remove_staff_member
 from ..account.enums import AddressTypeEnum
 from ..account.i18n import I18nMixin
 from ..account.types import Address, AddressInput, User
+from ..account.types_meta import MetaInput
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Upload
@@ -783,3 +784,35 @@ class UserAvatarDelete(BaseMutation):
         user.avatar.delete_sized_images()
         user.avatar.delete()
         return UserAvatarDelete(user=user)
+
+
+class UserUpdatePrivateMeta(BaseMutation):
+    user = graphene.Field(User, description="An updated user instance.")
+
+    class Meta:
+        description = "Updates private metadata for user."
+        permissions = ("account.manage_staff",)
+
+    class Arguments:
+        id = graphene.ID(description="ID of a customer to update.", required=True)
+        input = MetaInput(
+            description="Fields required to update new or stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    @staff_member_required
+    def perform_mutation(cls, root, info, **data):
+        if not cls.check_permissions(info.context.user):
+            raise PermissionDenied()
+
+        user_id = data.pop("id")
+        user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
+        metadata = data.pop("input")
+        user.store_private_meta(
+            label=metadata.store_label,
+            key=metadata.client_name,
+            value={metadata.key: metadata.value},
+        )
+        user.save()
+        return UserUpdatePrivateMeta(user=user)
