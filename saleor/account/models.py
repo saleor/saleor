@@ -189,13 +189,13 @@ class User(PermissionsMixin, AbstractBaseUser):
             return "%s %s (%s)" % (address.first_name, address.last_name, self.email)
         return self.email
 
-    def get_private_meta(self, label):
-        return self.private_meta.get(label, {})
+    def get_private_meta(self, label: str, client: str) -> dict:
+        return self.private_meta.get(label, {}).get(client, {})
 
-    def store_private_meta(self, label, key, value):
+    def store_private_meta(self, label: str, client: str, item: dict):
         if label not in self.private_meta:
             self.private_meta[label] = {}
-        self.private_meta[label][str(key)] = value
+        self.private_meta[label][str(client)] = item
 
 
 class CustomerNote(models.Model):

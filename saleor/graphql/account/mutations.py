@@ -812,8 +812,8 @@ class UserUpdatePrivateMeta(BaseMutation):
         metadata = data.pop("input")
         user.store_private_meta(
             label=metadata.store_label,
-            key=metadata.client_name,
-            value={metadata.key: metadata.value},
+            client=metadata.client_name,
+            item={metadata.key: metadata.value},
         )
         user.save()
 
@@ -844,15 +844,15 @@ class UserClearStoredMeta(BaseMutation):
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
 
         metadata = data.pop("input")
-        stored_data = user.get_private_meta(label=metadata.store_label)
-        cleared_value = stored_data.get(metadata.client_name, {}).pop(
-            metadata.key, None
+        stored_data = user.get_private_meta(
+            label=metadata.store_label, client=metadata.client_name
         )
+        cleared_value = stored_data.pop(metadata.key, None)
         if cleared_value is not None:
             user.store_private_meta(
                 label=metadata.store_label,
-                key=metadata.client_name,
-                value=stored_data[metadata.client_name],
+                client=metadata.client_name,
+                item=stored_data,
             )
             user.save()
 
