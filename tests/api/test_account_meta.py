@@ -1,6 +1,8 @@
-import graphene
 import json
+
+import graphene
 import pytest
+
 from tests.api.utils import get_graphql_content
 
 META_LABEL = "TEST_LABEL"

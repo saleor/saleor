@@ -1,6 +1,5 @@
 import json
 import logging
-
 from decimal import Decimal
 from functools import wraps
 from typing import Dict, List
@@ -25,7 +24,6 @@ from . import (
     TransactionKind,
     get_payment_gateway,
 )
-
 from .interface import AddressData, GatewayResponse, PaymentData, TokenConfig
 from .models import Payment, Transaction
 
