@@ -810,10 +810,10 @@ class UserUpdatePrivateMeta(BaseMutation):
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
 
         metadata = data.pop("input")
+        stored_data = user.get_private_meta(metadata.store_label, metadata.client_name)
+        stored_data[metadata.key] = metadata.value
         user.store_private_meta(
-            label=metadata.store_label,
-            client=metadata.client_name,
-            item={metadata.key: metadata.value},
+            label=metadata.store_label, client=metadata.client_name, item=stored_data
         )
         user.save()
 
