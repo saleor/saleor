@@ -123,7 +123,6 @@ class Product(SeoModel, PublishableModel):
         ProductType, related_name="products", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.CASCADE
@@ -204,7 +203,6 @@ class ProductTranslation(SeoModelTranslation):
         Product, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
 
     class Meta:

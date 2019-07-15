@@ -63,6 +63,7 @@ razorpay = ">=1.1.1"
 stripe = "*"
 "urllib3" = "*"
 dataclasses = {version = "*",markers = "python_version < '3.7'"}
+html-to-draftjs = "*"
 
 [dev-packages]
 pytest = "*"

@@ -18,7 +18,6 @@ class PagePublishedQuerySet(PublishedQuerySet):
 class Page(SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=100)
     title = models.CharField(max_length=200)
-    content = models.TextField(blank=True)
     content_json = JSONField(blank=True, default=dict)
     created = models.DateTimeField(auto_now_add=True)
 
@@ -47,7 +46,6 @@ class PageTranslation(SeoModelTranslation):
         Page, related_name="translations", on_delete=models.CASCADE
     )
     title = models.CharField(max_length=255, blank=True)
-    content = models.TextField(blank=True)
     content_json = JSONField(blank=True, default=dict)
 
     class Meta:
