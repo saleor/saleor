@@ -16,6 +16,7 @@ from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 from versatileimagefield.fields import VersatileImageField
 
+from ..core.models import ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
 from . import CustomerEvents
 from .validators import validate_possible_number
@@ -131,7 +132,7 @@ def get_token():
     return str(uuid.uuid4())
 
 
-class User(PermissionsMixin, AbstractBaseUser):
+class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
@@ -150,8 +151,6 @@ class User(PermissionsMixin, AbstractBaseUser):
         Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
     )
     avatar = VersatileImageField(upload_to="user-avatars", blank=True, null=True)
-
-    private_meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     USERNAME_FIELD = "email"
 
@@ -188,17 +187,6 @@ class User(PermissionsMixin, AbstractBaseUser):
         if address:
             return "%s %s (%s)" % (address.first_name, address.last_name, self.email)
         return self.email
-
-    def get_private_meta(self, label: str, client: str) -> dict:
-        return self.private_meta.get(label, {}).get(client, {})
-
-    def store_private_meta(self, label: str, client: str, item: dict):
-        if label not in self.private_meta:
-            self.private_meta[label] = {}
-        self.private_meta[label][str(client)] = item
-
-    def clear_stored_meta_for_client(self, label: str, client: str):
-        self.private_meta.get(label, {}).pop(client, None)
 
 
 class CustomerNote(models.Model):
