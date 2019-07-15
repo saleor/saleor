@@ -791,7 +791,7 @@ class UserUpdatePrivateMeta(BaseMutation):
 
     class Meta:
         description = "Updates private metadata for user."
-        permissions = ("account.manage_staff",)
+        permissions = ("account.manage_users",)
 
     class Arguments:
         id = graphene.ID(description="ID of a customer to update.", required=True)

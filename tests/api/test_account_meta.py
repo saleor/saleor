@@ -41,7 +41,6 @@ def test_get_private_meta(
 ):
     user_id = graphene.Node.to_global_id("User", customer_with_meta.id)
     variables = {"id": user_id}
-    staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(
         GET_PRIVATE_META_QUERY, variables, permissions=[permission_manage_users]
     )
@@ -76,7 +75,7 @@ def test_user_has_no_access_to_private_meta(user_api_client, customer_with_meta)
     response = user_api_client.post_graphql(MY_PRIVATE_META_QUERY)
     data = json.loads(response.content.decode("utf8"))
     assert data["errors"] is not None
-    assert data["data"]["me"]["privateMeta"] is None
+    assert data["data"]["me"] is None
 
 
 UPDATE_METADATA_MUTATION = """
@@ -116,11 +115,12 @@ def test_update_metadata_through_mutation(
             "value": NEW_VALUE,
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(
         UPDATE_METADATA_MUTATION, variables, permissions=[permission_manage_users]
     )
-    meta = get_graphql_content(response)["data"]["user"]["privateMeta"][0]
+    meta = get_graphql_content(response)["data"]["userUpdatePrivateMetadata"]["user"][
+        "privateMeta"
+    ][0]
 
     assert meta["label"] == META_LABEL
     assert meta["clients"] == [
