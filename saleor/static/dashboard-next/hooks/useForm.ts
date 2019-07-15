@@ -35,13 +35,13 @@ function parseErrors(errors: UserError[]): Record<string, string> {
     : {};
 }
 
-function useForm<T extends Record<keyof T, any | any[]>>(
+function useForm<T extends Record<string, any | any[]>>(
   initial: T,
   errors: UserError[],
   onSubmit: (data: T) => void
 ): UseFormResult<T> {
-  const [data, setData] = useStateFromProps(initial);
   const [hasChanged, setChanged] = useState(false);
+  const [data, setData] = useStateFromProps(initial, () => setChanged(false));
 
   function toggleValue(event: ChangeEvent<T>) {
     const { name, value } = event.target;
@@ -61,15 +61,15 @@ function useForm<T extends Record<keyof T, any | any[]>>(
     if (!(name in data)) {
       console.error(`Unknown form field: ${name}`);
       return;
+    } else {
+      if (data[name] !== value) {
+        setChanged(true);
+      }
+      setData(data => ({
+        ...data,
+        [name]: value
+      }));
     }
-
-    if (!hasChanged) {
-      setChanged(true);
-    }
-    setData({
-      ...data,
-      [name]: value
-    });
   }
 
   function reset() {
@@ -77,10 +77,10 @@ function useForm<T extends Record<keyof T, any | any[]>>(
   }
 
   function set(newData: Partial<T>) {
-    setData({
+    setData(data => ({
       ...data,
       ...newData
-    });
+    }));
   }
 
   function submit() {
