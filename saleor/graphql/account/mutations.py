@@ -848,7 +848,12 @@ class UserClearStoredMeta(BaseMutation):
             label=metadata.store_label, client=metadata.client_name
         )
         cleared_value = stored_data.pop(metadata.key, None)
-        if cleared_value is not None:
+        if not stored_data:
+            user.clear_stored_meta_for_client(
+                metadata.store_label, metadata.client_name
+            )
+            user.save()
+        elif cleared_value is not None:
             user.store_private_meta(
                 label=metadata.store_label,
                 client=metadata.client_name,

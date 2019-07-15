@@ -197,6 +197,9 @@ class User(PermissionsMixin, AbstractBaseUser):
             self.private_meta[label] = {}
         self.private_meta[label][str(client)] = item
 
+    def clear_stored_meta_for_client(self, label: str, client: str):
+        self.private_meta.get(label, {}).pop(client, None)
+
 
 class CustomerNote(models.Model):
     user = models.ForeignKey(

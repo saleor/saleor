@@ -201,7 +201,7 @@ def test_clear_metadata_through_mutation(
     ][0]
 
     assert meta["label"] == META_LABEL
-    assert meta["clients"] == [{"metadata": [], "name": META_CLIENT}]
+    assert meta["clients"] == []
 
 
 def test_clear_silentyle_metadata_from_nonexistent_client(
