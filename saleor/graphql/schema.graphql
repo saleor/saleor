@@ -1515,6 +1515,12 @@ type MetaItem {
   value: String!
 }
 
+input MetaPath {
+  storeLabel: String!
+  clientName: String!
+  key: String!
+}
+
 type MetaStore {
   label: String!
   clients: [MetaClientStore]!
@@ -1706,6 +1712,7 @@ type Mutations {
   userAvatarDelete: UserAvatarDelete
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
+  userClearStoredMetadata(id: ID!, input: MetaPath!): UserClearStoredMeta
 }
 
 input NameTranslationInput {
@@ -3110,6 +3117,11 @@ type UserAvatarUpdate {
 type UserBulkSetActive {
   errors: [Error!]
   count: Int!
+}
+
+type UserClearStoredMeta {
+  errors: [Error!]
+  user: User
 }
 
 type UserCountableConnection {

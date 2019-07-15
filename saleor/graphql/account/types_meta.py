@@ -32,10 +32,13 @@ class MetaStore(graphene.ObjectType):
         ]
 
 
-class MetaInput(graphene.InputObjectType):
+class MetaPath(graphene.InputObjectType):
     store_label = graphene.String(
         required=True, description="Name of metadata client group."
     )
     client_name = graphene.String(required=True, description="Metadata clients name.")
     key = graphene.String(required=True, description="Key for stored data.")
+
+
+class MetaInput(MetaPath):
     value = graphene.String(required=True, description="Stored metadata value.")

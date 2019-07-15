@@ -22,7 +22,7 @@ from ...dashboard.staff.utils import remove_staff_member
 from ..account.enums import AddressTypeEnum
 from ..account.i18n import I18nMixin
 from ..account.types import Address, AddressInput, User
-from ..account.types_meta import MetaInput
+from ..account.types_meta import MetaInput, MetaPath
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Upload
@@ -814,6 +814,42 @@ class UserUpdatePrivateMeta(BaseMutation):
             label=metadata.store_label,
             key=metadata.client_name,
             value={metadata.key: metadata.value},
+        )
+        user.save()
+
+        return UserUpdatePrivateMeta(user=user)
+
+
+class UserClearStoredMeta(BaseMutation):
+    user = graphene.Field(User, description="An updated user instance.")
+
+    class Meta:
+        description = "Clear stored metadata value."
+        permissions = ("account.manage_users",)
+
+    class Arguments:
+        id = graphene.ID(description="ID of a customer to update.", required=True)
+        input = MetaPath(
+            description="Fields required to identify stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    @staff_member_required
+    def perform_mutation(cls, root, info, **data):
+        if not cls.check_permissions(info.context.user):
+            raise PermissionDenied()
+
+        user_id = data.pop("id")
+        user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
+
+        metadata = data.pop("input")
+        stored_data = user.get_private_meta(label=metadata.store_label)
+        stored_data[metadata.client_name].pop(metadata.key, None)
+        user.store_private_meta(
+            label=metadata.store_label,
+            key=metadata.client_name,
+            value=stored_data[metadata.client_name],
         )
         user.save()
 
