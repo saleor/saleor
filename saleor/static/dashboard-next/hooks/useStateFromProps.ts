@@ -1,13 +1,19 @@
 import isEqual from "lodash-es/isEqual";
 import { Dispatch, SetStateAction, useState } from "react";
 
-function useStateFromProps<T>(data: T): [T, Dispatch<SetStateAction<T>>] {
+function useStateFromProps<T>(
+  data: T,
+  onRefresh?: (data: T) => void
+): [T, Dispatch<SetStateAction<T>>] {
   const [state, setState] = useState(data);
-  const [prevState, setPrevState] = useState(data);
+  const [prevProps, setPrevProps] = useState(data);
 
-  if (!isEqual(prevState, data)) {
+  if (!isEqual(prevProps, data)) {
     setState(data);
-    setPrevState(data);
+    setPrevProps(data);
+    if (typeof data === "function") {
+      onRefresh(data);
+    }
   }
 
   return [state, setState];
