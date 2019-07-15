@@ -13,6 +13,13 @@ export interface ProductTypeCreateData_shop {
   defaultWeightUnit: WeightUnitsEnum | null;
 }
 
+export interface ProductTypeCreateData_taxTypes {
+  __typename: "TaxType";
+  taxCode: string | null;
+  description: string | null;
+}
+
 export interface ProductTypeCreateData {
   shop: ProductTypeCreateData_shop | null;
+  taxTypes: (ProductTypeCreateData_taxTypes | null)[] | null;
 }
