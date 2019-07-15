@@ -1,3 +1,5 @@
+from typing import Union
+
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
@@ -141,6 +143,20 @@ class ShippingMethodQueryset(models.QuerySet):
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         return price_based_methods | weight_based_methods
+
+    def applicable_shipping_methods_for_instance(
+        self, instance: Union["Checkout", "Order"], price, country_code=None
+    ):
+        if not instance.is_shipping_required():
+            return None
+        if not instance.shipping_address:
+            return None
+
+        return self.applicable_shipping_methods(
+            price=price,
+            weight=instance.get_total_weight(),
+            country_code=country_code or instance.shipping_address.country.code,
+        )
 
 
 class ShippingMethod(models.Model):

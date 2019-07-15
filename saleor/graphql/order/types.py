@@ -5,7 +5,7 @@ from graphene import relay
 
 from ...order import models
 from ...order.models import FulfillmentStatus
-from ...order.utils import get_valid_shipping_methods
+from ...order.utils import get_valid_shipping_methods_for_order
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
@@ -456,7 +456,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Order, _info):
-        available = get_valid_shipping_methods(root)
+        available = get_valid_shipping_methods_for_order(root)
         if available is None:
             return []
         return available
