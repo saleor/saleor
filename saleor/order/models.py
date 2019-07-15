@@ -165,7 +165,7 @@ class Order(models.Model):
         total_paid = self._total_paid()
         return total_paid.gross.amount > 0
 
-    def get_user_current_email(self):
+    def get_customer_email(self):
         return self.user.email if self.user else self.user_email
 
     def _total_paid(self):

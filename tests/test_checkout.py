@@ -644,7 +644,7 @@ def test_create_order_creates_expected_events(
     assert email_sent_event.order is order  # ensure the mail event is related to order
     assert email_sent_event.date  # ensure a date was set
     assert email_sent_event.parameters == {  # ensure the correct parameters were set
-        "email": order.get_user_current_email(),
+        "email": order.get_customer_email(),
         "email_type": OrderEventsEmails.ORDER,
     }
 
