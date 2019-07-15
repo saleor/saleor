@@ -12,7 +12,9 @@ VALUE = "Bond"
 
 @pytest.fixture
 def customer_with_meta(customer_user):
-    customer_user.store_private_meta(META_LABEL, META_CLIENT, {KEY: VALUE})
+    customer_user.store_private_meta(
+        label=META_LABEL, client=META_CLIENT, item={KEY: VALUE}
+    )
     customer_user.save()
     return customer_user
 
