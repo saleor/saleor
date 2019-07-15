@@ -90,6 +90,9 @@ class Checkout(models.Model):
     def __len__(self):
         return self.lines.count()
 
+    def get_customer_email(self):
+        return self.user.email if self.user else self.email
+
     def is_shipping_required(self):
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)

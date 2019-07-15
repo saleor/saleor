@@ -103,7 +103,7 @@ def create_payment_information(
 def handle_fully_paid_order(order):
     events.order_fully_paid_event(order=order)
 
-    if order.get_user_current_email():
+    if order.get_customer_email():
         events.email_sent_event(
             order=order, user=None, email_type=events.OrderEventsEmails.PAYMENT
         )
