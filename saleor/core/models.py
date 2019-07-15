@@ -1,7 +1,10 @@
 import datetime
 
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import F, Max, Q
+
+from .utils.json_serializer import CustomJsonEncoder
 
 
 class SortableModel(models.Model):
@@ -64,3 +67,21 @@ class PublishableModel(models.Model):
             self.publication_date is None
             or self.publication_date < datetime.date.today()
         )
+
+
+class ModelWithMetadata(models.Model):
+    private_meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+
+    class Meta:
+        abstract = True
+
+    def get_private_meta(self, label: str, client: str) -> dict:
+        return self.private_meta.get(label, {}).get(client, {})
+
+    def store_private_meta(self, label: str, client: str, item: dict):
+        if label not in self.private_meta:
+            self.private_meta[label] = {}
+        self.private_meta[label][str(client)] = item
+
+    def clear_stored_meta_for_client(self, label: str, client: str):
+        self.private_meta.get(label, {}).pop(client, None)
