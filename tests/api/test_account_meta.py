@@ -168,3 +168,25 @@ def test_clear_metadata_through_mutation(
 
     assert meta["label"] == META_LABEL
     assert meta["clients"] == [{"metadata": [], "name": META_CLIENT}]
+
+
+def test_clear_silentyle_metadata_from_nonexistent_client(
+    staff_api_client, permission_manage_users, customer_with_meta
+):
+    user_id = graphene.Node.to_global_id("User", customer_with_meta.id)
+    WRONG_CLIENT = "WONG"
+    variables = {
+        "id": user_id,
+        "input": {"storeLabel": META_LABEL, "clientName": WRONG_CLIENT, "key": KEY},
+    }
+    response = staff_api_client.post_graphql(
+        CLEAR_METADATA_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    meta = get_graphql_content(response)["data"]["userClearStoredMetadata"]["user"][
+        "privateMeta"
+    ][0]
+
+    assert meta["label"] == META_LABEL
+    assert meta["clients"] == [
+        {"metadata": [{"key": KEY, "value": VALUE}], "name": META_CLIENT}
+    ]

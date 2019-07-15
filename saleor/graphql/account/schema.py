@@ -29,8 +29,8 @@ from .mutations import (
     StaffUpdate,
     UserAvatarDelete,
     UserAvatarUpdate,
-    UserUpdatePrivateMeta,
     UserClearStoredMeta,
+    UserUpdatePrivateMeta,
 )
 from .resolvers import resolve_address_validator, resolve_customers, resolve_staff_users
 from .types import AddressValidationData, User
