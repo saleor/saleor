@@ -37,9 +37,8 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     decrease_voucher_usage,
     get_products_voucher_discount,
-    get_shipping_voucher_discount,
-    get_value_voucher_discount,
     increase_voucher_usage,
+    validate_voucher_for_checkout,
 )
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
@@ -767,12 +766,8 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=Non
         )
         raise NotApplicable(msg)
 
-    return get_shipping_voucher_discount(
-        voucher,
-        calculate_checkout_subtotal(checkout, discounts).gross,
-        calculate_checkout_shipping(checkout, discounts).gross,
-        checkout.quantity,
-    )
+    shipping_price = calculate_checkout_shipping(checkout, discounts).gross
+    return voucher.get_discount_amount_for(shipping_price)
 
 
 def _get_products_voucher_discount(checkout, voucher, discounts=None):
@@ -798,8 +793,7 @@ def _get_products_voucher_discount(checkout, voucher, discounts=None):
             "Voucher not applicable", "This offer is only valid for selected items."
         )
         raise NotApplicable(msg)
-    subtotal = calculate_checkout_subtotal(checkout, discounts).gross
-    return get_products_voucher_discount(voucher, prices, subtotal, checkout.quantity)
+    return get_products_voucher_discount(voucher, prices)
 
 
 def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
@@ -807,9 +801,10 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
+    validate_voucher_for_checkout(voucher, checkout, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
         subtotal = calculate_checkout_subtotal(checkout, discounts).gross
-        return get_value_voucher_discount(voucher, subtotal, checkout.quantity)
+        return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
     if voucher.type in (
