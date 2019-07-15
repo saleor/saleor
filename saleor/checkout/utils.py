@@ -384,27 +384,6 @@ def check_variant_in_stock(
     return new_quantity, line
 
 
-def update_or_create_checkout_line(
-    checkout, variant, new_quantity, line: CheckoutLine = None
-):
-    """Updates the quantity of a given checkout line to a given quantity.
-    If the line doesn't exist, it will be created."""
-
-    if line is None:
-        line = checkout.lines.filter(variant=variant).first()
-
-    if new_quantity == 0:
-        if line is not None:
-            line.delete()
-    elif line is None:
-        checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity)
-    else:
-        line.quantity = new_quantity
-        line.save(update_fields=["quantity"])
-
-    update_checkout_quantity(checkout)
-
-
 def add_variant_to_checkout(
     checkout, variant, quantity=1, replace=False, check_quantity=True
 ):
@@ -422,7 +401,18 @@ def add_variant_to_checkout(
         check_quantity=check_quantity,
     )
 
-    update_or_create_checkout_line(checkout, variant, new_quantity, line=line)
+    if line is None:
+        line = checkout.lines.filter(variant=variant).first()
+
+    if new_quantity == 0 and line is not None:
+        line.delete()
+    elif line is None:
+        checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity)
+    elif new_quantity > 0:
+        line.quantity = new_quantity
+        line.save(update_fields=["quantity"])
+
+    update_checkout_quantity(checkout)
 
 
 def get_shipping_address_forms(checkout, user_addresses, data, country):
@@ -984,7 +974,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
 def get_valid_shipping_methods(checkout: Checkout, discounts, country_code=None):
     return applicable_shipping_methods(
         checkout,
-        price=calculate_checkout_subtotal(checkout, discounts).gross.amount,
+        price=calculate_checkout_subtotal(checkout, discounts).gross,
         country_code=country_code,
     )
 
