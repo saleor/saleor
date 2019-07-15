@@ -55,7 +55,7 @@ from ..giftcard.utils import (
 from ..order import events
 from ..order.emails import send_order_confirmation
 from ..order.models import Order, OrderLine
-from ..shipping.utils import applicable_shipping_methods
+from ..shipping.models import ShippingMethod
 from . import AddressType, logger
 from .forms import (
     AddressChoiceForm,
@@ -404,8 +404,9 @@ def add_variant_to_checkout(
     if line is None:
         line = checkout.lines.filter(variant=variant).first()
 
-    if new_quantity == 0 and line is not None:
-        line.delete()
+    if new_quantity == 0:
+        if line is not None:
+            line.delete()
     elif line is None:
         checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity)
     elif new_quantity > 0:
@@ -971,8 +972,10 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
-def get_valid_shipping_methods(checkout: Checkout, discounts, country_code=None):
-    return applicable_shipping_methods(
+def get_valid_shipping_methods_for_checkout(
+    checkout: Checkout, discounts, country_code=None
+):
+    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout,
         price=calculate_checkout_subtotal(checkout, discounts).gross,
         country_code=country_code,
@@ -984,7 +987,7 @@ def is_valid_shipping_method(checkout, discounts):
     if not checkout.shipping_method:
         return False
 
-    valid_methods = get_valid_shipping_methods(checkout, discounts)
+    valid_methods = get_valid_shipping_methods_for_checkout(checkout, discounts)
     if valid_methods is None or checkout.shipping_method not in valid_methods:
         clear_shipping_method(checkout)
         return False
@@ -994,7 +997,7 @@ def is_valid_shipping_method(checkout, discounts):
 def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
     """Returns estimated price range for shipping for given order."""
 
-    shipping_methods = get_valid_shipping_methods(
+    shipping_methods = get_valid_shipping_methods_for_checkout(
         checkout, discounts, country_code=country_code
     )
 

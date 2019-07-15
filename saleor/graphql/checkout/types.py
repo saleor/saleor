@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 
 from ...checkout import models
-from ...checkout.utils import get_valid_shipping_methods
+from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.taxes import zero_taxed_money
 from ...core.taxes.interface import (
     calculate_checkout_line_total,
@@ -145,7 +145,9 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Checkout, info):
-        available = get_valid_shipping_methods(root, info.context.discounts)
+        available = get_valid_shipping_methods_for_checkout(
+            root, info.context.discounts
+        )
         if available is None:
             return []
         return available

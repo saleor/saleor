@@ -17,7 +17,7 @@ from ...checkout.utils import (
     clean_checkout,
     create_order,
     get_user_checkout,
-    get_valid_shipping_methods,
+    get_valid_shipping_methods_for_checkout,
     get_voucher_for_checkout,
     prepare_order_data,
     recalculate_checkout_discount,
@@ -63,7 +63,7 @@ def clean_shipping_method(
             "shipping address."
         )
 
-    valid_methods = get_valid_shipping_methods(checkout, discounts)
+    valid_methods = get_valid_shipping_methods_for_checkout(checkout, discounts)
     return method in valid_methods
 
 
@@ -73,7 +73,9 @@ def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discou
     )
 
     if not is_valid:
-        cheapest_alternative = get_valid_shipping_methods(checkout, discounts).first()
+        cheapest_alternative = get_valid_shipping_methods_for_checkout(
+            checkout, discounts
+        ).first()
         checkout.shipping_method = cheapest_alternative
         checkout.save(update_fields=["shipping_method"])
 

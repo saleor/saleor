@@ -321,13 +321,13 @@ class CheckoutShippingMethodForm(forms.ModelForm):
         fields = ["shipping_method"]
 
     def __init__(self, *args, **kwargs):
-        from .utils import get_valid_shipping_methods
+        from .utils import get_valid_shipping_methods_for_checkout
 
         discounts = kwargs.pop("discounts")
         super().__init__(*args, **kwargs)
         shipping_address = self.instance.shipping_address
         country_code = shipping_address.country.code
-        qs = get_valid_shipping_methods(
+        qs = get_valid_shipping_methods_for_checkout(
             self.instance, discounts, country_code=country_code
         )
         self.fields["shipping_method"].queryset = qs
