@@ -393,3 +393,32 @@ def test_add_new_key_value_pair_to_metadata_using_mutation(
     ]
     assert meta["namespace"] == PUBLIC_META_NAMESPACE
     assert meta["clients"] == [{"metadata": expected_metadata, "name": META_CLIENT}]
+
+
+def test_add_new_namespace_metadata_using_mutation(user_api_client, customer_with_meta):
+    NEW_KEY = "NEW_KEY"
+    NEW_VALUE = "NEW_VALUE"
+    NEW_NAMESPACE = "NEW_NAMESPACE"
+    NEW_CLIENT = "NEW_CLIENT"
+
+    user_id = graphene.Node.to_global_id("User", customer_with_meta.id)
+    variables = {
+        "id": user_id,
+        "input": {
+            "namespace": NEW_NAMESPACE,
+            "clientName": NEW_CLIENT,
+            "key": NEW_KEY,
+            "value": NEW_VALUE,
+        },
+    }
+    response = user_api_client.post_graphql(UPDATE_METADATA_MUTATION, variables)
+    meta = get_graphql_content(response)["data"]["userUpdateMetadata"]["user"]["meta"]
+
+    assert meta[0]["namespace"] == NEW_NAMESPACE
+    assert meta[0]["clients"] == [
+        {"metadata": [{"key": NEW_KEY, "value": NEW_VALUE}], "name": NEW_CLIENT}
+    ]
+    assert meta[1]["namespace"] == PUBLIC_META_NAMESPACE
+    assert meta[1]["clients"] == [
+        {"metadata": [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}], "name": META_CLIENT}
+    ]
