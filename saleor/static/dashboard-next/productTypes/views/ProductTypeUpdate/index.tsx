@@ -153,7 +153,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         productAttributes: formData.productAttributes.map(
                           choice => choice.value
                         ),
-                        taxRate: formData.taxRate,
+                        taxCode: formData.taxType.value,
                         variantAttributes: formData.variantAttributes.map(
                           choice => choice.value
                         ),
@@ -223,6 +223,14 @@ export const ProductTypeUpdate: React.StatelessComponent<
                     )
                   );
 
+                  const formTransitionState = getMutationState(
+                    updateProductType.opts.called,
+                    updateProductType.opts.loading,
+                    maybe(
+                      () => updateProductType.opts.data.productTypeUpdate.errors
+                    )
+                  );
+
                   const attribute = maybe(() =>
                     data.productType.productAttributes
                       .concat(data.productType.variantAttributes)
@@ -240,7 +248,8 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         errors={errors.formErrors}
                         pageTitle={maybe(() => data.productType.name)}
                         productType={maybe(() => data.productType)}
-                        saveButtonBarState={loading ? "loading" : "default"}
+                        saveButtonBarState={formTransitionState}
+                        taxTypes={maybe(() => data.taxTypes, [])}
                         onAttributeAdd={type =>
                           navigate(
                             productTypeUrl(id, {

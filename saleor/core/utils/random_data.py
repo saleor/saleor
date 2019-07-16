@@ -1,4 +1,3 @@
-import datetime
 import itertools
 import json
 import os
@@ -11,6 +10,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
+from django.utils import timezone
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
@@ -460,7 +460,7 @@ def create_users(how_many=10):
 
 
 def create_orders(how_many=10):
-    discounts = fetch_discounts(datetime.date.today())
+    discounts = fetch_discounts(timezone.now())
     for _ in range(how_many):
         order = create_fake_order(discounts)
         yield "Order: %s" % (order,)

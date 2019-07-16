@@ -21,7 +21,8 @@ const props: Omit<ProductTypeDetailsPageProps, "classes"> = {
   onSubmit: () => undefined,
   pageTitle: productType.name,
   productType,
-  saveButtonBarState: "default"
+  saveButtonBarState: "default",
+  taxTypes: []
 };
 
 storiesOf("Views / Product types / Product type details", module)

@@ -583,6 +583,9 @@ class ProductType(CountableDjangoObjectType):
         prefetch_related=prefetch_products,
     )
     tax_rate = TaxRateType(description="A type of tax rate.")
+    tax_type = graphene.Field(
+        TaxType, description="A type of tax. Assigned by enabled tax gateway"
+    )
     variant_attributes = graphene.List(
         Attribute, description="Variant attributes of that product type."
     )
@@ -602,7 +605,13 @@ class ProductType(CountableDjangoObjectType):
             "is_shipping_required",
             "name",
             "weight",
+            "tax_type",
         ]
+
+    @staticmethod
+    def resolve_tax_type(root: models.ProductType, _info):
+        tax_data = tax_interface.get_tax_from_object_meta(root)
+        return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
     def resolve_tax_rate(root: models.ProductType, info, **_kwargs):

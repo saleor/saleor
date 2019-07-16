@@ -1,0 +1,75 @@
+interactions:
+- request:
+    body: <transaction><amount>80.00</amount><payment_method_nonce>payment-token</payment_method_nonce><options><submit_for_settlement
+      type="boolean">true</submit_for_settlement><store_in_vault_on_success type="boolean">false</store_in_vault_on_success><three_d_secure><required
+      type="boolean">false</required></three_d_secure></options><order_id type="integer">6</order_id><billing><first_name>John</first_name><last_name>Doe</last_name><company>Mirumee
+      Software</company><postal_code>53-601</postal_code><street_address>T&#281;czowa
+      7</street_address><extended_address></extended_address><locality>WROC&#321;AW</locality><region></region><country_code_alpha2>PL</country_code_alpha2></billing><risk_data><customer_ip></customer_ip></risk_data><customer><email>test@example.com</email></customer><type>sale</type></transaction>
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '818'
+      Content-type:
+      - application/xml
+      User-Agent:
+      - Braintree Python 3.49.0
+      X-ApiVersion:
+      - '5'
+    method: POST
+    uri: https://api.sandbox.braintreegateway.com/merchants/9m6qhfxsqzm3cgzw/transactions
+  response:
+    body:
+      string: !!binary |
+        H4sIAEyyFF0AA6RUTW/bMAy991cYLtCb4qRFuwx11A0bdhg2bNha9FgwNtMI1YdH0W28Xz/ZiWIn
+        c3fZTeQjn8hHUfnNxujkGckrZxfpbDJNE7SFK5V9XKR3t5/EPL2RJzlUSiCRI0HoK2c9ypMkyTuX
+        b497I+GmwkUKRNCk2Q5iAuuh4HDJ1jMeHrGI9nbwhKJQvp1dXl3mWXcegsBMalkz7vh8Y5ZOp7KC
+        xqDlB4O8duWDdbbAPNtHH3AY9B4eUd7ZJ+tebOIowU2lCMtkjGaSZzGjLzs7qHtnRoGyIxmGcF4B
+        gfH/0AuMqy3L+XQynYYWtlYEdwWKbYGiKzA2L9g9oc2z0ZhI4Kr2Mj9oxddLo1iswsw9MmtskyVT
+        HQQcxwa57AiFsuIZas3CWeHroghqyRVo3xK8GtCT8JoQRRluKGo6HBXhr7odTKTb24NJjKfn2VGn
+        uaMSSahSXgUsniO4VFqHVRjwrhR5FhYMys9uHWQdOPooDdH30YX6erMPKZypwDbyq6LaICY/3Ypf
+        gLB93Vukj62cZ9Cie/aXF+JqOgvjHPiGyoeuWUBZUqvm7dnp+Xx2Xfx2L5C8aXU/gAf7tmG0JZYR
+        SqzSi7SddlzibV+uAK24kfc/vn04O704n12/vw/9RXcfSfgYZH6FpmgfLzVd8QJ0tYZz+f1L2/nf
+        /v3gjmaRk/JPogSGIXEdXpZpZ1iNXR1eynHSPmUohgGlJaPnd7gBU2mchJmEde38e67jzLz9e6QH
+        HWbYHV9b+37X/+fTCZ/AyK/8BwAA//8DAHErh2zSBQAA
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Encoding:
+      - gzip
+      Content-Security-Policy:
+      - frame-ancestors 'self'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Thu, 27 Jun 2019 12:10:52 GMT
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Authentication:
+      - basic_auth
+      X-BroxyId:
+      - 02-1561637451.810-79.110.196.19-2197475
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Request-Id:
+      - 02-1561637451.810-79.110.196.19-2197475
+      X-Runtime:
+      - '0.211300'
+      X-User:
+      - wgs3tg8h39pyypyc
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 422
+      message: Unprocessable Entity
+version: 1

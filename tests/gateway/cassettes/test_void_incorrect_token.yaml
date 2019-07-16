@@ -1,0 +1,59 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-type:
+      - application/xml
+      User-Agent:
+      - Braintree Python 3.49.0
+      X-ApiVersion:
+      - '5'
+    method: PUT
+    uri: https://api.sandbox.braintreegateway.com/merchants/9m6qhfxsqzm3cgzw/transactions/incorrect_token/void
+  response:
+    body:
+      string: !!binary |
+        H4sIAD/GFF0AAwAAAP//AwAAAAAAAAAAAA==
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Encoding:
+      - gzip
+      Content-Security-Policy:
+      - frame-ancestors 'self'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Thu, 27 Jun 2019 13:35:59 GMT
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Authentication:
+      - basic_auth
+      X-BroxyId:
+      - 02-1561642559.027-79.110.196.19-2739397
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Request-Id:
+      - 02-1561642559.027-79.110.196.19-2739397
+      X-Runtime:
+      - '0.078084'
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 404
+      message: Not Found
+version: 1
