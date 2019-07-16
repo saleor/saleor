@@ -2500,6 +2500,7 @@ type Product implements Node {
   isAvailable: Boolean
   basePrice: Money
   price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
+  minimalVariantPrice: Money
   taxRate: TaxRateType @deprecated(reason: "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway")
   taxType: TaxType
   attributes: [SelectedAttribute!]!
