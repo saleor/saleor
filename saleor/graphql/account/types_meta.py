@@ -23,7 +23,9 @@ class MetaClientStore(graphene.ObjectType):
 
 
 class MetaStore(graphene.ObjectType):
-    label = graphene.String(required=True, description="Name of metadata client group.")
+    namespace = graphene.String(
+        required=True, description="Name of metadata client group."
+    )
     clients = graphene.List(
         MetaClientStore,
         required=True,
@@ -42,7 +44,7 @@ class MetaStore(graphene.ObjectType):
 
 
 class MetaPath(graphene.InputObjectType):
-    store_label = graphene.String(
+    namespace = graphene.String(
         required=True, description="Name of metadata client group."
     )
     client_name = graphene.String(required=True, description="Metadata clients name.")

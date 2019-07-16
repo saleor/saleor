@@ -276,10 +276,10 @@ class User(CountableDjangoObjectType):
     def resolve_private_meta(root: models.User, _info):
         return sorted(
             [
-                {"label": label, "metadata": data}
-                for label, data in root.private_meta.items()
+                {"namespace": namespace, "metadata": data}
+                for namespace, data in root.private_meta.items()
             ],
-            key=itemgetter("label"),
+            key=itemgetter("namespace"),
         )
 
 
