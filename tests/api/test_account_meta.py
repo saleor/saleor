@@ -5,19 +5,30 @@ import pytest
 
 from tests.api.utils import get_graphql_content
 
-META_NAMESPACE = "TEST_NAMESPACE"
+PRIVATE_META_NAMESPACE = "TEST_NAMESPACE"
+PUBLIC_META_NAMESPACE = "PUBLIC_NAMESPACE"
 
 
 META_CLIENT = "TEST_PLUGIN"
 
-KEY = "name"
-VALUE = "Bond"
+PRIVATE_KEY = "name"
+PRIVATE_VALUE = "Bond"
+
+PUBLIC_KEY = "purpose"
+PUBLIC_VALUE = "42"
 
 
 @pytest.fixture
 def customer_with_meta(customer_user):
     customer_user.store_private_meta(
-        namespace=META_NAMESPACE, client=META_CLIENT, item={KEY: VALUE}
+        namespace=PRIVATE_META_NAMESPACE,
+        client=META_CLIENT,
+        item={PRIVATE_KEY: PRIVATE_VALUE},
+    )
+    customer_user.store_meta(
+        namespace=PUBLIC_META_NAMESPACE,
+        client=META_CLIENT,
+        item={PUBLIC_KEY: PUBLIC_VALUE},
     )
     customer_user.save()
     return customer_user
@@ -52,9 +63,12 @@ def test_get_private_meta(
     )
     meta = get_graphql_content(response)["data"]["user"]["privateMeta"][0]
 
-    assert meta["namespace"] == META_NAMESPACE
+    assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == [
-        {"metadata": [{"key": KEY, "value": VALUE}], "name": META_CLIENT}
+        {
+            "metadata": [{"key": PRIVATE_KEY, "value": PRIVATE_VALUE}],
+            "name": META_CLIENT,
+        }
     ]
 
 
@@ -115,9 +129,9 @@ def test_update_metadata_through_mutation(
     variables = {
         "id": user_id,
         "input": {
-            "namespace": META_NAMESPACE,
+            "namespace": PRIVATE_META_NAMESPACE,
             "clientName": META_CLIENT,
-            "key": KEY,
+            "key": PRIVATE_KEY,
             "value": NEW_VALUE,
         },
     }
@@ -128,9 +142,9 @@ def test_update_metadata_through_mutation(
         "privateMeta"
     ][0]
 
-    assert meta["namespace"] == META_NAMESPACE
+    assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == [
-        {"metadata": [{"key": KEY, "value": NEW_VALUE}], "name": META_CLIENT}
+        {"metadata": [{"key": PRIVATE_KEY, "value": NEW_VALUE}], "name": META_CLIENT}
     ]
 
 
@@ -143,7 +157,7 @@ def test_add_new_key_value_pair_to_metadata_using_mutation(
     variables = {
         "id": user_id,
         "input": {
-            "namespace": META_NAMESPACE,
+            "namespace": PRIVATE_META_NAMESPACE,
             "clientName": META_CLIENT,
             "key": NEW_KEY,
             "value": NEW_VALUE,
@@ -158,9 +172,9 @@ def test_add_new_key_value_pair_to_metadata_using_mutation(
 
     expected_metadata = [
         {"key": NEW_KEY, "value": NEW_VALUE},
-        {"key": KEY, "value": VALUE},
+        {"key": PRIVATE_KEY, "value": PRIVATE_VALUE},
     ]
-    assert meta["namespace"] == META_NAMESPACE
+    assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == [{"metadata": expected_metadata, "name": META_CLIENT}]
 
 
@@ -193,7 +207,11 @@ def test_clear_metadata_through_mutation(
     user_id = graphene.Node.to_global_id("User", customer_with_meta.id)
     variables = {
         "id": user_id,
-        "input": {"namespace": META_NAMESPACE, "clientName": META_CLIENT, "key": KEY},
+        "input": {
+            "namespace": PRIVATE_META_NAMESPACE,
+            "clientName": META_CLIENT,
+            "key": PRIVATE_KEY,
+        },
     }
     response = staff_api_client.post_graphql(
         CLEAR_METADATA_MUTATION, variables, permissions=[permission_manage_users]
@@ -202,7 +220,7 @@ def test_clear_metadata_through_mutation(
         "privateMeta"
     ][0]
 
-    assert meta["namespace"] == META_NAMESPACE
+    assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == []
 
 
@@ -213,7 +231,11 @@ def test_clear_silentyle_metadata_from_nonexistent_client(
     WRONG_CLIENT = "WONG"
     variables = {
         "id": user_id,
-        "input": {"namespace": META_NAMESPACE, "clientName": WRONG_CLIENT, "key": KEY},
+        "input": {
+            "namespace": PRIVATE_META_NAMESPACE,
+            "clientName": WRONG_CLIENT,
+            "key": PRIVATE_KEY,
+        },
     }
     response = staff_api_client.post_graphql(
         CLEAR_METADATA_MUTATION, variables, permissions=[permission_manage_users]
@@ -222,9 +244,12 @@ def test_clear_silentyle_metadata_from_nonexistent_client(
         "privateMeta"
     ][0]
 
-    assert meta["namespace"] == META_NAMESPACE
+    assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == [
-        {"metadata": [{"key": KEY, "value": VALUE}], "name": META_CLIENT}
+        {
+            "metadata": [{"key": PRIVATE_KEY, "value": PRIVATE_VALUE}],
+            "name": META_CLIENT,
+        }
     ]
 
 
@@ -251,4 +276,9 @@ def test_access_users_public_metadata(user_api_client, customer_with_meta):
     response = user_api_client.post_graphql(MY_PUBLIC_META_QUERY)
     data = json.loads(response.content.decode("utf8"))
     assert "errors" not in data
-    assert data["data"]["me"]["meta"] == []
+
+    meta = get_graphql_content(response)["data"]["me"]["meta"][0]
+    assert meta["namespace"] == PUBLIC_META_NAMESPACE
+    assert meta["clients"] == [
+        {"metadata": [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}], "name": META_CLIENT}
+    ]

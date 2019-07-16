@@ -71,6 +71,7 @@ class PublishableModel(models.Model):
 
 class ModelWithMetadata(models.Model):
     private_meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         abstract = True
@@ -83,5 +84,16 @@ class ModelWithMetadata(models.Model):
             self.private_meta[namespace] = {}
         self.private_meta[namespace][str(client)] = item
 
-    def clear_stored_meta_for_client(self, namespace: str, client: str):
+    def clear_stored_private_meta_for_client(self, namespace: str, client: str):
         self.private_meta.get(namespace, {}).pop(client, None)
+
+    def get_meta(self, namespace: str, client: str) -> dict:
+        return self.meta.get(namespace, {}).get(client, {})
+
+    def store_meta(self, namespace: str, client: str, item: dict):
+        if namespace not in self.private_meta:
+            self.meta[namespace] = {}
+        self.meta[namespace][str(client)] = item
+
+    def clear_stored_meta_for_client(self, namespace: str, client: str):
+        self.meta.get(namespace, {}).pop(client, None)

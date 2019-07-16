@@ -289,7 +289,13 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_meta(root: models.User, _info):
-        return []
+        return sorted(
+            [
+                {"namespace": namespace, "metadata": data}
+                for namespace, data in root.meta.items()
+            ],
+            key=itemgetter("namespace"),
+        )
 
 
 class ChoiceValue(graphene.ObjectType):
