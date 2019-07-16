@@ -7064,6 +7064,188 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
             </table>
           </div>
         </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Properties
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Storefront Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in faceted navigation
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="visibleInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Visible on Product Page in Storefront
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Dashboard Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInDashboard"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in Filtering
+                    </span>
+                    <div>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-caption-id"
+                      >
+                        If enabled, you’ll be able to use this attribute to filter products in product list.
+                      </span>
+                    </div>
+                  </div>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -7370,6 +7552,211 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Properties
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Storefront Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in faceted navigation
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Position in faceted navigation
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="storefrontSearchPosition"
+                    type="text"
+                    value="2"
+                  />
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="visibleInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Visible on Product Page in Storefront
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Dashboard Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInDashboard"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in Filtering
+                    </span>
+                    <div>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-caption-id"
+                      >
+                        If enabled, you’ll be able to use this attribute to filter products in product list.
+                      </span>
+                    </div>
+                  </div>
+                </span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -7683,6 +8070,216 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Properties
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Storefront Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in faceted navigation
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Position in faceted navigation
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="storefrontSearchPosition"
+                    type="text"
+                    value="2"
+                  />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="visibleInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Visible on Product Page in Storefront
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Dashboard Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInDashboard"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in Filtering
+                    </span>
+                    <div>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-caption-id"
+                      >
+                        If enabled, you’ll be able to use this attribute to filter products in product list.
+                      </span>
+                    </div>
+                  </div>
+                </span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -8005,6 +8602,194 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
             </table>
           </div>
         </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Properties
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Storefront Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        disabled=""
+                        name="filterableInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in faceted navigation
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        disabled=""
+                        name="visibleInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Visible on Product Page in Storefront
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Dashboard Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    tabindex="-1"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        disabled=""
+                        name="filterableInDashboard"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in Filtering
+                    </span>
+                    <div>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-caption-id"
+                      >
+                        If enabled, you’ll be able to use this attribute to filter products in product list.
+                      </span>
+                    </div>
+                  </div>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -8313,6 +9098,211 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
             </table>
           </div>
         </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Properties
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Storefront Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in faceted navigation
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Position in faceted navigation
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="storefrontSearchPosition"
+                    type="text"
+                    value="2"
+                  />
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="visibleInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Visible on Product Page in Storefront
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Dashboard Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInDashboard"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in Filtering
+                    </span>
+                    <div>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-caption-id"
+                      >
+                        If enabled, you’ll be able to use this attribute to filter products in product list.
+                      </span>
+                    </div>
+                  </div>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -8586,6 +9576,211 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
             </table>
           </div>
         </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Properties
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Storefront Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in faceted navigation
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Position in faceted navigation
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="storefrontSearchPosition"
+                    type="text"
+                    value="2"
+                  />
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                      />
+                      <input
+                        checked=""
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="visibleInStorefront"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Visible on Product Page in Storefront
+                    </span>
+                    <div />
+                  </div>
+                </span>
+              </label>
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <h6
+                class="MuiTypography-root-id MuiTypography-subtitle1-id"
+              >
+                Dashboard Properties
+              </h6>
+              <hr
+                class="Hr-root-id"
+              />
+              <div
+                class="CardSpacer-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiSwitch-root-id"
+                >
+                  <span
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <span
+                        class="MuiSwitch-icon-id"
+                      />
+                      <input
+                        class="MuiPrivateSwitchBase-input-id"
+                        name="filterableInDashboard"
+                        type="checkbox"
+                      />
+                    </span>
+                  </span>
+                  <span
+                    class="MuiSwitch-bar-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  <div
+                    class="ControlledSwitch-label-id"
+                  >
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Use in Filtering
+                    </span>
+                    <div>
+                      <span
+                        class="MuiTypography-root-id MuiTypography-caption-id"
+                      >
+                        If enabled, you’ll be able to use this attribute to filter products in product list.
+                      </span>
+                    </div>
+                  </div>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -8678,6 +9873,24 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
             >
               Default Label
             </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              scope="col"
+            >
+              Visible
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              scope="col"
+            >
+              Searchable
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              scope="col"
+            >
+              Use in faceted search
+            </th>
           </tr>
         </thead>
         <tfoot
@@ -8688,7 +9901,7 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="3"
+              colspan="6"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -8786,6 +9999,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
             >
               Author
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              No
+            </td>
           </tr>
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
@@ -8814,6 +10042,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-id"
             >
               Box Size
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              No
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              No
             </td>
           </tr>
           <tr
@@ -8844,6 +10087,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
             >
               Brand
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              No
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              No
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              Yes
+            </td>
           </tr>
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
@@ -8872,6 +10130,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-id"
             >
               Candy Box Size
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              No
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              Yes
             </td>
           </tr>
           <tr
@@ -8902,6 +10175,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
             >
               Coffee Genre
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              Yes
+            </td>
           </tr>
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
@@ -8930,6 +10218,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-id"
             >
               Collar
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              No
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              Yes
             </td>
           </tr>
           <tr
@@ -8960,6 +10263,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
             >
               Color
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              No
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              No
+            </td>
           </tr>
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
@@ -8988,6 +10306,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-id"
             >
               Cover
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              No
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              No
             </td>
           </tr>
           <tr
@@ -9018,6 +10351,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
             >
               Flavor
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              Yes
+            </td>
           </tr>
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
@@ -9046,6 +10394,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-id"
             >
               Language
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              No
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              Yes
             </td>
           </tr>
           <tr
@@ -9076,6 +10439,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
             >
               Publisher
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              Yes
+            </td>
           </tr>
           <tr
             class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
@@ -9104,6 +10482,21 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-id"
             >
               Size
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              Yes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              Yes
             </td>
           </tr>
         </tbody>
@@ -9187,6 +10580,24 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
             >
               Default Label
             </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              scope="col"
+            >
+              Visible
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              scope="col"
+            >
+              Searchable
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              scope="col"
+            >
+              Use in faceted search
+            </th>
           </tr>
         </thead>
         <tfoot
@@ -9197,7 +10608,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="3"
+              colspan="6"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -9306,6 +10717,33 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
                 ‌
               </span>
             </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -9388,6 +10826,24 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
             >
               Default Label
             </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              scope="col"
+            >
+              Visible
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              scope="col"
+            >
+              Searchable
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              scope="col"
+            >
+              Use in faceted search
+            </th>
           </tr>
         </thead>
         <tfoot
@@ -9398,7 +10854,7 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="3"
+              colspan="6"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -17460,7 +18916,11 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Feature on Homepage
+                      <span
+                        class="ControlledSwitch-labelText-id"
+                      >
+                        Feature on Homepage
+                      </span>
                       <div />
                     </div>
                   </span>
@@ -18356,7 +19816,11 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Feature on Homepage
+                      <span
+                        class="ControlledSwitch-labelText-id"
+                      >
+                        Feature on Homepage
+                      </span>
                       <div />
                     </div>
                   </span>
@@ -19426,7 +20890,11 @@ Ctrl + K"
                     <div
                       class="ControlledSwitch-label-id"
                     >
-                      Feature on Homepage
+                      <span
+                        class="ControlledSwitch-labelText-id"
+                      >
+                        Feature on Homepage
+                      </span>
                       <div />
                     </div>
                   </span>
@@ -88420,7 +89888,11 @@ exports[`Storyshots Views / Taxes / Country List default 1`] = `
                   <div
                     class="ControlledSwitch-label-id"
                   >
-                    All products prices are entered with tax included
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      All products prices are entered with tax included
+                    </span>
                     <div />
                   </div>
                 </span>
@@ -88458,7 +89930,11 @@ exports[`Storyshots Views / Taxes / Country List default 1`] = `
                   <div
                     class="ControlledSwitch-label-id"
                   >
-                    Show gross prices to customers in the storefront
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Show gross prices to customers in the storefront
+                    </span>
                     <div />
                   </div>
                 </span>
@@ -88495,7 +89971,11 @@ exports[`Storyshots Views / Taxes / Country List default 1`] = `
                   <div
                     class="ControlledSwitch-label-id"
                   >
-                    Charge taxes on shipping rates
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Charge taxes on shipping rates
+                    </span>
                     <div />
                   </div>
                 </span>
@@ -88683,7 +90163,11 @@ exports[`Storyshots Views / Taxes / Country List loading 1`] = `
                   <div
                     class="ControlledSwitch-label-id"
                   >
-                    All products prices are entered with tax included
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      All products prices are entered with tax included
+                    </span>
                     <div />
                   </div>
                 </span>
@@ -88722,7 +90206,11 @@ exports[`Storyshots Views / Taxes / Country List loading 1`] = `
                   <div
                     class="ControlledSwitch-label-id"
                   >
-                    Show gross prices to customers in the storefront
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Show gross prices to customers in the storefront
+                    </span>
                     <div />
                   </div>
                 </span>
@@ -88761,7 +90249,11 @@ exports[`Storyshots Views / Taxes / Country List loading 1`] = `
                   <div
                     class="ControlledSwitch-label-id"
                   >
-                    Charge taxes on shipping rates
+                    <span
+                      class="ControlledSwitch-labelText-id"
+                    >
+                      Charge taxes on shipping rates
+                    </span>
                     <div />
                   </div>
                 </span>
