@@ -75,13 +75,13 @@ class ModelWithMetadata(models.Model):
     class Meta:
         abstract = True
 
-    def get_private_meta(self, label: str, client: str) -> dict:
-        return self.private_meta.get(label, {}).get(client, {})
+    def get_private_meta(self, namespace: str, client: str) -> dict:
+        return self.private_meta.get(namespace, {}).get(client, {})
 
-    def store_private_meta(self, label: str, client: str, item: dict):
-        if label not in self.private_meta:
-            self.private_meta[label] = {}
-        self.private_meta[label][str(client)] = item
+    def store_private_meta(self, namespace: str, client: str, item: dict):
+        if namespace not in self.private_meta:
+            self.private_meta[namespace] = {}
+        self.private_meta[namespace][str(client)] = item
 
-    def clear_stored_meta_for_client(self, label: str, client: str):
-        self.private_meta.get(label, {}).pop(client, None)
+    def clear_stored_meta_for_client(self, namespace: str, client: str):
+        self.private_meta.get(namespace, {}).pop(client, None)
