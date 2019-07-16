@@ -3,17 +3,20 @@ import Card from "@material-ui/core/Card";
 import IconButton from "@material-ui/core/IconButton";
 import { Theme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import makeStyles from "@material-ui/styles/makeStyles";
 import React from "react";
-import { SortableContainer, SortableElement } from "react-sortable-hoc";
+import { SortableElement } from "react-sortable-hoc";
 
 import CardTitle from "@saleor/components/CardTitle";
 import Skeleton from "@saleor/components/Skeleton";
+import {
+  SortableTableBody,
+  SortableTableRow
+} from "@saleor/components/SortableTable";
 import i18n from "@saleor/i18n";
 import Draggable from "@saleor/icons/Draggable";
 import { maybe, renderCollection, stopPropagation } from "@saleor/misc";
@@ -62,57 +65,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   }
 }));
 
-interface SortableTableBodyProps {
-  children: React.ReactNode | React.ReactNodeArray;
-}
-
-const SortableTableBody = SortableContainer<SortableTableBodyProps>(
-  ({ children }) => <TableBody>{children}</TableBody>,
-  {
-    withRef: true
-  }
-);
-
-interface SortableTableRowProps {
-  disabled: boolean;
-  value: AttributeDetailsFragment_values;
-  onValueDelete: (id: string) => void;
-  onValueUpdate: (id: string) => void;
-}
-
-const SortableTableRow = SortableElement<SortableTableRowProps>(
-  ({ disabled, value, onValueDelete, onValueUpdate }) => {
-    const classes = useStyles({});
-
-    return (
-      <TableRow
-        className={!!value ? classes.link : undefined}
-        hover={!!value}
-        onClick={!!value ? () => onValueUpdate(value.id) : undefined}
-        key={maybe(() => value.id)}
-      >
-        <TableCell className={classes.columnDrag}>
-          <Draggable className={classes.dragIcon} />
-        </TableCell>
-        <TableCell className={classes.columnAdmin}>
-          {maybe(() => value.slug) ? value.slug : <Skeleton />}
-        </TableCell>
-        <TableCell className={classes.columnStore}>
-          {maybe(() => value.name) ? value.name : <Skeleton />}
-        </TableCell>
-        <TableCell className={classes.iconCell}>
-          <IconButton
-            disabled={disabled}
-            onClick={stopPropagation(() => onValueDelete(value.id))}
-          >
-            <DeleteIcon color="primary" />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-    );
-  }
-);
-
 const AttributeValues: React.FC<AttributeValuesProps> = ({
   disabled,
   onValueAdd,
@@ -158,13 +110,27 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
               : undefined,
             (value, valueIndex) => (
               <SortableTableRow
-                disabled={disabled}
-                value={value}
-                onValueDelete={onValueDelete}
-                onValueUpdate={onValueUpdate}
-                key={maybe(() => value.id, "skeleton")}
+                className={!!value ? classes.link : undefined}
+                hover={!!value}
+                onClick={!!value ? () => onValueUpdate(value.id) : undefined}
+                key={maybe(() => value.id)}
                 index={valueIndex}
-              />
+              >
+                <TableCell className={classes.columnAdmin}>
+                  {maybe(() => value.slug) ? value.slug : <Skeleton />}
+                </TableCell>
+                <TableCell className={classes.columnStore}>
+                  {maybe(() => value.name) ? value.name : <Skeleton />}
+                </TableCell>
+                <TableCell className={classes.iconCell}>
+                  <IconButton
+                    disabled={disabled}
+                    onClick={stopPropagation(() => onValueDelete(value.id))}
+                  >
+                    <DeleteIcon color="primary" />
+                  </IconButton>
+                </TableCell>
+              </SortableTableRow>
             ),
             () => (
               <TableRow>
