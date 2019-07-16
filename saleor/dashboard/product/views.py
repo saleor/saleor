@@ -19,7 +19,7 @@ from ...product.models import (
 )
 from ...product.utils.availability import get_product_availability
 from ...product.utils.costs import get_margin_for_variant, get_product_costs_data
-from ...product.utils.variant_prices import update_product_minimal_variant_price
+from ...product.tasks import update_product_minimal_variant_price_task
 from ..views import staff_member_required
 from . import forms
 from .filters import AttributeFilter, ProductFilter, ProductTypeFilter
@@ -373,7 +373,7 @@ def variant_delete(request, product_pk, variant_pk):
     variant = get_object_or_404(product.variants, pk=variant_pk)
     if request.method == "POST":
         variant.delete()
-        update_product_minimal_variant_price(variant.product)
+        update_product_minimal_variant_price_task.delay(variant.product_id)
         msg = pgettext_lazy("Dashboard message", "Removed variant %s") % (variant.name,)
         messages.success(request, msg)
         return redirect("dashboard:product-details", pk=product.pk)

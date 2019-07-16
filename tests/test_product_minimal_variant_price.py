@@ -5,6 +5,7 @@ from prices import Money
 
 from saleor.discount import DiscountValueType
 from saleor.product.models import Product, ProductVariant
+from saleor.product.tasks import update_all_products_minimal_variant_prices_task
 from saleor.product.utils.variant_prices import update_product_minimal_variant_price
 
 
@@ -16,6 +17,22 @@ def test_update_product_minimal_variant_price(product):
 
     update_product_minimal_variant_price(product)
     assert product.minimal_variant_price == variant.price_override
+
+
+def test_update_all_products_minimal_variant_prices_task(product_list):
+    price_override = Money("0.01", "USD")
+    for product in product_list:
+        assert product.minimal_variant_price > price_override
+        variant = product.variants.first()
+        variant.price_override = price_override
+        variant.save()
+        # Check that "variant.save()" doesn't update the "minimal_variant_price"
+        assert product.minimal_variant_price > price_override
+
+    update_all_products_minimal_variant_prices_task.apply()
+    for product in product_list:
+        product.refresh_from_db()
+        assert product.minimal_variant_price == price_override
 
 
 def test_product_objects_create_sets_default_minimal_variant_price(

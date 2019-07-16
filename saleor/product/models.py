@@ -312,9 +312,9 @@ class ProductVariantQueryset(models.QuerySet):
         After the creation update the "minimal_variant_price" of the product.
         """
         variant = super().create(**kwargs)
-        from .utils.variant_prices import update_product_minimal_variant_price
+        from .tasks import update_product_minimal_variant_price_task
 
-        update_product_minimal_variant_price(variant.product)
+        update_product_minimal_variant_price_task.delay(variant.product_id)
         return variant
 
     def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
@@ -326,14 +326,13 @@ class ProductVariantQueryset(models.QuerySet):
         variants = super().bulk_create(
             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
         )
-        products_map = {}
+        product_pks = set()
         for obj in objs:
-            product = obj.product
-            products_map[product.pk] = product
-        products = products_map.values()
-        from .utils.variant_prices import update_products_minimal_variant_prices
+            product_pks.add(obj.product_id)
+        product_pks = list(product_pks)
+        from .tasks import update_products_minimal_variant_prices_task
 
-        update_products_minimal_variant_prices(products)
+        update_products_minimal_variant_prices_task.delay(product_pks)
         return variants
 
 
