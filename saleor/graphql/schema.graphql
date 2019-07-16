@@ -1712,8 +1712,9 @@ type Mutations {
   userAvatarDelete: UserAvatarDelete
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
   userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
-  userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
   userClearStoredMetadata(id: ID!, input: MetaPath!): UserClearStoredMeta
+  userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
+  userClearStoredPrivateMetadata(id: ID!, input: MetaPath!): UserClearStoredPrivateMeta
 }
 
 input NameTranslationInput {
@@ -3122,6 +3123,11 @@ type UserBulkSetActive {
 }
 
 type UserClearStoredMeta {
+  errors: [Error!]
+  user: User
+}
+
+type UserClearStoredPrivateMeta {
   errors: [Error!]
   user: User
 }
