@@ -11,7 +11,7 @@ import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
-import { UserError } from "@saleor/types";
+import { ReorderEvent, UserError } from "@saleor/types";
 import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
 import {
   AttributeDetailsFragment,
@@ -32,6 +32,7 @@ export interface AttributePageProps {
   onSubmit: (data: AttributePageFormData) => void;
   onValueAdd: () => void;
   onValueDelete: (id: string) => void;
+  onValueReorder: ReorderEvent;
   onValueUpdate: (id: string) => void;
 }
 
@@ -56,6 +57,7 @@ const AttributePage: React.FC<AttributePageProps> = ({
   onSubmit,
   onValueAdd,
   onValueDelete,
+  onValueReorder,
   onValueUpdate
 }) => {
   const initialForm: AttributePageFormData =
@@ -126,6 +128,7 @@ const AttributePage: React.FC<AttributePageProps> = ({
                 values={values}
                 onValueAdd={onValueAdd}
                 onValueDelete={onValueDelete}
+                onValueReorder={onValueReorder}
                 onValueUpdate={onValueUpdate}
               />
             </div>
