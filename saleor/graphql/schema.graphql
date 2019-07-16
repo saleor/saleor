@@ -3135,6 +3135,7 @@ type Voucher implements Node {
   startDate: DateTime!
   endDate: DateTime
   applyOncePerOrder: Boolean!
+  applyOncePerCustomer: Boolean!
   discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
   minAmountSpent: Money
@@ -3206,6 +3207,7 @@ input VoucherInput {
   minCheckoutItemsQuantity: Int
   countries: [String]
   applyOncePerOrder: Boolean
+  applyOncePerCustomer: Boolean
   usageLimit: Int
 }
 
