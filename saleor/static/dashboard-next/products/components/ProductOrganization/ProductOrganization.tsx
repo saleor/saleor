@@ -86,7 +86,7 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
   productTypes?: ProductType[];
   fetchCategories: (query: string) => void;
   fetchCollections: (query: string) => void;
-  onChange: (event: ChangeEvent<string, any>) => void;
+  onChange: (event: ChangeEvent<any>) => void;
   onSet: (data: Partial<ProductOrganizationFormData>) => void;
 }
 

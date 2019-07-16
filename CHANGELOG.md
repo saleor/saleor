@@ -4,9 +4,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Other notable changes
-
+- Fix product type taxes select - #4453 by @benekex2
+- Fix form reloading - #4467 by @dominik-zeglen
+- Fix time zone based tests - #4468 by @fowczarek
 - Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
+
 
 ## 2.8.0
 
@@ -39,6 +41,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `SPECIFIC_PRODUCT` type to `VoucherType` - #4344 by @fowczarek
 - New translations:
   - Icelandic
+
 
 ## 2.7.0
 

@@ -8,6 +8,7 @@ SECRET_KEY = "NOTREALLY"
 
 DEFAULT_CURRENCY = "USD"
 
+TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en"
 
 ES_URL = None
