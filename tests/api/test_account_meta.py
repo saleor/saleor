@@ -6,6 +6,8 @@ import pytest
 from tests.api.utils import get_graphql_content
 
 META_NAMESPACE = "TEST_NAMESPACE"
+
+
 META_CLIENT = "TEST_PLUGIN"
 
 KEY = "name"
@@ -224,3 +226,29 @@ def test_clear_silentyle_metadata_from_nonexistent_client(
     assert meta["clients"] == [
         {"metadata": [{"key": KEY, "value": VALUE}], "name": META_CLIENT}
     ]
+
+
+MY_PUBLIC_META_QUERY = """
+    {
+        me {
+            email
+            meta {
+                namespace
+                clients {
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_access_users_public_metadata(user_api_client, customer_with_meta):
+    response = user_api_client.post_graphql(MY_PUBLIC_META_QUERY)
+    data = json.loads(response.content.decode("utf8"))
+    assert "errors" not in data
+    assert data["data"]["me"]["meta"] == []
