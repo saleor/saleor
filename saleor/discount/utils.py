@@ -23,7 +23,7 @@ def decrease_voucher_usage(voucher):
     voucher.save(update_fields=["used"])
 
 
-def add_voucher_usege_by_customer(voucher, customer_email):
+def add_voucher_usage_by_customer(voucher, customer_email):
     voucher_customer = VoucherCustomer.objects.filter(
         voucher=voucher, customer_email=customer_email
     )
@@ -37,7 +37,7 @@ def add_voucher_usege_by_customer(voucher, customer_email):
     VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_email)
 
 
-def remove_voucher_usege_by_customer(voucher, customer_email):
+def remove_voucher_usage_by_customer(voucher, customer_email):
     voucher_customer = VoucherCustomer.objects.filter(
         voucher=voucher, customer_email=customer_email
     )

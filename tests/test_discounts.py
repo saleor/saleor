@@ -8,11 +8,11 @@ from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Sale, Voucher, VoucherCustomer
 from saleor.discount.utils import (
-    add_voucher_usege_by_customer,
+    add_voucher_usage_by_customer,
     decrease_voucher_usage,
     get_product_discount_on_sale,
     increase_voucher_usage,
-    remove_voucher_usege_by_customer,
+    remove_voucher_usage_by_customer,
     validate_voucher,
 )
 from saleor.product.models import Product, ProductVariant
@@ -188,32 +188,32 @@ def test_decrease_voucher_usage():
     assert voucher.used == 9
 
 
-def test_add_voucher_usege_by_customer(voucher, customer_user):
-    voucherCustomerCount = VoucherCustomer.objects.all().count()
-    add_voucher_usege_by_customer(voucher, customer_user.email)
-    assert VoucherCustomer.objects.all().count() == voucherCustomerCount + 1
+def test_add_voucher_usage_by_customer(voucher, customer_user):
+    voucher_customer_count = VoucherCustomer.objects.all().count()
+    add_voucher_usage_by_customer(voucher, customer_user.email)
+    assert VoucherCustomer.objects.all().count() == voucher_customer_count + 1
     voucherCustomer = VoucherCustomer.objects.first()
     assert voucherCustomer.voucher == voucher
     assert voucherCustomer.customer_email == customer_user.email
 
 
-def test_add_voucher_usege_by_customer_raise_not_applicable(voucher_customer):
+def test_add_voucher_usage_by_customer_raise_not_applicable(voucher_customer):
     voucher = voucher_customer.voucher
     customer_email = voucher_customer.customer_email
     with pytest.raises(NotApplicable):
-        add_voucher_usege_by_customer(voucher, customer_email)
+        add_voucher_usage_by_customer(voucher, customer_email)
 
 
-def test_remove_voucher_usege_by_customer(voucher_customer):
-    voucherCustomerCount = VoucherCustomer.objects.all().count()
+def test_remove_voucher_usage_by_customer(voucher_customer):
+    voucher_customer_count = VoucherCustomer.objects.all().count()
     voucher = voucher_customer.voucher
     customer_email = voucher_customer.customer_email
-    remove_voucher_usege_by_customer(voucher, customer_email)
-    assert VoucherCustomer.objects.all().count() == voucherCustomerCount - 1
+    remove_voucher_usage_by_customer(voucher, customer_email)
+    assert VoucherCustomer.objects.all().count() == voucher_customer_count - 1
 
 
-def test_remove_voucher_usege_by_customer_not_exists(voucher):
-    remove_voucher_usege_by_customer(voucher, "fake@exmaimpel.com")
+def test_remove_voucher_usage_by_customer_not_exists(voucher):
+    remove_voucher_usage_by_customer(voucher, "fake@exmaimpel.com")
 
 
 @pytest.mark.parametrize(
