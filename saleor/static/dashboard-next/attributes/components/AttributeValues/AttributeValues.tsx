@@ -9,7 +9,6 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import makeStyles from "@material-ui/styles/makeStyles";
 import React from "react";
-import { SortableElement } from "react-sortable-hoc";
 
 import CardTitle from "@saleor/components/CardTitle";
 import Skeleton from "@saleor/components/Skeleton";
@@ -18,7 +17,6 @@ import {
   SortableTableRow
 } from "@saleor/components/SortableTable";
 import i18n from "@saleor/i18n";
-import Draggable from "@saleor/icons/Draggable";
 import { maybe, renderCollection, stopPropagation } from "@saleor/misc";
 import { ReorderEvent } from "@saleor/types";
 import { AttributeDetailsFragment_values } from "../../types/AttributeDetailsFragment";
