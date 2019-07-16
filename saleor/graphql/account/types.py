@@ -192,7 +192,12 @@ class User(CountableDjangoObjectType):
     private_meta = graphene.List(
         MetaStore,
         required=True,
-        description="List of privately stored metadata groups.",
+        description="List of privately stored metadata namespaces.",
+    )
+    meta = graphene.List(
+        MetaStore,
+        required=True,
+        description="List of publicly stored metadata namespaces.",
     )
 
     class Meta:
@@ -281,6 +286,10 @@ class User(CountableDjangoObjectType):
             ],
             key=itemgetter("namespace"),
         )
+
+    @staticmethod
+    def resolve_meta(root: models.User, _info):
+        return []
 
 
 class ChoiceValue(graphene.ObjectType):
