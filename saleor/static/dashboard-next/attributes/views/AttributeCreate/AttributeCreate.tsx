@@ -99,6 +99,10 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
                   variables: {
                     input: {
                       ...input,
+                      storefrontSearchPosition: parseInt(
+                        input.storefrontSearchPosition,
+                        0
+                      ),
                       values: values.map(value => ({
                         name: value.name,
                         value: value.slug
@@ -129,7 +133,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
               onClose={closeModal}
               onSubmit={handleValueCreate}
             />
-            {values.length && (
+            {values.length > 0 && (
               <>
                 <AttributeValueDeleteDialog
                   attributeName={undefined}

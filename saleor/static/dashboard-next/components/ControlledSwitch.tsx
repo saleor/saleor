@@ -7,6 +7,9 @@ const styles = (theme: Theme) =>
   createStyles({
     label: {
       marginLeft: theme.spacing.unit * 2
+    },
+    labelText: {
+      fontSize: 14
     }
   });
 
@@ -15,7 +18,7 @@ interface ControlledSwitchProps extends WithStyles<typeof styles> {
   disabled?: boolean;
   label: string | React.ReactNode;
   name: string;
-  secondLabel?: string;
+  secondLabel?: string | React.ReactNode;
   uncheckedLabel?: string | React.ReactNode;
   onChange?(event: React.ChangeEvent<any>);
 }
@@ -46,7 +49,17 @@ export const ControlledSwitch = withStyles(styles, {
       }
       label={
         <div className={classes.label}>
-          {uncheckedLabel ? (checked ? label : uncheckedLabel) : label}
+          {uncheckedLabel ? (
+            checked ? (
+              label
+            ) : (
+              uncheckedLabel
+            )
+          ) : typeof label === "string" ? (
+            <span className={classes.labelText}>{label}</span>
+          ) : (
+            label
+          )}
           <div>{secondLabel ? secondLabel : null}</div>
         </div>
       }

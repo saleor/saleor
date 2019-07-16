@@ -163,17 +163,25 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                   )}
                                   onBack={() => navigate(attributeListUrl())}
                                   onDelete={() => openModal("remove")}
-                                  onSubmit={input =>
+                                  onSubmit={data => {
+                                    const input = {
+                                      ...data,
+                                      inputType: undefined
+                                    };
+
                                     attributeUpdate({
                                       variables: {
                                         id,
                                         input: {
-                                          name: input.name,
-                                          slug: input.slug
+                                          ...input,
+                                          storefrontSearchPosition: parseInt(
+                                            input.storefrontSearchPosition,
+                                            0
+                                          )
                                         }
                                       }
-                                    })
-                                  }
+                                    });
+                                  }}
                                   onValueAdd={() => openModal("add-value")}
                                   onValueDelete={id =>
                                     openModal("remove-value", id)
