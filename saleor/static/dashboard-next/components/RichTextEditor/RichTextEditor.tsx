@@ -14,6 +14,7 @@ import {
   ENTITY_TYPE,
   INLINE_STYLE
 } from "draftail";
+import isEqual from "lodash-es/isEqual";
 import React from "react";
 
 import BoldIcon from "../../icons/BoldIcon";
@@ -29,6 +30,7 @@ import UnorderedListIcon from "../../icons/UnorderedListIcon";
 
 // import ImageEntity from "./ImageEntity";
 // import ImageSource from "./ImageSource";
+import { ChangeEvent } from "@saleor/hooks/useForm";
 import LinkEntity from "./LinkEntity";
 import LinkSource from "./LinkSource";
 
@@ -240,6 +242,23 @@ const styles = (theme: Theme) =>
       marginLeft: 10
     }
   });
+
+function handleSave(
+  value: any,
+  initial: any,
+  name: string,
+  onChange: (event: ChangeEvent) => void
+) {
+  if (value && !isEqual(value, initial)) {
+    onChange({
+      target: {
+        name,
+        value
+      }
+    });
+  }
+}
+
 const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
   ({
     classes,
@@ -267,14 +286,7 @@ const RichTextEditor = withStyles(styles, { name: "RichTextEditor" })(
           rawContentState={
             initial && Object.keys(initial).length > 0 ? initial : null
           }
-          onSave={value =>
-            onChange({
-              target: {
-                name,
-                value
-              }
-            } as any)
-          }
+          onSave={value => handleSave(value, initial, name, onChange)}
           blockTypes={[
             {
               icon: <HeaderOne />,
