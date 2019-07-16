@@ -35,11 +35,11 @@ from ..core.utils.promo_code import (
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
-    add_voucher_usege_by_customer,
+    add_voucher_usage_by_customer,
     decrease_voucher_usage,
     get_products_voucher_discount,
     increase_voucher_usage,
-    remove_voucher_usege_by_customer,
+    remove_voucher_usage_by_customer,
     validate_voucher_for_checkout,
 )
 from ..giftcard.utils import (
@@ -992,7 +992,7 @@ def _get_voucher_data_for_order(checkout):
 
     increase_voucher_usage(voucher)
     if voucher.apply_once_per_customer:
-        add_voucher_usege_by_customer(voucher, checkout.get_customer_email())
+        add_voucher_usage_by_customer(voucher, checkout.get_customer_email())
     return {
         "voucher": voucher,
         "discount_amount": checkout.discount_amount,
@@ -1137,7 +1137,7 @@ def abort_order_data(order_data: dict):
         voucher = order_data["voucher"]
         decrease_voucher_usage(voucher)
         if "user_email" in order_data:
-            remove_voucher_usege_by_customer(voucher, order_data["user_email"])
+            remove_voucher_usage_by_customer(voucher, order_data["user_email"])
 
 
 @transaction.atomic
