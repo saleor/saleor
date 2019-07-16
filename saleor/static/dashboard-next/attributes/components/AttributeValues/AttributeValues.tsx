@@ -10,11 +10,14 @@ import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import makeStyles from "@material-ui/styles/makeStyles";
 import React from "react";
+import { SortableContainer, SortableElement } from "react-sortable-hoc";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
-import i18n from "../../../i18n";
-import { maybe, renderCollection, stopPropagation } from "../../../misc";
+import CardTitle from "@saleor/components/CardTitle";
+import Skeleton from "@saleor/components/Skeleton";
+import i18n from "@saleor/i18n";
+import Draggable from "@saleor/icons/Draggable";
+import { maybe, renderCollection, stopPropagation } from "@saleor/misc";
+import { ReorderEvent } from "@saleor/types";
 import { AttributeDetailsFragment_values } from "../../types/AttributeDetailsFragment";
 
 export interface AttributeValuesProps {
@@ -22,31 +25,99 @@ export interface AttributeValuesProps {
   values: AttributeDetailsFragment_values[];
   onValueAdd: () => void;
   onValueDelete: (id: string) => void;
+  onValueReorder: ReorderEvent;
   onValueUpdate: (id: string) => void;
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
   columnAdmin: {
-    width: 300
+    width: "50%"
+  },
+  columnDrag: {
+    width: 48 + theme.spacing.unit * 1.5
   },
   columnStore: {
-    width: 300
+    width: "50%"
+  },
+  dragIcon: {
+    cursor: "grab"
+  },
+  ghost: {
+    "& td": {
+      borderBottom: "none"
+    },
+    background: theme.palette.background.paper,
+    fontFamily: theme.typography.fontFamily,
+    fontSize: theme.overrides.MuiTableCell.root.fontSize,
+    opacity: 0.5
   },
   iconCell: {
     "&:last-child": {
-      paddingRight: 0
+      paddingRight: theme.spacing.unit
     },
-    width: 48 + theme.spacing.unit / 2
+    width: 48 + theme.spacing.unit * 1.5
   },
   link: {
     cursor: "pointer"
   }
 }));
 
+interface SortableTableBodyProps {
+  children: React.ReactNode | React.ReactNodeArray;
+}
+
+const SortableTableBody = SortableContainer<SortableTableBodyProps>(
+  ({ children }) => <TableBody>{children}</TableBody>,
+  {
+    withRef: true
+  }
+);
+
+interface SortableTableRowProps {
+  disabled: boolean;
+  value: AttributeDetailsFragment_values;
+  onValueDelete: (id: string) => void;
+  onValueUpdate: (id: string) => void;
+}
+
+const SortableTableRow = SortableElement<SortableTableRowProps>(
+  ({ disabled, value, onValueDelete, onValueUpdate }) => {
+    const classes = useStyles({});
+
+    return (
+      <TableRow
+        className={!!value ? classes.link : undefined}
+        hover={!!value}
+        onClick={!!value ? () => onValueUpdate(value.id) : undefined}
+        key={maybe(() => value.id)}
+      >
+        <TableCell className={classes.columnDrag}>
+          <Draggable className={classes.dragIcon} />
+        </TableCell>
+        <TableCell className={classes.columnAdmin}>
+          {maybe(() => value.slug) ? value.slug : <Skeleton />}
+        </TableCell>
+        <TableCell className={classes.columnStore}>
+          {maybe(() => value.name) ? value.name : <Skeleton />}
+        </TableCell>
+        <TableCell className={classes.iconCell}>
+          <IconButton
+            disabled={disabled}
+            onClick={stopPropagation(() => onValueDelete(value.id))}
+          >
+            <DeleteIcon color="primary" />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+    );
+  }
+);
+
 const AttributeValues: React.FC<AttributeValuesProps> = ({
   disabled,
   onValueAdd,
   onValueDelete,
+  onValueReorder,
   onValueUpdate,
   values
 }) => {
@@ -65,6 +136,7 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell className={classes.columnDrag} />
             <TableCell className={classes.columnAdmin}>
               {i18n.t("Admin")}
             </TableCell>
@@ -74,33 +146,25 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
             <TableCell />
           </TableRow>
         </TableHead>
-        <TableBody>
+        <SortableTableBody
+          helperClass={classes.ghost}
+          axis="y"
+          lockAxis="y"
+          onSortEnd={onValueReorder}
+        >
           {renderCollection(
             values
               ? values.sort((a, b) => (a.sortOrder > b.sortOrder ? 1 : -1))
               : undefined,
-            value => (
-              <TableRow
-                className={!!value ? classes.link : undefined}
-                hover={!!value}
-                onClick={!!value ? () => onValueUpdate(value.id) : undefined}
-                key={maybe(() => value.id)}
-              >
-                <TableCell>
-                  {maybe(() => value.slug) ? value.slug : <Skeleton />}
-                </TableCell>
-                <TableCell>
-                  {maybe(() => value.name) ? value.name : <Skeleton />}
-                </TableCell>
-                <TableCell className={classes.iconCell}>
-                  <IconButton
-                    disabled={disabled}
-                    onClick={stopPropagation(() => onValueDelete(value.id))}
-                  >
-                    <DeleteIcon color="primary" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
+            (value, valueIndex) => (
+              <SortableTableRow
+                disabled={disabled}
+                value={value}
+                onValueDelete={onValueDelete}
+                onValueUpdate={onValueUpdate}
+                key={maybe(() => value.id, "skeleton")}
+                index={valueIndex}
+              />
             ),
             () => (
               <TableRow>
@@ -108,7 +172,7 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
               </TableRow>
             )
           )}
-        </TableBody>
+        </SortableTableBody>
       </Table>
     </Card>
   );

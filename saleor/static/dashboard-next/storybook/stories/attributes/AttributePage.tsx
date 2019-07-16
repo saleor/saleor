@@ -18,6 +18,7 @@ const props: AttributePageProps = {
   onSubmit: () => undefined,
   onValueAdd: () => undefined,
   onValueDelete: () => undefined,
+  onValueReorder: () => undefined,
   onValueUpdate: () => undefined,
   saveButtonBarState: "default",
   values: attribute.values
