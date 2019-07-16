@@ -866,8 +866,10 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
 ):
     get_voucher_discount_for_checkout(voucher, checkout_with_voucher)
     subtotal = calculate_checkout_subtotal(checkout_with_voucher, [])
+    quantity = checkout_with_voucher.quantity
+    customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, checkout_with_voucher.quantity
+        voucher, subtotal.gross, quantity, customer_email
     )
 
 

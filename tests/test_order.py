@@ -713,6 +713,8 @@ def test_get_voucher_discount_for_order_voucher_validation(
     order_with_lines.save()
     validate_voucher_in_order(order_with_lines)
     subtotal = order_with_lines.get_subtotal()
+    quantity = order_with_lines.get_total_quantity()
+    customer_email = order_with_lines.get_customer_email()
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, order_with_lines.get_total_quantity()
+        voucher, subtotal.gross, quantity, customer_email
     )
