@@ -28,6 +28,7 @@
     "@types/react-dropzone": "^4.2.2",
     "@types/react-helmet": "^5.0.8",
     "@types/react-infinite-scroller": "^1.2.1",
+    "@types/react-sortable-hoc": "^0.6.5",
     "@types/react-sortable-tree": "^0.3.6",
     "@types/storybook__addon-storyshots": "^3.4.9",
     "@types/string-similarity": "^1.2.1",
