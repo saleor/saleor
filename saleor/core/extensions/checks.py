@@ -1,10 +1,8 @@
 import importlib
-from typing import List, Set
+from typing import List
 
 from django.conf import settings
 from django.core.checks import Error, register
-
-from .plugin import BasePlugin
 
 
 @register()
@@ -42,25 +40,11 @@ def check_manager(errors: List[Error]):
 
 
 def check_plugins(errors: List[Error], plugins: List[str]):
-    base_methods = set([name for name in vars(BasePlugin) if not name.startswith("_")])
-    plugins_methods = set()
     for plugin_path in plugins:
-        check_single_plugin(plugin_path, errors, plugins_methods)
-
-    if not errors:
-        missing_methods = base_methods.difference(plugins_methods)
-        for missing_method in missing_methods:
-            errors.append(
-                Error(
-                    "Implementation of base method %s not found in plugin classes"
-                    % missing_method
-                )
-            )
+        check_single_plugin(plugin_path, errors)
 
 
-def check_single_plugin(
-    plugin_path: str, errors: List[Error], plugins_methods: Set[str]
-):
+def check_single_plugin(plugin_path: str, errors: List[Error]):
     if not plugin_path:
         errors.append(Error("Wrong plugin_path %s" % plugin_path))
         return
@@ -78,8 +62,3 @@ def check_single_plugin(
                     % (plugin_name, str(plugin_module))
                 )
             )
-        else:
-            for method_name in vars(plugin_class):
-                if method_name.startswith("_"):
-                    continue
-                plugins_methods.add(method_name)

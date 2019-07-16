@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, Any, List, Union
 
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -12,72 +12,98 @@ if TYPE_CHECKING:
 
 
 class BasePlugin:
-    """Abstract class for storing all methods available for any plugin."""
+    """Abstract class for storing all methods available for any plugin. All methods
+    take previous_value parameter. previous_value contains a value calculated by the
+    previous plugin in the queue. If the plugin is first, it will use default value
+    calculated by the manager"""
 
     def calculate_checkout_total(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"]
+        self,
+        checkout: "Checkout",
+        discounts: List["DiscountInfo"],
+        previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        raise NotImplementedError()
+        return NotImplemented
 
     def calculate_checkout_subtotal(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"]
+        self,
+        checkout: "Checkout",
+        discounts: List["DiscountInfo"],
+        previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        raise NotImplementedError()
+        return NotImplemented
 
     def calculate_checkout_shipping(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"]
+        self,
+        checkout: "Checkout",
+        discounts: List["DiscountInfo"],
+        previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        raise NotImplementedError()
+        return NotImplemented
 
-    def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
-        raise NotImplementedError()
+    def calculate_order_shipping(
+        self, order: "Order", previous_value: TaxedMoney
+    ) -> TaxedMoney:
+        return NotImplemented
 
     def calculate_checkout_line_total(
-        self, checkout_line: "CheckoutLine", discounts: List["DiscountInfo"]
+        self,
+        checkout_line: "CheckoutLine",
+        discounts: List["DiscountInfo"],
+        previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        raise NotImplementedError()
+        return NotImplemented
 
-    def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
-        raise NotImplementedError()
+    def calculate_order_line_unit(
+        self, order_line: "OrderLine", previous_value: TaxedMoney
+    ) -> TaxedMoney:
+        return NotImplemented
 
-    def get_tax_rate_type_choices(self) -> List["TaxType"]:
-        raise NotImplementedError()
+    def get_tax_rate_type_choices(
+        self, previous_value: List["TaxType"]
+    ) -> List["TaxType"]:
+        return NotImplemented
 
-    def show_taxes_on_storefront(self) -> bool:
-        raise NotImplementedError()
+    def show_taxes_on_storefront(self, previous_value: bool) -> bool:
+        return NotImplemented
 
-    def taxes_are_enabled(self) -> bool:
-        raise NotImplementedError()
+    def taxes_are_enabled(self, previous_value: bool) -> bool:
+        return NotImplemented
 
     def apply_taxes_to_shipping_price_range(
-        self, prices: MoneyRange, country: Country
+        self, prices: MoneyRange, country: Country, previous_value: TaxedMoneyRange
     ) -> TaxedMoneyRange:
-        raise NotImplementedError()
+        return NotImplemented
 
     def apply_taxes_to_shipping(
-        self, price: Money, shipping_address: "Address"
+        self, price: Money, shipping_address: "Address", previous_value: TaxedMoney
     ) -> TaxedMoney:
-        raise NotImplementedError()
+        return NotImplemented
 
     def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country, **kwargs
-    ):
-        raise NotImplementedError()
+        self,
+        product: "Product",
+        price: Money,
+        country: Country,
+        previous_value: TaxedMoney,
+        **kwargs,
+    ) -> TaxedMoney:
+        return NotImplemented
 
     def preprocess_order_creation(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"]
+        self, checkout: "Checkout", discounts: List["DiscountInfo"], previous_value: Any
     ):
-        raise NotImplementedError()
+        return NotImplemented
 
-    def postprocess_order_creation(self, order: "Order"):
-        raise NotImplementedError()
+    def postprocess_order_creation(self, order: "Order", previous_value: Any):
+        return NotImplemented
 
-    def assign_data_to_object_meta(
-        self, obj: Union["Product", "ProductType"], data: str
+    def assign_tax_code_to_object_meta(
+        self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
     ):
-        raise NotImplementedError()
+        return NotImplemented
 
-    def get_data_from_object_meta(
-        self, obj: Union["Product", "ProductType"]
+    def get_tax_code_from_object_meta(
+        self, obj: Union["Product", "ProductType"], previous_value: "TaxType"
     ) -> "TaxType":
-        raise NotImplementedError()
+        return NotImplemented
