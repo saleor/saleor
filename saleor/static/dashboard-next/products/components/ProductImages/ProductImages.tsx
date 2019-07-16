@@ -12,6 +12,7 @@ import {
 import CardTitle from "@saleor/components/CardTitle";
 import ImageTile from "@saleor/components/ImageTile";
 import ImageUpload from "@saleor/components/ImageUpload";
+import { ReorderEvent } from "@saleor/types";
 import React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import i18n from "../../../i18n";
@@ -113,17 +114,21 @@ interface ProductImagesProps extends WithStyles<typeof styles> {
   loading?: boolean;
   onImageDelete: (id: string) => () => void;
   onImageEdit: (id: string) => () => void;
+  onImageReorder?: ReorderEvent;
   onImageUpload(file: File);
-  onImageReorder?(event: { oldIndex: number; newIndex: number });
 }
 
-interface ImageListContainerProps extends WithStyles<typeof styles> {
-  items: any;
-  onImageDelete: (id: string) => () => void;
-  onImageEdit: (id: string) => () => void;
+interface SortableImageProps {
+  image: {
+    id: string;
+    alt?: string;
+    url: string;
+  };
+  onImageEdit: (id: string) => void;
+  onImageDelete: () => void;
 }
 
-const SortableImage = SortableElement(
+const SortableImage = SortableElement<SortableImageProps>(
   ({ image, onImageEdit, onImageDelete }) => (
     <ImageTile
       image={image}
@@ -133,7 +138,14 @@ const SortableImage = SortableElement(
   )
 );
 
-const ImageListContainer = SortableContainer(
+interface ImageListContainerProps {
+  className: string;
+  items: any;
+  onImageDelete: (id: string) => () => void;
+  onImageEdit: (id: string) => () => void;
+}
+
+const ImageListContainer = SortableContainer<ImageListContainerProps>(
   withStyles(styles, { name: "ImageListContainer" })(
     ({
       classes,
@@ -141,7 +153,7 @@ const ImageListContainer = SortableContainer(
       onImageDelete,
       onImageEdit,
       ...props
-    }: ImageListContainerProps) => {
+    }: ImageListContainerProps & WithStyles<typeof styles>) => {
       return (
         <div {...props}>
           {items.map((image, index) => (
