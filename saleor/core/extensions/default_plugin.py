@@ -13,9 +13,10 @@ if TYPE_CHECKING:
     from ...order.models import OrderLine, Order
 
 
-class DummyPlugin(BasePlugin):
-    """Dummy plugin class which overwrites all base plugin methods. It should be used
-    when any other plugins are disabled"""
+class DefaultPlugin(BasePlugin):
+    """Default plugin class - overwrites all base plugin methods.
+    It should be enabled to cover all base methods in case when
+    implementation doesn't use custom plugins"""
 
     def calculate_checkout_total(
         self, checkout: "Checkout", discounts: List["DiscountInfo"]
@@ -45,14 +46,6 @@ class DummyPlugin(BasePlugin):
             shipping_price.currency,
         )
 
-    def apply_taxes_to_shipping(
-        self, price: Money, shipping_address: "Address"
-    ) -> TaxedMoney:
-        return quantize_price(TaxedMoney(net=price, gross=price), price.currency)
-
-    def get_tax_rate_type_choices(self) -> List[TaxType]:
-        return []
-
     def calculate_checkout_line_total(
         self, checkout_line: "CheckoutLine", discounts: List["DiscountInfo"]
     ):
@@ -63,16 +56,24 @@ class DummyPlugin(BasePlugin):
         unit_price = order_line.unit_price
         return quantize_price(unit_price, unit_price.currency)
 
-    def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country, **kwargs
-    ):
-        return quantize_price(TaxedMoney(net=price, gross=price), price.currency)
+    def get_tax_rate_type_choices(self) -> List[TaxType]:
+        return []
 
     def show_taxes_on_storefront(self) -> bool:
         return False
 
     def taxes_are_enabled(self) -> bool:
         return False
+
+    def apply_taxes_to_product(
+        self, product: "Product", price: Money, country: Country, **kwargs
+    ):
+        return quantize_price(TaxedMoney(net=price, gross=price), price.currency)
+
+    def apply_taxes_to_shipping(
+        self, price: Money, shipping_address: "Address"
+    ) -> TaxedMoney:
+        return quantize_price(TaxedMoney(net=price, gross=price), price.currency)
 
     def apply_taxes_to_shipping_price_range(self, prices: MoneyRange, country: Country):
         start = TaxedMoney(net=prices.start, gross=prices.start)
