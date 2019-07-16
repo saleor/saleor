@@ -24,7 +24,8 @@ def test_vouchers_list(admin_client):
     assert response.status_code == 200
 
 
-def test_voucher_shipping_add(admin_client):
+def test_voucher_shipping_add(admin_client, settings):
+    settings.TIME_ZONE = "America/Chicago"
     assert Voucher.objects.count() == 0
     url = reverse("dashboard:voucher-add")
     data = {
@@ -246,8 +247,9 @@ def test_ajax_voucher_list(admin_client, voucher):
     "voucher_type", ["collection", "category", "product", "entire_order", "shipping"]
 )
 def test_voucher_form_min_amount_spent_is_changed_on_edit(
-    admin_client, product, collection, voucher_type
+    admin_client, product, collection, voucher_type, settings
 ):
+    settings.TIME_ZONE = "America/Chicago"
     assert Voucher.objects.count() == 0
     url = reverse("dashboard:voucher-add")
     data = {
