@@ -182,9 +182,9 @@ def test_add_new_key_value_pair_to_private_metadata_using_mutation(
     assert meta["clients"] == [{"metadata": expected_metadata, "name": META_CLIENT}]
 
 
-CLEAR_METADATA_MUTATION = """
-    mutation UserClearStoredMetadata($id: ID!, $input: MetaPath!) {
-      userClearStoredMetadata(
+CLEAR_PRIVATE_METADATA_MUTATION = """
+    mutation UserClearStoredPrivateMetadata($id: ID!, $input: MetaPath!) {
+      userClearStoredPrivateMetadata(
         id: $id
         input: $input
       ) {
@@ -218,11 +218,13 @@ def test_clear_private_metadata_through_mutation(
         },
     }
     response = staff_api_client.post_graphql(
-        CLEAR_METADATA_MUTATION, variables, permissions=[permission_manage_users]
+        CLEAR_PRIVATE_METADATA_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
     )
-    meta = get_graphql_content(response)["data"]["userClearStoredMetadata"]["user"][
-        "privateMeta"
-    ][0]
+    meta = get_graphql_content(response)["data"]["userClearStoredPrivateMetadata"][
+        "user"
+    ]["privateMeta"][0]
 
     assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == []
@@ -242,11 +244,13 @@ def test_clear_silently_private_metadata_from_nonexistent_client(
         },
     }
     response = staff_api_client.post_graphql(
-        CLEAR_METADATA_MUTATION, variables, permissions=[permission_manage_users]
+        CLEAR_PRIVATE_METADATA_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
     )
-    meta = get_graphql_content(response)["data"]["userClearStoredMetadata"]["user"][
-        "privateMeta"
-    ][0]
+    meta = get_graphql_content(response)["data"]["userClearStoredPrivateMetadata"][
+        "user"
+    ]["privateMeta"][0]
 
     assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == [
@@ -418,7 +422,74 @@ def test_add_new_namespace_metadata_using_mutation(user_api_client, customer_wit
     assert meta[0]["clients"] == [
         {"metadata": [{"key": NEW_KEY, "value": NEW_VALUE}], "name": NEW_CLIENT}
     ]
+
     assert meta[1]["namespace"] == PUBLIC_META_NAMESPACE
     assert meta[1]["clients"] == [
+        {"metadata": [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}], "name": META_CLIENT}
+    ]
+
+
+CLEAR_METADATA_MUTATION = """
+    mutation UserClearStoredPrivateMetadata($id: ID!, $input: MetaPath!) {
+      userClearStoredMetadata(
+        id: $id
+        input: $input
+      ) {
+        user {
+          meta {
+            namespace
+            clients {
+              name
+              metadata {
+                key
+                value
+              }
+            }
+          }
+        }
+      }
+    }
+"""
+
+
+def test_clear_metadata_through_mutation(user_api_client, customer_with_meta):
+    user_id = graphene.Node.to_global_id("User", customer_with_meta.id)
+    variables = {
+        "id": user_id,
+        "input": {
+            "namespace": PUBLIC_META_NAMESPACE,
+            "clientName": META_CLIENT,
+            "key": PUBLIC_KEY,
+        },
+    }
+    response = user_api_client.post_graphql(CLEAR_METADATA_MUTATION, variables)
+    meta = get_graphql_content(response)["data"]["userClearStoredMetadata"]["user"][
+        "meta"
+    ][0]
+
+    assert meta["namespace"] == PUBLIC_META_NAMESPACE
+    assert meta["clients"] == []
+
+
+def test_clear_silently_metadata_from_nonexistent_client(
+    staff_api_client, permission_manage_users, customer_with_meta
+):
+    user_id = graphene.Node.to_global_id("User", customer_with_meta.id)
+    WRONG_CLIENT = "WONG"
+    variables = {
+        "id": user_id,
+        "input": {
+            "namespace": PUBLIC_META_NAMESPACE,
+            "clientName": WRONG_CLIENT,
+            "key": PUBLIC_KEY,
+        },
+    }
+    response = staff_api_client.post_graphql(CLEAR_METADATA_MUTATION, variables)
+    meta = get_graphql_content(response)["data"]["userClearStoredMetadata"]["user"][
+        "meta"
+    ][0]
+
+    assert meta["namespace"] == PUBLIC_META_NAMESPACE
+    assert meta["clients"] == [
         {"metadata": [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}], "name": META_CLIENT}
     ]
