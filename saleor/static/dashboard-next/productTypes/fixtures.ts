@@ -543,21 +543,30 @@ export const productType: ProductTypeDetails_productType = {
   productAttributes: [
     {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZTo5",
       name: "Author",
-      slug: "author"
+      slug: "author",
+      visibleInStorefront: true
     },
     {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMQ==",
       name: "Language",
-      slug: "language"
+      slug: "language",
+      visibleInStorefront: true
     },
     {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMA==",
       name: "Publisher",
-      slug: "publisher"
+      slug: "publisher",
+      visibleInStorefront: true
     }
   ],
   taxType: {
