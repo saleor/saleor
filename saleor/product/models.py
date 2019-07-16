@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import F
 from django.urls import reverse
 from django.utils.encoding import smart_text
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
@@ -24,6 +25,7 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 from ..core.exceptions import InsufficientStock
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils import build_absolute_uri
+from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
@@ -123,6 +125,7 @@ class Product(SeoModel, PublishableModel):
         ProductType, related_name="products", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
+    description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.CASCADE
@@ -171,6 +174,12 @@ class Product(SeoModel, PublishableModel):
         return self.name
 
     @property
+    def plain_text_description(self):
+        if settings.USE_JSON_CONTENT:
+            return json_content_to_raw_text(self.description_json)
+        return strip_tags(self.description)
+
+    @property
     def is_available(self):
         return self.is_visible and self.is_in_stock()
 
@@ -203,6 +212,7 @@ class ProductTranslation(SeoModelTranslation):
         Product, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
+    description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
 
     class Meta:

@@ -1,10 +1,13 @@
+from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.urls import reverse
+from django.utils.html import strip_tags
 from django.utils.translation import pgettext_lazy
 
 from ..core.models import PublishableModel, PublishedQuerySet
 from ..core.utils import build_absolute_uri
+from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -18,6 +21,7 @@ class PagePublishedQuerySet(PublishedQuerySet):
 class Page(SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=100)
     title = models.CharField(max_length=200)
+    content = models.TextField(blank=True)
     content_json = JSONField(blank=True, default=dict)
     created = models.DateTimeField(auto_now_add=True)
 
@@ -33,6 +37,12 @@ class Page(SeoModel, PublishableModel):
     def __str__(self):
         return self.title
 
+    @property
+    def plain_text_content(self):
+        if settings.USE_JSON_CONTENT:
+            return json_content_to_raw_text(self.content_json)
+        return strip_tags(self.content)
+
     def get_absolute_url(self):
         return reverse("page:details", kwargs={"slug": self.slug})
 
@@ -46,6 +56,7 @@ class PageTranslation(SeoModelTranslation):
         Page, related_name="translations", on_delete=models.CASCADE
     )
     title = models.CharField(max_length=255, blank=True)
+    content = models.TextField(blank=True)
     content_json = JSONField(blank=True, default=dict)
 
     class Meta:

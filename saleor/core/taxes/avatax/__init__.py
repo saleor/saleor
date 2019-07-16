@@ -197,7 +197,7 @@ def get_checkout_lines_data(
     for line in lines:
         if not line.variant.product.charge_taxes:
             continue
-        description = line.variant.product.description
+        description = line.variant.product.description  # FIXME: description
         product = line.variant.product
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product)
@@ -242,7 +242,7 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
             amount=line.unit_price_net.amount * line.quantity,
             tax_code=tax_code,
             item_code=line.variant.sku,
-            description=line.variant.product.description,
+            description=line.variant.product.description,  # FIXME: description
         )
     if order.discount_amount and order.discount_amount.amount:
         append_line_to_data(
