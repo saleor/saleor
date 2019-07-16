@@ -424,7 +424,8 @@ Adding new payment gateway to the settings
         "braintree": {
             "module": "saleor.payment.gateways.braintree",
             "config": {
-                "auto_capture": True,
+                "auto_capture": get_bool_from_env("BRAINTREE_AUTO_CAPTURE", True),
+                "store_card": get_bool_from_env("BRAINTREE_STORE_CARD", False),
                 "template_path": "order/payment/braintree.html",
                 "connection_params": {
                     "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),

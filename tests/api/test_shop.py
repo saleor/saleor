@@ -533,6 +533,7 @@ def test_mutation_update_company_address(
             "streetAddress1": address.street_address_1,
             "city": address.city,
             "country": address.country.code,
+            "postalCode": address.postal_code,
         }
     }
 

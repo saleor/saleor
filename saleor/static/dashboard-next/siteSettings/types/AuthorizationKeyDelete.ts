@@ -20,6 +20,34 @@ export interface AuthorizationKeyDelete_authorizationKeyDelete_shop_authorizatio
   name: AuthorizationKeyType;
 }
 
+export interface AuthorizationKeyDelete_authorizationKeyDelete_shop_companyAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
+export interface AuthorizationKeyDelete_authorizationKeyDelete_shop_companyAddress {
+  __typename: "Address";
+  city: string;
+  cityArea: string;
+  companyName: string;
+  country: AuthorizationKeyDelete_authorizationKeyDelete_shop_companyAddress_country;
+  countryArea: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  phone: string | null;
+  postalCode: string;
+  streetAddress1: string;
+  streetAddress2: string;
+}
+
+export interface AuthorizationKeyDelete_authorizationKeyDelete_shop_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface AuthorizationKeyDelete_authorizationKeyDelete_shop_domain {
   __typename: "Domain";
   host: string;
@@ -28,6 +56,8 @@ export interface AuthorizationKeyDelete_authorizationKeyDelete_shop_domain {
 export interface AuthorizationKeyDelete_authorizationKeyDelete_shop {
   __typename: "Shop";
   authorizationKeys: (AuthorizationKeyDelete_authorizationKeyDelete_shop_authorizationKeys | null)[];
+  companyAddress: AuthorizationKeyDelete_authorizationKeyDelete_shop_companyAddress | null;
+  countries: (AuthorizationKeyDelete_authorizationKeyDelete_shop_countries | null)[];
   description: string | null;
   domain: AuthorizationKeyDelete_authorizationKeyDelete_shop_domain;
   name: string;

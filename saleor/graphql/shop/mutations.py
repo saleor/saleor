@@ -5,6 +5,7 @@ from django.core.management import call_command
 
 from ...account.models import Address
 from ...site import models as site_models
+from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
@@ -65,7 +66,7 @@ class ShopSettingsUpdate(BaseMutation):
         return ShopSettingsUpdate(shop=Shop())
 
 
-class ShopAddressUpdate(BaseMutation):
+class ShopAddressUpdate(BaseMutation, I18nMixin):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -84,7 +85,7 @@ class ShopAddressUpdate(BaseMutation):
             company_address = Address()
         else:
             company_address = site_settings.company_address
-        company_address = cls.construct_instance(company_address, data)
+        company_address = cls.validate_address(data, company_address)
         company_address.save()
         site_settings.company_address = company_address
         site_settings.save()
