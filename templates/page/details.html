@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load build_absolute_uri from urls %}
+{% load format_content from content_formatting %}
 
 {% block title %}
   {% if page.seo_title %}
@@ -51,5 +52,7 @@
       {% endblocktrans %}
     </div>
   {% endif %}
-  <div data-description-json='{{ content_json|safe }}'></div>
+  <div class="content">
+    {% format_content content_json=content_json content_html=content_html %}
+  </div>
 {% endblock %}

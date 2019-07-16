@@ -105,12 +105,6 @@ class CategoryUpdate(CategoryCreate):
         model = models.Category
         permissions = ("product.manage_products",)
 
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        if cleaned_input.get("background_image"):
-            create_category_background_image_thumbnails.delay(instance.pk)
-        instance.save()
-
 
 class CategoryDelete(ModelDeleteMutation):
     class Arguments:

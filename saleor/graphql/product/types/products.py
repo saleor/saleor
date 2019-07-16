@@ -452,7 +452,7 @@ class Product(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_tax_rate(root: models.ProductType, info, **_kwargs):
+    def resolve_tax_rate(root: models.Product, _info, **_kwargs):
         # FIXME this resolver should be dropped after we drop tax_rate from API
         tax_rate = vatlayer_interface.get_tax_from_object_meta(root).code
         return tax_rate or None

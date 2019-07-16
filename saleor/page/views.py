@@ -1,5 +1,4 @@
 import datetime
-import json
 
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
@@ -17,6 +16,7 @@ def page_details(request, slug):
         {
             "page": page,
             "is_visible": is_visible,
-            "content_json": json.dumps(page.translated.content_json),
+            "content_json": page.translated.content_json,
+            "content_html": page.translated.content,
         },
     )
