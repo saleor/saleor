@@ -856,6 +856,47 @@ class UserClearStoredMeta(BaseMutation):
 
     class Meta:
         description = "Clear stored metadata value."
+
+    class Arguments:
+        id = graphene.ID(description="ID of a customer to update.", required=True)
+        input = MetaPath(
+            description="Fields required to identify stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    def check_permissions(cls, user):
+        return user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        user_id = data.pop("id")
+        user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
+
+        metadata = data.pop("input")
+        stored_data = user.get_meta(
+            namespace=metadata.namespace, client=metadata.client_name
+        )
+        cleared_value = stored_data.pop(metadata.key, None)
+        if not stored_data:
+            user.clear_stored_meta_for_client(metadata.namespace, metadata.client_name)
+            user.save()
+        elif cleared_value is not None:
+            user.store_meta(
+                namespace=metadata.namespace,
+                client=metadata.client_name,
+                item=stored_data,
+            )
+            user.save()
+
+        return UserClearStoredMeta(user=user)
+
+
+class UserClearStoredPrivateMeta(BaseMutation):
+    user = graphene.Field(User, description="An updated user instance.")
+
+    class Meta:
+        description = "Clear stored metadata value."
         permissions = ("account.manage_users",)
 
     class Arguments:
@@ -889,4 +930,4 @@ class UserClearStoredMeta(BaseMutation):
             )
             user.save()
 
-        return UserUpdatePrivateMeta(user=user)
+        return UserClearStoredPrivateMeta(user=user)
