@@ -84,13 +84,6 @@ def test_voucher_queryset_active(voucher):
     assert active_vouchers.count() == 0
 
 
-def test_voucher_queryset_active_usage_limit_zero(voucher):
-    voucher.usage_limit = 0
-    voucher.save()
-    active_vouchers = Voucher.objects.active(date=timezone.now())
-    assert active_vouchers.count() == 1
-
-
 @pytest.mark.parametrize(
     "prices, discount_value, discount_type, apply_once_per_order, expected_value",
     [
