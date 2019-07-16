@@ -86,13 +86,13 @@ const TableHead = withStyles(styles, {
     return (
       <MuiTableHead {...muiTableHeadProps}>
         <TableRow>
-          <TableCell
-            padding="checkbox"
-            className={classNames({
-              [classes.checkboxSelected]: selected
-            })}
-          >
-            {items && items.length > 0 ? (
+          {(items === undefined || items.length > 0) && (
+            <TableCell
+              padding="checkbox"
+              className={classNames({
+                [classes.checkboxSelected]: selected
+              })}
+            >
               <Checkbox
                 className={classNames({
                   [classes.checkboxPartialSelect]:
@@ -102,8 +102,8 @@ const TableHead = withStyles(styles, {
                 disabled={disabled}
                 onChange={() => toggleAll(items, selected)}
               />
-            ) : null}
-          </TableCell>
+            </TableCell>
+          )}
           {selected ? (
             <>
               <TableCell className={classNames(classes.root)} colSpan={50}>
