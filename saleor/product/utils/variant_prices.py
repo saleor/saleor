@@ -20,11 +20,7 @@ def update_product_minimal_variant_price(product, discounts=None):
     return product
 
 
-def update_products_minimal_variant_prices(products=None, discounts=None):
-    if products is None:
-        from ..models import Product
-
-        products = Product.objects.iterator()
+def update_products_minimal_variant_prices(products, discounts=None):
     if discounts is None:
         discounts = fetch_active_discounts()
     for product in products:
