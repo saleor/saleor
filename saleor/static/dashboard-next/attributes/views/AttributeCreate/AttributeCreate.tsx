@@ -133,7 +133,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
               onClose={closeModal}
               onSubmit={handleValueCreate}
             />
-            {values.length && (
+            {values.length > 0 && (
               <>
                 <AttributeValueDeleteDialog
                   attributeName={undefined}
