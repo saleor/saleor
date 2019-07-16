@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Fix product type taxes select - #4453 by @benekex2
 - Fix form reloading - #4467 by @dominik-zeglen
+- Fix time zone based tests - #4468 by @fowczarek
 
 ## 2.8.0
 
