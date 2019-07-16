@@ -3,9 +3,8 @@ from typing import TYPE_CHECKING, List, Union
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..taxes import TaxType
-
 if TYPE_CHECKING:
+    from ..taxes import TaxType
     from ...checkout.models import Checkout, CheckoutLine
     from ...product.models import Product
     from ...account.models import Address
@@ -33,14 +32,6 @@ class BasePlugin:
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
         raise NotImplementedError()
 
-    def apply_taxes_to_shipping(
-        self, price: Money, shipping_address: "Address"
-    ) -> TaxedMoney:
-        raise NotImplementedError()
-
-    def get_tax_rate_type_choices(self) -> List[TaxType]:
-        raise NotImplementedError()
-
     def calculate_checkout_line_total(
         self, checkout_line: "CheckoutLine", discounts: List["DiscountInfo"]
     ) -> TaxedMoney:
@@ -49,9 +40,7 @@ class BasePlugin:
     def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
         raise NotImplementedError()
 
-    def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country, **kwargs
-    ):
+    def get_tax_rate_type_choices(self) -> List["TaxType"]:
         raise NotImplementedError()
 
     def show_taxes_on_storefront(self) -> bool:
@@ -63,6 +52,16 @@ class BasePlugin:
     def apply_taxes_to_shipping_price_range(
         self, prices: MoneyRange, country: Country
     ) -> TaxedMoneyRange:
+        raise NotImplementedError()
+
+    def apply_taxes_to_shipping(
+        self, price: Money, shipping_address: "Address"
+    ) -> TaxedMoney:
+        raise NotImplementedError()
+
+    def apply_taxes_to_product(
+        self, product: "Product", price: Money, country: Country, **kwargs
+    ):
         raise NotImplementedError()
 
     def preprocess_order_creation(
@@ -80,5 +79,5 @@ class BasePlugin:
 
     def get_data_from_object_meta(
         self, obj: Union["Product", "ProductType"]
-    ) -> TaxType:
+    ) -> "TaxType":
         raise NotImplementedError()

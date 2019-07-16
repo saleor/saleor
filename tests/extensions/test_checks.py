@@ -1,6 +1,11 @@
 import pytest
 
 from saleor.core.extensions.checks import check_extensions
+from saleor.core.extensions.plugin import BasePlugin
+
+
+class Test(BasePlugin):
+    """"""
 
 
 @pytest.mark.parametrize(
@@ -15,7 +20,13 @@ def test_check_extensions_missing_manager(manager_path, settings):
 @pytest.mark.parametrize(
     "plugin_path", [None, "", "saleor.core.extension.wrong_path.Plugin"]
 )
-def test_check_extensions_plugins(plugin_path, settings):
+def test_check_extensions_wrong_declaration_of_plugins(plugin_path, settings):
     settings.PLUGINS = [plugin_path]
+    errors = check_extensions({})
+    assert errors
+
+
+def test_check_extensions_missing_implementation_of_base_methods(settings):
+    settings.PLUGINS = ["tests.extensions.test_checks.Test"]
     errors = check_extensions({})
     assert errors
