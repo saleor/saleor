@@ -1504,7 +1504,7 @@ type MetaClientStore {
 }
 
 input MetaInput {
-  storeLabel: String!
+  namespace: String!
   clientName: String!
   key: String!
   value: String!
@@ -1516,13 +1516,13 @@ type MetaItem {
 }
 
 input MetaPath {
-  storeLabel: String!
+  namespace: String!
   clientName: String!
   key: String!
 }
 
 type MetaStore {
-  label: String!
+  namespace: String!
   clients: [MetaClientStore]!
 }
 
