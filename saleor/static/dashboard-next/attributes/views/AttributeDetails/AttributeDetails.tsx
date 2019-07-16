@@ -163,7 +163,12 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                   )}
                                   onBack={() => navigate(attributeListUrl())}
                                   onDelete={() => openModal("remove")}
-                                  onSubmit={input =>
+                                  onSubmit={data => {
+                                    const input = {
+                                      ...data,
+                                      inputType: undefined
+                                    };
+
                                     attributeUpdate({
                                       variables: {
                                         id,
@@ -175,8 +180,8 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                           )
                                         }
                                       }
-                                    })
-                                  }
+                                    });
+                                  }}
                                   onValueAdd={() => openModal("add-value")}
                                   onValueDelete={id =>
                                     openModal("remove-value", id)
