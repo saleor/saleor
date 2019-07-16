@@ -8,7 +8,7 @@ from django.utils.translation import pgettext
 from ..core.taxes import zero_money
 from ..core.taxes.interface import calculate_checkout_subtotal
 from . import DiscountInfo
-from .models import NotApplicable, Sale
+from .models import NotApplicable, Sale, VoucherCustomer
 
 
 def increase_voucher_usage(voucher):
@@ -21,6 +21,28 @@ def decrease_voucher_usage(voucher):
     """Decrease voucher uses by 1."""
     voucher.used = F("used") - 1
     voucher.save(update_fields=["used"])
+
+
+def add_voucher_usege_by_customer(voucher, customer_email):
+    voucher_customer = VoucherCustomer.objects.filter(
+        voucher=voucher, customer_email=customer_email
+    )
+    if voucher_customer:
+        raise NotApplicable(
+            pgettext(
+                "Voucher not applicable",
+                ("This offer is only valid once per customer."),
+            )
+        )
+    VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_email)
+
+
+def remove_voucher_usege_by_customer(voucher, customer_email):
+    voucher_customer = VoucherCustomer.objects.filter(
+        voucher=voucher, customer_email=customer_email
+    )
+    if voucher_customer:
+        voucher_customer.delete()
 
 
 def are_product_collections_on_sale(product, discount: DiscountInfo):
@@ -64,17 +86,22 @@ def calculate_discounted_price(product, price, discounts: Iterable[DiscountInfo]
 
 def validate_voucher_for_checkout(voucher, checkout, discounts):
     subtotal = calculate_checkout_subtotal(checkout, discounts)
-    validate_voucher(voucher, subtotal.gross, checkout.quantity)
+    customer_email = checkout.get_customer_email()
+    validate_voucher(voucher, subtotal.gross, checkout.quantity, customer_email)
 
 
 def validate_voucher_in_order(order):
     subtotal = order.get_subtotal()
-    validate_voucher(order.voucher, subtotal.gross, order.get_total_quantity())
+    quantity = order.get_total_quantity()
+    customer_email = order.get_customer_email()
+    validate_voucher(order.voucher, subtotal.gross, quantity, customer_email)
 
 
-def validate_voucher(voucher, total_price, quantity):
+def validate_voucher(voucher, total_price, quantity, customer_email):
     voucher.validate_min_amount_spent(total_price)
     voucher.validate_min_checkout_items_quantity(quantity)
+    if voucher.apply_once_per_customer:
+        voucher.validate_once_per_customer(customer_email)
 
 
 def get_products_voucher_discount(voucher, prices):
