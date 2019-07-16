@@ -88,3 +88,8 @@ export type SingleAction = Partial<{
 export type BulkAction = Partial<{
   ids: string[];
 }>;
+
+export type ReorderEvent = (event: {
+  oldIndex: number;
+  newIndex: number;
+}) => void;
