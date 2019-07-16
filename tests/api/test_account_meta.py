@@ -282,3 +282,38 @@ def test_access_users_public_metadata(user_api_client, customer_with_meta):
     assert meta["clients"] == [
         {"metadata": [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}], "name": META_CLIENT}
     ]
+
+
+GET_META_QUERY = """
+    query UserMeta($id: ID!) {
+        user(id: $id) {
+            email
+            meta {
+                namespace
+                clients {
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_staff_access_to_public_metadata(
+    staff_api_client, permission_manage_users, customer_with_meta
+):
+    user_id = graphene.Node.to_global_id("User", customer_with_meta.id)
+    variables = {"id": user_id}
+    response = staff_api_client.post_graphql(
+        GET_META_QUERY, variables, permissions=[permission_manage_users]
+    )
+    meta = get_graphql_content(response)["data"]["user"]["meta"][0]
+
+    assert meta["namespace"] == PUBLIC_META_NAMESPACE
+    assert meta["clients"] == [
+        {"metadata": [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}], "name": META_CLIENT}
+    ]
