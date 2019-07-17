@@ -2,61 +2,65 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
+# Translators:
+# Dimitris Papatheodoulou <dimitrispapatheodoulou@gmail.com>, 2019
+# Yiannis Inglessis <negtheone@gmail.com>, 2019
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-17 04:57-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2019-07-03 05:42-0500\n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: Yiannis Inglessis <negtheone@gmail.com>, 2019\n"
+"Language-Team: Greek (https://www.transifex.com/mirumee/teams/34782/el/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: el\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/account/__init__.py:28
 msgctxt "Event from a customer that got their account created"
 msgid "The account account was created"
-msgstr ""
+msgstr "Ο λογαριασμός έχει δημιουργηθεί"
 
 #: saleor/account/__init__.py:35
 msgctxt "Event from a customer that got the password reset link sent by email"
 msgid "Password reset link was sent to the customer"
-msgstr ""
+msgstr "Ο σύνδεσμος επαναφοράς κωδικού πρόσβασεις έχει σταλεί"
 
 #: saleor/account/__init__.py:42
 msgctxt "Event from a customer that reset their password"
 msgid "The account password was reset"
-msgstr ""
+msgstr "Ο κωδικός λογαριασμού έχει επαναφερθεί"
 
 #: saleor/account/__init__.py:48
 msgctxt "Event from a customer that placed an order"
 msgid "An order was placed"
-msgstr ""
+msgstr "Η παραγγελία έχει καταχωρηθεί"
 
 #: saleor/account/__init__.py:55
 msgctxt "Event from a customer that added a note to one of their orders"
 msgid "A note was added"
-msgstr ""
+msgstr "Η σημέιωση έχει προσθεθεί"
 
 #: saleor/account/__init__.py:62
 msgctxt "Event from a customer that downloaded an ordered digital good"
 msgid "A digital good was downloaded"
-msgstr ""
+msgstr "Ένα ψυφιακό αρχείο έχει κατέβει"
 
 #: saleor/account/__init__.py:69
 msgctxt "Event from a staff user that deleted a customer"
 msgid "A customer was deleted"
-msgstr ""
+msgstr "Ο πελάτης έχει διαγραφεί"
 
 #: saleor/account/__init__.py:76
 msgctxt "Event from a staff user assigned a new name to a customer"
 msgid "A customer's name was edited"
-msgstr ""
+msgstr "Το όνομα του πελάτη έχει τροποποιηθεί"
 
 #: saleor/account/__init__.py:83
 msgctxt "Event from a staff user assigned a new email address to a customer"
@@ -71,17 +75,17 @@ msgstr ""
 #: saleor/account/forms.py:71
 msgctxt "Form field"
 msgid "Email"
-msgstr ""
+msgstr "Ηλεκτρονικό ταχυδρομείο"
 
 #: saleor/account/forms.py:83
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "Κωδικός πρόσβασης"
 
 #: saleor/account/forms.py:86
 msgctxt "Email"
 msgid "Email"
-msgstr ""
+msgstr "Ηλεκτρονικό ταχυδρομείο"
 
 #: saleor/account/forms.py:89
 msgctxt "Registration error"
@@ -91,189 +95,193 @@ msgstr ""
 #: saleor/account/forms.py:147
 msgctxt "Customer form: Given name field"
 msgid "Given name"
-msgstr ""
+msgstr "Όνομα"
 
 #: saleor/account/forms.py:150
 msgctxt "Customer form: Family name field"
 msgid "Family name"
-msgstr ""
-
-#: saleor/account/i18n.py:17
-msgctxt "Address field"
-msgid "Area"
-msgstr ""
-
-#: saleor/account/i18n.py:18
-msgctxt "Address field"
-msgid "County"
-msgstr ""
+msgstr "Επίθετο"
 
 #: saleor/account/i18n.py:19
 msgctxt "Address field"
-msgid "Department"
-msgstr ""
+msgid "Area"
+msgstr "Περιοχή"
 
 #: saleor/account/i18n.py:20
 msgctxt "Address field"
-msgid "District"
-msgstr ""
+msgid "County"
+msgstr "Επαρχία"
 
 #: saleor/account/i18n.py:21
+msgctxt "Address field"
+msgid "Department"
+msgstr "Τμήμα"
+
+#: saleor/account/i18n.py:22
+msgctxt "Address field"
+msgid "District"
+msgstr "Περιοχή"
+
+#: saleor/account/i18n.py:23
 msgctxt "Address field"
 msgid "Do/si"
 msgstr ""
 
-#: saleor/account/i18n.py:22
+#: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Eircode"
 msgstr ""
 
-#: saleor/account/i18n.py:23
-msgctxt "Address field"
-msgid "Emirate"
-msgstr ""
-
-#: saleor/account/i18n.py:24
-msgctxt "Address field"
-msgid "Island"
-msgstr ""
-
 #: saleor/account/i18n.py:25
 msgctxt "Address field"
-msgid "Neighborhood"
-msgstr ""
+msgid "Emirate"
+msgstr "Εμιράτο"
 
 #: saleor/account/i18n.py:26
 msgctxt "Address field"
-msgid "Oblast"
-msgstr ""
+msgid "Island"
+msgstr "Νησί"
 
 #: saleor/account/i18n.py:27
 msgctxt "Address field"
-msgid "Parish"
-msgstr ""
+msgid "Neighborhood"
+msgstr "Γειτονιά"
 
 #: saleor/account/i18n.py:28
 msgctxt "Address field"
-msgid "PIN"
-msgstr ""
+msgid "Oblast"
+msgstr "Περιοχή"
 
 #: saleor/account/i18n.py:29
 msgctxt "Address field"
-msgid "Postal code"
-msgstr ""
+msgid "Parish"
+msgstr "Κοινότητα"
 
 #: saleor/account/i18n.py:30
 msgctxt "Address field"
-msgid "Prefecture"
-msgstr ""
+msgid "PIN"
+msgstr "PIN"
 
 #: saleor/account/i18n.py:31
 msgctxt "Address field"
-msgid "Province"
-msgstr ""
+msgid "Postal code"
+msgstr "Ταχυδρομικός κώδικας"
 
 #: saleor/account/i18n.py:32
 msgctxt "Address field"
-msgid "State"
-msgstr ""
+msgid "Prefecture"
+msgstr "Νομαρχία"
 
 #: saleor/account/i18n.py:33
 msgctxt "Address field"
-msgid "Suburb"
-msgstr ""
+msgid "Province"
+msgstr "Νομός"
 
 #: saleor/account/i18n.py:34
 msgctxt "Address field"
-msgid "Townland"
-msgstr ""
+msgid "State"
+msgstr "Πολιτεία"
 
 #: saleor/account/i18n.py:35
 msgctxt "Address field"
-msgid "Village/township"
-msgstr ""
+msgid "Suburb"
+msgstr "Προάστιο"
 
 #: saleor/account/i18n.py:36
 msgctxt "Address field"
-msgid "ZIP code"
-msgstr ""
+msgid "Townland"
+msgstr "Πόλη"
 
-#: saleor/account/i18n.py:62 saleor/account/i18n.py:103
+#: saleor/account/i18n.py:37
+msgctxt "Address field"
+msgid "Village/township"
+msgstr "Χωριό / Δήμος"
+
+#: saleor/account/i18n.py:38
+msgctxt "Address field"
+msgid "ZIP code"
+msgstr "Τ.Κ"
+
+#: saleor/account/i18n.py:64 saleor/account/i18n.py:105
 msgctxt "Country"
 msgid "Country"
-msgstr ""
+msgstr "Χώρα"
 
-#: saleor/account/i18n.py:93
+#: saleor/account/i18n.py:95
 msgctxt "Personal name"
 msgid "Given name"
-msgstr ""
-
-#: saleor/account/i18n.py:94
-msgctxt "Personal name"
-msgid "Family name"
-msgstr ""
+msgstr "Όνομα"
 
 #: saleor/account/i18n.py:96
+msgctxt "Personal name"
+msgid "Family name"
+msgstr "Επίθετο"
+
+#: saleor/account/i18n.py:98
 msgctxt "Company or organization"
 msgid "Company or organization"
 msgstr ""
 
-#: saleor/account/i18n.py:98
+#: saleor/account/i18n.py:100
 msgctxt "Address"
 msgid "Address"
-msgstr ""
+msgstr "Διεύθυνση"
 
-#: saleor/account/i18n.py:100
+#: saleor/account/i18n.py:102
 msgctxt "City"
 msgid "City"
 msgstr ""
 
-#: saleor/account/i18n.py:101
+#: saleor/account/i18n.py:103
 msgctxt "City area"
 msgid "District"
-msgstr ""
-
-#: saleor/account/i18n.py:102
-msgctxt "Postal code"
-msgid "Postal code"
-msgstr ""
+msgstr "Περιοχή"
 
 #: saleor/account/i18n.py:104
+msgctxt "Postal code"
+msgid "Postal code"
+msgstr "Ταχυδρομικός κώδικας"
+
+#: saleor/account/i18n.py:106
 msgctxt "Country area"
 msgid "State or province"
 msgstr ""
 
-#: saleor/account/i18n.py:105
+#: saleor/account/i18n.py:107
 msgctxt "Phone number"
 msgid "Phone number"
 msgstr ""
 
-#: saleor/account/i18n.py:109
+#: saleor/account/i18n.py:111
 msgctxt "Address"
 msgid "Street address, P.O. box, company name"
 msgstr ""
 
-#: saleor/account/i18n.py:112
+#: saleor/account/i18n.py:114
 msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
 msgstr ""
 
-#: saleor/account/i18n.py:179
-msgctxt "Address form"
-msgid "This value is invalid for selected country"
+#: saleor/account/i18n.py:155 saleor/account/validators.py:11
+msgid "The phone number entered is not valid."
 msgstr ""
 
-#: saleor/account/models.py:164
+#: saleor/account/i18n.py:195
+msgctxt "Address form"
+msgid "This value is invalid for selected country"
+msgstr "Μη έγκυρη τιμή για επιλεγμένη χώρα"
+
+#: saleor/account/models.py:162
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr ""
 
-#: saleor/account/models.py:166
+#: saleor/account/models.py:164
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr ""
 
-#: saleor/account/models.py:169
+#: saleor/account/models.py:167
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -282,7 +290,7 @@ msgstr ""
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
-msgstr ""
+msgstr "%(first_name)s %(last_name)s"
 
 #: saleor/account/templatetags/i18n_address_tags.py:16
 #, python-format
@@ -291,10 +299,8 @@ msgid ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 msgstr ""
-
-#: saleor/account/validators.py:15
-msgid "The phone number entered is not valid."
-msgstr ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
 
 #: saleor/account/views.py:36
 msgid "You have been successfully logged out."
@@ -317,7 +323,7 @@ msgstr ""
 #: saleor/account/views.py:134
 msgctxt "Storefront message"
 msgid "Address successfully updated."
-msgstr ""
+msgstr "Η διεύθυνσή σας ανανεώθηκε με επιτυχία."
 
 #: saleor/account/views.py:148
 msgctxt "Storefront message"
@@ -344,35 +350,35 @@ msgstr ""
 #: saleor/checkout/__init__.py:14
 msgctxt "Type of address used to fulfill order"
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
-#: saleor/checkout/forms.py:44
+#: saleor/checkout/forms.py:43
 msgctxt "Add to checkout form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "Ποσότητα"
 
-#: saleor/checkout/forms.py:49
+#: saleor/checkout/forms.py:48
 msgctxt "Add to checkout form error"
 msgid "Sorry. This product is currently not available."
 msgstr ""
 
-#: saleor/checkout/forms.py:53
+#: saleor/checkout/forms.py:52
 msgctxt "Add to checkout form error"
 msgid "Sorry. This product is currently out of stock."
 msgstr ""
 
-#: saleor/checkout/forms.py:57
+#: saleor/checkout/forms.py:56
 #, python-format
 msgctxt "Add to checkout form error"
 msgid "Sorry. You can't add more than %d times this item."
 msgstr ""
 
-#: saleor/checkout/forms.py:60
+#: saleor/checkout/forms.py:59
 msgctxt "Add to checkout form error"
 msgid "Oops. We could not find that product."
 msgstr ""
 
-#: saleor/checkout/forms.py:64
+#: saleor/checkout/forms.py:63
 #, python-format
 msgctxt "Add to checkout form error"
 msgid "Only %d remaining in stock."
@@ -380,107 +386,228 @@ msgid_plural "Only %d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/checkout/forms.py:189
+#: saleor/checkout/forms.py:187
 msgctxt "Country form field label"
 msgid "Country"
-msgstr ""
+msgstr "Χώρα"
 
-#: saleor/checkout/forms.py:218 saleor/checkout/forms.py:231
+#: saleor/checkout/forms.py:215 saleor/checkout/forms.py:228
 msgctxt "Address form field label"
 msgid "Email"
-msgstr ""
+msgstr "Ηλεκτρονικό ταχυδρομείο"
 
-#: saleor/checkout/forms.py:246
+#: saleor/checkout/forms.py:243
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Εισάγετε νέα διεύθυνση"
 
-#: saleor/checkout/forms.py:251
+#: saleor/checkout/forms.py:248
 msgctxt "Shipping addresses form field label"
 msgid "Address"
-msgstr ""
+msgstr "Διεύθυνση"
 
-#: saleor/checkout/forms.py:272
+#: saleor/checkout/forms.py:269
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Εισάγετε νέα διεύθυνση"
 
-#: saleor/checkout/forms.py:276
+#: saleor/checkout/forms.py:273
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
-msgstr ""
+msgstr "Ίδια με την διεύθυνση αποστολής"
 
-#: saleor/checkout/forms.py:281
+#: saleor/checkout/forms.py:278
 msgctxt "Billing addresses form field label"
 msgid "Address"
-msgstr ""
+msgstr "Διεύθυνση"
 
-#: saleor/checkout/forms.py:314
+#: saleor/checkout/forms.py:310
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
-msgstr ""
+msgstr "Τρόπος αποστολής"
 
-#: saleor/checkout/forms.py:361
+#: saleor/checkout/forms.py:357
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
-msgstr ""
+msgstr "Ο κωδικός έκπτωσης είναι λάθος ή έχει λήξει"
 
-#: saleor/checkout/forms.py:374
+#: saleor/checkout/forms.py:370
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
-msgstr ""
+msgstr "Κάρτα δώρου ή εκπτωτικός κωδικός"
 
-#: saleor/checkout/utils.py:212
+#: saleor/checkout/utils.py:179
 msgctxt "Checkout warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
 
-#: saleor/checkout/utils.py:753
+#: saleor/checkout/utils.py:718
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
-msgstr ""
+msgstr "Η παραγγελία σας δεν απαιτεί αποστολή."
 
-#: saleor/checkout/utils.py:759
+#: saleor/checkout/utils.py:724
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
-msgstr ""
+msgstr "Παρακαλούμε επιλέξτε πρώτα τρόπο αποστολής. "
 
-#: saleor/checkout/utils.py:767
+#: saleor/checkout/utils.py:732
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr ""
 
-#: saleor/checkout/utils.py:795
+#: saleor/checkout/utils.py:763
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
-msgstr ""
+msgstr "Αυτή η προσφορά ισχύει μόνο για επιλεγμένα προϊόντα."
 
-#: saleor/checkout/utils.py:986
+#: saleor/checkout/utils.py:977
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr ""
 
-#: saleor/checkout/utils.py:1050
+#: saleor/checkout/utils.py:1039
 msgctxt "Gift card not applicable"
 msgid "Gift card has expired. Order placement cancelled."
 msgstr ""
 
-#: saleor/checkout/views/discount.py:67
+#: saleor/checkout/views/discount.py:69
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr ""
+"Το κουπόνι αυτό έχει λήξει. Παρακαλούμε κάντε μια ανασκόπηση της παραγγελίας"
+" σας."
 
-#: saleor/checkout/views/summary.py:42
+#: saleor/checkout/views/summary.py:43
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
+msgstr "Παρακαλούμε κάντε μια ανασκόπηση της παραγγελίας σας."
+
+#: saleor/core/__init__.py:60
+msgctxt "VAT rate type"
+msgid "accommodation"
 msgstr ""
 
-#: saleor/checkout/views/summary.py:49
-#, python-format
-msgctxt "Checkout warning"
-msgid "Unable to calculate taxes - %s"
+#: saleor/core/__init__.py:63
+msgctxt "VAT rate type"
+msgid "admission to cultural events"
+msgstr ""
+
+#: saleor/core/__init__.py:67
+msgctxt "VAT rate type"
+msgid "admission to entertainment events"
+msgstr ""
+
+#: saleor/core/__init__.py:71
+msgctxt "VAT rate type"
+msgid "admission to sporting events"
+msgstr ""
+
+#: saleor/core/__init__.py:73
+msgctxt "VAT rate type"
+msgid "advertising"
+msgstr ""
+
+#: saleor/core/__init__.py:76
+msgctxt "VAT rate type"
+msgid "agricultural supplies"
+msgstr ""
+
+#: saleor/core/__init__.py:78
+msgctxt "VAT rate type"
+msgid "baby foodstuffs"
+msgstr ""
+
+#: saleor/core/__init__.py:79
+msgctxt "VAT rate type"
+msgid "bikes"
+msgstr ""
+
+#: saleor/core/__init__.py:80
+msgctxt "VAT rate type"
+msgid "books"
+msgstr ""
+
+#: saleor/core/__init__.py:81
+msgctxt "VAT rate type"
+msgid "childrens clothing"
+msgstr ""
+
+#: saleor/core/__init__.py:82
+msgctxt "VAT rate type"
+msgid "domestic fuel"
+msgstr ""
+
+#: saleor/core/__init__.py:83
+msgctxt "VAT rate type"
+msgid "domestic services"
+msgstr ""
+
+#: saleor/core/__init__.py:84
+msgctxt "VAT rate type"
+msgid "e-books"
+msgstr ""
+
+#: saleor/core/__init__.py:85
+msgctxt "VAT rate type"
+msgid "foodstuffs"
+msgstr ""
+
+#: saleor/core/__init__.py:86
+msgctxt "VAT rate type"
+msgid "hotels"
+msgstr ""
+
+#: saleor/core/__init__.py:87
+msgctxt "VAT rate type"
+msgid "medical"
+msgstr ""
+
+#: saleor/core/__init__.py:88
+msgctxt "VAT rate type"
+msgid "newspapers"
+msgstr ""
+
+#: saleor/core/__init__.py:89
+msgctxt "VAT rate type"
+msgid "passenger transport"
+msgstr ""
+
+#: saleor/core/__init__.py:90
+msgctxt "VAT rate type"
+msgid "pharmaceuticals"
+msgstr ""
+
+#: saleor/core/__init__.py:91
+msgctxt "VAT rate type"
+msgid "property renovations"
+msgstr ""
+
+#: saleor/core/__init__.py:92
+msgctxt "VAT rate type"
+msgid "restaurants"
+msgstr ""
+
+#: saleor/core/__init__.py:93
+msgctxt "VAT rate type"
+msgid "social housing"
+msgstr ""
+
+#: saleor/core/__init__.py:94
+msgctxt "VAT rate type"
+msgid "standard"
+msgstr ""
+
+#: saleor/core/__init__.py:95
+msgctxt "VAT rate type"
+msgid "water"
+msgstr ""
+
+#: saleor/core/__init__.py:96
+msgctxt "VAT rate type"
+msgid "wine"
 msgstr ""
 
 #: saleor/core/filters.py:27
@@ -496,132 +623,7 @@ msgctxt "Country choice"
 msgid "Any Country"
 msgstr ""
 
-#: saleor/core/taxes/vatlayer/__init__.py:38
-msgctxt "VAT rate type"
-msgid "accommodation"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:41
-msgctxt "VAT rate type"
-msgid "admission to cultural events"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:45
-msgctxt "VAT rate type"
-msgid "admission to entertainment events"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:49
-msgctxt "VAT rate type"
-msgid "admission to sporting events"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:51
-msgctxt "VAT rate type"
-msgid "advertising"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:54
-msgctxt "VAT rate type"
-msgid "agricultural supplies"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:56
-msgctxt "VAT rate type"
-msgid "baby foodstuffs"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:57
-msgctxt "VAT rate type"
-msgid "bikes"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:58
-msgctxt "VAT rate type"
-msgid "books"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:59
-msgctxt "VAT rate type"
-msgid "childrens clothing"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:60
-msgctxt "VAT rate type"
-msgid "domestic fuel"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:61
-msgctxt "VAT rate type"
-msgid "domestic services"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:62
-msgctxt "VAT rate type"
-msgid "e-books"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:63
-msgctxt "VAT rate type"
-msgid "foodstuffs"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:64
-msgctxt "VAT rate type"
-msgid "hotels"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:65
-msgctxt "VAT rate type"
-msgid "medical"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:66
-msgctxt "VAT rate type"
-msgid "newspapers"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:67
-msgctxt "VAT rate type"
-msgid "passenger transport"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:68
-msgctxt "VAT rate type"
-msgid "pharmaceuticals"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:69
-msgctxt "VAT rate type"
-msgid "property renovations"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:70
-msgctxt "VAT rate type"
-msgid "restaurants"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:71
-msgctxt "VAT rate type"
-msgid "social housing"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:72
-msgctxt "VAT rate type"
-msgid "standard"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:73
-msgctxt "VAT rate type"
-msgid "water"
-msgstr ""
-
-#: saleor/core/taxes/vatlayer/__init__.py:74
-msgctxt "VAT rate type"
-msgid "wine"
-msgstr ""
-
-#: saleor/core/views.py:50
+#: saleor/core/views.py:49
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr ""
@@ -649,7 +651,7 @@ msgstr ""
 #: saleor/discount/__init__.py:14
 msgctxt "Discount type"
 msgid "%"
-msgstr ""
+msgstr "%"
 
 #: saleor/discount/__init__.py:28
 msgctxt "Voucher: discount for"
@@ -674,68 +676,63 @@ msgstr ""
 #: saleor/discount/__init__.py:38
 msgctxt "Voucher: discount for"
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
 #: saleor/discount/__init__.py:42
 msgctxt "Voucher: discount for"
 msgid "Specific products, collections and categories"
 msgstr ""
 
-#: saleor/discount/models.py:96
+#: saleor/discount/models.py:92
 msgctxt "Voucher type"
 msgid "Free shipping"
-msgstr ""
+msgstr "Χωρίς έξοδα αποστολής"
 
-#: saleor/discount/models.py:97
+#: saleor/discount/models.py:93
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
-msgstr ""
+msgstr "%(discount)s εκτός αποστολής"
 
-#: saleor/discount/models.py:104
+#: saleor/discount/models.py:100
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product_num)d products"
 msgstr ""
 
-#: saleor/discount/models.py:110
+#: saleor/discount/models.py:106
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(collections_num)d collections"
 msgstr ""
 
-#: saleor/discount/models.py:116
+#: saleor/discount/models.py:112
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(categories_num)d categories"
 msgstr ""
 
-#: saleor/discount/models.py:118
+#: saleor/discount/models.py:114
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
-msgstr ""
+msgstr "%(discount)s εκτός"
 
-#: saleor/discount/models.py:147
+#: saleor/discount/models.py:144
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
-msgstr ""
+msgstr "Αυτή η προσφορά ισχύει μόνο για παραγγελίες άνω των  %(amount)s."
 
-#: saleor/discount/models.py:175
-msgctxt "Voucher not applicable"
-msgid "This offer is valid only once per customer."
-msgstr ""
-
-#: saleor/discount/models.py:237
+#: saleor/discount/models.py:199
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr ""
 
-#: saleor/discount/utils.py:65
+#: saleor/discount/utils.py:42
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
-msgstr ""
+msgstr "Δεν εφαρμόζεται έκπτωση στο συγκεκριμένο προϊόν"
 
 #: saleor/giftcard/models.py:50
 msgctxt "Permission description"
@@ -971,7 +968,7 @@ msgstr ""
 #: saleor/order/forms.py:36
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
-msgstr ""
+msgstr "Η πληρωμή δεν υπάρχει"
 
 #: saleor/order/forms.py:42
 msgctxt "Payment delete form error"
@@ -1019,12 +1016,12 @@ msgstr ""
 #: saleor/payment/__init__.py:71
 msgctxt "transaction kind"
 msgid "Refund"
-msgstr ""
+msgstr "Επιστροφή"
 
 #: saleor/payment/__init__.py:72
 msgctxt "transaction kind"
 msgid "Capture"
-msgstr ""
+msgstr "Εκκαθάριση"
 
 #: saleor/payment/__init__.py:73
 msgctxt "transaction kind"
@@ -1056,7 +1053,7 @@ msgctxt "payment status"
 msgid "Fully refunded"
 msgstr ""
 
-#: saleor/payment/gateways/braintree/__init__.py:69
+#: saleor/payment/gateways/braintree/__init__.py:61
 #: saleor/payment/gateways/braintree/forms.py:33
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
@@ -1065,7 +1062,7 @@ msgstr ""
 #: saleor/payment/gateways/dummy/forms.py:9
 msgctxt "Payment status form field"
 msgid "Payment status"
-msgstr ""
+msgstr "Κατάσταση πληρωμής"
 
 #: saleor/payment/gateways/dummy/forms.py:27
 msgid ""
@@ -1119,7 +1116,7 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr ""
 
-#: saleor/payment/utils.py:279
+#: saleor/payment/utils.py:265
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
@@ -1167,7 +1164,7 @@ msgstr ""
 #: saleor/product/filters.py:13
 msgctxt "Product list sorting option"
 msgid "name"
-msgstr ""
+msgstr "όνομα"
 
 #: saleor/product/filters.py:14
 msgctxt "Product list sorting option"
@@ -1182,25 +1179,25 @@ msgstr ""
 #: saleor/product/filters.py:22
 msgctxt "Product list sorting form"
 msgid "Sort by"
-msgstr ""
+msgstr "Ταξινόμηση ανά"
 
 #: saleor/product/filters.py:26
 msgctxt "Currency amount"
 msgid "Price"
-msgstr ""
+msgstr "Τιμή"
 
-#: saleor/product/forms.py:26
+#: saleor/product/forms.py:22
 #, python-format
 msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
-msgstr ""
+msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:153
+#: saleor/product/models.py:155
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr ""
 
-#: saleor/product/models.py:369
+#: saleor/product/models.py:381
 msgctxt "File as a digital product"
 msgid "digital_product"
 msgstr ""
@@ -1208,7 +1205,7 @@ msgstr ""
 #: saleor/search/forms.py:8
 msgctxt "Search form label"
 msgid "Query"
-msgstr ""
+msgstr "Κείμενο αναζήτησης"
 
 #: saleor/settings.py:61
 msgid "Arabic"
@@ -1283,107 +1280,103 @@ msgid "Indonesian"
 msgstr ""
 
 #: saleor/settings.py:79
-msgid "Icelandic"
-msgstr ""
-
-#: saleor/settings.py:80
 msgid "Italian"
 msgstr ""
 
-#: saleor/settings.py:81
+#: saleor/settings.py:80
 msgid "Japanese"
 msgstr ""
 
-#: saleor/settings.py:82
+#: saleor/settings.py:81
 msgid "Korean"
 msgstr ""
 
-#: saleor/settings.py:83
+#: saleor/settings.py:82
 msgid "Lithuanian"
 msgstr ""
 
-#: saleor/settings.py:84
+#: saleor/settings.py:83
 msgid "Mongolian"
 msgstr ""
 
-#: saleor/settings.py:85
+#: saleor/settings.py:84
 msgid "Norwegian"
 msgstr ""
 
-#: saleor/settings.py:86
+#: saleor/settings.py:85
 msgid "Dutch"
 msgstr ""
 
-#: saleor/settings.py:87
+#: saleor/settings.py:86
 msgid "Polish"
 msgstr ""
 
-#: saleor/settings.py:88
+#: saleor/settings.py:87
 msgid "Portuguese"
 msgstr ""
 
-#: saleor/settings.py:89
+#: saleor/settings.py:88
 msgid "Brazilian Portuguese"
 msgstr ""
 
-#: saleor/settings.py:90
+#: saleor/settings.py:89
 msgid "Romanian"
 msgstr ""
 
-#: saleor/settings.py:91
+#: saleor/settings.py:90
 msgid "Russian"
 msgstr ""
 
-#: saleor/settings.py:92
+#: saleor/settings.py:91
 msgid "Slovak"
 msgstr ""
 
-#: saleor/settings.py:93
+#: saleor/settings.py:92
 msgid "Albanian"
 msgstr ""
 
-#: saleor/settings.py:94
+#: saleor/settings.py:93
 msgid "Serbian"
 msgstr ""
 
-#: saleor/settings.py:95
+#: saleor/settings.py:94
 msgid "Swahili"
 msgstr ""
 
-#: saleor/settings.py:96
+#: saleor/settings.py:95
 msgid "Swedish"
 msgstr ""
 
-#: saleor/settings.py:97
+#: saleor/settings.py:96
 msgid "Thai"
 msgstr ""
 
-#: saleor/settings.py:98
+#: saleor/settings.py:97
 msgid "Turkish"
 msgstr ""
 
-#: saleor/settings.py:99
+#: saleor/settings.py:98
 msgid "Ukrainian"
 msgstr ""
 
-#: saleor/settings.py:100
+#: saleor/settings.py:99
 msgid "Vietnamese"
 msgstr ""
 
-#: saleor/settings.py:101
+#: saleor/settings.py:100
 msgid "Simplified Chinese"
 msgstr ""
 
-#: saleor/settings.py:102
+#: saleor/settings.py:101
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:336
+#: saleor/settings.py:335
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:594
+#: saleor/settings.py:586
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1398,13 +1391,13 @@ msgctxt "Type of shipping"
 msgid "Weight based shipping"
 msgstr ""
 
-#: saleor/shipping/models.py:43
+#: saleor/shipping/models.py:42
 #, python-format
 msgctxt "Number of countries shipping zone apply to"
 msgid "%(num_of_countries)d countries"
 msgstr ""
 
-#: saleor/shipping/models.py:60
+#: saleor/shipping/models.py:59
 msgctxt "Permission description"
 msgid "Manage shipping."
 msgstr ""
@@ -1433,12 +1426,12 @@ msgctxt "Applies to orders of total weight within this range"
 msgid "%(min_weight)s to %(max_weight)s"
 msgstr ""
 
-#: saleor/site/models.py:49
+#: saleor/site/models.py:46
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr ""
 
-#: saleor/site/models.py:53
+#: saleor/site/models.py:50
 msgctxt "Permission description"
 msgid "Manage translations."
 msgstr ""
@@ -1456,7 +1449,7 @@ msgstr ""
 #: templates/_language_picker_modal.html:24
 msgctxt "Close modal action button"
 msgid "Close"
-msgstr ""
+msgstr "Κλείσιμο"
 
 #: templates/_language_picker_modal.html:25
 msgctxt "Change language action button"
@@ -1501,7 +1494,7 @@ msgstr ""
 #: templates/account/address_edit.html:9
 msgctxt "New address page title"
 msgid "New address"
-msgstr ""
+msgstr "Νέα διεύθυνση"
 
 #: templates/account/address_edit.html:16 templates/account/details.html:16
 #: templates/account/password_change.html:7 templates/checkout/index.html:11
@@ -1525,7 +1518,7 @@ msgstr ""
 #: templates/account/address_edit.html:33
 msgctxt "New address breadcrumb"
 msgid "New address"
-msgstr ""
+msgstr "Νέα διεύθυνση"
 
 #: templates/account/address_edit.html:47
 msgctxt "Edit address title"
@@ -1535,7 +1528,7 @@ msgstr ""
 #: templates/account/address_edit.html:49
 msgctxt "New address title"
 msgid "New address"
-msgstr ""
+msgstr "Νέα διεύθυνση"
 
 #: templates/account/address_edit.html:57
 msgctxt "Edit/new address primary action"
@@ -1548,7 +1541,7 @@ msgid "Your profile"
 msgstr ""
 
 #: templates/account/details.html:19 templates/account/password_change.html:8
-#: templates/base.html:84 templates/base.html:227
+#: templates/base.html:84 templates/base.html:226
 #: templates/order/details.html:23 templates/order/payment.html:23
 #: templates/order/payment/details.html:17
 msgctxt "Main navigation item"
@@ -1557,7 +1550,7 @@ msgstr ""
 
 #: templates/account/details.html:26
 msgid "My account"
-msgstr ""
+msgstr "Ο λογαριασμός μου"
 
 #: templates/account/details.html:30
 msgctxt "User profile tab"
@@ -1587,7 +1580,7 @@ msgstr ""
 #: templates/account/details.html:62
 msgctxt "Recent orders column title"
 msgid "Date"
-msgstr ""
+msgstr "Ημερομηνία"
 
 #: templates/account/details.html:65
 msgctxt "Recent orders column title"
@@ -1597,17 +1590,17 @@ msgstr ""
 #: templates/account/details.html:68
 msgctxt "Recent orders column title"
 msgid "Payment status"
-msgstr ""
+msgstr "Κατάσταση πληρωμής"
 
 #: templates/account/details.html:71
 msgctxt "Recent orders column title"
 msgid "Order status"
-msgstr ""
+msgstr "Κατάσταση παραγγελίας"
 
 #: templates/account/details.html:96
 msgctxt "Recent orders link text"
 msgid "Details"
-msgstr ""
+msgstr "Λεπτομέρειες"
 
 #: templates/account/details.html:111
 msgctxt "No recent orders text"
@@ -1637,7 +1630,7 @@ msgstr ""
 #: templates/account/details.html:152
 msgctxt "User address action"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/account/details.html:168
 msgctxt "No addresses text"
@@ -1648,8 +1641,7 @@ msgstr ""
 msgctxt "Message informing about the process of account removal"
 msgid ""
 "\n"
-"                  If you'd like to remove your account, please click on the "
-"button below and a confirmation email will be sent to you.\n"
+"                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
 "                "
 msgstr ""
 
@@ -1661,7 +1653,7 @@ msgstr ""
 #: templates/account/login.html:5
 msgctxt "Login page title"
 msgid "Log in"
-msgstr ""
+msgstr "Σύνδεση"
 
 #: templates/account/login.html:16
 msgctxt "Login form secondary title"
@@ -1676,7 +1668,7 @@ msgstr ""
 #: templates/account/login.html:26
 msgctxt "Login form title"
 msgid "Log in"
-msgstr ""
+msgstr "Σύνδεση"
 
 #: templates/account/partials/already_logged_in.html:5
 #, python-format
@@ -1687,7 +1679,7 @@ msgstr ""
 #: templates/account/partials/login_form.html:16
 msgctxt "Login form primary action"
 msgid "Log in"
-msgstr ""
+msgstr "Είσοδος"
 
 #: templates/account/partials/login_form.html:19
 msgctxt "Login form secondary link"
@@ -1705,12 +1697,12 @@ msgstr ""
 #: templates/account/password_change.html:9
 msgctxt "Password change breadcrumb"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/account/password_change.html:22
 msgctxt "Password change form legend"
 msgid "Change Password"
-msgstr ""
+msgstr "Αλλάξτε κωδικό"
 
 #: templates/account/password_change.html:28
 msgctxt "Password change form primary action"
@@ -1737,7 +1729,7 @@ msgstr ""
 #: templates/account/password_reset.html:30
 msgctxt "Password reset primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Συνεχίστε"
 
 #: templates/account/password_reset_done.html:6
 msgctxt "Password reset done page title"
@@ -1759,11 +1751,11 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
 msgid "Change Password"
-msgstr ""
+msgstr "Αλλάξτε κωδικό"
 
 #: templates/account/password_reset_from_key.html:11
 msgid "Bad Token"
-msgstr ""
+msgstr "Μη έγκυρο κλειδί"
 
 #: templates/account/password_reset_from_key.html:13
 #, python-format
@@ -1787,7 +1779,7 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:32
 msgctxt "Password reset from key form primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Συνεχίστε"
 
 #: templates/account/password_reset_from_key.html:39
 msgctxt "Password reset link expired from key form title"
@@ -1818,13 +1810,12 @@ msgstr ""
 
 #: templates/account/password_reset_from_key_done.html:9
 msgid "Your password is now changed."
-msgstr ""
+msgstr "Ο κωδικός σας άλλαξε με επιτυχία."
 
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
 msgctxt "Password reset from key done text"
-msgid ""
-"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
 msgstr ""
 
 #: templates/account/signup.html:6
@@ -1840,7 +1831,7 @@ msgstr ""
 #: templates/account/signup.html:21
 msgctxt "Signup form secondary action"
 msgid "Log in"
-msgstr ""
+msgstr "Σύνδεση"
 
 #: templates/account/signup.html:28
 msgctxt "Signup form title"
@@ -1852,49 +1843,49 @@ msgctxt "Signup form primary action"
 msgid "Create an account"
 msgstr ""
 
-#: templates/base.html:78 templates/base.html:216
+#: templates/base.html:78 templates/base.html:215
 msgctxt "Main navigation item"
 msgid "Dashboard"
 msgstr ""
 
-#: templates/base.html:89 templates/base.html:233
+#: templates/base.html:89 templates/base.html:232
 msgctxt "Main navigation item"
 msgid "Stop impersonating"
 msgstr ""
 
-#: templates/base.html:95 templates/base.html:239
+#: templates/base.html:95 templates/base.html:238
 msgctxt "Main navigation item"
 msgid "Log out"
-msgstr ""
+msgstr "Αποσύνδεση"
 
-#: templates/base.html:101 templates/base.html:245
+#: templates/base.html:101 templates/base.html:244
 msgctxt "Main navigation item"
 msgid "Register"
 msgstr ""
 
-#: templates/base.html:105 templates/base.html:250
+#: templates/base.html:105 templates/base.html:249
 msgctxt "Main navigation item"
 msgid "Log in"
-msgstr ""
+msgstr "Σύνδεση"
 
 #: templates/base.html:136
 msgid "Search for product"
-msgstr ""
+msgstr "Αναζήτηση προϊόντος"
 
-#: templates/base.html:140
+#: templates/base.html:139
 msgid "Search"
 msgstr ""
 
-#: templates/base.html:149 templates/base.html:209
+#: templates/base.html:148 templates/base.html:208
 msgctxt "Main navigation item"
 msgid "Your cart"
 msgstr ""
 
-#: templates/base.html:203
+#: templates/base.html:202
 msgid "Account"
 msgstr ""
 
-#: templates/base.html:221
+#: templates/base.html:220
 msgctxt "Main navigation item"
 msgid "Style guide"
 msgstr ""
@@ -1919,7 +1910,7 @@ msgstr ""
 #: templates/checkout/_subtotal_table.html:57
 msgctxt "Order subtotal"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/checkout/_subtotal_table.html:58
 msgctxt "Checkout summary text"
@@ -1974,7 +1965,7 @@ msgstr ""
 #: templates/checkout/details.html:95
 msgctxt "Order review section title"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/checkout/index.html:7
 msgctxt "Checkout page title"
@@ -1999,12 +1990,12 @@ msgstr ""
 #: templates/checkout/index.html:33
 msgctxt "Checkout table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Ποσότητα"
 
 #: templates/checkout/index.html:36
 msgctxt "Checkout table header"
 msgid "Price"
-msgstr ""
+msgstr "Τιμή"
 
 #: templates/checkout/index.html:81
 msgctxt "Checkout primary action"
@@ -2029,7 +2020,7 @@ msgstr ""
 #: templates/checkout/login.html:6
 msgctxt "Checkout login page title"
 msgid "Login"
-msgstr ""
+msgstr "Είσοδος"
 
 #: templates/checkout/login.html:12
 msgctxt "Checkout login page title"
@@ -2039,7 +2030,7 @@ msgstr ""
 #: templates/checkout/login.html:18
 msgctxt "Checkout login page new users action"
 msgid "Continue"
-msgstr ""
+msgstr "Συνεχίστε"
 
 #: templates/checkout/login.html:21
 msgctxt "Checkout login page new users message"
@@ -2070,21 +2061,21 @@ msgstr ""
 #: templates/checkout/shipping_address.html:21
 msgctxt "Checkout shipping address primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Συνεχίστε"
 
 #: templates/checkout/shipping_method.html:15
 msgid "Select other address"
-msgstr ""
+msgstr "Επιλέξτε άλλη διεύθυνση"
 
 #: templates/checkout/shipping_method.html:23
 msgctxt "Checkout shipping method form title"
 msgid "Shipping method"
-msgstr ""
+msgstr "Τρόπος αποστολής"
 
 #: templates/checkout/shipping_method.html:40
 msgctxt "Checkout shipping method primary action"
 msgid "Continue"
-msgstr ""
+msgstr "Συνεχίστε"
 
 #: templates/checkout/shipping_method.html:45
 msgctxt ""
@@ -2093,20 +2084,19 @@ msgid ""
 "\n"
 "        Unfortunately we do not ship to your selected country.\n"
 "        <br>\n"
-"        Please enter an alternative shipping address or contact us, if you "
-"think that's a mistake.\n"
+"        Please enter an alternative shipping address or contact us, if you think that's a mistake.\n"
 "      "
 msgstr ""
 
 #: templates/checkout/snippets/addresses_form.html:4
 msgctxt "Checkout addresses form label"
 msgid "Same as shipping"
-msgstr ""
+msgstr "Ίδια με την διεύθυνση αποστολής"
 
 #: templates/checkout/snippets/addresses_form.html:11
 msgctxt "Checkout addresses form label"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Εισάγετε νέα διεύθυνση"
 
 #: templates/checkout/snippets/voucher_form.html:14
 msgctxt "Checkout voucher form action"
@@ -2204,7 +2194,7 @@ msgstr ""
 #: templates/dashboard/base.html:42
 msgctxt "Dashboard top navigation action"
 msgid "Visit storefront"
-msgstr ""
+msgstr "Επισκεφθείτε το κατάστημα"
 
 #: templates/dashboard/base.html:47
 msgctxt "Dashboard top navigation action"
@@ -2214,7 +2204,7 @@ msgstr ""
 #: templates/dashboard/base.html:52
 msgctxt "Dashboard top navigation action"
 msgid "Log out"
-msgstr ""
+msgstr "Αποσύνδεση"
 
 #: templates/dashboard/base.html:81
 msgctxt "Dashboard search"
@@ -2239,7 +2229,7 @@ msgstr ""
 #: templates/dashboard/product/product_variant/form.html:26
 msgctxt "Dashboard products list"
 msgid "Products"
-msgstr ""
+msgstr "Προϊόντα"
 
 #: templates/dashboard/base.html:112
 #: templates/dashboard/category/detail.html:33
@@ -2249,12 +2239,12 @@ msgstr ""
 #: templates/dashboard/category/list.html:32
 msgctxt "Dashboard categories list"
 msgid "Categories"
-msgstr ""
+msgstr "Κατηγορίες"
 
 #: templates/dashboard/base.html:117
 msgctxt "Dashboard side navigation link"
 msgid "Collections"
-msgstr ""
+msgstr "Συλλογές"
 
 #: templates/dashboard/base.html:126
 msgctxt "Dashboard discounts list"
@@ -2264,7 +2254,7 @@ msgstr ""
 #: templates/dashboard/base.html:131
 msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
-msgstr ""
+msgstr "Πωλήσεις"
 
 #: templates/dashboard/base.html:136
 #: templates/dashboard/discount/voucher/form.html:12
@@ -2278,7 +2268,7 @@ msgstr ""
 #: templates/dashboard/base.html:145
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
-msgstr ""
+msgstr "Πωλήσεις"
 
 #: templates/dashboard/base.html:151
 #: templates/dashboard/order/address_form.html:7
@@ -2287,12 +2277,14 @@ msgstr ""
 #: templates/dashboard/order/detail.html:57
 #: templates/dashboard/order/fulfillment.html:11
 #: templates/dashboard/order/fulfillment.html:27
-#: templates/dashboard/order/list.html:9 templates/dashboard/order/list.html:29
+#: templates/dashboard/order/list.html:9
+#: templates/dashboard/order/list.html:29
 msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr ""
 
-#: templates/dashboard/base.html:158 templates/dashboard/customer/detail.html:9
+#: templates/dashboard/base.html:158
+#: templates/dashboard/customer/detail.html:9
 #: templates/dashboard/customer/detail.html:25
 #: templates/dashboard/customer/form.html:28
 #: templates/dashboard/customer/list.html:8
@@ -2336,7 +2328,7 @@ msgstr ""
 #: templates/dashboard/base.html:200
 msgctxt "Dashboard shipping zones list"
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
 #: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:23
 #: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:31
@@ -2404,12 +2396,12 @@ msgstr ""
 #: templates/dashboard/category/list.html:9
 msgctxt "Category list page title"
 msgid "Categories"
-msgstr ""
+msgstr "Κατηγορίες"
 
 #: templates/dashboard/category/detail.html:83
 msgctxt "Category field"
 msgid "Description"
-msgstr ""
+msgstr "Περιγραφή"
 
 #: templates/dashboard/category/detail.html:94
 msgctxt "Category detail view action"
@@ -2439,18 +2431,18 @@ msgstr ""
 #: templates/dashboard/category/list.html:49
 msgctxt "Category list table header name"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/category/detail.html:119
 #: templates/dashboard/category/list.html:52
 msgctxt "Category list table header description"
 msgid "Description"
-msgstr ""
+msgstr "Περιγραφή"
 
 #: templates/dashboard/category/detail.html:140
 msgctxt "Category edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/category/detail.html:143
 msgctxt "Category list action link"
@@ -2470,23 +2462,23 @@ msgstr ""
 #: templates/dashboard/category/form.html:11
 msgctxt "Category detail page title"
 msgid "Add new category"
-msgstr ""
+msgstr "Προσθήκη νέας κατηγορίας"
 
 #: templates/dashboard/category/form.html:24
 msgctxt "Category form page title"
 msgid "Add new category"
-msgstr ""
+msgstr "Προσθήκη νέας κατηγορίας"
 
 #: templates/dashboard/category/form.html:55
 msgctxt "Category form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/category/form.html:61
 #: templates/dashboard/category/form.html:77
 msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
-msgstr ""
+msgstr "Προσθήκη νέας κατηγορίας"
 
 #: templates/dashboard/category/form.html:123
 #: templates/dashboard/customer/form.html:62
@@ -2525,7 +2517,7 @@ msgstr ""
 #: templates/dashboard/category/list.html:22
 msgctxt "Category list add button text"
 msgid "Add category"
-msgstr ""
+msgstr "Πρόσθηκη κατηγορίας"
 
 #: templates/dashboard/category/list.html:83
 msgctxt "Empty category list message"
@@ -2541,7 +2533,8 @@ msgstr ""
 #: templates/dashboard/category/modal/confirm_delete.html:20
 #, python-format
 msgctxt "Remove category modal title"
-msgid "Are you sure you want to remove category <strong>%(category)s</strong>?"
+msgid ""
+"Are you sure you want to remove category <strong>%(category)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:25
@@ -2589,10 +2582,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Categories are used to organize products into groups that are displayed "
-"in the navigation in the storefront.<br>\n"
-"    You can create categories by using the <span class=\"btn-fab-presentation"
-"\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Categories are used to organize products into groups that are displayed in the navigation in the storefront.<br>\n"
+"    You can create categories by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
@@ -2619,7 +2610,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:18
 #: templates/dashboard/collection/list.html:19
 msgid "Collections"
-msgstr ""
+msgstr "Συλλογές"
 
 #: templates/dashboard/collection/detail.html:36
 msgctxt "Collection action"
@@ -2654,7 +2645,7 @@ msgstr ""
 #: templates/dashboard/collection/detail.html:110
 msgctxt "Collection field"
 msgid "Published"
-msgstr ""
+msgstr "Δημοσιευμένο"
 
 #: templates/dashboard/collection/detail.html:112
 msgctxt "Collection field"
@@ -2669,7 +2660,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:10
 msgctxt "Collections list page title "
 msgid "Collections"
-msgstr ""
+msgstr "Συλλογές"
 
 #: templates/dashboard/collection/list.html:25
 msgctxt "Collections list add button text"
@@ -2679,7 +2670,7 @@ msgstr ""
 #: templates/dashboard/collection/list.html:40
 msgctxt "Collections list table header name"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/collection/list.html:43
 msgctxt "Voucher table header"
@@ -2718,8 +2709,7 @@ msgstr ""
 msgid ""
 "\n"
 "    Collections are used to organize products into custom groups.<br>\n"
-"    You can create collections by using the <span class=\"btn-fab-"
-"presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    You can create collections by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
@@ -2731,7 +2721,7 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:68
 msgctxt "Customer field"
 msgid "Note"
-msgstr ""
+msgstr "Σημείωση"
 
 #: templates/dashboard/customer/detail.html:79
 msgctxt "Customer action"
@@ -2756,7 +2746,7 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:104
 msgctxt "Customer orders table header"
 msgid "Number"
-msgstr ""
+msgstr "Αριθμός"
 
 #: templates/dashboard/customer/detail.html:107
 msgctxt "Customer orders table header"
@@ -2766,17 +2756,17 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:110
 msgctxt "Customer orders table header"
 msgid "Order status"
-msgstr ""
+msgstr "Κατάσταση παραγγελίας"
 
 #: templates/dashboard/customer/detail.html:113
 msgctxt "Customer orders table header"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/dashboard/customer/detail.html:140
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
-msgstr ""
+msgstr "Δεν βρέθηκαν παραγγελίες."
 
 #: templates/dashboard/customer/detail.html:149
 msgctxt "Customer notes card title"
@@ -2791,27 +2781,27 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:168
 msgctxt "Customer notes card action"
 msgid "Add note"
-msgstr ""
+msgstr "Προσθήκη σημείωσης"
 
 #: templates/dashboard/customer/detail.html:181
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
-msgstr ""
+msgstr "Προκαθορισμένη διεύθυνση αποστολής"
 
 #: templates/dashboard/customer/detail.html:188
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
-msgstr ""
+msgstr "Δεν υπάρχει προκαθορισμένη διεύθυνση αποστολής."
 
 #: templates/dashboard/customer/detail.html:201
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
-msgstr ""
+msgstr "Προκαθορισμένη διεύθυνση τιμολόγησης"
 
 #: templates/dashboard/customer/detail.html:209
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
-msgstr ""
+msgstr "Δεν υπάρχει προκαθορισμένη διεύθυνση τιμολόγησης."
 
 #: templates/dashboard/customer/form.html:10
 msgctxt "Dashboard add customer"
@@ -2822,7 +2812,7 @@ msgstr ""
 #: templates/dashboard/search/results.html:89
 msgctxt "Dashboard customer"
 msgid "Customer"
-msgstr ""
+msgstr "Πελάτης"
 
 #: templates/dashboard/customer/form.html:36
 msgctxt "Dashboard add customer action"
@@ -2848,34 +2838,34 @@ msgstr ""
 #: templates/dashboard/customer/list.html:40
 msgctxt "Customers table header"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/customer/list.html:43
 msgctxt "Customers table header"
 msgid "Email"
-msgstr ""
+msgstr "Ηλεκτρονικό ταχυδρομείο"
 
 #: templates/dashboard/customer/list.html:46
 msgctxt "Customers table header"
 msgid "Location"
-msgstr ""
+msgstr "Τοποθεσία"
 
 #: templates/dashboard/customer/list.html:86
 msgctxt "Empty customers table message"
 msgid "No customers found."
-msgstr ""
+msgstr "Δεν βρέθηκαν πελάτες."
 
 #: templates/dashboard/customer/modal/add_note.html:11
 #: templates/dashboard/order/modal/add_note.html:11
 msgctxt "Modal add note title"
 msgid "Add note"
-msgstr ""
+msgstr "Προσθήκη σημείωσης"
 
 #: templates/dashboard/customer/modal/add_note.html:19
 #: templates/dashboard/order/modal/add_note.html:19
 msgctxt "Modal add note primary action"
 msgid "Save note"
-msgstr ""
+msgstr "Αποθήκευση σημείωσης"
 
 #: templates/dashboard/customer/modal/confirm_delete.html:12
 #, python-format
@@ -2911,7 +2901,7 @@ msgstr ""
 
 #: templates/dashboard/customer/zero_page.html:5
 msgid "No customers found."
-msgstr ""
+msgstr "Δεν βρέθηκαν πελάτες."
 
 #: templates/dashboard/customer/zero_page.html:8
 msgid ""
@@ -2923,53 +2913,53 @@ msgstr ""
 #: templates/dashboard/discount/sale/form.html:10
 msgctxt "Sale (discount) page title"
 msgid "Add new sale"
-msgstr ""
+msgstr "Προσθήκη νέας πώλησης"
 
 #: templates/dashboard/discount/sale/form.html:12
 #: templates/dashboard/discount/sale/form.html:43
 #: templates/dashboard/discount/sale/list.html:18
 msgctxt "Dashboard sales (discounts) list."
 msgid "Sales"
-msgstr ""
+msgstr "Πωλήσεις"
 
 #: templates/dashboard/discount/sale/form.html:32
 msgctxt "Sale (discount) action"
 msgid "Remove sale"
-msgstr ""
+msgstr "Αφαίρεση πώλησης"
 
 #: templates/dashboard/discount/sale/form.html:56
 msgctxt "Sale (discount) breadcrumbs"
 msgid "Add new sale"
-msgstr ""
+msgstr "Προσθήκη νέας πώλησης"
 
 #: templates/dashboard/discount/sale/list.html:9
 msgid "Sales"
-msgstr ""
+msgstr "Πωλήσεις"
 
 #: templates/dashboard/discount/sale/list.html:27
 msgctxt "Sale (discount) list add button text"
 msgid "Add sale"
-msgstr ""
+msgstr "Προσθήκη πώλησης"
 
 #: templates/dashboard/discount/sale/list.html:42
 msgctxt "Sale (discount) table header"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/discount/sale/list.html:45
 msgctxt "Sale (discount) table header"
 msgid "Start date"
-msgstr ""
+msgstr "Ημερομηνία έναρξης"
 
 #: templates/dashboard/discount/sale/list.html:48
 msgctxt "Sale (discount) table header"
 msgid "End date"
-msgstr ""
+msgstr "Ημερομηνία λήξης"
 
 #: templates/dashboard/discount/sale/list.html:51
 msgctxt "Sale (discount) table header"
 msgid "Discount"
-msgstr ""
+msgstr "Έκπτωση"
 
 #: templates/dashboard/discount/sale/list.html:84
 msgctxt "Empty sales table message"
@@ -2979,7 +2969,7 @@ msgstr ""
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:12
 msgctxt "Remove sale (discount) text"
 msgid "Remove sale"
-msgstr ""
+msgstr "Αφαίρεση πώλησης"
 
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:17
 #, python-format
@@ -2995,27 +2985,25 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Sales are used to create discounts on particular products or whole "
-"categories.<br>\n"
-"    You can create sales by using the <span class=\"btn-fab-presentation"
-"\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Sales are used to create discounts on particular products or whole categories.<br>\n"
+"    You can create sales by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
 #: templates/dashboard/discount/voucher/form.html:10
 msgctxt "Voucher page title"
 msgid "Add new voucher"
-msgstr ""
+msgstr "Προσθήκη νέου κουπονιού"
 
 #: templates/dashboard/discount/voucher/form.html:32
 msgctxt "Voucher action"
 msgid "Remove voucher"
-msgstr ""
+msgstr "Αφαίρεση κουπονιού"
 
 #: templates/dashboard/discount/voucher/form.html:56
 msgctxt "Voucher breadcrumbs"
 msgid "Add new voucher"
-msgstr ""
+msgstr "Προσθήκη νέου κουπονιού"
 
 #: templates/dashboard/discount/voucher/list.html:28
 msgctxt "Voucher list add button text"
@@ -3025,27 +3013,27 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:43
 msgctxt "Voucher table header"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/discount/voucher/list.html:46
 msgctxt "Voucher table header"
 msgid "Discount"
-msgstr ""
+msgstr "Έκπτωση"
 
 #: templates/dashboard/discount/voucher/list.html:49
 msgctxt "Voucher table header"
 msgid "Start date"
-msgstr ""
+msgstr "Ημερομηνία έναρξης"
 
 #: templates/dashboard/discount/voucher/list.html:52
 msgctxt "Voucher table header"
 msgid "End date"
-msgstr ""
+msgstr "Ημερομηνία λήξης"
 
 #: templates/dashboard/discount/voucher/list.html:55
 msgctxt "Voucher table header"
 msgid "Used"
-msgstr ""
+msgstr "Χρησιμοποιήθηκε"
 
 #: templates/dashboard/discount/voucher/list.html:58
 msgctxt "Voucher table header"
@@ -3077,17 +3065,15 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Vouchers allows creating promotional codes for all purchases, specific "
-"products or shipping.<br>\n"
-"    You can create vouchers by using the <span class=\"btn-fab-presentation"
-"\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Vouchers allows creating promotional codes for all purchases, specific products or shipping.<br>\n"
+"    You can create vouchers by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
 #: templates/dashboard/includes/_collection_availability.html:5
 msgctxt "Collection availability status"
 msgid "Published"
-msgstr ""
+msgstr "Δημοσιευμένο"
 
 #: templates/dashboard/includes/_collection_availability.html:8
 #, python-format
@@ -3111,7 +3097,7 @@ msgstr ""
 #: templates/dashboard/includes/_filters.html:43
 msgctxt "Category page filters"
 msgid "Clear"
-msgstr ""
+msgstr "Καθαρισμός"
 
 #: templates/dashboard/includes/_filters.html:47
 msgctxt "Category price filter"
@@ -3131,12 +3117,12 @@ msgstr ""
 #: templates/dashboard/includes/_menu_items.html:23
 msgctxt "Menu items list table header name"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/includes/_menu_items.html:26
 msgctxt "Menu items list table header points to"
 msgid "Points to"
-msgstr ""
+msgstr "Αντιστοιχεί σε"
 
 #: templates/dashboard/includes/_menu_items.html:28
 msgctxt "Menu items status"
@@ -3146,17 +3132,17 @@ msgstr ""
 #: templates/dashboard/includes/_menu_items.html:47
 msgctxt "Menu items status"
 msgid "Published"
-msgstr ""
+msgstr "Δημοσιευμένο"
 
 #: templates/dashboard/includes/_menu_items.html:51
 msgctxt "Menu items status"
 msgid "Not published"
-msgstr ""
+msgstr "Μη δημοσιευμένο"
 
 #: templates/dashboard/includes/_menu_items.html:56
 msgctxt "Menu item edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/includes/_menu_items.html:59
 msgctxt "Menu item list action link"
@@ -3171,7 +3157,7 @@ msgstr ""
 #: templates/dashboard/includes/_page_availability.html:5
 msgctxt "Page availability status"
 msgid "Published"
-msgstr ""
+msgstr "Δημοσιευμένο"
 
 #: templates/dashboard/includes/_page_availability.html:9
 #: templates/dashboard/includes/_page_availability.html:19
@@ -3208,38 +3194,38 @@ msgstr ""
 #: templates/dashboard/index.html:31 templates/dashboard/order/list.html:47
 msgctxt "Orders table header"
 msgid "Customer"
-msgstr ""
+msgstr "Πελάτης"
 
 #: templates/dashboard/index.html:34 templates/dashboard/order/list.html:50
 msgctxt "Orders table header"
 msgid "Payment status"
-msgstr ""
+msgstr "Κατάσταση πληρωμής"
 
 #: templates/dashboard/index.html:37 templates/dashboard/order/list.html:53
 msgctxt "Orders table header"
 msgid "Order status"
-msgstr ""
+msgstr "Κατάσταση παραγγελίας"
 
 #: templates/dashboard/index.html:40 templates/dashboard/order/list.html:56
 msgctxt "Orders table header"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/dashboard/index.html:53 templates/dashboard/order/detail.html:212
 #: templates/dashboard/order/list.html:69
 msgctxt "Anonymous user account value"
 msgid "Guest"
-msgstr ""
+msgstr "Επισκέπτης"
 
 #: templates/dashboard/index.html:74
 msgctxt "Empty order table message"
 msgid "No orders are ready for shipment."
-msgstr ""
+msgstr "Δεν υπάρχουν παραγγελίες έτοιμες για αποστολή."
 
 #: templates/dashboard/index.html:83
 msgctxt "Dashboard homepage table title"
 msgid "Preauthorized payments"
-msgstr ""
+msgstr "Προεγκεκριμένες πληρωμές"
 
 #: templates/dashboard/index.html:92
 msgctxt "Preauthorized payments table header"
@@ -3249,31 +3235,31 @@ msgstr ""
 #: templates/dashboard/index.html:95
 msgctxt "Preauthorized payments table header"
 msgid "Date"
-msgstr ""
+msgstr "Ημερομηνία"
 
 #: templates/dashboard/index.html:98
 msgctxt "Preauthorized payments table header"
 msgid "Customer"
-msgstr ""
+msgstr "Πελάτης"
 
 #: templates/dashboard/index.html:101
 msgctxt "Preauthorized payments table header"
 msgid "Amount"
-msgstr ""
+msgstr "Ποσό"
 
 #: templates/dashboard/index.html:116
 msgid "Guest"
-msgstr ""
+msgstr "Επισκέπτης"
 
 #: templates/dashboard/index.html:130
 msgctxt "Empty Preauthorized payments table message"
 msgid "No preauthorized payments."
-msgstr ""
+msgstr "Δεν βρέθηκαν προεγκεκριμένες πληρωμές."
 
 #: templates/dashboard/index.html:139
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
-msgstr ""
+msgstr "Προϊόντα με χαμηλό απόθεμα"
 
 #: templates/dashboard/index.html:148
 msgctxt "Low stock product list"
@@ -3288,7 +3274,7 @@ msgstr ""
 #: templates/dashboard/index.html:172
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
-msgstr ""
+msgstr "Δεν υπάρχουν προϊόντα χαμηλά σε απόθεμα."
 
 #: templates/dashboard/menu/detail.html:7 templates/dashboard/menu/list.html:9
 msgctxt "Menu list page title"
@@ -3328,7 +3314,7 @@ msgstr ""
 #: templates/dashboard/menu/item/detail.html:75
 msgctxt "Menu item field"
 msgid "Points to"
-msgstr ""
+msgstr "Αντιστοιχεί σε"
 
 #: templates/dashboard/menu/item/detail.html:87
 msgctxt "Menu item detail view action"
@@ -3359,7 +3345,7 @@ msgstr ""
 #: templates/dashboard/menu/item/form.html:56
 msgctxt "Menu form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/menu/item/form.html:62
 msgctxt "Menu form page title"
@@ -3394,7 +3380,7 @@ msgstr ""
 #: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Όνομα μενού"
 
 #: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
@@ -3439,10 +3425,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Menus are used to organize the navigation bar displayed in the "
-"storefront.<br>\n"
-"    You can create menus by using the <span class=\"btn-fab-presentation"
-"\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Menus are used to organize the navigation bar displayed in the storefront.<br>\n"
+"    You can create menus by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
@@ -3471,7 +3455,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:33
 msgctxt "Order detail action"
 msgid "Cancel Order"
-msgstr ""
+msgstr "Ακύρωση παραγγελίας"
 
 #: templates/dashboard/order/detail.html:40
 msgctxt "Order detail action"
@@ -3486,59 +3470,59 @@ msgstr ""
 #: templates/dashboard/order/detail.html:80
 msgctxt "Order detail tab"
 msgid "Details"
-msgstr ""
+msgstr "Λεπτομέρειες"
 
 #: templates/dashboard/order/detail.html:88
 #: templates/dashboard/order/detail.html:576
 msgctxt "Order detail tab"
 msgid "Payments"
-msgstr ""
+msgstr "Πληρωμές"
 
 #: templates/dashboard/order/detail.html:96
 #: templates/dashboard/order/detail.html:626
 msgctxt "Order detail tab"
 msgid "History"
-msgstr ""
+msgstr "Ιστορικό"
 
 #: templates/dashboard/order/detail.html:109
 msgctxt "Order summary card header"
 msgid "Payments"
-msgstr ""
+msgstr "Πληρωμές"
 
 #: templates/dashboard/order/detail.html:115
 msgctxt "Payment status not available"
 msgid "N/A"
-msgstr ""
+msgstr "Δ/Α"
 
 #: templates/dashboard/order/detail.html:125
 msgctxt "Order summary card header"
 msgid "Outstanding balance"
-msgstr ""
+msgstr "Εκκρεμή υπόλοιπο"
 
 #: templates/dashboard/order/detail.html:138
 msgctxt "Order summary card header"
 msgid "Preauthorized amount"
-msgstr ""
+msgstr "Προεγκεκριμένο ποσό"
 
 #: templates/dashboard/order/detail.html:144
 msgctxt "Preauthorized amount not available"
 msgid "N/A"
-msgstr ""
+msgstr "Δ/Α"
 
 #: templates/dashboard/order/detail.html:150
 msgctxt "Order summary card header"
 msgid "Captured amount"
-msgstr ""
+msgstr "Εκκαθαρισμένο ποσό"
 
 #: templates/dashboard/order/detail.html:164
 msgctxt "Order summary card action"
 msgid "Capture"
-msgstr ""
+msgstr "Εκκαθάριση"
 
 #: templates/dashboard/order/detail.html:169
 msgctxt "Order summary card action"
 msgid "Refund"
-msgstr ""
+msgstr "Επιστροφή"
 
 #: templates/dashboard/order/detail.html:174
 msgctxt "Order summary card action"
@@ -3553,7 +3537,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:191
 msgctxt "Order details summary header"
 msgid "Customer"
-msgstr ""
+msgstr "Πελάτης"
 
 #: templates/dashboard/order/detail.html:195
 msgctxt "Order customer details action title"
@@ -3567,7 +3551,7 @@ msgstr ""
 #: templates/dashboard/product/product_image/list.html:127
 msgctxt "Dashboard edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/order/detail.html:228
 msgctxt "Missing shipping address message"
@@ -3611,19 +3595,19 @@ msgstr ""
 #: templates/dashboard/order/detail.html:284
 msgctxt "Order table header"
 msgid "Price"
-msgstr ""
+msgstr "Τιμή"
 
 #: templates/dashboard/order/detail.html:287
 #: templates/dashboard/order/detail.html:481
 #: templates/dashboard/order/pdf/packing_slip.html:64
 msgctxt "Order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Ποσότητα"
 
 #: templates/dashboard/order/detail.html:290
 msgctxt "Order table header"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/dashboard/order/detail.html:305
 #: templates/dashboard/order/fulfillment.html:85
@@ -3636,7 +3620,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:322
 msgctxt "Order table row action"
 msgid "Change quantity"
-msgstr ""
+msgstr "Αλλάξτε ποσότητα"
 
 #: templates/dashboard/order/detail.html:326
 #: templates/dashboard/order/detail.html:327
@@ -3660,7 +3644,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:364
 msgctxt "Order totals header"
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
 #: templates/dashboard/order/detail.html:371
 msgctxt "Order total taxes"
@@ -3683,7 +3667,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:409
 msgctxt "Order totals header"
 msgid "Discount"
-msgstr ""
+msgstr "Έκπτωση"
 
 #: templates/dashboard/order/detail.html:392
 msgctxt "Order totals action"
@@ -3708,7 +3692,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:414
 msgctxt "Order totals header"
 msgid "Grand total"
-msgstr ""
+msgstr "Συνολικά"
 
 #: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action title"
@@ -3728,7 +3712,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:443
 msgctxt "Order summary card action"
 msgid "Add product"
-msgstr ""
+msgstr "Προσθήκη προϊόντος"
 
 #: templates/dashboard/order/detail.html:448
 msgctxt "Order summary card action title"
@@ -3815,7 +3799,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:568
 msgctxt "Order notes card action"
 msgid "Add note"
-msgstr ""
+msgstr "Προσθήκη σημείωσης"
 
 #: templates/dashboard/order/detail.html:583
 msgctxt "Payment history table header"
@@ -3825,17 +3809,17 @@ msgstr ""
 #: templates/dashboard/order/detail.html:586
 msgctxt "Payment history table header"
 msgid "Date"
-msgstr ""
+msgstr "Ημερομηνία"
 
 #: templates/dashboard/order/detail.html:589
 msgctxt "Payment history table header"
 msgid "Payment status"
-msgstr ""
+msgstr "Κατάσταση πληρωμής"
 
 #: templates/dashboard/order/detail.html:592
 msgctxt "Payment history table header"
 msgid "Amount"
-msgstr ""
+msgstr "Ποσό"
 
 #: templates/dashboard/order/detail.html:600
 #, python-format
@@ -3846,7 +3830,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:621
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
-msgstr ""
+msgstr "Δεν πραγματοποιήθηκαν πληρωμές για την παραγγελία."
 
 #: templates/dashboard/order/fulfillment.html:11
 #: templates/dashboard/order/fulfillment.html:42
@@ -3869,7 +3853,7 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:34
 msgctxt "Modal remove order line table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Ποσότητα"
 
 #: templates/dashboard/order/fulfillment.html:105
 #, python-format
@@ -3890,7 +3874,7 @@ msgstr ""
 #: templates/dashboard/order/list.html:98
 msgctxt "Empty order list message"
 msgid "No orders found."
-msgstr ""
+msgstr "Δεν βρέθηκαν παραγγελίες."
 
 #: templates/dashboard/order/modal/add_variant_to_order.html:11
 #, python-format
@@ -3943,12 +3927,12 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:31
 msgctxt "Modal remove order line table header"
 msgid "Price"
-msgstr ""
+msgstr "Τιμή"
 
 #: templates/dashboard/order/modal/cancel_line.html:37
 msgctxt "Modal remove order line table header"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/dashboard/order/modal/cancel_order.html:11
 msgctxt "Modal cancel order title"
@@ -3969,12 +3953,12 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_order.html:28
 msgctxt "Modal cancel order primary action"
 msgid "Cancel Order"
-msgstr ""
+msgstr "Ακύρωση παραγγελίας"
 
 #: templates/dashboard/order/modal/capture.html:13
 msgctxt "Modal capture payment title"
 msgid "Capture payment"
-msgstr ""
+msgstr "Εκκαθάριση πληρωμής"
 
 #: templates/dashboard/order/modal/capture.html:19
 msgctxt "Modal capture payment title"
@@ -3984,7 +3968,7 @@ msgstr ""
 #: templates/dashboard/order/modal/capture.html:21
 msgctxt "Modal capture payment list title"
 msgid "Order total:"
-msgstr ""
+msgstr "Σύνολο παραγγελίας:"
 
 #: templates/dashboard/order/modal/capture.html:24
 msgctxt "Modal capture payment list title"
@@ -3994,17 +3978,17 @@ msgstr ""
 #: templates/dashboard/order/modal/capture.html:27
 msgctxt "Modal capture payment list title"
 msgid "Captured amount:"
-msgstr ""
+msgstr "Εκκαθαρισμένο ποσό:"
 
 #: templates/dashboard/order/modal/capture.html:35
 msgctxt "Modal capture payment primary action"
 msgid "Capture"
-msgstr ""
+msgstr "Εκκαθάριση"
 
 #: templates/dashboard/order/modal/change_quantity.html:11
 msgctxt "Modal change quantity title"
 msgid "Change quantity"
-msgstr ""
+msgstr "Αλλάξτε ποσότητα"
 
 #: templates/dashboard/order/modal/create_order.html:11
 msgctxt "Modal create order title"
@@ -4134,7 +4118,7 @@ msgstr ""
 #: templates/dashboard/order/modal/refund.html:14
 msgctxt "Modal refund payment title"
 msgid "Refund payment"
-msgstr ""
+msgstr "Επιστροφή πληρωμής"
 
 #: templates/dashboard/order/modal/refund.html:20
 msgctxt "Modal refund payment title"
@@ -4144,7 +4128,7 @@ msgstr ""
 #: templates/dashboard/order/modal/refund.html:22
 msgctxt "Modal refund payment list title"
 msgid "Order total:"
-msgstr ""
+msgstr "Σύνολο παραγγελίας:"
 
 #: templates/dashboard/order/modal/refund.html:25
 msgctxt "Modal refund payment list title"
@@ -4154,12 +4138,12 @@ msgstr ""
 #: templates/dashboard/order/modal/refund.html:28
 msgctxt "Modal refund payment list title"
 msgid "Captured amount:"
-msgstr ""
+msgstr "Εκκαθαρισμένο ποσό:"
 
 #: templates/dashboard/order/modal/refund.html:36
 msgctxt "Modal refund payment primary action"
 msgid "Refund"
-msgstr ""
+msgstr "Επιστροφή"
 
 #: templates/dashboard/order/modal/remove_order.html:13
 msgctxt "Modal remove order title"
@@ -4257,12 +4241,12 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:67
 msgctxt "Shipment order table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Ποσότητα"
 
 #: templates/dashboard/order/pdf/invoice.html:70
 msgctxt "Shipment order table header"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/dashboard/order/pdf/invoice.html:84
 #, python-format
@@ -4281,7 +4265,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:115
 msgctxt "Order total shipping price header"
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
 #: templates/dashboard/order/pdf/invoice.html:123
 msgctxt "Order total taxes header"
@@ -4291,12 +4275,12 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:132
 msgctxt "Order voucher header"
 msgid "Discount"
-msgstr ""
+msgstr "Έκπτωση"
 
 #: templates/dashboard/order/pdf/invoice.html:143
 msgctxt "Order total price header"
 msgid "Grand total"
-msgstr ""
+msgstr "Συνολικά"
 
 #: templates/dashboard/order/pdf/packing_slip.html:8
 #, python-format
@@ -4341,7 +4325,7 @@ msgstr ""
 
 #: templates/dashboard/order/zero_page.html:5
 msgid "No orders found."
-msgstr ""
+msgstr "Δεν βρέθηκαν παραγγελίες."
 
 #: templates/dashboard/order/zero_page.html:8
 msgid ""
@@ -4383,7 +4367,7 @@ msgstr ""
 #: templates/dashboard/page/form.html:8
 msgctxt "Page form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/page/form.html:10
 msgctxt "Page form page title"
@@ -4403,7 +4387,7 @@ msgstr ""
 #: templates/dashboard/page/form.html:48
 msgctxt "Page form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/page/form.html:82 templates/dashboard/page/form.html:85
 msgid "Cancel"
@@ -4434,7 +4418,7 @@ msgstr ""
 #: templates/dashboard/page/list.html:43
 msgctxt "Static pages table header url"
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: templates/dashboard/page/list.html:46
 msgctxt "Pages table header"
@@ -4466,10 +4450,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Pages allows to create custom static pages such as \"About us\" that "
-"will be displayed at particular url.<br>\n"
-"    You can create pages by using the <span class=\"btn-fab-presentation"
-"\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Pages allows to create custom static pages such as \"About us\" that will be displayed at particular url.<br>\n"
+"    You can create pages by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
@@ -4490,7 +4472,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/detail.html:56
 msgctxt "Attribute detail action"
 msgid "Remove attribute"
-msgstr ""
+msgstr "Αφαιρέστε χαρακτηριστικό"
 
 #: templates/dashboard/product/attribute/detail.html:64
 msgid "Attribute values"
@@ -4504,7 +4486,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
 msgctxt "Attribute value edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/attribute/detail.html:95
 msgctxt "Attribute value edit action"
@@ -4520,35 +4502,35 @@ msgstr ""
 #: templates/dashboard/product/attribute/values/form.html:8
 msgctxt "Dashboard attributes list"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/attribute/form.html:10
 #: templates/dashboard/product/attribute/values/form.html:10
 msgctxt "Attribute detail page title"
 msgid "Add new attribute"
-msgstr ""
+msgstr "Προσθήκη νέου χαρακτηριστικού"
 
 #: templates/dashboard/product/attribute/form.html:45
 #: templates/dashboard/product/attribute/values/form.html:47
 msgctxt "Attribute detail breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/attribute/form.html:51
 #: templates/dashboard/product/attribute/values/form.html:53
 msgctxt "Attribute detail breadcrumbs"
 msgid "Add new attribute"
-msgstr ""
+msgstr "Προσθήκη νέου χαρακτηριστικού"
 
 #: templates/dashboard/product/attribute/list.html:17
 msgctxt "Attribute list add button text"
 msgid "Add attribute"
-msgstr ""
+msgstr "Προσθήκη χαρακτηριστικού"
 
 #: templates/dashboard/product/attribute/list.html:42
 msgctxt "Dashboard attributes list table header name"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/product/attribute/list.html:44
 msgctxt "Name of product type related to the attribute"
@@ -4563,7 +4545,7 @@ msgstr ""
 #: templates/dashboard/product/attribute/list.html:76
 msgctxt "Empty attribute list message"
 msgid "No attributes found."
-msgstr ""
+msgstr "Δεν βρέθηκαν χαρακτηριστικά."
 
 #: templates/dashboard/product/attribute/modal/attribute_confirm_delete.html:12
 #, python-format
@@ -4599,16 +4581,14 @@ msgstr ""
 #: templates/dashboard/product/attribute/zero_page.html:5
 #: templates/dashboard/product/product_variant/form.html:82
 msgid "No attributes found."
-msgstr ""
+msgstr "Δεν βρέθηκαν χαρακτηριστικά."
 
 #: templates/dashboard/product/attribute/zero_page.html:8
 #, python-format
 msgid ""
 "\n"
-"    Attributes are used to define custom properties of products and "
-"variants, that can be used for filtering purposes in the storefront.<br>\n"
-"    You can add attributes by using the <span class=\"btn-fab-presentation"
-"\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Attributes are used to define custom properties of products and variants, that can be used for filtering purposes in the storefront.<br>\n"
+"    You can add attributes by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
@@ -4616,12 +4596,12 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:20
 msgctxt "Product form breadcrumbs"
 msgid "Products"
-msgstr ""
+msgstr "Προϊόντα"
 
 #: templates/dashboard/product/detail.html:54
 msgctxt "Product field"
 msgid "Published"
-msgstr ""
+msgstr "Δημοσιευμένο"
 
 #: templates/dashboard/product/detail.html:56
 msgctxt "Product field"
@@ -4653,7 +4633,7 @@ msgstr ""
 
 #: templates/dashboard/product/detail.html:100
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/product/detail.html:101
 msgid "Status"
@@ -4673,7 +4653,7 @@ msgstr ""
 
 #: templates/dashboard/product/detail.html:132
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/detail.html:136
 msgctxt "Dashboard product details page"
@@ -4770,28 +4750,28 @@ msgstr ""
 #: templates/dashboard/product/form.html:8
 msgctxt "Dashboard products list"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/form.html:10
 msgctxt "Product form page title"
 msgid "Add new product"
-msgstr ""
+msgstr "Προσθήκη νέου προϊόντος"
 
 #: templates/dashboard/product/form.html:43
 msgctxt "Product form breadcrumbs"
 msgid "Add new product"
-msgstr ""
+msgstr "Προσθήκη νέου προϊόντος"
 
 #: templates/dashboard/product/form.html:50
 msgctxt "Product form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/form.html:111
 #: templates/dashboard/product/product_type/form.html:103
 #: templates/dashboard/product/product_variant/form.html:85
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
 #: templates/dashboard/product/form.html:115
 #: templates/dashboard/product/product_variant/form.html:76
@@ -4810,22 +4790,22 @@ msgstr ""
 #: templates/dashboard/product/list.html:25
 msgctxt "Product list add button text"
 msgid "Add product"
-msgstr ""
+msgstr "Προσθήκη προϊόντος"
 
 #: templates/dashboard/product/list.html:61
 msgctxt "Products list table header"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/product/list.html:64
 msgctxt "Products list table header"
 msgid "Price"
-msgstr ""
+msgstr "Τιμή"
 
 #: templates/dashboard/product/list.html:101
 msgctxt "Empty product list message"
 msgid "No products found."
-msgstr ""
+msgstr "Δεν βρέθηκαν προϊόντα."
 
 #: templates/dashboard/product/modal/confirm_delete.html:12
 #, python-format
@@ -4857,7 +4837,7 @@ msgstr ""
 #: templates/dashboard/product/product_image/form.html:10
 msgctxt "Image form text"
 msgid "Add image"
-msgstr ""
+msgstr "Προσθήκη εικόνας"
 
 #: templates/dashboard/product/product_image/form.html:38
 msgctxt "Image form text"
@@ -4867,28 +4847,28 @@ msgstr ""
 #: templates/dashboard/product/product_image/form.html:43
 msgctxt "Image form text"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/product_image/form.html:49
 msgctxt "Image form breadcrumbs"
 msgid "Add image"
-msgstr ""
+msgstr "Προσθήκη εικόνας"
 
 #: templates/dashboard/product/product_image/form.html:52
 #, python-format
 msgctxt "Image form breadcrumbs"
 msgid "Add image for %(product)s"
-msgstr ""
+msgstr "Προσθήκη εικόνας για %(product)s"
 
 #: templates/dashboard/product/product_image/list.html:19
 msgctxt "Add image button text"
 msgid "Add image"
-msgstr ""
+msgstr "Προσθήκη εικόνας"
 
 #: templates/dashboard/product/product_image/list.html:73
 msgctxt "Image card text"
 msgid "No description"
-msgstr ""
+msgstr "Χωρίς περιγραφή"
 
 #: templates/dashboard/product/product_image/list.html:87
 #: templates/dashboard/product/product_image/list.html:131
@@ -4899,12 +4879,12 @@ msgstr ""
 #: templates/dashboard/product/product_image/list.html:101
 msgctxt "Image gallery upload box text"
 msgid "Drop images here to upload"
-msgstr ""
+msgstr "Μετακινείστε εικόνες εδώ για ανέβασμα"
 
 #: templates/dashboard/product/product_image/list.html:120
 msgctxt "Empty image gallery message"
 msgid "No description"
-msgstr ""
+msgstr "Χωρίς περιγραφή"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:12
 msgctxt "Modal remove image text"
@@ -4954,27 +4934,27 @@ msgstr ""
 #: templates/dashboard/product/product_type/list.html:18
 msgctxt "Product type list add button text"
 msgid "Add product type"
-msgstr ""
+msgstr "Προσθήκη τύπου προϊόντων"
 
 #: templates/dashboard/product/product_type/list.html:44
 msgctxt "Dashboard product types list table header name"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/product/product_type/list.html:48
 msgctxt "Product type item list text"
 msgid "Product attributes"
-msgstr ""
+msgstr "Χαρακτηριστικά προϊόντος"
 
 #: templates/dashboard/product/product_type/list.html:51
 msgctxt "Product type item list text"
 msgid "Variant attributes"
-msgstr ""
+msgstr "Χαρακτηριστικά παραλλαγών"
 
 #: templates/dashboard/product/product_type/list.html:89
 msgctxt "Empty product type list message"
 msgid "No product types found."
-msgstr ""
+msgstr "Δεν βρέθηκαν τύποι προϊόντων."
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:13
 #, python-format
@@ -4986,8 +4966,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal remove product type text"
 msgid ""
-"Are you sure you want to remove product type <strong>%(product_type)s</"
-"strong>?"
+"Are you sure you want to remove product type "
+"<strong>%(product_type)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:27
@@ -5003,16 +4983,14 @@ msgstr ""
 
 #: templates/dashboard/product/product_type/zero_page.html:5
 msgid "No product types found."
-msgstr ""
+msgstr "Δεν βρέθηκαν τύποι προϊόντων."
 
 #: templates/dashboard/product/product_type/zero_page.html:8
 #, python-format
 msgid ""
 "\n"
-"    Product types are templates used to create new products. They allow "
-"assigning custom attributes to the products of the same type.<br>\n"
-"    You can add product types by using the <span class=\"btn-fab-presentation"
-"\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Product types are templates used to create new products. They allow assigning custom attributes to the products of the same type.<br>\n"
+"    You can add product types by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
@@ -5048,22 +5026,22 @@ msgstr ""
 #: templates/dashboard/product/product_variant/form.html:8
 msgctxt "Variant form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/product_variant/form.html:10
 msgctxt "Variant form page title"
 msgid "Add variant"
-msgstr ""
+msgstr "Προσθήκη παραλλαγής"
 
 #: templates/dashboard/product/product_variant/form.html:47
 msgctxt "Variant form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/product/product_variant/form.html:53
 msgctxt "Variant form breadcrumbs"
 msgid "Add variant"
-msgstr ""
+msgstr "Προσθήκη παραλλαγής"
 
 #: templates/dashboard/product/product_variant/form.html:56
 #, python-format
@@ -5084,16 +5062,15 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"        Are you sure you want to remove variant <strong>%(variant)s</strong> "
-"of product %(product)s?\n"
+"        Are you sure you want to remove variant <strong>%(variant)s</strong> of product %(product)s?\n"
 "      "
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:27
 msgctxt "Dashboard confirmation modal"
 msgid ""
-"This is the only variant of this product. If you remove it, the product will "
-"become unavailable."
+"This is the only variant of this product. If you remove it, the product will"
+" become unavailable."
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:14
@@ -5108,14 +5085,13 @@ msgstr ""
 
 #: templates/dashboard/product/zero_page.html:5
 msgid "No products found."
-msgstr ""
+msgstr "Δεν βρέθηκαν προϊόντα."
 
 #: templates/dashboard/product/zero_page.html:10
 #, python-format
 msgid ""
 "\n"
-"      You can create products by using the <span class=\"btn-fab-presentation"
-"\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"      You can create products by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "    "
 msgstr ""
 
@@ -5123,25 +5099,24 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"      In order to create products, you have to first <a href="
-"\"%(product_type_url)s\">add a product type </a>.\n"
+"      In order to create products, you have to first <a href=\"%(product_type_url)s\">add a product type </a>.\n"
 "    "
 msgstr ""
 
 #: templates/dashboard/search/results.html:9 templates/search/results.html:6
 msgctxt "Search page title"
 msgid "Search results"
-msgstr ""
+msgstr "Αναζήτηση αποτελεσμάτων"
 
 #: templates/dashboard/search/results.html:14
 msgctxt "Dashboard search"
 msgid "Search results"
-msgstr ""
+msgstr "Αναζήτηση αποτελεσμάτων"
 
 #: templates/dashboard/search/results.html:25
 msgctxt "Search results list products"
 msgid "Products"
-msgstr ""
+msgstr "Προϊόντα"
 
 #: templates/dashboard/search/results.html:47
 msgctxt "Search results list orders"
@@ -5192,8 +5167,7 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"              %(shipping_name)s  <small>(ships to %(list_of_countries)s)</"
-"small>\n"
+"              %(shipping_name)s  <small>(ships to %(list_of_countries)s)</small>\n"
 "            "
 msgstr ""
 
@@ -5220,7 +5194,7 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:9
 msgctxt "Dashboard shipping zones"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/shipping/form.html:11
 #: templates/dashboard/shipping/form.html:24
@@ -5236,7 +5210,7 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:48
 msgctxt "Shipping zone form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/shipping/form.html:54
 msgctxt "Shipping zone form breadcrumbs"
@@ -5261,8 +5235,8 @@ msgstr ""
 
 #: templates/dashboard/shipping/list.html:46
 msgctxt ""
-"Shipping zones table header, price range of shipping methods within shipping "
-"zone"
+"Shipping zones table header, price range of shipping methods within shipping"
+" zone"
 msgid "Price range"
 msgstr ""
 
@@ -5284,7 +5258,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:21
 msgctxt "Header of the shipping methods list"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:24
 msgctxt "Header of the shipping methods list"
@@ -5294,7 +5268,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:27
 msgctxt "Header of the shipping methods list"
 msgid "Price"
-msgstr ""
+msgstr "Τιμή"
 
 #: templates/dashboard/shipping/methods/_shipping_methods_table.html:42
 msgctxt "Attribute value remove action"
@@ -5309,7 +5283,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/form.html:8
 msgctxt "Dashboard shipping method edit page"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/shipping/methods/form.html:10
 msgctxt "Shipping method edit page title"
@@ -5334,7 +5308,7 @@ msgstr ""
 #: templates/dashboard/shipping/methods/form.html:72
 msgctxt "Shipping method form title"
 msgid "Shipping method"
-msgstr ""
+msgstr "Τρόπος αποστολής"
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:13
 #, python-format
@@ -5349,8 +5323,7 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"      Are you sure you want to remove shipping zone <strong>"
-"%(shipping_zone)s</strong>?\n"
+"      Are you sure you want to remove shipping zone <strong>%(shipping_zone)s</strong>?\n"
 "    "
 msgstr ""
 
@@ -5364,8 +5337,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal remove shipping method shipping method text"
 msgid ""
-"Are you sure you want to remove shipping method <strong>%(shipping_method)s</"
-"strong>?"
+"Are you sure you want to remove shipping method "
+"<strong>%(shipping_method)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/shipping/zero_page.html:5
@@ -5376,17 +5349,15 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Shipping zones allows defining shipping zones that are available in the "
-"shop.<br>\n"
-"    You can add shipping zones by using the <span class=\"btn-fab-"
-"presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Shipping zones allows defining shipping zones that are available in the shop.<br>\n"
+"    You can add shipping zones by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
 
 #: templates/dashboard/sites/authorization_keys/form.html:8
 msgctxt "Dashboard authorization key list"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/sites/authorization_keys/form.html:10
 msgctxt "Add new authorization key page title"
@@ -5401,7 +5372,7 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:40
 msgctxt "Authorization key breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/sites/authorization_keys/form.html:46
 msgctxt "Authorization key breadcrumbs"
@@ -5426,7 +5397,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:55
 msgctxt "Site settings field"
 msgid "Description"
-msgstr ""
+msgstr "Περιγραφή"
 
 #: templates/dashboard/sites/detail.html:65
 msgctxt "Site settings action"
@@ -5441,7 +5412,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:87
 msgctxt "Header of authorization keys list"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
@@ -5451,7 +5422,7 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:101
 msgctxt "Authorization key edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key remove action"
@@ -5463,7 +5434,8 @@ msgctxt "Empty list of authorization keys"
 msgid "No authorization keys"
 msgstr ""
 
-#: templates/dashboard/sites/form.html:9 templates/dashboard/taxes/form.html:10
+#: templates/dashboard/sites/form.html:9
+#: templates/dashboard/taxes/form.html:10
 msgctxt "Site settings page title"
 msgid "Add new site settings"
 msgstr ""
@@ -5476,7 +5448,7 @@ msgstr ""
 #: templates/dashboard/sites/form.html:27
 msgctxt "Dashboard site settings"
 msgid "Edit"
-msgstr ""
+msgstr "Επεξεργασία"
 
 #: templates/dashboard/sites/modal/confirm_delete.html:12
 #, python-format
@@ -5521,7 +5493,8 @@ msgctxt "Staff member details header"
 msgid "Staff member details"
 msgstr ""
 
-#: templates/dashboard/staff/list.html:8 templates/dashboard/staff/list.html:28
+#: templates/dashboard/staff/list.html:8
+#: templates/dashboard/staff/list.html:28
 msgctxt "Dashboard staff members list"
 msgid "Staff"
 msgstr ""
@@ -5534,17 +5507,17 @@ msgstr ""
 #: templates/dashboard/staff/list.html:42
 msgctxt "Staff members table header"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/staff/list.html:45
 msgctxt "Staff members table header"
 msgid "Email"
-msgstr ""
+msgstr "Ηλεκτρονικό ταχυδρομείο"
 
 #: templates/dashboard/staff/list.html:48
 msgctxt "Staff members table header"
 msgid "Location"
-msgstr ""
+msgstr "Τοποθεσία"
 
 #: templates/dashboard/staff/list.html:88
 msgctxt "Empty staff table message"
@@ -5571,9 +5544,7 @@ msgstr ""
 msgid ""
 "\n"
 "    Staff members are users who have access to the dashboard.<br>\n"
-"    You can create staff members by using the <span class=\"btn-fab-"
-"presentation\"><svg data-src=\"%(img_path)s\" /></span> button or by using "
-"option \"Promote to staff\" in the customer details view.\n"
+"    You can create staff members by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button or by using option \"Promote to staff\" in the customer details view.\n"
 "  "
 msgstr ""
 
@@ -5591,12 +5562,12 @@ msgstr ""
 #: templates/dashboard/taxes/details.html:50
 msgctxt "Country tax rates list header"
 msgid "Name"
-msgstr ""
+msgstr "Όνομα"
 
 #: templates/dashboard/taxes/details.html:53
 msgctxt "Country tax rates list header"
 msgid "Value"
-msgstr ""
+msgstr "Αξία"
 
 #: templates/dashboard/taxes/details.html:62
 #, python-format
@@ -5612,7 +5583,8 @@ msgctxt "Empty country tax rates list"
 msgid "No tax rates"
 msgstr ""
 
-#: templates/dashboard/taxes/form.html:23 templates/dashboard/taxes/list.html:7
+#: templates/dashboard/taxes/form.html:23
+#: templates/dashboard/taxes/list.html:7
 #: templates/dashboard/taxes/list.html:15
 msgctxt "Dashboard taxes list"
 msgid "Taxes"
@@ -5636,8 +5608,7 @@ msgstr ""
 msgctxt "Dashboard site taxes settings form help text"
 msgid ""
 "\n"
-"                    If selected, taxes will be calculated using below "
-"formula:\n"
+"                    If selected, taxes will be calculated using below formula:\n"
 "                  "
 msgstr ""
 
@@ -5654,8 +5625,7 @@ msgstr ""
 msgctxt "Dashboard site taxes settings form help text"
 msgid ""
 "\n"
-"                    For example: product with price 4.00 € and 19%% VAT will "
-"have net price calculated to 3.36 € and tax to 0.64 € (rounded)\n"
+"                    For example: product with price 4.00 € and 19%% VAT will have net price calculated to 3.36 € and tax to 0.64 € (rounded)\n"
 "                  "
 msgstr ""
 
@@ -5667,8 +5637,7 @@ msgstr ""
 msgctxt "Dashboard site taxes settings form help text"
 msgid ""
 "\n"
-"                    If selected, prices displayed for customers in the "
-"storefront will be gross and taxes will be calculated at checkout.\n"
+"                    If selected, prices displayed for customers in the storefront will be gross and taxes will be calculated at checkout.\n"
 "                  "
 msgstr ""
 
@@ -5676,8 +5645,7 @@ msgstr ""
 msgctxt "Dashboard site taxes settings form help text"
 msgid ""
 "\n"
-"                    If selected, standard tax rate will be charged on a "
-"shipping price.\n"
+"                    If selected, standard tax rate will be charged on a shipping price.\n"
 "                  "
 msgstr ""
 
@@ -5770,10 +5738,8 @@ msgstr ""
 #: templates/dashboard/taxes/zero_page.html:6
 msgid ""
 "\n"
-"    Taxes define tax rates used in European Union countries and needs to be "
-"fetched manually.<br>\n"
-"    To enable fetching taxes, please provide your access key to <a href="
-"\"https://vatlayer.com/\">vatlayer</a> API in settings file.\n"
+"    Taxes define tax rates used in European Union countries and needs to be fetched manually.<br>\n"
+"    To enable fetching taxes, please provide your access key to <a href=\"https://vatlayer.com/\">vatlayer</a> API in settings file.\n"
 "  "
 msgstr ""
 
@@ -5829,7 +5795,7 @@ msgstr ""
 #: templates/materializecssform/field.html:247
 #: templates/materializecssform/field.html:281
 msgid "File"
-msgstr ""
+msgstr "Αρχείο"
 
 #: templates/materializecssform/field.html:402
 #, python-format
@@ -5837,8 +5803,7 @@ msgctxt ""
 "Message showing how many chars were used out of maximum field's length"
 msgid ""
 "\n"
-"          %(current_chars_count)s</span> of %(max_chars_count)s characters "
-"used\n"
+"          %(current_chars_count)s</span> of %(max_chars_count)s characters used\n"
 "        "
 msgstr ""
 
@@ -5862,12 +5827,12 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:188
 msgctxt "Order details column title"
 msgid "Quantity"
-msgstr ""
+msgstr "Ποσότητα"
 
 #: templates/order/_ordered_items_table.html:48
 msgctxt "Order details column title"
 msgid "Price"
-msgstr ""
+msgstr "Τιμή"
 
 #: templates/order/_ordered_items_table.html:95
 msgctxt "Order details subtotal row text"
@@ -5877,7 +5842,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:112
 msgctxt "Order details shipment row text"
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
 #: templates/order/_ordered_items_table.html:144
 msgctxt "Order details taxes text"
@@ -5892,7 +5857,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:160
 msgctxt "Order details total text"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/order/_ordered_items_table.html:174
 #, python-format
@@ -6088,7 +6053,8 @@ msgctxt "Header of the order summary table"
 msgid "Order details"
 msgstr ""
 
-#: templates/order/payment/dummy.html:32 templates/order/payment/stripe.html:11
+#: templates/order/payment/dummy.html:32
+#: templates/order/payment/stripe.html:11
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment"
 msgstr ""
@@ -6111,8 +6077,8 @@ msgstr ""
 #, python-format
 msgctxt "Unpublished page details text"
 msgid ""
-"<strong>Warning!</strong> You are previewing a page that will become visible "
-"on <strong>%(date)s</strong>."
+"<strong>Warning!</strong> You are previewing a page that will become visible"
+" on <strong>%(date)s</strong>."
 msgstr ""
 
 #: templates/product/_filters.html:46
@@ -6174,7 +6140,7 @@ msgstr ""
 #: templates/product/details.html:178
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "Προσθήκη στο καλάθι"
 
 #: templates/product/details.html:190
 msgctxt "Product details text"
@@ -6184,7 +6150,7 @@ msgstr ""
 #: templates/product/details.html:194
 msgctxt "Product details title"
 msgid "Description"
-msgstr ""
+msgstr "Περιγραφή"
 
 #: templates/product/product_list_base.html:83
 msgctxt "Filter heading title"
@@ -6202,7 +6168,7 @@ msgstr ""
 #: templates/product/product_list_base.html:114
 msgctxt "Product list filters"
 msgid "Sort by"
-msgstr ""
+msgstr "Ταξινόμηση ανά"
 
 #: templates/product/product_list_base.html:120
 msgctxt "sort by option"
@@ -6240,8 +6206,7 @@ msgstr ""
 msgctxt "Account delete reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
 "Click the link below to delete your account.\n"
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
@@ -6257,10 +6222,8 @@ msgstr ""
 msgctxt "Password reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password.\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
@@ -6274,8 +6237,7 @@ msgstr ""
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your "
-"customer account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
 
@@ -6289,8 +6251,7 @@ msgstr ""
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have been promoted to staff member "
-"at %(domain)s."
+"You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
 msgstr ""
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
@@ -6304,8 +6265,7 @@ msgstr ""
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your "
-"staff member account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
 
@@ -6339,8 +6299,7 @@ msgstr ""
 msgctxt "Order confirmation e-mail text"
 msgid ""
 "\n"
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit:\n"
+"Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
 "%(order_details_url)s"
 msgstr ""
 
@@ -6357,7 +6316,7 @@ msgstr ""
 #: templates/templated_email/order/confirm_order.email:19
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
 #: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
@@ -6377,7 +6336,7 @@ msgstr ""
 #: templates/templated_email/order/confirm_order.email:22
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/templated_email/order/confirm_order.email:24
 #: templates/templated_email/source/confirm_order.mjml:29
@@ -6427,8 +6386,7 @@ msgstr ""
 msgctxt "Fulfillment update email text"
 msgid ""
 "\n"
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number.\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
 
 #: templates/templated_email/order/update_fulfillment.email:15
@@ -6471,8 +6429,8 @@ msgctxt "Account delete e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
 "deletion of your user account at %(domain)s.<br/> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
 msgstr ""
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
@@ -6482,16 +6440,17 @@ msgstr ""
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
 #: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/confirm_payment.mjml:16
@@ -6510,7 +6469,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:19
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr ""
+msgstr "Αποστολή"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:28
 msgctxt "E-mail order lines summary table"
@@ -6525,12 +6484,12 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:40
 msgctxt "E-mail order lines summary table"
 msgid "Discount"
-msgstr ""
+msgstr "Έκπτωση"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:49
 msgctxt "E-mail order lines summary table"
 msgid "Total"
-msgstr ""
+msgstr "Σύνολο"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:58
 msgctxt "Ordered item name"
@@ -6540,7 +6499,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Quantity ordered of a product"
 msgid "Quantity"
-msgstr ""
+msgstr "Ποσότητα"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:60
 msgctxt "Unit price of a product"
@@ -6567,8 +6526,8 @@ msgstr ""
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
 "You're receiving this e-mail because you have been promoted to staff member "
-"at %(domain)s.<br/> To access dashboard please visit: <a href="
-"\"%(dashboard_url)s\">%(dashboard_url)s</a>"
+"at %(domain)s.<br/> To access dashboard please visit: <a "
+"href=\"%(dashboard_url)s\">%(dashboard_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/set_customer_password.mjml:16
@@ -6584,16 +6543,16 @@ msgstr ""
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br/> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
 #: templates/templated_email/source/update_fulfillment.mjml:20
