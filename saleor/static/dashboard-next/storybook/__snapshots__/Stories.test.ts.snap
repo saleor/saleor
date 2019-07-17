@@ -28041,10 +28041,6 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
                     </button>
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
-                    scope="col"
-                  />
-                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id DiscountCategories-wideColumn-id"
                     scope="col"
                   >
@@ -28595,10 +28591,6 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
                     </button>
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
-                    scope="col"
-                  />
-                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id DiscountCategories-wideColumn-id"
                     scope="col"
                   >
@@ -29123,10 +29115,6 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
                 >
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-                    scope="col"
-                  />
-                  <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
                   />
                   <th
@@ -29687,10 +29675,6 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
                       />
                     </button>
                   </th>
-                  <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
-                    scope="col"
-                  />
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
