@@ -7,7 +7,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import React from "react";
-import { drawerWidth, drawerWidthSmall } from "./consts";
+import { drawerWidth, drawerWidthExpanded } from "./consts";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -19,15 +19,15 @@ const styles = (theme: Theme) =>
       padding: 0,
       position: "fixed" as "fixed",
       transition: "width 0.5s ease",
-      width: drawerWidth
+      width: drawerWidthExpanded
     },
     drawerDesktopSmall: {
       overflow: "visible",
       transition: "width 0.5s ease",
-      width: drawerWidthSmall
+      width: drawerWidth
     },
     drawerMobile: {
-      width: drawerWidth
+      width: drawerWidthExpanded
     }
   });
 

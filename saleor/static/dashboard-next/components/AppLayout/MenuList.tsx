@@ -11,16 +11,15 @@ import SVG from "react-inlinesvg";
 import { matchPath } from "react-router";
 
 import useTheme from "@saleor/hooks/useTheme";
+import configureIcon from "../../../images/menu-configure-icon.svg";
 import { User } from "../../auth/types/User";
 import { configurationMenu, configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { createHref } from "../../misc";
 import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
-import { drawerWidth, drawerWidthSmall } from "./consts";
+import { drawerWidth, drawerWidthExpanded } from "./consts";
 import MenuNested from "./MenuNested";
 import { IMenuItem } from "./menuStructure";
-
-import configureIcon from "../../../images/menu-configure-icon.svg";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -169,7 +168,7 @@ const styles = (theme: Theme) =>
     menuListNestedOpen: {
       [theme.breakpoints.down("sm")]: {
         right: 0,
-        width: drawerWidth,
+        width: drawerWidthExpanded,
         zIndex: 2
       },
       right: -300,
@@ -206,14 +205,14 @@ const styles = (theme: Theme) =>
     },
     subMenuDrawerOpen: {
       "&$subMenuDrawerSmall": {
-        left: drawerWidthSmall,
-        width: `calc(100vw - ${drawerWidthSmall})px`
+        left: drawerWidth,
+        width: `calc(100vw - ${drawerWidth})px`
       },
-      width: `calc(100vw - ${drawerWidth}px)`
+      width: `calc(100vw - ${drawerWidthExpanded}px)`
     },
     subMenuDrawerSmall: {
-      left: drawerWidthSmall,
-      width: `calc(100vw - ${drawerWidthSmall})px`
+      left: drawerWidth,
+      width: `calc(100vw - ${drawerWidth})px`
     }
   });
 
@@ -229,7 +228,7 @@ interface MenuListProps {
 
 export interface IActiveSubMenu {
   isActive: boolean;
-  label: string;
+  label: string | null;
 }
 
 const MenuList = withStyles(styles, { name: "MenuList" })(
@@ -246,7 +245,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     const { isDark } = useTheme();
     const [activeSubMenu, setActiveSubMenu] = React.useState<IActiveSubMenu>({
       isActive: false,
-      label: ""
+      label: null
     });
 
     const handleSubMenu = itemLabel => {
@@ -260,7 +259,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     const closeSubMenu = (menuItemUrl, event) => {
       setActiveSubMenu({
         isActive: false,
-        label: ""
+        label: null
       });
       if (menuItemUrl && event) {
         onMenuItemClick(menuItemUrl, event);
