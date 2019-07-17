@@ -2,6 +2,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import React from "react";
+import slugify from "slugify";
 
 import CardTitle from "@saleor/components/CardTitle";
 import FormSpacer from "@saleor/components/FormSpacer";
@@ -56,6 +57,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({
         error={!!errors.slug}
         label={i18n.t("Attribute Code")}
         name={"slug" as keyof AttributePageFormData}
+        placeholder={slugify(data.name).toLowerCase()}
         fullWidth
         helperText={
           errors.slug ||
