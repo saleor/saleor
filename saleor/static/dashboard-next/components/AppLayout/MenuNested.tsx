@@ -3,62 +3,76 @@ import classNames from "classnames";
 import React from "react";
 import SVG from "react-inlinesvg";
 
-import { User } from "../../auth/types/User";
-import MenuList from "./MenuList";
+import { createHref } from "../../misc";
+import { IActiveSubMenu } from "./MenuList";
 import { IMenuItem } from "./menuStructure";
 
 export interface MenuNestedProps {
+  activeItem: IActiveSubMenu;
+  ariaLabel: string;
   classes: Record<
     | "menuIcon"
     | "menuListItem"
     | "menuListItemActive"
     | "menuListItemText"
-    | "menuListNested",
+    | "menuListNested"
+    | "menuListNestedItem"
+    | "menuListNestedOpen"
+    | "subheader",
     string
   >;
-  isAnyChildActive: boolean;
+  closeSubMenu: ({}) => void;
   menuItem: IMenuItem;
-  location: string;
-  user: User;
+  title: string;
+  handleSubMenu: (itemLabel: string) => void;
   onMenuItemClick: (url: string, event: React.MouseEvent<any>) => void;
 }
 
 const MenuNested: React.FC<MenuNestedProps> = ({
+  activeItem,
+  ariaLabel,
   classes,
-  isAnyChildActive,
-  location,
+  closeSubMenu,
   menuItem,
   onMenuItemClick,
-  user
+  title
 }) => {
-  const [isOpened, setOpenStatus] = React.useState(false);
-
+  const menuItems = menuItem.children;
+  const closeMenu = (menuItemUrl, event) => {
+    onMenuItemClick(menuItemUrl, event);
+    closeSubMenu({
+      isActive: false,
+      label: ""
+    });
+    event.stopPropagation();
+    event.preventDefault();
+  };
   return (
-    <div
-      onClick={() => setOpenStatus(!isOpened)}
-      className={classNames(classes.menuListItem, {
-        [classes.menuListItemActive]: isAnyChildActive
-      })}
-    >
-      <SVG className={classes.menuIcon} src={menuItem.icon} />
-      <Typography
-        aria-label={menuItem.ariaLabel}
-        className={classes.menuListItemText}
+    <>
+      <div
+        className={classNames(classes.menuListNested, {
+          [classes.menuListNestedOpen]:
+            activeItem.label === ariaLabel && activeItem.isActive
+        })}
       >
-        {menuItem.label}
-      </Typography>
-      {isOpened && (
-        <div className={classes.menuListNested}>
-          <MenuList
-            menuItems={menuItem.children}
-            location={location}
-            user={user}
-            renderConfigure={false}
-            onMenuItemClick={onMenuItemClick}
-          />
-        </div>
-      )}
-    </div>
+        <Typography className={classes.subheader} variant="h5">
+          {title}
+        </Typography>
+        {menuItems.map(item => {
+          return (
+            <a
+              className={classNames(classes.menuListNestedItem)}
+              href={createHref(item.url)}
+              onClick={event => closeMenu(item.url, event)}
+              key={item.label}
+            >
+              <SVG className={classes.menuIcon} src={item.icon} />
+              <Typography aria-label={item.ariaLabel}>{item.label}</Typography>
+            </a>
+          );
+        })}
+      </div>
+    </>
   );
 };
 export default MenuNested;

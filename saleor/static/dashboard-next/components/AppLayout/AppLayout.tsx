@@ -21,14 +21,15 @@ import AppProgressProvider from "@saleor/components/AppProgress";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useTheme from "@saleor/hooks/useTheme";
 import useUser from "@saleor/hooks/useUser";
+import saleorDarkLogoSmall from "../../../images/logo-dark-small.svg";
 import saleorDarkLogo from "../../../images/logo-dark.svg";
-import saleorLightLogo from "../../../images/logo-light.svg";
+import menuArrowIcon from "../../../images/menu-arrow-icon.svg";
 import i18n from "../../i18n";
 import ArrowDropdown from "../../icons/ArrowDropdown";
 import Container from "../Container";
 import AppActionContext from "./AppActionContext";
 import AppHeaderContext from "./AppHeaderContext";
-import { appLoaderHeight, drawerWidth } from "./consts";
+import { appLoaderHeight, drawerWidth, drawerWidthSmall } from "./consts";
 import MenuList from "./MenuList";
 import menuStructure from "./menuStructure";
 import ResponsiveDrawer from "./ResponsiveDrawer";
@@ -51,9 +52,13 @@ const styles = (theme: Theme) =>
       transition: theme.transitions.duration.standard + "ms"
     },
     content: {
-      display: "flex",
-      flexDirection: "column",
-      minHeight: `calc(100vh - ${appLoaderHeight}px)`
+      paddingLeft: drawerWidth,
+      position: "absolute",
+      transition: "padding-left 0.5s ease",
+      width: "100%"
+    },
+    contentToggle: {
+      paddingLeft: drawerWidthSmall
     },
     darkThemeSwitch: {
       marginRight: theme.spacing.unit * 2
@@ -69,18 +74,23 @@ const styles = (theme: Theme) =>
     },
     logo: {
       "& svg": {
-        height: "100%"
+        height: "100%",
+        margin: "20px 50px"
       },
+      background: "#21125E",
       display: "block",
-      height: 28
+      height: 80
+    },
+    logoSmall: {
+      "& svg": {
+        margin: "0px 25px"
+      }
     },
     menu: {
-      marginTop: theme.spacing.unit * 4
+      background: "#fff",
+      padding: 25
     },
     menuIcon: {
-      [theme.breakpoints.up("md")]: {
-        display: "none"
-      },
       "& span": {
         "&:nth-child(1)": {
           top: 15
@@ -100,6 +110,9 @@ const styles = (theme: Theme) =>
         transform: "rotate(0deg)",
         transition: ".25s ease-in-out",
         width: "60%"
+      },
+      [theme.breakpoints.up("md")]: {
+        display: "none"
       },
       background: theme.palette.background.paper,
       borderRadius: "50%",
@@ -135,15 +148,38 @@ const styles = (theme: Theme) =>
       position: "absolute",
       zIndex: 1999
     },
+    menuSmall: {
+      background: "#fff",
+      padding: "0 25px"
+    },
+    menuToggle: {
+      "& span": {
+        margin: "0 8px"
+      },
+      "& svg": {
+        marginTop: 12,
+        transform: "rotate(180deg)"
+      },
+      background: "#fff",
+      borderRadius: "50%",
+      cursor: "pointer",
+      height: 32,
+      position: "absolute",
+      right: -16,
+      top: 65,
+      width: 32,
+      zIndex: 99
+    },
+    menuToggleHide: {
+      "& svg": {
+        transform: "rotate(0deg)"
+      }
+    },
     popover: {
       zIndex: 1
     },
     root: {
-      [theme.breakpoints.down("sm")]: {
-        gridTemplateColumns: "1fr"
-      },
-      display: "grid",
-      gridTemplateColumns: `${drawerWidth}px 1fr`
+      width: `100%`
     },
     rotate: {
       transform: "rotate(180deg)"
@@ -153,7 +189,7 @@ const styles = (theme: Theme) =>
         padding: 0
       },
       background: theme.palette.background.paper,
-      padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`
+      padding: `0 ${theme.spacing.unit * 4}px`
     },
     spacer: {
       flex: 1
@@ -202,6 +238,7 @@ const AppLayout = withStyles(styles, {
       const { isDark, toggleTheme } = useTheme();
       const [isDrawerOpened, setDrawerState] = React.useState(false);
       const [isMenuOpened, setMenuState] = React.useState(false);
+      const [menuToggle, setMenuToggle] = React.useState(false);
       const appActionAnchor = React.useRef<HTMLDivElement>();
       const appHeaderAnchor = React.useRef<HTMLDivElement>();
       const anchor = React.useRef<HTMLDivElement>();
@@ -223,6 +260,10 @@ const AppLayout = withStyles(styles, {
         navigate(url);
       };
 
+      const handleMenuToggle = () => {
+        setMenuToggle(!menuToggle);
+      };
+
       return (
         <AppProgressProvider>
           {({ isProgress }) => (
@@ -239,14 +280,33 @@ const AppLayout = withStyles(styles, {
                     <ResponsiveDrawer
                       onClose={() => setDrawerState(false)}
                       open={isDrawerOpened}
+                      small={!menuToggle}
                     >
-                      <SVG
-                        className={classes.logo}
-                        src={isDark ? saleorDarkLogo : saleorLightLogo}
-                      />
+                      <div
+                        className={classNames(classes.logo, {
+                          [classes.logoSmall]: menuToggle
+                        })}
+                      >
+                        <SVG
+                          src={
+                            menuToggle ? saleorDarkLogoSmall : saleorDarkLogo
+                          }
+                        />
+                      </div>
+                      <div
+                        className={classNames(classes.menuToggle, {
+                          [classes.menuToggleHide]: menuToggle
+                        })}
+                        onClick={handleMenuToggle}
+                      >
+                        <SVG src={menuArrowIcon} />
+                      </div>
                       <MenuList
-                        className={classes.menu}
+                        className={
+                          menuToggle ? classes.menuSmall : classes.menu
+                        }
                         menuItems={menuStructure}
+                        menuToggle={!menuToggle}
                         location={location.pathname}
                         user={user}
                         renderConfigure={true}
@@ -254,7 +314,11 @@ const AppLayout = withStyles(styles, {
                       />
                     </ResponsiveDrawer>
                   </div>
-                  <div className={classes.content}>
+                  <div
+                    className={classNames(classes.content, {
+                      [classes.contentToggle]: menuToggle
+                    })}
+                  >
                     <div>
                       <Container>
                         <div className={classes.header}>
