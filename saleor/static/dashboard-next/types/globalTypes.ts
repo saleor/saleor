@@ -272,6 +272,11 @@ export interface AttributeInput {
   value: string;
 }
 
+export interface AttributeReorderInput {
+  id: string;
+  sortOrder?: number | null;
+}
+
 export interface AttributeUpdateInput {
   name?: string | null;
   slug?: string | null;

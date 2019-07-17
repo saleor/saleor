@@ -8,10 +8,11 @@ import Draggable from "@saleor/icons/Draggable";
 
 const useStyles = makeStyles((theme: Theme) => ({
   columnDrag: {
+    "&:first-child": {
+      paddingRight: theme.spacing.unit * 2
+    },
+    cursor: "grab",
     width: 48 + theme.spacing.unit * 1.5
-  },
-  dragIcon: {
-    cursor: "grab"
   }
 }));
 
@@ -20,7 +21,7 @@ const SortableHandle = SortableHandleHoc(() => {
 
   return (
     <TableCell className={classes.columnDrag}>
-      <Draggable className={classes.dragIcon} />
+      <Draggable />
     </TableCell>
   );
 });

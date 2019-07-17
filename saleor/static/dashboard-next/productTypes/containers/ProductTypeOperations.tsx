@@ -3,6 +3,7 @@ import React from "react";
 import { getMutationProviderData } from "../../misc";
 import { PartialMutationProviderOutput } from "../../types";
 import {
+  ProductTypeAttributeReorderMutation,
   TypedAssignAttributeMutation,
   TypedProductTypeDeleteMutation,
   TypedProductTypeUpdateMutation,
@@ -12,6 +13,10 @@ import {
   AssignAttribute,
   AssignAttributeVariables
 } from "../types/AssignAttribute";
+import {
+  ProductTypeAttributeReorder,
+  ProductTypeAttributeReorderVariables
+} from "../types/ProductTypeAttributeReorder";
 import {
   ProductTypeDelete,
   ProductTypeDeleteVariables
@@ -39,6 +44,10 @@ interface ProductTypeOperationsProps {
       ProductTypeDelete,
       ProductTypeDeleteVariables
     >;
+    reorderAttribute: PartialMutationProviderOutput<
+      ProductTypeAttributeReorder,
+      ProductTypeAttributeReorderVariables
+    >;
     updateProductType: PartialMutationProviderOutput<
       ProductTypeUpdate,
       ProductTypeUpdateVariables
@@ -46,6 +55,7 @@ interface ProductTypeOperationsProps {
   }) => React.ReactNode;
   onAssignAttribute: (data: AssignAttribute) => void;
   onUnassignAttribute: (data: UnassignAttribute) => void;
+  onProductTypeAttributeReorder: (data: ProductTypeAttributeReorder) => void;
   onProductTypeDelete: (data: ProductTypeDelete) => void;
   onProductTypeUpdate: (data: ProductTypeUpdate) => void;
 }
@@ -56,6 +66,7 @@ const ProductTypeOperations: React.StatelessComponent<
   children,
   onAssignAttribute,
   onUnassignAttribute,
+  onProductTypeAttributeReorder,
   onProductTypeDelete,
   onProductTypeUpdate
 }) => {
@@ -69,22 +80,31 @@ const ProductTypeOperations: React.StatelessComponent<
                 <TypedUnassignAttributeMutation
                   onCompleted={onUnassignAttribute}
                 >
-                  {(...unassignAttribute) =>
-                    children({
-                      assignAttribute: getMutationProviderData(
-                        ...assignAttribute
-                      ),
-                      deleteProductType: getMutationProviderData(
-                        ...deleteProductType
-                      ),
-                      unassignAttribute: getMutationProviderData(
-                        ...unassignAttribute
-                      ),
-                      updateProductType: getMutationProviderData(
-                        ...updateProductType
-                      )
-                    })
-                  }
+                  {(...unassignAttribute) => (
+                    <ProductTypeAttributeReorderMutation
+                      onCompleted={onProductTypeAttributeReorder}
+                    >
+                      {(...reorderAttribute) =>
+                        children({
+                          assignAttribute: getMutationProviderData(
+                            ...assignAttribute
+                          ),
+                          deleteProductType: getMutationProviderData(
+                            ...deleteProductType
+                          ),
+                          reorderAttribute: getMutationProviderData(
+                            ...reorderAttribute
+                          ),
+                          unassignAttribute: getMutationProviderData(
+                            ...unassignAttribute
+                          ),
+                          updateProductType: getMutationProviderData(
+                            ...updateProductType
+                          )
+                        })
+                      }
+                    </ProductTypeAttributeReorderMutation>
+                  )}
                 </TypedUnassignAttributeMutation>
               )}
             </TypedAssignAttributeMutation>

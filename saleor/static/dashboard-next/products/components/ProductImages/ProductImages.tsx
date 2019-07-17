@@ -12,7 +12,7 @@ import {
 import CardTitle from "@saleor/components/CardTitle";
 import ImageTile from "@saleor/components/ImageTile";
 import ImageUpload from "@saleor/components/ImageUpload";
-import { ReorderEvent } from "@saleor/types";
+import { ReorderAction } from "@saleor/types";
 import React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import i18n from "../../../i18n";
@@ -114,7 +114,7 @@ interface ProductImagesProps extends WithStyles<typeof styles> {
   loading?: boolean;
   onImageDelete: (id: string) => () => void;
   onImageEdit: (id: string) => () => void;
-  onImageReorder?: ReorderEvent;
+  onImageReorder?: ReorderAction;
   onImageUpload(file: File);
 }
 
