@@ -52,12 +52,18 @@ const styles = (theme: Theme) =>
       transition: theme.transitions.duration.standard + "ms"
     },
     content: {
+      [theme.breakpoints.down("md")]: {
+        paddingLeft: 0
+      },
       paddingLeft: drawerWidth,
       position: "absolute",
       transition: "padding-left 0.5s ease",
       width: "100%"
     },
     contentToggle: {
+      [theme.breakpoints.down("md")]: {
+        paddingLeft: 0
+      },
       paddingLeft: drawerWidthSmall
     },
     darkThemeSwitch: {
@@ -77,9 +83,15 @@ const styles = (theme: Theme) =>
         height: "100%",
         margin: "20px 50px"
       },
-      background: "#21125E",
+      background: theme.palette.secondary.main,
       display: "block",
       height: 80
+    },
+    logoDark: {
+      "& path": {
+        fill: theme.palette.common.white
+      },
+      background: theme.palette.primary.main
     },
     logoSmall: {
       "& svg": {
@@ -87,7 +99,9 @@ const styles = (theme: Theme) =>
       }
     },
     menu: {
-      background: "#fff",
+      background: theme.palette.background.paper,
+      boxShadow: "0px 0px 12px 1px rgba(0,0,0,0.2)",
+      height: "100vh",
       padding: 25
     },
     menuIcon: {
@@ -149,10 +163,15 @@ const styles = (theme: Theme) =>
       zIndex: 1999
     },
     menuSmall: {
-      background: "#fff",
+      background: theme.palette.background.paper,
+      boxShadow: "0px 0px 12px 1px rgba(0,0,0,0.2)",
+      height: "100vh",
       padding: "0 25px"
     },
     menuToggle: {
+      "& path": {
+        fill: theme.palette.primary.main
+      },
       "& span": {
         margin: "0 8px"
       },
@@ -160,7 +179,7 @@ const styles = (theme: Theme) =>
         marginTop: 12,
         transform: "rotate(180deg)"
       },
-      background: "#fff",
+      background: theme.palette.background.paper,
       borderRadius: "50%",
       cursor: "pointer",
       height: 32,
@@ -284,7 +303,8 @@ const AppLayout = withStyles(styles, {
                     >
                       <div
                         className={classNames(classes.logo, {
-                          [classes.logoSmall]: menuToggle
+                          [classes.logoSmall]: menuToggle,
+                          [classes.logoDark]: isDark
                         })}
                       >
                         <SVG
