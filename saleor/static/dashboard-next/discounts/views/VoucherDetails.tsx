@@ -333,10 +333,10 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                             formData.endTime
                                           )
                                         : null,
-                                      minAmountSpent:
-                                        formData.minAmountSpent.length > 0
-                                          ? formData.minAmountSpent
-                                          : null,
+                                      minAmountSpent: parseInt(
+                                        formData.minAmountSpent,
+                                        10
+                                      ),
                                       startDate: joinDateTime(
                                         formData.startDate,
                                         formData.startTime
@@ -346,11 +346,10 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                         "SHIPPING"
                                           ? VoucherTypeEnum.SHIPPING
                                           : formData.type,
-                                      usageLimit:
-                                        formData.hasUsageLimit &&
-                                        formData.usageLimit.length > 0
-                                          ? formData.usageLimit
-                                          : null
+                                      usageLimit: parseInt(
+                                        formData.usageLimit,
+                                        10
+                                      )
                                     }
                                   }
                                 });
