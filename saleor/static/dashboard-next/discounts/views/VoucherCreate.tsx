@@ -65,10 +65,7 @@ export const VoucherDetails: React.StatelessComponent = () => {
                       endDate: formData.hasEndDate
                         ? joinDateTime(formData.endDate, formData.endTime)
                         : null,
-                      minAmountSpent:
-                        formData.minAmountSpent.length > 0
-                          ? formData.minAmountSpent.length
-                          : null,
+                      minAmountSpent: parseInt(formData.minAmountSpent, 10),
                       startDate: joinDateTime(
                         formData.startDate,
                         formData.startTime
@@ -77,11 +74,7 @@ export const VoucherDetails: React.StatelessComponent = () => {
                         formData.discountType.toString() === "SHIPPING"
                           ? VoucherTypeEnum.ENTIRE_ORDER
                           : formData.type,
-                      usageLimit:
-                        formData.hasUsageLimit &&
-                        formData.hasUsageLimit.length > 0
-                          ? formData.usageLimit
-                          : null
+                      usageLimit: parseInt(formData.usageLimit, 10)
                     }
                   }
                 })
