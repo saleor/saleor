@@ -11,7 +11,7 @@ import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
-import { ReorderEvent, UserError } from "@saleor/types";
+import { ReorderAction, UserError } from "@saleor/types";
 import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
 import {
   AttributeDetailsFragment,
@@ -32,7 +32,7 @@ export interface AttributePageProps {
   onSubmit: (data: AttributePageFormData) => void;
   onValueAdd: () => void;
   onValueDelete: (id: string) => void;
-  onValueReorder: ReorderEvent;
+  onValueReorder: ReorderAction;
   onValueUpdate: (id: string) => void;
 }
 

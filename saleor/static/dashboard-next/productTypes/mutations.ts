@@ -7,6 +7,10 @@ import {
   AssignAttributeVariables
 } from "./types/AssignAttribute";
 import {
+  ProductTypeAttributeReorder,
+  ProductTypeAttributeReorderVariables
+} from "./types/ProductTypeAttributeReorder";
+import {
   ProductTypeBulkDelete,
   ProductTypeBulkDeleteVariables
 } from "./types/ProductTypeBulkDelete";
@@ -135,3 +139,30 @@ export const TypedProductTypeCreateMutation = TypedMutation<
   ProductTypeCreate,
   ProductTypeCreateVariables
 >(productTypeCreateMutation);
+
+const productTypeAttributeReorder = gql`
+  ${productTypeDetailsFragment}
+  mutation ProductTypeAttributeReorder(
+    $move: AttributeReorderInput!
+    $productTypeId: ID!
+    $type: AttributeTypeEnum!
+  ) {
+    productTypeReorderAttributes(
+      moves: [$move]
+      productTypeId: $productTypeId
+      type: $type
+    ) {
+      errors {
+        field
+        message
+      }
+      productType {
+        ...ProductTypeDetailsFragment
+      }
+    }
+  }
+`;
+export const ProductTypeAttributeReorderMutation = TypedMutation<
+  ProductTypeAttributeReorder,
+  ProductTypeAttributeReorderVariables
+>(productTypeAttributeReorder);

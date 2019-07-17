@@ -266,7 +266,14 @@ export default (colors: IThemeColors): Theme =>
           fontWeight: 400
         },
         paddingCheckbox: {
-          width: 72
+          "&:first-child": {
+            padding: "0 12px",
+            width: 72
+          },
+          "&:not(first-child)": {
+            padding: 0,
+            width: 52
+          }
         },
         root: {
           "&:first-child": {
