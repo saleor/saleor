@@ -10,6 +10,7 @@ import React from "react";
 import SVG from "react-inlinesvg";
 import { matchPath } from "react-router";
 
+import useTheme from "@saleor/hooks/useTheme";
 import { User } from "../../auth/types/User";
 import { configurationMenu, configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
@@ -31,6 +32,11 @@ const styles = (theme: Theme) =>
       display: "inline-block",
       position: "relative",
       top: 8
+    },
+    menuIconDark: {
+      "& path": {
+        fill: theme.palette.common.white
+      }
     },
     menuList: {
       display: "flex",
@@ -99,7 +105,7 @@ const styles = (theme: Theme) =>
       "& $menuListItemText": {
         textTransform: "none"
       },
-      background: "#fff",
+      background: theme.palette.background.paper,
       height: "100vh",
       position: "absolute",
       right: 0,
@@ -183,6 +189,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     renderConfigure,
     onMenuItemClick
   }: MenuListProps & WithStyles<typeof styles>) => {
+    const { isDark } = useTheme();
     const [activeSubMenu, setActiveSubMenu] = React.useState<IActiveSubMenu>({
       isActive: false,
       label: ""
@@ -244,7 +251,12 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                 })}
               >
                 <div onClick={() => handleSubMenu(menuItem.ariaLabel)}>
-                  <SVG className={classes.menuIcon} src={menuItem.icon} />
+                  <SVG
+                    className={classNames(classes.menuIcon, {
+                      [classes.menuIconDark]: isDark
+                    })}
+                    src={menuItem.icon}
+                  />
                   {menuToggle && (
                     <Typography
                       aria-label={menuItem.ariaLabel}
@@ -285,7 +297,12 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
               onClick={event => closeSubMenu(menuItem.url, event)}
               key={menuItem.label}
             >
-              <SVG className={classes.menuIcon} src={menuItem.icon} />
+              <SVG
+                className={classNames(classes.menuIcon, {
+                  [classes.menuIconDark]: isDark
+                })}
+                src={menuItem.icon}
+              />
               {menuToggle && (
                 <Typography
                   aria-label={menuItem.ariaLabel}
@@ -310,7 +327,12 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
               href={createHref(configurationMenuUrl)}
               onClick={event => onMenuItemClick(configurationMenuUrl, event)}
             >
-              <SVG className={classes.menuIcon} src={configureIcon} />
+              <SVG
+                className={classNames(classes.menuIcon, {
+                  [classes.menuIconDark]: isDark
+                })}
+                src={configureIcon}
+              />
               {menuToggle && (
                 <Typography
                   aria-label="configure"
