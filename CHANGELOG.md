@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add voucher once per customer - #4442 by @fowczarek
 - New translations:
   - Greek
+- Fix searches and pickers - #4487 by @dominik-zeglen
 
 
 ## 2.8.0
