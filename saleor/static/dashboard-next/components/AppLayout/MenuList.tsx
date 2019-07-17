@@ -84,7 +84,7 @@ const styles = (theme: Theme) =>
       }
     },
     menuListItemSmall: {
-      marginTop: theme.spacing.unit * 3.5
+      marginTop: theme.spacing.unit * 2
     },
     menuListItemText: {
       "&:hover": {
@@ -101,6 +101,7 @@ const styles = (theme: Theme) =>
     },
     menuListItemTextHide: {
       opacity: 0,
+      position: "absolute",
       transition: "opacity 0.2s ease"
     },
     menuListNested: {
