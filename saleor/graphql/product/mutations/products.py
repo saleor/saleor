@@ -271,12 +271,17 @@ class CollectionAddProducts(BaseMutation):
         permissions = ("product.manage_products",)
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
         products = cls.get_nodes_or_error(products, "products", Product)
-        collection.products.add(*products)
+
+        for product in products:
+            models.CollectionProduct.objects.create(
+                collection=collection, product=product
+            )
         return CollectionAddProducts(collection=collection)
 
 

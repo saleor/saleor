@@ -7,7 +7,7 @@ from django.contrib.postgres.fields import JSONField
 from django.core import exceptions
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.html import strip_tags
@@ -145,7 +145,7 @@ class ProductsQueryset(PublishedQuerySet):
         qs = self.visible_to_user(user).prefetch_related(
             "collections__products__collectionproduct"
         )
-        qs = qs.order_by(F("collectionproduct__sort_order").asc(nulls_last=True))
+        qs = qs.order_by("collectionproduct__sort_order")
         return qs
 
 
@@ -503,14 +503,12 @@ class AttributeQuerySet(models.QuerySet):
         return self.get_public_attributes()
 
     def product_attributes_sorted_for_dashboard(self, asc=True):
-        field = F("attributeproduct__sort_order")
-        sort_meth = getattr(field, "asc" if asc else "desc")
-        return self.order_by(sort_meth(nulls_last=True))
+        direction = "" if asc else "-"
+        return self.order_by(f"{direction}attributeproduct__sort_order")
 
     def variant_attributes_sorted_for_dashboard(self, asc=True):
-        field = F("attributevariant__sort_order")
-        sort_meth = getattr(field, "asc" if asc else "desc")
-        return self.order_by(sort_meth(nulls_last=True))
+        direction = "" if asc else "-"
+        return self.order_by(f"{direction}attributevariant__sort_order")
 
 
 class Attribute(ModelWithMetadata):

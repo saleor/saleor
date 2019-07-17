@@ -2,6 +2,7 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 
@@ -362,11 +363,14 @@ class AttributeAssign(BaseMutation):
         )
 
     @classmethod
-    def save_field_values(cls, product_type, field, pks):
+    def save_field_values(cls, product_type, model_name, pks):
         """Add in bulk the PKs to assign to a given product type."""
-        getattr(product_type, field).add(*pks)
+        model = getattr(models, model_name)
+        for pk in pks:
+            model.objects.create(product_type=product_type, attribute_id=pk)
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(
         cls, _root, info, product_type_id: str, operations: List[AttributeAssignInput]
     ):
@@ -387,8 +391,8 @@ class AttributeAssign(BaseMutation):
         cls.clean_operations(product_type, product_attrs_pks, variant_attrs_pks)
 
         # Commit
-        cls.save_field_values(product_type, "product_attributes", product_attrs_pks)
-        cls.save_field_values(product_type, "variant_attributes", variant_attrs_pks)
+        cls.save_field_values(product_type, "AttributeProduct", product_attrs_pks)
+        cls.save_field_values(product_type, "AttributeVariant", variant_attrs_pks)
 
         return cls(product_type=product_type)
 
