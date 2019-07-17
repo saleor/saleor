@@ -116,6 +116,10 @@ class Checkout(CountableDjangoObjectType):
         filter_fields = ["token"]
 
     @staticmethod
+    def resolve_email(root: models.Checkout, info):
+        return root.get_customer_email()
+
+    @staticmethod
     def resolve_total_price(root: models.Checkout, info):
         taxed_total = (
             calculate_checkout_total(checkout=root, discounts=info.context.discounts)

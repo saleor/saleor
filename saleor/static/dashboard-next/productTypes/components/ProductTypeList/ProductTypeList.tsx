@@ -18,7 +18,7 @@ import Skeleton from "@saleor/components/Skeleton";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection, translatedTaxRates } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 import { ListActions, ListProps } from "../../../types";
 import { ProductTypeList_productTypes_edges_node } from "../../types/ProductTypeList";
 
@@ -148,8 +148,8 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
                     )}
                   </TableCell>
                   <TableCell className={classes.colTax}>
-                    {maybe(() => productType.taxRate) ? (
-                      translatedTaxRates()[productType.taxRate]
+                    {maybe(() => productType.taxType) ? (
+                      productType.taxType.description
                     ) : (
                       <Skeleton />
                     )}

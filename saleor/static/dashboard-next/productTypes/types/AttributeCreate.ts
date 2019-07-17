@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { AttributeCreateInput, AttributeTypeEnum, TaxRateType } from "./../../types/globalTypes";
+import { AttributeCreateInput, AttributeTypeEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: AttributeCreate
@@ -12,6 +12,12 @@ export interface AttributeCreate_attributeCreate_errors {
   __typename: "Error";
   field: string | null;
   message: string | null;
+}
+
+export interface AttributeCreate_attributeCreate_productType_taxType {
+  __typename: "TaxType";
+  description: string | null;
+  taxCode: string | null;
 }
 
 export interface AttributeCreate_attributeCreate_productType_productAttributes_values {
@@ -56,7 +62,7 @@ export interface AttributeCreate_attributeCreate_productType {
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
-  taxRate: TaxRateType | null;
+  taxType: AttributeCreate_attributeCreate_productType_taxType | null;
   productAttributes: (AttributeCreate_attributeCreate_productType_productAttributes | null)[] | null;
   variantAttributes: (AttributeCreate_attributeCreate_productType_variantAttributes | null)[] | null;
   weight: AttributeCreate_attributeCreate_productType_weight | null;

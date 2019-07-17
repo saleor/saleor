@@ -451,11 +451,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(select_related="user")
     def resolve_user_email(root: models.Order, _info):
-        if root.user_email:
-            return root.user_email
-        if root.user_id:
-            return root.user.email
-        return None
+        return root.get_customer_email()
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Order, _info):

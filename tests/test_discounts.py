@@ -6,14 +6,14 @@ from prices import Money
 
 from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import NotApplicable, Sale, Voucher
+from saleor.discount.models import NotApplicable, Sale, Voucher, VoucherCustomer
 from saleor.discount.utils import (
+    add_voucher_usage_by_customer,
     decrease_voucher_usage,
     get_product_discount_on_sale,
-    get_products_voucher_discount,
-    get_shipping_voucher_discount,
-    get_value_voucher_discount,
     increase_voucher_usage,
+    remove_voucher_usage_by_customer,
+    validate_voucher,
 )
 from saleor.product.models import Product, ProductVariant
 
@@ -79,9 +79,9 @@ def test_percentage_discounts(product):
 
 def test_voucher_queryset_active(voucher):
     vouchers = Voucher.objects.all()
-    assert len(vouchers) == 1
+    assert vouchers.count() == 1
     active_vouchers = Voucher.objects.active(date=timezone.now() - timedelta(days=1))
-    assert len(active_vouchers) == 0
+    assert active_vouchers.count() == 0
 
 
 @pytest.mark.parametrize(
@@ -181,37 +181,61 @@ def test_decrease_voucher_usage():
     assert voucher.used == 9
 
 
+def test_add_voucher_usage_by_customer(voucher, customer_user):
+    voucher_customer_count = VoucherCustomer.objects.all().count()
+    add_voucher_usage_by_customer(voucher, customer_user.email)
+    assert VoucherCustomer.objects.all().count() == voucher_customer_count + 1
+    voucherCustomer = VoucherCustomer.objects.first()
+    assert voucherCustomer.voucher == voucher
+    assert voucherCustomer.customer_email == customer_user.email
+
+
+def test_add_voucher_usage_by_customer_raise_not_applicable(voucher_customer):
+    voucher = voucher_customer.voucher
+    customer_email = voucher_customer.customer_email
+    with pytest.raises(NotApplicable):
+        add_voucher_usage_by_customer(voucher, customer_email)
+
+
+def test_remove_voucher_usage_by_customer(voucher_customer):
+    voucher_customer_count = VoucherCustomer.objects.all().count()
+    voucher = voucher_customer.voucher
+    customer_email = voucher_customer.customer_email
+    remove_voucher_usage_by_customer(voucher, customer_email)
+    assert VoucherCustomer.objects.all().count() == voucher_customer_count - 1
+
+
+def test_remove_voucher_usage_by_customer_not_exists(voucher):
+    remove_voucher_usage_by_customer(voucher, "fake@exmaimpel.com")
+
+
 @pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
-    "discount_value, discount_value_type, expected_value",
+    "total, min_amount_spent, total_quantity, min_checkout_items_quantity,"
+    "discount_value_type",
     [
-        (20, 20, 2, 2, 50, DiscountValueType.PERCENTAGE, 10),
-        (20, None, 2, None, 50, DiscountValueType.PERCENTAGE, 10),
-        (20, 20, 2, 2, 5, DiscountValueType.FIXED, 5),
-        (20, None, 2, None, 5, DiscountValueType.FIXED, 5),
+        (20, 20, 2, 2, DiscountValueType.PERCENTAGE),
+        (20, None, 2, None, DiscountValueType.PERCENTAGE),
+        (20, 20, 2, 2, DiscountValueType.FIXED),
+        (20, None, 2, None, DiscountValueType.FIXED),
     ],
 )
-def test_get_value_voucher_discount(
+def test_validate_voucher(
     total,
     min_amount_spent,
     total_quantity,
     min_checkout_items_quantity,
-    discount_value,
     discount_value_type,
-    expected_value,
 ):
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
-        discount_value=discount_value,
+        discount_value=50,
         min_amount_spent=get_min_amount_spent(min_amount_spent),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    voucher.save()
     total_price = Money(total, "USD")
-    discount = get_value_voucher_discount(voucher, total_price, total_quantity)
-    assert discount == Money(expected_value, "USD")
+    validate_voucher(voucher, total_price, total_quantity, "test@example.com")
 
 
 @pytest.mark.parametrize(
@@ -223,7 +247,7 @@ def test_get_value_voucher_discount(
         (20, None, 2, 10, 50, DiscountValueType.FIXED),
     ],
 )
-def test_get_value_voucher_discount_not_applicable(
+def test_validate_voucher_not_applicable(
     total,
     min_amount_spent,
     total_quantity,
@@ -231,7 +255,7 @@ def test_get_value_voucher_discount_not_applicable(
     discount_value,
     discount_value_type,
 ):
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
@@ -239,240 +263,17 @@ def test_get_value_voucher_discount_not_applicable(
         min_amount_spent=get_min_amount_spent(min_amount_spent),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    voucher.save()
     total_price = Money(total, "USD")
     with pytest.raises(NotApplicable):
-        get_value_voucher_discount(voucher, total_price, total_quantity)
+        validate_voucher(voucher, total_price, total_quantity, "test@example.com")
 
 
-@pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
-    "shipping_price, discount_value, discount_value_type, expected_value",
-    [
-        (20, 20, 2, 2, 10, 50, DiscountValueType.PERCENTAGE, 5),
-        (20, None, 2, None, 10, 50, DiscountValueType.PERCENTAGE, 5),
-        (20, 20, 2, 2, 10, 5, DiscountValueType.FIXED, 5),
-        (20, None, 2, None, 10, 5, DiscountValueType.FIXED, 5),
-    ],
-)
-def test_get_shipping_voucher_discount(
-    total,
-    min_amount_spent,
-    total_quantity,
-    min_checkout_items_quantity,
-    shipping_price,
-    discount_value,
-    discount_value_type,
-    expected_value,
-):
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.ENTIRE_ORDER,
-        discount_value_type=discount_value_type,
-        discount_value=discount_value,
-        min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_checkout_items_quantity=min_checkout_items_quantity,
-    )
+def test_validate_voucher_not_applicable_once_per_customer(voucher, customer_user):
+    voucher.apply_once_per_customer = True
     voucher.save()
-    total = Money(total, "USD")
-    shipping_price = Money(shipping_price, "USD")
-    discount = get_shipping_voucher_discount(
-        voucher, total, shipping_price, total_quantity
-    )
-    assert discount == Money(expected_value, "USD")
-
-
-@pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
-    "shipping_price, discount_value, discount_value_type",
-    [
-        (20, 50, 2, 10, 10, 50, DiscountValueType.PERCENTAGE),
-        (20, 50, 2, None, 10, 50, DiscountValueType.PERCENTAGE),
-        (20, None, 2, 10, 10, 5, DiscountValueType.FIXED),
-    ],
-)
-def test_get_shipping_voucher_discount_not_applicable(
-    total,
-    min_amount_spent,
-    total_quantity,
-    min_checkout_items_quantity,
-    shipping_price,
-    discount_value,
-    discount_value_type,
-):
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.ENTIRE_ORDER,
-        discount_value_type=discount_value_type,
-        discount_value=discount_value,
-        min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_checkout_items_quantity=min_checkout_items_quantity,
-    )
-    voucher.save()
-    total = Money(total, "USD")
-    shipping_price = Money(shipping_price, "USD")
+    VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_user.email)
     with pytest.raises(NotApplicable):
-        get_shipping_voucher_discount(voucher, total, shipping_price, total_quantity)
-
-
-@pytest.mark.parametrize(
-    "prices, total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
-    "discount_value_type, discount_value, voucher_type, apply_once_per_order, "
-    "expected_value",
-    [  # noqa
-        (
-            [5, 10, 15],
-            20,
-            20,
-            4,
-            4,
-            DiscountValueType.PERCENTAGE,
-            10,
-            VoucherType.PRODUCT,
-            False,
-            3,
-        ),
-        (
-            [5, 10, 15],
-            20,
-            None,
-            4,
-            None,
-            DiscountValueType.PERCENTAGE,
-            20,
-            VoucherType.PRODUCT,
-            True,
-            1,
-        ),
-        (
-            [5, 10, 15],
-            20,
-            20,
-            4,
-            4,
-            DiscountValueType.FIXED,
-            2,
-            VoucherType.SPECIFIC_PRODUCT,
-            False,
-            6,
-        ),
-        (
-            [5, 10, 15],
-            20,
-            None,
-            4,
-            None,
-            DiscountValueType.FIXED,
-            2,
-            VoucherType.COLLECTION,
-            True,
-            2,
-        ),
-    ],
-)
-def test_get_voucher_discount_all_products(
-    prices,
-    total,
-    min_amount_spent,
-    total_quantity,
-    min_checkout_items_quantity,
-    discount_value_type,
-    discount_value,
-    voucher_type,
-    apply_once_per_order,
-    expected_value,
-):
-    prices = [Money(price, "USD") for price in prices]
-    voucher = Voucher(
-        code="unique",
-        type=voucher_type,
-        discount_value_type=discount_value_type,
-        discount_value=discount_value,
-        apply_once_per_order=apply_once_per_order,
-        min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_checkout_items_quantity=min_checkout_items_quantity,
-    )
-    voucher.save()
-    total = Money(total, "USD")
-    discount = get_products_voucher_discount(voucher, prices, total, total_quantity)
-    assert discount == Money(expected_value, "USD")
-
-
-@pytest.mark.parametrize(
-    "prices, total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
-    "discount_value_type, discount_value, voucher_type, apply_once_per_order, ",
-    [  # noqa
-        (
-            [5, 10, 15],
-            20,
-            50,
-            4,
-            10,
-            DiscountValueType.PERCENTAGE,
-            10,
-            VoucherType.PRODUCT,
-            False,
-        ),
-        (
-            [5, 10, 15],
-            20,
-            50,
-            4,
-            None,
-            DiscountValueType.PERCENTAGE,
-            10,
-            VoucherType.PRODUCT,
-            True,
-        ),
-        (
-            [5, 10, 15],
-            20,
-            None,
-            4,
-            10,
-            DiscountValueType.FIXED,
-            2,
-            VoucherType.SPECIFIC_PRODUCT,
-            False,
-        ),
-        (
-            [5, 10, 15],
-            20,
-            50,
-            4,
-            10,
-            DiscountValueType.FIXED,
-            2,
-            VoucherType.COLLECTION,
-            True,
-        ),
-    ],
-)
-def test_get_voucher_discount_all_products_not_applicable(
-    prices,
-    total,
-    min_amount_spent,
-    total_quantity,
-    min_checkout_items_quantity,
-    discount_value_type,
-    discount_value,
-    voucher_type,
-    apply_once_per_order,
-):
-    prices = [Money(price, "USD") for price in prices]
-    voucher = Voucher(
-        code="unique",
-        type=voucher_type,
-        discount_value_type=discount_value_type,
-        discount_value=discount_value,
-        apply_once_per_order=apply_once_per_order,
-        min_amount_spent=get_min_amount_spent(min_amount_spent),
-        min_checkout_items_quantity=min_checkout_items_quantity,
-    )
-    voucher.save()
-    total = Money(total, "USD")
-    with pytest.raises(NotApplicable):
-        get_products_voucher_discount(voucher, prices, total, total_quantity)
+        validate_voucher(voucher, 0, 0, customer_user.email)
 
 
 date_time_now = timezone.now()
