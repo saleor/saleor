@@ -25,8 +25,8 @@ import ConfirmButton, {
 import Money from "@saleor/components/Money";
 import TableCellAvatar from "@saleor/components/TableCellAvatar";
 import { ChangeEvent } from "@saleor/hooks/useForm";
-import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import i18n from "@saleor/i18n";
+import { maybe, onQueryChange, renderCollection } from "@saleor/misc";
 import {
   SearchOrderVariant_products_edges_node,
   SearchOrderVariant_products_edges_node_variants
@@ -149,17 +149,6 @@ const onVariantAdd = (
         variants.filter(selectedVariant => selectedVariant.id !== variant.id)
       )
     : setVariants([...variants, variant]);
-
-function onQueryChange(
-  event: ChangeEvent,
-  onFetch: (data: string) => void,
-  setQuery: (data: string) => void
-) {
-  const value = event.target.value;
-
-  onFetch(value);
-  setQuery(value);
-}
 
 const OrderProductAddDialog = withStyles(styles, {
   name: "OrderProductAddDialog"
