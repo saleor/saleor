@@ -38,15 +38,7 @@ const styles = (theme: Theme) =>
         fill: theme.palette.common.white
       }
     },
-    menuList: {
-      display: "flex",
-      flexDirection: "column",
-      height: "100%",
-      marginLeft: theme.spacing.unit * 4,
-      marginTop: theme.spacing.unit * 2,
-      paddingBottom: theme.spacing.unit * 3
-    },
-    menuListItem: {
+    menuItemHover: {
       "& path": {
         transition: "fill 0.5s ease"
       },
@@ -56,8 +48,18 @@ const styles = (theme: Theme) =>
         },
         color: theme.palette.primary.main
       },
+      cursor: "pointer"
+    },
+    menuList: {
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+      marginLeft: theme.spacing.unit * 4,
+      marginTop: theme.spacing.unit * 2,
+      paddingBottom: theme.spacing.unit * 3
+    },
+    menuListItem: {
       alignItems: "center",
-      cursor: "pointer",
       display: "block",
       marginTop: theme.spacing.unit * 2,
       paddingLeft: 0,
@@ -92,9 +94,14 @@ const styles = (theme: Theme) =>
       display: "inline-block",
       fontSize: "1rem",
       fontWeight: 500,
+      opacity: 1,
       paddingLeft: 16,
       textTransform: "uppercase",
-      transition: theme.transitions.duration.standard + "ms"
+      transition: "opacity 0.2s ease"
+    },
+    menuListItemTextHide: {
+      opacity: 0,
+      transition: "opacity 0.2s ease"
     },
     menuListNested: {
       "& $menuListItemActive": {
@@ -114,8 +121,39 @@ const styles = (theme: Theme) =>
       width: 300,
       zIndex: -1
     },
+    menuListNestedClose: {
+      "& svg": {
+        fill: theme.palette.primary.main,
+        left: 7,
+        position: "relative",
+        top: -2
+      },
+      border: `solid 1px #EAEAEA`,
+      borderRadius: "100%",
+      cursor: "pointer",
+      height: 32,
+      position: "absolute",
+      right: 32,
+      top: 35,
+      transform: "rotate(180deg)",
+      width: 32
+    },
+    menuListNestedCloseDark: {
+      border: `solid 1px #252728`
+    },
     menuListNestedHide: {
       opacity: 0
+    },
+    menuListNestedIcon: {
+      "& path": {
+        fill: "initial"
+      },
+      "& svg": { height: 32, position: "relative", top: 7, width: 32 }
+    },
+    menuListNestedIconDark: {
+      "& path": {
+        fill: theme.palette.common.white
+      }
     },
     menuListNestedItem: {
       "&:hover": {
@@ -128,8 +166,28 @@ const styles = (theme: Theme) =>
       textDecoration: "none"
     },
     menuListNestedOpen: {
+      [theme.breakpoints.down("sm")]: {
+        right: 0,
+        width: drawerWidth,
+        zIndex: 2
+      },
       right: -300,
       zIndex: -1
+    },
+    subHeader: {
+      borderBottom: "solid 1px #EAEAEA",
+      margin: "30px",
+      paddingBottom: 20
+    },
+    subHeaderDark: {
+      borderBottom: "solid 1px #252728"
+    },
+    subHeaderTitle: {
+      [theme.breakpoints.up("md")]: {
+        paddingLeft: 0
+      },
+      display: "inline",
+      paddingLeft: 10
     },
     subMenu: {
       padding: "0 15px"
@@ -155,11 +213,6 @@ const styles = (theme: Theme) =>
     subMenuDrawerSmall: {
       left: drawerWidthSmall,
       width: `calc(100vw - ${drawerWidthSmall})px`
-    },
-    subheader: {
-      borderBottom: "solid 1px #EAEAEA",
-      margin: "30px",
-      paddingBottom: 20
     }
   });
 
@@ -250,21 +303,24 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                   [classes.menuListItemActive]: isAnyChildActive
                 })}
               >
-                <div onClick={() => handleSubMenu(menuItem.ariaLabel)}>
+                <div
+                  className={classes.menuItemHover}
+                  onClick={() => handleSubMenu(menuItem.ariaLabel)}
+                >
                   <SVG
                     className={classNames(classes.menuIcon, {
                       [classes.menuIconDark]: isDark
                     })}
                     src={menuItem.icon}
                   />
-                  {menuToggle && (
-                    <Typography
-                      aria-label={menuItem.ariaLabel}
-                      className={classes.menuListItemText}
-                    >
-                      {menuItem.label}
-                    </Typography>
-                  )}
+                  <Typography
+                    aria-label={menuItem.ariaLabel}
+                    className={classNames(classes.menuListItemText, {
+                      [classes.menuListItemTextHide]: !menuToggle
+                    })}
+                  >
+                    {menuItem.label}
+                  </Typography>
                 </div>
                 <MenuNested
                   activeItem={activeSubMenu}
@@ -274,6 +330,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                   onMenuItemClick={onMenuItemClick}
                   handleSubMenu={handleSubMenu}
                   title={menuItem.label}
+                  icon={menuItem.icon}
                   ariaLabel={menuItem.ariaLabel}
                 />
                 <div
@@ -297,20 +354,22 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
               onClick={event => closeSubMenu(menuItem.url, event)}
               key={menuItem.label}
             >
-              <SVG
-                className={classNames(classes.menuIcon, {
-                  [classes.menuIconDark]: isDark
-                })}
-                src={menuItem.icon}
-              />
-              {menuToggle && (
+              <div className={classes.menuItemHover}>
+                <SVG
+                  className={classNames(classes.menuIcon, {
+                    [classes.menuIconDark]: isDark
+                  })}
+                  src={menuItem.icon}
+                />
                 <Typography
                   aria-label={menuItem.ariaLabel}
-                  className={classes.menuListItemText}
+                  className={classNames(classes.menuListItemText, {
+                    [classes.menuListItemTextHide]: !menuToggle
+                  })}
                 >
                   {menuItem.label}
                 </Typography>
-              )}
+              </div>
             </a>
           );
         })}
@@ -327,20 +386,22 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
               href={createHref(configurationMenuUrl)}
               onClick={event => onMenuItemClick(configurationMenuUrl, event)}
             >
-              <SVG
-                className={classNames(classes.menuIcon, {
-                  [classes.menuIconDark]: isDark
-                })}
-                src={configureIcon}
-              />
-              {menuToggle && (
+              <div className={classes.menuItemHover}>
+                <SVG
+                  className={classNames(classes.menuIcon, {
+                    [classes.menuIconDark]: isDark
+                  })}
+                  src={configureIcon}
+                />
                 <Typography
                   aria-label="configure"
-                  className={classes.menuListItemText}
+                  className={classNames(classes.menuListItemText, {
+                    [classes.menuListItemTextHide]: !menuToggle
+                  })}
                 >
                   {i18n.t("Configure")}
                 </Typography>
-              )}
+              </div>
             </a>
           )}
       </div>

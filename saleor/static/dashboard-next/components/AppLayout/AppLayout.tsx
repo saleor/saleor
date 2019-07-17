@@ -1,6 +1,7 @@
 import Chip from "@material-ui/core/Chip";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Grow from "@material-ui/core/Grow";
+import Hidden from "@material-ui/core/Hidden";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/MenuList";
@@ -313,14 +314,16 @@ const AppLayout = withStyles(styles, {
                           }
                         />
                       </div>
-                      <div
-                        className={classNames(classes.menuToggle, {
-                          [classes.menuToggleHide]: menuToggle
-                        })}
-                        onClick={handleMenuToggle}
-                      >
-                        <SVG src={menuArrowIcon} />
-                      </div>
+                      <Hidden smDown>
+                        <div
+                          className={classNames(classes.menuToggle, {
+                            [classes.menuToggleHide]: menuToggle
+                          })}
+                          onClick={handleMenuToggle}
+                        >
+                          <SVG src={menuArrowIcon} />
+                        </div>
+                      </Hidden>
                       <MenuList
                         className={
                           menuToggle ? classes.menuSmall : classes.menu

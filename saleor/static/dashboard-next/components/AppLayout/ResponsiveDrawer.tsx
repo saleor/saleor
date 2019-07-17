@@ -23,10 +23,10 @@ const styles = (theme: Theme) =>
     },
     drawerDesktopSmall: {
       overflow: "visible",
+      transition: "width 0.5s ease",
       width: drawerWidthSmall
     },
     drawerMobile: {
-      padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
       width: drawerWidth
     }
   });
