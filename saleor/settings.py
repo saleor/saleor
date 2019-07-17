@@ -664,8 +664,6 @@ GRAPHENE = {
     "RELAY_CONNECTION_MAX_LIMIT": 100,
 }
 
-EXTENSIONS_MANAGER = os.environ.get(
-    "EXTENSIONS_MANAGER", "saleor.core.extensions.manager.BaseManager"
-)
+EXTENSIONS_MANAGER = "saleor.core.extensions.manager.BaseManager"
 
 PLUGINS = os.environ.get("PLUGINS", [])
