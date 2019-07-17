@@ -567,15 +567,13 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       onClose={closeModal}
                                       onFetch={variantSearch}
                                       onFetchMore={fetchMore}
-                                      onSubmit={formData =>
+                                      onSubmit={variants =>
                                         orderLinesAdd.mutate({
                                           id,
-                                          input: formData.variants.map(
-                                            variant => ({
-                                              quantity: 1,
-                                              variantId: variant.id
-                                            })
-                                          )
+                                          input: variants.map(variant => ({
+                                            quantity: 1,
+                                            variantId: variant.id
+                                          }))
                                         })
                                       }
                                     />
