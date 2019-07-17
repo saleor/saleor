@@ -167,7 +167,7 @@ const styles = (theme: Theme) =>
       background: theme.palette.background.paper,
       boxShadow: "0px 0px 12px 1px rgba(0,0,0,0.2)",
       height: "100vh",
-      padding: "0 25px"
+      padding: 25
     },
     menuToggle: {
       "& path": {
@@ -258,7 +258,10 @@ const AppLayout = withStyles(styles, {
       const { isDark, toggleTheme } = useTheme();
       const [isDrawerOpened, setDrawerState] = React.useState(false);
       const [isMenuOpened, setMenuState] = React.useState(false);
-      const [menuToggle, setMenuToggle] = React.useState(false);
+      const [menuToggle, setMenuToggle] = React.useState(
+        localStorage.getItem("menuToggle") === "true" ? true : false
+      );
+      localStorage.setItem("menuToggle", menuToggle.toString());
       const appActionAnchor = React.useRef<HTMLDivElement>();
       const appHeaderAnchor = React.useRef<HTMLDivElement>();
       const anchor = React.useRef<HTMLDivElement>();
@@ -281,6 +284,7 @@ const AppLayout = withStyles(styles, {
       };
 
       const handleMenuToggle = () => {
+        localStorage.setItem("menuToggle", (!menuToggle).toString());
         setMenuToggle(!menuToggle);
       };
 
