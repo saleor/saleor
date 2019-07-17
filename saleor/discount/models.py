@@ -172,8 +172,7 @@ class Voucher(models.Model):
         )
         if voucher_customer:
             msg = pgettext(
-                "Voucher not applicable",
-                ("This offer is valid only once per customer."),
+                "Voucher not applicable", "This offer is valid only once per customer."
             )
             raise NotApplicable(msg)
 
