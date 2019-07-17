@@ -8,7 +8,7 @@ from .utils.json_serializer import CustomJsonEncoder
 
 
 class SortableModel(models.Model):
-    sort_order = models.PositiveIntegerField(editable=False, db_index=True, null=True)
+    sort_order = models.PositiveIntegerField(editable=False, db_index=True, default=0)
 
     class Meta:
         abstract = True
@@ -22,7 +22,7 @@ class SortableModel(models.Model):
         return existing_max
 
     def save(self, *args, **kwargs):
-        if self.sort_order is None:
+        if self.pk is None:
             qs = self.get_ordering_queryset()
             existing_max = self.get_max_sort_order(qs)
             self.sort_order = 0 if existing_max is None else existing_max + 1
