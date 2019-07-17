@@ -1,44 +1,61 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
-import SingleSelectField from "@saleor/components/SingleSelectField";
+import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
-import { translatedTaxRates as taxRates } from "../../../misc";
-import { TaxRateType } from "../../../types/globalTypes";
+import { maybe } from "../../../misc";
+import { ProductTypeForm } from "../ProductTypeDetailsPage/ProductTypeDetailsPage";
 
-interface ProductTypeTaxesProps {
+interface ProductTypeTaxesProps extends WithStyles<typeof styles> {
   data: {
-    taxRate: TaxRateType | null;
+    taxType: {
+      label: string;
+      value: string;
+    };
   };
+  taxTypes: Array<{
+    description: string;
+    taxCode: string;
+  }>;
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
-const taxRateChoices = Object.keys(taxRates()).map(key => ({
-  label: taxRates()[key],
-  value: key
-}));
-const ProductTypeTaxes: React.StatelessComponent<ProductTypeTaxesProps> = ({
-  data,
-  disabled,
-  onChange
-}) => (
-  <Card>
-    <CardTitle title={i18n.t("Taxes")} />
-    <CardContent>
-      <SingleSelectField
-        choices={taxRateChoices}
-        disabled={disabled}
-        label={i18n.t("Tax rate (optional)", {
-          context: "select field label"
-        })}
-        name="taxRate"
-        onChange={onChange}
-        value={data.taxRate}
-      />
-    </CardContent>
-  </Card>
+
+const styles = createStyles({
+  root: {
+    overflow: "visible"
+  }
+});
+
+const ProductTypeTaxes = withStyles(styles, { name: "ProductTypeTaxes" })(
+  ({ classes, data, disabled, taxTypes, onChange }: ProductTypeTaxesProps) => (
+    <Card className={classes.root}>
+      <CardTitle title={i18n.t("Taxes")} />
+      <CardContent>
+        <SingleAutocompleteSelectField
+          disabled={disabled}
+          label={i18n.t("Taxes")}
+          name={"taxType" as keyof ProductTypeForm}
+          onChange={onChange}
+          value={{
+            label: data.taxType.label,
+            value: data.taxType.value
+          }}
+          choices={maybe(
+            () =>
+              taxTypes.map(c => ({ label: c.description, value: c.taxCode })),
+            []
+          )}
+          InputProps={{
+            autoComplete: "off"
+          }}
+        />
+      </CardContent>
+    </Card>
+  )
 );
 ProductTypeTaxes.displayName = "ProductTypeTaxes";
 export default ProductTypeTaxes;

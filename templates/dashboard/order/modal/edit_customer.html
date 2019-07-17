@@ -29,7 +29,7 @@
 {% endblock %}
 
 {% block actions_left %}
-  {% if order.get_user_current_email %}
+  {% if order.get_customer_email %}
     <button type="submit" class="modal-action btn-flat waves-effect" formaction="{% url 'dashboard:order-customer-remove' order_pk=order.pk %}">
       {% trans "Remove customer from order" context "Dashboard edit draft order remove action" %}
     </button>

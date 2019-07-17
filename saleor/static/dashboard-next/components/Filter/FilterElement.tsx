@@ -41,7 +41,7 @@ const FilterElement: React.FC<FilterElementProps> = ({
   onChange,
   value
 }) => {
-  const classes = useStyles();
+  const classes = useStyles({});
 
   if (filter.data.type === FieldType.date) {
     return (

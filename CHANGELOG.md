@@ -4,28 +4,48 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Fixed internal error when creating a checkout with a voucher code - #4292 by @NyanKiyoshi
-- Add filter tab name as required - #4269 by @benekex2
-- A few unused panels are now disabled by default from the debug toolbar; this should improve loading time when debugging - #4301 by @NyanKiyoshi
-- Fixed internal error when adding a note to an anonymous order - #4319 by @NyanKiyoshi
-- Fix populatedb gift card duplication error - #4336 by @fowczarek
-- Fix voucher apply once per order - #4339 by @fowczarek
-- Change type of start and end date for discounts on date time field - #4293 by @fowczarek
-- Add SPECIFIC_PRODUCT type to VoucherTypes - #4344 by @fowczarek
+- Fix product type taxes select - #4453 by @benekex2
+- Fix form reloading - #4467 by @dominik-zeglen
+- Fix time zone based tests - #4468 by @fowczarek
+- Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
+- Add voucher once per customer - #4442 by @fowczarek
+- Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
+- New translations:
+  - Greek
+
+
+## 2.8.0
+
+### Core
+
 - Avatax backend support - #4310 by @korycins
-- Use "esModuleInterop" flag in tsconfig to simplify imports - #4372 by @dominik-zeglen
-- Use hooks instead of class component in forms - #4374 by @dominik-zeglen
-- Drop csrf token header from API client - #4357 by @dominik-zeglen
-- Improve vouchers ui - #4362 by @benekex2
-- Fix for random failing tests in test_discount - #4401 by @korycins
-- Fix internal error when users enters an invalid phone number in an address - #4404 by @NyanKiyoshi
-- Add minimal quantity of products for voucher - #4427 by @fowczarek
+- Add ability to store used payment sources in gateways (first implemented in Braintree) - #4195 by @salwator
+- Add ability to specify a minimal quantity of checkout items for a voucher - #4427 by @fowczarek
+- Change the type of start and end date fields from Date to DateTime - #4293 by @fowczarek
+- Revert the custom dynamic middlewares - #4452 by @NyanKiyoshi
+
+### Dashboard 2.0
+
+- UX improvements in Vouchers section - #4362 by @benekex2
+- Add company address configuration - #4432 by @benekex2
+- Require name when saving a custom list filter - #4269 by @benekex2
+- Use `esModuleInterop` flag in `tsconfig.json` to simplify imports - #4372 by @dominik-zeglen
+- Use hooks instead of a class component in forms - #4374 by @dominik-zeglen
+- Drop CSRF token header from API client - #4357 by @dominik-zeglen
+- Fix various bugs in the product section - #4429 by @dominik-zeglen
+
+### Other notable changes
+
+- Fix error when creating a checkout with voucher code - #4292 by @NyanKiyoshi
+- Fix error when users enter an invalid phone number in an address - #4404 by @NyanKiyoshi
+- Fix error when adding a note to an anonymous order - #4319 by @NyanKiyoshi
+- Fix gift card duplication error in the `populatedb` script - #4336 by @fowczarek
+- Fix vouchers apply once per order - #4339 by @fowczarek
+- Fix discount tests failing at random - #4401 by @korycins
+- Add `SPECIFIC_PRODUCT` type to `VoucherType` - #4344 by @fowczarek
 - New translations:
   - Icelandic
-- Add ability to store used payment sources in gateways, first implemented in Braintree - #4195 by @salwator
-- Fix various bugs across product section - #4429 by @dominik-zeglen
-- Add company address configuration - #4432 by @benekex2
-- Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
+
 
 ## 2.7.0
 
