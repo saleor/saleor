@@ -7,7 +7,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import React from "react";
-import { drawerWidth } from "./consts";
+import { drawerWidth, drawerWidthSmall } from "./consts";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -15,31 +15,38 @@ const styles = (theme: Theme) =>
       backgroundColor: theme.palette.background.paper,
       border: "none",
       height: "100vh",
-      padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
+      overflow: "visible",
+      padding: 0,
       position: "fixed" as "fixed",
+      transition: "width 0.5s ease",
       width: drawerWidth
+    },
+    drawerDesktopSmall: {
+      overflow: "visible",
+      width: drawerWidthSmall
     },
     drawerMobile: {
       padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
-      width: drawerWidth,
+      width: drawerWidth
     }
   });
 
 interface ResponsiveDrawerProps extends WithStyles<typeof styles> {
   children?: React.ReactNode;
   open: boolean;
+  small: boolean;
   onClose?();
 }
 
 const ResponsiveDrawer = withStyles(styles, { name: "ResponsiveDrawer" })(
-  ({ children, classes, onClose, open }: ResponsiveDrawerProps) => (
+  ({ children, classes, onClose, open, small }: ResponsiveDrawerProps) => (
     <>
       <Hidden smDown>
         <Drawer
           variant="persistent"
           open
           classes={{
-            paper: classes.drawerDesktop
+            paper: small ? classes.drawerDesktop : classes.drawerDesktopSmall
           }}
         >
           {children}
