@@ -220,7 +220,7 @@ const styles = (theme: Theme) =>
 interface MenuListProps {
   className?: string;
   menuItems: IMenuItem[];
-  menuToggle: boolean;
+  isMenuSmall: boolean;
   location: string;
   user: User;
   renderConfigure: boolean;
@@ -237,7 +237,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     classes,
     className,
     menuItems,
-    menuToggle,
+    isMenuSmall,
     location,
     user,
     renderConfigure,
@@ -300,7 +300,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             return (
               <div
                 className={classNames(classes.menuListItem, {
-                  [classes.menuListItemSmall]: !menuToggle,
+                  [classes.menuListItemSmall]: !isMenuSmall,
                   [classes.menuListItemActive]: isAnyChildActive
                 })}
               >
@@ -317,7 +317,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                   <Typography
                     aria-label={menuItem.ariaLabel}
                     className={classNames(classes.menuListItemText, {
-                      [classes.menuListItemTextHide]: !menuToggle
+                      [classes.menuListItemTextHide]: !isMenuSmall
                     })}
                   >
                     {menuItem.label}
@@ -338,7 +338,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                   onClick={event => closeSubMenu(null, event)}
                   className={classNames(classes.subMenuDrawer, {
                     [classes.subMenuDrawerOpen]: activeSubMenu.isActive,
-                    [classes.subMenuDrawerSmall]: !menuToggle
+                    [classes.subMenuDrawerSmall]: !isMenuSmall
                   })}
                 />
               </div>
@@ -348,7 +348,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
           return (
             <a
               className={classNames(classes.menuListItem, {
-                [classes.menuListItemSmall]: !menuToggle,
+                [classes.menuListItemSmall]: !isMenuSmall,
                 [classes.menuListItemActive]: isActive(menuItem)
               })}
               href={createHref(menuItem.url)}
@@ -365,7 +365,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                 <Typography
                   aria-label={menuItem.ariaLabel}
                   className={classNames(classes.menuListItemText, {
-                    [classes.menuListItemTextHide]: !menuToggle
+                    [classes.menuListItemTextHide]: !isMenuSmall
                   })}
                 >
                   {menuItem.label}
@@ -382,7 +382,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
           ).length > 0 && (
             <a
               className={classNames(classes.menuListItem, {
-                [classes.menuListItemSmall]: !menuToggle
+                [classes.menuListItemSmall]: !isMenuSmall
               })}
               href={createHref(configurationMenuUrl)}
               onClick={event => onMenuItemClick(configurationMenuUrl, event)}
@@ -397,7 +397,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                 <Typography
                   aria-label="configure"
                   className={classNames(classes.menuListItemText, {
-                    [classes.menuListItemTextHide]: !menuToggle
+                    [classes.menuListItemTextHide]: !isMenuSmall
                   })}
                 >
                   {i18n.t("Configure")}
