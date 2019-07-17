@@ -19,6 +19,7 @@ import SVG from "react-inlinesvg";
 import { RouteComponentProps, withRouter } from "react-router";
 
 import AppProgressProvider from "@saleor/components/AppProgress";
+import useLocalStorage from "@saleor/hooks/useLocalStorage";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useTheme from "@saleor/hooks/useTheme";
 import useUser from "@saleor/hooks/useUser";
@@ -78,6 +79,32 @@ const styles = (theme: Theme) =>
     },
     hide: {
       opacity: 0
+    },
+    isMenuSmall: {
+      "& path": {
+        fill: theme.palette.primary.main
+      },
+      "& span": {
+        margin: "0 8px"
+      },
+      "& svg": {
+        marginTop: 12,
+        transform: "rotate(180deg)"
+      },
+      background: theme.palette.background.paper,
+      borderRadius: "50%",
+      cursor: "pointer",
+      height: 32,
+      position: "absolute",
+      right: -16,
+      top: 65,
+      width: 32,
+      zIndex: 99
+    },
+    isMenuSmallHide: {
+      "& svg": {
+        transform: "rotate(0deg)"
+      }
     },
     logo: {
       "& svg": {
@@ -169,32 +196,6 @@ const styles = (theme: Theme) =>
       height: "100vh",
       padding: 25
     },
-    menuToggle: {
-      "& path": {
-        fill: theme.palette.primary.main
-      },
-      "& span": {
-        margin: "0 8px"
-      },
-      "& svg": {
-        marginTop: 12,
-        transform: "rotate(180deg)"
-      },
-      background: theme.palette.background.paper,
-      borderRadius: "50%",
-      cursor: "pointer",
-      height: 32,
-      position: "absolute",
-      right: -16,
-      top: 65,
-      width: 32,
-      zIndex: 99
-    },
-    menuToggleHide: {
-      "& svg": {
-        transform: "rotate(0deg)"
-      }
-    },
     popover: {
       zIndex: 1
     },
@@ -256,12 +257,9 @@ const AppLayout = withStyles(styles, {
       WithStyles<typeof styles> &
       RouteComponentProps<any>) => {
       const { isDark, toggleTheme } = useTheme();
+      const [isMenuSmall, setMenuSmall] = useLocalStorage("isMenuSmall", false);
       const [isDrawerOpened, setDrawerState] = React.useState(false);
       const [isMenuOpened, setMenuState] = React.useState(false);
-      const [menuToggle, setMenuToggle] = React.useState(
-        localStorage.getItem("menuToggle") === "true" ? true : false
-      );
-      localStorage.setItem("menuToggle", menuToggle.toString());
       const appActionAnchor = React.useRef<HTMLDivElement>();
       const appHeaderAnchor = React.useRef<HTMLDivElement>();
       const anchor = React.useRef<HTMLDivElement>();
@@ -283,9 +281,8 @@ const AppLayout = withStyles(styles, {
         navigate(url);
       };
 
-      const handleMenuToggle = () => {
-        localStorage.setItem("menuToggle", (!menuToggle).toString());
-        setMenuToggle(!menuToggle);
+      const handleIsMenuSmall = () => {
+        setMenuSmall(!isMenuSmall);
       };
 
       return (
@@ -304,36 +301,36 @@ const AppLayout = withStyles(styles, {
                     <ResponsiveDrawer
                       onClose={() => setDrawerState(false)}
                       open={isDrawerOpened}
-                      small={!menuToggle}
+                      small={!isMenuSmall}
                     >
                       <div
                         className={classNames(classes.logo, {
-                          [classes.logoSmall]: menuToggle,
+                          [classes.logoSmall]: isMenuSmall,
                           [classes.logoDark]: isDark
                         })}
                       >
                         <SVG
                           src={
-                            menuToggle ? saleorDarkLogoSmall : saleorDarkLogo
+                            isMenuSmall ? saleorDarkLogoSmall : saleorDarkLogo
                           }
                         />
                       </div>
                       <Hidden smDown>
                         <div
-                          className={classNames(classes.menuToggle, {
-                            [classes.menuToggleHide]: menuToggle
+                          className={classNames(classes.isMenuSmall, {
+                            [classes.isMenuSmallHide]: isMenuSmall
                           })}
-                          onClick={handleMenuToggle}
+                          onClick={handleIsMenuSmall}
                         >
                           <SVG src={menuArrowIcon} />
                         </div>
                       </Hidden>
                       <MenuList
                         className={
-                          menuToggle ? classes.menuSmall : classes.menu
+                          isMenuSmall ? classes.menuSmall : classes.menu
                         }
                         menuItems={menuStructure}
-                        menuToggle={!menuToggle}
+                        isMenuSmall={!isMenuSmall}
                         location={location.pathname}
                         user={user}
                         renderConfigure={true}
@@ -343,7 +340,7 @@ const AppLayout = withStyles(styles, {
                   </div>
                   <div
                     className={classNames(classes.content, {
-                      [classes.contentToggle]: menuToggle
+                      [classes.contentToggle]: isMenuSmall
                     })}
                   >
                     <div>
