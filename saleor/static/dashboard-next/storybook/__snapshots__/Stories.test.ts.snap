@@ -6849,6 +6849,7 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder=""
                     type="text"
                     value=""
                   />
@@ -7340,6 +7341,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder="author"
                     type="text"
                     value="author"
                   />
@@ -7444,13 +7446,13 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-zhk826"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-1x47twp"
                     scope="col"
                   >
                     Admin
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-4rbw70"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-156a6n4"
                     scope="col"
                   >
                     Default Store View
@@ -7465,7 +7467,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -7478,7 +7480,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     John Doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -7508,7 +7510,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -7521,7 +7523,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     Milionare Pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -7858,6 +7860,7 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                     aria-invalid="true"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder="author"
                     type="text"
                     value="author"
                   />
@@ -8383,6 +8386,7 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                     class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
                     disabled=""
                     name="slug"
+                    placeholder=""
                     type="text"
                     value=""
                   />
@@ -8884,6 +8888,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder="author"
                     type="text"
                     value="author"
                   />
@@ -9009,7 +9014,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -9022,7 +9027,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                     John Doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -9052,7 +9057,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -9397,6 +9402,7 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder="author"
                     type="text"
                     value="author"
                   />
@@ -9874,19 +9880,19 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Default Label
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-196u05q"
               scope="col"
             >
               Visible
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-f65vn5"
               scope="col"
             >
               Searchable
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-108dsnt"
               scope="col"
             >
               Use in faceted search
@@ -10000,17 +10006,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Author
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               No
             </td>
@@ -10044,17 +10050,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Box Size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               No
             </td>
@@ -10088,17 +10094,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Brand
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10132,17 +10138,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Candy Box Size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10176,17 +10182,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Coffee Genre
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10220,17 +10226,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Collar
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10264,17 +10270,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Color
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               No
             </td>
@@ -10308,17 +10314,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Cover
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               No
             </td>
@@ -10352,17 +10358,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Flavor
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10396,17 +10402,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Language
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10440,17 +10446,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Publisher
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10484,17 +10490,17 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               Size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10581,19 +10587,19 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               Default Label
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-196u05q"
               scope="col"
             >
               Visible
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-f65vn5"
               scope="col"
             >
               Searchable
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-108dsnt"
               scope="col"
             >
               Use in faceted search
@@ -10718,7 +10724,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10727,7 +10733,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10736,7 +10742,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10827,19 +10833,19 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
               Default Label
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-196u05q"
               scope="col"
             >
               Visible
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-f65vn5"
               scope="col"
             >
               Searchable
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-108dsnt"
               scope="col"
             >
               Use in faceted search
@@ -69803,7 +69809,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -69824,22 +69830,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     0 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -69848,7 +69854,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -70765,7 +70771,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -70786,22 +70792,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     0 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -70810,7 +70816,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -71722,7 +71728,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -71743,22 +71749,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     0 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -71767,7 +71773,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -74275,7 +74281,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -74296,22 +74302,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     2 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -74320,7 +74326,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -74340,10 +74346,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -74403,10 +74409,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -75572,7 +75578,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -75593,22 +75599,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     0 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -75617,7 +75623,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -76805,7 +76811,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -76826,22 +76832,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     2 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -76850,7 +76856,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -76870,10 +76876,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -76933,10 +76939,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -78424,7 +78430,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -78445,22 +78451,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     2 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -78469,7 +78475,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -78489,10 +78495,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -78552,10 +78558,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
