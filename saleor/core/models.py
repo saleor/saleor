@@ -91,7 +91,7 @@ class ModelWithMetadata(models.Model):
         return self.meta.get(namespace, {}).get(client, {})
 
     def store_meta(self, namespace: str, client: str, item: dict):
-        if namespace not in self.private_meta:
+        if namespace not in self.meta:
             self.meta[namespace] = {}
         self.meta[namespace][str(client)] = item
 

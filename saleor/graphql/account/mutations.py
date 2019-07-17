@@ -22,10 +22,10 @@ from ...dashboard.staff.utils import remove_staff_member
 from ..account.enums import AddressTypeEnum
 from ..account.i18n import I18nMixin
 from ..account.types import Address, AddressInput, User
-from ..account.types_meta import MetaInput, MetaPath
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Upload
+from ..core.types_meta import MetaInput, MetaPath
 from ..core.utils import validate_image_file
 from .utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 
