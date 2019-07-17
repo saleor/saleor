@@ -1,11 +1,6 @@
 import pytest
 
 from saleor.core.extensions.checks import check_extensions
-from saleor.core.extensions.plugin import BasePlugin
-
-
-class Test(BasePlugin):
-    """"""
 
 
 @pytest.mark.parametrize(
