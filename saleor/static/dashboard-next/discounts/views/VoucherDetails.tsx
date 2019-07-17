@@ -310,7 +310,7 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                               activeTab={params.activeTab}
                               onBack={() => navigate(voucherListUrl())}
                               onTabClick={changeTab}
-                              onSubmit={formData => {
+                              onSubmit={formData =>
                                 voucherUpdate({
                                   variables: {
                                     id,
@@ -352,8 +352,8 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                       )
                                     }
                                   }
-                                });
-                              }}
+                                })
+                              }
                               onRemove={() => openModal("remove")}
                               saveButtonBarState={formTransitionState}
                               categoryListToolbar={
