@@ -11,6 +11,7 @@ import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
+import { productType } from "@saleor/productTypes/fixtures";
 import { AttributeTypeEnum } from "@saleor/types/globalTypes";
 import ProductTypeAttributeUnassignDialog from "../../components/ProductTypeAttributeUnassignDialog";
 import ProductTypeBulkAttributeUnassignDialog from "../../components/ProductTypeBulkAttributeUnassignDialog";
@@ -123,12 +124,14 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                 onUnassignAttribute={handleAttributeUnassignSuccess}
                 onProductTypeDelete={handleProductTypeDeleteSuccess}
                 onProductTypeUpdate={handleProductTypeUpdateSuccess}
+                onProductTypeAttributeReorder={() => undefined}
               >
                 {({
                   assignAttribute,
                   deleteProductType,
                   unassignAttribute,
-                  updateProductType
+                  updateProductType,
+                  reorderAttribute
                 }) => {
                   const handleProductTypeDelete = () =>
                     deleteProductType.mutate({ id });
@@ -230,6 +233,19 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                         }
                         onAttributeClick={attributeId =>
                           navigate(attributeUrl(attributeId))
+                        }
+                        onAttributeReorder={(event, type) =>
+                          reorderAttribute.mutate({
+                            move: {
+                              id:
+                                data.productType.productAttributes[
+                                  event.oldIndex
+                                ].id,
+                              sortOrder: event.newIndex - event.oldIndex
+                            },
+                            productTypeId: id,
+                            type
+                          })
                         }
                         onAttributeUnassign={attributeId =>
                           navigate(

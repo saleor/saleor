@@ -18,7 +18,7 @@ import {
 } from "@saleor/components/SortableTable";
 import i18n from "@saleor/i18n";
 import { maybe, renderCollection, stopPropagation } from "@saleor/misc";
-import { ReorderEvent } from "@saleor/types";
+import { ReorderAction } from "@saleor/types";
 import { AttributeDetailsFragment_values } from "../../types/AttributeDetailsFragment";
 
 export interface AttributeValuesProps {
@@ -26,7 +26,7 @@ export interface AttributeValuesProps {
   values: AttributeDetailsFragment_values[];
   onValueAdd: () => void;
   onValueDelete: (id: string) => void;
-  onValueReorder: ReorderEvent;
+  onValueReorder: ReorderAction;
   onValueUpdate: (id: string) => void;
 }
 
@@ -42,15 +42,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   dragIcon: {
     cursor: "grab"
-  },
-  ghost: {
-    "& td": {
-      borderBottom: "none"
-    },
-    background: theme.palette.background.paper,
-    fontFamily: theme.typography.fontFamily,
-    fontSize: theme.overrides.MuiTableCell.root.fontSize,
-    opacity: 0.5
   },
   iconCell: {
     "&:last-child": {
@@ -96,12 +87,7 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
             <TableCell />
           </TableRow>
         </TableHead>
-        <SortableTableBody
-          helperClass={classes.ghost}
-          axis="y"
-          lockAxis="y"
-          onSortEnd={onValueReorder}
-        >
+        <SortableTableBody onSortEnd={onValueReorder}>
           {renderCollection(
             values
               ? values.sort((a, b) => (a.sortOrder > b.sortOrder ? 1 : -1))

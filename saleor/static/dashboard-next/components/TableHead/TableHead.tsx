@@ -21,6 +21,7 @@ import Checkbox from "../Checkbox";
 
 export interface TableHeadProps extends MuiTableHeadProps {
   disabled: boolean;
+  dragRows?: boolean;
   selected: number;
   items: Node[];
   toolbar: React.ReactNode | React.ReactNodeArray;
@@ -50,6 +51,10 @@ const styles = (theme: Theme) =>
       height: 47,
       marginRight: -theme.spacing.unit * 2
     },
+    dragRows: {
+      padding: 0,
+      width: 52
+    },
     padding: {
       "&:last-child": {
         padding: 0
@@ -77,6 +82,7 @@ const TableHead = withStyles(styles, {
     classes,
     children,
     disabled,
+    dragRows,
     items,
     selected,
     toggleAll,
@@ -86,11 +92,19 @@ const TableHead = withStyles(styles, {
     return (
       <MuiTableHead {...muiTableHeadProps}>
         <TableRow>
+          {dragRows && (
+            <TableCell
+              className={classNames({
+                [classes.checkboxSelected]: selected
+              })}
+            />
+          )}
           {(items === undefined || items.length > 0) && (
             <TableCell
               padding="checkbox"
               className={classNames({
-                [classes.checkboxSelected]: selected
+                [classes.checkboxSelected]: selected,
+                [classes.dragRows]: dragRows
               })}
             >
               <Checkbox

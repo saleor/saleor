@@ -13,7 +13,7 @@ import { ChangeEvent, FormChange } from "@saleor/hooks/useForm";
 import useStateFromProps from "@saleor/hooks/useStateFromProps";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
-import { ListActions, UserError } from "@saleor/types";
+import { ListActions, ReorderEvent, UserError } from "@saleor/types";
 import { AttributeTypeEnum, WeightUnitsEnum } from "@saleor/types/globalTypes";
 import {
   ProductTypeDetails_productType,
@@ -51,6 +51,7 @@ export interface ProductTypeDetailsPageProps {
   variantAttributeList: ListActions;
   onAttributeAdd: (type: AttributeTypeEnum) => void;
   onAttributeClick: (id: string) => void;
+  onAttributeReorder: (event: ReorderEvent, type: AttributeTypeEnum) => void;
   onAttributeUnassign: (id: string) => void;
   onBack: () => void;
   onDelete: () => void;
@@ -83,6 +84,7 @@ const ProductTypeDetailsPage: React.StatelessComponent<
   variantAttributeList,
   onAttributeAdd,
   onAttributeUnassign,
+  onAttributeReorder,
   onAttributeClick,
   onBack,
   onDelete,
@@ -158,6 +160,9 @@ const ProductTypeDetailsPage: React.StatelessComponent<
                 type={AttributeTypeEnum.PRODUCT}
                 onAttributeAssign={onAttributeAdd}
                 onAttributeClick={onAttributeClick}
+                onAttributeReorder={(event: ReorderEvent) =>
+                  onAttributeReorder(event, AttributeTypeEnum.PRODUCT)
+                }
                 onAttributeUnassign={onAttributeUnassign}
                 {...productAttributeList}
               />
@@ -178,6 +183,9 @@ const ProductTypeDetailsPage: React.StatelessComponent<
                     type={AttributeTypeEnum.VARIANT}
                     onAttributeAssign={onAttributeAdd}
                     onAttributeClick={onAttributeClick}
+                    onAttributeReorder={(event: ReorderEvent) =>
+                      onAttributeReorder(event, AttributeTypeEnum.VARIANT)
+                    }
                     onAttributeUnassign={onAttributeUnassign}
                     {...variantAttributeList}
                   />
