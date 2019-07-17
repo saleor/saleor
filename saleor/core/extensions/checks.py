@@ -11,9 +11,10 @@ def check_extensions(app_configs, **kwargs):
     errors = []
     check_manager(errors)
 
-    plugins = settings.PLUGINS
-    if plugins:
-        check_plugins(errors, plugins)
+    plugins = settings.PLUGINS or []
+
+    for plugin_path in plugins:
+        check_single_plugin(plugin_path, errors)
 
     return errors
 
@@ -22,8 +23,7 @@ def check_manager(errors: List[Error]):
     if not hasattr(settings, "EXTENSIONS_MANAGER") or not settings.EXTENSIONS_MANAGER:
         errors.append(Error("Settings should contain EXTENSIONS_MANAGER env"))
         return
-    manager_path = settings.EXTENSIONS_MANAGER
-    manager_path, _, manager_name = manager_path.rpartition(".")
+    manager_path, _, manager_name = settings.EXTENSIONS_MANAGER.rpartition(".")
     try:
         manager_module = importlib.import_module(manager_path)
     except ModuleNotFoundError:
@@ -37,11 +37,6 @@ def check_manager(errors: List[Error]):
                     % (manager_name, str(manager_module))
                 )
             )
-
-
-def check_plugins(errors: List[Error], plugins: List[str]):
-    for plugin_path in plugins:
-        check_single_plugin(plugin_path, errors)
 
 
 def check_single_plugin(plugin_path: str, errors: List[Error]):
