@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix various bugs across product section - #4429 by @dominik-zeglen
 - Add company address configuration - #4432 by @benekex2
 - Revert the custom dynamic middleware loading by #4102–in the meantime a better solution is found. - #4452 by @NyanKiyoshi
+- New menu design - #4476 by @benekex2
 
 ## 2.7.0
 
