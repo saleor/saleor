@@ -6857,6 +6857,7 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder=""
                     type="text"
                     value=""
                   />
@@ -6962,13 +6963,13 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-zhk826"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-1x47twp"
                     scope="col"
                   >
                     Admin
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-4rbw70"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-156a6n4"
                     scope="col"
                   >
                     Default Store View
@@ -6983,7 +6984,7 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -6996,7 +6997,7 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                     John Doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -7026,7 +7027,7 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -7039,7 +7040,7 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                     Milionare Pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -7348,6 +7349,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder="author"
                     type="text"
                     value="author"
                   />
@@ -7452,13 +7454,13 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-zhk826"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-1x47twp"
                     scope="col"
                   >
                     Admin
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-4rbw70"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-156a6n4"
                     scope="col"
                   >
                     Default Store View
@@ -7473,7 +7475,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -7486,7 +7488,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     John Doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -7516,7 +7518,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -7529,7 +7531,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     Milionare Pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -7866,6 +7868,7 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                     aria-invalid="true"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder="author"
                     type="text"
                     value="author"
                   />
@@ -7970,13 +7973,13 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-zhk826"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-1x47twp"
                     scope="col"
                   >
                     Admin
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-4rbw70"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-156a6n4"
                     scope="col"
                   >
                     Default Store View
@@ -7991,7 +7994,7 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -8004,7 +8007,7 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                     John Doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -8034,7 +8037,7 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -8047,7 +8050,7 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                     Milionare Pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -8391,6 +8394,7 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                     class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
                     disabled=""
                     name="slug"
+                    placeholder=""
                     type="text"
                     value=""
                   />
@@ -8495,13 +8499,13 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-zhk826"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-1x47twp"
                     scope="col"
                   >
                     Admin
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-4rbw70"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-156a6n4"
                     scope="col"
                   >
                     Default Store View
@@ -8537,7 +8541,7 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                     </span>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -8853,6 +8857,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder="author"
                     type="text"
                     value="author"
                   />
@@ -8957,13 +8962,13 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-zhk826"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-1x47twp"
                     scope="col"
                   >
                     Admin
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-4rbw70"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-156a6n4"
                     scope="col"
                   >
                     Default Store View
@@ -8978,7 +8983,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -8991,7 +8996,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                     John Doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -9021,7 +9026,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                   </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -9034,7 +9039,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                     Milionare Pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -9366,6 +9371,7 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                     aria-invalid="false"
                     class="MuiInputBase-input-id MuiFilledInput-input-id"
                     name="slug"
+                    placeholder="author"
                     type="text"
                     value="author"
                   />
@@ -9470,13 +9476,13 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-zhk826"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-1x47twp"
                     scope="col"
                   >
                     Admin
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-4rbw70"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnStore-156a6n4"
                     scope="col"
                   >
                     Default Store View
@@ -9512,7 +9518,7 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                     </span>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-17137bi"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-iconCell-1u13d0h"
                   >
                     <button
                       class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -9831,31 +9837,31 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSlug-1su7x2k"
               scope="col"
             >
               Attribute Code
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colName-17yvon1"
               scope="col"
             >
               Default Label
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-196u05q"
               scope="col"
             >
               Visible
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-f65vn5"
               scope="col"
             >
               Searchable
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-108dsnt"
               scope="col"
             >
               Use in faceted search
@@ -9941,7 +9947,7 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -9959,33 +9965,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               author
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Author
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               No
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10003,33 +10009,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               box-size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Box Size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               No
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10047,33 +10053,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               brand
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Brand
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10091,33 +10097,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               candy-box-size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Candy Box Size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10135,33 +10141,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               coffee-genre
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Coffee Genre
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10179,33 +10185,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               collar
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Collar
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10223,33 +10229,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               color
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Color
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               No
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10267,33 +10273,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               cover
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Cover
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               No
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10311,33 +10317,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               flavor
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Flavor
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10355,33 +10361,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               language
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Language
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               No
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10399,33 +10405,33 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               publisher
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Publisher
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10443,27 +10449,27 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               Size
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               Yes
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               Yes
             </td>
@@ -10538,31 +10544,31 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               scope="col"
             />
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSlug-1su7x2k"
               scope="col"
             >
               Attribute Code
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colName-17yvon1"
               scope="col"
             >
               Default Label
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-196u05q"
               scope="col"
             >
               Visible
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-f65vn5"
               scope="col"
             >
               Searchable
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-108dsnt"
               scope="col"
             >
               Use in faceted search
@@ -10649,7 +10655,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id Hook-link-1mln0ng"
+            class="MuiTableRow-root-id Hook-link-7eswug"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
@@ -10669,7 +10675,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               </button>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSlug-1su7x2k"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10678,7 +10684,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colName-17yvon1"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10687,7 +10693,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colVisible-196u05q"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10696,7 +10702,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colSearchable-f65vn5"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10705,7 +10711,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-body-id Hook-colFaceted-108dsnt"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10784,31 +10790,31 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
               scope="col"
             />
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSlug-onh03c"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSlug-1su7x2k"
               scope="col"
             >
               Attribute Code
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colName-14nrcwj"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colName-17yvon1"
               scope="col"
             >
               Default Label
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-1suj04k"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colVisible-196u05q"
               scope="col"
             >
               Visible
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-1khxs5t"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSearchable-f65vn5"
               scope="col"
             >
               Searchable
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-b8ib6l"
+              class="MuiTableCell-root-id MuiTableCell-head-id Hook-colFaceted-108dsnt"
               scope="col"
             >
               Use in faceted search
@@ -59458,7 +59464,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1l6uhua"
+        class="FilterChips-actionContainer-1sx57iw"
       >
         <div>
           <button
@@ -61023,7 +61029,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1l6uhua"
+        class="FilterChips-actionContainer-1sx57iw"
       >
         <div>
           <button
@@ -61392,7 +61398,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1l6uhua"
+        class="FilterChips-actionContainer-1sx57iw"
       >
         <div>
           <button
@@ -61695,7 +61701,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1l6uhua"
+        class="FilterChips-actionContainer-1sx57iw"
       >
         <div>
           <button
@@ -61742,27 +61748,27 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-filterContainer-j6zn8c"
+        class="FilterChips-filterContainer-1so1o8g"
       >
         <div
-          class="FilterChips-filterChipContainer-11er2up"
+          class="FilterChips-filterChipContainer-1uwbebd"
         >
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 0
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -61778,21 +61784,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 1
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -61808,21 +61814,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 2
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -61838,21 +61844,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 3
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -61868,21 +61874,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 4
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -61898,21 +61904,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 5
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -61928,21 +61934,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 6
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -61958,21 +61964,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 7
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -61988,21 +61994,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 8
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -62018,21 +62024,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 9
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -62048,21 +62054,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 10
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -62078,21 +62084,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 11
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -62108,21 +62114,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 12
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -62138,21 +62144,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 13
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -62168,21 +62174,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 14
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -68774,7 +68780,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -68795,22 +68801,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     0 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -68819,7 +68825,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -69736,7 +69742,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -69757,22 +69763,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     0 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -69781,7 +69787,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -70693,7 +70699,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -70714,22 +70720,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     0 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -70738,7 +70744,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -73254,7 +73260,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -73275,22 +73281,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     2 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -73299,7 +73305,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -73319,10 +73325,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -73382,10 +73388,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -74551,7 +74557,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -74572,22 +74578,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     0 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -74596,7 +74602,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -75792,7 +75798,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -75813,22 +75819,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     2 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -75837,7 +75843,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -75857,10 +75863,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -75920,10 +75926,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -77419,7 +77425,7 @@ Ctrl + K"
             class="CardSpacer-spacer-id"
           />
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-xotrqh"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Hook-card-uxd7vb"
           >
             <div
               class="CardTitle-root-id"
@@ -77440,22 +77446,22 @@ Ctrl + K"
               class="CardTitle-hr-id"
             />
             <div
-              class="MuiCardContent-root-id Hook-cardContent-ubdwwy"
+              class="MuiCardContent-root-id Hook-cardContent-1kqzf5d"
             >
               <div
-                class="Hook-expansionBar-ojarxu"
+                class="Hook-expansionBar-1t5mo7z"
               >
                 <div
-                  class="Hook-expansionBarLabelContainer-x38vpy"
+                  class="Hook-expansionBarLabelContainer-jg2xgy"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-ktd62v"
+                    class="MuiTypography-root-id MuiTypography-caption-id Hook-expansionBarLabel-157a2jo"
                   >
                     2 Attributes
                   </span>
                 </div>
                 <button
-                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-1npp6um"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id Hook-expansionBarButton-171wto4"
                   tabindex="0"
                   type="button"
                 >
@@ -77464,7 +77470,7 @@ Ctrl + K"
                   >
                     <svg
                       aria-hidden="true"
-                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-v3ror2 Hook-rotate-1c8tfne"
+                      class="MuiSvgIcon-root-id Hook-expansionBarButtonIcon-xh77jc Hook-rotate-1fzco1a"
                       focusable="false"
                       role="presentation"
                       viewBox="0 0 24 24"
@@ -77484,10 +77490,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -77547,10 +77553,10 @@ Ctrl + K"
                 class="Hr-root-id"
               />
               <div
-                class="Hook-attributeSection-uwzrf7 Grid-root-id Grid-uniform-id"
+                class="Hook-attributeSection-e5itdr Grid-root-id Grid-uniform-id"
               >
                 <div
-                  class="Hook-attributeSectionLabel-t3suwb"
+                  class="Hook-attributeSectionLabel-192cys1"
                 >
                   <p
                     class="MuiTypography-root-id MuiTypography-body2-id"
@@ -78659,7 +78665,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1l6uhua"
+        class="FilterChips-actionContainer-1sx57iw"
       >
         <div>
           <button
@@ -79506,7 +79512,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1l6uhua"
+        class="FilterChips-actionContainer-1sx57iw"
       >
         <div>
           <button
@@ -79872,7 +79878,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1l6uhua"
+        class="FilterChips-actionContainer-1sx57iw"
       >
         <div>
           <button
@@ -80167,7 +80173,7 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1l6uhua"
+        class="FilterChips-actionContainer-1sx57iw"
       >
         <div>
           <button
@@ -80214,27 +80220,27 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-filterContainer-j6zn8c"
+        class="FilterChips-filterContainer-1so1o8g"
       >
         <div
-          class="FilterChips-filterChipContainer-11er2up"
+          class="FilterChips-filterChipContainer-1uwbebd"
         >
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 0
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80250,21 +80256,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 1
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80280,21 +80286,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 2
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80310,21 +80316,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 3
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80340,21 +80346,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 4
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80370,21 +80376,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 5
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80400,21 +80406,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 6
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80430,21 +80436,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 7
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80460,21 +80466,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 8
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80490,21 +80496,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 9
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80520,21 +80526,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 10
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80550,21 +80556,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 11
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80580,21 +80586,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property X is 12
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80610,21 +80616,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Y is 13
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -80640,21 +80646,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1yu4fm4"
+            class="FilterChips-filterButton-pwmhst"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-k4vtv6"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-1haldi"
             >
               Property Z is 14
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1uo3dfy"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1j2jxi6"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-7coy24"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-18jnlg"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
