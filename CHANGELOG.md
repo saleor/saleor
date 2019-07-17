@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add filtering and sorting capabilities to the top-level attributes' field. - #4387 by @NyanKiyoshi
 - The `SelectedAttribute` type now returns multiple values and will always return all the attributes assigned to the product type. - #4394 by @NyanKiyoshi
 - Add attribute visibility config - #4449 by @dominik-zeglen
+- Add slug generation = #4488 by @dominik-zeglen
 
 ## [Unreleased]
 
