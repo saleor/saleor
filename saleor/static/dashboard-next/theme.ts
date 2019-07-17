@@ -96,7 +96,7 @@ export default (colors: IThemeColors): Theme =>
             boxShadow: `inset 0 0 0px 9999px ${colors.autofill}`
           },
           "&::placeholder": {
-            opacity: "initial !important" as "initial"
+            opacity: "1 !important" as any
           }
         },
         underline: {
@@ -108,7 +108,8 @@ export default (colors: IThemeColors): Theme =>
       MuiInputBase: {
         input: {
           "&::placeholder": {
-            color: colors.font.gray
+            color: colors.font.gray,
+            opacity: "1 !important" as any
           }
         }
       },
