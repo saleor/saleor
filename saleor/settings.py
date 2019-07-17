@@ -67,6 +67,7 @@ LANGUAGES = [
     ("cs", _("Czech")),
     ("da", _("Danish")),
     ("de", _("German")),
+    ("el", _("Greek")),
     ("en", _("English")),
     ("es", _("Spanish")),
     ("es-co", _("Colombian Spanish")),
