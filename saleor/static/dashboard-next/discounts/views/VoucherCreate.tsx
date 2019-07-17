@@ -63,7 +63,10 @@ export const VoucherDetails: React.StatelessComponent = () => {
                           ? DiscountValueTypeEnum.PERCENTAGE
                           : formData.discountType,
                       endDate: joinDateTime(formData.endDate, formData.endTime),
-                      minAmountSpent: formData.minAmountSpent,
+                      minAmountSpent:
+                        formData.minAmountSpent.length > 0
+                          ? formData.minAmountSpent.length
+                          : null,
                       startDate: joinDateTime(
                         formData.startDate,
                         formData.startTime
@@ -72,9 +75,11 @@ export const VoucherDetails: React.StatelessComponent = () => {
                         formData.discountType.toString() === "SHIPPING"
                           ? VoucherTypeEnum.ENTIRE_ORDER
                           : formData.type,
-                      usageLimit: formData.hasUsageLimit
-                        ? formData.usageLimit
-                        : 0
+                      usageLimit:
+                        formData.hasUsageLimit &&
+                        formData.hasUsageLimit.length > 0
+                          ? formData.usageLimit
+                          : null
                     }
                   }
                 })
