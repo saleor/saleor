@@ -46,7 +46,7 @@ def email_sent_event(
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.EMAIL_SENT,
-        parameters={"email": order.get_user_current_email(), "email_type": email_type},
+        parameters={"email": order.get_customer_email(), "email_type": email_type},
         **kwargs,
     )
 

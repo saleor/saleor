@@ -58,7 +58,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.instance.get_user_current_email():
+        if not self.instance.get_customer_email():
             self.fields.pop("notify_customer")
 
     def clean(self):
@@ -548,7 +548,7 @@ class FulfillmentTrackingNumberForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.instance.order.get_user_current_email():
+        if not self.instance.order.get_customer_email():
             self.fields.pop("send_mail")
 
 
@@ -675,7 +675,7 @@ class FulfillmentForm(forms.ModelForm):
         order = kwargs.pop("order")
         super().__init__(*args, **kwargs)
         self.instance.order = order
-        if not order.get_user_current_email():
+        if not order.get_customer_email():
             self.fields.pop("send_mail")
 
 

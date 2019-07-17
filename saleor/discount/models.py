@@ -57,6 +57,7 @@ class Voucher(models.Model):
     # this field indicates if discount should be applied per order or
     # individually to every item
     apply_once_per_order = models.BooleanField(default=False)
+    apply_once_per_customer = models.BooleanField(default=False)
     discount_value_type = models.CharField(
         max_length=10,
         choices=DiscountValueType.CHOICES,
@@ -164,6 +165,26 @@ class Voucher(models.Model):
                 msg % {"min_checkout_items_quantity": min_checkout_items_quantity},
                 min_checkout_items_quantity=min_checkout_items_quantity,
             )
+
+    def validate_once_per_customer(self, customer_email):
+        voucher_customer = VoucherCustomer.objects.filter(
+            voucher=self, customer_email=customer_email
+        )
+        if voucher_customer:
+            msg = pgettext(
+                "Voucher not applicable", "This offer is valid only once per customer."
+            )
+            raise NotApplicable(msg)
+
+
+class VoucherCustomer(models.Model):
+    voucher = models.ForeignKey(
+        Voucher, related_name="customers", on_delete=models.CASCADE
+    )
+    customer_email = models.EmailField()
+
+    class Meta:
+        unique_together = (("voucher", "customer_email"),)
 
 
 class SaleQueryset(models.QuerySet):
