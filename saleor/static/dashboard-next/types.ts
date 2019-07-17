@@ -89,7 +89,8 @@ export type BulkAction = Partial<{
   ids: string[];
 }>;
 
-export type ReorderEvent = (event: {
+export interface ReorderEvent {
   oldIndex: number;
   newIndex: number;
-}) => void;
+}
+export type ReorderAction = (event: ReorderEvent) => void;
