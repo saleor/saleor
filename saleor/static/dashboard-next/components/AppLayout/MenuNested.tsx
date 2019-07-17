@@ -5,11 +5,10 @@ import React from "react";
 import SVG from "react-inlinesvg";
 
 import useTheme from "@saleor/hooks/useTheme";
+import menuArrowIcon from "../../../images/menu-arrow-icon.svg";
 import { createHref } from "../../misc";
 import { IActiveSubMenu } from "./MenuList";
 import { IMenuItem } from "./menuStructure";
-
-import menuArrowIcon from "../../../images/menu-arrow-icon.svg";
 
 export interface MenuNestedProps {
   activeItem: IActiveSubMenu;
@@ -31,7 +30,7 @@ export interface MenuNestedProps {
     | "subHeaderTitle",
     string
   >;
-  closeSubMenu: ({}) => void;
+  closeSubMenu: ({ isActive, label }: IActiveSubMenu) => void;
   icon: string;
   menuItem: IMenuItem;
   title: string;
@@ -55,7 +54,7 @@ const MenuNested: React.FC<MenuNestedProps> = ({
     onMenuItemClick(menuItemUrl, event);
     closeSubMenu({
       isActive: false,
-      label: ""
+      label: null
     });
     event.stopPropagation();
     event.preventDefault();
@@ -91,7 +90,7 @@ const MenuNested: React.FC<MenuNestedProps> = ({
               onClick={() =>
                 closeSubMenu({
                   isActive: false,
-                  label: ""
+                  label: null
                 })
               }
             >

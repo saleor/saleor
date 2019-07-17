@@ -31,7 +31,7 @@ import ArrowDropdown from "../../icons/ArrowDropdown";
 import Container from "../Container";
 import AppActionContext from "./AppActionContext";
 import AppHeaderContext from "./AppHeaderContext";
-import { appLoaderHeight, drawerWidth, drawerWidthSmall } from "./consts";
+import { appLoaderHeight, drawerWidth, drawerWidthExpanded } from "./consts";
 import MenuList from "./MenuList";
 import menuStructure from "./menuStructure";
 import ResponsiveDrawer from "./ResponsiveDrawer";
@@ -57,7 +57,7 @@ const styles = (theme: Theme) =>
       [theme.breakpoints.down("md")]: {
         paddingLeft: 0
       },
-      paddingLeft: drawerWidth,
+      paddingLeft: drawerWidthExpanded,
       position: "absolute",
       transition: "padding-left 0.5s ease",
       width: "100%"
@@ -66,7 +66,7 @@ const styles = (theme: Theme) =>
       [theme.breakpoints.down("md")]: {
         paddingLeft: 0
       },
-      paddingLeft: drawerWidthSmall
+      paddingLeft: drawerWidth
     },
     darkThemeSwitch: {
       marginRight: theme.spacing.unit * 2
