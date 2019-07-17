@@ -103,92 +103,6 @@ const styles = (theme: Theme) =>
       position: "absolute",
       transition: "opacity 0.2s ease"
     },
-    menuListNested: {
-      "& $menuListItemActive": {
-        "& $menuListItemText": {
-          color: theme.palette.primary.main
-        }
-      },
-      "& $menuListItemText": {
-        textTransform: "none"
-      },
-      background: theme.palette.background.paper,
-      height: "100vh",
-      position: "absolute",
-      right: 0,
-      top: 0,
-      transition: "right 1s ease",
-      width: 300,
-      zIndex: -1
-    },
-    menuListNestedClose: {
-      "& svg": {
-        fill: theme.palette.primary.main,
-        left: 7,
-        position: "relative",
-        top: -2
-      },
-      border: `solid 1px #EAEAEA`,
-      borderRadius: "100%",
-      cursor: "pointer",
-      height: 32,
-      position: "absolute",
-      right: 32,
-      top: 35,
-      transform: "rotate(180deg)",
-      width: 32
-    },
-    menuListNestedCloseDark: {
-      border: `solid 1px #252728`
-    },
-    menuListNestedHide: {
-      opacity: 0
-    },
-    menuListNestedIcon: {
-      "& path": {
-        fill: "initial"
-      },
-      "& svg": { height: 32, position: "relative", top: 7, width: 32 }
-    },
-    menuListNestedIconDark: {
-      "& path": {
-        fill: theme.palette.common.white
-      }
-    },
-    menuListNestedItem: {
-      "&:hover": {
-        "& p": {
-          color: theme.palette.primary.main
-        }
-      },
-      display: "block",
-      padding: "0px 30px",
-      textDecoration: "none"
-    },
-    menuListNestedOpen: {
-      [theme.breakpoints.down("sm")]: {
-        right: 0,
-        width: drawerWidthExpanded,
-        zIndex: 2
-      },
-      right: -300,
-      zIndex: -1
-    },
-    subHeader: {
-      borderBottom: "solid 1px #EAEAEA",
-      margin: "30px",
-      paddingBottom: 20
-    },
-    subHeaderDark: {
-      borderBottom: "solid 1px #252728"
-    },
-    subHeaderTitle: {
-      [theme.breakpoints.up("md")]: {
-        paddingLeft: 0
-      },
-      display: "inline",
-      paddingLeft: 10
-    },
     subMenu: {
       padding: "0 15px"
     },
@@ -324,7 +238,6 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                 </div>
                 <MenuNested
                   activeItem={activeSubMenu}
-                  classes={classes}
                   closeSubMenu={setActiveSubMenu}
                   menuItem={menuItem}
                   onMenuItemClick={onMenuItemClick}
