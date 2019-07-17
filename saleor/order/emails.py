@@ -23,7 +23,7 @@ def collect_data_for_email(order_pk, template):
         template (str): email template path
     """
     order = Order.objects.get(pk=order_pk)
-    recipient_email = order.get_user_current_email()
+    recipient_email = order.get_customer_email()
     email_context = get_email_base_context()
     email_context["order_details_url"] = build_absolute_uri(
         reverse("order:details", kwargs={"token": order.token})

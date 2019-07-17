@@ -22,7 +22,7 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import Sale, Voucher, VoucherTranslation
+from saleor.discount.models import Sale, Voucher, VoucherCustomer, VoucherTranslation
 from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
@@ -695,6 +695,12 @@ def voucher_shipping_type():
     return Voucher.objects.create(
         code="mirumee", discount_value=10, type=VoucherType.SHIPPING, countries="IS"
     )
+
+
+@pytest.fixture
+def voucher_customer(voucher, customer_user):
+    email = customer_user.email
+    return VoucherCustomer.objects.create(voucher=voucher, customer_email=email)
 
 
 @pytest.fixture()

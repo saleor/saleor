@@ -82,6 +82,7 @@ def test_voucher_query(
                     startDate
                     discountValueType
                     discountValue
+                    applyOncePerCustomer
                     countries {
                         code
                         country
@@ -101,6 +102,7 @@ def test_voucher_query(
     assert data["name"] == voucher_countries.name
     assert data["code"] == voucher_countries.code
     assert data["usageLimit"] == voucher_countries.usage_limit
+    assert data["applyOncePerCustomer"] == voucher_countries.apply_once_per_customer
     assert data["used"] == voucher_countries.used
     assert data["startDate"] == voucher_countries.start_date.isoformat()
     assert data["discountValueType"] == voucher_countries.discount_value_type.upper()
@@ -142,15 +144,16 @@ mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum, $usageLimit: Int,
     $discountValue: Decimal, $minAmountSpent: Decimal, $minCheckoutItemsQuantity: Int,
-    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean) {
+    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean,
+    $applyOncePerCustomer: Boolean) {
         voucherCreate(input: {
                 name: $name, type: $type, code: $code,
                 discountValueType: $discountValueType,
-                discountValue: $discountValue,
-                minAmountSpent: $minAmountSpent,
+                discountValue: $discountValue, minAmountSpent: $minAmountSpent,
                 minCheckoutItemsQuantity: $minCheckoutItemsQuantity,
-                startDate: $startDate, endDate: $endDate,
-                applyOncePerOrder: $applyOncePerOrder, usageLimit: $usageLimit}) {
+                startDate: $startDate, endDate: $endDate, usageLimit: $usageLimit
+                applyOncePerOrder: $applyOncePerOrder,
+                applyOncePerCustomer: $applyOncePerCustomer}) {
             errors {
                 field
                 message
@@ -167,6 +170,7 @@ mutation  voucherCreate(
                 startDate
                 endDate
                 applyOncePerOrder
+                applyOncePerCustomer
             }
         }
     }
@@ -188,6 +192,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "applyOncePerOrder": True,
+        "applyOncePerCustomer": True,
         "usageLimit": 3,
     }
 
@@ -204,6 +209,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.start_date == start_date
     assert voucher.end_date == end_date
     assert voucher.apply_once_per_order
+    assert voucher.apply_once_per_customer
     assert voucher.usage_limit == 3
 
 
