@@ -1,4 +1,5 @@
 import React from "react";
+import slugify from "slugify";
 
 import AppHeader from "@saleor/components/AppHeader";
 import CardSpacer from "@saleor/components/CardSpacer";
@@ -90,8 +91,14 @@ const AttributePage: React.FC<AttributePageProps> = ({
           visibleInStorefront: maybe(() => attribute.visibleInStorefront, false)
         };
 
+  const handleSubmit = (data: AttributePageFormData) =>
+    onSubmit({
+      ...data,
+      slug: data.slug || slugify(data.name).toLowerCase()
+    });
+
   return (
-    <Form errors={errors} initial={initialForm} onSubmit={onSubmit}>
+    <Form errors={errors} initial={initialForm} onSubmit={handleSubmit}>
       {({ change, errors: formErrors, data, submit }) => (
         <Container>
           <AppHeader onBack={onBack}>{i18n.t("Attributes")}</AppHeader>
