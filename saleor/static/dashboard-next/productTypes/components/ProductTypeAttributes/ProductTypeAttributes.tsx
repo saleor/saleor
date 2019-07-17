@@ -8,7 +8,6 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -17,10 +16,14 @@ import React from "react";
 import CardTitle from "@saleor/components/CardTitle";
 import Checkbox from "@saleor/components/Checkbox";
 import Skeleton from "@saleor/components/Skeleton";
+import {
+  SortableTableBody,
+  SortableTableRow
+} from "@saleor/components/SortableTable";
 import TableHead from "@saleor/components/TableHead";
 import i18n from "@saleor/i18n";
 import { maybe, renderCollection, stopPropagation } from "@saleor/misc";
-import { ListActions } from "@saleor/types";
+import { ListActions, ReorderAction } from "@saleor/types";
 import { AttributeTypeEnum } from "@saleor/types/globalTypes";
 import {
   ProductTypeDetails_productType_productAttributes,
@@ -33,7 +36,7 @@ const styles = (theme: Theme) =>
       "&:last-child": {
         paddingRight: 0
       },
-      width: 48 + theme.spacing.unit / 2
+      width: 48 + theme.spacing.unit * 1.5
     },
     link: {
       cursor: "pointer"
@@ -51,6 +54,7 @@ interface ProductTypeAttributesProps extends ListActions {
   type: string;
   onAttributeAssign: (type: AttributeTypeEnum) => void;
   onAttributeClick: (id: string) => void;
+  onAttributeReorder: ReorderAction;
   onAttributeUnassign: (id: string) => void;
 }
 
@@ -69,6 +73,7 @@ const ProductTypeAttributes = withStyles(styles, {
     type,
     onAttributeAssign,
     onAttributeClick,
+    onAttributeReorder,
     onAttributeUnassign
   }: ProductTypeAttributesProps & WithStyles<typeof styles>) => (
     <Card>
@@ -91,6 +96,7 @@ const ProductTypeAttributes = withStyles(styles, {
       <Table>
         <TableHead
           disabled={disabled}
+          dragRows
           selected={selected}
           items={attributes}
           toggleAll={toggleAll}
@@ -99,14 +105,14 @@ const ProductTypeAttributes = withStyles(styles, {
           <TableCell>{i18n.t("Attribute name")}</TableCell>
           <TableCell />
         </TableHead>
-        <TableBody>
+        <SortableTableBody onSortEnd={onAttributeReorder}>
           {renderCollection(
             attributes,
-            attribute => {
+            (attribute, attributeIndex) => {
               const isSelected = attribute ? isChecked(attribute.id) : false;
 
               return (
-                <TableRow
+                <SortableTableRow
                   selected={isSelected}
                   className={!!attribute ? classes.link : undefined}
                   hover={!!attribute}
@@ -116,6 +122,7 @@ const ProductTypeAttributes = withStyles(styles, {
                       : undefined
                   }
                   key={maybe(() => attribute.id)}
+                  index={attributeIndex}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
@@ -140,7 +147,7 @@ const ProductTypeAttributes = withStyles(styles, {
                       <DeleteIcon color="primary" />
                     </IconButton>
                   </TableCell>
-                </TableRow>
+                </SortableTableRow>
               );
             },
             () => (
@@ -151,7 +158,7 @@ const ProductTypeAttributes = withStyles(styles, {
               </TableRow>
             )
           )}
-        </TableBody>
+        </SortableTableBody>
       </Table>
     </Card>
   )
