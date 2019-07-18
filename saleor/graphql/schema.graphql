@@ -236,7 +236,7 @@ input AttributeUpdateInput {
 }
 
 type AttributeValue implements Node {
-  sortOrder: Int
+  sortOrder: Int!
   id: ID!
   name: String
   slug: String
@@ -1466,7 +1466,7 @@ input MenuInput {
 
 type MenuItem implements Node {
   id: ID!
-  sortOrder: Int
+  sortOrder: Int!
   menu: Menu!
   name: String!
   parent: MenuItem
@@ -2294,7 +2294,7 @@ input ProductFilterInput {
 }
 
 type ProductImage implements Node {
-  sortOrder: Int
+  sortOrder: Int!
   id: ID!
   alt: String!
   url(size: Int): String!
