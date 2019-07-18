@@ -13,7 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - New translations:
   - Greek
 - Fix searches and pickers - #4487 by @dominik-zeglen
-
+- Fix dashboard menu styles - #4491 by @benekex2
 
 ## 2.8.0
 
