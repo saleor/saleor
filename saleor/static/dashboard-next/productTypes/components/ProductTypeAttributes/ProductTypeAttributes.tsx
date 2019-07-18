@@ -122,7 +122,7 @@ const ProductTypeAttributes = withStyles(styles, {
                       : undefined
                   }
                   key={maybe(() => attribute.id)}
-                  index={attributeIndex}
+                  index={attributeIndex || 0}
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
