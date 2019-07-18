@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix time zone based tests - #4468 by @fowczarek
 - Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
 - Add voucher once per customer - #4442 by @fowczarek
+- Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
 - New menu design - #4476 by @benekex2
 - New translations:
   - Greek

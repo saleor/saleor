@@ -29,11 +29,11 @@ export interface FormData {
   endTime: string;
   hasEndDate: boolean;
   hasUsageLimit: boolean;
-  minAmountSpent: number;
+  minAmountSpent: string;
   startDate: string;
   startTime: string;
   type: VoucherTypeEnum;
-  usageLimit: number;
+  usageLimit: string;
   value: number;
 }
 
@@ -62,11 +62,11 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
     endTime: "",
     hasEndDate: false,
     hasUsageLimit: false,
-    minAmountSpent: 0,
+    minAmountSpent: "0",
     startDate: "",
     startTime: "",
     type: VoucherTypeEnum.ENTIRE_ORDER,
-    usageLimit: 0,
+    usageLimit: "0",
     value: 0
   };
 
