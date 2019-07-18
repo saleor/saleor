@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add voucher once per customer - #4442 by @fowczarek
 - Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
 - New menu design - #4476 by @benekex2
+- Mutation for changing logged user first and last name - #4489 by @fowczarek
 - New translations:
   - Greek
 - Fix searches and pickers - #4487 by @dominik-zeglen
