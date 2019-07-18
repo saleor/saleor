@@ -10,7 +10,13 @@ import { PaymentChargeStatusEnum } from "./../../types/globalTypes";
 
 export interface CustomerDetails_user_defaultShippingAddress_country {
   __typename: "CountryDisplay";
+  /**
+   * Country code.
+   */
   code: string;
+  /**
+   * Country name.
+   */
   country: string;
 }
 
@@ -19,9 +25,15 @@ export interface CustomerDetails_user_defaultShippingAddress {
   city: string;
   cityArea: string;
   companyName: string;
+  /**
+   * Default shop's country
+   */
   country: CustomerDetails_user_defaultShippingAddress_country;
   countryArea: string;
   firstName: string;
+  /**
+   * The ID of the object.
+   */
   id: string;
   lastName: string;
   phone: string | null;
@@ -32,7 +44,13 @@ export interface CustomerDetails_user_defaultShippingAddress {
 
 export interface CustomerDetails_user_defaultBillingAddress_country {
   __typename: "CountryDisplay";
+  /**
+   * Country code.
+   */
   code: string;
+  /**
+   * Country name.
+   */
   country: string;
 }
 
@@ -41,9 +59,15 @@ export interface CustomerDetails_user_defaultBillingAddress {
   city: string;
   cityArea: string;
   companyName: string;
+  /**
+   * Default shop's country
+   */
   country: CustomerDetails_user_defaultBillingAddress_country;
   countryArea: string;
   firstName: string;
+  /**
+   * The ID of the object.
+   */
   id: string;
   lastName: string;
   phone: string | null;
@@ -54,26 +78,50 @@ export interface CustomerDetails_user_defaultBillingAddress {
 
 export interface CustomerDetails_user_orders_edges_node_total_gross {
   __typename: "Money";
+  /**
+   * Currency code.
+   */
   currency: string;
+  /**
+   * Amount of money.
+   */
   amount: number;
 }
 
 export interface CustomerDetails_user_orders_edges_node_total {
   __typename: "TaxedMoney";
+  /**
+   * Amount of money including taxes.
+   */
   gross: CustomerDetails_user_orders_edges_node_total_gross;
 }
 
 export interface CustomerDetails_user_orders_edges_node {
   __typename: "Order";
+  /**
+   * The ID of the object.
+   */
   id: string;
   created: any;
+  /**
+   * User-friendly number of an order.
+   */
   number: string | null;
+  /**
+   * Internal payment status.
+   */
   paymentStatus: PaymentChargeStatusEnum | null;
+  /**
+   * Total amount of the order.
+   */
   total: CustomerDetails_user_orders_edges_node_total | null;
 }
 
 export interface CustomerDetails_user_orders_edges {
   __typename: "OrderCountableEdge";
+  /**
+   * The item at the end of the edge
+   */
   node: CustomerDetails_user_orders_edges_node;
 }
 
@@ -84,12 +132,18 @@ export interface CustomerDetails_user_orders {
 
 export interface CustomerDetails_user_lastPlacedOrder_edges_node {
   __typename: "Order";
+  /**
+   * The ID of the object.
+   */
   id: string;
   created: any;
 }
 
 export interface CustomerDetails_user_lastPlacedOrder_edges {
   __typename: "OrderCountableEdge";
+  /**
+   * The item at the end of the edge
+   */
   node: CustomerDetails_user_lastPlacedOrder_edges_node;
 }
 
@@ -100,6 +154,9 @@ export interface CustomerDetails_user_lastPlacedOrder {
 
 export interface CustomerDetails_user {
   __typename: "User";
+  /**
+   * The ID of the object.
+   */
   id: string;
   email: string;
   firstName: string;
@@ -108,13 +165,25 @@ export interface CustomerDetails_user {
   lastLogin: any | null;
   defaultShippingAddress: CustomerDetails_user_defaultShippingAddress | null;
   defaultBillingAddress: CustomerDetails_user_defaultBillingAddress | null;
+  /**
+   * A note about the customer
+   */
   note: string | null;
   isActive: boolean;
+  /**
+   * List of user's orders.
+   */
   orders: CustomerDetails_user_orders | null;
+  /**
+   * List of user's orders.
+   */
   lastPlacedOrder: CustomerDetails_user_lastPlacedOrder | null;
 }
 
 export interface CustomerDetails {
+  /**
+   * Lookup an user by ID.
+   */
   user: CustomerDetails_user | null;
 }
 

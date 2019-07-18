@@ -8,7 +8,16 @@
 
 export interface ShopTaxesFragment {
   __typename: "Shop";
+  /**
+   * Charge taxes on shipping
+   */
   chargeTaxesOnShipping: boolean;
+  /**
+   * Include taxes in prices
+   */
   includeTaxesInPrices: boolean;
+  /**
+   * Display prices with tax in store
+   */
   displayGrossPrices: boolean;
 }

@@ -6,6 +6,9 @@
 // START Enums and Input Objects
 //==============================================================
 
+/**
+ * An enumeration.
+ */
 export enum AddressTypeEnum {
   BILLING = "BILLING",
   SHIPPING = "SHIPPING",
@@ -16,6 +19,9 @@ export enum AttributeTypeEnum {
   VARIANT = "VARIANT",
 }
 
+/**
+ * An enumeration.
+ */
 export enum AuthorizationKeyType {
   FACEBOOK = "FACEBOOK",
   GOOGLE_OAUTH2 = "GOOGLE_OAUTH2",
@@ -26,11 +32,17 @@ export enum DiscountValueTypeEnum {
   PERCENTAGE = "PERCENTAGE",
 }
 
+/**
+ * An enumeration.
+ */
 export enum FulfillmentStatus {
   CANCELED = "CANCELED",
   FULFILLED = "FULFILLED",
 }
 
+/**
+ * An enumeration.
+ */
 export enum LanguageCodeEnum {
   AR = "AR",
   AZ = "AZ",
@@ -83,6 +95,9 @@ export enum OrderAction {
   VOID = "VOID",
 }
 
+/**
+ * An enumeration.
+ */
 export enum OrderEventsEmailsEnum {
   DIGITAL_LINKS = "DIGITAL_LINKS",
   FULFILLMENT_CONFIRMATION = "FULFILLMENT_CONFIRMATION",
@@ -92,6 +107,9 @@ export enum OrderEventsEmailsEnum {
   TRACKING_UPDATED = "TRACKING_UPDATED",
 }
 
+/**
+ * An enumeration.
+ */
 export enum OrderEventsEnum {
   CANCELED = "CANCELED",
   DRAFT_ADDED_PRODUCTS = "DRAFT_ADDED_PRODUCTS",
@@ -116,6 +134,9 @@ export enum OrderEventsEnum {
   UPDATED_ADDRESS = "UPDATED_ADDRESS",
 }
 
+/**
+ * An enumeration.
+ */
 export enum OrderStatus {
   CANCELED = "CANCELED",
   DRAFT = "DRAFT",
@@ -133,6 +154,9 @@ export enum OrderStatusFilter {
   UNFULFILLED = "UNFULFILLED",
 }
 
+/**
+ * An enumeration.
+ */
 export enum PaymentChargeStatusEnum {
   FULLY_CHARGED = "FULLY_CHARGED",
   FULLY_REFUNDED = "FULLY_REFUNDED",
@@ -141,6 +165,9 @@ export enum PaymentChargeStatusEnum {
   PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED",
 }
 
+/**
+ * An enumeration.
+ */
 export enum PermissionEnum {
   IMPERSONATE_USERS = "IMPERSONATE_USERS",
   MANAGE_DISCOUNTS = "MANAGE_DISCOUNTS",
@@ -156,11 +183,17 @@ export enum PermissionEnum {
   MANAGE_USERS = "MANAGE_USERS",
 }
 
+/**
+ * An enumeration.
+ */
 export enum SaleType {
   FIXED = "FIXED",
   PERCENTAGE = "PERCENTAGE",
 }
 
+/**
+ * An enumeration.
+ */
 export enum ShippingMethodTypeEnum {
   PRICE = "PRICE",
   WEIGHT = "WEIGHT",
@@ -171,6 +204,9 @@ export enum StockAvailability {
   OUT_OF_STOCK = "OUT_OF_STOCK",
 }
 
+/**
+ * An enumeration.
+ */
 export enum TaxRateType {
   ACCOMMODATION = "ACCOMMODATION",
   ADMISSION_TO_CULTURAL_EVENTS = "ADMISSION_TO_CULTURAL_EVENTS",
@@ -209,6 +245,9 @@ export enum VoucherTypeEnum {
   VALUE = "VALUE",
 }
 
+/**
+ * An enumeration.
+ */
 export enum WeightUnitsEnum {
   G = "G",
   KG = "KG",

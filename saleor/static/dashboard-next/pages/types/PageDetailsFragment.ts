@@ -8,6 +8,9 @@
 
 export interface PageDetailsFragment {
   __typename: "Page";
+  /**
+   * The ID of the object.
+   */
   id: string;
   title: string;
   slug: string;

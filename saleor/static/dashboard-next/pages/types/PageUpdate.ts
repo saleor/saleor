@@ -10,12 +10,23 @@ import { PageInput } from "./../../types/globalTypes";
 
 export interface PageUpdate_pageUpdate_errors {
   __typename: "Error";
+  /**
+   * Name of a field that caused the error. A value of
+   *         `null` indicates that the error isn't associated with a particular
+   *         field.
+   */
   field: string | null;
+  /**
+   * The error message.
+   */
   message: string | null;
 }
 
 export interface PageUpdate_pageUpdate_page {
   __typename: "Page";
+  /**
+   * The ID of the object.
+   */
   id: string;
   title: string;
   slug: string;
@@ -28,11 +39,17 @@ export interface PageUpdate_pageUpdate_page {
 
 export interface PageUpdate_pageUpdate {
   __typename: "PageUpdate";
+  /**
+   * List of errors that occurred executing the mutation.
+   */
   errors: PageUpdate_pageUpdate_errors[] | null;
   page: PageUpdate_pageUpdate_page | null;
 }
 
 export interface PageUpdate {
+  /**
+   * Updates an existing page.
+   */
   pageUpdate: PageUpdate_pageUpdate | null;
 }
 

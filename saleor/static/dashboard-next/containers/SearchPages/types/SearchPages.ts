@@ -8,12 +8,18 @@
 
 export interface SearchPages_pages_edges_node {
   __typename: "Page";
+  /**
+   * The ID of the object.
+   */
   id: string;
   title: string;
 }
 
 export interface SearchPages_pages_edges {
   __typename: "PageCountableEdge";
+  /**
+   * The item at the end of the edge
+   */
   node: SearchPages_pages_edges_node;
 }
 
@@ -23,6 +29,9 @@ export interface SearchPages_pages {
 }
 
 export interface SearchPages {
+  /**
+   * List of the shop's pages.
+   */
   pages: SearchPages_pages | null;
 }
 

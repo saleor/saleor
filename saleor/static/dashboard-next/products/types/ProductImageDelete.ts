@@ -8,12 +8,21 @@
 
 export interface ProductImageDelete_productImageDelete_product_images {
   __typename: "ProductImage";
+  /**
+   * The ID of the object.
+   */
   id: string;
 }
 
 export interface ProductImageDelete_productImageDelete_product {
   __typename: "Product";
+  /**
+   * The ID of the object.
+   */
   id: string;
+  /**
+   * List of images for the product
+   */
   images: (ProductImageDelete_productImageDelete_product_images | null)[] | null;
 }
 
@@ -23,6 +32,9 @@ export interface ProductImageDelete_productImageDelete {
 }
 
 export interface ProductImageDelete {
+  /**
+   * Deletes a product image.
+   */
   productImageDelete: ProductImageDelete_productImageDelete | null;
 }
 
