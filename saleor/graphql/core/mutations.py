@@ -18,8 +18,7 @@ from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 from ...account import models
 from ..account.types import User
 from ..utils import get_nodes
-from .types import Error, Upload
-from .types_meta import MetaInput, MetaPath
+from .types import Error, Upload, MetaInput, MetaPath
 from .utils import snake_to_camel_case
 
 registry = get_global_registry()
