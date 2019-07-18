@@ -3090,6 +3090,8 @@ type User implements Node {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   addresses: [Address]
   checkout: Checkout
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
@@ -3098,8 +3100,6 @@ type User implements Node {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
-  privateMeta: [MetaStore]!
-  meta: [MetaStore]!
 }
 
 input UserAddressInput {

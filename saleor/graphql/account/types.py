@@ -1,5 +1,3 @@
-from operator import itemgetter
-
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
@@ -14,7 +12,7 @@ from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import CountryDisplay, Image, PermissionDisplay
-from ..core.types_meta import MetaStore
+from ..core.types_meta import MetadataObjectType
 from ..core.utils import get_node_optimized
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum
@@ -153,7 +151,7 @@ class CustomerEvent(CountableDjangoObjectType):
         return None
 
 
-class User(CountableDjangoObjectType):
+class User(MetadataObjectType, CountableDjangoObjectType):
     addresses = gql_optimizer.field(
         graphene.List(Address, description="List of all user's addresses."),
         model_field="addresses",
@@ -188,16 +186,6 @@ class User(CountableDjangoObjectType):
     stored_payment_sources = graphene.List(
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources",
-    )
-    private_meta = graphene.List(
-        MetaStore,
-        required=True,
-        description="List of privately stored metadata namespaces.",
-    )
-    meta = graphene.List(
-        MetaStore,
-        required=True,
-        description="List of publicly stored metadata namespaces.",
     )
 
     class Meta:
@@ -275,27 +263,6 @@ class User(CountableDjangoObjectType):
         from .resolvers import resolve_payment_sources
 
         return resolve_payment_sources(root)
-
-    @staticmethod
-    @permission_required("account.manage_users")
-    def resolve_private_meta(root: models.User, _info):
-        return sorted(
-            [
-                {"namespace": namespace, "metadata": data}
-                for namespace, data in root.private_meta.items()
-            ],
-            key=itemgetter("namespace"),
-        )
-
-    @staticmethod
-    def resolve_meta(root: models.User, _info):
-        return sorted(
-            [
-                {"namespace": namespace, "metadata": data}
-                for namespace, data in root.meta.items()
-            ],
-            key=itemgetter("namespace"),
-        )
 
 
 class ChoiceValue(graphene.ObjectType):
