@@ -333,9 +333,8 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                             formData.endTime
                                           )
                                         : null,
-                                      minAmountSpent: parseInt(
-                                        formData.minAmountSpent,
-                                        10
+                                      minAmountSpent: parseFloat(
+                                        formData.minAmountSpent
                                       ),
                                       startDate: joinDateTime(
                                         formData.startDate,
