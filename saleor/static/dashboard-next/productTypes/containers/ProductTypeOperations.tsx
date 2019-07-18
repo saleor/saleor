@@ -1,5 +1,10 @@
 import React from "react";
+import { MutationFn } from "react-apollo";
 
+import {
+  AttributeReorderInput,
+  AttributeTypeEnum
+} from "@saleor/types/globalTypes";
 import { getMutationProviderData } from "../../misc";
 import { PartialMutationProviderOutput } from "../../types";
 import {
@@ -22,6 +27,10 @@ import {
   ProductTypeDeleteVariables
 } from "../types/ProductTypeDelete";
 import {
+  ProductTypeDetailsFragment,
+  ProductTypeDetailsFragment_productAttributes
+} from "../types/ProductTypeDetailsFragment";
+import {
   ProductTypeUpdate,
   ProductTypeUpdateVariables
 } from "../types/ProductTypeUpdate";
@@ -29,6 +38,29 @@ import {
   UnassignAttribute,
   UnassignAttributeVariables
 } from "../types/UnassignAttribute";
+
+function moveAttribute(
+  attributes:
+    | ProductTypeDetailsFragment_productAttributes[]
+    | ProductTypeDetailsFragment_productAttributes[],
+  move: AttributeReorderInput
+) {
+  const attributeIndex = attributes.findIndex(
+    attribute => attribute.id === move.id
+  );
+  const newIndex = attributeIndex + move.sortOrder;
+
+  const attributesWithoutMovedOne = [
+    ...attributes.slice(0, attributeIndex),
+    ...attributes.slice(attributeIndex + 1)
+  ];
+
+  return [
+    ...attributesWithoutMovedOne.slice(0, newIndex),
+    attributes[attributeIndex],
+    ...attributesWithoutMovedOne.slice(newIndex)
+  ];
+}
 
 interface ProductTypeOperationsProps {
   children: (props: {
@@ -53,6 +85,7 @@ interface ProductTypeOperationsProps {
       ProductTypeUpdateVariables
     >;
   }) => React.ReactNode;
+  productType: ProductTypeDetailsFragment;
   onAssignAttribute: (data: AssignAttribute) => void;
   onUnassignAttribute: (data: UnassignAttribute) => void;
   onProductTypeAttributeReorder: (data: ProductTypeAttributeReorder) => void;
@@ -64,6 +97,7 @@ const ProductTypeOperations: React.StatelessComponent<
   ProductTypeOperationsProps
 > = ({
   children,
+  productType,
   onAssignAttribute,
   onUnassignAttribute,
   onProductTypeAttributeReorder,
@@ -84,8 +118,46 @@ const ProductTypeOperations: React.StatelessComponent<
                     <ProductTypeAttributeReorderMutation
                       onCompleted={onProductTypeAttributeReorder}
                     >
-                      {(...reorderAttribute) =>
-                        children({
+                      {(
+                        reorderAttributeMutation,
+                        reorderAttributeMutationResult
+                      ) => {
+                        const reorderAttributeMutationFn: MutationFn<
+                          ProductTypeAttributeReorder,
+                          ProductTypeAttributeReorderVariables
+                        > = opts => {
+                          const optimisticResponse = {
+                            productTypeReorderAttributes: {
+                              __typename: "ProductTypeReorderAttributes" as "ProductTypeReorderAttributes",
+                              errors: [],
+                              productType: {
+                                ...productType,
+                                productAttributes:
+                                  opts.variables.type ===
+                                  AttributeTypeEnum.PRODUCT
+                                    ? moveAttribute(
+                                        productType.productAttributes,
+                                        opts.variables.move
+                                      )
+                                    : productType.productAttributes,
+                                variantAttributes:
+                                  opts.variables.type ===
+                                  AttributeTypeEnum.VARIANT
+                                    ? moveAttribute(
+                                        productType.variantAttributes,
+                                        opts.variables.move
+                                      )
+                                    : productType.variantAttributes
+                              }
+                            }
+                          };
+                          return reorderAttributeMutation({
+                            ...opts,
+                            optimisticResponse
+                          });
+                        };
+
+                        return children({
                           assignAttribute: getMutationProviderData(
                             ...assignAttribute
                           ),
@@ -93,7 +165,8 @@ const ProductTypeOperations: React.StatelessComponent<
                             ...deleteProductType
                           ),
                           reorderAttribute: getMutationProviderData(
-                            ...reorderAttribute
+                            reorderAttributeMutationFn,
+                            reorderAttributeMutationResult
                           ),
                           unassignAttribute: getMutationProviderData(
                             ...unassignAttribute
@@ -101,8 +174,8 @@ const ProductTypeOperations: React.StatelessComponent<
                           updateProductType: getMutationProviderData(
                             ...updateProductType
                           )
-                        })
-                      }
+                        });
+                      }}
                     </ProductTypeAttributeReorderMutation>
                   )}
                 </TypedUnassignAttributeMutation>
