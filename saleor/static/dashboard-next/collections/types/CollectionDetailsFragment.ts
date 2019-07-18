@@ -8,12 +8,21 @@
 
 export interface CollectionDetailsFragment_backgroundImage {
   __typename: "Image";
+  /**
+   * Alt text for an image.
+   */
   alt: string | null;
+  /**
+   * The URL of the image.
+   */
   url: string;
 }
 
 export interface CollectionDetailsFragment {
   __typename: "Collection";
+  /**
+   * The ID of the object.
+   */
   id: string;
   isPublished: boolean;
   name: string;

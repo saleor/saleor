@@ -10,6 +10,9 @@ import { SaleType } from "./../../types/globalTypes";
 
 export interface SaleFragment {
   __typename: "Sale";
+  /**
+   * The ID of the object.
+   */
   id: string;
   name: string;
   type: SaleType;

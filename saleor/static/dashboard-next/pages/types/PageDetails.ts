@@ -8,6 +8,9 @@
 
 export interface PageDetails_page {
   __typename: "Page";
+  /**
+   * The ID of the object.
+   */
   id: string;
   title: string;
   slug: string;
@@ -19,6 +22,9 @@ export interface PageDetails_page {
 }
 
 export interface PageDetails {
+  /**
+   * Lookup a page by ID or by slug.
+   */
   page: PageDetails_page | null;
 }
 
