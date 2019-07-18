@@ -327,11 +327,15 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                         "SHIPPING"
                                           ? DiscountValueTypeEnum.PERCENTAGE
                                           : formData.discountType,
-                                      endDate: joinDateTime(
-                                        formData.endDate,
-                                        formData.endTime
+                                      endDate: formData.hasEndDate
+                                        ? joinDateTime(
+                                            formData.endDate,
+                                            formData.endTime
+                                          )
+                                        : null,
+                                      minAmountSpent: parseFloat(
+                                        formData.minAmountSpent
                                       ),
-                                      minAmountSpent: formData.minAmountSpent,
                                       startDate: joinDateTime(
                                         formData.startDate,
                                         formData.startTime
@@ -341,7 +345,10 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                         "SHIPPING"
                                           ? VoucherTypeEnum.SHIPPING
                                           : formData.type,
-                                      usageLimit: formData.usageLimit
+                                      usageLimit: parseInt(
+                                        formData.usageLimit,
+                                        10
+                                      )
                                     }
                                   }
                                 })
