@@ -120,6 +120,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
 
             return (
               <ProductTypeOperations
+                productType={maybe(() => data.productType)}
                 onAssignAttribute={handleAttributeAssignSuccess}
                 onUnassignAttribute={handleAttributeUnassignSuccess}
                 onProductTypeDelete={handleProductTypeDeleteSuccess}
