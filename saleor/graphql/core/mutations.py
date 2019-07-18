@@ -526,26 +526,13 @@ class VerifyToken(Verify):
 
 class MetaUpdateOptions(MutationOptions):
     model = None
-    id_field = None
+    return_field_name = None
     public = True
 
 
 class UpdateMetaBaseMutation(BaseMutation):
-
     class Meta:
         abstract = True
-
-    @classmethod
-    def __init_subclass_with_meta__(cls, model=None, id_field=None, public=True, _meta=None, **kwargs):
-        if not model:
-            raise ImproperlyConfigured("model is required for update meta mutation")
-        if not _meta:
-            _meta = MetaUpdateOptions(cls)
-        _meta.model = model
-        _meta.public = public
-        _meta.id_field = id_field
-
-        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
@@ -555,18 +542,62 @@ class UpdateMetaBaseMutation(BaseMutation):
         )
 
     @classmethod
+    def __init_subclass_with_meta__(
+        cls,
+        arguments=None,
+        model=None,
+        public=True,
+        return_field_name=None,
+        _meta=None,
+        **kwargs,
+    ):
+        if not model:
+            raise ImproperlyConfigured("model is required for update meta mutation")
+        if not _meta:
+            _meta = MetaUpdateOptions(cls)
+        if not arguments:
+            arguments = {}
+        if not return_field_name:
+            return_field_name = get_model_name(model)
+        fields = get_output_fields(model, return_field_name)
+
+        _meta.model = model
+        _meta.public = public
+        _meta.return_field_name = return_field_name
+
+        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+        cls._update_mutation_arguments_and_fields(arguments={}, fields=fields)
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
+        get_meta = cls.get_meta_method(instance)
+        store_meta = cls.get_store_method(instance)
 
         metadata = data.pop("input")
-        stored_data = instance.get_meta(metadata.namespace, metadata.client_name)
+        stored_data = get_meta(metadata.namespace, metadata.client_name)
         stored_data[metadata.key] = metadata.value
-        instance.store_meta(
+        store_meta(
             namespace=metadata.namespace, client=metadata.client_name, item=stored_data
         )
         instance.save()
+        return cls.success_response(instance)
 
-        return UpdateMetaBaseMutation(user=instance)
+    @classmethod
+    def get_store_method(cls, instance):
+        return (
+            getattr(instance, "store_meta")
+            if cls._meta.public
+            else getattr(instance, "store_private_meta")
+        )
+
+    @classmethod
+    def get_meta_method(cls, instance):
+        return (
+            getattr(instance, "get_meta")
+            if cls._meta.public
+            else getattr(instance, "get_private_meta")
+        )
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -577,3 +608,8 @@ class UpdateMetaBaseMutation(BaseMutation):
         else:
             instance = cls._meta.model()
         return instance
+
+    @classmethod
+    def success_response(cls, instance):
+        """Return a success response."""
+        return cls(**{cls._meta.return_field_name: instance, "errors": []})
