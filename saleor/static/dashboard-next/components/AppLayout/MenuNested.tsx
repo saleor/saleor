@@ -34,7 +34,7 @@ const styles = (theme: Theme) =>
       position: "absolute",
       right: 0,
       top: 0,
-      transition: "right 1s ease",
+      transition: "right 0.2s ease",
       width: 300,
       zIndex: -1
     },
