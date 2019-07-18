@@ -1302,6 +1302,12 @@ exports[`Storyshots Generics / Assign attributes dialog default 1`] = `
 />
 `;
 
+exports[`Storyshots Generics / Assign attributes dialog errors 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
 exports[`Storyshots Generics / Assign attributes dialog loading 1`] = `
 <div
   style="padding:24px"
@@ -6955,6 +6961,10 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnDrag-id"
+                    scope="col"
+                  />
+                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-id"
                     scope="col"
                   >
@@ -6979,12 +6989,49 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     john-doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     John Doe
                   </td>
@@ -7022,12 +7069,49 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     milionare-pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     Milionare Pirate
                   </td>
@@ -7446,6 +7530,10 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnDrag-id"
+                    scope="col"
+                  />
+                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-id"
                     scope="col"
                   >
@@ -7470,12 +7558,49 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     john-doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     John Doe
                   </td>
@@ -7513,12 +7638,49 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     milionare-pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     Milionare Pirate
                   </td>
@@ -7965,6 +8127,10 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnDrag-id"
+                    scope="col"
+                  />
+                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-id"
                     scope="col"
                   >
@@ -7989,12 +8155,49 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     john-doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     John Doe
                   </td>
@@ -8032,12 +8235,49 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     milionare-pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     Milionare Pirate
                   </td>
@@ -8491,6 +8731,10 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnDrag-id"
+                    scope="col"
+                  />
+                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-id"
                     scope="col"
                   >
@@ -8515,7 +8759,44 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -8524,7 +8805,7 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                     </span>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -8954,6 +9235,10 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnDrag-id"
+                    scope="col"
+                  />
+                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-id"
                     scope="col"
                   >
@@ -8978,12 +9263,49 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                   class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     john-doe
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     John Doe
                   </td>
@@ -9021,12 +9343,49 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                   class="MuiTableRow-root-id MuiTableRow-hover-id Hook-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     milionare-pirate
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     Milionare Pirate
                   </td>
@@ -9468,6 +9827,10 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnDrag-id"
+                    scope="col"
+                  />
+                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id Hook-columnAdmin-id"
                     scope="col"
                   >
@@ -9492,7 +9855,44 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnAdmin-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -9501,7 +9901,7 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                     </span>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnStore-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -10534,7 +10934,21 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSlug-id"
               scope="col"
@@ -10777,10 +11191,6 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id Hook-colSlug-id"
               scope="col"
@@ -11757,10 +12167,6 @@ exports[`Storyshots Views / Categories / Category list empty 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
-            <th
               class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
               scope="col"
             >
@@ -11936,7 +12342,19 @@ exports[`Storyshots Views / Categories / Category list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
               scope="col"
@@ -13803,10 +14221,6 @@ Ctrl + K"
               class="MuiTableRow-root-id MuiTableRow-head-id"
             >
               <th
-                class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-                scope="col"
-              />
-              <th
                 class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
                 scope="col"
               >
@@ -14479,7 +14893,21 @@ Ctrl + K"
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                 scope="col"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id Checkbox-disabled-id"
+                    disabled=""
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+              </th>
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
                 scope="col"
@@ -15475,10 +15903,6 @@ Ctrl + K"
               class="MuiTableRow-root-id MuiTableRow-head-id"
             >
               <th
-                class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-                scope="col"
-              />
-              <th
                 class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
                 scope="col"
               >
@@ -16432,10 +16856,6 @@ Ctrl + K"
             <tr
               class="MuiTableRow-root-id MuiTableRow-head-id"
             >
-              <th
-                class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-                scope="col"
-              />
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id"
                 scope="col"
@@ -17400,10 +17820,6 @@ Ctrl + K"
             <tr
               class="MuiTableRow-root-id MuiTableRow-head-id"
             >
-              <th
-                class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-                scope="col"
-              />
               <th
                 class="MuiTableCell-root-id MuiTableCell-head-id CategoryList-colName-id"
                 scope="col"
@@ -19404,7 +19820,21 @@ Ctrl + K"
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                     scope="col"
-                  />
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id Checkbox-disabled-id"
+                        disabled=""
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
@@ -20583,10 +21013,6 @@ Ctrl + K"
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-                    scope="col"
-                  />
-                  <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
                   >
@@ -21345,7 +21771,21 @@ exports[`Storyshots Views / Collections / Collection list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CollectionList-colName-id"
               scope="col"
@@ -30838,7 +31278,21 @@ exports[`Storyshots Views / Customers / Customer list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-colName-id"
               scope="col"
@@ -31045,10 +31499,6 @@ exports[`Storyshots Views / Customers / Customer list no data 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id CustomerList-colName-id"
               scope="col"
@@ -33694,7 +34144,21 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                     scope="col"
-                  />
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id Checkbox-disabled-id"
+                        disabled=""
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id DiscountCategories-wideColumn-id"
                     scope="col"
@@ -35239,7 +35703,19 @@ exports[`Storyshots Views / Discounts / Sale list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id SaleList-colName-id"
               scope="col"
@@ -35464,10 +35940,6 @@ exports[`Storyshots Views / Discounts / Sale list no data 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id SaleList-colName-id"
               scope="col"
@@ -39405,7 +39877,19 @@ exports[`Storyshots Views / Discounts / Voucher list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id Checkbox-root-id"
+                tabindex="0"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id"
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colName-id"
               scope="col"
@@ -39660,10 +40144,6 @@ exports[`Storyshots Views / Discounts / Voucher list no data 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id VoucherList-colName-id"
               scope="col"
@@ -42753,7 +43233,21 @@ exports[`Storyshots Views / Navigation / Menu list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colTitle-id"
               scope="col"
@@ -42981,10 +43475,6 @@ exports[`Storyshots Views / Navigation / Menu list no data 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MenuList-colTitle-id"
               scope="col"
@@ -44295,7 +44785,21 @@ exports[`Storyshots Views / Orders / Draft order list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderDraftList-colNumber-id"
               scope="col"
@@ -44523,10 +45027,6 @@ exports[`Storyshots Views / Orders / Draft order list when no data 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderDraftList-colNumber-id"
               scope="col"
@@ -61018,7 +61518,21 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderList-colNumber-id"
               scope="col"
@@ -61384,10 +61898,6 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderList-colNumber-id"
               scope="col"
@@ -66131,7 +66641,21 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id PageList-colTitle-id"
               scope="col"
@@ -66345,10 +66869,6 @@ exports[`Storyshots Views / Pages / Page list no data 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
-            <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id PageList-colTitle-id"
               scope="col"
             >
@@ -66531,6 +67051,212 @@ exports[`Storyshots Views / Product types / Create product type default 1`] = `
                     value=""
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductTypeTaxes-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Taxes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="SingleAutocompleteSelectField-container-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                    data-shrink="false"
+                  >
+                    Taxes
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="false"
+                      autocomplete="off"
+                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                      type="text"
+                      value=""
+                    />
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Shipping
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="isShippingRequired"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Is this product shippable?
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Product types / Create product type form errors 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <h5
+          class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
+        >
+          Create product type
+        </h5>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductTypeDetails-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  Product Type Name
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
+                >
+                  Generic form error
+                </p>
               </div>
             </div>
           </div>
@@ -67065,7 +67791,11 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id TableHead-dragRows-id"
                     scope="col"
                   >
                     <button
@@ -67098,6 +67828,43 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                 <tr
                   class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
                 >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
                   >
@@ -67152,6 +67919,43 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
                 >
                   <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
                     class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
                   >
                     <button
@@ -67204,6 +68008,626 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                 <tr
                   class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
                 >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id Checkbox-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id"
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Publisher
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <label
+            class="MuiFormControlLabel-root-id"
+          >
+            <button
+              class="MuiButtonBase-root-id Checkbox-root-id"
+              tabindex="0"
+              type="button"
+            >
+              <input
+                class="Checkbox-box-id"
+                name="hasVariants"
+                type="checkbox"
+                value="false"
+              />
+            </button>
+            <span
+              class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+            >
+              This product type has variants
+            </span>
+          </label>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Shipping
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="isShippingRequired"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Is this product shippable?
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Product types / Product type details form errors 1`] = `
+<div
+  style="padding:24px"
+>
+  <form>
+    <div
+      class="Container-root-id"
+    >
+      <div
+        class="ExtendedPageHeader-root-id"
+      >
+        <h5
+          class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
+        >
+          E-books
+        </h5>
+        <div
+          class="ExtendedPageHeader-action-id"
+        />
+      </div>
+      <div
+        class="Grid-root-id Grid-default-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductTypeDetails-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                  data-shrink="true"
+                >
+                  Product Type Name
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="true"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="name"
+                    type="text"
+                    value="E-books"
+                  />
+                </div>
+                <p
+                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+                >
+                  Generic form error
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductTypeTaxes-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Taxes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="SingleAutocompleteSelectField-container-id"
+              >
+                <div
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                >
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                    data-shrink="true"
+                  >
+                    Taxes
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="false"
+                      autocomplete="off"
+                      class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                      type="text"
+                      value="PH405458"
+                    />
+                    <div>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        role="presentation"
+                        viewBox="0 0 24 24"
+                      >
+                        <g
+                          style="fill-rule:evenodd"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Product Attributes
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Assign attribute
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id TableHead-dragRows-id"
+                    scope="col"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id Checkbox-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id"
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  >
+                    Attribute name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id Checkbox-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id"
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Author
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id Checkbox-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id"
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Language
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorPrimary-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                          <path
+                            d="M0 0h24v24H0z"
+                            fill="none"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id ProductTypeAttributes-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
                   >
@@ -67534,9 +68958,27 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
                   />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id TableHead-dragRows-id"
+                    scope="col"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                      disabled=""
+                      tabindex="-1"
+                      type="button"
+                    >
+                      <input
+                        class="Checkbox-box-id Checkbox-disabled-id"
+                        disabled=""
+                        type="checkbox"
+                        value="false"
+                      />
+                    </button>
+                  </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
@@ -67555,6 +68997,43 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                 <tr
                   class="MuiTableRow-root-id"
                 >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Hook-columnDrag-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      role="presentation"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        clip-rule="evenodd"
+                        d="M3.5 2C3.5 2.82843 2.82843 3.5 2 3.5C1.17157 3.5 0.5 2.82843 0.5 2C0.5 1.17157 1.17157 0.5 2 0.5C2.82843 0.5 3.5 1.17157 3.5 2ZM4 2C4 3.10457 3.10457 4 2 4C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0C3.10457 0 4 0.895431 4 2ZM9.5 2C9.5 2.82843 8.82843 3.5 8 3.5C7.17157 3.5 6.5 2.82843 6.5 2C6.5 1.17157 7.17157 0.5 8 0.5C8.82843 0.5 9.5 1.17157 9.5 2ZM10 2C10 3.10457 9.10457 4 8 4C6.89543 4 6 3.10457 6 2C6 0.895431 6.89543 0 8 0C9.10457 0 10 0.895431 10 2ZM8 9.5C8.82843 9.5 9.5 8.82843 9.5 8C9.5 7.17157 8.82843 6.5 8 6.5C7.17157 6.5 6.5 7.17157 6.5 8C6.5 8.82843 7.17157 9.5 8 9.5ZM8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM3.5 8C3.5 8.82843 2.82843 9.5 2 9.5C1.17157 9.5 0.5 8.82843 0.5 8C0.5 7.17157 1.17157 6.5 2 6.5C2.82843 6.5 3.5 7.17157 3.5 8ZM4 8C4 9.10457 3.10457 10 2 10C0.895431 10 0 9.10457 0 8C0 6.89543 0.895431 6 2 6C3.10457 6 4 6.89543 4 8ZM2 15.5C2.82843 15.5 3.5 14.8284 3.5 14C3.5 13.1716 2.82843 12.5 2 12.5C1.17157 12.5 0.5 13.1716 0.5 14C0.5 14.8284 1.17157 15.5 2 15.5ZM2 16C3.10457 16 4 15.1046 4 14C4 12.8954 3.10457 12 2 12C0.895431 12 0 12.8954 0 14C0 15.1046 0.895431 16 2 16ZM9.5 14C9.5 14.8284 8.82843 15.5 8 15.5C7.17157 15.5 6.5 14.8284 6.5 14C6.5 13.1716 7.17157 12.5 8 12.5C8.82843 12.5 9.5 13.1716 9.5 14ZM10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12C9.10457 12 10 12.8954 10 14Z"
+                        fill="url(#paint0_linear)"
+                        fill-rule="evenodd"
+                        style="transform:translate(7px, 4px)"
+                      />
+                      <defs>
+                        <linearGradient
+                          gradientUnits="userSpaceOnUse"
+                          id="paint0_linear"
+                          x1="0"
+                          x2="16.0896"
+                          y1="0"
+                          y2="10.4478"
+                        >
+                          <stop
+                            stop-color="#13BEBB"
+                          />
+                          <stop
+                            offset="1"
+                            stop-color="#3EE7CD"
+                          />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingCheckbox-id"
                   >
@@ -68134,7 +69613,21 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeList-colName-id"
               scope="col"
@@ -79466,7 +80959,21 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
               scope="col"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                disabled=""
+                tabindex="-1"
+                type="button"
+              >
+                <input
+                  class="Checkbox-box-id Checkbox-disabled-id"
+                  disabled=""
+                  type="checkbox"
+                  value="false"
+                />
+              </button>
+            </th>
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id"
               scope="col"
@@ -79829,10 +81336,6 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
           <tr
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <th
-              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-              scope="col"
-            />
             <th
               class="MuiTableCell-root-id MuiTableCell-head-id"
               scope="col"
@@ -84947,7 +86450,21 @@ exports[`Storyshots Views / Shipping / Shipping zones list loading 1`] = `
                 <th
                   class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
                   scope="col"
-                />
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id Checkbox-root-id"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <input
+                      class="Checkbox-box-id Checkbox-disabled-id"
+                      disabled=""
+                      type="checkbox"
+                      value="false"
+                    />
+                  </button>
+                </th>
                 <th
                   class="MuiTableCell-root-id MuiTableCell-head-id ShippingZonesList-colName-id"
                   scope="col"
@@ -85280,10 +86797,6 @@ exports[`Storyshots Views / Shipping / Shipping zones list no data 1`] = `
               <tr
                 class="MuiTableRow-root-id MuiTableRow-head-id"
               >
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingCheckbox-id"
-                  scope="col"
-                />
                 <th
                   class="MuiTableCell-root-id MuiTableCell-head-id ShippingZonesList-colName-id"
                   scope="col"
