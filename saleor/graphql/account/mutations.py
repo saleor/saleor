@@ -277,12 +277,13 @@ class LoggedUserUpdate(CustomerCreate):
 class AccountUpdate(CustomerCreate):
     class Arguments:
         input = AccountInput(
-            description="Fields required to update logged in user.", required=True
+            description="Fields required to update the account of the logged-in user.",
+            required=True,
         )
 
     class Meta:
-        description = "Updates data of the logged in user."
-        exclude = ["password", "note"]
+        description = "Updates the account of the logged-in user."
+        exclude = ["password"]
         model = models.User
 
     @classmethod
