@@ -210,6 +210,7 @@ MIDDLEWARE = [
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.taxes",
+    "saleor.core.middleware.extensions",
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "impersonate.middleware.ImpersonateMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
@@ -662,3 +663,7 @@ GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
 }
+
+EXTENSIONS_MANAGER = "saleor.core.extensions.manager.ExtensionsManager"
+
+PLUGINS = os.environ.get("PLUGINS", [])
