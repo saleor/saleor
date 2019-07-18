@@ -23,7 +23,12 @@ from ..account.enums import AddressTypeEnum
 from ..account.i18n import I18nMixin
 from ..account.types import Address, AddressInput, User
 from ..core.enums import PermissionEnum
-from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ..core.mutations import (
+    BaseMutation,
+    ModelDeleteMutation,
+    ModelMutation,
+    UpdateMetaBaseMutation,
+)
 from ..core.types import Upload
 from ..core.types_meta import MetaInput, MetaPath
 from ..core.utils import validate_image_file
@@ -786,38 +791,10 @@ class UserAvatarDelete(BaseMutation):
         return UserAvatarDelete(user=user)
 
 
-class UserUpdateMeta(BaseMutation):
-    user = graphene.Field(User, description="An updated user instance.")
-
+class UserUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates private metadata for user."
-        permissions = ("account.manage_users",)
-
-    class Arguments:
-        id = graphene.ID(description="ID of a customer to update.", required=True)
-        input = MetaInput(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
-        )
-
-    @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
-        user_id = data.pop("id")
-        user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
-
-        metadata = data.pop("input")
-        stored_data = user.get_meta(metadata.namespace, metadata.client_name)
-        stored_data[metadata.key] = metadata.value
-        user.store_meta(
-            namespace=metadata.namespace, client=metadata.client_name, item=stored_data
-        )
-        user.save()
-
-        return UserUpdatePrivateMeta(user=user)
+        description = "Updates metadata for user."
+        model = models.User
 
 
 class UserUpdatePrivateMeta(BaseMutation):
