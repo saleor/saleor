@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - New menu design - #4476 by @benekex2
 - New translations:
   - Greek
+- Fix searches and pickers - #4487 by @dominik-zeglen
 
 
 ## 2.8.0
