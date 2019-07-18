@@ -64,6 +64,7 @@ stripe = "*"
 "urllib3" = "*"
 dataclasses = {version = "*",markers = "python_version < '3.7'"}
 html-to-draftjs = "*"
+draftjs-sanitizer = "*"
 
 [dev-packages]
 pytest = "*"

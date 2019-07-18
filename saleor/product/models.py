@@ -15,6 +15,7 @@ from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from django_prices.templatetags import prices_i18n
+from draftjs_sanitizer import clean_draft_js
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
@@ -23,6 +24,7 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
+from ..core.fields import SanitizedJSONField
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
@@ -126,7 +128,9 @@ class Product(SeoModel, PublishableModel):
     )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    description_json = JSONField(blank=True, default=dict)
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_draft_js
+    )
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.CASCADE
     )
@@ -213,7 +217,9 @@ class ProductTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    description_json = JSONField(blank=True, default=dict)
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_draft_js
+    )
 
     class Meta:
         unique_together = (("language_code", "product"),)
