@@ -31,6 +31,7 @@ import {
   ProductTypeUrlQueryParams
 } from "../../urls";
 import { ProductTypeUpdateErrors } from "./errors";
+import { ReorderEvent } from "@saleor/types";
 
 interface ProductTypeUpdateProps {
   id: string;
@@ -210,6 +211,25 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                     )
                   );
 
+                  const handleAttributeReorder = (
+                    event: ReorderEvent,
+                    type: AttributeTypeEnum
+                  ) => {
+                    const attributes =
+                      type === AttributeTypeEnum.PRODUCT
+                        ? data.productType.productAttributes
+                        : data.productType.variantAttributes;
+
+                    reorderAttribute.mutate({
+                      move: {
+                        id: attributes[event.oldIndex].id,
+                        sortOrder: event.newIndex - event.oldIndex
+                      },
+                      productTypeId: id,
+                      type
+                    });
+                  };
+
                   return (
                     <>
                       <WindowTitle title={maybe(() => data.productType.name)} />
@@ -234,19 +254,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                         onAttributeClick={attributeId =>
                           navigate(attributeUrl(attributeId))
                         }
-                        onAttributeReorder={(event, type) =>
-                          reorderAttribute.mutate({
-                            move: {
-                              id:
-                                data.productType.productAttributes[
-                                  event.oldIndex
-                                ].id,
-                              sortOrder: event.newIndex - event.oldIndex
-                            },
-                            productTypeId: id,
-                            type
-                          })
-                        }
+                        onAttributeReorder={handleAttributeReorder}
                         onAttributeUnassign={attributeId =>
                           navigate(
                             productTypeUrl(id, {
@@ -329,6 +337,13 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                                     )
                                   )}
                                   confirmButtonState={assignTransactionState}
+                                  errors={maybe(
+                                    () =>
+                                      assignAttribute.opts.data.attributeAssign.errors.map(
+                                        err => err.message
+                                      ),
+                                    []
+                                  )}
                                   loading={result.loading}
                                   onClose={closeModal}
                                   onSubmit={handleAssignAttribute}
@@ -343,7 +358,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                                     navigate(
                                       productTypeUrl(id, {
                                         ...params,
-                                        ids: ids.includes(id)
+                                        ids: ids.includes(attributeId)
                                           ? params.ids.filter(
                                               selectedId =>
                                                 selectedId !== attributeId
