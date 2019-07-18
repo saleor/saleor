@@ -35,11 +35,12 @@ from ..core.utils.promo_code import (
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
+    add_voucher_usage_by_customer,
     decrease_voucher_usage,
     get_products_voucher_discount,
-    get_shipping_voucher_discount,
-    get_value_voucher_discount,
     increase_voucher_usage,
+    remove_voucher_usage_by_customer,
+    validate_voucher_for_checkout,
 )
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
@@ -767,12 +768,8 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=Non
         )
         raise NotApplicable(msg)
 
-    return get_shipping_voucher_discount(
-        voucher,
-        calculate_checkout_subtotal(checkout, discounts).gross,
-        calculate_checkout_shipping(checkout, discounts).gross,
-        checkout.quantity,
-    )
+    shipping_price = calculate_checkout_shipping(checkout, discounts).gross
+    return voucher.get_discount_amount_for(shipping_price)
 
 
 def _get_products_voucher_discount(checkout, voucher, discounts=None):
@@ -798,8 +795,7 @@ def _get_products_voucher_discount(checkout, voucher, discounts=None):
             "Voucher not applicable", "This offer is only valid for selected items."
         )
         raise NotApplicable(msg)
-    subtotal = calculate_checkout_subtotal(checkout, discounts).gross
-    return get_products_voucher_discount(voucher, prices, subtotal, checkout.quantity)
+    return get_products_voucher_discount(voucher, prices)
 
 
 def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
@@ -807,9 +803,10 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
+    validate_voucher_for_checkout(voucher, checkout, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
         subtotal = calculate_checkout_subtotal(checkout, discounts).gross
-        return get_value_voucher_discount(voucher, subtotal, checkout.quantity)
+        return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
     if voucher.type in (
@@ -994,6 +991,8 @@ def _get_voucher_data_for_order(checkout):
         return {}
 
     increase_voucher_usage(voucher)
+    if voucher.apply_once_per_customer:
+        add_voucher_usage_by_customer(voucher, checkout.get_customer_email())
     return {
         "voucher": voucher,
         "discount_amount": checkout.discount_amount,
@@ -1034,7 +1033,7 @@ def _process_user_data_for_order(checkout):
 
     return {
         "user": checkout.user,
-        "user_email": checkout.user.email if checkout.user else checkout.email,
+        "user_email": checkout.get_customer_email(),
         "billing_address": billing_address,
         "customer_note": checkout.note,
     }
@@ -1135,7 +1134,10 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
 
 def abort_order_data(order_data: dict):
     if "voucher" in order_data:
-        decrease_voucher_usage(order_data["voucher"])
+        voucher = order_data["voucher"]
+        decrease_voucher_usage(voucher)
+        if "user_email" in order_data:
+            remove_voucher_usage_by_customer(voucher, order_data["user_email"])
 
 
 @transaction.atomic

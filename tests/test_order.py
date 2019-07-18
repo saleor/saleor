@@ -10,6 +10,7 @@ from saleor.account.models import User
 from saleor.checkout.utils import create_order, prepare_order_data
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.weight import zero_weight
+from saleor.discount.utils import validate_voucher_in_order
 from saleor.order import FulfillmentStatus, OrderStatus, events as order_events, models
 from saleor.order.models import Fulfillment, Order
 from saleor.order.utils import (
@@ -702,3 +703,20 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     variant.refresh_from_db()
     assert variant.quantity == stock_quantity_after
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
+
+
+@patch("saleor.discount.utils.validate_voucher")
+def test_get_voucher_discount_for_order_voucher_validation(
+    mock_validate_voucher, voucher, order_with_lines
+):
+    order_with_lines.voucher = voucher
+    order_with_lines.save()
+    subtotal = order_with_lines.get_subtotal()
+    quantity = order_with_lines.get_total_quantity()
+    customer_email = order_with_lines.get_customer_email()
+
+    validate_voucher_in_order(order_with_lines)
+
+    mock_validate_voucher.assert_called_once_with(
+        voucher, subtotal.gross, quantity, customer_email
+    )
