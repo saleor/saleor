@@ -1,4 +1,3 @@
-import importlib
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django.conf import settings
@@ -24,9 +23,7 @@ class ExtensionsManager:
     def __init__(self, plugins: List[str]):
         self.plugins = []
         for plugin_path in plugins:
-            plugin_path, _, plugin_name = plugin_path.rpartition(".")
-            plugin_module = importlib.import_module(plugin_path)
-            plugin_class = getattr(plugin_module, plugin_name)
+            plugin_class = import_string(plugin_path)
             self.plugins.append(plugin_class())
 
     def __run_method_on_plugins(
