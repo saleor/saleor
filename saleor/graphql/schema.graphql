@@ -3,6 +3,18 @@ schema {
   mutation: Mutations
 }
 
+input AccountInput {
+  firstName: String
+  lastName: String
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
+}
+
+type AccountUpdate {
+  errors: [Error!]
+  user: User
+}
+
 type Address implements Node {
   id: ID!
   firstName: String!
@@ -1654,6 +1666,7 @@ type Mutations {
   customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
   customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
+  accountUpdate(input: AccountInput!): AccountUpdate
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete

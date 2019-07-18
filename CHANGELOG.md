@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
 - Add voucher once per customer - #4442 by @fowczarek
 - New menu design - #4476 by @benekex2
+- Mutation for changing logged user first and last name - #4489 by @fowczarek
 - New translations:
   - Greek
 
