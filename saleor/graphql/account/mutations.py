@@ -256,7 +256,10 @@ class LoggedUserUpdate(CustomerCreate):
         )
 
     class Meta:
-        description = "Updates data of the logged in user."
+        description = (
+            "DEPRECATED: Use AccountUpdate instead. "
+            "Updates data of the logged in user."
+        )
         exclude = ["password"]
         model = models.User
 
