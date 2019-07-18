@@ -10,10 +10,10 @@ import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import { ChangeEvent, FormChange } from "@saleor/hooks/useForm";
 import useStateFromProps from "@saleor/hooks/useStateFromProps";
+import i18n from "@saleor/i18n";
 import { ProductTypeDetails_taxTypes } from "@saleor/productTypes/types/ProductTypeDetails";
 import { UserError } from "@saleor/types";
-import i18n from "../../../i18n";
-import { WeightUnitsEnum } from "../../../types/globalTypes";
+import { WeightUnitsEnum } from "@saleor/types/globalTypes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeShipping from "../ProductTypeShipping/ProductTypeShipping";
 import ProductTypeTaxes from "../ProductTypeTaxes/ProductTypeTaxes";
@@ -76,7 +76,7 @@ const ProductTypeCreatePage: React.StatelessComponent<
       onSubmit={onSubmit}
       confirmLeave
     >
-      {({ change, data, hasChanged, submit }) => (
+      {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container>
           <AppHeader onBack={onBack}>{i18n.t("Product Types")}</AppHeader>
           <PageHeader title={pageTitle} />
@@ -85,6 +85,7 @@ const ProductTypeCreatePage: React.StatelessComponent<
               <ProductTypeDetails
                 data={data}
                 disabled={disabled}
+                errors={formErrors}
                 onChange={change}
               />
               <CardSpacer />
