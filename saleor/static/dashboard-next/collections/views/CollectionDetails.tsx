@@ -288,13 +288,11 @@ export const CollectionDetails: React.StatelessComponent<
                         onFetch={search}
                         loading={result.loading}
                         onClose={closeModal}
-                        onSubmit={formData =>
+                        onSubmit={products =>
                           assignProduct.mutate({
                             ...paginationState,
                             collectionId: id,
-                            productIds: formData.products.map(
-                              product => product.id
-                            )
+                            productIds: products.map(product => product.id)
                           })
                         }
                         products={maybe(() =>
