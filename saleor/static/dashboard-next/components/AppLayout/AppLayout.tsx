@@ -248,7 +248,7 @@ interface AppLayoutProps {
 const AppLayout = withStyles(styles, {
   name: "AppLayout"
 })(
-  withRouter<AppLayoutProps & RouteComponentProps<any>>(
+  withRouter<AppLayoutProps & RouteComponentProps<any>, any>(
     ({
       classes,
       children,

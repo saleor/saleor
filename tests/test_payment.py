@@ -138,7 +138,7 @@ def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
 
     assert event_email_sent.type == OrderEvents.EMAIL_SENT
     assert event_email_sent.parameters == {
-        "email": order.get_user_current_email(),
+        "email": order.get_customer_email(),
         "email_type": OrderEventsEmails.PAYMENT,
     }
 

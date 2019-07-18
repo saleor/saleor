@@ -35,13 +35,38 @@ function parseErrors(errors: UserError[]): Record<string, string> {
     : {};
 }
 
-function useForm<T extends Record<keyof T, any | any[]>>(
+type FormData = Record<string, any | any[]>;
+
+function merge<T extends FormData>(prevData: T, prevState: T, data: T): T {
+  return Object.keys(prevState).reduce((acc, key) => {
+    if (!isEqual(data[key], prevData[key])) {
+      acc[key as keyof T] = data[key];
+    }
+
+    return acc;
+  }, prevState);
+}
+
+function handleRefresh<T extends FormData>(
+  data: T,
+  newData: T,
+  setChanged: (status: boolean) => void
+) {
+  if (isEqual(data, newData)) {
+    setChanged(false);
+  }
+}
+
+function useForm<T extends FormData>(
   initial: T,
   errors: UserError[],
   onSubmit: (data: T) => void
 ): UseFormResult<T> {
-  const [data, setData] = useStateFromProps(initial);
   const [hasChanged, setChanged] = useState(false);
+  const [data, setData] = useStateFromProps(initial, {
+    mergeFunc: merge,
+    onRefresh: newData => handleRefresh(data, newData, setChanged)
+  });
 
   function toggleValue(event: ChangeEvent<T>) {
     const { name, value } = event.target;
@@ -61,15 +86,15 @@ function useForm<T extends Record<keyof T, any | any[]>>(
     if (!(name in data)) {
       console.error(`Unknown form field: ${name}`);
       return;
+    } else {
+      if (data[name] !== value) {
+        setChanged(true);
+      }
+      setData(data => ({
+        ...data,
+        [name]: value
+      }));
     }
-
-    if (!hasChanged) {
-      setChanged(true);
-    }
-    setData({
-      ...data,
-      [name]: value
-    });
   }
 
   function reset() {
@@ -77,10 +102,10 @@ function useForm<T extends Record<keyof T, any | any[]>>(
   }
 
   function set(newData: Partial<T>) {
-    setData({
+    setData(data => ({
       ...data,
       ...newData
-    });
+    }));
   }
 
   function submit() {

@@ -138,11 +138,11 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         })),
       []
     ),
-    basePrice: maybe(() => product.basePrice.amount),
-    category: maybe(() => ({
-      label: product.category.name,
-      value: product.category.id
-    })),
+    basePrice: maybe(() => product.basePrice.amount, 0),
+    category: {
+      label: maybe(() => product.category.name, ""),
+      value: maybe(() => product.category.id, "")
+    },
     chargeTaxes: maybe(() => product.chargeTaxes, false),
     collections: productCollections
       ? productCollections.map(collection => ({
@@ -152,7 +152,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       : [],
     description: maybe(() => JSON.parse(product.descriptionJson)),
     isPublished: maybe(() => product.isPublished, false),
-    name: maybe(() => product.name),
+    name: maybe(() => product.name, ""),
     productType: maybe(() => ({
       label: product.productType.name,
       value: {
@@ -162,22 +162,22 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
         productAttributes: product.attributes.map(a => a.attribute)
       }
     })),
-    publicationDate: maybe(() => product.publicationDate),
-    seoDescription: maybe(() => product.seoDescription) || "",
-    seoTitle: maybe(() => product.seoTitle) || "",
+    publicationDate: maybe(() => product.publicationDate, ""),
+    seoDescription: maybe(() => product.seoDescription, ""),
+    seoTitle: maybe(() => product.seoTitle, ""),
     sku: maybe(() =>
       product.productType.hasVariants
-        ? undefined
+        ? ""
         : variants && variants[0]
         ? variants[0].sku
-        : undefined
+        : ""
     ),
     stockQuantity: maybe(() =>
       product.productType.hasVariants
-        ? undefined
+        ? 0
         : variants && variants[0]
         ? variants[0].quantity
-        : undefined
+        : 0
     )
   };
   const categories =
@@ -217,7 +217,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   data={data}
                   disabled={disabled}
                   errors={errors}
-                  product={product}
                   onChange={change}
                 />
                 <CardSpacer />
