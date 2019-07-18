@@ -328,6 +328,11 @@ export default (colors: IThemeColors): Theme =>
       createShadow(9, 44, 7, 11, 16, -6, 22, 35, 2),
       createShadow(9, 46, 8, 11, 15, -7, 24, 38, 3)
     ],
+    transitions: {
+      duration: {
+        short: 0.2
+      }
+    },
     typography: {
       allVariants: {
         fontFamily
