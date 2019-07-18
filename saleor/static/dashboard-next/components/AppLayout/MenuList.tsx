@@ -110,7 +110,7 @@ const styles = (theme: Theme) =>
       background: "#000",
       cursor: "pointer",
       height: "100vh",
-      left: drawerWidth,
+      left: drawerWidthExpanded,
       opacity: 0.2,
       position: "absolute",
       top: 0,
@@ -119,8 +119,8 @@ const styles = (theme: Theme) =>
     },
     subMenuDrawerOpen: {
       "&$subMenuDrawerSmall": {
-        left: drawerWidth,
-        width: `calc(100vw - ${drawerWidth})px`
+        left: drawerWidthExpanded,
+        width: `calc(100vw - ${drawerWidthExpanded})px`
       },
       width: `calc(100vw - ${drawerWidthExpanded}px)`
     },
