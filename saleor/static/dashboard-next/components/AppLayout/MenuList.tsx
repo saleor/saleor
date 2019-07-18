@@ -17,7 +17,6 @@ import { configurationMenu, configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { createHref } from "../../misc";
 import { orderDraftListUrl, orderListUrl } from "../../orders/urls";
-import { drawerWidth, drawerWidthExpanded } from "./consts";
 import MenuNested from "./MenuNested";
 import { IMenuItem } from "./menuStructure";
 
@@ -48,9 +47,18 @@ const styles = (theme: Theme) =>
         "& path": {
           fill: theme.palette.primary.main
         },
+        "&:before": {
+          borderLeft: `solid 2px ${theme.palette.primary.main}`,
+          content: "''",
+          height: 33,
+          left: -25,
+          position: "absolute",
+          top: 8
+        },
         color: theme.palette.primary.main
       },
-      cursor: "pointer"
+      cursor: "pointer",
+      position: "relative"
     },
     menuList: {
       display: "flex",
@@ -63,7 +71,7 @@ const styles = (theme: Theme) =>
     menuListItem: {
       alignItems: "center",
       display: "block",
-      marginTop: theme.spacing.unit * 2,
+      marginBottom: theme.spacing.unit * 5,
       paddingLeft: 0,
       textDecoration: "none",
       transition: theme.transitions.duration.standard + "ms"
@@ -75,18 +83,21 @@ const styles = (theme: Theme) =>
       "& path": {
         color: theme.palette.primary.main,
         fill: theme.palette.primary.main
-      },
-      "&:before": {
-        background: theme.palette.primary.main,
-        content: "''",
-        height: "100%",
-        left: -32,
-        position: "absolute",
-        width: 5
       }
     },
-    menuListItemSmall: {
-      marginTop: theme.spacing.unit * 2
+    menuListItemOpen: {
+      "&:after": {
+        borderBottom: `10px solid transparent`,
+        borderLeft: `10px solid ${theme.palette.background.paper}`,
+        borderTop: `10px solid transparent`,
+        content: "''",
+        height: 0,
+        position: "absolute",
+        right: -35,
+        top: 15,
+        width: 0
+      },
+      position: "relative"
     },
     menuListItemText: {
       "&:hover": {
@@ -99,7 +110,7 @@ const styles = (theme: Theme) =>
       opacity: 1,
       paddingLeft: 16,
       textTransform: "uppercase",
-      transition: "opacity 0.2s ease"
+      transition: "opacity 0.2s ease 0.1s"
     },
     menuListItemTextHide: {
       opacity: 0,
@@ -113,7 +124,7 @@ const styles = (theme: Theme) =>
       background: "#000",
       cursor: "pointer",
       height: "100vh",
-      left: drawerWidthExpanded,
+      left: 0,
       opacity: 0.2,
       position: "absolute",
       top: 0,
@@ -121,15 +132,7 @@ const styles = (theme: Theme) =>
       zIndex: -2
     },
     subMenuDrawerOpen: {
-      "&$subMenuDrawerSmall": {
-        left: drawerWidthExpanded,
-        width: `calc(100vw - ${drawerWidthExpanded}px)`
-      },
-      width: `calc(100vw - ${drawerWidthExpanded}px)`
-    },
-    subMenuDrawerSmall: {
-      left: drawerWidth,
-      width: `calc(100vw - ${drawerWidth}px)`
+      width: `100vw`
     }
   });
 
@@ -220,12 +223,15 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             return (
               <div
                 className={classNames(classes.menuListItem, {
-                  [classes.menuListItemSmall]: !isMenuSmall,
                   [classes.menuListItemActive]: isAnyChildActive
                 })}
               >
                 <div
-                  className={classes.menuItemHover}
+                  className={classNames(classes.menuItemHover, {
+                    [classes.menuListItemOpen]:
+                      menuItem.ariaLabel === activeSubMenu.label &&
+                      activeSubMenu.isActive
+                  })}
                   onClick={() => handleSubMenu(menuItem.ariaLabel)}
                 >
                   <SVG
@@ -256,8 +262,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                 <div
                   onClick={event => closeSubMenu(null, event)}
                   className={classNames(classes.subMenuDrawer, {
-                    [classes.subMenuDrawerOpen]: activeSubMenu.isActive,
-                    [classes.subMenuDrawerSmall]: !isMenuSmall
+                    [classes.subMenuDrawerOpen]: activeSubMenu.isActive
                   })}
                 />
               </div>
@@ -267,7 +272,6 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
           return (
             <a
               className={classNames(classes.menuListItem, {
-                [classes.menuListItemSmall]: !isMenuSmall,
                 [classes.menuListItemActive]: isActive(menuItem)
               })}
               href={createHref(menuItem.url)}
@@ -300,9 +304,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
               .includes(menuItem.permission)
           ).length > 0 && (
             <a
-              className={classNames(classes.menuListItem, {
-                [classes.menuListItemSmall]: !isMenuSmall
-              })}
+              className={classes.menuListItem}
               href={createHref(configurationMenuUrl)}
               onClick={event => onMenuItemClick(configurationMenuUrl, event)}
             >

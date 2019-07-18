@@ -91,15 +91,28 @@ const styles = (theme: Theme) =>
         marginTop: 12,
         transform: "rotate(180deg)"
       },
+      "&:hover": {
+        background: "#E6F3F3"
+      },
       background: theme.palette.background.paper,
+      border: `solid 1px #EAEAEA`,
       borderRadius: "50%",
       cursor: "pointer",
       height: 32,
       position: "absolute",
       right: -16,
       top: 65,
+      transition: "background 0.2s",
       width: 32,
       zIndex: 99
+    },
+    isMenuSmallDark: {
+      "&:hover": {
+        background:
+          "linear-gradient(0deg, rgba(25, 195, 190, 0.1), rgba(25, 195, 190, 0.1)), #2E2F31"
+      },
+      border: `solid 1px #252728`,
+      transition: "background 0.2s"
     },
     isMenuSmallHide: {
       "& svg": {
@@ -246,7 +259,7 @@ interface AppLayoutProps {
 const AppLayout = withStyles(styles, {
   name: "AppLayout"
 })(
-  withRouter<AppLayoutProps & RouteComponentProps<any>, any>(
+  withRouter<AppLayoutProps & RouteComponentProps<any>>(
     ({
       classes,
       children,
@@ -316,7 +329,8 @@ const AppLayout = withStyles(styles, {
                       <Hidden smDown>
                         <div
                           className={classNames(classes.isMenuSmall, {
-                            [classes.isMenuSmallHide]: isMenuSmall
+                            [classes.isMenuSmallHide]: isMenuSmall,
+                            [classes.isMenuSmallDark]: isDark
                           })}
                           onClick={handleIsMenuSmall}
                         >
