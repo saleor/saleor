@@ -113,6 +113,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
               }
               onValueAdd={() => openModal("add-value")}
               onValueDelete={id => openModal("remove-value", id)}
+              onValueReorder={() => undefined}
               onValueUpdate={id => openModal("edit-value", id)}
               saveButtonBarState={createTransitionState}
               values={values.map((value, valueIndex) => ({
