@@ -1,5 +1,6 @@
 from operator import itemgetter
 
+from graphql_jwt.decorators import permission_required
 import graphene
 
 
@@ -53,3 +54,37 @@ class MetaPath(graphene.InputObjectType):
 
 class MetaInput(MetaPath):
     value = graphene.String(required=True, description="Stored metadata value.")
+
+
+class MetadataObjectType(graphene.ObjectType):
+    private_meta = graphene.List(
+        MetaStore,
+        required=True,
+        description="List of privately stored metadata namespaces.",
+    )
+    meta = graphene.List(
+        MetaStore,
+        required=True,
+        description="List of publicly stored metadata namespaces.",
+    )
+
+    @staticmethod
+    @permission_required("account.manage_users")
+    def resolve_private_meta(root, _info):
+        return sorted(
+            [
+                {"namespace": namespace, "metadata": data}
+                for namespace, data in root.private_meta.items()
+            ],
+            key=itemgetter("namespace"),
+        )
+
+    @staticmethod
+    def resolve_meta(root, _info):
+        return sorted(
+            [
+                {"namespace": namespace, "metadata": data}
+                for namespace, data in root.meta.items()
+            ],
+            key=itemgetter("namespace"),
+        )
