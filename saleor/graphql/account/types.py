@@ -11,7 +11,7 @@ from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import CountryDisplay, Image, PermissionDisplay, MetadataObjectType
+from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum

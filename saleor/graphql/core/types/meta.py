@@ -1,7 +1,7 @@
 from operator import itemgetter
 
-from graphql_jwt.decorators import permission_required
 import graphene
+from graphql_jwt.decorators import permission_required
 
 
 class MetaItem(graphene.ObjectType):
