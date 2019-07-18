@@ -11,7 +11,7 @@ import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { productType } from "@saleor/productTypes/fixtures";
+import { ReorderEvent } from "@saleor/types";
 import { AttributeTypeEnum } from "@saleor/types/globalTypes";
 import ProductTypeAttributeUnassignDialog from "../../components/ProductTypeAttributeUnassignDialog";
 import ProductTypeBulkAttributeUnassignDialog from "../../components/ProductTypeBulkAttributeUnassignDialog";
@@ -31,7 +31,6 @@ import {
   ProductTypeUrlQueryParams
 } from "../../urls";
 import { ProductTypeUpdateErrors } from "./errors";
-import { ReorderEvent } from "@saleor/types";
 
 interface ProductTypeUpdateProps {
   id: string;
