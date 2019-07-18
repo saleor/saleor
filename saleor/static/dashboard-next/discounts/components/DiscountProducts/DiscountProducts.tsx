@@ -95,7 +95,6 @@ const DiscountProducts = withStyles(styles, {
           toolbar={toolbar}
         >
           <TableCell />
-          <TableCell />
           <TableCell className={classes.colName}>
             {i18n.t("Product name")}
           </TableCell>

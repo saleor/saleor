@@ -407,13 +407,13 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   onFetch={searchCategories}
                                   loading={searchCategoriesOpts.loading}
                                   onClose={closeModal}
-                                  onSubmit={formData =>
+                                  onSubmit={categories =>
                                     voucherCataloguesAdd({
                                       variables: {
                                         ...paginationState,
                                         id,
                                         input: {
-                                          categories: formData.categories.map(
+                                          categories: categories.map(
                                             product => product.id
                                           )
                                         }
@@ -444,13 +444,13 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   onFetch={searchCollections}
                                   loading={searchCollectionsOpts.loading}
                                   onClose={closeModal}
-                                  onSubmit={formData =>
+                                  onSubmit={collections =>
                                     voucherCataloguesAdd({
                                       variables: {
                                         ...paginationState,
                                         id,
                                         input: {
-                                          collections: formData.collections.map(
+                                          collections: collections.map(
                                             product => product.id
                                           )
                                         }
@@ -496,13 +496,13 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   onFetch={searchProducts}
                                   loading={searchProductsOpts.loading}
                                   onClose={closeModal}
-                                  onSubmit={formData =>
+                                  onSubmit={products =>
                                     voucherCataloguesAdd({
                                       variables: {
                                         ...paginationState,
                                         id,
                                         input: {
-                                          products: formData.products.map(
+                                          products: products.map(
                                             product => product.id
                                           )
                                         }

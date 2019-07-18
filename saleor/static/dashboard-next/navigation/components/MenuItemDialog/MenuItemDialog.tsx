@@ -11,7 +11,6 @@ import AutocompleteSelectMenu from "@saleor/components/AutocompleteSelectMenu";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
-import Form from "@saleor/components/Form";
 import FormSpacer from "@saleor/components/FormSpacer";
 import { SearchCategories_categories_edges_node } from "../../../containers/SearchCategories/types/SearchCategories";
 import { SearchCollections_collections_edges_node } from "../../../containers/SearchCollections/types/SearchCollections";
@@ -82,6 +81,9 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
 }) => {
   const [displayValue, setDisplayValue] = React.useState(
     initialDisplayValue || ""
+  );
+  const [data, setData] = React.useState<MenuItemDialogFormData>(
+    initial || defaultInitial
   );
   const [url, setUrl] = React.useState<string>(undefined);
 
@@ -177,6 +179,19 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
     onQueryChange(query);
   };
 
+  const handleSelectChange = (event: React.ChangeEvent<any>) => {
+    const value = event.target.value;
+    const menuItemData = getMenuItemData(value);
+
+    setData(value => ({
+      ...value,
+      ...menuItemData
+    }));
+    setDisplayValue(getDisplayValue(options, value));
+  };
+
+  const handleSubmit = () => onSubmit(data);
+
   return (
     <Dialog
       onClose={onClose}
@@ -192,75 +207,49 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
           context: "create new menu item"
         })}
       </DialogTitle>
-      <Form initial={initial || defaultInitial} onSubmit={onSubmit}>
-        {({ change, data, submit }) => {
-          const handleSelectChange = (event: React.ChangeEvent<any>) => {
-            const value = event.target.value;
-            const menuItemData = getMenuItemData(value);
-            change(
-              {
-                target: {
-                  name: "id",
-                  value: menuItemData.id
-                }
-              } as any,
-              () =>
-                change(
-                  {
-                    target: {
-                      name: "type",
-                      value: menuItemData.type
-                    }
-                  } as any,
-                  () => setDisplayValue(getDisplayValue(options, value))
-                )
-            );
-          };
-
-          return (
-            <>
-              <DialogContent style={{ overflowY: "visible" }}>
-                <TextField
-                  disabled={disabled}
-                  label={i18n.t("Name")}
-                  fullWidth
-                  value={data.name}
-                  onChange={change}
-                  name={"name" as keyof MenuItemDialogFormData}
-                  helperText=""
-                />
-                <FormSpacer />
-                <AutocompleteSelectMenu
-                  disabled={disabled}
-                  onChange={handleSelectChange}
-                  name={"id" as keyof MenuItemDialogFormData}
-                  helperText=""
-                  label={i18n.t("Link")}
-                  displayValue={displayValue}
-                  loading={loading}
-                  error={false}
-                  options={options}
-                  placeholder={i18n.t("Start typing to begin search...")}
-                  onInputChange={handleQueryChange}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={onClose}>
-                  {i18n.t("Cancel", { context: "button" })}
-                </Button>
-                <ConfirmButton
-                  transitionState={confirmButtonState}
-                  color="primary"
-                  variant="contained"
-                  onClick={submit}
-                >
-                  {i18n.t("Submit", { context: "button" })}
-                </ConfirmButton>
-              </DialogActions>
-            </>
-          );
-        }}
-      </Form>
+      <DialogContent style={{ overflowY: "visible" }}>
+        <TextField
+          disabled={disabled}
+          label={i18n.t("Name")}
+          fullWidth
+          value={data.name}
+          onChange={event =>
+            setData(value => ({
+              ...value,
+              name: event.target.value
+            }))
+          }
+          name="name"
+          helperText=""
+        />
+        <FormSpacer />
+        <AutocompleteSelectMenu
+          disabled={disabled}
+          onChange={handleSelectChange}
+          name="id"
+          helperText=""
+          label={i18n.t("Link")}
+          displayValue={displayValue}
+          loading={loading}
+          error={false}
+          options={options}
+          placeholder={i18n.t("Start typing to begin search...")}
+          onInputChange={handleQueryChange}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>
+          {i18n.t("Cancel", { context: "button" })}
+        </Button>
+        <ConfirmButton
+          transitionState={confirmButtonState}
+          color="primary"
+          variant="contained"
+          onClick={handleSubmit}
+        >
+          {i18n.t("Submit", { context: "button" })}
+        </ConfirmButton>
+      </DialogActions>
     </Dialog>
   );
 };
