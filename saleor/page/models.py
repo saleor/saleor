@@ -1,10 +1,11 @@
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.urls import reverse
 from django.utils.html import strip_tags
 from django.utils.translation import pgettext_lazy
+from draftjs_sanitizer import clean_draft_js
 
+from ..core.fields import SanitizedJSONField
 from ..core.models import PublishableModel, PublishedQuerySet
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
@@ -22,7 +23,9 @@ class Page(SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=100)
     title = models.CharField(max_length=200)
     content = models.TextField(blank=True)
-    content_json = JSONField(blank=True, default=dict)
+    content_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_draft_js
+    )
     created = models.DateTimeField(auto_now_add=True)
 
     objects = PagePublishedQuerySet.as_manager()
@@ -57,7 +60,9 @@ class PageTranslation(SeoModelTranslation):
     )
     title = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
-    content_json = JSONField(blank=True, default=dict)
+    content_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_draft_js
+    )
 
     class Meta:
         unique_together = (("language_code", "page"),)
