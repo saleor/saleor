@@ -938,6 +938,41 @@ def test_logged_customer_update_anonymous_user(api_client, query):
     assert_no_permission(response)
 
 
+ACCOUNT_DELETE_QUERY = """
+    mutation accountDelete {
+        accountDelete {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+@patch("saleor.account.emails.send_account_delete_confirmation_email.delay")
+def test_account_delete(send_account_delete_confirmation_email_mock, user_api_client):
+    user = user_api_client.user
+
+    response = user_api_client.post_graphql(ACCOUNT_DELETE_QUERY)
+    content = get_graphql_content(response)
+    data = content["data"]["accountDelete"]
+
+    assert not data["errors"]
+    send_account_delete_confirmation_email_mock.assert_called_once_with(
+        str(user.token), user.email
+    )
+
+
+@patch("saleor.account.emails.send_account_delete_confirmation_email.delay")
+def test_account_delete_anonymous_user(
+    send_account_delete_confirmation_email_mock, api_client
+):
+    response = api_client.post_graphql(ACCOUNT_DELETE_QUERY, {})
+    assert_no_permission(response)
+    send_account_delete_confirmation_email_mock.assert_not_called()
+
+
 @patch(
     "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
 )
