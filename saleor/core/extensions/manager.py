@@ -2,6 +2,7 @@ import importlib
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django.conf import settings
+from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -199,7 +200,5 @@ def get_extensions_manager(
     manager_path: str = settings.EXTENSIONS_MANAGER,
     plugins: List[str] = settings.PLUGINS,
 ) -> ExtensionsManager:
-    manager_path, _, manager_name = manager_path.rpartition(".")
-    manager_module = importlib.import_module(manager_path)
-    manager_class = getattr(manager_module, manager_name, None)
-    return manager_class(plugins)
+    manager = import_string(manager_path)
+    return manager(plugins)
