@@ -820,6 +820,55 @@ def test_customer_update_without_any_changes_generates_no_event(
     assert not account_events.CustomerEvent.objects.exists()
 
 
+ACCOUNT_UPDATE_QUERY = """
+    mutation accountUpdate(
+            $billing: AddressInput, $shipping: AddressInput, $firstName: String,
+            $lastName: String) {
+        accountUpdate(
+          input: {
+            defaultBillingAddress: $billing,
+            defaultShippingAddress: $shipping,
+            firstName: $firstName,
+            lastName: $lastName,
+        }) {
+            errors {
+                field
+                message
+            }
+            user {
+                firstName
+                lastName
+                email
+                defaultBillingAddress {
+                    id
+                }
+                defaultShippingAddress {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def test_logged_customer_update_names(user_api_client):
+    first_name = "first"
+    last_name = "last"
+    user = user_api_client.user
+    assert user.first_name != first_name
+    assert user.last_name != last_name
+
+    variables = {"firstName": first_name, "lastName": last_name}
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountUpdate"]
+
+    user.refresh_from_db()
+    assert not data["errors"]
+    assert user.first_name == first_name
+    assert user.last_name == last_name
+
+
 UPDATE_LOGGED_CUSTOMER_QUERY = """
     mutation UpdateLoggedCustomer($billing: AddressInput,
                                   $shipping: AddressInput) {
@@ -846,7 +895,16 @@ UPDATE_LOGGED_CUSTOMER_QUERY = """
 """
 
 
-def test_logged_customer_update(user_api_client, graphql_address_data):
+@pytest.mark.parametrize(
+    "query, mutation_name",
+    [
+        (UPDATE_LOGGED_CUSTOMER_QUERY, "loggedUserUpdate"),
+        (ACCOUNT_UPDATE_QUERY, "accountUpdate"),
+    ],
+)
+def test_logged_customer_update_addresses(
+    user_api_client, graphql_address_data, query, mutation_name
+):
     # this test requires addresses to be set and checks whether new address
     # instances weren't created, but the existing ones got updated
     user = user_api_client.user
@@ -856,9 +914,9 @@ def test_logged_customer_update(user_api_client, graphql_address_data):
     assert user.default_billing_address.first_name != new_first_name
     assert user.default_shipping_address.first_name != new_first_name
     variables = {"billing": graphql_address_data, "shipping": graphql_address_data}
-    response = user_api_client.post_graphql(UPDATE_LOGGED_CUSTOMER_QUERY, variables)
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["loggedUserUpdate"]
+    data = content["data"][mutation_name]
     assert not data["errors"]
 
     # check that existing instances are updated
@@ -872,8 +930,11 @@ def test_logged_customer_update(user_api_client, graphql_address_data):
     assert user.default_shipping_address.first_name == new_first_name
 
 
-def test_logged_customer_update_anonymous_user(api_client):
-    response = api_client.post_graphql(UPDATE_LOGGED_CUSTOMER_QUERY, {})
+@pytest.mark.parametrize(
+    "query", [(UPDATE_LOGGED_CUSTOMER_QUERY), (ACCOUNT_UPDATE_QUERY)]
+)
+def test_logged_customer_update_anonymous_user(api_client, query):
+    response = api_client.post_graphql(query, {})
     assert_no_permission(response)
 
 
