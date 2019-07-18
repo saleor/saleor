@@ -3,6 +3,7 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -40,6 +41,7 @@ const styles = createStyles({
 
 export interface AssignAttributeDialogProps {
   confirmButtonState: ConfirmButtonTransitionState;
+  errors: string[];
   open: boolean;
   attributes: SearchAttributes_attributes_edges_node[];
   loading: boolean;
@@ -60,6 +62,7 @@ const AssignAttributeDialog = withStyles(styles, {
     attributes,
     classes,
     confirmButtonState,
+    errors,
     loading,
     open,
     selected,
@@ -138,6 +141,13 @@ const AssignAttributeDialog = withStyles(styles, {
                 </TableBody>
               </Table>
             </DialogContent>
+            {errors.length > 0 && (
+              <DialogContent>
+                {errors.map(error => (
+                  <DialogContentText color="error">{error}</DialogContentText>
+                ))}
+              </DialogContent>
+            )}
             <DialogActions>
               <Button onClick={onClose}>
                 {i18n.t("Cancel", { context: "button" })}
