@@ -1,3 +1,4 @@
+import json
 from typing import Callable
 
 from django.contrib.postgres.fields.jsonb import JSONField
@@ -21,4 +22,4 @@ class SanitizedJSONField(JSONField):
 
     def get_db_prep_save(self, value: dict, connection):
         """Sanitize the value for saving using the passed sanitizer."""
-        return self._sanitizer_method(value)
+        return json.dumps(self._sanitizer_method(value))
