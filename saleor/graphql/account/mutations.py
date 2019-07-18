@@ -797,35 +797,12 @@ class UserUpdateMeta(UpdateMetaBaseMutation):
         model = models.User
 
 
-class UserUpdatePrivateMeta(BaseMutation):
-    user = graphene.Field(User, description="An updated user instance.")
-
+class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for user."
         permissions = ("account.manage_users",)
-
-    class Arguments:
-        id = graphene.ID(description="ID of a customer to update.", required=True)
-        input = MetaInput(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
-        )
-
-    @classmethod
-    @staff_member_required
-    def perform_mutation(cls, root, info, **data):
-        user_id = data.pop("id")
-        user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
-
-        metadata = data.pop("input")
-        stored_data = user.get_private_meta(metadata.namespace, metadata.client_name)
-        stored_data[metadata.key] = metadata.value
-        user.store_private_meta(
-            namespace=metadata.namespace, client=metadata.client_name, item=stored_data
-        )
-        user.save()
-
-        return UserUpdatePrivateMeta(user=user)
+        model = models.User
+        public = False
 
 
 class UserClearStoredMeta(BaseMutation):
