@@ -102,17 +102,18 @@ const styles = (theme: Theme) =>
       position: "absolute",
       right: -16,
       top: 65,
-      transition: `background ${theme.transitions.duration.short}s`,
+      transition: `background ${theme.transitions.duration.shorter}ms`,
       width: 32,
       zIndex: 99
     },
     isMenuSmallDark: {
       "&:hover": {
-        background:
-          "linear-gradient(0deg, rgba(25, 195, 190, 0.1), rgba(25, 195, 190, 0.1)), #2E2F31"
+        background: `linear-gradient(0deg, rgba(25, 195, 190, 0.1), rgba(25, 195, 190, 0.1)), ${
+          theme.palette.background.paper
+        }`
       },
       border: `solid 1px #252728`,
-      transition: `background  ${theme.transitions.duration.short}s`
+      transition: `background  ${theme.transitions.duration.shorter}ms`
     },
     isMenuSmallHide: {
       "& svg": {
@@ -176,7 +177,7 @@ const styles = (theme: Theme) =>
       marginRight: theme.spacing.unit * 2,
       position: "relative",
       transform: "rotate(0deg)",
-      transition: `${theme.transitions.duration.short}s ease-in-out`,
+      transition: `${theme.transitions.duration.shorter}ms ease-in-out`,
       width: 42
     },
     menuIconDark: {
@@ -259,7 +260,7 @@ interface AppLayoutProps {
 const AppLayout = withStyles(styles, {
   name: "AppLayout"
 })(
-  withRouter<AppLayoutProps & RouteComponentProps<any>>(
+  withRouter<AppLayoutProps & RouteComponentProps<any>, any>(
     ({
       classes,
       children,

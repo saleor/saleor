@@ -110,12 +110,12 @@ const styles = (theme: Theme) =>
       opacity: 1,
       paddingLeft: 16,
       textTransform: "uppercase",
-      transition: `opacity  ${theme.transitions.duration.short}s ease 0.1s`
+      transition: `opacity  ${theme.transitions.duration.shorter}ms ease 0.1s`
     },
     menuListItemTextHide: {
       opacity: 0,
       position: "absolute",
-      transition: `opacity  ${theme.transitions.duration.short}s ease`
+      transition: `opacity  ${theme.transitions.duration.shorter}ms ease`
     },
     subMenu: {
       padding: "0 15px"
