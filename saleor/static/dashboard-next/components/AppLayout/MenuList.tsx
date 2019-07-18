@@ -37,6 +37,9 @@ const styles = (theme: Theme) =>
         fill: theme.palette.common.white
       }
     },
+    menuIsActive: {
+      boxShadow: "0px 0px 12px 1px rgba(0,0,0,0.2)"
+    },
     menuItemHover: {
       "& path": {
         transition: "fill 0.5s ease"
@@ -120,13 +123,13 @@ const styles = (theme: Theme) =>
     subMenuDrawerOpen: {
       "&$subMenuDrawerSmall": {
         left: drawerWidthExpanded,
-        width: `calc(100vw - ${drawerWidthExpanded})px`
+        width: `calc(100vw - ${drawerWidthExpanded}px)`
       },
       width: `calc(100vw - ${drawerWidthExpanded}px)`
     },
     subMenuDrawerSmall: {
       left: drawerWidth,
-      width: `calc(100vw - ${drawerWidth})px`
+      width: `calc(100vw - ${drawerWidth}px)`
     }
   });
 
@@ -183,7 +186,11 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     };
 
     return (
-      <div className={className}>
+      <div
+        className={classNames(className, {
+          [classes.menuIsActive]: activeSubMenu.isActive
+        })}
+      >
         {/* FIXME: this .split("?")[0] looks gross */}
         {menuItems.map(menuItem => {
           const isActive = (menuItem: IMenuItem) =>

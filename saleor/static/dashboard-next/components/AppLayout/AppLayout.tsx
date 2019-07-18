@@ -128,7 +128,6 @@ const styles = (theme: Theme) =>
     },
     menu: {
       background: theme.palette.background.paper,
-      boxShadow: "0px 0px 12px 1px rgba(0,0,0,0.2)",
       height: "100vh",
       padding: 25
     },
@@ -192,7 +191,6 @@ const styles = (theme: Theme) =>
     },
     menuSmall: {
       background: theme.palette.background.paper,
-      boxShadow: "0px 0px 12px 1px rgba(0,0,0,0.2)",
       height: "100vh",
       padding: 25
     },
