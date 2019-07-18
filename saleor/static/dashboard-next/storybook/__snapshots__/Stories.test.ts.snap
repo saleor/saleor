@@ -54870,7 +54870,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1gvrafz"
+        class="FilterChips-actionContainer-1jbw410"
       >
         <div>
           <button
@@ -56435,7 +56435,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1gvrafz"
+        class="FilterChips-actionContainer-1jbw410"
       >
         <div>
           <button
@@ -56804,7 +56804,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1gvrafz"
+        class="FilterChips-actionContainer-1jbw410"
       >
         <div>
           <button
@@ -57107,7 +57107,7 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1gvrafz"
+        class="FilterChips-actionContainer-1jbw410"
       >
         <div>
           <button
@@ -57154,27 +57154,27 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-filterContainer-1yn6kq2"
+        class="FilterChips-filterContainer-kmt5lr"
       >
         <div
-          class="FilterChips-filterChipContainer-sphkea"
+          class="FilterChips-filterChipContainer-kqa8h6"
         >
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 0
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57190,21 +57190,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 1
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57220,21 +57220,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 2
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57250,21 +57250,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 3
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57280,21 +57280,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 4
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57310,21 +57310,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 5
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57340,21 +57340,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 6
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57370,21 +57370,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 7
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57400,21 +57400,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 8
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57430,21 +57430,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 9
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57460,21 +57460,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 10
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57490,21 +57490,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 11
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57520,21 +57520,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 12
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57550,21 +57550,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 13
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -57580,21 +57580,21 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 14
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -73189,7 +73189,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1gvrafz"
+        class="FilterChips-actionContainer-1jbw410"
       >
         <div>
           <button
@@ -74036,7 +74036,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1gvrafz"
+        class="FilterChips-actionContainer-1jbw410"
       >
         <div>
           <button
@@ -74402,7 +74402,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1gvrafz"
+        class="FilterChips-actionContainer-1jbw410"
       >
         <div>
           <button
@@ -74697,7 +74697,7 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-actionContainer-1gvrafz"
+        class="FilterChips-actionContainer-1jbw410"
       >
         <div>
           <button
@@ -74744,27 +74744,27 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
         </div>
       </div>
       <div
-        class="FilterChips-filterContainer-1yn6kq2"
+        class="FilterChips-filterContainer-kmt5lr"
       >
         <div
-          class="FilterChips-filterChipContainer-sphkea"
+          class="FilterChips-filterChipContainer-kqa8h6"
         >
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 0
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -74780,21 +74780,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 1
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -74810,21 +74810,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 2
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -74840,21 +74840,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 3
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -74870,21 +74870,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 4
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -74900,21 +74900,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 5
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -74930,21 +74930,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 6
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -74960,21 +74960,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 7
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -74990,21 +74990,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 8
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -75020,21 +75020,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 9
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -75050,21 +75050,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 10
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -75080,21 +75080,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 11
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -75110,21 +75110,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property X is 12
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -75140,21 +75140,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Y is 13
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
@@ -75170,21 +75170,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
             </button>
           </div>
           <div
-            class="FilterChips-filterButton-1tqc0w9"
+            class="FilterChips-filterButton-144fvze"
           >
             <p
-              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-160usjk"
+              class="MuiTypography-root-id MuiTypography-body2-id FilterChips-filterText-od0r19"
             >
               Property Z is 14
             </p>
             <button
-              class="MuiButtonBase-root-id FilterChips-filterIconContainer-fdh8qj"
+              class="MuiButtonBase-root-id FilterChips-filterIconContainer-1k05af2"
               tabindex="0"
               type="button"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root-id FilterChips-filterIcon-fnzp4s"
+                class="MuiSvgIcon-root-id FilterChips-filterIcon-1qj155d"
                 focusable="false"
                 role="presentation"
                 viewBox="0 0 24 24"
