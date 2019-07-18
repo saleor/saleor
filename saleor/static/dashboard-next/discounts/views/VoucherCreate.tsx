@@ -65,7 +65,7 @@ export const VoucherDetails: React.StatelessComponent = () => {
                       endDate: formData.hasEndDate
                         ? joinDateTime(formData.endDate, formData.endTime)
                         : null,
-                      minAmountSpent: parseInt(formData.minAmountSpent, 10),
+                      minAmountSpent: parseFloat(formData.minAmountSpent),
                       startDate: joinDateTime(
                         formData.startDate,
                         formData.startTime
