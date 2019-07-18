@@ -186,6 +186,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                   onValueDelete={id =>
                                     openModal("remove-value", id)
                                   }
+                                  onValueReorder={() => undefined}
                                   onValueUpdate={id =>
                                     openModal("edit-value", id)
                                   }
