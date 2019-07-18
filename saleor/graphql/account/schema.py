@@ -8,6 +8,7 @@ from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActi
 from .enums import CountryCodeEnum
 from .filters import CustomerFilter, StaffUserFilter
 from .mutations import (
+    AccountUpdate,
     AddressCreate,
     AddressDelete,
     AddressSetDefault,
@@ -109,6 +110,7 @@ class AccountMutations(graphene.ObjectType):
     customer_set_default_address = CustomerSetDefaultAddress.Field()
 
     logged_user_update = LoggedUserUpdate.Field()
+    account_update = AccountUpdate.Field()
 
     staff_create = StaffCreate.Field()
     staff_delete = StaffDelete.Field()
