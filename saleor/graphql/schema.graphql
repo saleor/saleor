@@ -3,6 +3,10 @@ schema {
   mutation: Mutations
 }
 
+type AccountDelete {
+  errors: [Error!]
+}
+
 input AccountInput {
   firstName: String
   lastName: String
@@ -1667,6 +1671,7 @@ type Mutations {
   customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   accountUpdate(input: AccountInput!): AccountUpdate
+  accountDelete: AccountDelete
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete
