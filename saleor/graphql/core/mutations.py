@@ -19,6 +19,7 @@ from ...account import models
 from ..account.types import User
 from ..utils import get_nodes
 from .types import Error, Upload
+from .types_meta import MetaInput
 from .utils import snake_to_camel_case
 
 registry = get_global_registry()
@@ -521,3 +522,58 @@ class VerifyToken(Verify):
             return super().mutate(root, info, token, **kwargs)
         except JSONWebTokenError:
             return None
+
+
+class MetaUpdateOptions(MutationOptions):
+    model = None
+    id_field = None
+    public = True
+
+
+class UpdateMetaBaseMutation(BaseMutation):
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, model=None, id_field=None, public=True, _meta=None, **kwargs):
+        if not model:
+            raise ImproperlyConfigured("model is required for update meta mutation")
+        if not _meta:
+            _meta = MetaUpdateOptions(cls)
+        _meta.model = model
+        _meta.public = public
+        _meta.id_field = id_field
+
+        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+
+    class Arguments:
+        id = graphene.ID(description="ID of an object to update.", required=True)
+        input = MetaInput(
+            description="Fields required to update new or stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        instance = cls.get_instance(info, **data)
+
+        metadata = data.pop("input")
+        stored_data = instance.get_meta(metadata.namespace, metadata.client_name)
+        stored_data[metadata.key] = metadata.value
+        instance.store_meta(
+            namespace=metadata.namespace, client=metadata.client_name, item=stored_data
+        )
+        instance.save()
+
+        return UpdateMetaBaseMutation(user=instance)
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        object_id = data.get("id")
+        if object_id:
+            model_type = registry.get_type_for_model(cls._meta.model)
+            instance = cls.get_node_or_error(info, object_id, only_type=model_type)
+        else:
+            instance = cls._meta.model()
+        return instance
