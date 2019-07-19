@@ -144,7 +144,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                         productAttributes: formData.productAttributes.map(
                           choice => choice.value
                         ),
-                        taxCode: formData.taxType.value,
+                        taxCode: formData.taxType,
                         variantAttributes: formData.variantAttributes.map(
                           choice => choice.value
                         ),

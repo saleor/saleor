@@ -7,22 +7,23 @@ import React from "react";
 import CardTitle from "@saleor/components/CardTitle";
 import FormSpacer from "@saleor/components/FormSpacer";
 import Grid from "@saleor/components/Grid";
-import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
+import SingleAutocompleteSelectField, {
+  SingleAutocompleteChoiceType
+} from "@saleor/components/SingleAutocompleteSelectField";
 import { AddressTypeInput } from "@saleor/customers/types";
+import { ChangeEvent } from "@saleor/hooks/useForm";
 import i18n from "@saleor/i18n";
-import { maybe } from "@saleor/misc";
 import { FormErrors } from "@saleor/types";
 import { SiteSettingsPageFormData } from "../SiteSettingsPage";
 
 interface SiteSettingsAddressProps extends WithStyles<typeof styles> {
-  countries?: Array<{
-    code: string;
-    label: string;
-  }>;
+  countries: SingleAutocompleteChoiceType[];
   data: SiteSettingsPageFormData;
+  displayCountry: string;
   errors: FormErrors<keyof AddressTypeInput>;
   disabled: boolean;
-  onChange: (event: React.ChangeEvent<any>) => void;
+  onChange: (event: ChangeEvent) => void;
+  onCountryChange: (event: ChangeEvent) => void;
 }
 
 const styles = createStyles({
@@ -37,8 +38,10 @@ const SiteSettingsAddress = withStyles(styles, { name: "SiteSettingsAddress" })(
     countries,
     data,
     disabled,
+    displayCountry,
     errors,
-    onChange
+    onChange,
+    onCountryChange
   }: SiteSettingsAddressProps) => (
     <Card className={classes.root}>
       <CardTitle
@@ -106,19 +109,14 @@ const SiteSettingsAddress = withStyles(styles, { name: "SiteSettingsAddress" })(
         <Grid>
           <SingleAutocompleteSelectField
             disabled={disabled}
+            displayValue={displayCountry}
             error={!!errors.country}
             helperText={errors.country}
             label={i18n.t("Country")}
             name={"country" as keyof SiteSettingsPageFormData}
-            onChange={onChange}
-            value={{
-              label: data.country.country,
-              value: data.country.code
-            }}
-            choices={maybe(
-              () => countries.map(c => ({ ...c, value: c.code })),
-              []
-            )}
+            onChange={onCountryChange}
+            value={data.country}
+            choices={countries}
             InputProps={{
               autoComplete: "off"
             }}
