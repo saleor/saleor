@@ -17,7 +17,13 @@ from ....product.thumbnails import (
 )
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.enums import TaxRateType
-from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ...core.mutations import (
+    BaseMutation,
+    ModelDeleteMutation,
+    ModelMutation,
+    UpdateMetaBaseMutation,
+    ClearMetaBaseMutation,
+)
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.utils import (
@@ -114,6 +120,18 @@ class CategoryDelete(ModelDeleteMutation):
         description = "Deletes a category."
         model = models.Category
         permissions = ("product.manage_products",)
+
+
+class CategoryUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.Category
+        description = "Updates public metadata for Category"
+
+
+class CategoryClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        model = models.Category
+        description = "Clears public metadata item from Category"
 
 
 class CollectionInput(graphene.InputObjectType):
@@ -642,6 +660,32 @@ class ProductVariantDelete(ModelDeleteMutation):
         description = "Deletes a product variant."
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+
+
+class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.ProductVariant
+        description = "Update public metadata for product variant"
+
+
+class ProductVariantClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        model = models.ProductVariant
+        description = "Clears public metadata item for product variant"
+
+
+class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.ProductVariant
+        public = False
+        description = "Update public metadata for product variant"
+
+
+class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        model = models.ProductVariant
+        public = False
+        description = "Clears public metadata item for product variant"
 
 
 class ProductTypeInput(graphene.InputObjectType):
