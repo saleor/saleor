@@ -98,7 +98,7 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
                 hover={!!value}
                 onClick={!!value ? () => onValueUpdate(value.id) : undefined}
                 key={maybe(() => value.id)}
-                index={valueIndex}
+                index={valueIndex || 0}
               >
                 <TableCell className={classes.columnAdmin}>
                   {maybe(() => value.slug) ? value.slug : <Skeleton />}

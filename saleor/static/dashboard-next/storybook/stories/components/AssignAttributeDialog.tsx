@@ -2,6 +2,7 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import { attributes } from "@saleor/attributes/fixtures";
+import { fetchMoreProps } from "@saleor/fixtures";
 import { formError } from "@saleor/storybook/misc";
 import AssignAttributeDialog, {
   AssignAttributeDialogProps
@@ -9,12 +10,11 @@ import AssignAttributeDialog, {
 import Decorator from "../../Decorator";
 
 const props: AssignAttributeDialogProps = {
+  ...fetchMoreProps,
   attributes: attributes.slice(0, 5),
   confirmButtonState: "default",
   errors: [],
-  loading: false,
   onClose: () => undefined,
-  onFetch: () => undefined,
   onSubmit: () => undefined,
   onToggle: () => undefined,
   open: true,

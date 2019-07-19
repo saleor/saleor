@@ -5,7 +5,6 @@ import urlJoin from "url-join";
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
 import { APP_MOUNT_URI } from "./config";
 import { AddressType } from "./customers/types";
-import { ChangeEvent } from "./hooks/useForm";
 import i18n from "./i18n";
 import { PartialMutationProviderOutput, UserError } from "./types";
 import {

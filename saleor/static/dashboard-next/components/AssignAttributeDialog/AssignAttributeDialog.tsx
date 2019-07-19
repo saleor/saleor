@@ -153,8 +153,10 @@ const AssignAttributeDialog: React.FC<AssignAttributeDialogProps> = ({
       </DialogContent>
       {errors.length > 0 && (
         <DialogContent>
-          {errors.map(error => (
-            <DialogContentText color="error">{error}</DialogContentText>
+          {errors.map((error, errorIndex) => (
+            <DialogContentText color="error" key={errorIndex}>
+              {error}
+            </DialogContentText>
           ))}
         </DialogContent>
       )}
