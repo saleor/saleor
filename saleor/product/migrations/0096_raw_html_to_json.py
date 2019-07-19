@@ -15,7 +15,7 @@ def convert_products_html_to_json(apps, schema_editor):
         description_json = product.description_json
         description_raw = json_content_to_raw_text(description_json)
 
-        # Override the the JSON description if there was nothing in it
+        # Override the JSON description if there was nothing in it
         if not description_raw.strip():
             product.description_json = html_to_draftjs(product.description)
             product.save(update_fields=["description_json"])
@@ -27,7 +27,7 @@ def convert_products_html_to_json(apps, schema_editor):
         description_json = translation.description_json
         description_raw = json_content_to_raw_text(description_json)
 
-        # Override the the JSON description if there was nothing in it
+        # Override the JSON description if there was nothing in it
         if not description_raw:
             translation.description_json = html_to_draftjs(translation.description)
             translation.save(update_fields=["description_json"])

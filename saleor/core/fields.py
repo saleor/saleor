@@ -7,8 +7,8 @@ from django.utils.translation import gettext_lazy
 
 class SanitizedJSONField(JSONField):
     description = gettext_lazy(
-        "A JSON field that runs a giving sanitization method "
-        "before saving into the database"
+        "A JSON field that runs a given sanitization method "
+        "before saving into the database."
     )
 
     def __init__(self, *args, sanitizer: Callable[[dict], dict], **kwargs):
