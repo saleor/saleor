@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { AttributeReorderInput, AttributeTypeEnum, TaxRateType } from "./../../types/globalTypes";
+import { AttributeReorderInput, AttributeTypeEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: ProductTypeAttributeReorder
@@ -14,11 +14,20 @@ export interface ProductTypeAttributeReorder_productTypeReorderAttributes_errors
   message: string | null;
 }
 
+export interface ProductTypeAttributeReorder_productTypeReorderAttributes_productType_taxType {
+  __typename: "TaxType";
+  description: string | null;
+  taxCode: string | null;
+}
+
 export interface ProductTypeAttributeReorder_productTypeReorderAttributes_productType_productAttributes {
   __typename: "Attribute";
   id: string;
   name: string | null;
   slug: string | null;
+  visibleInStorefront: boolean | null;
+  filterableInDashboard: boolean | null;
+  filterableInStorefront: boolean | null;
 }
 
 export interface ProductTypeAttributeReorder_productTypeReorderAttributes_productType_variantAttributes {
@@ -26,6 +35,9 @@ export interface ProductTypeAttributeReorder_productTypeReorderAttributes_produc
   id: string;
   name: string | null;
   slug: string | null;
+  visibleInStorefront: boolean | null;
+  filterableInDashboard: boolean | null;
+  filterableInStorefront: boolean | null;
 }
 
 export interface ProductTypeAttributeReorder_productTypeReorderAttributes_productType_weight {
@@ -40,7 +52,7 @@ export interface ProductTypeAttributeReorder_productTypeReorderAttributes_produc
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
-  taxRate: TaxRateType | null;
+  taxType: ProductTypeAttributeReorder_productTypeReorderAttributes_productType_taxType | null;
   productAttributes: (ProductTypeAttributeReorder_productTypeReorderAttributes_productType_productAttributes | null)[] | null;
   variantAttributes: (ProductTypeAttributeReorder_productTypeReorderAttributes_productType_variantAttributes | null)[] | null;
   weight: ProductTypeAttributeReorder_productTypeReorderAttributes_productType_weight | null;

@@ -126,7 +126,7 @@ const ProductTypeOperations: React.StatelessComponent<
                           ProductTypeAttributeReorder,
                           ProductTypeAttributeReorderVariables
                         > = opts => {
-                          const optimisticResponse = {
+                          const optimisticResponse: ProductTypeAttributeReorder = {
                             productTypeReorderAttributes: {
                               __typename: "ProductTypeReorderAttributes" as "ProductTypeReorderAttributes",
                               errors: [],
