@@ -116,6 +116,17 @@ class StaffInput(UserInput):
     )
 
 
+class AccountInput(graphene.InputObjectType):
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
+    default_billing_address = AddressInput(
+        description="Billing address of the customer."
+    )
+    default_shipping_address = AddressInput(
+        description="Shipping address of the customer."
+    )
+
+
 class StaffCreateInput(StaffInput):
     send_password_email = graphene.Boolean(
         description="Send an email with a link to set a password"
@@ -245,7 +256,10 @@ class LoggedUserUpdate(CustomerCreate):
         )
 
     class Meta:
-        description = "Updates data of the logged in user."
+        description = (
+            "DEPRECATED: Use AccountUpdate instead. "
+            "Updates data of the logged in user."
+        )
         exclude = ["password"]
         model = models.User
 
@@ -258,6 +272,46 @@ class LoggedUserUpdate(CustomerCreate):
         user = info.context.user
         data["id"] = graphene.Node.to_global_id("User", user.id)
         return super().perform_mutation(root, info, **data)
+
+
+class AccountUpdate(CustomerCreate):
+    class Arguments:
+        input = AccountInput(
+            description="Fields required to update the account of the logged-in user.",
+            required=True,
+        )
+
+    class Meta:
+        description = "Updates the account of the logged-in user."
+        exclude = ["password"]
+        model = models.User
+
+    @classmethod
+    def check_permissions(cls, user):
+        return user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        user = info.context.user
+        data["id"] = graphene.Node.to_global_id("User", user.id)
+        return super().perform_mutation(root, info, **data)
+
+
+class AccountRequestDeletion(BaseMutation):
+    class Meta:
+        description = (
+            "Sends an email with the account removal link for the logged-in user."
+        )
+
+    @classmethod
+    def check_permissions(cls, user):
+        return user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        user = info.context.user
+        emails.send_account_delete_confirmation_email.delay(str(user.token), user.email)
+        return AccountRequestDeletion()
 
 
 class UserDelete(UserDeleteMixin, ModelDeleteMutation):

@@ -9,11 +9,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix time zone based tests - #4468 by @fowczarek
 - Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
 - Add voucher once per customer - #4442 by @fowczarek
+- Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
 - New menu design - #4476 by @benekex2
+- Mutation for changing logged user first and last name - #4489 by @fowczarek
+- Add mutation for deleting account - #4494 by @fowczarek
 - New translations:
   - Greek
 - Fix searches and pickers - #4487 by @dominik-zeglen
 - Fix dashboard menu styles - #4491 by @benekex2
+- Do not allow random ids to appear in snapshots - #4495 by @dominik-zeglen
 
 ## 2.8.0
 
