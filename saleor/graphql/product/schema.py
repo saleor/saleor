@@ -46,6 +46,8 @@ from .mutations.products import (
     CategoryUpdate,
     CategoryUpdateMeta,
     CategoryClearMeta,
+    CategoryUpdatePrivateMeta,
+    CategoryClearPrivateMeta,
     CollectionAddProducts,
     CollectionCreate,
     CollectionDelete,
@@ -283,6 +285,8 @@ class ProductMutations(graphene.ObjectType):
     category_translate = CategoryTranslate.Field()
     category_update_metadata = CategoryUpdateMeta.Field()
     category_clear_metadata = CategoryClearMeta.Field()
+    category_update_private_metadata = CategoryUpdatePrivateMeta.Field()
+    category_clear_private_metadata = CategoryClearPrivateMeta.Field()
 
     collection_add_products = CollectionAddProducts.Field()
     collection_create = CollectionCreate.Field()

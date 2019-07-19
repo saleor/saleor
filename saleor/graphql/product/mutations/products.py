@@ -122,18 +122,6 @@ class CategoryDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class CategoryUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.Category
-        description = "Updates public metadata for Category"
-
-
-class CategoryClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        model = models.Category
-        description = "Clears public metadata item from Category"
-
-
 class CollectionInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
         description="Informs whether a collection is published."
@@ -340,6 +328,32 @@ class CollectionRemoveProducts(BaseMutation):
         products = cls.get_nodes_or_error(products, "products", only_type=Product)
         collection.products.remove(*products)
         return CollectionRemoveProducts(collection=collection)
+
+
+class CategoryUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.Category
+        description = "Update public metadata for category"
+
+
+class CategoryClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        model = models.Category
+        description = "Clears public metadata item for category"
+
+
+class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.Category
+        public = False
+        description = "Update public metadata for category"
+
+
+class CategoryClearPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        model = models.Category
+        public = False
+        description = "Clears public metadata item for category"
 
 
 class AttributeValueInput(InputObjectType):
