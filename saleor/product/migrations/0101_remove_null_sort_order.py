@@ -34,7 +34,7 @@ def set_default_position_m2o(model_name):
 
 class Migration(migrations.Migration):
 
-    dependencies = [("product", "0099_auto_20190626_0815")]
+    dependencies = [("product", "0100_auto_20190626_0815")]
 
     operations = [
         # m2m models
