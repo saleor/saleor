@@ -5,8 +5,6 @@ from graphene import relay
 from graphql.error import GraphQLError
 from graphql_jwt.decorators import permission_required
 
-from ....core.taxes import interface as tax_interface
-from ....core.taxes.vatlayer import interface as vatlayer_interface
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
@@ -289,7 +287,7 @@ class ProductVariant(CountableDjangoObjectType):
             context.discounts,
             context.country,
             context.currency,
-            taxes=context.taxes,
+            extensions=context.extensions,
         )
         return VariantPricingInfo(**availability._asdict())
 
@@ -454,12 +452,14 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_tax_rate(root: models.ProductType, info, **_kwargs):
         # FIXME this resolver should be dropped after we drop tax_rate from API
-        tax_rate = vatlayer_interface.get_tax_from_object_meta(root).code
-        return tax_rate or None
+        if not hasattr(root, "meta"):
+            return None
+        tax = root.meta.get("taxes", {}).get("vatlayer", {})
+        return tax.get("code")
 
     @staticmethod
-    def resolve_tax_type(root: models.Product, _info):
-        tax_data = tax_interface.get_tax_from_object_meta(root)
+    def resolve_tax_type(root: models.Product, info):
+        tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -495,7 +495,11 @@ class Product(CountableDjangoObjectType):
     def resolve_pricing(root: models.Product, info):
         context = info.context
         availability = get_product_availability(
-            root, context.discounts, context.country, context.currency, context.taxes
+            root,
+            context.discounts,
+            context.country,
+            context.currency,
+            context.extensions,
         )
         return ProductPricingInfo(**availability._asdict())
 
@@ -517,8 +521,8 @@ class Product(CountableDjangoObjectType):
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
-        price = tax_interface.apply_taxes_to_product(
-            root, price_range.start, info.context.country, taxes=info.context.taxes
+        price = info.context.extensions.apply_taxes_to_product(
+            root, price_range.start, info.context.country
         )
         return price.net
 
@@ -609,15 +613,17 @@ class ProductType(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_tax_type(root: models.ProductType, _info):
-        tax_data = tax_interface.get_tax_from_object_meta(root)
+    def resolve_tax_type(root: models.ProductType, info):
+        tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
     def resolve_tax_rate(root: models.ProductType, info, **_kwargs):
         # FIXME this resolver should be dropped after we drop tax_rate from API
-        tax_rate = vatlayer_interface.get_tax_from_object_meta(root).code
-        return tax_rate or None
+        if not hasattr(root, "meta"):
+            return None
+        tax = root.meta.get("taxes", {}).get("vatlayer", {})
+        return tax.get("code")
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="product_attributes")

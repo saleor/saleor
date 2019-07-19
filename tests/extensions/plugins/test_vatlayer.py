@@ -7,7 +7,7 @@ from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.core.taxes.vatlayer import (
+from saleor.core.extensions.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
     get_tax_rate_by_name,

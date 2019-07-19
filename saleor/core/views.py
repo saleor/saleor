@@ -22,7 +22,7 @@ def home(request):
             discounts=request.discounts,
             country=request.country,
             local_currency=request.currency,
-            taxes=request.taxes,
+            extensions=request.extensions,
         )
     )
     webpage_schema = get_webpage_schema(request)

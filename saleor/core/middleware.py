@@ -118,10 +118,10 @@ def extensions(get_response):
     """Assign extensions manager"""
 
     def _get_manager():
-        return get_extensions_manager()
+        return get_extensions_manager(plugins=settings.PLUGINS)
 
     def middleware(request):
-        request.extensions = SimpleLazyObject(_get_manager)
+        request.extensions = SimpleLazyObject(lambda: _get_manager())
         return get_response(request)
 
     return middleware

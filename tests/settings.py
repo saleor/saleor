@@ -41,3 +41,5 @@ MAX_CHECKOUT_LINE_QUANTITY = 50
 
 
 PASSWORD_HASHERS = ["tests.dummy_password_hasher.DummyHasher"]
+
+EXTENSIONS_MANAGER = "saleor.core.extensions.manager.ExtensionsManager"
