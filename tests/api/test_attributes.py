@@ -1354,6 +1354,7 @@ def test_retrieve_product_attributes_input_type(
         ("filterable_in_storefront", True),
         ("filterable_in_dashboard", True),
         ("visible_in_storefront", True),
+        ("available_in_grid", True),
         ("value_required", False),
         ("storefront_search_position", 0),
     ),
@@ -1365,6 +1366,9 @@ def test_retrieving_the_restricted_attributes_restricted(
     attribute,
     expected_value,
 ):
+    """Checks if the attributes are restricted and if their default value
+    is the expected one."""
+
     attribute = to_camel_case(attribute)
     query = (
         """
@@ -1527,6 +1531,22 @@ def test_filter_attributes_if_filterable_in_dashboard(
     color_attribute.save(update_fields=["filterable_in_dashboard"])
 
     variables = {"filters": {"filterableInDashboard": True}}
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    assert len(attributes) == 1
+    assert attributes[0]["node"]["slug"] == "size"
+
+
+def test_filter_attributes_if_available_in_grid(
+    api_client, color_attribute, size_attribute
+):
+    color_attribute.available_in_grid = False
+    color_attribute.save(update_fields=["available_in_grid"])
+
+    variables = {"filters": {"availableInGrid": True}}
 
     attributes = get_graphql_content(
         api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)

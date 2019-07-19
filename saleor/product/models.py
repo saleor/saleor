@@ -544,6 +544,7 @@ class Attribute(ModelWithMetadata):
     filterable_in_dashboard = models.BooleanField(default=True, blank=True)
 
     storefront_search_position = models.IntegerField(default=0, blank=True)
+    available_in_grid = models.BooleanField(default=True, blank=True)
 
     objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()

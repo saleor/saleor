@@ -13,6 +13,9 @@ class AttributeDescriptions:
     STOREFRONT_SEARCH_POSITION = (
         "The position of the attribute in the storefront navigation (0 by default)"
     )
+    AVAILABLE_IN_GRID = (
+        "Whether the attribute can be displayed in the admin product list"
+    )
 
 
 class AttributeValueDescriptions:
