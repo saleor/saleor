@@ -27,7 +27,7 @@ def migrate_attributes_to_list(model_name):
 
 class Migration(migrations.Migration):
 
-    dependencies = [("product", "0097_migrate_attrs_to_m2m")]
+    dependencies = [("product", "0098_migrate_attrs_to_m2m")]
 
     operations = [
         migrations.AddField(
