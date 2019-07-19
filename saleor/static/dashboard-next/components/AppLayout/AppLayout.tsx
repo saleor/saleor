@@ -91,15 +91,29 @@ const styles = (theme: Theme) =>
         marginTop: 12,
         transform: "rotate(180deg)"
       },
+      "&:hover": {
+        background: "#E6F3F3"
+      },
       background: theme.palette.background.paper,
+      border: `solid 1px #EAEAEA`,
       borderRadius: "50%",
       cursor: "pointer",
       height: 32,
       position: "absolute",
       right: -16,
       top: 65,
+      transition: `background ${theme.transitions.duration.shorter}ms`,
       width: 32,
       zIndex: 99
+    },
+    isMenuSmallDark: {
+      "&:hover": {
+        background: `linear-gradient(0deg, rgba(25, 195, 190, 0.1), rgba(25, 195, 190, 0.1)), ${
+          theme.palette.background.paper
+        }`
+      },
+      border: `solid 1px #252728`,
+      transition: `background  ${theme.transitions.duration.shorter}ms`
     },
     isMenuSmallHide: {
       "& svg": {
@@ -128,7 +142,6 @@ const styles = (theme: Theme) =>
     },
     menu: {
       background: theme.palette.background.paper,
-      boxShadow: "0px 0px 12px 1px rgba(0,0,0,0.2)",
       height: "100vh",
       padding: 25
     },
@@ -164,7 +177,7 @@ const styles = (theme: Theme) =>
       marginRight: theme.spacing.unit * 2,
       position: "relative",
       transform: "rotate(0deg)",
-      transition: ".2s ease-in-out",
+      transition: `${theme.transitions.duration.shorter}ms ease-in-out`,
       width: 42
     },
     menuIconDark: {
@@ -192,7 +205,6 @@ const styles = (theme: Theme) =>
     },
     menuSmall: {
       background: theme.palette.background.paper,
-      boxShadow: "0px 0px 12px 1px rgba(0,0,0,0.2)",
       height: "100vh",
       padding: 25
     },
@@ -318,7 +330,8 @@ const AppLayout = withStyles(styles, {
                       <Hidden smDown>
                         <div
                           className={classNames(classes.isMenuSmall, {
-                            [classes.isMenuSmallHide]: isMenuSmall
+                            [classes.isMenuSmallHide]: isMenuSmall,
+                            [classes.isMenuSmallDark]: isDark
                           })}
                           onClick={handleIsMenuSmall}
                         >
