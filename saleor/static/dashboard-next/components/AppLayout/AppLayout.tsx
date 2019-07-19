@@ -58,7 +58,6 @@ const styles = (theme: Theme) =>
         paddingLeft: 0
       },
       paddingLeft: drawerWidthExpanded,
-      position: "absolute",
       transition: "padding-left 0.5s ease",
       width: "100%"
     },
