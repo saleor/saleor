@@ -9,11 +9,13 @@ from django.db import models
 from django.db.models import F
 from django.urls import reverse
 from django.utils.encoding import smart_text
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from django_prices.templatetags import prices_i18n
+from draftjs_sanitizer import clean_draft_js
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
@@ -22,8 +24,10 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
+from ..core.fields import SanitizedJSONField
 from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
 from ..core.utils import build_absolute_uri
+from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
@@ -124,7 +128,9 @@ class Product(SeoModel, PublishableModel):
     )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    description_json = JSONField(blank=True, default=dict)
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_draft_js
+    )
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.CASCADE
     )
@@ -172,6 +178,12 @@ class Product(SeoModel, PublishableModel):
         return self.name
 
     @property
+    def plain_text_description(self):
+        if settings.USE_JSON_CONTENT:
+            return json_content_to_raw_text(self.description_json)
+        return strip_tags(self.description)
+
+    @property
     def is_available(self):
         return self.is_visible and self.is_in_stock()
 
@@ -205,7 +217,9 @@ class ProductTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    description_json = JSONField(blank=True, default=dict)
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_draft_js
+    )
 
     class Meta:
         unique_together = (("language_code", "product"),)
