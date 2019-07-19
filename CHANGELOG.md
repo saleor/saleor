@@ -50,6 +50,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `SPECIFIC_PRODUCT` type to `VoucherType` - #4344 by @fowczarek
 - New translations:
   - Icelandic
+- Add ability to store used payment sources in gateways, first implemented in Braintree - #4195 by @salwator
+- Fix various bugs across product section - #4429 by @dominik-zeglen
+- Add company address configuration - #4432 by @benekex2
+- Create general abstraction for object metadata - #4447 by @salwator
 
 ## 2.7.0
 
