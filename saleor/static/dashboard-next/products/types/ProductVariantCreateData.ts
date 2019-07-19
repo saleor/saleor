@@ -9,14 +9,14 @@
 export interface ProductVariantCreateData_product_images {
   __typename: "ProductImage";
   id: string;
-  sortOrder: number | null;
+  sortOrder: number;
   url: string;
 }
 
 export interface ProductVariantCreateData_product_productType_variantAttributes_values {
   __typename: "AttributeValue";
   id: string;
-  sortOrder: number | null;
+  sortOrder: number;
   name: string | null;
   slug: string | null;
 }

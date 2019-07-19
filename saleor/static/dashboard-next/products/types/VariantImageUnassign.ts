@@ -62,7 +62,7 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_produc
   __typename: "ProductImage";
   id: string;
   alt: string;
-  sortOrder: number | null;
+  sortOrder: number;
   url: string;
 }
 

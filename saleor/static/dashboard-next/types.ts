@@ -115,3 +115,10 @@ export interface ReorderEvent {
   newIndex: number;
 }
 export type ReorderAction = (event: ReorderEvent) => void;
+
+export interface FetchMoreProps<TData = string> {
+  loading: boolean;
+  hasMore: boolean;
+  onFetch: (value: TData) => void;
+  onFetchMore: () => void;
+}
