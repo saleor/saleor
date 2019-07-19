@@ -1,7 +1,6 @@
 from operator import itemgetter
 
 import graphene
-from graphql_jwt.decorators import permission_required
 
 
 class MetaItem(graphene.ObjectType):
@@ -67,24 +66,3 @@ class MetadataObjectType(graphene.ObjectType):
         required=True,
         description="List of publicly stored metadata namespaces.",
     )
-
-    @staticmethod
-    @permission_required("account.manage_users")
-    def resolve_private_meta(root, _info):
-        return sorted(
-            [
-                {"namespace": namespace, "metadata": data}
-                for namespace, data in root.private_meta.items()
-            ],
-            key=itemgetter("namespace"),
-        )
-
-    @staticmethod
-    def resolve_meta(root, _info):
-        return sorted(
-            [
-                {"namespace": namespace, "metadata": data}
-                for namespace, data in root.meta.items()
-            ],
-            key=itemgetter("namespace"),
-        )
