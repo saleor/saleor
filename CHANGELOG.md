@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix searches and pickers - #4487 by @dominik-zeglen
 - Fix dashboard menu styles - #4491 by @benekex2
 - Do not allow random ids to appear in snapshots - #4495 by @dominik-zeglen
+- Create general abstraction for object metadata - #4447 by @salwator
 
 ## 2.8.0
 
@@ -53,7 +54,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to store used payment sources in gateways, first implemented in Braintree - #4195 by @salwator
 - Fix various bugs across product section - #4429 by @dominik-zeglen
 - Add company address configuration - #4432 by @benekex2
-- Create general abstraction for object metadata - #4447 by @salwator
 
 ## 2.7.0
 
