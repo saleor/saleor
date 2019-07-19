@@ -24,6 +24,7 @@ export const attributeDetailsFragment = gql`
     ...AttributeFragment
     inputType
     storefrontSearchPosition
+    valueRequired
     values {
       id
       name

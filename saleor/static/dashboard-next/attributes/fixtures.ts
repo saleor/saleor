@@ -13,6 +13,7 @@ export const attribute = {
   name: "Author",
   slug: "author",
   storefrontSearchPosition: 2,
+  valueRequired: true,
   values: [
     {
       __typename: "AttributeValue" as "AttributeValue",
