@@ -117,6 +117,7 @@ type Attribute implements Node {
   visibleInStorefront: Boolean
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
+  availableInGrid: Boolean
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
   storefrontSearchPosition: Int
 }
@@ -173,6 +174,7 @@ input AttributeCreateInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   storefrontSearchPosition: Int
+  availableInGrid: Boolean
 }
 
 type AttributeDelete {
@@ -186,6 +188,7 @@ input AttributeFilterInput {
   visibleInStorefront: Boolean
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
+  availableInGrid: Boolean
   search: String
 }
 
@@ -212,6 +215,7 @@ enum AttributeSortField {
   DASHBOARD_VARIANT_POSITION
   DASHBOARD_PRODUCT_POSITION
   STOREFRONT_SEARCH_POSITION
+  AVAILABLE_IN_GRID
 }
 
 input AttributeSortingInput {
@@ -256,6 +260,7 @@ input AttributeUpdateInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   storefrontSearchPosition: Int
+  availableInGrid: Boolean
 }
 
 type AttributeUpdateMeta {

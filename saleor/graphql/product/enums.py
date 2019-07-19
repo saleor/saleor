@@ -79,6 +79,7 @@ class AttributeSortField(graphene.Enum):
     DASHBOARD_VARIANT_POSITION = "dashboard_variant_position"
     DASHBOARD_PRODUCT_POSITION = "dashboard_product_position"
     STOREFRONT_SEARCH_POSITION = "storefront_search_position"
+    AVAILABLE_IN_GRID = "available_in_grid"
 
     @property
     def description(self):
@@ -102,4 +103,9 @@ class AttributeSortField(graphene.Enum):
             return "Sort product attributes by their position in dashboard."
         if self == AttributeSortField.STOREFRONT_SEARCH_POSITION:
             return "Sort attributes by their position in storefront."
+        if self == AttributeSortField.AVAILABLE_IN_GRID:
+            return (
+                "Sort attributes based on whether they can be displayed "
+                "or not in a product grid."
+            )
         raise ValueError("Unsupported enum value: %s" % self.value)
