@@ -297,9 +297,11 @@ class AccountUpdate(CustomerCreate):
         return super().perform_mutation(root, info, **data)
 
 
-class AccountDelete(BaseMutation):
+class AccountRequestDeletion(BaseMutation):
     class Meta:
-        description = "Remove user account after email confirmation"
+        description = (
+            "Sends an email with the account removal link for the logged-in user."
+        )
 
     @classmethod
     def check_permissions(cls, user):
@@ -309,7 +311,7 @@ class AccountDelete(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
         emails.send_account_delete_confirmation_email.delay(str(user.token), user.email)
-        return AccountDelete()
+        return AccountRequestDeletion()
 
 
 class UserDelete(UserDeleteMixin, ModelDeleteMutation):
