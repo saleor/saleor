@@ -34,6 +34,7 @@ export interface AttributeValueDelete_attributeValueDelete_attribute {
   filterableInStorefront: boolean | null;
   inputType: AttributeInputTypeEnum | null;
   storefrontSearchPosition: number | null;
+  valueRequired: boolean | null;
   values: (AttributeValueDelete_attributeValueDelete_attribute_values | null)[] | null;
 }
 
