@@ -71,9 +71,7 @@ const DiscountCategories = withStyles(styles, {
   }: DiscountCategoriesProps & WithStyles<typeof styles>) => (
     <Card>
       <CardTitle
-        title={i18n.t("Categories assigned to {{ saleName }}", {
-          saleName: maybe(() => sale.name)
-        })}
+        title={i18n.t("Eligible Categories")}
         toolbar={
           <Button color="primary" onClick={onCategoryAssign}>
             {i18n.t("Assign categories")}
@@ -89,7 +87,6 @@ const DiscountCategories = withStyles(styles, {
           toolbar={toolbar}
         >
           <>
-            <TableCell />
             <TableCell className={classes.wideColumn}>
               {i18n.t("Category name")}
             </TableCell>

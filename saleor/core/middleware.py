@@ -1,21 +1,8 @@
 import logging
-from functools import wraps
-from typing import Callable
 
-import django.contrib.auth.middleware
-import django.contrib.messages.middleware
-import django.contrib.sessions.middleware
-import django.middleware.common
-import django.middleware.csrf
-import django.middleware.locale
-import django.middleware.security
-import django_babel.middleware
-import impersonate.middleware
-import social_django.middleware
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
@@ -23,62 +10,12 @@ from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
 from . import analytics
+from .extensions.manager import get_extensions_manager
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 
 logger = logging.getLogger(__name__)
 
 
-def django_only_request_handler(get_response: Callable, handler: Callable):
-    api_path = reverse("api")
-
-    @wraps(handler)
-    def handle_request(request):
-        if request.path == api_path:
-            return get_response(request)
-        return handler(request)
-
-    return handle_request
-
-
-def django_only_middleware(middleware):
-    @wraps(middleware)
-    def wrapped(get_response):
-        handler = middleware(get_response)
-        return django_only_request_handler(get_response, handler)
-
-    return wrapped
-
-
-social_auth_exception_middleware = django_only_middleware(
-    social_django.middleware.SocialAuthExceptionMiddleware
-)
-impersonate_middleware = django_only_middleware(
-    impersonate.middleware.ImpersonateMiddleware
-)
-babel_locale_middleware = django_only_middleware(
-    django_babel.middleware.LocaleMiddleware
-)
-django_locale_middleware = django_only_middleware(
-    django.middleware.locale.LocaleMiddleware
-)
-django_messages_middleware = django_only_middleware(
-    django.contrib.messages.middleware.MessageMiddleware
-)
-django_auth_middleware = django_only_middleware(
-    django.contrib.auth.middleware.AuthenticationMiddleware
-)
-django_csrf_view_middleware = django_only_middleware(
-    django.middleware.csrf.CsrfViewMiddleware
-)
-django_security_middleware = django_only_middleware(
-    django.middleware.security.SecurityMiddleware
-)
-django_session_middleware = django_only_middleware(
-    django.contrib.sessions.middleware.SessionMiddleware
-)
-
-
-@django_only_middleware
 def google_analytics(get_response):
     """Report a page view to Google Analytics."""
 
@@ -172,6 +109,19 @@ def taxes(get_response):
             )
         else:
             request.taxes = None
+        return get_response(request)
+
+    return middleware
+
+
+def extensions(get_response):
+    """Assign extensions manager"""
+
+    def _get_manager():
+        return get_extensions_manager()
+
+    def middleware(request):
+        request.extensions = SimpleLazyObject(_get_manager)
         return get_response(request)
 
     return middleware

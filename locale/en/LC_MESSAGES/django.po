@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-04 11:45-0500\n"
+"POT-Creation-Date: 2019-07-17 04:57-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -98,186 +98,182 @@ msgctxt "Customer form: Family name field"
 msgid "Family name"
 msgstr ""
 
-#: saleor/account/i18n.py:19
+#: saleor/account/i18n.py:17
 msgctxt "Address field"
 msgid "Area"
 msgstr ""
 
-#: saleor/account/i18n.py:20
+#: saleor/account/i18n.py:18
 msgctxt "Address field"
 msgid "County"
 msgstr ""
 
-#: saleor/account/i18n.py:21
+#: saleor/account/i18n.py:19
 msgctxt "Address field"
 msgid "Department"
 msgstr ""
 
-#: saleor/account/i18n.py:22
+#: saleor/account/i18n.py:20
 msgctxt "Address field"
 msgid "District"
 msgstr ""
 
-#: saleor/account/i18n.py:23
+#: saleor/account/i18n.py:21
 msgctxt "Address field"
 msgid "Do/si"
 msgstr ""
 
-#: saleor/account/i18n.py:24
+#: saleor/account/i18n.py:22
 msgctxt "Address field"
 msgid "Eircode"
 msgstr ""
 
-#: saleor/account/i18n.py:25
+#: saleor/account/i18n.py:23
 msgctxt "Address field"
 msgid "Emirate"
 msgstr ""
 
-#: saleor/account/i18n.py:26
+#: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Island"
 msgstr ""
 
-#: saleor/account/i18n.py:27
+#: saleor/account/i18n.py:25
 msgctxt "Address field"
 msgid "Neighborhood"
 msgstr ""
 
-#: saleor/account/i18n.py:28
+#: saleor/account/i18n.py:26
 msgctxt "Address field"
 msgid "Oblast"
 msgstr ""
 
-#: saleor/account/i18n.py:29
+#: saleor/account/i18n.py:27
 msgctxt "Address field"
 msgid "Parish"
 msgstr ""
 
-#: saleor/account/i18n.py:30
+#: saleor/account/i18n.py:28
 msgctxt "Address field"
 msgid "PIN"
 msgstr ""
 
-#: saleor/account/i18n.py:31
+#: saleor/account/i18n.py:29
 msgctxt "Address field"
 msgid "Postal code"
 msgstr ""
 
-#: saleor/account/i18n.py:32
+#: saleor/account/i18n.py:30
 msgctxt "Address field"
 msgid "Prefecture"
 msgstr ""
 
-#: saleor/account/i18n.py:33
+#: saleor/account/i18n.py:31
 msgctxt "Address field"
 msgid "Province"
 msgstr ""
 
-#: saleor/account/i18n.py:34
+#: saleor/account/i18n.py:32
 msgctxt "Address field"
 msgid "State"
 msgstr ""
 
-#: saleor/account/i18n.py:35
+#: saleor/account/i18n.py:33
 msgctxt "Address field"
 msgid "Suburb"
 msgstr ""
 
-#: saleor/account/i18n.py:36
+#: saleor/account/i18n.py:34
 msgctxt "Address field"
 msgid "Townland"
 msgstr ""
 
-#: saleor/account/i18n.py:37
+#: saleor/account/i18n.py:35
 msgctxt "Address field"
 msgid "Village/township"
 msgstr ""
 
-#: saleor/account/i18n.py:38
+#: saleor/account/i18n.py:36
 msgctxt "Address field"
 msgid "ZIP code"
 msgstr ""
 
-#: saleor/account/i18n.py:64 saleor/account/i18n.py:105
+#: saleor/account/i18n.py:62 saleor/account/i18n.py:103
 msgctxt "Country"
 msgid "Country"
 msgstr ""
 
-#: saleor/account/i18n.py:95
+#: saleor/account/i18n.py:93
 msgctxt "Personal name"
 msgid "Given name"
 msgstr ""
 
-#: saleor/account/i18n.py:96
+#: saleor/account/i18n.py:94
 msgctxt "Personal name"
 msgid "Family name"
 msgstr ""
 
-#: saleor/account/i18n.py:98
+#: saleor/account/i18n.py:96
 msgctxt "Company or organization"
 msgid "Company or organization"
 msgstr ""
 
-#: saleor/account/i18n.py:100
+#: saleor/account/i18n.py:98
 msgctxt "Address"
 msgid "Address"
 msgstr ""
 
-#: saleor/account/i18n.py:102
+#: saleor/account/i18n.py:100
 msgctxt "City"
 msgid "City"
 msgstr ""
 
-#: saleor/account/i18n.py:103
+#: saleor/account/i18n.py:101
 msgctxt "City area"
 msgid "District"
 msgstr ""
 
-#: saleor/account/i18n.py:104
+#: saleor/account/i18n.py:102
 msgctxt "Postal code"
 msgid "Postal code"
 msgstr ""
 
-#: saleor/account/i18n.py:106
+#: saleor/account/i18n.py:104
 msgctxt "Country area"
 msgid "State or province"
 msgstr ""
 
-#: saleor/account/i18n.py:107
+#: saleor/account/i18n.py:105
 msgctxt "Phone number"
 msgid "Phone number"
 msgstr ""
 
-#: saleor/account/i18n.py:111
+#: saleor/account/i18n.py:109
 msgctxt "Address"
 msgid "Street address, P.O. box, company name"
 msgstr ""
 
-#: saleor/account/i18n.py:114
+#: saleor/account/i18n.py:112
 msgctxt "Address"
 msgid "Apartment, suite, unit, building, floor, etc"
 msgstr ""
 
-#: saleor/account/i18n.py:155 saleor/account/validators.py:11
-msgid "The phone number entered is not valid."
-msgstr ""
-
-#: saleor/account/i18n.py:195
+#: saleor/account/i18n.py:179
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr ""
 
-#: saleor/account/models.py:162
+#: saleor/account/models.py:164
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr ""
 
-#: saleor/account/models.py:164
+#: saleor/account/models.py:166
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr ""
 
-#: saleor/account/models.py:167
+#: saleor/account/models.py:169
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -294,6 +290,10 @@ msgctxt "Address data"
 msgid ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
+msgstr ""
+
+#: saleor/account/validators.py:15
+msgid "The phone number entered is not valid."
 msgstr ""
 
 #: saleor/account/views.py:36
@@ -346,33 +346,33 @@ msgctxt "Type of address used to fulfill order"
 msgid "Shipping"
 msgstr ""
 
-#: saleor/checkout/forms.py:43
+#: saleor/checkout/forms.py:44
 msgctxt "Add to checkout form field label"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/checkout/forms.py:48
+#: saleor/checkout/forms.py:49
 msgctxt "Add to checkout form error"
 msgid "Sorry. This product is currently not available."
 msgstr ""
 
-#: saleor/checkout/forms.py:52
+#: saleor/checkout/forms.py:53
 msgctxt "Add to checkout form error"
 msgid "Sorry. This product is currently out of stock."
 msgstr ""
 
-#: saleor/checkout/forms.py:56
+#: saleor/checkout/forms.py:57
 #, python-format
 msgctxt "Add to checkout form error"
 msgid "Sorry. You can't add more than %d times this item."
 msgstr ""
 
-#: saleor/checkout/forms.py:59
+#: saleor/checkout/forms.py:60
 msgctxt "Add to checkout form error"
 msgid "Oops. We could not find that product."
 msgstr ""
 
-#: saleor/checkout/forms.py:63
+#: saleor/checkout/forms.py:64
 #, python-format
 msgctxt "Add to checkout form error"
 msgid "Only %d remaining in stock."
@@ -380,221 +380,107 @@ msgid_plural "Only %d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/checkout/forms.py:187
+#: saleor/checkout/forms.py:189
 msgctxt "Country form field label"
 msgid "Country"
 msgstr ""
 
-#: saleor/checkout/forms.py:215 saleor/checkout/forms.py:228
+#: saleor/checkout/forms.py:218 saleor/checkout/forms.py:231
 msgctxt "Address form field label"
 msgid "Email"
 msgstr ""
 
-#: saleor/checkout/forms.py:243
+#: saleor/checkout/forms.py:246
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
 msgstr ""
 
-#: saleor/checkout/forms.py:248
+#: saleor/checkout/forms.py:251
 msgctxt "Shipping addresses form field label"
 msgid "Address"
 msgstr ""
 
-#: saleor/checkout/forms.py:269
+#: saleor/checkout/forms.py:272
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
 msgstr ""
 
-#: saleor/checkout/forms.py:273
+#: saleor/checkout/forms.py:276
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
 msgstr ""
 
-#: saleor/checkout/forms.py:278
+#: saleor/checkout/forms.py:281
 msgctxt "Billing addresses form field label"
 msgid "Address"
 msgstr ""
 
-#: saleor/checkout/forms.py:310
+#: saleor/checkout/forms.py:314
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
 msgstr ""
 
-#: saleor/checkout/forms.py:357
+#: saleor/checkout/forms.py:361
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
 msgstr ""
 
-#: saleor/checkout/forms.py:370
+#: saleor/checkout/forms.py:374
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr ""
 
-#: saleor/checkout/utils.py:139
+#: saleor/checkout/utils.py:212
 msgctxt "Checkout warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
 
-#: saleor/checkout/utils.py:676
+#: saleor/checkout/utils.py:753
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr ""
 
-#: saleor/checkout/utils.py:682
+#: saleor/checkout/utils.py:759
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr ""
 
-#: saleor/checkout/utils.py:690
+#: saleor/checkout/utils.py:767
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr ""
 
-#: saleor/checkout/utils.py:716
+#: saleor/checkout/utils.py:795
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr ""
 
-#: saleor/checkout/utils.py:861
+#: saleor/checkout/utils.py:986
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr ""
 
-#: saleor/checkout/views/discount.py:69
+#: saleor/checkout/utils.py:1050
+msgctxt "Gift card not applicable"
+msgid "Gift card has expired. Order placement cancelled."
+msgstr ""
+
+#: saleor/checkout/views/discount.py:67
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr ""
 
-#: saleor/checkout/views/summary.py:40
+#: saleor/checkout/views/summary.py:42
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr ""
 
-#: saleor/core/__init__.py:60
-msgctxt "VAT rate type"
-msgid "accommodation"
-msgstr ""
-
-#: saleor/core/__init__.py:63
-msgctxt "VAT rate type"
-msgid "admission to cultural events"
-msgstr ""
-
-#: saleor/core/__init__.py:67
-msgctxt "VAT rate type"
-msgid "admission to entertainment events"
-msgstr ""
-
-#: saleor/core/__init__.py:71
-msgctxt "VAT rate type"
-msgid "admission to sporting events"
-msgstr ""
-
-#: saleor/core/__init__.py:73
-msgctxt "VAT rate type"
-msgid "advertising"
-msgstr ""
-
-#: saleor/core/__init__.py:76
-msgctxt "VAT rate type"
-msgid "agricultural supplies"
-msgstr ""
-
-#: saleor/core/__init__.py:78
-msgctxt "VAT rate type"
-msgid "baby foodstuffs"
-msgstr ""
-
-#: saleor/core/__init__.py:79
-msgctxt "VAT rate type"
-msgid "bikes"
-msgstr ""
-
-#: saleor/core/__init__.py:80
-msgctxt "VAT rate type"
-msgid "books"
-msgstr ""
-
-#: saleor/core/__init__.py:81
-msgctxt "VAT rate type"
-msgid "childrens clothing"
-msgstr ""
-
-#: saleor/core/__init__.py:82
-msgctxt "VAT rate type"
-msgid "domestic fuel"
-msgstr ""
-
-#: saleor/core/__init__.py:83
-msgctxt "VAT rate type"
-msgid "domestic services"
-msgstr ""
-
-#: saleor/core/__init__.py:84
-msgctxt "VAT rate type"
-msgid "e-books"
-msgstr ""
-
-#: saleor/core/__init__.py:85
-msgctxt "VAT rate type"
-msgid "foodstuffs"
-msgstr ""
-
-#: saleor/core/__init__.py:86
-msgctxt "VAT rate type"
-msgid "hotels"
-msgstr ""
-
-#: saleor/core/__init__.py:87
-msgctxt "VAT rate type"
-msgid "medical"
-msgstr ""
-
-#: saleor/core/__init__.py:88
-msgctxt "VAT rate type"
-msgid "newspapers"
-msgstr ""
-
-#: saleor/core/__init__.py:89
-msgctxt "VAT rate type"
-msgid "passenger transport"
-msgstr ""
-
-#: saleor/core/__init__.py:90
-msgctxt "VAT rate type"
-msgid "pharmaceuticals"
-msgstr ""
-
-#: saleor/core/__init__.py:91
-msgctxt "VAT rate type"
-msgid "property renovations"
-msgstr ""
-
-#: saleor/core/__init__.py:92
-msgctxt "VAT rate type"
-msgid "restaurants"
-msgstr ""
-
-#: saleor/core/__init__.py:93
-msgctxt "VAT rate type"
-msgid "social housing"
-msgstr ""
-
-#: saleor/core/__init__.py:94
-msgctxt "VAT rate type"
-msgid "standard"
-msgstr ""
-
-#: saleor/core/__init__.py:95
-msgctxt "VAT rate type"
-msgid "water"
-msgstr ""
-
-#: saleor/core/__init__.py:96
-msgctxt "VAT rate type"
-msgid "wine"
+#: saleor/checkout/views/summary.py:49
+#, python-format
+msgctxt "Checkout warning"
+msgid "Unable to calculate taxes - %s"
 msgstr ""
 
 #: saleor/core/filters.py:27
@@ -610,7 +496,132 @@ msgctxt "Country choice"
 msgid "Any Country"
 msgstr ""
 
-#: saleor/core/views.py:49
+#: saleor/core/taxes/vatlayer/__init__.py:38
+msgctxt "VAT rate type"
+msgid "accommodation"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:41
+msgctxt "VAT rate type"
+msgid "admission to cultural events"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:45
+msgctxt "VAT rate type"
+msgid "admission to entertainment events"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:49
+msgctxt "VAT rate type"
+msgid "admission to sporting events"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:51
+msgctxt "VAT rate type"
+msgid "advertising"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:54
+msgctxt "VAT rate type"
+msgid "agricultural supplies"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:56
+msgctxt "VAT rate type"
+msgid "baby foodstuffs"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:57
+msgctxt "VAT rate type"
+msgid "bikes"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:58
+msgctxt "VAT rate type"
+msgid "books"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:59
+msgctxt "VAT rate type"
+msgid "childrens clothing"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:60
+msgctxt "VAT rate type"
+msgid "domestic fuel"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:61
+msgctxt "VAT rate type"
+msgid "domestic services"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:62
+msgctxt "VAT rate type"
+msgid "e-books"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:63
+msgctxt "VAT rate type"
+msgid "foodstuffs"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:64
+msgctxt "VAT rate type"
+msgid "hotels"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:65
+msgctxt "VAT rate type"
+msgid "medical"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:66
+msgctxt "VAT rate type"
+msgid "newspapers"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:67
+msgctxt "VAT rate type"
+msgid "passenger transport"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:68
+msgctxt "VAT rate type"
+msgid "pharmaceuticals"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:69
+msgctxt "VAT rate type"
+msgid "property renovations"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:70
+msgctxt "VAT rate type"
+msgid "restaurants"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:71
+msgctxt "VAT rate type"
+msgid "social housing"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:72
+msgctxt "VAT rate type"
+msgid "standard"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:73
+msgctxt "VAT rate type"
+msgid "water"
+msgstr ""
+
+#: saleor/core/taxes/vatlayer/__init__.py:74
+msgctxt "VAT rate type"
+msgid "wine"
+msgstr ""
+
+#: saleor/core/views.py:50
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr ""
@@ -635,85 +646,100 @@ msgctxt "Gram weight unit symbol"
 msgid "g"
 msgstr ""
 
-#: saleor/discount/__init__.py:11
+#: saleor/discount/__init__.py:14
 msgctxt "Discount type"
 msgid "%"
 msgstr ""
 
-#: saleor/discount/__init__.py:23
+#: saleor/discount/__init__.py:28
 msgctxt "Voucher: discount for"
-msgid "All products"
+msgid "Entire order"
 msgstr ""
 
-#: saleor/discount/__init__.py:24
+#: saleor/discount/__init__.py:29
 msgctxt "Voucher: discount for"
 msgid "Specific products"
 msgstr ""
 
-#: saleor/discount/__init__.py:27
+#: saleor/discount/__init__.py:32
 msgctxt "Voucher: discount for"
 msgid "Specific collections of products"
 msgstr ""
 
-#: saleor/discount/__init__.py:31
+#: saleor/discount/__init__.py:36
 msgctxt "Voucher: discount for"
 msgid "Specific categories of products"
 msgstr ""
 
-#: saleor/discount/__init__.py:33
+#: saleor/discount/__init__.py:38
 msgctxt "Voucher: discount for"
 msgid "Shipping"
 msgstr ""
 
-#: saleor/discount/models.py:92
+#: saleor/discount/__init__.py:42
+msgctxt "Voucher: discount for"
+msgid "Specific products, collections and categories"
+msgstr ""
+
+#: saleor/discount/models.py:96
 msgctxt "Voucher type"
 msgid "Free shipping"
 msgstr ""
 
-#: saleor/discount/models.py:93
+#: saleor/discount/models.py:97
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
 msgstr ""
 
-#: saleor/discount/models.py:100
+#: saleor/discount/models.py:104
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product_num)d products"
 msgstr ""
 
-#: saleor/discount/models.py:106
+#: saleor/discount/models.py:110
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(collections_num)d collections"
 msgstr ""
 
-#: saleor/discount/models.py:112
+#: saleor/discount/models.py:116
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(categories_num)d categories"
 msgstr ""
 
-#: saleor/discount/models.py:114
+#: saleor/discount/models.py:118
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
 msgstr ""
 
-#: saleor/discount/models.py:144
+#: saleor/discount/models.py:147
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr ""
 
-#: saleor/discount/models.py:199
+#: saleor/discount/models.py:175
+msgctxt "Voucher not applicable"
+msgid "This offer is valid only once per customer."
+msgstr ""
+
+#: saleor/discount/models.py:237
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr ""
 
-#: saleor/discount/utils.py:48
+#: saleor/discount/utils.py:65
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
+msgstr ""
+
+#: saleor/giftcard/models.py:50
+msgctxt "Permission description"
+msgid "Manage gift cards."
 msgstr ""
 
 #: saleor/graphql/core/filters.py:8
@@ -952,12 +978,12 @@ msgctxt "Payment delete form error"
 msgid "Payment cannot be cancelled."
 msgstr ""
 
-#: saleor/order/models.py:149
+#: saleor/order/models.py:151
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr ""
 
-#: saleor/order/models.py:397
+#: saleor/order/models.py:399
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -1030,7 +1056,7 @@ msgctxt "payment status"
 msgid "Fully refunded"
 msgstr ""
 
-#: saleor/payment/gateways/braintree/__init__.py:61
+#: saleor/payment/gateways/braintree/__init__.py:69
 #: saleor/payment/gateways/braintree/forms.py:33
 msgctxt "payment error"
 msgid "Unable to process transaction. Please try again in a moment"
@@ -1093,7 +1119,7 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr ""
 
-#: saleor/payment/utils.py:259
+#: saleor/payment/utils.py:279
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
@@ -1163,7 +1189,7 @@ msgctxt "Currency amount"
 msgid "Price"
 msgstr ""
 
-#: saleor/product/forms.py:22
+#: saleor/product/forms.py:26
 #, python-format
 msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
@@ -1174,7 +1200,7 @@ msgctxt "Permission description"
 msgid "Manage products."
 msgstr ""
 
-#: saleor/product/models.py:379
+#: saleor/product/models.py:369
 msgctxt "File as a digital product"
 msgid "digital_product"
 msgstr ""
@@ -1257,103 +1283,107 @@ msgid "Indonesian"
 msgstr ""
 
 #: saleor/settings.py:79
-msgid "Italian"
+msgid "Icelandic"
 msgstr ""
 
 #: saleor/settings.py:80
-msgid "Japanese"
+msgid "Italian"
 msgstr ""
 
 #: saleor/settings.py:81
-msgid "Korean"
+msgid "Japanese"
 msgstr ""
 
 #: saleor/settings.py:82
-msgid "Lithuanian"
+msgid "Korean"
 msgstr ""
 
 #: saleor/settings.py:83
-msgid "Mongolian"
+msgid "Lithuanian"
 msgstr ""
 
 #: saleor/settings.py:84
-msgid "Norwegian"
+msgid "Mongolian"
 msgstr ""
 
 #: saleor/settings.py:85
-msgid "Dutch"
+msgid "Norwegian"
 msgstr ""
 
 #: saleor/settings.py:86
-msgid "Polish"
+msgid "Dutch"
 msgstr ""
 
 #: saleor/settings.py:87
-msgid "Portuguese"
+msgid "Polish"
 msgstr ""
 
 #: saleor/settings.py:88
-msgid "Brazilian Portuguese"
+msgid "Portuguese"
 msgstr ""
 
 #: saleor/settings.py:89
-msgid "Romanian"
+msgid "Brazilian Portuguese"
 msgstr ""
 
 #: saleor/settings.py:90
-msgid "Russian"
+msgid "Romanian"
 msgstr ""
 
 #: saleor/settings.py:91
-msgid "Slovak"
+msgid "Russian"
 msgstr ""
 
 #: saleor/settings.py:92
-msgid "Albanian"
+msgid "Slovak"
 msgstr ""
 
 #: saleor/settings.py:93
-msgid "Serbian"
+msgid "Albanian"
 msgstr ""
 
 #: saleor/settings.py:94
-msgid "Swahili"
+msgid "Serbian"
 msgstr ""
 
 #: saleor/settings.py:95
-msgid "Swedish"
+msgid "Swahili"
 msgstr ""
 
 #: saleor/settings.py:96
-msgid "Thai"
+msgid "Swedish"
 msgstr ""
 
 #: saleor/settings.py:97
-msgid "Turkish"
+msgid "Thai"
 msgstr ""
 
 #: saleor/settings.py:98
-msgid "Ukrainian"
+msgid "Turkish"
 msgstr ""
 
 #: saleor/settings.py:99
-msgid "Vietnamese"
+msgid "Ukrainian"
 msgstr ""
 
 #: saleor/settings.py:100
-msgid "Simplified Chinese"
+msgid "Vietnamese"
 msgstr ""
 
 #: saleor/settings.py:101
+msgid "Simplified Chinese"
+msgstr ""
+
+#: saleor/settings.py:102
 msgid "Traditional Chinese"
 msgstr ""
 
-#: saleor/settings.py:342
+#: saleor/settings.py:336
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr ""
 
-#: saleor/settings.py:593
+#: saleor/settings.py:594
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr ""
@@ -1368,13 +1398,13 @@ msgctxt "Type of shipping"
 msgid "Weight based shipping"
 msgstr ""
 
-#: saleor/shipping/models.py:42
+#: saleor/shipping/models.py:43
 #, python-format
 msgctxt "Number of countries shipping zone apply to"
 msgid "%(num_of_countries)d countries"
 msgstr ""
 
-#: saleor/shipping/models.py:59
+#: saleor/shipping/models.py:60
 msgctxt "Permission description"
 msgid "Manage shipping."
 msgstr ""
@@ -1403,12 +1433,12 @@ msgctxt "Applies to orders of total weight within this range"
 msgid "%(min_weight)s to %(max_weight)s"
 msgstr ""
 
-#: saleor/site/models.py:46
+#: saleor/site/models.py:49
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr ""
 
-#: saleor/site/models.py:50
+#: saleor/site/models.py:53
 msgctxt "Permission description"
 msgid "Manage translations."
 msgstr ""
@@ -1518,7 +1548,7 @@ msgid "Your profile"
 msgstr ""
 
 #: templates/account/details.html:19 templates/account/password_change.html:8
-#: templates/base.html:84 templates/base.html:226
+#: templates/base.html:84 templates/base.html:227
 #: templates/order/details.html:23 templates/order/payment.html:23
 #: templates/order/payment/details.html:17
 msgctxt "Main navigation item"
@@ -1822,27 +1852,27 @@ msgctxt "Signup form primary action"
 msgid "Create an account"
 msgstr ""
 
-#: templates/base.html:78 templates/base.html:215
+#: templates/base.html:78 templates/base.html:216
 msgctxt "Main navigation item"
 msgid "Dashboard"
 msgstr ""
 
-#: templates/base.html:89 templates/base.html:232
+#: templates/base.html:89 templates/base.html:233
 msgctxt "Main navigation item"
 msgid "Stop impersonating"
 msgstr ""
 
-#: templates/base.html:95 templates/base.html:238
+#: templates/base.html:95 templates/base.html:239
 msgctxt "Main navigation item"
 msgid "Log out"
 msgstr ""
 
-#: templates/base.html:101 templates/base.html:244
+#: templates/base.html:101 templates/base.html:245
 msgctxt "Main navigation item"
 msgid "Register"
 msgstr ""
 
-#: templates/base.html:105 templates/base.html:249
+#: templates/base.html:105 templates/base.html:250
 msgctxt "Main navigation item"
 msgid "Log in"
 msgstr ""
@@ -1851,20 +1881,20 @@ msgstr ""
 msgid "Search for product"
 msgstr ""
 
-#: templates/base.html:139
+#: templates/base.html:140
 msgid "Search"
 msgstr ""
 
-#: templates/base.html:148 templates/base.html:208
+#: templates/base.html:149 templates/base.html:209
 msgctxt "Main navigation item"
 msgid "Your cart"
 msgstr ""
 
-#: templates/base.html:202
+#: templates/base.html:203
 msgid "Account"
 msgstr ""
 
-#: templates/base.html:220
+#: templates/base.html:221
 msgctxt "Main navigation item"
 msgid "Style guide"
 msgstr ""

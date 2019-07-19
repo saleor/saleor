@@ -1,9 +1,11 @@
+import moment from "moment-timezone";
+import { MutationFn, MutationResult } from "react-apollo";
 import urlJoin from "url-join";
 
-import { MutationFn, MutationResult } from "react-apollo";
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
 import { APP_MOUNT_URI } from "./config";
 import { AddressType } from "./customers/types";
+import { ChangeEvent } from "./hooks/useForm";
 import i18n from "./i18n";
 import { PartialMutationProviderOutput, UserError } from "./types";
 import {
@@ -235,4 +237,50 @@ export function stopPropagation(cb: () => void) {
     event.stopPropagation();
     cb();
   };
+}
+
+export function joinDateTime(date: string, time?: string) {
+  if (!date) {
+    return null;
+  }
+  const setTime = time || "00:00";
+  const dateTime = moment(date + " " + setTime).format();
+  return dateTime;
+}
+
+export function splitDateTime(dateTime: string) {
+  if (!dateTime) {
+    return {
+      date: "",
+      time: ""
+    };
+  }
+  // Default html input format YYYY-MM-DD HH:mm
+  const splitDateTime = moment(dateTime)
+    .format("YYYY-MM-DD HH:mm")
+    .split(" ");
+  return {
+    date: splitDateTime[0],
+    time: splitDateTime[1]
+  };
+}
+
+export function generateCode(charNum: number) {
+  let result = "";
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  for (let i = 0; i < charNum; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
+
+export function onQueryChange(
+  event: ChangeEvent,
+  onFetch: (data: string) => void,
+  setQuery: (data: string) => void
+) {
+  const value = event.target.value;
+
+  onFetch(value);
+  setQuery(value);
 }

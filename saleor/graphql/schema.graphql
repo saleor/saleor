@@ -3,6 +3,22 @@ schema {
   mutation: Mutations
 }
 
+input AccountInput {
+  firstName: String
+  lastName: String
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
+}
+
+type AccountRequestDeletion {
+  errors: [Error!]
+}
+
+type AccountUpdate {
+  errors: [Error!]
+  user: User
+}
+
 type Address implements Node {
   id: ID!
   firstName: String!
@@ -1309,6 +1325,7 @@ enum LanguageCodeEnum {
   HU
   HY
   ID
+  IS
   IT
   JA
   KO
@@ -1629,7 +1646,7 @@ type Mutations {
   tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID!): CheckoutComplete
+  checkoutComplete(checkoutId: ID!, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
@@ -1653,6 +1670,8 @@ type Mutations {
   customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
   customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
+  accountUpdate(input: AccountInput!): AccountUpdate
+  accountRequestDeletion: AccountRequestDeletion
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete
@@ -2087,6 +2106,11 @@ type PaymentRefund {
   payment: Payment
 }
 
+type PaymentSource {
+  gateway: String!
+  creditCardInfo: CreditCard
+}
+
 type PaymentVoid {
   errors: [Error!]
   payment: Payment
@@ -2328,6 +2352,7 @@ type ProductType implements Node {
   weight: Weight
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   taxRate: TaxRateType
+  taxType: TaxType
   variantAttributes: [Attribute]
   productAttributes: [Attribute]
 }
@@ -3040,6 +3065,7 @@ type User implements Node {
   permissions: [PermissionDisplay]
   avatar(size: Int): Image
   events: [CustomerEvent]
+  storedPaymentSources: [PaymentSource]
 }
 
 input UserAddressInput {
@@ -3119,7 +3145,7 @@ type VerifyToken {
 
 type Voucher implements Node {
   id: ID!
-  type: VoucherType!
+  type: VoucherTypeEnum!
   name: String
   code: String!
   usageLimit: Int
@@ -3127,9 +3153,11 @@ type Voucher implements Node {
   startDate: DateTime!
   endDate: DateTime
   applyOncePerOrder: Boolean!
-  discountValueType: VoucherDiscountValueType!
+  applyOncePerCustomer: Boolean!
+  discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
   minAmountSpent: Money
+  minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -3174,11 +3202,6 @@ enum VoucherDiscountType {
   SHIPPING
 }
 
-enum VoucherDiscountValueType {
-  FIXED
-  PERCENTAGE
-}
-
 input VoucherFilterInput {
   status: [DiscountStatusEnum]
   timesUsed: IntRangeInput
@@ -3199,8 +3222,11 @@ input VoucherInput {
   collections: [ID]
   categories: [ID]
   minAmountSpent: Decimal
+  minCheckoutItemsQuantity: Int
   countries: [String]
   applyOncePerOrder: Boolean
+  applyOncePerCustomer: Boolean
+  usageLimit: Int
 }
 
 type VoucherRemoveCatalogues {
@@ -3217,15 +3243,6 @@ type VoucherTranslation implements Node {
   id: ID!
   name: String
   language: LanguageDisplay!
-}
-
-enum VoucherType {
-  ENTIRE_ORDER
-  PRODUCT
-  COLLECTION
-  CATEGORY
-  SHIPPING
-  SPECIFIC_PRODUCT
 }
 
 enum VoucherTypeEnum {

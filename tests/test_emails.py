@@ -66,7 +66,7 @@ def test_send_emails(mocked_templated_email, order, template, send_email, settin
     send_email(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
 
-    recipients = [order.get_user_current_email()]
+    recipients = [order.get_customer_email()]
 
     expected_call_kwargs = {
         "context": email_data["context"],
@@ -106,7 +106,7 @@ def test_send_confirmation_emails_without_addresses(
     send_email(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
 
-    recipients = [order.get_user_current_email()]
+    recipients = [order.get_customer_email()]
 
     expected_call_kwargs = {
         "context": email_data["context"],
@@ -143,7 +143,7 @@ def test_send_fulfillment_emails(
         fulfilled_order.pk, template, fulfillment.pk
     )
 
-    recipients = [fulfilled_order.get_user_current_email()]
+    recipients = [fulfilled_order.get_customer_email()]
 
     expected_call_kwargs = {
         "context": email_data["context"],
