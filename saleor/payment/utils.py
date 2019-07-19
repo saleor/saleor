@@ -39,7 +39,7 @@ REQUIRED_GATEWAY_KEYS = {
     "currency",
 }
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
-GATEWAYS_META_NAMESPACE = "gateways"
+GATEWAYS_META_NAMESPACE = "payment-gateways"
 
 
 def list_enabled_gateways() -> List[str]:
