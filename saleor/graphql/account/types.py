@@ -11,7 +11,7 @@ from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.resolvers import resolve_private_meta, resolve_meta
+from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
 from ..utils import format_permissions_for_display
