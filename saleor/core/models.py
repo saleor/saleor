@@ -70,8 +70,10 @@ class PublishableModel(models.Model):
 
 
 class ModelWithMetadata(models.Model):
-    private_meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
-    meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    private_meta = JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+    )
+    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         abstract = True
