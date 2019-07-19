@@ -21,7 +21,15 @@ from ....product.utils.costs import get_margin_for_variant, get_product_costs_da
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import PrefetchingConnectionField
-from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxType
+from ...core.types import (
+    Image,
+    Money,
+    MoneyRange,
+    TaxedMoney,
+    TaxedMoneyRange,
+    TaxType,
+    MetadataObjectType,
+)
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import (
@@ -159,7 +167,7 @@ class ProductPricingInfo(BasePricingInfo):
         description = "Represents availability of a product in the storefront."
 
 
-class ProductVariant(CountableDjangoObjectType):
+class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     stock_quantity = graphene.Int(
         required=True, description="Quantity of a product available for sale."
     )
@@ -341,7 +349,7 @@ class ProductVariant(CountableDjangoObjectType):
         return cls.maybe_optimize(info, qs, id)
 
 
-class Product(CountableDjangoObjectType):
+class Product(CountableDjangoObjectType, MetadataObjectType):
     url = graphene.String(
         description="The storefront URL for the product.", required=True
     )
@@ -575,7 +583,7 @@ class Product(CountableDjangoObjectType):
         return None
 
 
-class ProductType(CountableDjangoObjectType):
+class ProductType(CountableDjangoObjectType, MetadataObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description="List of products of this type."
@@ -637,7 +645,7 @@ class ProductType(CountableDjangoObjectType):
         return gql_optimizer.query(qs, info)
 
 
-class Collection(CountableDjangoObjectType):
+class Collection(CountableDjangoObjectType, MetadataObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description="List of products in this collection."
@@ -710,7 +718,7 @@ class Collection(CountableDjangoObjectType):
         return None
 
 
-class Category(CountableDjangoObjectType):
+class Category(CountableDjangoObjectType, MetadataObjectType):
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
     )

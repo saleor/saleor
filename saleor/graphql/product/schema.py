@@ -44,6 +44,8 @@ from .mutations.products import (
     CategoryCreate,
     CategoryDelete,
     CategoryUpdate,
+    CategoryUpdateMeta,
+    CategoryClearMeta,
     CollectionAddProducts,
     CollectionCreate,
     CollectionDelete,
@@ -63,6 +65,10 @@ from .mutations.products import (
     ProductVariantCreate,
     ProductVariantDelete,
     ProductVariantUpdate,
+    ProductVariantUpdateMeta,
+    ProductVariantClearMeta,
+    ProductVariantUpdatePrivateMeta,
+    ProductVariantClearPrivateMeta,
     VariantImageAssign,
     VariantImageUnassign,
 )
@@ -275,6 +281,8 @@ class ProductMutations(graphene.ObjectType):
     category_bulk_delete = CategoryBulkDelete.Field()
     category_update = CategoryUpdate.Field()
     category_translate = CategoryTranslate.Field()
+    category_update_metadata = CategoryUpdateMeta.Field()
+    category_clear_metadata = CategoryClearMeta.Field()
 
     collection_add_products = CollectionAddProducts.Field()
     collection_create = CollectionCreate.Field()
@@ -315,6 +323,10 @@ class ProductMutations(graphene.ObjectType):
     product_variant_bulk_delete = ProductVariantBulkDelete.Field()
     product_variant_update = ProductVariantUpdate.Field()
     product_variant_translate = ProductVariantTranslate.Field()
+    product_variant_update_metadata = ProductVariantUpdateMeta.Field()
+    product_variant_clear_metadata = ProductVariantClearMeta.Field()
+    product_variant_update_private_metadata = ProductVariantUpdatePrivateMeta.Field()
+    product_variant_clear_private_metadata = ProductVariantClearPrivateMeta.Field()
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()
