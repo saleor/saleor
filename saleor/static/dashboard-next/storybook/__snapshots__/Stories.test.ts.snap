@@ -68026,6 +68026,9 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
             </div>
           </div>
           <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductTypeTaxes-root-id"
           >
             <div
@@ -68491,6 +68494,9 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
               </div>
             </div>
           </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
           <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id ProductTypeTaxes-root-id"
           >
