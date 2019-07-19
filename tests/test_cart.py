@@ -33,7 +33,7 @@ def checkout_request_factory(rf, monkeypatch):
         else:
             request.user = user
         request.discounts = Sale.objects.all()
-        request.taxes = None
+        request.extensions = None
         monkeypatch.setattr(request, "get_signed_cookie", Mock(return_value=token))
         return request
 

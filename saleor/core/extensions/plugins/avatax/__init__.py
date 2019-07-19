@@ -10,13 +10,12 @@ from django.core.cache import cache
 from django.utils.translation import pgettext_lazy
 from requests.auth import HTTPBasicAuth
 
-from saleor.core.utils import get_company_address
-
-from .. import charge_taxes_on_shipping, include_taxes_in_prices
+from ....taxes import charge_taxes_on_shipping, include_taxes_in_prices
+from ....utils import get_company_address  # FIXME shouldn't use logic from saleor
 
 if TYPE_CHECKING:
-    from ....checkout.models import Checkout
-    from ....order.models import Order
+    from .....checkout.models import Checkout
+    from .....order.models import Order
 
 logger = logging.getLogger(__name__)
 

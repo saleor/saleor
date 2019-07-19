@@ -102,7 +102,7 @@ def taxes(get_response):
         if settings.VATLAYER_ACCESS_KEY:
             # FIXME this should be disabled after we will introduce plugin architecure.
             # For now, a lot of templates use tax_rate function.
-            from .taxes.vatlayer import get_taxes_for_country
+            from .extensions.plugins.vatlayer import get_taxes_for_country
 
             request.taxes = SimpleLazyObject(
                 lambda: get_taxes_for_country(request.country)

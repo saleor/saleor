@@ -1,4 +1,5 @@
 from unittest import mock
+from urllib.parse import urlparse
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
@@ -15,10 +16,17 @@ from saleor.core.extensions.plugins.vatlayer import (
     get_taxes_for_address,
     get_taxes_for_country,
 )
-from saleor.core.utils import get_country_name_by_code
 from saleor.dashboard.taxes.filters import get_country_choices_for_vat
 
-from ..utils import get_redirect_location
+
+def get_url_path(url):
+    parsed_url = urlparse(url)
+    return parsed_url.path
+
+
+def get_redirect_location(response):
+    # Due to Django 1.8 compatibility, we have to handle both cases
+    return get_url_path(response["Location"])
 
 
 @pytest.fixture
@@ -271,11 +279,6 @@ def test_get_taxes_for_address_other_country(address, vatlayer, compare_taxes):
 def test_get_taxes_for_country(vatlayer, compare_taxes):
     taxes = get_taxes_for_country(Country("PL"))
     compare_taxes(taxes, vatlayer)
-
-
-def test_get_country_name_by_code():
-    country_name = get_country_name_by_code("PL")
-    assert country_name == "Poland"
 
 
 def test_apply_tax_to_price_do_not_include_tax(site_settings, taxes):
