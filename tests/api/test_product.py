@@ -11,7 +11,8 @@ from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
 
-from saleor.core.taxes import TaxType, interface as tax_interface
+from saleor.core.extensions.manager import ExtensionsManager
+from saleor.core.taxes import TaxType
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.graphql.product.types.products import resolve_attribute_list
@@ -744,8 +745,9 @@ def test_create_product(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        "saleor.graphql.product.types.products.tax_interface.get_tax_from_object_meta",
-        lambda x: TaxType(description="", code=product_tax_rate),
+        ExtensionsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
     )
 
     # Default attribute defined in product_type fixture
@@ -1065,8 +1067,9 @@ def test_update_product(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        "saleor.graphql.product.types.products.tax_interface.get_tax_from_object_meta",
-        lambda x: TaxType(description="", code=product_tax_rate),
+        ExtensionsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
     )
 
     variables = {
@@ -1262,14 +1265,9 @@ def test_product_type_query(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "saleor.graphql.product.types.products."
-        "vatlayer_interface.get_tax_from_object_meta",
-        lambda x: TaxType(code="standard", description=""),
-    )
-    monkeypatch.setattr(
-        "saleor.graphql.product.types.products."
-        "tax_interface.get_tax_from_object_meta",
-        lambda x: TaxType(code="123", description="Standard Taxes"),
+        ExtensionsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(code="123", description="Standard Taxes"),
     )
     query = """
             query getProductType($id: ID!) {
@@ -1306,7 +1304,6 @@ def test_product_type_query(
     content = get_graphql_content(response)
     data = content["data"]
     assert data["productType"]["products"]["totalCount"] == no_products
-    assert data["productType"]["taxRate"] == "STANDARD"
     assert data["productType"]["taxType"]["taxCode"] == "123"
     assert data["productType"]["taxType"]["description"] == "Standard Taxes"
 
@@ -1315,11 +1312,8 @@ def test_product_type_create_mutation(
     staff_api_client, product_type, permission_manage_products, monkeypatch, settings
 ):
     settings.VATLAYER_ACCESS_KEY = "test"
-    monkeypatch.setattr(
-        "saleor.graphql.product.types.products."
-        "vatlayer_interface.get_tax_from_object_meta",
-        lambda x: TaxType(code="standard", description=""),
-    )
+    settings.PLUGINS = ["saleor.core.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = ExtensionsManager(plugins=settings.PLUGINS)
     query = """
     mutation createProductType(
         $name: String!,
@@ -1372,7 +1366,7 @@ def test_product_type_create_mutation(
     variables = {
         "name": product_type_name,
         "hasVariants": has_variants,
-        "taxCode": "STANDARD",
+        "taxCode": "wine",
         "isShippingRequired": require_shipping,
         "productAttributes": product_attributes_ids,
         "variantAttributes": variant_attributes_ids,
@@ -1403,8 +1397,8 @@ def test_product_type_create_mutation(
     )
 
     new_instance = ProductType.objects.latest("pk")
-    tax_code = tax_interface.get_tax_from_object_meta(new_instance).code
-    assert tax_code == "standard"
+    tax_code = manager.get_tax_code_from_object_meta(new_instance).code
+    assert tax_code == "wine"
 
 
 def test_product_type_update_mutation(

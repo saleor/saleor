@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import User
-from ....core.taxes import interface as tax_interface, zero_taxed_money
+from ....core.taxes import zero_taxed_money
 from ....order import events, models
 from ....order.utils import cancel_order, recalculate_order
 from ....payment import CustomPaymentChoices, PaymentError
@@ -172,7 +172,7 @@ class OrderUpdateShipping(BaseMutation):
         clean_order_update_shipping(order, method)
 
         order.shipping_method = method
-        order.shipping_price = tax_interface.calculate_order_shipping(order)
+        order.shipping_price = info.context.extensions.calculate_order_shipping(order)
         order.shipping_method_name = method.name
         order.save(
             update_fields=[

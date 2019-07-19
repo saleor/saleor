@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.utils.translation import pgettext_lazy
 from prices import MoneyRange
 
-from ..core.taxes import interface as tax_interface
+from ..core.extensions.manager import get_extensions_manager
 from ..core.weight import convert_weight, get_default_weight_unit
 
 
@@ -17,7 +17,8 @@ def get_shipping_price_estimate(price, weight, country_code):
     if not shipping_methods:
         return
     prices = MoneyRange(start=min(shipping_methods), stop=max(shipping_methods))
-    return tax_interface.apply_taxes_to_shipping_price_range(prices, country_code)
+    manager = get_extensions_manager()
+    return manager.apply_taxes_to_shipping_price_range(prices, country_code)
 
 
 def applicable_weight_based_methods(weight, qs):

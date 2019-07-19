@@ -8,8 +8,8 @@ from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
+from ..core.extensions.manager import get_extensions_manager
 from ..core.taxes import zero_money
-from ..core.taxes.interface import calculate_order_line_unit, calculate_order_shipping
 from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
@@ -153,6 +153,7 @@ def recalculate_order_weight(order):
 
 def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
+    manager = get_extensions_manager()
     for line in order:
         if line.variant:
             unit_price = line.variant.get_price(discounts)
@@ -160,7 +161,7 @@ def update_order_prices(order, discounts):
             line.unit_price_gross = unit_price
             line.save(update_fields=["unit_price_net", "unit_price_gross"])
 
-            price = calculate_order_line_unit(line)
+            price = manager.calculate_order_line_unit(line)
             if price != line.unit_price:
                 line.unit_price = price
                 if price.tax and price.net:
@@ -168,7 +169,7 @@ def update_order_prices(order, discounts):
                 line.save()
 
     if order.shipping_method:
-        order.shipping_price = calculate_order_shipping(order)
+        order.shipping_price = manager.calculate_order_shipping(order)
         order.save()
 
     recalculate_order(order)
@@ -293,8 +294,8 @@ def add_variant_to_order(
             unit_price_gross=unit_price,
             variant=variant,
         )
-
-        unit_price = calculate_order_line_unit(line)
+        manager = get_extensions_manager()
+        unit_price = manager.calculate_order_line_unit(line)
         line.unit_price_net = unit_price.net
         line.unit_price_gross = unit_price.gross
         line.tax_rate = unit_price.tax / unit_price.net

@@ -71,7 +71,7 @@ def handle_checkout_form(request, product, create_checkout=False):
         data=request.POST or None,
         discounts=request.discounts,
         country=request.country,
-        taxes=request.taxes,
+        extensions=request.extensions,
     )
     return form, checkout
 
