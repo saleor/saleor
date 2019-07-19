@@ -9,6 +9,8 @@ import Form from "@saleor/components/Form";
 import Grid from "@saleor/components/Grid";
 import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import { ChangeEvent, FormChange } from "@saleor/hooks/useForm";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { ListActions, UserError } from "@saleor/types";
@@ -31,10 +33,7 @@ export interface ProductTypeForm {
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
-  taxType: {
-    label: string;
-    value: string;
-  };
+  taxType: string;
   productAttributes: ChoiceType[];
   variantAttributes: ChoiceType[];
   weight: number;
@@ -58,6 +57,18 @@ export interface ProductTypeDetailsPageProps {
   onSubmit: (data: ProductTypeForm) => void;
 }
 
+function handleTaxTypeChange(
+  event: ChangeEvent,
+  taxTypes: ProductTypeDetails_taxTypes[],
+  formChange: FormChange,
+  displayChange: (name: string) => void
+) {
+  formChange(event);
+  displayChange(
+    taxTypes.find(taxType => taxType.taxCode === event.target.value).description
+  );
+}
+
 const ProductTypeDetailsPage: React.StatelessComponent<
   ProductTypeDetailsPageProps
 > = ({
@@ -77,6 +88,9 @@ const ProductTypeDetailsPage: React.StatelessComponent<
   onDelete,
   onSubmit
 }) => {
+  const [taxTypeDisplayName, setTaxTypeDisplayName] = useStateFromProps(
+    maybe(() => productType.taxType.description)
+  );
   const formInitialData: ProductTypeForm = {
     hasVariants:
       maybe(() => productType.hasVariants) !== undefined
@@ -94,16 +108,7 @@ const ProductTypeDetailsPage: React.StatelessComponent<
             value: attribute.id
           }))
         : [],
-    taxType:
-      maybe(() => productType.taxType) !== undefined
-        ? {
-            label: productType.taxType.description,
-            value: productType.taxType.taxCode
-          }
-        : {
-            label: "",
-            value: ""
-          },
+    taxType: maybe(() => productType.taxType.taxCode, ""),
     variantAttributes:
       maybe(() => productType.variantAttributes) !== undefined
         ? productType.variantAttributes.map(attribute => ({
@@ -134,10 +139,17 @@ const ProductTypeDetailsPage: React.StatelessComponent<
               <ProductTypeTaxes
                 disabled={disabled}
                 data={data}
-                taxTypes={maybe(() => taxTypes, [])}
-                onChange={change}
+                taxTypes={taxTypes}
+                taxTypeDisplayName={taxTypeDisplayName}
+                onChange={event =>
+                  handleTaxTypeChange(
+                    event,
+                    taxTypes,
+                    change,
+                    setTaxTypeDisplayName
+                  )
+                }
               />
-              <CardSpacer />
               <CardSpacer />
               <ProductTypeAttributes
                 attributes={maybe(() => productType.productAttributes)}
