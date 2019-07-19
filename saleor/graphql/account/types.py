@@ -11,6 +11,7 @@ from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
+from ..core.resolvers import resolve_private_meta, resolve_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
 from ..utils import format_permissions_for_display
@@ -262,6 +263,15 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         from .resolvers import resolve_payment_sources
 
         return resolve_payment_sources(root)
+
+    @staticmethod
+    @permission_required("account.manage_users")
+    def resolve_private_meta(root, _info):
+        return resolve_private_meta(root, _info)
+
+    @staticmethod
+    def resolve_meta(root, _info):
+        return resolve_meta(root, _info)
 
 
 class ChoiceValue(graphene.ObjectType):
