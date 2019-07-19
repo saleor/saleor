@@ -10,6 +10,10 @@ input AccountInput {
   defaultShippingAddress: AddressInput
 }
 
+type AccountRequestDeletion {
+  errors: [Error!]
+}
+
 type AccountUpdate {
   errors: [Error!]
   user: User
@@ -1667,6 +1671,7 @@ type Mutations {
   customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
   loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   accountUpdate(input: AccountInput!): AccountUpdate
+  accountRequestDeletion: AccountRequestDeletion
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete
