@@ -23,9 +23,16 @@ from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from saleor.core.models import ModelWithMetadata
+
 from ..core.exceptions import InsufficientStock
 from ..core.fields import SanitizedJSONField
-from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
+from ..core.models import (
+    ModelWithMetadata,
+    PublishableModel,
+    PublishedQuerySet,
+    SortableModel,
+)
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.json_serializer import CustomJsonEncoder
@@ -87,7 +94,7 @@ class CategoryTranslation(SeoModelTranslation):
         )
 
 
-class ProductType(models.Model):
+class ProductType(ModelWithMetadata):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
@@ -95,7 +102,6 @@ class ProductType(models.Model):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
-    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         app_label = "product"
