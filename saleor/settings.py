@@ -1,5 +1,6 @@
 import ast
 import os.path
+import warnings
 
 import dj_database_url
 import dj_email_url
@@ -269,8 +270,19 @@ INSTALLED_APPS = [
 
 ENABLE_DEBUG_TOOLBAR = get_bool_from_env("ENABLE_DEBUG_TOOLBAR", False)
 if ENABLE_DEBUG_TOOLBAR:
-    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-    INSTALLED_APPS.append("debug_toolbar")
+    # Ensure the debug toolbar is actually installed before adding it
+    try:
+        __import__("debug_toolbar")
+    except ImportError as exc:
+        msg = (
+            f"{exc} -- Install the missing dependencies by "
+            f"running `pip install -r requirements_dev.txt`"
+        )
+        warnings.warn(msg)
+    else:
+        MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+        INSTALLED_APPS.append("debug_toolbar")
+
     DEBUG_TOOLBAR_PANELS = [
         # adds a request history to the debug toolbar
         "ddt_request_history.panels.request_history.RequestHistoryPanel",
