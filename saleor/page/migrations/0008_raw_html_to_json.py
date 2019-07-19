@@ -15,7 +15,7 @@ def convert_pages_html_to_json(apps, schema_editor):
         content_json = page.content_json
         content_raw = json_content_to_raw_text(content_json)
 
-        # Override the the JSON content if there was nothing in it
+        # Override the JSON content if there was nothing in it
         if not content_raw.strip():
             page.description_json = html_to_draftjs(page.content)
             page.save(update_fields=["content_json"])
@@ -27,7 +27,7 @@ def convert_pages_html_to_json(apps, schema_editor):
         content_json = translation.content_json
         content_raw = json_content_to_raw_text(content_json)
 
-        # Override the the JSON content if there was nothing in it
+        # Override the JSON content if there was nothing in it
         if not content_raw.strip():
             translation.description_json = html_to_draftjs(translation.content)
             translation.save(update_fields=["content_json"])
