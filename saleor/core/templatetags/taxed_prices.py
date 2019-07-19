@@ -1,8 +1,8 @@
 from django import template
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from ...core.extensions.plugins.vatlayer import DEFAULT_TAX_RATE_NAME
 from ...core.taxes import get_display_price
-from ...core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME
 
 # FIXME This const variable belongs to vatlayer, we shouldn't take it directly from
 # vatlayer module. This should be moved to plugin after we will introduce plugin

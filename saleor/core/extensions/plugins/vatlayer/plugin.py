@@ -225,8 +225,7 @@ class VatlayerPlugin(BasePlugin):
 
         if tax_code not in dict(TaxRateType.CHOICES):
             return previous_value
-        if not hasattr(obj, "meta"):
-            return previous_value
+
         if "taxes" not in obj.meta:
             obj.meta["taxes"] = {}
         obj.meta["taxes"][self.META_FIELD] = {"code": tax_code, "description": tax_code}

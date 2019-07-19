@@ -1,7 +1,7 @@
 import graphene
 
+from ...core.extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
 from ...core.permissions import MODELS_PERMISSIONS
-from ...core.taxes.vatlayer import TaxRateType as CoreTaxRateType
 from ...core.weight import WeightUnits
 from .utils import str_to_enum
 

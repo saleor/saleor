@@ -141,7 +141,7 @@ def get_product_list_context(request, filter_set):
             request.discounts,
             request.country,
             request.currency,
-            request.taxes,
+            request.extensions,
         )
     )
     now_sorted_by = get_now_sorted_by(filter_set)
