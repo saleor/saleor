@@ -32,6 +32,6 @@ export interface MenuItemFragment {
   level: number;
   name: string;
   page: MenuItemFragment_page | null;
-  sortOrder: number | null;
+  sortOrder: number;
   url: string | null;
 }
