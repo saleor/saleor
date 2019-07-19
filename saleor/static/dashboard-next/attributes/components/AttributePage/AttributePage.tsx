@@ -43,6 +43,7 @@ export interface AttributePageFormData {
   name: string;
   slug: string;
   storefrontSearchPosition: string;
+  valueRequired: boolean;
   visibleInStorefront: boolean;
 }
 
@@ -69,6 +70,7 @@ const AttributePage: React.FC<AttributePageProps> = ({
           name: "",
           slug: "",
           storefrontSearchPosition: "",
+          valueRequired: false,
           visibleInStorefront: false
         }
       : {
@@ -90,6 +92,7 @@ const AttributePage: React.FC<AttributePageProps> = ({
             () => attribute.storefrontSearchPosition.toString(),
             ""
           ),
+          valueRequired: maybe(() => attribute.valueRequired, false),
           visibleInStorefront: maybe(() => attribute.visibleInStorefront, false)
         };
 

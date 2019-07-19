@@ -5,6 +5,7 @@ import React from "react";
 import slugify from "slugify";
 
 import CardTitle from "@saleor/components/CardTitle";
+import ControlledSwitch from "@saleor/components/ControlledSwitch";
 import FormSpacer from "@saleor/components/FormSpacer";
 import SingleSelectField from "@saleor/components/SingleSelectField";
 import i18n from "@saleor/i18n";
@@ -80,6 +81,15 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({
         name="inputType"
         onChange={onChange}
         value={data.inputType}
+      />
+      <FormSpacer />
+      <ControlledSwitch
+        checked={data.valueRequired}
+        label={i18n.t("Value Required", {
+          context: "attribute must have value"
+        })}
+        name={"valueRequired" as keyof AttributePageFormData}
+        onChange={onChange}
       />
     </CardContent>
   </Card>
