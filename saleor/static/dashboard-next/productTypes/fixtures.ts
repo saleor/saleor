@@ -574,7 +574,20 @@ export const productType: ProductTypeDetails_productType = {
     description: "PH405458",
     taxCode: "Shields"
   },
-  variantAttributes: [attributes[1], attributes[6]],
+  variantAttributes: [
+    {
+      ...attributes[1],
+      filterableInDashboard: true,
+      filterableInStorefront: false,
+      visibleInStorefront: true
+    },
+    {
+      ...attributes[6],
+      filterableInDashboard: true,
+      filterableInStorefront: false,
+      visibleInStorefront: true
+    }
+  ],
   weight: {
     __typename: "Weight",
     unit: "kg",
