@@ -16,12 +16,12 @@ from saleor.checkout.utils import (
     add_variant_to_checkout,
     change_checkout_user,
     find_open_checkout_for_user,
+    get_shipping_price_estimate,
 )
 from saleor.checkout.views import clear_checkout, update_checkout_line
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount.models import Sale
 from saleor.product.models import Category
-from saleor.shipping.utils import get_shipping_price_estimate
 
 
 @pytest.fixture()
@@ -71,7 +71,7 @@ def test_get_or_create_anonymous_checkout_from_token(anonymous_checkout, user_ch
 def test_get_or_create_user_checkout(
     customer_user, anonymous_checkout, user_checkout, admin_user
 ):
-    checkout = utils.get_or_create_user_checkout(customer_user)[0]
+    checkout = utils.get_user_checkout(customer_user, auto_create=True)[0]
     assert Checkout.objects.all().count() == 2
     assert checkout == user_checkout
 
@@ -79,7 +79,7 @@ def test_get_or_create_user_checkout(
     Checkout.objects.create(user=admin_user)
     queryset = Checkout.objects.all()
     checkouts = list(queryset)
-    checkout = utils.get_or_create_user_checkout(admin_user)[0]
+    checkout = utils.get_user_checkout(admin_user, auto_create=True)[0]
     assert Checkout.objects.all().count() == 3
     assert checkout in checkouts
     assert checkout.user == admin_user
@@ -104,9 +104,10 @@ def test_get_anonymous_checkout_from_token(anonymous_checkout, user_checkout):
 def test_get_user_checkout(
     anonymous_checkout, user_checkout, admin_user, customer_user
 ):
-    checkout = utils.get_user_checkout(customer_user)
+    checkout, created = utils.get_user_checkout(customer_user)
     assert Checkout.objects.all().count() == 2
     assert checkout == user_checkout
+    assert not created
 
 
 def test_get_or_create_checkout_from_request(
@@ -119,15 +120,13 @@ def test_get_or_create_checkout_from_request(
     anonymous_checkout = Checkout()
     mock_get_for_user = Mock(return_value=(user_checkout, False))
     mock_get_for_anonymous = Mock(return_value=anonymous_checkout)
-    monkeypatch.setattr(
-        "saleor.checkout.utils.get_or_create_user_checkout", mock_get_for_user
-    )
+    monkeypatch.setattr("saleor.checkout.utils.get_user_checkout", mock_get_for_user)
     monkeypatch.setattr(
         "saleor.checkout.utils.get_or_create_anonymous_checkout_from_token",
         mock_get_for_anonymous,
     )
     returned_checkout = utils.get_or_create_checkout_from_request(request, queryset)
-    mock_get_for_user.assert_called_once_with(customer_user, queryset)
+    mock_get_for_user.assert_called_once_with(customer_user, queryset, auto_create=True)
     assert returned_checkout == user_checkout
 
     request = checkout_request_factory(user=None, token=token)
@@ -144,13 +143,13 @@ def test_get_checkout_from_request(
     request = checkout_request_factory(user=customer_user, token=token)
 
     user_checkout = Checkout(user=customer_user)
-    mock_get_for_user = Mock(return_value=user_checkout)
+    mock_get_for_user = Mock(return_value=(user_checkout, False))
     monkeypatch.setattr("saleor.checkout.utils.get_user_checkout", mock_get_for_user)
     returned_checkout = utils.get_checkout_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_checkout == user_checkout
 
-    mock_get_for_user = Mock(return_value=None)
+    mock_get_for_user = Mock(return_value=(None, False))
     monkeypatch.setattr("saleor.checkout.utils.get_user_checkout", mock_get_for_user)
     returned_checkout = utils.get_checkout_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
@@ -723,14 +722,16 @@ def test_update_checkout_line_qunatity_zero(
     assert data == expected_response
 
 
-def test_get_checkout_context(checkout_with_single_item, shipping_zone):
+def test_get_checkout_context(checkout_with_single_item, shipping_zone, address):
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+
     shipment_option = get_shipping_price_estimate(
-        checkout_with_single_item.get_subtotal(),
-        checkout_with_single_item.get_total_weight(),
-        "PL",
+        checkout, discounts=None, country_code="PL"
     )
     checkout_data = utils.get_checkout_context(
-        checkout_with_single_item, None, currency="USD", shipping_range=shipment_option
+        checkout, None, currency="USD", shipping_range=shipment_option
     )
     assert checkout_data["checkout_total"] == TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
@@ -740,14 +741,16 @@ def test_get_checkout_context(checkout_with_single_item, shipping_zone):
     )
 
 
-def test_get_checkout_context_no_shipping(checkout_with_single_item):
+def test_get_checkout_context_no_shipping(checkout_with_single_item, address):
+    checkout = checkout_with_single_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+
     shipment_option = get_shipping_price_estimate(
-        checkout_with_single_item.get_subtotal(),
-        checkout_with_single_item.get_total_weight(),
-        "PL",
+        checkout, discounts=None, country_code="PL"
     )
     checkout_data = utils.get_checkout_context(
-        checkout_with_single_item, None, currency="USD", shipping_range=shipment_option
+        checkout, None, currency="USD", shipping_range=shipment_option
     )
     checkout_total = checkout_data["checkout_total"]
     assert checkout_total == TaxedMoney(

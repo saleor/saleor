@@ -1,7 +1,5 @@
 from django.core.exceptions import ValidationError
 
-from ...shipping import models as shipping_models
-
 
 def validate_total_quantity(order):
     if order.get_total_quantity() == 0:
@@ -40,18 +38,3 @@ def validate_draft_order(order):
         validate_shipping_method(order)
     validate_total_quantity(order)
     validate_order_lines(order)
-
-
-# FIXME: is this function needed? QS method might be enough
-def applicable_shipping_methods(obj, price):
-    if not obj.is_shipping_required():
-        return []
-    if not obj.shipping_address:
-        return []
-
-    qs = shipping_models.ShippingMethod.objects
-    return qs.applicable_shipping_methods(
-        price=price,
-        weight=obj.get_total_weight(),
-        country_code=obj.shipping_address.country.code,
-    )
