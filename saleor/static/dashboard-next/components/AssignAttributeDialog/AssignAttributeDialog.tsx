@@ -5,167 +5,175 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { createStyles, withStyles, WithStyles } from "@material-ui/core/styles";
+import { Theme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
+import makeStyles from "@material-ui/styles/makeStyles";
 import * as React from "react";
+import InfiniteScroll from "react-infinite-scroller";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
-import Form from "@saleor/components/Form";
-import FormSpacer from "@saleor/components/FormSpacer";
+import useSearchQuery from "@saleor/hooks/useSearchQuery";
 import { maybe, renderCollection } from "@saleor/misc";
+import { FetchMoreProps } from "@saleor/types";
 import { SearchAttributes_attributes_edges_node } from "../../containers/SearchAttributes/types/SearchAttributes";
 import i18n from "../../i18n";
 import Checkbox from "../Checkbox";
 
-interface FormData {
-  query: string;
-}
-
-const styles = createStyles({
+const useStyles = makeStyles((theme: Theme) => ({
   checkboxCell: {
     paddingLeft: 0
   },
-  overflow: {
-    overflowY: "visible"
+  loadMoreLoaderContainer: {
+    alignItems: "center",
+    display: "flex",
+    height: theme.spacing.unit * 3,
+    justifyContent: "center"
+  },
+  scrollArea: {
+    overflowY: "scroll"
   },
   wideCell: {
     width: "100%"
   }
-});
+}));
 
-export interface AssignAttributeDialogProps {
+export interface AssignAttributeDialogProps extends FetchMoreProps {
   confirmButtonState: ConfirmButtonTransitionState;
   errors: string[];
   open: boolean;
   attributes: SearchAttributes_attributes_edges_node[];
-  loading: boolean;
   selected: string[];
   onClose: () => void;
-  onFetch: (value: string) => void;
-  onSubmit: (data: FormData) => void;
+  onSubmit: () => void;
   onToggle: (id: string) => void;
 }
 
-const initialForm: FormData = {
-  query: ""
-};
-const AssignAttributeDialog = withStyles(styles, {
-  name: "AssignAttributeDialog"
-})(
-  ({
-    attributes,
-    classes,
-    confirmButtonState,
-    errors,
-    loading,
-    open,
-    selected,
-    onClose,
-    onFetch,
-    onSubmit,
-    onToggle
-  }: AssignAttributeDialogProps & WithStyles<typeof styles>) => (
-    <Dialog
-      onClose={onClose}
-      open={open}
-      classes={{ paper: classes.overflow }}
-      fullWidth
-      maxWidth="sm"
-    >
-      <Form initial={initialForm} onSubmit={onSubmit}>
-        {({ data, change }) => (
-          <>
-            <DialogTitle>{i18n.t("Assign Attribute")}</DialogTitle>
-            <DialogContent className={classes.overflow}>
-              <TextField
-                name="query"
-                value={data.query}
-                onChange={event => change(event, () => onFetch(data.query))}
-                label={i18n.t("Search Attributes", {
-                  context: "attribute search input label"
-                })}
-                placeholder={i18n.t("Search by attribute name", {
-                  context: "attribute search input placeholder"
-                })}
-                fullWidth
-                InputProps={{
-                  autoComplete: "off",
-                  endAdornment: loading && <CircularProgress size={16} />
-                }}
-              />
-              <FormSpacer />
-              <Table>
-                <TableBody>
-                  {renderCollection(
-                    attributes,
-                    attribute => {
-                      if (!attribute) {
-                        return null;
-                      }
-                      const isChecked = !!selected.find(
-                        selectedAttribute => selectedAttribute === attribute.id
-                      );
+const AssignAttributeDialog: React.FC<AssignAttributeDialogProps> = ({
+  attributes,
+  confirmButtonState,
+  errors,
+  hasMore,
+  loading,
+  open,
+  selected,
+  onClose,
+  onFetch,
+  onFetchMore,
+  onSubmit,
+  onToggle
+}: AssignAttributeDialogProps) => {
+  const classes = useStyles({});
+  const [query, onQueryChange] = useSearchQuery(onFetch);
 
-                      return (
-                        <TableRow key={maybe(() => attribute.id)}>
-                          <TableCell
-                            padding="checkbox"
-                            className={classes.checkboxCell}
-                          >
-                            <Checkbox
-                              checked={isChecked}
-                              onChange={() => onToggle(attribute.id)}
-                            />
-                          </TableCell>
-                          <TableCell className={classes.wideCell}>
-                            {attribute.name}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    },
-                    () =>
-                      !loading && (
-                        <TableRow>
-                          <TableCell colSpan={2}>
-                            {i18n.t("No results found")}
-                          </TableCell>
-                        </TableRow>
-                      )
-                  )}
-                </TableBody>
-              </Table>
-            </DialogContent>
-            {errors.length > 0 && (
-              <DialogContent>
-                {errors.map(error => (
-                  <DialogContentText color="error">{error}</DialogContentText>
-                ))}
-              </DialogContent>
-            )}
-            <DialogActions>
-              <Button onClick={onClose}>
-                {i18n.t("Cancel", { context: "button" })}
-              </Button>
-              <ConfirmButton
-                transitionState={confirmButtonState}
-                color="primary"
-                variant="contained"
-                type="submit"
-              >
-                {i18n.t("Assign attributes", { context: "button" })}
-              </ConfirmButton>
-            </DialogActions>
-          </>
-        )}
-      </Form>
+  return (
+    <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
+      <DialogTitle>{i18n.t("Assign Attribute")}</DialogTitle>
+      <DialogContent>
+        <TextField
+          name="query"
+          value={query}
+          onChange={onQueryChange}
+          label={i18n.t("Search Attributes", {
+            context: "attribute search input label"
+          })}
+          placeholder={i18n.t("Search by attribute name", {
+            context: "attribute search input placeholder"
+          })}
+          fullWidth
+          InputProps={{
+            autoComplete: "off",
+            endAdornment: loading && <CircularProgress size={16} />
+          }}
+        />
+      </DialogContent>
+      <DialogContent className={classes.scrollArea}>
+        <InfiniteScroll
+          pageStart={0}
+          loadMore={onFetchMore}
+          hasMore={hasMore}
+          useWindow={false}
+          loader={
+            <div className={classes.loadMoreLoaderContainer}>
+              <CircularProgress size={16} />
+            </div>
+          }
+          threshold={10}
+        >
+          <Table key="table">
+            <TableBody>
+              {renderCollection(
+                attributes,
+                attribute => {
+                  if (!attribute) {
+                    return null;
+                  }
+                  const isChecked = !!selected.find(
+                    selectedAttribute => selectedAttribute === attribute.id
+                  );
+
+                  return (
+                    <TableRow key={maybe(() => attribute.id)}>
+                      <TableCell
+                        padding="checkbox"
+                        className={classes.checkboxCell}
+                      >
+                        <Checkbox
+                          checked={isChecked}
+                          onChange={() => onToggle(attribute.id)}
+                        />
+                      </TableCell>
+                      <TableCell className={classes.wideCell}>
+                        {attribute.name}
+                        <Typography variant="caption">
+                          {attribute.slug}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  );
+                },
+                () =>
+                  !loading && (
+                    <TableRow>
+                      <TableCell colSpan={2}>
+                        {i18n.t("No results found")}
+                      </TableCell>
+                    </TableRow>
+                  )
+              )}
+            </TableBody>
+          </Table>
+        </InfiniteScroll>
+      </DialogContent>
+      {errors.length > 0 && (
+        <DialogContent>
+          {errors.map(error => (
+            <DialogContentText color="error">{error}</DialogContentText>
+          ))}
+        </DialogContent>
+      )}
+      <DialogActions>
+        <Button onClick={onClose}>
+          {i18n.t("Cancel", { context: "button" })}
+        </Button>
+        <ConfirmButton
+          transitionState={confirmButtonState}
+          color="primary"
+          variant="contained"
+          type="submit"
+          onClick={onSubmit}
+        >
+          {i18n.t("Assign attributes", { context: "button" })}
+        </ConfirmButton>
+      </DialogActions>
     </Dialog>
-  )
-);
+  );
+};
 AssignAttributeDialog.displayName = "AssignAttributeDialog";
 export default AssignAttributeDialog;

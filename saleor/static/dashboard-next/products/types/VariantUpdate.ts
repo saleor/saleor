@@ -64,7 +64,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_product_image
   __typename: "ProductImage";
   id: string;
   alt: string;
-  sortOrder: number | null;
+  sortOrder: number;
   url: string;
 }
 

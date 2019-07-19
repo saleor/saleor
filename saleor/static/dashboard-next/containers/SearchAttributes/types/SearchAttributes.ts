@@ -10,6 +10,7 @@ export interface SearchAttributes_attributes_edges_node {
   __typename: "Attribute";
   id: string;
   name: string | null;
+  slug: string | null;
 }
 
 export interface SearchAttributes_attributes_edges {
@@ -17,9 +18,18 @@ export interface SearchAttributes_attributes_edges {
   node: SearchAttributes_attributes_edges_node;
 }
 
+export interface SearchAttributes_attributes_pageInfo {
+  __typename: "PageInfo";
+  endCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+}
+
 export interface SearchAttributes_attributes {
   __typename: "AttributeCountableConnection";
   edges: SearchAttributes_attributes_edges[];
+  pageInfo: SearchAttributes_attributes_pageInfo;
 }
 
 export interface SearchAttributes {

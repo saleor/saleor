@@ -272,14 +272,3 @@ export function generateCode(charNum: number) {
   }
   return result;
 }
-
-export function onQueryChange(
-  event: ChangeEvent,
-  onFetch: (data: string) => void,
-  setQuery: (data: string) => void
-) {
-  const value = event.target.value;
-
-  onFetch(value);
-  setQuery(value);
-}
