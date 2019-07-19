@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [("product", "0098_attribute_input_type_multiple_values")]
+    dependencies = [("product", "0099_attribute_input_type_multiple_values")]
 
     operations = [
         migrations.AddField(
