@@ -15,8 +15,9 @@ import React from "react";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
-import Form from "@saleor/components/Form";
 import FormSpacer from "@saleor/components/FormSpacer";
+import { ChangeEvent } from "@saleor/hooks/useForm";
+import { onQueryChange } from "@saleor/misc";
 import { SearchCategories_categories_edges_node } from "../../containers/SearchCategories/types/SearchCategories";
 import i18n from "../../i18n";
 import Checkbox from "../Checkbox";
@@ -50,13 +51,28 @@ interface AssignCategoriesDialogProps extends WithStyles<typeof styles> {
   loading: boolean;
   onClose: () => void;
   onFetch: (value: string) => void;
-  onSubmit: (data: FormData) => void;
+  onSubmit: (data: SearchCategories_categories_edges_node[]) => void;
 }
 
-const initialForm: FormData = {
-  categories: [],
-  query: ""
-};
+function handleCategoryAssign(
+  product: SearchCategories_categories_edges_node,
+  isSelected: boolean,
+  selectedCategories: SearchCategories_categories_edges_node[],
+  setSelectedCategories: (
+    data: SearchCategories_categories_edges_node[]
+  ) => void
+) {
+  if (isSelected) {
+    setSelectedCategories(
+      selectedCategories.filter(
+        selectedProduct => selectedProduct.id !== product.id
+      )
+    );
+  } else {
+    setSelectedCategories([...selectedCategories, product]);
+  }
+}
+
 const AssignCategoriesDialog = withStyles(styles, {
   name: "AssignCategoriesDialog"
 })(
@@ -69,104 +85,95 @@ const AssignCategoriesDialog = withStyles(styles, {
     onClose,
     onFetch,
     onSubmit
-  }: AssignCategoriesDialogProps) => (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      classes={{ paper: classes.overflow }}
-      fullWidth
-      maxWidth="sm"
-    >
-      <Form initial={initialForm} onSubmit={onSubmit}>
-        {({ data, change }) => (
-          <>
-            <DialogTitle>{i18n.t("Assign Categories")}</DialogTitle>
-            <DialogContent className={classes.overflow}>
-              <TextField
-                name="query"
-                value={data.query}
-                onChange={event => change(event, () => onFetch(data.query))}
-                label={i18n.t("Search Categories", {
-                  context: "product search input label"
-                })}
-                placeholder={i18n.t(
-                  "Search by product name, attribute, product type etc...",
-                  {
-                    context: "product search input placeholder"
-                  }
-                )}
-                fullWidth
-                InputProps={{
-                  autoComplete: "off",
-                  endAdornment: loading && <CircularProgress size={16} />
-                }}
-              />
-              <FormSpacer />
-              <Table>
-                <TableBody>
-                  {categories &&
-                    categories.map(category => {
-                      const isChecked = !!data.categories.find(
-                        selectedCategories =>
-                          selectedCategories.id === category.id
-                      );
+  }: AssignCategoriesDialogProps) => {
+    const [query, setQuery] = React.useState("");
+    const [selectedCategories, setSelectedCategories] = React.useState<
+      SearchCategories_categories_edges_node[]
+    >([]);
 
-                      return (
-                        <TableRow key={category.id}>
-                          <TableCell
-                            padding="checkbox"
-                            className={classes.checkboxCell}
-                          >
-                            <Checkbox
-                              checked={isChecked}
-                              onChange={() =>
-                                isChecked
-                                  ? change({
-                                      target: {
-                                        name: "categories",
-                                        value: data.categories.filter(
-                                          selectedCategories =>
-                                            selectedCategories.id !==
-                                            category.id
-                                        )
-                                      }
-                                    } as any)
-                                  : change({
-                                      target: {
-                                        name: "categories",
-                                        value: [...data.categories, category]
-                                      }
-                                    } as any)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className={classes.wideCell}>
-                            {category.name}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={onClose}>
-                {i18n.t("Cancel", { context: "button" })}
-              </Button>
-              <ConfirmButton
-                transitionState={confirmButtonState}
-                color="primary"
-                variant="contained"
-                type="submit"
-              >
-                {i18n.t("Assign categories", { context: "button" })}
-              </ConfirmButton>
-            </DialogActions>
-          </>
-        )}
-      </Form>
-    </Dialog>
-  )
+    const handleQueryChange = (event: ChangeEvent) =>
+      onQueryChange(event, onFetch, setQuery);
+    const handleSubmit = () => onSubmit(selectedCategories);
+
+    return (
+      <Dialog
+        open={open}
+        onClose={onClose}
+        classes={{ paper: classes.overflow }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{i18n.t("Assign Categories")}</DialogTitle>
+        <DialogContent className={classes.overflow}>
+          <TextField
+            name="query"
+            value={query}
+            onChange={handleQueryChange}
+            label={i18n.t("Search Categories", {
+              context: "category search input label"
+            })}
+            placeholder={i18n.t("Search by category name, etc...", {
+              context: "category search input placeholder"
+            })}
+            fullWidth
+            InputProps={{
+              autoComplete: "off",
+              endAdornment: loading && <CircularProgress size={16} />
+            }}
+          />
+          <FormSpacer />
+          <Table>
+            <TableBody>
+              {categories &&
+                categories.map(category => {
+                  const isSelected = !!selectedCategories.find(
+                    selectedCategories => selectedCategories.id === category.id
+                  );
+
+                  return (
+                    <TableRow key={category.id}>
+                      <TableCell
+                        padding="checkbox"
+                        className={classes.checkboxCell}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={() =>
+                            handleCategoryAssign(
+                              category,
+                              isSelected,
+                              selectedCategories,
+                              setSelectedCategories
+                            )
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className={classes.wideCell}>
+                        {category.name}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>
+            {i18n.t("Cancel", { context: "button" })}
+          </Button>
+          <ConfirmButton
+            transitionState={confirmButtonState}
+            color="primary"
+            variant="contained"
+            type="submit"
+            onClick={handleSubmit}
+          >
+            {i18n.t("Assign categories", { context: "button" })}
+          </ConfirmButton>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 );
 AssignCategoriesDialog.displayName = "AssignCategoriesDialog";
 export default AssignCategoriesDialog;

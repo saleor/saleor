@@ -550,12 +550,13 @@ def test_draft_order_create(
 
 
 def test_draft_order_update(
-    staff_api_client, permission_manage_orders, order_with_lines
+    staff_api_client, permission_manage_orders, order_with_lines, voucher
 ):
     order = order_with_lines
+    assert not order.voucher
     query = """
-        mutation draftUpdate($id: ID!, $email: String) {
-            draftOrderUpdate(id: $id, input: {userEmail: $email}) {
+        mutation draftUpdate($id: ID!, $voucher: ID!) {
+            draftOrderUpdate(id: $id, input: {voucher: $voucher}) {
                 errors {
                     field
                     message
@@ -566,15 +567,17 @@ def test_draft_order_update(
             }
         }
         """
-    email = "not_default@example.com"
     order_id = graphene.Node.to_global_id("Order", order.id)
-    variables = {"id": order_id, "email": email}
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    variables = {"id": order_id, "voucher": voucher_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderUpdate"]["order"]
-    assert data["userEmail"] == email
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert order.voucher
 
 
 def test_draft_order_update_doing_nothing_generates_no_events(

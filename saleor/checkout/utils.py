@@ -35,11 +35,12 @@ from ..core.utils.promo_code import (
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
+    add_voucher_usage_by_customer,
     decrease_voucher_usage,
     get_products_voucher_discount,
-    get_shipping_voucher_discount,
-    get_value_voucher_discount,
     increase_voucher_usage,
+    remove_voucher_usage_by_customer,
+    validate_voucher_for_checkout,
 )
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
@@ -101,7 +102,7 @@ def remove_unavailable_variants(checkout):
             add_variant_to_checkout(checkout, line.variant, quantity, replace=True)
 
 
-def get_prices_of_discounted_specific_product(lines, voucher):
+def get_prices_of_discounted_specific_product(lines, voucher, discounts=None):
     """Get prices of variants belonging to the discounted specific products.
 
     Specific products are products, collections and categories.
@@ -131,7 +132,7 @@ def get_prices_of_discounted_specific_product(lines, voucher):
         discounted_lines.extend(list(lines))
 
     for line in discounted_lines:
-        line_total = calculate_checkout_line_total(line, []).gross
+        line_total = calculate_checkout_line_total(line, discounts or []).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
         )
@@ -140,7 +141,7 @@ def get_prices_of_discounted_specific_product(lines, voucher):
     return line_prices
 
 
-def get_prices_of_discounted_products(checkout, discounted_products):
+def get_prices_of_discounted_products(checkout, discounted_products, discounts=None):
     """Get prices of variants belonging to the discounted products."""
     # If there's no discounted_products,
     # it means that all products are discounted
@@ -148,7 +149,7 @@ def get_prices_of_discounted_products(checkout, discounted_products):
     if discounted_products:
         for line in checkout:
             if line.variant.product in discounted_products:
-                line_total = calculate_checkout_line_total(line, []).gross
+                line_total = calculate_checkout_line_total(line, discounts or []).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -156,7 +157,9 @@ def get_prices_of_discounted_products(checkout, discounted_products):
     return line_prices
 
 
-def get_prices_of_products_in_discounted_collections(checkout, discounted_collections):
+def get_prices_of_products_in_discounted_collections(
+    checkout, discounted_collections, discounts=None
+):
     """Get prices of variants belonging to the discounted collections."""
     # If there's no discounted collections,
     # it means that all of them are discounted
@@ -167,7 +170,7 @@ def get_prices_of_products_in_discounted_collections(checkout, discounted_collec
                 continue
             product_collections = line.variant.product.collections.all()
             if set(product_collections).intersection(discounted_collections):
-                line_total = calculate_checkout_line_total(line, []).gross
+                line_total = calculate_checkout_line_total(line, discounts or []).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -175,7 +178,9 @@ def get_prices_of_products_in_discounted_collections(checkout, discounted_collec
     return line_prices
 
 
-def get_prices_of_products_in_discounted_categories(checkout, discounted_categories):
+def get_prices_of_products_in_discounted_categories(
+    checkout, discounted_categories, discounts=None
+):
     """Get prices of variants belonging to the discounted categories.
 
     Product must be assigned directly to the discounted category, assigning
@@ -191,7 +196,7 @@ def get_prices_of_products_in_discounted_categories(checkout, discounted_categor
                 continue
             product_category = line.variant.product.category
             if product_category in discounted_categories:
-                line_total = calculate_checkout_line_total(line, []).gross
+                line_total = calculate_checkout_line_total(line, discounts or []).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -763,28 +768,27 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=Non
         )
         raise NotApplicable(msg)
 
-    return get_shipping_voucher_discount(
-        voucher,
-        calculate_checkout_subtotal(checkout, discounts).gross,
-        calculate_checkout_shipping(checkout, discounts).gross,
-    )
+    shipping_price = calculate_checkout_shipping(checkout, discounts).gross
+    return voucher.get_discount_amount_for(shipping_price)
 
 
-def _get_products_voucher_discount(checkout, voucher):
+def _get_products_voucher_discount(checkout, voucher, discounts=None):
     """Calculate products discount value for a voucher, depending on its type.
     """
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(checkout, voucher)
+        prices = get_prices_of_discounted_specific_product(checkout, voucher, discounts)
     elif voucher.type == VoucherType.PRODUCT:
-        prices = get_prices_of_discounted_products(checkout, voucher.products.all())
+        prices = get_prices_of_discounted_products(
+            checkout, voucher.products.all(), discounts
+        )
     elif voucher.type == VoucherType.COLLECTION:
         prices = get_prices_of_products_in_discounted_collections(
-            checkout, voucher.collections.all()
+            checkout, voucher.collections.all(), discounts
         )
     elif voucher.type == VoucherType.CATEGORY:
         prices = get_prices_of_products_in_discounted_categories(
-            checkout, voucher.categories.all()
+            checkout, voucher.categories.all(), discounts
         )
     if not prices:
         msg = pgettext(
@@ -799,10 +803,10 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
+    validate_voucher_for_checkout(voucher, checkout, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
-        return get_value_voucher_discount(
-            voucher, calculate_checkout_subtotal(checkout, discounts).gross
-        )
+        subtotal = calculate_checkout_subtotal(checkout, discounts).gross
+        return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
     if voucher.type in (
@@ -811,7 +815,7 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
         VoucherType.CATEGORY,
         VoucherType.SPECIFIC_PRODUCT,
     ):
-        return _get_products_voucher_discount(checkout, voucher)
+        return _get_products_voucher_discount(checkout, voucher, discounts)
     raise NotImplementedError("Unknown discount type")
 
 
@@ -987,6 +991,8 @@ def _get_voucher_data_for_order(checkout):
         return {}
 
     increase_voucher_usage(voucher)
+    if voucher.apply_once_per_customer:
+        add_voucher_usage_by_customer(voucher, checkout.get_customer_email())
     return {
         "voucher": voucher,
         "discount_amount": checkout.discount_amount,
@@ -1027,7 +1033,7 @@ def _process_user_data_for_order(checkout):
 
     return {
         "user": checkout.user,
-        "user_email": checkout.user.email if checkout.user else checkout.email,
+        "user_email": checkout.get_customer_email(),
         "billing_address": billing_address,
         "customer_note": checkout.note,
     }
@@ -1128,7 +1134,10 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
 
 def abort_order_data(order_data: dict):
     if "voucher" in order_data:
-        decrease_voucher_usage(order_data["voucher"])
+        voucher = order_data["voucher"]
+        decrease_voucher_usage(voucher)
+        if "user_email" in order_data:
+            remove_voucher_usage_by_customer(voucher, order_data["user_email"])
 
 
 @transaction.atomic

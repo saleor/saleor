@@ -31,7 +31,7 @@ from saleor.checkout.utils import (
 )
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.taxes import zero_money, zero_taxed_money
-from saleor.core.taxes.interface import taxes_are_enabled
+from saleor.core.taxes.interface import calculate_checkout_subtotal, taxes_are_enabled
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 from saleor.order import OrderEvents, OrderEventsEmails
@@ -644,7 +644,7 @@ def test_create_order_creates_expected_events(
     assert email_sent_event.order is order  # ensure the mail event is related to order
     assert email_sent_event.date  # ensure a date was set
     assert email_sent_event.parameters == {  # ensure the correct parameters were set
-        "email": order.get_user_current_email(),
+        "email": order.get_customer_email(),
         "email_type": OrderEventsEmails.ORDER,
     }
 
@@ -825,14 +825,72 @@ def test_note_in_created_order(request_checkout_with_item, address, customer_use
 
 
 @pytest.mark.parametrize(
-    "total, discount_value, discount_type, min_amount_spent, discount_amount",
+    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
+    "discount_value, discount_value_type, expected_value",
     [
-        ("100", 10, DiscountValueType.FIXED, None, 10),
-        ("100.05", 10, DiscountValueType.PERCENTAGE, 100, 10),
+        (20, 20, 2, 2, 50, DiscountValueType.PERCENTAGE, 10),
+        (20, None, 2, None, 50, DiscountValueType.PERCENTAGE, 10),
+        (20, 20, 2, 2, 5, DiscountValueType.FIXED, 5),
+        (20, None, 2, None, 5, DiscountValueType.FIXED, 5),
     ],
 )
 def test_get_discount_for_checkout_value_voucher(
-    total, discount_value, discount_type, min_amount_spent, discount_amount
+    total,
+    min_amount_spent,
+    total_quantity,
+    min_checkout_items_quantity,
+    discount_value,
+    discount_value_type,
+    expected_value,
+):
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=discount_value_type,
+        discount_value=discount_value,
+        min_amount_spent=(
+            Money(min_amount_spent, "USD") if min_amount_spent is not None else None
+        ),
+        min_checkout_items_quantity=min_checkout_items_quantity,
+    )
+    checkout = Mock(
+        get_subtotal=Mock(return_value=Money(total, "USD")), quantity=total_quantity
+    )
+    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    assert discount == Money(expected_value, "USD")
+
+
+@patch("saleor.discount.utils.validate_voucher")
+def test_get_voucher_discount_for_checkout_voucher_validation(
+    mock_validate_voucher, voucher, checkout_with_voucher
+):
+    get_voucher_discount_for_checkout(voucher, checkout_with_voucher)
+    subtotal = calculate_checkout_subtotal(checkout_with_voucher, [])
+    quantity = checkout_with_voucher.quantity
+    customer_email = checkout_with_voucher.get_customer_email()
+    mock_validate_voucher.assert_called_once_with(
+        voucher, subtotal.gross, quantity, customer_email
+    )
+
+
+@pytest.mark.parametrize(
+    "total, total_quantity, discount_value, discount_type, min_amount_spent, "
+    "min_checkout_items_quantity",
+    [
+        ("99", 9, 10, DiscountValueType.FIXED, None, 10),
+        ("99", 9, 10, DiscountValueType.FIXED, 100, None),
+        ("99", 10, 10, DiscountValueType.PERCENTAGE, 100, 10),
+        ("100", 9, 10, DiscountValueType.PERCENTAGE, 100, 10),
+        ("99", 9, 10, DiscountValueType.PERCENTAGE, 100, 10),
+    ],
+)
+def test_get_discount_for_checkout_value_voucher_not_applicable(
+    total,
+    total_quantity,
+    discount_value,
+    discount_type,
+    min_amount_spent,
+    min_checkout_items_quantity,
 ):
     voucher = Voucher(
         code="unique",
@@ -842,10 +900,13 @@ def test_get_discount_for_checkout_value_voucher(
         min_amount_spent=(
             Money(min_amount_spent, "USD") if min_amount_spent is not None else None
         ),
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    checkout = Mock(get_subtotal=Mock(return_value=Money(total, "USD")))
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
-    assert discount == Money(discount_amount, "USD")
+    checkout = Mock(
+        get_subtotal=Mock(return_value=Money(total, "USD")), quantity=total_quantity
+    )
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_checkout(voucher, checkout)
 
 
 @pytest.mark.parametrize(
@@ -858,7 +919,7 @@ def test_get_discount_for_checkout_value_voucher(
         (10, DiscountValueType.PERCENTAGE, False, 5),
     ],
 )
-def test_get_discount_for_checkout_apply_once_per_order(
+def test_get_discount_for_checkout_specific_products_voucher(
     checkout_with_items,
     product_list,
     discount_value,
@@ -868,7 +929,7 @@ def test_get_discount_for_checkout_apply_once_per_order(
 ):
     voucher = Voucher.objects.create(
         code="unique",
-        type=VoucherType.PRODUCT,
+        type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
         discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
@@ -879,18 +940,46 @@ def test_get_discount_for_checkout_apply_once_per_order(
     assert discount == Money(discount_amount, "USD")
 
 
-def test_get_discount_for_checkout_value_voucher_not_applicable():
+@pytest.mark.parametrize(
+    "total, total_quantity, discount_value, discount_type, min_amount_spent,"
+    "min_checkout_items_quantity",
+    [
+        ("99", 9, 10, DiscountValueType.FIXED, None, 10),
+        ("99", 9, 10, DiscountValueType.FIXED, 100, None),
+        ("99", 10, 10, DiscountValueType.PERCENTAGE, 100, 10),
+        ("100", 9, 10, DiscountValueType.PERCENTAGE, 100, 10),
+        ("99", 9, 10, DiscountValueType.PERCENTAGE, 100, 10),
+    ],
+)
+def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
+    monkeypatch,
+    total,
+    total_quantity,
+    discount_value,
+    discount_type,
+    min_amount_spent,
+    min_checkout_items_quantity,
+):
+    discounts = []
+    monkeypatch.setattr(
+        "saleor.checkout.utils.get_prices_of_discounted_specific_product",
+        lambda checkout, discounts, product: [],
+    )
     voucher = Voucher(
         code="unique",
-        type=VoucherType.ENTIRE_ORDER,
-        discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
-        min_amount_spent=Money(100, "USD"),
+        type=VoucherType.SPECIFIC_PRODUCT,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        min_amount_spent=(
+            Money(min_amount_spent, "USD") if min_amount_spent is not None else None
+        ),
+        min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    checkout = Mock(get_subtotal=Mock(return_value=Money(10, "USD")))
-    with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
-    assert e.value.min_amount_spent == Money(100, "USD")
+    checkout = Mock(
+        get_subtotal=Mock(return_value=Money(total, "USD")), quantity=total_quantity
+    )
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_checkout(voucher, checkout, discounts)
 
 
 @pytest.mark.parametrize(
@@ -954,9 +1043,12 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries():
     assert discount == Money(5, "USD")
 
 
-def test_get_discount_for_checkout_shipping_voucher_limited_countries():
+def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatch):
     subtotal = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
     shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
+    monkeypatch.setattr(
+        "saleor.discount.utils.calculate_checkout_subtotal", Mock(return_value=subtotal)
+    )
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
         is_shipping_required=Mock(return_value=True),
@@ -977,7 +1069,8 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries():
 
 @pytest.mark.parametrize(
     "is_shipping_required, shipping_method, discount_value, discount_type,"
-    "countries, min_amount_spent, subtotal, error_msg",
+    "countries, min_amount_spent, min_checkout_items_quantity, subtotal,"
+    "total_quantity, error_msg",
     [
         (
             True,
@@ -986,7 +1079,9 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries():
             DiscountValueType.FIXED,
             ["US"],
             None,
+            None,
             Money(10, "USD"),
+            10,
             "This offer is not valid in your country.",
         ),
         (
@@ -996,7 +1091,9 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries():
             DiscountValueType.FIXED,
             [],
             None,
+            None,
             Money(10, "USD"),
+            10,
             "Please select a shipping method first.",
         ),
         (
@@ -1006,7 +1103,9 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries():
             DiscountValueType.FIXED,
             [],
             None,
+            None,
             Money(10, "USD"),
+            10,
             "Your order does not require shipping.",
         ),
         (
@@ -1016,7 +1115,33 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries():
             DiscountValueType.FIXED,
             [],
             5,
+            None,
             Money(2, "USD"),
+            10,
+            "This offer is only valid for orders over $5.00.",
+        ),
+        (
+            True,
+            Mock(price=Money(10, "USD")),
+            10,
+            DiscountValueType.FIXED,
+            [],
+            5,
+            10,
+            Money(5, "USD"),
+            9,
+            "This offer is only valid for orders with a minimum of 10 quantity.",
+        ),
+        (
+            True,
+            Mock(price=Money(10, "USD")),
+            10,
+            DiscountValueType.FIXED,
+            [],
+            5,
+            10,
+            Money(2, "USD"),
+            9,
             "This offer is only valid for orders over $5.00.",
         ),
     ],
@@ -1028,7 +1153,9 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     discount_type,
     countries,
     min_amount_spent,
+    min_checkout_items_quantity,
     subtotal,
+    total_quantity,
     error_msg,
 ):
     checkout = Mock(
@@ -1036,6 +1163,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         is_shipping_required=Mock(return_value=is_shipping_required),
         shipping_method=shipping_method,
         get_shipping_price=Mock(return_value=Money(10, "USD")),
+        quantity=total_quantity,
     )
     voucher = Voucher(
         code="unique",
@@ -1045,6 +1173,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         min_amount_spent=(
             Money(min_amount_spent, "USD") if min_amount_spent is not None else None
         ),
+        min_checkout_items_quantity=min_checkout_items_quantity,
         countries=countries,
     )
     with pytest.raises(NotApplicable) as e:
@@ -1053,9 +1182,14 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
 
 
 def test_get_discount_for_checkout_product_voucher_not_applicable(monkeypatch):
+    discounts = []
+    monkeypatch.setattr(
+        "saleor.discount.utils.calculate_checkout_subtotal",
+        Mock(return_value=TaxedMoney(net=Money("1", "USD"), gross=Money("1", "USD"))),
+    )
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_products",
-        lambda checkout, product: [],
+        lambda checkout, discounts, product: [],
     )
     voucher = Voucher(
         code="unique",
@@ -1067,14 +1201,19 @@ def test_get_discount_for_checkout_product_voucher_not_applicable(monkeypatch):
     checkout = Mock()
 
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_checkout(voucher, checkout, discounts)
     assert str(e.value) == "This offer is only valid for selected items."
 
 
 def test_get_discount_for_checkout_collection_voucher_not_applicable(monkeypatch):
+    discounts = []
+    monkeypatch.setattr(
+        "saleor.discount.utils.calculate_checkout_subtotal",
+        Mock(return_value=TaxedMoney(net=Money("1", "USD"), gross=Money("1", "USD"))),
+    )
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_products_in_discounted_collections",  # noqa
-        lambda checkout, product: [],
+        lambda checkout, discounts, product: [],
     )
     voucher = Voucher(
         code="unique",
@@ -1086,7 +1225,7 @@ def test_get_discount_for_checkout_collection_voucher_not_applicable(monkeypatch
     checkout = Mock()
 
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_checkout(voucher, checkout, discounts)
     assert str(e.value) == "This offer is only valid for selected items."
 
 

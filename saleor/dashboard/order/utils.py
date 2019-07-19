@@ -8,11 +8,7 @@ from ...checkout import AddressType
 from ...core.taxes import zero_money
 from ...discount import VoucherType
 from ...discount.models import NotApplicable
-from ...discount.utils import (
-    get_products_voucher_discount,
-    get_shipping_voucher_discount,
-    get_value_voucher_discount,
-)
+from ...discount.utils import get_products_voucher_discount, validate_voucher_in_order
 
 INVOICE_TEMPLATE = "dashboard/order/pdf/invoice.html"
 PACKING_SLIP_TEMPLATE = "dashboard/order/pdf/packing_slip.html"
@@ -150,13 +146,12 @@ def get_voucher_discount_for_order(order):
     """
     if not order.voucher:
         return zero_money()
+    validate_voucher_in_order(order)
     subtotal = order.get_subtotal()
     if order.voucher.type == VoucherType.ENTIRE_ORDER:
-        return get_value_voucher_discount(order.voucher, subtotal.gross)
+        return order.voucher.get_discount_amount_for(subtotal.gross)
     if order.voucher.type == VoucherType.SHIPPING:
-        return get_shipping_voucher_discount(
-            order.voucher, subtotal.gross, order.shipping_price
-        )
+        return order.voucher.get_discount_amount_for(order.shipping_price)
     if order.voucher.type in (
         VoucherType.PRODUCT,
         VoucherType.COLLECTION,

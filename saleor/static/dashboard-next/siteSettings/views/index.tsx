@@ -65,7 +65,9 @@ export const SiteSettings: React.StatelessComponent<SiteSettingsProps> = ({
       (!data.shopDomainUpdate.errors ||
         data.shopDomainUpdate.errors.length === 0) &&
       (!data.shopSettingsUpdate.errors ||
-        data.shopSettingsUpdate.errors.length === 0)
+        data.shopSettingsUpdate.errors.length === 0) &&
+      (!data.shopAddressUpdate.errors ||
+        data.shopAddressUpdate.errors.length === 0)
     ) {
       notify({
         text: i18n.t("Site settings updated", {
@@ -95,6 +97,11 @@ export const SiteSettings: React.StatelessComponent<SiteSettingsProps> = ({
                         () =>
                           updateShopSettingsOpts.data.shopSettingsUpdate.errors,
                         []
+                      ),
+                      ...maybe(
+                        () =>
+                          updateShopSettingsOpts.data.shopAddressUpdate.errors,
+                        []
                       )
                     ];
                     const loading =
@@ -119,6 +126,16 @@ export const SiteSettings: React.StatelessComponent<SiteSettingsProps> = ({
                     ) =>
                       updateShopSettings({
                         variables: {
+                          addressInput: {
+                            city: data.city,
+                            companyName: data.companyName,
+                            country: data.country.code,
+                            countryArea: data.countryArea,
+                            phone: data.phone,
+                            postalCode: data.postalCode,
+                            streetAddress1: data.streetAddress1,
+                            streetAddress2: data.streetAddress2
+                          },
                           shopDomainInput: {
                             domain: data.domain,
                             name: data.name

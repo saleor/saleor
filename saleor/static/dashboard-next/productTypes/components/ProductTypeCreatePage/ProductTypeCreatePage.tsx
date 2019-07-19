@@ -9,7 +9,7 @@ import Grid from "@saleor/components/Grid";
 import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "../../../i18n";
-import { TaxRateType, WeightUnitsEnum } from "../../../types/globalTypes";
+import { WeightUnitsEnum } from "../../../types/globalTypes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeShipping from "../ProductTypeShipping/ProductTypeShipping";
 import ProductTypeTaxes from "../ProductTypeTaxes/ProductTypeTaxes";
@@ -18,7 +18,10 @@ export interface ProductTypeForm {
   chargeTaxes: boolean;
   name: string;
   isShippingRequired: boolean;
-  taxRate: TaxRateType;
+  taxType: {
+    label: string;
+    value: string;
+  };
   weight: number;
 }
 
@@ -31,6 +34,10 @@ export interface ProductTypeCreatePageProps {
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: ConfirmButtonTransitionState;
+  taxTypes: Array<{
+    description: string;
+    taxCode: string;
+  }>;
   onBack: () => void;
   onSubmit: (data: ProductTypeForm) => void;
 }
@@ -43,6 +50,7 @@ const ProductTypeCreatePage: React.StatelessComponent<
   errors,
   pageTitle,
   saveButtonBarState,
+  taxTypes,
   onBack,
   onSubmit
 }: ProductTypeCreatePageProps) => {
@@ -50,7 +58,10 @@ const ProductTypeCreatePage: React.StatelessComponent<
     chargeTaxes: true,
     isShippingRequired: false,
     name: "",
-    taxRate: TaxRateType.STANDARD,
+    taxType: {
+      label: "",
+      value: ""
+    },
     weight: 0
   };
   return (
@@ -71,18 +82,19 @@ const ProductTypeCreatePage: React.StatelessComponent<
                 disabled={disabled}
                 onChange={change}
               />
+              <CardSpacer />
+              <ProductTypeTaxes
+                disabled={disabled}
+                data={data}
+                taxTypes={taxTypes}
+                onChange={change}
+              />
             </div>
             <div>
               <ProductTypeShipping
                 disabled={disabled}
                 data={data}
                 defaultWeightUnit={defaultWeightUnit}
-                onChange={change}
-              />
-              <CardSpacer />
-              <ProductTypeTaxes
-                disabled={disabled}
-                data={data}
                 onChange={change}
               />
             </div>

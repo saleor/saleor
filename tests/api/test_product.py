@@ -1266,6 +1266,11 @@ def test_product_type_query(
         "vatlayer_interface.get_tax_from_object_meta",
         lambda x: TaxType(code="standard", description=""),
     )
+    monkeypatch.setattr(
+        "saleor.graphql.product.types.products."
+        "tax_interface.get_tax_from_object_meta",
+        lambda x: TaxType(code="123", description="Standard Taxes"),
+    )
     query = """
             query getProductType($id: ID!) {
                 productType(id: $id) {
@@ -1279,6 +1284,10 @@ def test_product_type_query(
                         }
                     }
                     taxRate
+                    taxType {
+                        taxCode
+                        description
+                    }
                 }
             }
         """
@@ -1298,6 +1307,8 @@ def test_product_type_query(
     data = content["data"]
     assert data["productType"]["products"]["totalCount"] == no_products
     assert data["productType"]["taxRate"] == "STANDARD"
+    assert data["productType"]["taxType"]["taxCode"] == "123"
+    assert data["productType"]["taxType"]["description"] == "Standard Taxes"
 
 
 def test_product_type_create_mutation(

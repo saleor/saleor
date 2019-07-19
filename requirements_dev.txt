@@ -14,6 +14,8 @@ click==7.0
 codecov==2.0.15
 colorama==0.4.1
 coverage==4.5.3
+django-debug-toolbar-request-history==0.0.11
+django-debug-toolbar==1.11
 django-extensions==2.1.9
 django==2.2.3
 entrypoints==0.3

@@ -50,6 +50,7 @@ export enum LanguageCodeEnum {
   HU = "HU",
   HY = "HY",
   ID = "ID",
+  IS = "IS",
   IT = "IT",
   JA = "JA",
   KO = "KO",
@@ -198,20 +199,6 @@ export enum TaxRateType {
   WINE = "WINE",
 }
 
-export enum VoucherDiscountValueType {
-  FIXED = "FIXED",
-  PERCENTAGE = "PERCENTAGE",
-}
-
-export enum VoucherType {
-  CATEGORY = "CATEGORY",
-  COLLECTION = "COLLECTION",
-  ENTIRE_ORDER = "ENTIRE_ORDER",
-  PRODUCT = "PRODUCT",
-  SHIPPING = "SHIPPING",
-  SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT",
-}
-
 export enum VoucherTypeEnum {
   CATEGORY = "CATEGORY",
   COLLECTION = "COLLECTION",
@@ -219,6 +206,7 @@ export enum VoucherTypeEnum {
   PRODUCT = "PRODUCT",
   SHIPPING = "SHIPPING",
   SPECIFIC_PRODUCT = "SPECIFIC_PRODUCT",
+  VALUE = "VALUE",
 }
 
 export enum WeightUnitsEnum {
@@ -465,6 +453,7 @@ export interface ProductTypeInput {
   isDigital?: boolean | null;
   weight?: any | null;
   taxRate?: TaxRateType | null;
+  taxCode?: string | null;
 }
 
 export interface ProductVariantInput {
@@ -578,8 +567,10 @@ export interface VoucherInput {
   collections?: (string | null)[] | null;
   categories?: (string | null)[] | null;
   minAmountSpent?: any | null;
+  minCheckoutItemsQuantity?: number | null;
   countries?: (string | null)[] | null;
   applyOncePerOrder?: boolean | null;
+  usageLimit?: number | null;
 }
 
 //==============================================================

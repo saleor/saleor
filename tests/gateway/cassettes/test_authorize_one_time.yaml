@@ -1,0 +1,95 @@
+interactions:
+- request:
+    body: <transaction><amount>80.00</amount><payment_method_nonce>fake-valid-nonce</payment_method_nonce><options><submit_for_settlement
+      type="boolean">false</submit_for_settlement><store_in_vault_on_success type="boolean">false</store_in_vault_on_success><three_d_secure><required
+      type="boolean">false</required></three_d_secure></options><order_id type="integer">1</order_id><billing><first_name>John</first_name><last_name>Doe</last_name><company>Mirumee
+      Software</company><postal_code>53-601</postal_code><street_address>T&#281;czowa
+      7</street_address><extended_address></extended_address><locality>WROC&#321;AW</locality><region></region><country_code_alpha2>PL</country_code_alpha2></billing><risk_data><customer_ip></customer_ip></risk_data><customer><email>test@example.com</email></customer><type>sale</type></transaction>
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '822'
+      Content-type:
+      - application/xml
+      User-Agent:
+      - Braintree Python 3.49.0
+      X-ApiVersion:
+      - '5'
+    method: POST
+    uri: https://api.sandbox.braintreegateway.com/merchants/9m6qhfxsqzm3cgzw/transactions
+  response:
+    body:
+      string: !!binary |
+        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
+        AP//AwCzQks1ThUAAA==
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Encoding:
+      - gzip
+      Content-Security-Policy:
+      - frame-ancestors 'self'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Wed, 26 Jun 2019 14:57:24 GMT
+      ETag:
+      - W/"699549b866d4f0d64241106d9b3872ad"
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Authentication:
+      - basic_auth
+      X-BroxyId:
+      - 01-1561561043.981-79.110.196.19-4468768
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Request-Id:
+      - 01-1561561043.981-79.110.196.19-4468768
+      X-Runtime:
+      - '0.367291'
+      X-User:
+      - wgs3tg8h39pyypyc
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 201
+      message: Created
+version: 1

@@ -130,7 +130,7 @@ export const ProductCreatePage: React.StatelessComponent<
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, submit }) => {
+      {({ change, data, errors, hasChanged, set, submit }) => {
         const hasVariants =
           data.productType && data.productType.value.hasVariants;
         return (
@@ -203,6 +203,7 @@ export const ProductCreatePage: React.StatelessComponent<
                   data={data}
                   disabled={disabled}
                   onChange={change}
+                  onSet={set}
                 />
                 <CardSpacer />
                 <VisibilityCard
