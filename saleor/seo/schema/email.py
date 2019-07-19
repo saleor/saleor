@@ -1,9 +1,9 @@
 import json
 
 from django.contrib.sites.models import Site
-from django.core.serializers.json import DjangoJSONEncoder
 
 from ...core.utils import build_absolute_uri
+from ...core.utils.json_serializer import HTMLSafeJSON
 
 
 def get_organization():
@@ -59,4 +59,4 @@ def get_order_confirmation_markup(order):
     for line in lines:
         product_data = get_product_data(line=line, organization=organization)
         data["acceptedOffer"].append(product_data)
-    return json.dumps(data, cls=DjangoJSONEncoder)
+    return json.dumps(data, cls=HTMLSafeJSON)
