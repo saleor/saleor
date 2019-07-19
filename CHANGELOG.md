@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - New translations:
   - Greek
 - Fix searches and pickers - #4487 by @dominik-zeglen
+- Do not allow random ids to appear in snapshots - #4495 by @dominik-zeglen
 
 
 ## 2.8.0
