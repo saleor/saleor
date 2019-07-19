@@ -40,7 +40,7 @@ from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 
 
-class Category(MPTTModel, SeoModel):
+class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
@@ -238,7 +238,7 @@ class ProductTranslation(SeoModelTranslation):
         )
 
 
-class ProductVariant(models.Model):
+class ProductVariant(ModelWithMetadata):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
@@ -378,7 +378,7 @@ class ProductVariantTranslation(models.Model):
         return self.name or str(self.product_variant)
 
 
-class DigitalContent(models.Model):
+class DigitalContent(ModelWithMetadata):
     FILE = "file"
     TYPE_CHOICES = (
         (FILE, pgettext_lazy("File as a digital product", "digital_product")),
@@ -424,7 +424,7 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
-class Attribute(models.Model):
+class Attribute(ModelWithMetadata):
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=50)
     product_type = models.ForeignKey(
@@ -561,7 +561,7 @@ class CollectionProduct(SortableModel):
         return self.product.collectionproduct.all()
 
 
-class Collection(SeoModel, PublishableModel):
+class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
     products = models.ManyToManyField(
