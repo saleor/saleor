@@ -136,6 +136,7 @@ const ProductTypeDetailsPage: React.StatelessComponent<
                 disabled={disabled}
                 onChange={change}
               />
+              <CardSpacer />
               <ProductTypeTaxes
                 disabled={disabled}
                 data={data}
