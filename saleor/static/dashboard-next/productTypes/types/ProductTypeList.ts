@@ -28,10 +28,10 @@ export interface ProductTypeList_productTypes_edges {
 
 export interface ProductTypeList_productTypes_pageInfo {
   __typename: "PageInfo";
+  endCursor: string | null;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   startCursor: string | null;
-  endCursor: string | null;
 }
 
 export interface ProductTypeList_productTypes {
