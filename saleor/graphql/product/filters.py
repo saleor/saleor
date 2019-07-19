@@ -231,4 +231,5 @@ class AttributeFilter(django_filters.FilterSet):
             "visible_in_storefront",
             "filterable_in_storefront",
             "filterable_in_dashboard",
+            "available_in_grid",
         ]

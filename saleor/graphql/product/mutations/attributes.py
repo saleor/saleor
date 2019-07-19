@@ -50,6 +50,9 @@ class AttributeCreateInput(graphene.InputObjectType):
     storefront_search_position = graphene.Int(
         required=False, description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
     )
+    available_in_grid = graphene.Boolean(
+        required=False, description=AttributeDescriptions.AVAILABLE_IN_GRID
+    )
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
@@ -80,6 +83,9 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
     storefront_search_position = graphene.Int(
         required=False, description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
+    )
+    available_in_grid = graphene.Boolean(
+        required=False, description=AttributeDescriptions.AVAILABLE_IN_GRID
     )
 
 

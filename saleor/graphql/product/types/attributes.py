@@ -97,23 +97,18 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
         model_field="values",
     )
 
-    value_required = gql_optimizer.field(
-        graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED),
-        model_field="value_required",
+    value_required = graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED)
+    visible_in_storefront = graphene.Boolean(
+        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
-
-    visible_in_storefront = gql_optimizer.field(
-        graphene.Boolean(description=AttributeDescriptions.VISIBLE_IN_STOREFRONT),
-        model_field="visible_in_storefront",
+    filterable_in_storefront = graphene.Boolean(
+        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
     )
-
-    filterable_in_storefront = gql_optimizer.field(
-        graphene.Boolean(description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT),
-        model_field="filterable_in_storefront",
+    filterable_in_dashboard = graphene.Boolean(
+        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
     )
-    filterable_in_dashboard = gql_optimizer.field(
-        graphene.Boolean(description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD),
-        model_field="filterable_in_dashboard",
+    available_in_grid = graphene.Boolean(
+        description=AttributeDescriptions.AVAILABLE_IN_GRID
     )
 
     translation = graphene.Field(
@@ -129,9 +124,8 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
         resolver=resolve_translation,
     )
 
-    storefront_search_position = gql_optimizer.field(
-        graphene.Int(description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION),
-        model_field="storefront_search_position",
+    storefront_search_position = graphene.Int(
+        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
     )
 
     class Meta:
@@ -179,6 +173,11 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
     @permission_required("product.manage_products")
     def resolve_storefront_search_position(root: models.Attribute, *_args):
         return root.storefront_search_position
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_available_in_grid(root: models.Attribute, *_args):
+        return root.available_in_grid
 
 
 class SelectedAttribute(graphene.ObjectType):
