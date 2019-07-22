@@ -283,3 +283,13 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
         return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))
+
+    def show_taxes_on_storefront(self, previous_value: bool) -> bool:
+        if not self._enabled:
+            return previous_value
+        return False
+
+    def taxes_are_enabled(self, previous_value: bool) -> bool:
+        if not self._enabled:
+            return previous_value
+        return True
