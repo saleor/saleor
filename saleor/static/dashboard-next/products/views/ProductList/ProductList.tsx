@@ -18,9 +18,9 @@ import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
 import useShop from "@saleor/hooks/useShop";
-import i18n from "../../../i18n";
-import { getMutationState, maybe } from "../../../misc";
-import { Lists } from "../../../types";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { Lists } from "@saleor/types";
 import ProductListCard from "../../components/ProductListCard";
 import {
   TypedProductBulkDeleteMutation,
@@ -63,7 +63,6 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-
   const { updateListSettings, listSettings } = useListSettings(
     Lists.PRODUCT_LIST
   );

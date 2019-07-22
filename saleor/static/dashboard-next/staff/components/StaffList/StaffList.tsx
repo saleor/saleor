@@ -17,14 +17,14 @@ import React from "react";
 
 import Skeleton from "@saleor/components/Skeleton";
 import TablePagination from "@saleor/components/TablePagination";
-import i18n from "../../../i18n";
+import i18n from "@saleor/i18n";
 import {
   getUserInitials,
   getUserName,
   maybe,
   renderCollection
-} from "../../../misc";
-import { ListProps } from "../../../types";
+} from "@saleor/misc";
+import { ListProps } from "@saleor/types";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
 const styles = (theme: Theme) =>

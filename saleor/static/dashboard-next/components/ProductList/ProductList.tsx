@@ -12,10 +12,10 @@ import TableRow from "@material-ui/core/TableRow";
 import React from "react";
 
 import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import i18n from "@saleor/i18n";
+import { maybe, renderCollection } from "@saleor/misc";
+import { ListActions, ListProps } from "@saleor/types";
 import { CategoryDetails_category_products_edges_node } from "../../categories/types/CategoryDetails";
-import i18n from "../../i18n";
-import { maybe, renderCollection } from "../../misc";
-import { ListActions, ListProps } from "../../types";
 import Checkbox from "../Checkbox";
 import Money from "../Money";
 import Skeleton from "../Skeleton";

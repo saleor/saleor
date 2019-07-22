@@ -5,8 +5,8 @@ import React from "react";
 import AppHeader from "@saleor/components/AppHeader";
 import Container from "@saleor/components/Container";
 import PageHeader from "@saleor/components/PageHeader";
-import i18n from "../../../i18n";
-import { ListActions, PageListProps } from "../../../types";
+import i18n from "@saleor/i18n";
+import { ListActions, PageListProps } from "@saleor/types";
 import { PageList_pages_edges_node } from "../../types/PageList";
 import PageList from "../PageList/PageList";
 

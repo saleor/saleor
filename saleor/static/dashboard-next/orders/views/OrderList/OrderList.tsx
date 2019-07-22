@@ -59,7 +59,6 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-
   const { updateListSettings, listSettings } = useListSettings(
     Lists.ORDER_LIST
   );

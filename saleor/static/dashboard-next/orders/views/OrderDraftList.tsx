@@ -41,7 +41,6 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-
   const { updateListSettings, listSettings } = useListSettings(
     Lists.DRAFT_LIST
   );

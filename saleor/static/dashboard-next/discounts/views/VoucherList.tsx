@@ -41,7 +41,6 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-
   const { updateListSettings, listSettings } = useListSettings(
     Lists.VOUCHER_LIST
   );
