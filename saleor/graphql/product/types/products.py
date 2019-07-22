@@ -664,7 +664,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         return gql_optimizer.query(qs, info)
 
     @staticmethod
-    @permission_required("account.manage_users")
+    @permission_required("account.manage_products")
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 
