@@ -23,6 +23,7 @@ export type VariantAttributeInput = FormsetAtomicData<
 interface ProductVariantAttributesProps {
   attributes: VariantAttributeInput[];
   disabled: boolean;
+  errors: Record<string, string>;
   onChange: FormsetChange<VariantAttributeInputData>;
 }
 
@@ -64,6 +65,7 @@ function getAttributeValueChoices(
 const ProductVariantAttributes: React.FC<ProductVariantAttributesProps> = ({
   attributes,
   disabled,
+  errors,
   onChange
 }) => (
   <Card>
@@ -83,6 +85,8 @@ const ProductVariantAttributes: React.FC<ProductVariantAttributesProps> = ({
                   attribute.value,
                   attributes
                 )}
+                error={!!errors[attribute.id]}
+                helperText={errors[attribute.id]}
                 label={attribute.label}
                 name={`attribute:${attribute.id}`}
                 onChange={event => onChange(attribute.id, event.target.value)}

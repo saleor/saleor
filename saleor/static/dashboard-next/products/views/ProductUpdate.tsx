@@ -25,7 +25,7 @@ import {
   ProductImageCreate,
   ProductImageCreateVariables
 } from "../types/ProductImageCreate";
-import { ProductUpdate } from "../types/ProductUpdate";
+import { ProductUpdate as ProductUpdateMutationResult } from "../types/ProductUpdate";
 import { ProductVariantBulkDelete } from "../types/ProductVariantBulkDelete";
 import {
   productImageUrl,
@@ -66,7 +66,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   notify({ text: i18n.t("Product removed") });
                   navigate(productListUrl());
                 };
-                const handleUpdate = (data: ProductUpdate) => {
+                const handleUpdate = (data: ProductUpdateMutationResult) => {
                   if (data.productUpdate.errors.length === 0) {
                     notify({ text: i18n.t("Saved changes") });
                   } else {
