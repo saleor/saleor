@@ -53,10 +53,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
               ) =>
                 variantCreate({
                   variables: {
-                    attributes: formData.attributes.map(attribute => ({
-                      id: attribute.id,
-                      values: [attribute.value]
-                    })),
+                    attributes: formData.attributes
+                      .filter(attribute => attribute.value !== "")
+                      .map(attribute => ({
+                        id: attribute.id,
+                        values: [attribute.value]
+                      })),
                     costPrice: decimal(formData.costPrice),
                     priceOverride: decimal(formData.priceOverride),
                     product: productId,
