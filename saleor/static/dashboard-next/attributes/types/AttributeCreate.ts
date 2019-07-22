@@ -34,6 +34,7 @@ export interface AttributeCreate_attributeCreate_attribute {
   filterableInStorefront: boolean | null;
   inputType: AttributeInputTypeEnum | null;
   storefrontSearchPosition: number | null;
+  valueRequired: boolean | null;
   values: (AttributeCreate_attributeCreate_attribute_values | null)[] | null;
 }
 
