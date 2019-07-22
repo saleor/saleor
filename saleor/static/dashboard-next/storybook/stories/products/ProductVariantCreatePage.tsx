@@ -1,30 +1,13 @@
 import { storiesOf } from "@storybook/react";
 import React from "react";
 
+import { formError } from "@saleor/storybook/misc";
 import placeholderImage from "../../../../images/placeholder255x255.png";
 import ProductVariantCreatePage from "../../../products/components/ProductVariantCreatePage";
 import { product as productFixture } from "../../../products/fixtures";
 import Decorator from "../../Decorator";
 
 const product = productFixture(placeholderImage);
-const errors = [
-  {
-    field: "cost_price",
-    message: "Generic error"
-  },
-  {
-    field: "price_override",
-    message: "Generic error"
-  },
-  {
-    field: "sku",
-    message: "Generic error"
-  },
-  {
-    field: "stock",
-    message: "Generic error"
-  }
-];
 
 storiesOf("Views / Products / Create product variant", module)
   .addDecorator(Decorator)
@@ -44,7 +27,7 @@ storiesOf("Views / Products / Create product variant", module)
   .add("with errors", () => (
     <ProductVariantCreatePage
       currencySymbol="USD"
-      errors={errors}
+      errors={[formError("attributes:color")]}
       header="Add variant"
       loading={false}
       product={product}
