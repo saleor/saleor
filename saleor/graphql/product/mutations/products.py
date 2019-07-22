@@ -562,6 +562,36 @@ class ProductDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
 
 
+class ProductUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.Product
+        description = "Update public metadata for product"
+        permissions = ("product.manage_products",)
+
+
+class ProductClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears public metadata item for product"
+        model = models.Product
+        permissions = ("product.manage_products",)
+
+
+class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Update public metadata for product"
+        model = models.Product
+        public = False
+        permissions = ("product.manage_products",)
+
+
+class ProductClearPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears public metadata item for product"
+        model = models.Product
+        public = False
+        permissions = ("product.manage_products",)
+
+
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
