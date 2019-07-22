@@ -66,4 +66,20 @@ storiesOf("Views / Products / Create product variant", module)
       onVariantClick={undefined}
       saveButtonBarState="default"
     />
+  ))
+  .add("add first variant", () => (
+    <ProductVariantCreatePage
+      currencySymbol="USD"
+      errors={[]}
+      header="Add variant"
+      loading={false}
+      product={{
+        ...product,
+        variants: []
+      }}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
+      onVariantClick={undefined}
+      saveButtonBarState="default"
+    />
   ));
