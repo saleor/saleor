@@ -12,7 +12,10 @@ import useFormset, {
   FormsetChange,
   FormsetData
 } from "@saleor/hooks/useFormset";
-import { getAttributeInputFromVariant } from "@saleor/products/utils/data";
+import {
+  getAttributeInputFromVariant,
+  getVariantAttributeErrors
+} from "@saleor/products/utils/data";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { ProductVariant } from "../../types/ProductVariant";
@@ -143,6 +146,14 @@ const ProductVariantPage: React.FC<ProductVariantPageProps> = ({
                     <ProductVariantAttributes
                       attributes={attributes}
                       disabled={loading}
+                      errors={getVariantAttributeErrors(
+                        formErrors,
+                        maybe(() =>
+                          variant.attributes.map(
+                            attribute => attribute.attribute
+                          )
+                        )
+                      )}
                       onChange={handleAttributeChange}
                     />
                     <CardSpacer />
