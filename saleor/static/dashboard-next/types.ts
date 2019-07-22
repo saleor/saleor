@@ -9,17 +9,28 @@ export interface UserError {
   message: string;
 }
 
+export interface ListSettings {
+  name: string;
+  rowNumber: number;
+}
+
+export enum Lists {
+  CATEGORY_LIST = "CATEGORY_LIST",
+  COLLECTION_PAGE = "COLLECTION_PAGE",
+  PRODUCT_LIST = "PRODUCT_LIST"
+}
+
 export interface ListProps {
-  currentRowNum?: number;
   disabled: boolean;
   pageInfo?: {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
+  listSettings?: ListSettings;
   onNextPage: () => void;
   onPreviousPage: () => void;
   onRowClick: (id: string) => () => void;
-  onRowNumChange?: (event: React.ChangeEvent<any>) => void;
+  onUpdateListSettings?(key: keyof ListSettings, value: any): void;
 }
 export interface ListActionsWithoutToolbar {
   toggle: (id: string) => void;

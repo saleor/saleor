@@ -10,16 +10,17 @@ import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
 } from "@saleor/components/SaveFilterTabDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useLocale from "@saleor/hooks/useLocale";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import useRowChange from "@saleor/hooks/useRowChange";
 import useShop from "@saleor/hooks/useShop";
 import i18n from "../../../i18n";
 import { getMutationState, maybe } from "../../../misc";
+import { Lists } from "../../../types";
 import ProductListCard from "../../components/ProductListCard";
 import {
   TypedProductBulkDeleteMutation,
@@ -62,8 +63,10 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { rowNumber, onRowChange } = useRowChange();
 
+  const { updateListSettings, listSettings } = useListSettings(
+    Lists.PRODUCT_LIST
+  );
   const tabs = getFilterTabs();
 
   const currentTab =
@@ -129,14 +132,17 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     handleTabChange(tabs.length + 1);
   };
 
-  const paginationState = createPaginationState(rowNumber, params);
+  const paginationState = createPaginationState(
+    listSettings.PRODUCT_LIST.rowNumber,
+    params
+  );
   const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
   const queryVariables = React.useMemo(
     () => ({
       ...paginationState,
       filter: getFilterVariables(params)
     }),
-    [params, rowNumber]
+    [params, listSettings.PRODUCT_LIST.rowNumber]
   );
 
   return (
@@ -197,7 +203,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                       <ProductListCard
                         currencySymbol={currencySymbol}
                         currentTab={currentTab}
-                        currentRowNum={rowNumber}
+                        listSettings={listSettings.PRODUCT_LIST}
                         filtersList={createFilterChips(
                           params,
                           {
@@ -213,7 +219,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         )}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
-                        onRowNumChange={onRowChange}
+                        onUpdateListSettings={updateListSettings}
                         pageInfo={pageInfo}
                         onRowClick={id => () => navigate(productUrl(id))}
                         onAll={() =>
@@ -264,7 +270,9 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                         confirmButtonState={bulkDeleteMutationState}
                         onClose={closeModal}
                         onConfirm={() =>
-                          productBulkDelete({ variables: { ids: params.ids } })
+                          productBulkDelete({
+                            variables: { ids: params.ids }
+                          })
                         }
                         title={i18n.t("Remove products")}
                         variant="delete"

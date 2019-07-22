@@ -8,7 +8,12 @@ import PageHeader from "@saleor/components/PageHeader";
 import ProductList from "@saleor/components/ProductList";
 import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
 import i18n from "../../../i18n";
-import { FilterPageProps, ListActions, PageListProps } from "../../../types";
+import {
+  FilterPageProps,
+  ListActions,
+  ListSettings,
+  PageListProps
+} from "../../../types";
 import { ProductListUrlFilters } from "../../urls";
 import ProductListFilter from "../ProductListFilter";
 
@@ -16,8 +21,8 @@ export interface ProductListCardProps
   extends PageListProps,
     ListActions,
     FilterPageProps<ProductListUrlFilters> {
-  currentRowNum?: number;
   currencySymbol: string;
+  listSettings?: ListSettings;
   products: CategoryDetails_category_products_edges_node[];
 }
 
