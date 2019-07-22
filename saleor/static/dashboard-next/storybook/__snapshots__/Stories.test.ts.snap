@@ -74583,11 +74583,11 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                     <div
                       aria-autocomplete="list"
                       aria-expanded="false"
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                       role="combobox"
                     >
                       <input
-                        aria-invalid="false"
+                        aria-invalid="true"
                         autocomplete="off"
                         class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                         type="text"
@@ -74611,6 +74611,11 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                         </svg>
                       </div>
                     </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
+                    >
+                      Generic form error
+                    </p>
                   </div>
                 </div>
               </div>
@@ -74651,16 +74656,16 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
                       data-shrink="false"
                     >
                       Selling price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
-                        aria-invalid="true"
+                        aria-invalid="false"
                         class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                         name="priceOverride"
                         type="number"
@@ -74677,9 +74682,9 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                       </div>
                     </div>
                     <p
-                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
+                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
                     >
-                      Generic error
+                      Optional
                     </p>
                   </div>
                 </div>
@@ -74688,16 +74693,16 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
                       data-shrink="false"
                     >
                       Cost price override
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
                     >
                       <input
-                        aria-invalid="true"
+                        aria-invalid="false"
                         class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
                         name="costPrice"
                         type="number"
@@ -74714,9 +74719,9 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                       </div>
                     </div>
                     <p
-                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
+                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id"
                     >
-                      Generic error
+                      Optional
                     </p>
                   </div>
                 </div>
@@ -74781,27 +74786,22 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                      class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
                       data-shrink="false"
                     >
                       SKU (Stock Keeping Unit)
                     </label>
                     <div
-                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
                     >
                       <input
-                        aria-invalid="true"
+                        aria-invalid="false"
                         class="MuiInputBase-input-id MuiFilledInput-input-id"
                         name="sku"
                         type="text"
                         value=""
                       />
                     </div>
-                    <p
-                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id"
-                    >
-                      Generic error
-                    </p>
                   </div>
                 </div>
               </div>
@@ -83701,6 +83701,571 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
         </tbody>
       </table>
     </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Products / Product variant details attribute errors 1`] = `
+<div
+  style="padding:24px"
+>
+  <div
+    class="Container-root-id"
+  >
+    <div
+      class="ExtendedPageHeader-root-id"
+    >
+      <h5
+        class="MuiTypography-root-id MuiTypography-h5-id Component-title-id"
+      >
+        Extended Hard
+      </h5>
+      <div
+        class="ExtendedPageHeader-action-id"
+      />
+    </div>
+    <form>
+      <div
+        class="Grid-root-id Grid-inverted-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Variants
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+            >
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id ProductVariantNavigation-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id TableCellAvatar-root-id ProductVariantNavigation-tabActive-id"
+                  >
+                    <div
+                      class="MuiAvatar-root-id TableCellAvatar-avatar-id"
+                    >
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductVariantNavigation-textLeft-id"
+                  >
+                    Extended Hard
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id ProductVariantNavigation-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id TableCellAvatar-root-id"
+                  >
+                    <div
+                      class="MuiAvatar-root-id TableCellAvatar-avatar-id"
+                    >
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductVariantNavigation-textLeft-id"
+                  >
+                    Extended Soft
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id ProductVariantNavigation-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id TableCellAvatar-root-id"
+                  >
+                    <div
+                      class="MuiAvatar-root-id TableCellAvatar-avatar-id"
+                    >
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductVariantNavigation-textLeft-id"
+                  >
+                    Normal Hard
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id ProductVariantNavigation-link-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id TableCellAvatar-root-id"
+                  >
+                    <div
+                      class="MuiAvatar-root-id TableCellAvatar-avatar-id"
+                    >
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductVariantNavigation-textLeft-id"
+                  >
+                    Normal Soft
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    colspan="2"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiButton-label-id"
+                      >
+                        Add variant
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                General Information
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Grid-root-id Grid-uniform-id"
+              >
+                <div
+                  class="SingleAutocompleteSelectField-container-id"
+                >
+                  <div
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  >
+                    <label
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
+                    >
+                      Borders
+                    </label>
+                    <div
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      role="combobox"
+                    >
+                      <input
+                        aria-invalid="true"
+                        autocomplete="off"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                        type="text"
+                        value="portals"
+                      />
+                      <div>
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
+                    >
+                      Generic form error
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="SingleAutocompleteSelectField-container-id"
+                >
+                  <div
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  >
+                    <label
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
+                    >
+                      Legacy
+                    </label>
+                    <div
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-error-id MuiFilledInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                      role="combobox"
+                    >
+                      <input
+                        aria-invalid="true"
+                        autocomplete="off"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                        type="text"
+                        value="Auto Loan Account"
+                      />
+                      <div>
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <g
+                            style="fill-rule:evenodd"
+                          >
+                            <path
+                              d="M7 10l5 5 5-5z"
+                            />
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
+                    >
+                      Generic form error
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Images
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textPrimary-id MuiButton-flat-id MuiButton-flatPrimary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Choose photos
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductVariantImages-root-id"
+              >
+                <div
+                  class="ProductVariantImages-imageContainer-id"
+                >
+                  <img
+                    class="ProductVariantImages-image-id"
+                    src="placeholder60x60.png"
+                  />
+                </div>
+                <div
+                  class="ProductVariantImages-imageContainer-id"
+                >
+                  <img
+                    class="ProductVariantImages-image-id"
+                    src="placeholder60x60.png"
+                  />
+                </div>
+                <div
+                  class="ProductVariantImages-imageContainer-id"
+                >
+                  <img
+                    class="ProductVariantImages-image-id"
+                    src="placeholder60x60.png"
+                  />
+                </div>
+                <div
+                  class="ProductVariantImages-imageContainer-id"
+                >
+                  <img
+                    class="ProductVariantImages-image-id"
+                    src="placeholder60x60.png"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Pricing
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductVariantPrice-grid-id"
+              >
+                <div>
+                  <div
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  >
+                    <label
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
+                    >
+                      Selling price override
+                    </label>
+                    <div
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    >
+                      <input
+                        aria-invalid="false"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                        name="priceOverride"
+                        type="number"
+                        value="100"
+                      />
+                      <div
+                        class="MuiInputAdornment-root-id MuiInputAdornment-filled-id MuiInputAdornment-positionEnd-id PriceField-currencySymbol-id"
+                      >
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id"
+                        >
+                          USD
+                        </p>
+                      </div>
+                    </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
+                    >
+                      Optional
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <div
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  >
+                    <label
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
+                    >
+                      Cost price override
+                    </label>
+                    <div
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id MuiInputBase-adornedEnd-id MuiFilledInput-adornedEnd-id"
+                    >
+                      <input
+                        aria-invalid="false"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-inputType-id MuiInputBase-inputAdornedEnd-id MuiFilledInput-inputAdornedEnd-id"
+                        name="costPrice"
+                        type="number"
+                        value="12"
+                      />
+                      <div
+                        class="MuiInputAdornment-root-id MuiInputAdornment-filled-id MuiInputAdornment-positionEnd-id PriceField-currencySymbol-id"
+                      >
+                        <p
+                          class="MuiTypography-root-id MuiTypography-body2-id MuiTypography-colorTextSecondary-id"
+                        >
+                          USD
+                        </p>
+                      </div>
+                    </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
+                    >
+                      Optional
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="CardSpacer-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="CardTitle-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-h5-id CardTitle-title-id"
+              >
+                Stock
+              </span>
+              <div
+                class="CardTitle-toolbar-id"
+              />
+            </div>
+            <div
+              class="CardTitle-children-id"
+            />
+            <hr
+              class="CardTitle-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="ProductVariantStock-grid-id"
+              >
+                <div>
+                  <div
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  >
+                    <label
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
+                    >
+                      Inventory
+                    </label>
+                    <div
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                    >
+                      <input
+                        aria-invalid="false"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id"
+                        name="quantity"
+                        type="text"
+                        value="19"
+                      />
+                    </div>
+                    <p
+                      class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-filled-id"
+                    >
+                      Allocated: 12
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <div
+                    class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                  >
+                    <label
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-filled-id"
+                      data-shrink="true"
+                    >
+                      SKU (Stock Keeping Unit)
+                    </label>
+                    <div
+                      class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                    >
+                      <input
+                        aria-invalid="false"
+                        class="MuiInputBase-input-id MuiFilledInput-input-id"
+                        name="sku"
+                        type="text"
+                        value="1230959124123"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
   </div>
 </div>
 `;
