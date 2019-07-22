@@ -744,12 +744,14 @@ class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Update public metadata for product variant"
+        permissions = ("product.manage_products",)
 
 
 class ProductVariantClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Clears public metadata item for product variant"
+        permissions = ("product.manage_products",)
 
 
 class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -757,6 +759,7 @@ class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
         model = models.ProductVariant
         public = False
         description = "Update public metadata for product variant"
+        permissions = ("product.manage_products",)
 
 
 class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
@@ -764,6 +767,7 @@ class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
         model = models.ProductVariant
         public = False
         description = "Clears public metadata item for product variant"
+        permissions = ("product.manage_products",)
 
 
 class ProductTypeInput(graphene.InputObjectType):
