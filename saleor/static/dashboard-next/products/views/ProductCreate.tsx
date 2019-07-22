@@ -44,6 +44,13 @@ export const ProductUpdate: React.StatelessComponent<
                       text: i18n.t("Product created")
                     });
                     navigate(productUrl(data.productCreate.product.id));
+                  } else {
+                    const attributeError = data.productCreate.errors.find(
+                      err => err.field === "attributes"
+                    );
+                    if (!!attributeError) {
+                      notify({ text: attributeError.message });
+                    }
                   }
                 };
 
