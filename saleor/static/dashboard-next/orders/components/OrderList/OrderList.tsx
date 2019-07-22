@@ -70,10 +70,12 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
   ({
     classes,
     disabled,
+    listSettings,
     orders,
     pageInfo,
     onPreviousPage,
     onNextPage,
+    onUpdateListSettings,
     onRowClick,
     isChecked,
     selected,
@@ -120,8 +122,10 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
           <TableRow>
             <TablePagination
               colSpan={7}
+              listSettings={listSettings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }

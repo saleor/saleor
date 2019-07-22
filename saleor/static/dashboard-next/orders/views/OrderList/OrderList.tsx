@@ -5,9 +5,9 @@ import DeleteFilterTabDialog from "@saleor/components/DeleteFilterTabDialog";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
 } from "@saleor/components/SaveFilterTabDialog";
-import { PAGINATE_BY } from "@saleor/config";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useDateLocalize from "@saleor/hooks/useDateLocalize";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
@@ -16,6 +16,7 @@ import usePaginator, {
 import useShop from "@saleor/hooks/useShop";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
+import { Lists } from "@saleor/types";
 import OrderBulkCancelDialog from "../../components/OrderBulkCancelDialog";
 import OrderListPage from "../../components/OrderListPage/OrderListPage";
 import {
@@ -57,6 +58,10 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
   const shop = useShop();
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
+  );
+
+  const { updateListSettings, listSettings } = useListSettings(
+    Lists.ORDER_LIST
   );
 
   const tabs = getFilterTabs();
@@ -124,7 +129,10 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
     handleTabChange(tabs.length + 1);
   };
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(
+    listSettings.ORDER_LIST.rowNumber,
+    params
+  );
   const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
 
   const handleCreateOrderCreateSuccess = (data: OrderDraftCreate) => {
@@ -139,7 +147,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
       ...paginationState,
       filter: getFilterVariables(params)
     }),
-    [params]
+    [params, listSettings.ORDER_LIST.rowNumber]
   );
 
   return (
@@ -186,6 +194,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                     <>
                       <OrderListPage
                         currencySymbol={currencySymbol}
+                        listSettings={listSettings.ORDER_LIST}
                         filtersList={createFilterChips(
                           params,
                           {
@@ -202,6 +211,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                         onAdd={createOrder}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
+                        onUpdateListSettings={updateListSettings}
                         onRowClick={id => () => navigate(orderUrl(id))}
                         isChecked={isSelected}
                         selected={listElements.length}
