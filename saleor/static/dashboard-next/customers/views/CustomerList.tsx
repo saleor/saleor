@@ -5,14 +5,15 @@ import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { Lists } from "@saleor/types";
 import CustomerListPage from "../components/CustomerListPage";
 import { TypedBulkRemoveCustomers } from "../mutations";
 import { TypedCustomerListQuery } from "../queries";
@@ -38,6 +39,10 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
     params.ids
   );
 
+  const { updateListSettings, listSettings } = useListSettings(
+    Lists.CUSTOMER_LIST
+  );
+
   const closeModal = () =>
     navigate(
       customerListUrl({
@@ -48,7 +53,10 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
       true
     );
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(
+    listSettings.CUSTOMER_LIST.rowNumber,
+    params
+  );
 
   return (
     <TypedCustomerListQuery displayLoader variables={paginationState}>
@@ -87,11 +95,13 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
                     customers={maybe(() =>
                       data.customers.edges.map(edge => edge.node)
                     )}
+                    listSettings={listSettings.CUSTOMER_LIST}
                     disabled={loading}
                     pageInfo={pageInfo}
                     onAdd={() => navigate(customerAddUrl)}
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
+                    onUpdateListSettings={updateListSettings}
                     onRowClick={id => () => navigate(customerUrl(id))}
                     toolbar={
                       <IconButton
