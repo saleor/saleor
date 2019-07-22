@@ -27,9 +27,13 @@ from .bulk_mutations.products import (
 from .enums import StockAvailability
 from .filters import CollectionFilter, ProductFilter, ProductTypeFilter
 from .mutations.attributes import (
+    AttributeClearMeta,
+    AttributeClearPrivateMeta,
     AttributeCreate,
     AttributeDelete,
     AttributeUpdate,
+    AttributeUpdateMeta,
+    AttributeUpdatePrivateMeta,
     AttributeValueCreate,
     AttributeValueDelete,
     AttributeValueUpdate,
@@ -41,44 +45,44 @@ from .mutations.digital_contents import (
     DigitalContentUrlCreate,
 )
 from .mutations.products import (
+    CategoryClearMeta,
+    CategoryClearPrivateMeta,
     CategoryCreate,
     CategoryDelete,
     CategoryUpdate,
     CategoryUpdateMeta,
-    CategoryClearMeta,
     CategoryUpdatePrivateMeta,
-    CategoryClearPrivateMeta,
     CollectionAddProducts,
     CollectionCreate,
     CollectionDelete,
     CollectionRemoveProducts,
     CollectionReorderProducts,
     CollectionUpdate,
+    ProductClearMeta,
+    ProductClearPrivateMeta,
     ProductCreate,
     ProductDelete,
     ProductImageCreate,
     ProductImageDelete,
     ProductImageReorder,
     ProductImageUpdate,
+    ProductTypeClearMeta,
+    ProductTypeClearPrivateMeta,
     ProductTypeCreate,
     ProductTypeDelete,
     ProductTypeUpdate,
     ProductTypeUpdateMeta,
-    ProductTypeClearMeta,
     ProductTypeUpdatePrivateMeta,
-    ProductTypeClearPrivateMeta,
     ProductUpdate,
     ProductUpdateMeta,
-    ProductClearMeta,
     ProductUpdatePrivateMeta,
-    ProductClearPrivateMeta,
+    ProductVariantClearMeta,
+    ProductVariantClearPrivateMeta,
     ProductVariantCreate,
     ProductVariantDelete,
     ProductVariantUpdate,
     ProductVariantUpdateMeta,
-    ProductVariantClearMeta,
     ProductVariantUpdatePrivateMeta,
-    ProductVariantClearPrivateMeta,
     VariantImageAssign,
     VariantImageUnassign,
 )
@@ -279,6 +283,10 @@ class ProductMutations(graphene.ObjectType):
     attribute_bulk_delete = AttributeBulkDelete.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
+    attribute_update_metadata = AttributeUpdateMeta.Field()
+    attribute_clear_metadata = AttributeClearMeta.Field()
+    attribute_update_private_metadata = AttributeUpdatePrivateMeta.Field()
+    attribute_clear_private_metadata = AttributeClearPrivateMeta.Field()
 
     attribute_value_create = AttributeValueCreate.Field()
     attribute_value_delete = AttributeValueDelete.Field()

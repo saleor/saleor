@@ -19,10 +19,10 @@ from ....product.utils.attributes import get_name_from_attributes
 from ...core.enums import TaxRateType
 from ...core.mutations import (
     BaseMutation,
+    ClearMetaBaseMutation,
     ModelDeleteMutation,
     ModelMutation,
     UpdateMetaBaseMutation,
-    ClearMetaBaseMutation,
 )
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
