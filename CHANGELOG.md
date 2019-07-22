@@ -28,6 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix attribute picker = #4501 by @dominik-zeglen
 - Rework adding attribute values - #4504 by @dominik-zeglen
 - Add "value required" switch - #4498 by @dominik-zeglen
+- Fix minor bugs - #4503 by @dominik-zeglen
 
 ## [Unreleased]
 
