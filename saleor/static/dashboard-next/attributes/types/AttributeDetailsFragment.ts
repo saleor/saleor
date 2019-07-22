@@ -28,5 +28,6 @@ export interface AttributeDetailsFragment {
   filterableInStorefront: boolean | null;
   inputType: AttributeInputTypeEnum | null;
   storefrontSearchPosition: number | null;
+  valueRequired: boolean | null;
   values: (AttributeDetailsFragment_values | null)[] | null;
 }

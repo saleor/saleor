@@ -34,6 +34,7 @@ export interface AttributeUpdate_attributeUpdate_attribute {
   filterableInStorefront: boolean | null;
   inputType: AttributeInputTypeEnum | null;
   storefrontSearchPosition: number | null;
+  valueRequired: boolean | null;
   values: (AttributeUpdate_attributeUpdate_attribute_values | null)[] | null;
 }
 
