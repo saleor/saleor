@@ -7536,15 +7536,16 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="valueRequired"
                         type="checkbox"
@@ -8177,15 +8178,16 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="valueRequired"
                         type="checkbox"
@@ -9373,15 +9375,16 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="valueRequired"
                         type="checkbox"
@@ -10009,15 +10012,16 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="valueRequired"
                         type="checkbox"
