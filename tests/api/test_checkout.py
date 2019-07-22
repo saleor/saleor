@@ -17,6 +17,7 @@ from saleor.graphql.checkout.mutations import (
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from saleor.payment import PaymentError
+from saleor.payment.models import Transaction
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from tests.api.utils import get_graphql_content
@@ -1048,6 +1049,18 @@ def test_checkout_complete(
     ).exists(), "Checkout should have been deleted"
 
 
+def _process_payment_raise_error(*args, **kwargs):
+    raise PaymentError("Oops! Something went wrong.")
+
+
+def _process_payment_transaction_returns_error(*args, **kwargs):
+    return Transaction(error="Oops! Something went wrong.", is_success=False)
+
+
+@pytest.mark.parametrize(
+    "side_effect",
+    (_process_payment_raise_error, _process_payment_transaction_returns_error),
+)
 @patch("saleor.graphql.checkout.mutations.gateway_process_payment")
 def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     mocked_process_payment,
@@ -1057,12 +1070,10 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     payment_dummy,
     address,
     shipping_method,
+    side_effect,
 ):
-    def _process_payment(*args, **kwargs):
-        raise PaymentError("Oops! Something went wrong.")
-
     expected_voucher_usage_count = voucher.used
-    mocked_process_payment.side_effect = _process_payment
+    mocked_process_payment.side_effect = side_effect
 
     checkout = checkout_with_voucher
     checkout.shipping_address = address

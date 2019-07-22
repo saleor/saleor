@@ -548,6 +548,9 @@ class CheckoutComplete(BaseMutation):
             if txn.is_success and txn.customer_id and user.is_authenticated:
                 store_customer_id(user, payment.gateway, txn.customer_id)
 
+            if not txn.is_success:
+                raise PaymentError(txn.error)
+
         except PaymentError as e:
             abort_order_data(order_data)
             raise ValidationError(str(e))
