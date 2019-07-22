@@ -6,15 +6,17 @@ import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
-import { configurationMenuUrl } from "../../configuration";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+
+import { configurationMenuUrl } from "@saleor/configuration";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { Lists } from "@saleor/types";
 import PageListPage from "../components/PageListPage/PageListPage";
 import { TypedPageBulkPublish, TypedPageBulkRemove } from "../mutations";
 import { TypedPageListQuery } from "../queries";
@@ -41,8 +43,14 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
+  const { updateListSettings, listSettings } = useListSettings(
+    Lists.PAGES_LIST
+  );
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(
+    listSettings.PAGES_LIST.rowNumber,
+    params
+  );
 
   return (
     <TypedPageListQuery displayLoader variables={paginationState}>
@@ -115,6 +123,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
                     <>
                       <PageListPage
                         disabled={loading}
+                        listSettings={listSettings.PAGES_LIST}
                         pages={maybe(() =>
                           data.pages.edges.map(edge => edge.node)
                         )}
@@ -123,6 +132,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
                         onBack={() => navigate(configurationMenuUrl)}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
+                        onUpdateListSettings={updateListSettings}
                         onRowClick={id => () => navigate(pageUrl(id))}
                         toolbar={
                           <>

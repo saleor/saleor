@@ -47,11 +47,13 @@ const styles = (theme: Theme) =>
 const PageList = withStyles(styles, { name: "PageList" })(
   ({
     classes,
+    listSettings,
     pages,
     disabled,
     onNextPage,
     pageInfo,
     onRowClick,
+    onUpdateListSettings,
     onPreviousPage,
     isChecked,
     selected,
@@ -82,8 +84,10 @@ const PageList = withStyles(styles, { name: "PageList" })(
           <TableRow>
             <TablePagination
               colSpan={4}
+              listSettings={listSettings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }
