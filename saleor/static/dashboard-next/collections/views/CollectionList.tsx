@@ -6,14 +6,15 @@ import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
+import { Lists } from "../../types";
 import CollectionListPage from "../components/CollectionListPage/CollectionListPage";
 import {
   TypedCollectionBulkDelete,
@@ -44,6 +45,10 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
     params.ids
   );
 
+  const { updateListSettings, listSettings } = useListSettings(
+    Lists.COLLECTION_LIST
+  );
+
   const closeModal = () =>
     navigate(
       collectionListUrl({
@@ -62,7 +67,10 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
       })
     );
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(
+    listSettings.COLLECTION_LIST.rowNumber,
+    params
+  );
   return (
     <TypedCollectionListQuery displayLoader variables={paginationState}>
       {({ data, loading, refetch }) => {
@@ -129,8 +137,10 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
                         collections={maybe(() =>
                           data.collections.edges.map(edge => edge.node)
                         )}
+                        listSettings={listSettings.COLLECTION_LIST}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
+                        onUpdateListSettings={updateListSettings}
                         pageInfo={pageInfo}
                         onRowClick={id => () => navigate(collectionUrl(id))}
                         toolbar={

@@ -55,8 +55,10 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
     classes,
     collections,
     disabled,
+    listSettings,
     onNextPage,
     onPreviousPage,
+    onUpdateListSettings,
     onRowClick,
     pageInfo,
     isChecked,
@@ -90,8 +92,10 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
           <TableRow>
             <TablePagination
               colSpan={5}
+              listSettings={listSettings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }
