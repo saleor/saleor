@@ -107,6 +107,8 @@ type Attribute implements Node {
   id: ID!
   productType: ProductType
   productVariantType: ProductType
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   name: String
   slug: String
   values: [AttributeValue]
@@ -116,6 +118,16 @@ type Attribute implements Node {
 type AttributeBulkDelete {
   errors: [Error!]
   count: Int!
+}
+
+type AttributeClearMeta {
+  errors: [Error!]
+  attribute: Attribute
+}
+
+type AttributeClearPrivateMeta {
+  errors: [Error!]
+  attribute: Attribute
 }
 
 type AttributeCountableConnection {
@@ -179,6 +191,16 @@ input AttributeUpdateInput {
   name: String
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
+}
+
+type AttributeUpdateMeta {
+  errors: [Error!]
+  attribute: Attribute
+}
+
+type AttributeUpdatePrivateMeta {
+  errors: [Error!]
+  attribute: Attribute
 }
 
 type AttributeValue implements Node {
@@ -285,6 +307,8 @@ type Category implements Node {
   descriptionJson: JSONString!
   parent: Category
   level: Int!
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String
@@ -296,6 +320,16 @@ type Category implements Node {
 type CategoryBulkDelete {
   errors: [Error!]
   count: Int!
+}
+
+type CategoryClearMeta {
+  errors: [Error!]
+  category: Category
+}
+
+type CategoryClearPrivateMeta {
+  errors: [Error!]
+  category: Category
 }
 
 type CategoryCountableConnection {
@@ -345,6 +379,16 @@ type CategoryTranslation implements Node {
 }
 
 type CategoryUpdate {
+  errors: [Error!]
+  category: Category
+}
+
+type CategoryUpdateMeta {
+  errors: [Error!]
+  category: Category
+}
+
+type CategoryUpdatePrivateMeta {
   errors: [Error!]
   category: Category
 }
@@ -508,6 +552,8 @@ type Collection implements Node {
   slug: String!
   description: String!
   descriptionJson: JSONString!
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
@@ -527,6 +573,16 @@ type CollectionBulkDelete {
 type CollectionBulkPublish {
   errors: [Error!]
   count: Int!
+}
+
+type CollectionClearMeta {
+  errors: [Error!]
+  collection: Collection
+}
+
+type CollectionClearPrivateMeta {
+  errors: [Error!]
+  collection: Collection
 }
 
 type CollectionCountableConnection {
@@ -611,6 +667,16 @@ type CollectionTranslation implements Node {
 }
 
 type CollectionUpdate {
+  errors: [Error!]
+  collection: Collection
+}
+
+type CollectionUpdateMeta {
+  errors: [Error!]
+  collection: Collection
+}
+
+type CollectionUpdatePrivateMeta {
   errors: [Error!]
   collection: Collection
 }
@@ -1003,6 +1069,8 @@ type DigitalContent implements Node {
   urlValidDays: Int
   urls: [DigitalContentUrl]
   id: ID!
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
 }
 
 type DigitalContentCountableConnection {
@@ -1566,6 +1634,10 @@ type Mutations {
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
+  attributeUpdateMetadata(id: ID!, input: MetaInput!): AttributeUpdateMeta
+  attributeClearMetadata(id: ID!, input: MetaPath!): AttributeClearMeta
+  attributeUpdatePrivateMetadata(id: ID!, input: MetaInput!): AttributeUpdatePrivateMeta
+  attributeClearPrivateMetadata(id: ID!, input: MetaPath!): AttributeClearPrivateMeta
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
@@ -1576,6 +1648,10 @@ type Mutations {
   categoryBulkDelete(ids: [ID]!): CategoryBulkDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
   categoryTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CategoryTranslate
+  categoryUpdateMetadata(id: ID!, input: MetaInput!): CategoryUpdateMeta
+  categoryClearMetadata(id: ID!, input: MetaPath!): CategoryClearMeta
+  categoryUpdatePrivateMetadata(id: ID!, input: MetaInput!): CategoryUpdatePrivateMeta
+  categoryClearPrivateMetadata(id: ID!, input: MetaPath!): CategoryClearPrivateMeta
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
@@ -1585,12 +1661,20 @@ type Mutations {
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
   collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CollectionTranslate
+  collectionUpdateMetadata(id: ID!, input: MetaInput!): CollectionUpdateMeta
+  collectionClearMetadata(id: ID!, input: MetaPath!): CollectionClearMeta
+  collectionUpdatePrivateMetadata(id: ID!, input: MetaInput!): CollectionUpdatePrivateMeta
+  collectionClearPrivateMetadata(id: ID!, input: MetaPath!): CollectionClearPrivateMeta
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productBulkDelete(ids: [ID]!): ProductBulkDelete
   productBulkPublish(ids: [ID]!, isPublished: Boolean!): ProductBulkPublish
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
   productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
+  productUpdateMetadata(id: ID!, input: MetaInput!): ProductUpdateMeta
+  productClearMetadata(id: ID!, input: MetaPath!): ProductClearMeta
+  productUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductUpdatePrivateMeta
+  productClearPrivateMetadata(id: ID!, input: MetaPath!): ProductClearPrivateMeta
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
   productImageDelete(id: ID!): ProductImageDelete
   productImageBulkDelete(ids: [ID]!): ProductImageBulkDelete
@@ -1600,6 +1684,10 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  productTypeUpdateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdateMeta
+  productTypeClearMetadata(id: ID!, input: MetaPath!): ProductTypeClearMeta
+  productTypeUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdatePrivateMeta
+  productTypeClearPrivateMetadata(id: ID!, input: MetaPath!): ProductTypeClearPrivateMeta
   digitalContentCreate(input: DigitalContentUploadInput!, variantId: ID!): DigitalContentCreate
   digitalContentDelete(variantId: ID!): DigitalContentDelete
   digitalContentUpdate(input: DigitalContentInput!, variantId: ID!): DigitalContentUpdate
@@ -1609,6 +1697,10 @@ type Mutations {
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
+  productVariantUpdateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdateMeta
+  productVariantClearMetadata(id: ID!, input: MetaPath!): ProductVariantClearMeta
+  productVariantUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdatePrivateMeta
+  productVariantClearPrivateMetadata(id: ID!, input: MetaPath!): ProductVariantClearPrivateMeta
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
@@ -2188,6 +2280,8 @@ type Product implements Node {
   updatedAt: DateTime
   chargeTaxes: Boolean!
   weight: Weight
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   url: String!
   thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
   thumbnail(size: Int): Image
@@ -2217,6 +2311,16 @@ type ProductBulkDelete {
 type ProductBulkPublish {
   errors: [Error!]
   count: Int!
+}
+
+type ProductClearMeta {
+  errors: [Error!]
+  product: Product
+}
+
+type ProductClearPrivateMeta {
+  errors: [Error!]
+  product: Product
 }
 
 type ProductCountableConnection {
@@ -2383,6 +2487,8 @@ type ProductType implements Node {
   isShippingRequired: Boolean!
   isDigital: Boolean!
   weight: Weight
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   taxRate: TaxRateType
   taxType: TaxType
@@ -2393,6 +2499,16 @@ type ProductType implements Node {
 type ProductTypeBulkDelete {
   errors: [Error!]
   count: Int!
+}
+
+type ProductTypeClearMeta {
+  errors: [Error!]
+  productType: ProductType
+}
+
+type ProductTypeClearPrivateMeta {
+  errors: [Error!]
+  productType: ProductType
 }
 
 enum ProductTypeConfigurable {
@@ -2448,7 +2564,27 @@ type ProductTypeUpdate {
   productType: ProductType
 }
 
+type ProductTypeUpdateMeta {
+  errors: [Error!]
+  productType: ProductType
+}
+
+type ProductTypeUpdatePrivateMeta {
+  errors: [Error!]
+  productType: ProductType
+}
+
 type ProductUpdate {
+  errors: [Error!]
+  product: Product
+}
+
+type ProductUpdateMeta {
+  errors: [Error!]
+  product: Product
+}
+
+type ProductUpdatePrivateMeta {
   errors: [Error!]
   product: Product
 }
@@ -2462,6 +2598,8 @@ type ProductVariant implements Node {
   quantity: Int!
   quantityAllocated: Int!
   weight: Weight
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   stockQuantity: Int!
   priceOverride: Money
   price: Money @deprecated(reason: "Has been replaced by 'pricing.price_undiscounted'")
@@ -2481,6 +2619,16 @@ type ProductVariant implements Node {
 type ProductVariantBulkDelete {
   errors: [Error!]
   count: Int!
+}
+
+type ProductVariantClearMeta {
+  errors: [Error!]
+  productVariant: ProductVariant
+}
+
+type ProductVariantClearPrivateMeta {
+  errors: [Error!]
+  productVariant: ProductVariant
 }
 
 type ProductVariantCountableConnection {
@@ -2537,6 +2685,16 @@ type ProductVariantTranslation implements Node {
 }
 
 type ProductVariantUpdate {
+  errors: [Error!]
+  productVariant: ProductVariant
+}
+
+type ProductVariantUpdateMeta {
+  errors: [Error!]
+  productVariant: ProductVariant
+}
+
+type ProductVariantUpdatePrivateMeta {
   errors: [Error!]
   productVariant: ProductVariant
 }
