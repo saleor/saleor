@@ -5,14 +5,15 @@ import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { Lists } from "@saleor/types";
 import OrderDraftListPage from "../components/OrderDraftListPage";
 import {
   TypedOrderDraftBulkCancelMutation,
@@ -41,6 +42,10 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
     params.ids
   );
 
+  const { updateListSettings, listSettings } = useListSettings(
+    Lists.DRAFT_LIST
+  );
+
   const closeModal = () =>
     navigate(
       orderDraftListUrl({
@@ -57,7 +62,10 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
     navigate(orderUrl(data.draftOrderCreate.order.id));
   };
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(
+    listSettings.DRAFT_LIST.rowNumber,
+    params
+  );
 
   return (
     <TypedOrderDraftCreateMutation onCompleted={handleCreateOrderCreateSuccess}>
@@ -106,6 +114,7 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
                     <>
                       <OrderDraftListPage
                         disabled={loading}
+                        listSettings={listSettings.DRAFT_LIST}
                         orders={maybe(() =>
                           data.draftOrders.edges.map(edge => edge.node)
                         )}
@@ -113,6 +122,7 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
                         onAdd={createOrder}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
+                        onUpdateListSettings={updateListSettings}
                         onRowClick={id => () => navigate(orderUrl(id))}
                         isChecked={isSelected}
                         selected={listElements.length}
