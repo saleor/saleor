@@ -28,8 +28,5 @@ storiesOf("Attributes / Attribute value edit", module)
   .addDecorator(Decorator)
   .add("default", () => <AttributeValueEditDialog {...props} />)
   .add("form errors", () => (
-    <AttributeValueEditDialog
-      {...props}
-      errors={["name", "slug"].map(formError)}
-    />
+    <AttributeValueEditDialog {...props} errors={[formError("name")]} />
   ));
