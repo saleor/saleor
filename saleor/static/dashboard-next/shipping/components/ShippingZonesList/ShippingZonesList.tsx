@@ -54,10 +54,12 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
   ({
     classes,
     disabled,
+    listSettings,
     onAdd,
     onNextPage,
     onPreviousPage,
     onRemove,
+    onUpdateListSettings,
     onRowClick,
     pageInfo,
     shippingZones,
@@ -98,8 +100,10 @@ const ShippingZonesList = withStyles(styles, { name: "ShippingZonesList" })(
           <TableRow>
             <TablePagination
               colSpan={4}
+              listSettings={listSettings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }
