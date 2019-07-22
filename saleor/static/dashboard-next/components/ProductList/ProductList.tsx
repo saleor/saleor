@@ -84,118 +84,115 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
     onPreviousPage,
     onUpdateListSettings,
     onRowClick
-  }: ProductListProps) => {
-    return (
-      <Table>
-        <TableHead
-          selected={selected}
-          disabled={disabled}
-          items={products}
-          toggleAll={toggleAll}
-          toolbar={toolbar}
-        >
-          <TableCell />
-          <TableCell className={classes.colName}>
-            {i18n.t("Name", { context: "object" })}
-          </TableCell>
-          <TableCell className={classes.colType}>
-            {i18n.t("Type", { context: "object" })}
-          </TableCell>
-          <TableCell className={classes.colPublished}>
-            {i18n.t("Published", { context: "object" })}
-          </TableCell>
-          <TableCell className={classes.colPrice}>
-            {i18n.t("Price", { context: "object" })}
-          </TableCell>
-        </TableHead>
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              colSpan={6}
-              listSettings={listSettings}
-              hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
-              onNextPage={onNextPage}
-              onUpdateListSettings={onUpdateListSettings}
-              hasPreviousPage={
-                pageInfo && !disabled ? pageInfo.hasPreviousPage : false
-              }
-              onPreviousPage={onPreviousPage}
-            />
-          </TableRow>
-        </TableFooter>
-        <TableBody>
-          {renderCollection(
-            products,
-            product => {
-              const isSelected = product ? isChecked(product.id) : false;
+  }: ProductListProps) => (
+    <Table>
+      <TableHead
+        selected={selected}
+        disabled={disabled}
+        items={products}
+        toggleAll={toggleAll}
+        toolbar={toolbar}
+      >
+        <TableCell />
+        <TableCell className={classes.colName}>
+          {i18n.t("Name", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colType}>
+          {i18n.t("Type", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colPublished}>
+          {i18n.t("Published", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colPrice}>
+          {i18n.t("Price", { context: "object" })}
+        </TableCell>
+      </TableHead>
+      <TableFooter>
+        <TableRow>
+          <TablePagination
+            colSpan={6}
+            listSettings={listSettings}
+            hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
+            onNextPage={onNextPage}
+            onUpdateListSettings={onUpdateListSettings}
+            hasPreviousPage={
+              pageInfo && !disabled ? pageInfo.hasPreviousPage : false
+            }
+            onPreviousPage={onPreviousPage}
+          />
+        </TableRow>
+      </TableFooter>
+      <TableBody>
+        {renderCollection(
+          products,
+          product => {
+            const isSelected = product ? isChecked(product.id) : false;
 
-              return (
-                <TableRow
-                  selected={isSelected}
-                  hover={!!product}
-                  key={product ? product.id : "skeleton"}
-                  onClick={product && onRowClick(product.id)}
-                  className={classes.link}
-                >
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={isSelected}
-                      disabled={disabled}
-                      onChange={() => toggle(product.id)}
-                    />
-                  </TableCell>
-                  <TableCellAvatar
-                    thumbnail={maybe(() => product.thumbnail.url)}
+            return (
+              <TableRow
+                selected={isSelected}
+                hover={!!product}
+                key={product ? product.id : "skeleton"}
+                onClick={product && onRowClick(product.id)}
+                className={classes.link}
+              >
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={isSelected}
+                    disabled={disabled}
+                    onChange={() => toggle(product.id)}
                   />
-                  <TableCell className={classes.colName}>
-                    {product ? product.name : <Skeleton />}
-                  </TableCell>
-                  <TableCell className={classes.colType}>
-                    {product && product.productType ? (
-                      product.productType.name
-                    ) : (
-                      <Skeleton />
-                    )}
-                  </TableCell>
-                  <TableCell className={classes.colPublished}>
-                    {product &&
-                    maybe(() => product.isAvailable !== undefined) ? (
-                      <StatusLabel
-                        label={
-                          product.isAvailable
-                            ? i18n.t("Published", { context: "product status" })
-                            : i18n.t("Not published", {
-                                context: "product status"
-                              })
-                        }
-                        status={product.isAvailable ? "success" : "error"}
-                      />
-                    ) : (
-                      <Skeleton />
-                    )}
-                  </TableCell>
-                  <TableCell className={classes.colPrice}>
-                    {maybe(() => product.basePrice) &&
-                    maybe(() => product.basePrice.amount) !== undefined &&
-                    maybe(() => product.basePrice.currency) !== undefined ? (
-                      <Money money={product.basePrice} />
-                    ) : (
-                      <Skeleton />
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            },
-            () => (
-              <TableRow>
-                <TableCell colSpan={6}>{i18n.t("No products found")}</TableCell>
+                </TableCell>
+                <TableCellAvatar
+                  thumbnail={maybe(() => product.thumbnail.url)}
+                />
+                <TableCell className={classes.colName}>
+                  {product ? product.name : <Skeleton />}
+                </TableCell>
+                <TableCell className={classes.colType}>
+                  {product && product.productType ? (
+                    product.productType.name
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell className={classes.colPublished}>
+                  {product && maybe(() => product.isAvailable !== undefined) ? (
+                    <StatusLabel
+                      label={
+                        product.isAvailable
+                          ? i18n.t("Published", { context: "product status" })
+                          : i18n.t("Not published", {
+                              context: "product status"
+                            })
+                      }
+                      status={product.isAvailable ? "success" : "error"}
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell className={classes.colPrice}>
+                  {maybe(() => product.basePrice) &&
+                  maybe(() => product.basePrice.amount) !== undefined &&
+                  maybe(() => product.basePrice.currency) !== undefined ? (
+                    <Money money={product.basePrice} />
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
               </TableRow>
-            )
-          )}
-        </TableBody>
-      </Table>
-    );
-  }
+            );
+          },
+          () => (
+            <TableRow>
+              <TableCell colSpan={6}>{i18n.t("No products found")}</TableCell>
+            </TableRow>
+          )
+        )}
+      </TableBody>
+    </Table>
+  )
 );
 ProductList.displayName = "ProductList";
 export default ProductList;
