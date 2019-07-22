@@ -19,10 +19,10 @@ import Percent from "@saleor/components/Percent";
 import Skeleton from "@saleor/components/Skeleton";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
-import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
-import { ListActions, ListProps } from "../../../types";
-import { SaleType } from "../../../types/globalTypes";
+import i18n from "@saleor/i18n";
+import { maybe, renderCollection } from "@saleor/misc";
+import { ListActions, ListProps } from "@saleor/types";
+import { SaleType } from "@saleor/types/globalTypes";
 import { SaleList_sales_edges_node } from "../../types/SaleList";
 
 export interface SaleListProps extends ListProps, ListActions {
@@ -64,10 +64,12 @@ const SaleList = withStyles(styles, {
 })(
   ({
     classes,
+    listSettings,
     defaultCurrency,
     disabled,
     onNextPage,
     onPreviousPage,
+    onUpdateListSettings,
     onRowClick,
     pageInfo,
     sales,
@@ -111,8 +113,10 @@ const SaleList = withStyles(styles, {
           <TableRow>
             <TablePagination
               colSpan={5}
+              listSettings={listSettings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }

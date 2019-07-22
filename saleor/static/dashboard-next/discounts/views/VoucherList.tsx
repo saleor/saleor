@@ -6,15 +6,16 @@ import React from "react";
 import ActionDialog from "@saleor/components/ActionDialog";
 import { WindowTitle } from "@saleor/components/WindowTitle";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
 import useShop from "@saleor/hooks/useShop";
-import { PAGINATE_BY } from "../../config";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { Lists } from "@saleor/types";
 import VoucherListPage from "../components/VoucherListPage";
 import { TypedVoucherBulkDelete } from "../mutations";
 import { TypedVoucherList } from "../queries";
@@ -41,9 +42,16 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
     params.ids
   );
 
+  const { updateListSettings, listSettings } = useListSettings(
+    Lists.VOUCHER_LIST
+  );
+
   const closeModal = () => navigate(voucherListUrl(), true);
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(
+    listSettings.VOUCHER_LIST.rowNumber,
+    params
+  );
 
   return (
     <TypedVoucherList displayLoader variables={paginationState}>
@@ -84,6 +92,7 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
                   <WindowTitle title={i18n.t("Vouchers")} />
                   <VoucherListPage
                     defaultCurrency={maybe(() => shop.defaultCurrency)}
+                    listSettings={listSettings.VOUCHER_LIST}
                     vouchers={maybe(() =>
                       data.vouchers.edges.map(edge => edge.node)
                     )}
@@ -92,6 +101,7 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
                     onAdd={() => navigate(voucherAddUrl)}
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
+                    onUpdateListSettings={updateListSettings}
                     onRowClick={id => () => navigate(voucherUrl(id))}
                     isChecked={isSelected}
                     selected={listElements.length}
