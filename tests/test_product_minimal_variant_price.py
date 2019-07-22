@@ -136,7 +136,8 @@ def test_dashboard_product_create_view_sets_minimal_variant_price(
 
     response = admin_client.post(url, data)
     assert response.status_code == 302
-    [product] = Product.objects.all()  # Also checks there is only one product
+    assert Product.objects.count() == 1
+    product = Product.objects.get()
     assert product.minimal_variant_price == product.price == Money("9.99", "USD")
 
 
