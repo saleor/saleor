@@ -8,17 +8,11 @@
 
 export interface StaffMemberFragment_avatar {
   __typename: "Image";
-  /**
-   * The URL of the image.
-   */
   url: string;
 }
 
 export interface StaffMemberFragment {
   __typename: "User";
-  /**
-   * The ID of the object.
-   */
   id: string;
   email: string;
   firstName: string;

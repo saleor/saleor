@@ -8,18 +8,12 @@
 
 export interface SearchCategories_categories_edges_node {
   __typename: "Category";
-  /**
-   * The ID of the object.
-   */
   id: string;
   name: string;
 }
 
 export interface SearchCategories_categories_edges {
   __typename: "CategoryCountableEdge";
-  /**
-   * The item at the end of the edge
-   */
   node: SearchCategories_categories_edges_node;
 }
 
@@ -29,9 +23,6 @@ export interface SearchCategories_categories {
 }
 
 export interface SearchCategories {
-  /**
-   * List of the shop's categories.
-   */
   categories: SearchCategories_categories | null;
 }
 

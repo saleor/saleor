@@ -8,13 +8,7 @@
 
 export interface AddressFragment_country {
   __typename: "CountryDisplay";
-  /**
-   * Country code.
-   */
   code: string;
-  /**
-   * Country name.
-   */
   country: string;
 }
 
@@ -23,15 +17,9 @@ export interface AddressFragment {
   city: string;
   cityArea: string;
   companyName: string;
-  /**
-   * Default shop's country
-   */
   country: AddressFragment_country;
   countryArea: string;
   firstName: string;
-  /**
-   * The ID of the object.
-   */
   id: string;
   lastName: string;
   phone: string | null;

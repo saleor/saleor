@@ -10,23 +10,12 @@ import { SaleInput, SaleType } from "./../../types/globalTypes";
 
 export interface SaleCreate_saleCreate_errors {
   __typename: "Error";
-  /**
-   * Name of a field that caused the error. A value of
-   *         `null` indicates that the error isn't associated with a particular
-   *         field.
-   */
   field: string | null;
-  /**
-   * The error message.
-   */
   message: string | null;
 }
 
 export interface SaleCreate_saleCreate_sale {
   __typename: "Sale";
-  /**
-   * The ID of the object.
-   */
   id: string;
   name: string;
   type: SaleType;
@@ -37,17 +26,11 @@ export interface SaleCreate_saleCreate_sale {
 
 export interface SaleCreate_saleCreate {
   __typename: "SaleCreate";
-  /**
-   * List of errors that occurred executing the mutation.
-   */
   errors: SaleCreate_saleCreate_errors[] | null;
   sale: SaleCreate_saleCreate_sale | null;
 }
 
 export interface SaleCreate {
-  /**
-   * Creates a new sale.
-   */
   saleCreate: SaleCreate_saleCreate | null;
 }
 

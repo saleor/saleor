@@ -8,12 +8,6 @@
 
 export interface CountryFragment {
   __typename: "CountryDisplay";
-  /**
-   * Country name.
-   */
   country: string;
-  /**
-   * Country code.
-   */
   code: string;
 }
