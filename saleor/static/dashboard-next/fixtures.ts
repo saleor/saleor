@@ -1,9 +1,9 @@
 import { Filter } from "./components/TableFilter";
 import {
+  FetchMoreProps,
   FilterPageProps,
   ListActions,
-  PageListProps,
-  FetchMoreProps
+  PageListProps
 } from "./types";
 
 const pageInfo = {
