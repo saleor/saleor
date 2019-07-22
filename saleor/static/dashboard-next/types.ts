@@ -16,7 +16,7 @@ export interface ListSettings {
 
 export enum Lists {
   CATEGORY_LIST = "CATEGORY_LIST",
-  COLLECTION_PAGE = "COLLECTION_PAGE",
+  COLLECTION_LIST = "COLLECTION_LIST",
   PRODUCT_LIST = "PRODUCT_LIST"
 }
 
