@@ -10,6 +10,7 @@ import classNames from "classnames";
 import React from "react";
 
 import i18n from "../../i18n";
+import { ListSettings } from "../../types";
 
 const styles = (theme: Theme) =>
   createStyles({
@@ -37,8 +38,8 @@ const styles = (theme: Theme) =>
 interface RowNumberSelectProps extends WithStyles<typeof styles> {
   choices: number[];
   className?: string;
-  currentRowNum: number;
-  onChange(event: any);
+  listSettings: ListSettings;
+  onChange(key: keyof ListSettings, value: any);
 }
 
 const RowNumberSelect = withStyles(styles, { name: "RowNumberSelect" })(
@@ -46,7 +47,7 @@ const RowNumberSelect = withStyles(styles, { name: "RowNumberSelect" })(
     classes,
     className,
     choices,
-    currentRowNum,
+    listSettings,
     onChange
   }: RowNumberSelectProps) => {
     return (
@@ -54,8 +55,8 @@ const RowNumberSelect = withStyles(styles, { name: "RowNumberSelect" })(
         <span className={classes.label}>{i18n.t("No of Rows:")}</span>
         <Select
           className={classes.select}
-          value={currentRowNum}
-          onChange={onChange}
+          value={listSettings.rowNumber}
+          onChange={event => onChange("rowNumber", event.target.value)}
         >
           {choices.length > 0 &&
             choices.map(choice => (

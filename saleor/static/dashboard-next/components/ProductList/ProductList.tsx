@@ -71,7 +71,7 @@ interface ProductListProps
 export const ProductList = withStyles(styles, { name: "ProductList" })(
   ({
     classes,
-    currentRowNum,
+    listSettings,
     disabled,
     isChecked,
     pageInfo,
@@ -82,7 +82,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
     toolbar,
     onNextPage,
     onPreviousPage,
-    onRowNumChange,
+    onUpdateListSettings,
     onRowClick
   }: ProductListProps) => {
     return (
@@ -112,10 +112,10 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
           <TableRow>
             <TablePagination
               colSpan={6}
-              currentRowNum={currentRowNum}
+              listSettings={listSettings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
-              onRowNumChange={onRowNumChange}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }
