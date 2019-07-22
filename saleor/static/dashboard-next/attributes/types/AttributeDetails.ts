@@ -28,6 +28,7 @@ export interface AttributeDetails_attribute {
   filterableInStorefront: boolean | null;
   inputType: AttributeInputTypeEnum | null;
   storefrontSearchPosition: number | null;
+  valueRequired: boolean | null;
   values: (AttributeDetails_attribute_values | null)[] | null;
 }
 
