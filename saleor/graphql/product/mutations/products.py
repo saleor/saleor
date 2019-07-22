@@ -833,6 +833,36 @@ class ProductTypeDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
 
 
+class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.ProductType
+        description = "Update public metadata for product type"
+        permissions = ("product.manage_products",)
+
+
+class ProductTypeClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears public metadata item for product type"
+        model = models.ProductType
+        permissions = ("product.manage_products",)
+
+
+class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Update public metadata for product type"
+        model = models.ProductType
+        public = False
+        permissions = ("product.manage_products",)
+
+
+class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears public metadata item for product type"
+        model = models.ProductType
+        public = False
+        permissions = ("product.manage_products",)
+
+
 class ProductImageCreateInput(graphene.InputObjectType):
     alt = graphene.String(description="Alt text for an image.")
     image = Upload(
