@@ -250,10 +250,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                     attributeValueCreate({
                                       variables: {
                                         id,
-                                        input: {
-                                          name: input.name,
-                                          value: input.slug
-                                        }
+                                        input
                                       }
                                     })
                                   }
@@ -282,10 +279,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ id, params }) => {
                                         id: data.attribute.values.find(
                                           value => params.id === value.id
                                         ).id,
-                                        input: {
-                                          name: input.name,
-                                          value: input.slug
-                                        }
+                                        input
                                       }
                                     })
                                   }
