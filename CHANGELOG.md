@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Rework adding attribute values - #4504 by @dominik-zeglen
 - Add "value required" switch - #4498 by @dominik-zeglen
 - Fix minor bugs - #4503 by @dominik-zeglen
+- Fix attribute errors displaying - #4505 by @dominik-zeglen
 
 ## [Unreleased]
 
