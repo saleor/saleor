@@ -72,6 +72,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
     categories,
     classes,
     disabled,
+    listSettings,
     isRoot,
     pageInfo,
     isChecked,
@@ -82,6 +83,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
     onAdd,
     onNextPage,
     onPreviousPage,
+    onUpdateListSettings,
     onRowClick
   }: CategoryListProps) => (
     <Card>
@@ -117,8 +119,10 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
           <TableRow>
             <TablePagination
               colSpan={4}
+              listSettings={listSettings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }

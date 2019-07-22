@@ -24,9 +24,11 @@ export interface CategoryTableProps extends PageListProps, ListActions {
 export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
   categories,
   disabled,
+  listSettings,
   onAdd,
   onNextPage,
   onPreviousPage,
+  onUpdateListSettings,
   onRowClick,
   pageInfo,
   isChecked,
@@ -46,9 +48,11 @@ export const CategoryListPage: React.StatelessComponent<CategoryTableProps> = ({
       onAdd={onAdd}
       onRowClick={onRowClick}
       disabled={disabled}
+      listSettings={listSettings}
       isRoot={true}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
+      onUpdateListSettings={onUpdateListSettings}
       pageInfo={pageInfo}
       isChecked={isChecked}
       selected={selected}

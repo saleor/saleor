@@ -5,6 +5,7 @@ import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import usePaginator, {
   createPaginationState
@@ -12,6 +13,7 @@ import usePaginator, {
 import { PAGINATE_BY } from "../../config";
 import i18n from "../../i18n";
 import { getMutationState, maybe } from "../../misc";
+import { Lists } from "../../types";
 import { CategoryListPage } from "../components/CategoryListPage/CategoryListPage";
 import { TypedCategoryBulkDeleteMutation } from "../mutations";
 import { TypedRootCategoriesQuery } from "../queries";
@@ -34,6 +36,9 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
   const paginate = usePaginator();
   const { isSelected, listElements, toggle, toggleAll, reset } = useBulkActions(
     params.ids
+  );
+  const { updateListSettings, listSettings } = useListSettings(
+    Lists.CATEGORY_LIST
   );
 
   const paginationState = createPaginationState(PAGINATE_BY, params);
@@ -73,11 +78,13 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
                       () => data.categories.edges.map(edge => edge.node),
                       []
                     )}
+                    listSettings={listSettings.CATEGORY_LIST}
                     onAdd={() => navigate(categoryAddUrl())}
                     onRowClick={id => () => navigate(categoryUrl(id))}
                     disabled={loading}
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
+                    onUpdateListSettings={updateListSettings}
                     pageInfo={pageInfo}
                     isChecked={isSelected}
                     selected={listElements.length}
