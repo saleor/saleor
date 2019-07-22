@@ -92,7 +92,7 @@ const TableHead = withStyles(styles, {
     return (
       <MuiTableHead {...muiTableHeadProps}>
         <TableRow>
-          {dragRows && (
+          {dragRows && (items === undefined || items.length > 0) && (
             <TableCell
               className={classNames({
                 [classes.checkboxSelected]: selected
