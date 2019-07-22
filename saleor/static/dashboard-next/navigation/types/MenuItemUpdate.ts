@@ -40,7 +40,7 @@ export interface MenuItemUpdate_menuItemUpdate_menuItem {
   level: number;
   name: string;
   page: MenuItemUpdate_menuItemUpdate_menuItem_page | null;
-  sortOrder: number | null;
+  sortOrder: number;
   url: string | null;
 }
 
