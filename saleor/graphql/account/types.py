@@ -212,7 +212,7 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_checkout(root: models.User, _info, **_kwargs):
-        return get_user_checkout(root)
+        return get_user_checkout(root)[0]
 
     @staticmethod
     def resolve_gift_cards(root: models.User, info, **_kwargs):

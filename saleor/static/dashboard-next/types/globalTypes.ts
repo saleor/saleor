@@ -40,6 +40,7 @@ export enum LanguageCodeEnum {
   CS = "CS",
   DA = "DA",
   DE = "DE",
+  EL = "EL",
   EN = "EN",
   ES = "ES",
   ES_CO = "ES_CO",
@@ -570,6 +571,7 @@ export interface VoucherInput {
   minCheckoutItemsQuantity?: number | null;
   countries?: (string | null)[] | null;
   applyOncePerOrder?: boolean | null;
+  applyOncePerCustomer?: boolean | null;
   usageLimit?: number | null;
 }
 

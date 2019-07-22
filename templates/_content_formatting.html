@@ -1,0 +1,5 @@
+{% if content_json %}
+  <div data-description-json='{{ content_json|safe }}'></div>
+{% else %}
+  {{ content_html|safe }}
+{% endif %}

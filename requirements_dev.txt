@@ -21,7 +21,7 @@ django==2.2.3
 entrypoints==0.3
 execnet==1.6.0
 filelock==3.0.12
-flake8==3.7.7
+flake8==3.7.8
 identify==1.4.5
 idna==2.8
 importlib-metadata==0.18
@@ -38,10 +38,10 @@ pluggy==0.12.0
 pre-commit==1.17.0
 py==1.8.0
 pycodestyle==2.5.0
-pydocstyle==3.0.0
+pydocstyle==4.0.0
 pyflakes==2.1.1
 pylint-celery==0.3
-pylint-django==2.0.9
+pylint-django==2.0.11
 pylint-plugin-utils==0.5
 pylint==2.3.1
 pyparsing==2.4.0
@@ -52,7 +52,7 @@ pytest-forked==1.0.2
 pytest-mock==1.10.4
 pytest-vcr==1.0.2
 pytest-xdist==1.29.0
-pytest==5.0.0
+pytest==5.0.1
 python-slugify==1.2.6
 pytz==2019.1
 pyyaml==5.1.1
@@ -61,15 +61,15 @@ six==1.12.0
 snowballstemmer==1.9.0
 sqlparse==0.3.0
 toml==0.10.0
-tox==3.13.1
+tox==3.13.2
 transifex-client==0.13.6
 typed-ast==1.4.0 ; implementation_name == 'cpython'
 unidecode==1.1.1
 urllib3==1.25.3
 vcrpy==2.0.1
-virtualenv==16.6.1
+virtualenv==16.6.2
 wcwidth==0.1.7
 wrapt==1.11.2
-yapf==0.27.0
+yapf==0.28.0
 yarl==1.3.0 ; python_version >= '3.4'
-zipp==0.5.1
+zipp==0.5.2
