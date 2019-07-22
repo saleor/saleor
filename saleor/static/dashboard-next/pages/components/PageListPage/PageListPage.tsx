@@ -17,11 +17,13 @@ export interface PageListPageProps extends PageListProps, ListActions {
 
 const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   disabled,
+  listSettings,
   onAdd,
   onBack,
   onNextPage,
   onPreviousPage,
   onRowClick,
+  onUpdateListSettings,
   pageInfo,
   pages,
   isChecked,
@@ -45,9 +47,11 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
     </PageHeader>
     <PageList
       disabled={disabled}
+      listSettings={listSettings}
       pages={pages}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
+      onUpdateListSettings={onUpdateListSettings}
       onRowClick={onRowClick}
       pageInfo={pageInfo}
       isChecked={isChecked}
