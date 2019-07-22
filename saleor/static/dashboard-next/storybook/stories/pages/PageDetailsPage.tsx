@@ -1,5 +1,5 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import PageDetailsPage, {
   FormData,
@@ -32,8 +32,8 @@ storiesOf("Views / Pages / Page details", module)
         "title",
         "slug",
         "content",
-        "availableOn",
-        "isVisible",
+        "publicationDate",
+        "isPublished",
         "seoDescription",
         "seoTitle"
       ] as Array<keyof FormData>).map(formError)}

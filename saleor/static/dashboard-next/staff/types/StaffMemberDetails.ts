@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 import { PermissionEnum } from "./../../types/globalTypes";
@@ -6,6 +7,11 @@ import { PermissionEnum } from "./../../types/globalTypes";
 // ====================================================
 // GraphQL query operation: StaffMemberDetails
 // ====================================================
+
+export interface StaffMemberDetails_user_avatar {
+  __typename: "Image";
+  url: string;
+}
 
 export interface StaffMemberDetails_user_permissions {
   __typename: "PermissionDisplay";
@@ -20,6 +26,7 @@ export interface StaffMemberDetails_user {
   firstName: string;
   isActive: boolean;
   lastName: string;
+  avatar: StaffMemberDetails_user_avatar | null;
   permissions: (StaffMemberDetails_user_permissions | null)[] | null;
 }
 

@@ -33,7 +33,11 @@
           <tbody>
             <tr>
               <td class="address">
-                {% format_address order.billing_address %}
+                {% if order.billing_address %}
+                  {% format_address order.billing_address %}
+                {% else %}
+                  {% trans "No billing address" context "Order confirmation e-mail text" %}
+                {% endif %}
               </td>
               <td css-class="address">
                 {% if order.shipping_address %}

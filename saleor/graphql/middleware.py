@@ -14,17 +14,17 @@ def jwt_middleware(get_response):
     """
     # Disable warnings for django-graphene-jwt
     graphene_settings.MIDDLEWARE.append(JSONWebTokenMiddleware)
-    jwt_middleware = JSONWebTokenMiddleware(get_response=get_response)
+    jwt_middleware_inst = JSONWebTokenMiddleware(get_response=get_response)
     graphene_settings.MIDDLEWARE.remove(JSONWebTokenMiddleware)
 
     def middleware(request):
-        if request.path == reverse('api'):
+        if request.path == reverse("api"):
             # clear user authenticated by AuthenticationMiddleware
             request._cached_user = AnonymousUser()
             request.user = AnonymousUser()
 
             # authenticate using JWT middleware
-            jwt_middleware.process_request(request)
+            jwt_middleware_inst.process_request(request)
         return get_response(request)
 
     return middleware

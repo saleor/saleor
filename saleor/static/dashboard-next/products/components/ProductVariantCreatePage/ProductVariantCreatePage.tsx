@@ -1,13 +1,13 @@
-import * as React from "react";
+import React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import AppHeader from "@saleor/components/AppHeader";
+import CardSpacer from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
@@ -18,15 +18,16 @@ import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
 
 interface FormData {
-  attributes?: Array<{
+  attributes: Array<{
+    name: string;
     slug: string;
     value: string;
   }>;
-  costPrice?: string;
-  images?: string[];
-  priceOverride?: string;
-  quantity?: number;
-  sku?: string;
+  costPrice: string;
+  images: string[];
+  priceOverride: string;
+  quantity: number;
+  sku: string;
 }
 
 interface ProductVariantCreatePageProps {
@@ -55,11 +56,14 @@ const ProductVariantCreatePage: React.StatelessComponent<
   onVariantClick
 }) => {
   const initialForm = {
-    attributes: maybe(() =>
-      product.productType.variantAttributes.map(attribute => ({
-        slug: attribute.slug,
-        value: ""
-      }))
+    attributes: maybe(
+      () =>
+        product.productType.variantAttributes.map(attribute => ({
+          name: attribute.name,
+          slug: attribute.slug,
+          value: ""
+        })),
+      []
     ),
     costPrice: "",
     images: maybe(() => product.images.map(image => image.id)),
@@ -68,12 +72,7 @@ const ProductVariantCreatePage: React.StatelessComponent<
     sku: ""
   };
   return (
-    <Form
-      initial={initialForm}
-      errors={formErrors}
-      onSubmit={onSubmit}
-      key={product ? JSON.stringify(product) : "noproduct"}
-    >
+    <Form initial={initialForm} errors={formErrors} onSubmit={onSubmit}>
       {({ change, data, errors, hasChanged, submit }) => (
         <Container>
           <AppHeader onBack={onBack}>{maybe(() => product.name)}</AppHeader>
@@ -81,6 +80,7 @@ const ProductVariantCreatePage: React.StatelessComponent<
           <Grid variant="inverted">
             <div>
               <ProductVariantNavigation
+                fallbackThumbnail={maybe(() => product.thumbnail.url)}
                 variants={maybe(() => product.variants)}
                 onRowClick={(variantId: string) => {
                   if (product && product.variants) {

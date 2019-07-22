@@ -1,21 +1,17 @@
-import * as React from "react";
+import React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import Container from "../../../components/Container";
-import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import AppHeader from "@saleor/components/AppHeader";
+import CardSpacer from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import { ControlledCheckbox } from "@saleor/components/ControlledCheckbox";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import {
-  AttributeTypeEnum,
-  TaxRateType,
-  WeightUnitsEnum
-} from "../../../types/globalTypes";
+import { AttributeTypeEnum, WeightUnitsEnum } from "../../../types/globalTypes";
 import { ProductTypeDetails_productType } from "../../types/ProductTypeDetails";
 import ProductTypeAttributes from "../ProductTypeAttributes/ProductTypeAttributes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
@@ -31,7 +27,10 @@ export interface ProductTypeForm {
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
-  taxRate: TaxRateType;
+  taxType: {
+    label: string;
+    value: string;
+  };
   productAttributes: ChoiceType[];
   variantAttributes: ChoiceType[];
   weight: number;
@@ -47,6 +46,10 @@ export interface ProductTypeDetailsPageProps {
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: ConfirmButtonTransitionState;
+  taxTypes: Array<{
+    description: string;
+    taxCode: string;
+  }>;
   onAttributeAdd: (type: AttributeTypeEnum) => void;
   onAttributeDelete: (id: string, event: React.MouseEvent<any>) => void;
   onAttributeUpdate: (id: string) => void;
@@ -64,6 +67,7 @@ const ProductTypeDetailsPage: React.StatelessComponent<
   pageTitle,
   productType,
   saveButtonBarState,
+  taxTypes,
   onAttributeAdd,
   onAttributeDelete,
   onAttributeUpdate,
@@ -88,10 +92,16 @@ const ProductTypeDetailsPage: React.StatelessComponent<
             value: attribute.id
           }))
         : [],
-    taxRate:
-      maybe(() => productType.taxRate) !== undefined
-        ? productType.taxRate
-        : null,
+    taxType:
+      maybe(() => productType.taxType) !== undefined
+        ? {
+            label: productType.taxType.description,
+            value: productType.taxType.taxCode
+          }
+        : {
+            label: "",
+            value: ""
+          },
     variantAttributes:
       maybe(() => productType.variantAttributes) !== undefined
         ? productType.variantAttributes.map(attribute => ({
@@ -108,70 +118,75 @@ const ProductTypeDetailsPage: React.StatelessComponent<
       onSubmit={onSubmit}
       confirmLeave
     >
-      {({ change, data, hasChanged, submit }) => (
-        <Container>
-          <AppHeader onBack={onBack}>{i18n.t("Product Types")}</AppHeader>
-          <PageHeader title={pageTitle} />
-          <Grid>
-            <div>
-              <ProductTypeDetails
-                data={data}
-                disabled={disabled}
-                onChange={change}
-              />
-              <CardSpacer />
-              <ProductTypeAttributes
-                attributes={maybe(() => productType.productAttributes)}
-                type={AttributeTypeEnum.PRODUCT}
-                onAttributeAdd={onAttributeAdd}
-                onAttributeDelete={onAttributeDelete}
-                onAttributeUpdate={onAttributeUpdate}
-              />
-              <CardSpacer />
-              <ControlledCheckbox
-                checked={data.hasVariants}
-                disabled={disabled}
-                label={i18n.t("This product type has variants")}
-                name="hasVariants"
-                onChange={change}
-              />
-              {data.hasVariants && (
-                <>
-                  <CardSpacer />
-                  <ProductTypeAttributes
-                    attributes={maybe(() => productType.variantAttributes)}
-                    type={AttributeTypeEnum.VARIANT}
-                    onAttributeAdd={onAttributeAdd}
-                    onAttributeDelete={onAttributeDelete}
-                    onAttributeUpdate={onAttributeUpdate}
-                  />
-                </>
-              )}
-            </div>
-            <div>
-              <ProductTypeShipping
-                disabled={disabled}
-                data={data}
-                defaultWeightUnit={defaultWeightUnit}
-                onChange={change}
-              />
-              <CardSpacer />
-              <ProductTypeTaxes
-                disabled={disabled}
-                data={data}
-                onChange={change}
-              />
-            </div>
-          </Grid>
-          <SaveButtonBar
-            onCancel={onBack}
-            onDelete={onDelete}
-            onSave={submit}
-            disabled={disabled || !hasChanged}
-            state={saveButtonBarState}
-          />
-        </Container>
-      )}
+      {({ change, data, hasChanged, submit }) => {
+        return (
+          <Container>
+            <AppHeader onBack={onBack}>{i18n.t("Product Types")}</AppHeader>
+            <PageHeader title={pageTitle} />
+            <Grid>
+              <div>
+                <ProductTypeDetails
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+                <CardSpacer />
+                <ProductTypeTaxes
+                  disabled={disabled}
+                  data={data}
+                  taxTypes={maybe(() => taxTypes, [
+                    { description: "", taxCode: "" }
+                  ])}
+                  onChange={change}
+                />
+                <CardSpacer />
+                <ProductTypeAttributes
+                  attributes={maybe(() => productType.productAttributes)}
+                  type={AttributeTypeEnum.PRODUCT}
+                  onAttributeAdd={onAttributeAdd}
+                  onAttributeDelete={onAttributeDelete}
+                  onAttributeUpdate={onAttributeUpdate}
+                />
+                <CardSpacer />
+                <ControlledCheckbox
+                  checked={data.hasVariants}
+                  disabled={disabled}
+                  label={i18n.t("This product type has variants")}
+                  name="hasVariants"
+                  onChange={change}
+                />
+                {data.hasVariants && (
+                  <>
+                    <CardSpacer />
+                    <ProductTypeAttributes
+                      attributes={maybe(() => productType.variantAttributes)}
+                      type={AttributeTypeEnum.VARIANT}
+                      onAttributeAdd={onAttributeAdd}
+                      onAttributeDelete={onAttributeDelete}
+                      onAttributeUpdate={onAttributeUpdate}
+                    />
+                  </>
+                )}
+              </div>
+              <div>
+                <ProductTypeShipping
+                  disabled={disabled}
+                  data={data}
+                  defaultWeightUnit={defaultWeightUnit}
+                  onChange={change}
+                />
+              </div>
+            </Grid>
+            <SaveButtonBar
+              onCancel={onBack}
+              onDelete={onDelete}
+              onSave={submit}
+              disabled={disabled || !hasChanged}
+              state={saveButtonBarState}
+            />
+          </Container>
+        );
+      }}
     </Form>
   );
 };

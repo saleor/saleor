@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -10,9 +11,9 @@ export interface PageDetailsFragment {
   id: string;
   title: string;
   slug: string;
-  isVisible: boolean | null;
+  isPublished: boolean;
   contentJson: any;
   seoTitle: string | null;
   seoDescription: string | null;
-  availableOn: any | null;
+  publicationDate: any | null;
 }

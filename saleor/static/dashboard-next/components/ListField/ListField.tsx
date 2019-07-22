@@ -7,10 +7,9 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField, { StandardTextFieldProps } from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import CloseIcon from "@material-ui/icons/Close";
-import * as React from "react";
+import React from "react";
 import i18n from "../../i18n";
+import Chip from "../Chip";
 
 interface ListFieldState {
   newValueCounter: number;
@@ -20,20 +19,11 @@ interface ListFieldState {
 const styles = (theme: Theme) =>
   createStyles({
     chip: {
-      background: "rgba(90, 179, 120, .1)",
-      borderRadius: 8,
-      display: "inline-block",
-      marginRight: theme.spacing.unit * 2,
-      padding: "4px 8px"
+      marginBottom: theme.spacing.unit
     },
     chipContainer: {
       marginTop: theme.spacing.unit * 2,
       width: 552
-    },
-    closeIcon: {
-      cursor: "pointer",
-      fontSize: 16,
-      verticalAlign: "middle"
     }
   });
 
@@ -112,7 +102,7 @@ const ListField = withStyles(styles)(
               endAdornment: (
                 <Button
                   variant="text"
-                  color="secondary"
+                  color="primary"
                   onClick={this.handleValueAdd}
                 >
                   {i18n.t("Add", { context: "button" })}
@@ -125,15 +115,12 @@ const ListField = withStyles(styles)(
           />
           <div className={classes.chipContainer}>
             {values.map((value, valueIndex) => (
-              <div className={classes.chip} key={valueIndex}>
-                <Typography variant="caption">
-                  {value.label}{" "}
-                  <CloseIcon
-                    className={classes.closeIcon}
-                    onClick={() => this.handleValueRemove(valueIndex)}
-                  />
-                </Typography>
-              </div>
+              <Chip
+                className={classes.chip}
+                key={valueIndex}
+                label={value.label}
+                onClose={() => this.handleValueRemove(valueIndex)}
+              />
             ))}
           </div>
         </div>

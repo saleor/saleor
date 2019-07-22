@@ -4,18 +4,18 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Tiberiu Ichim <tiberiu.ichim@gmail.com>, 2018
-# Delia Cosma <deliacosma79@gmail.com>, 2018
 # Cosmin Cosma <cosmingcosma@gmail.com>, 2018
+# Delia Cosma <deliacosma79@gmail.com>, 2018
+# Tiberiu Ichim <tiberiu.ichim@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2019-07-17 04:57-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Cosmin Cosma <cosmingcosma@gmail.com>, 2018\n"
+"Last-Translator: Tiberiu Ichim <tiberiu.ichim@gmail.com>, 2019\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -327,47 +327,6 @@ msgstr "Citat"
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Link"
-
-#: saleor/static/dashboard/js/components/editor.js:61
-msgctxt "Rich text editor option"
-msgid "Image (converts selected text to an image tag)"
-msgstr "Imagine (convertește textul selectat într-o etichetă de imagine)"
-
-#: saleor/static/dashboard/js/components/editor.js:66
-msgctxt "Rich text editor option"
-msgid "Left align"
-msgstr "Aliniat la stânga"
-
-#: saleor/static/dashboard/js/components/editor.js:71
-msgctxt "Rich text editor option"
-msgid "Center align"
-msgstr "Aliniere centru"
-
-#: saleor/static/dashboard/js/components/editor.js:76
-msgctxt "Rich text editor option"
-msgid "Right align"
-msgstr "Aliniați dreapta"
-
-#: saleor/static/dashboard/js/components/editor.js:81
-msgctxt "Rich text editor option"
-msgid "Justify"
-msgstr "Centrează"
-
-#: saleor/static/dashboard/js/components/editor.js:86
-msgctxt "Rich text editor option"
-msgid "Remove formatting"
-msgstr "Eliminați formatarea"
-
-#: saleor/static/dashboard/js/components/google-preview.js:46
-msgid ""
-"Your input might be a little too short, think of something more descriptive"
-msgstr ""
-"Ce ai introdus ar putea fi puțin prea scurt, gândește-te la ceva mai "
-"descriptiv"
-
-#: saleor/static/dashboard/js/components/google-preview.js:50
-msgid "Your input fits between the recommended lengths"
-msgstr "Ce ai introdus se potrivește între lungimile recomandate"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"

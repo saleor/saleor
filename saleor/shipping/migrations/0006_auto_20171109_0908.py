@@ -7,13 +7,18 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('shipping', '0005_auto_20170906_0556'),
-    ]
+    dependencies = [("shipping", "0005_auto_20170906_0556")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='shippingmethod',
-            options={'permissions': (('view_shipping', 'Can view shipping method'), ('edit_shipping', 'Can edit shipping method')), 'verbose_name': 'shipping method', 'verbose_name_plural': 'shipping methods'},
-        ),
+            name="shippingmethod",
+            options={
+                "permissions": (
+                    ("view_shipping", "Can view shipping method"),
+                    ("edit_shipping", "Can edit shipping method"),
+                ),
+                "verbose_name": "shipping method",
+                "verbose_name_plural": "shipping methods",
+            },
+        )
     ]

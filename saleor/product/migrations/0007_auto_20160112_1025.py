@@ -7,10 +7,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0006_product_updated_at'),
-    ]
+    dependencies = [("product", "0006_product_updated_at")]
 
-    operations = [
-        migrations.RenameModel('FixedProductDiscount', 'Discount')
-    ]
+    operations = [migrations.RenameModel("FixedProductDiscount", "Discount")]

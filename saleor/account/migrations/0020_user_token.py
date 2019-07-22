@@ -6,14 +6,14 @@ import saleor.account.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('account', '0019_auto_20180528_1205'),
-    ]
+    dependencies = [("account", "0019_auto_20180528_1205")]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='token',
-            field=models.UUIDField(default=saleor.account.models.get_token, editable=False),
-        ),
+            model_name="user",
+            name="token",
+            field=models.UUIDField(
+                default=saleor.account.models.get_token, editable=False
+            ),
+        )
     ]

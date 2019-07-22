@@ -7,27 +7,39 @@ from django.contrib.postgres import fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('menu', '0005_auto_20180719_0520'),
-    ]
+    dependencies = [("menu", "0005_auto_20180719_0520")]
 
     operations = [
         migrations.CreateModel(
-            name='MenuItemTranslation',
+            name="MenuItemTranslation",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language_code', models.CharField(max_length=10)),
-                ('name', models.CharField(max_length=128)),
-                ('menu_item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='translations', to='menu.MenuItem')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("language_code", models.CharField(max_length=10)),
+                ("name", models.CharField(max_length=128)),
+                (
+                    "menu_item",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="translations",
+                        to="menu.MenuItem",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='menu',
-            name='json_content',
+            model_name="menu",
+            name="json_content",
             field=fields.JSONField(blank=True, default=dict),
         ),
         migrations.AlterUniqueTogether(
-            name='menuitemtranslation',
-            unique_together={('language_code', 'menu_item')},
+            name="menuitemtranslation", unique_together={("language_code", "menu_item")}
         ),
     ]

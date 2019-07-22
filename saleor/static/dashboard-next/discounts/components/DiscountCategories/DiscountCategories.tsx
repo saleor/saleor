@@ -11,21 +11,22 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { ListProps } from "../../../types";
+import { ListActions, ListProps } from "../../../types";
 import { SaleDetails_sale } from "../../types/SaleDetails";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 
-export interface DiscountCategoriesProps extends ListProps {
+export interface DiscountCategoriesProps extends ListProps, ListActions {
   discount: SaleDetails_sale | VoucherDetails_voucher;
   onCategoryAssign: () => void;
   onCategoryUnassign: (id: string) => void;
@@ -61,22 +62,31 @@ const DiscountCategories = withStyles(styles, {
     onCategoryUnassign,
     onRowClick,
     onPreviousPage,
-    onNextPage
+    onNextPage,
+    toolbar,
+    toggle,
+    toggleAll,
+    selected,
+    isChecked
   }: DiscountCategoriesProps & WithStyles<typeof styles>) => (
     <Card>
       <CardTitle
-        title={i18n.t("Categories assigned to {{ saleName }}", {
-          saleName: maybe(() => sale.name)
-        })}
+        title={i18n.t("Eligible Categories")}
         toolbar={
-          <Button variant="flat" color="secondary" onClick={onCategoryAssign}>
+          <Button color="primary" onClick={onCategoryAssign}>
             {i18n.t("Assign categories")}
           </Button>
         }
       />
       <Table>
-        <TableHead>
-          <TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => sale.categories.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <>
             <TableCell className={classes.wideColumn}>
               {i18n.t("Category name")}
             </TableCell>
@@ -84,12 +94,12 @@ const DiscountCategories = withStyles(styles, {
               {i18n.t("Products")}
             </TableCell>
             <TableCell />
-          </TableRow>
+          </>
         </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={3}
+              colSpan={4}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -102,38 +112,50 @@ const DiscountCategories = withStyles(styles, {
         <TableBody>
           {renderCollection(
             maybe(() => sale.categories.edges.map(edge => edge.node)),
-            category => (
-              <TableRow
-                hover={!!category}
-                key={category ? category.id : "skeleton"}
-                onClick={category && onRowClick(category.id)}
-                className={classes.tableRow}
-              >
-                <TableCell>
-                  {maybe<React.ReactNode>(() => category.name, <Skeleton />)}
-                </TableCell>
-                <TableCell className={classes.textRight}>
-                  {maybe<React.ReactNode>(
-                    () => category.products.totalCount,
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell className={classes.iconCell}>
-                  <IconButton
-                    disabled={!category || disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onCategoryUnassign(category.id);
-                    }}
-                  >
-                    <DeleteIcon color="secondary" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ),
+            category => {
+              const isSelected = category ? isChecked(category.id) : false;
+
+              return (
+                <TableRow
+                  hover={!!category}
+                  key={category ? category.id : "skeleton"}
+                  onClick={category && onRowClick(category.id)}
+                  className={classes.tableRow}
+                  selected={isSelected}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={isSelected}
+                      disabled={disabled}
+                      onChange={() => toggle(category.id)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {maybe<React.ReactNode>(() => category.name, <Skeleton />)}
+                  </TableCell>
+                  <TableCell className={classes.textRight}>
+                    {maybe<React.ReactNode>(
+                      () => category.products.totalCount,
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.iconCell}>
+                    <IconButton
+                      disabled={!category || disabled}
+                      onClick={event => {
+                        event.stopPropagation();
+                        onCategoryUnassign(category.id);
+                      }}
+                    >
+                      <DeleteIcon color="primary" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            },
             () => (
               <TableRow>
-                <TableCell colSpan={3}>
+                <TableCell colSpan={4}>
                   {i18n.t("No categories found")}
                 </TableCell>
               </TableRow>

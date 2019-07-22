@@ -7,5 +7,5 @@ register = template.Library()
 
 @register.filter
 def markdown(text):
-    html = format_markdown(text, safe_mode='escape', output_format='html5')
+    html = format_markdown(text, safe_mode="escape", output_format="html5")
     return mark_safe(html)

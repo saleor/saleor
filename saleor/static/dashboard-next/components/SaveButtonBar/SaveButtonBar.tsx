@@ -7,9 +7,9 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
-import useScroll from "../../hooks/useScroll";
+import useScroll from "@saleor/hooks/useScroll";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import AppActionContext from "../AppLayout/AppActionContext";
@@ -44,16 +44,16 @@ const styles = (theme: Theme) =>
     root: {
       background: theme.palette.background.default,
       borderTop: "1px solid transparent",
-      boxShadow: `0px -5px 5px 0px ${theme.palette.grey[200]}`,
-      transition: theme.transitions.duration.standard + "ms"
+      boxShadow: `0 -5px 5px 0 ${theme.overrides.MuiCard.root.borderColor}`,
+      transition: `box-shadow ${theme.transitions.duration.shortest}ms`
     },
     spacer: {
       flex: "1"
     },
     stop: {
       "&$root": {
-        borderTopColor: theme.palette.grey[200],
-        boxShadow: `0px 0px 4px 0px ${theme.palette.grey[200]}`
+        borderTopColor: theme.overrides.MuiCard.root.borderColor,
+        boxShadow: `0 0 0 0 ${theme.overrides.MuiCard.root.borderColor}`
       }
     }
   });

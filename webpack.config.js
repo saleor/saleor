@@ -5,6 +5,7 @@ const path = require('path');
 const url = require('url');
 const webpack = require('webpack');
 const BundleTracker = require('webpack-bundle-tracker');
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 const resolve = path.resolve.bind(path, __dirname);
 
@@ -18,6 +19,10 @@ const providePlugin = new webpack.ProvidePlugin({
   'window.jQuery': 'jquery',
   Popper: 'popper.js',
   'query-string': 'query-string'
+});
+
+const pathsPlugin = new TsconfigPathsPlugin({
+  configFile: './tsconfig.json'
 });
 
 const checkerPlugin = new CheckerPlugin({
@@ -138,7 +143,10 @@ module.exports = (env, argv) => {
       alias: {
         jquery: resolve('node_modules/jquery/dist/jquery.js')
       },
-      extensions: ['.ts', '.tsx', '.js', '.jsx']
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      plugins: [
+        pathsPlugin
+      ]
     },
     devtool: 'sourceMap'
   };

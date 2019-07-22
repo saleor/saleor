@@ -7,14 +7,16 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { FormSpacer } from "../../../components/FormSpacer";
-import MultiAutocompleteSelectField from "../../../components/MultiAutocompleteSelectField";
-import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
-import SingleSelectField from "../../../components/SingleSelectField";
-import Skeleton from "../../../components/Skeleton";
+import CardSpacer from "@saleor/components/CardSpacer";
+import CardTitle from "@saleor/components/CardTitle";
+import Chip from "@saleor/components/Chip";
+import { FormSpacer } from "@saleor/components/FormSpacer";
+import MultiAutocompleteSelectField from "@saleor/components/MultiAutocompleteSelectField";
+import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
+import Skeleton from "@saleor/components/Skeleton";
+import { ChangeEvent } from "@saleor/hooks/useForm";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
@@ -37,36 +39,42 @@ const styles = (theme: Theme) =>
     },
     cardSubtitle: {
       fontSize: "1rem",
-      margin: `${theme.spacing.unit * 3}px 0`
+      marginBottom: theme.spacing.unit / 2
     },
     hr: {
-      backgroundColor: "#eaeaea",
+      backgroundColor: theme.overrides.MuiCard.root.borderColor,
       border: "none",
       height: 1,
       margin: `0 -${theme.spacing.unit * 3}px ${theme.spacing.unit * 3}px`
+    },
+    label: {
+      marginBottom: theme.spacing.unit / 2
     }
   });
 
-interface ProductOrganizationProps extends WithStyles<typeof styles> {
-  categories?: Array<{ value: string; label: string }>;
-  collections?: Array<{ value: string; label: string }>;
-  data: {
-    attributes: Array<{
-      slug: string;
-      value: string;
-    }>;
-    category: ChoiceType;
-    collections: ChoiceType[];
-    productType: {
-      label: string;
-      value: {
-        hasVariants: boolean;
-        id: string;
-        name: string;
-        productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
-      };
+interface ProductOrganizationFormData {
+  attributes: Array<{
+    slug: string;
+    value: string;
+  }>;
+  category: ChoiceType;
+  collections: ChoiceType[];
+  productType: {
+    label: string;
+    value: {
+      hasVariants: boolean;
+      id: string;
+      name: string;
+      productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
     };
   };
+}
+
+interface ProductOrganizationProps extends WithStyles<typeof styles> {
+  canChangeType: boolean;
+  categories?: Array<{ value: string; label: string }>;
+  collections?: Array<{ value: string; label: string }>;
+  data: ProductOrganizationFormData;
   disabled: boolean;
   errors: { [key: string]: string };
   product?: {
@@ -78,35 +86,53 @@ interface ProductOrganizationProps extends WithStyles<typeof styles> {
   productTypes?: ProductType[];
   fetchCategories: (query: string) => void;
   fetchCollections: (query: string) => void;
-  onChange: (event: React.ChangeEvent<any>, cb?: () => void) => void;
+  onChange: (event: ChangeEvent<any>) => void;
+  onSet: (data: Partial<ProductOrganizationFormData>) => void;
 }
 
 const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
   ({
+    canChangeType,
     categories,
     classes,
     collections,
     data,
     disabled,
+    errors,
     fetchCategories,
     fetchCollections,
     product,
     productTypes,
-    onChange
+    onChange,
+    onSet
   }: ProductOrganizationProps) => {
     const unrolledAttributes = maybe(
       () => data.productType.value.productAttributes,
       []
     );
-    const getAttributeName = (slug: string) =>
-      unrolledAttributes.filter(a => a.slug === slug)[0].name;
+    const getAttributeName = (slug: string) => {
+      const match = unrolledAttributes.find(a => a.slug === slug);
+      if (!match) {
+        return "";
+      }
+      return match.name;
+    };
     const getAttributeValue = (slug: string) => {
       if (unrolledAttributes.length > 0) {
-        const value = data.attributes.filter(a => a.slug === slug)[0];
-        const matches = unrolledAttributes
-          .filter(a => a.slug === slug)[0]
-          .values.filter(v => v.slug === value.value);
-        const label = matches.length > 0 ? matches[0].name : value.value;
+        const value = data.attributes.find(a => a.slug === slug);
+        const attributeMatch = unrolledAttributes.find(a => a.slug === slug);
+        if (!attributeMatch) {
+          return {
+            label: "",
+            value: ""
+          };
+        }
+        const attributeValueMatch = attributeMatch.values.find(
+          v => v.slug === value.value
+        );
+        const label = !!attributeValueMatch
+          ? attributeValueMatch.name
+          : value.value;
         return {
           label,
           value
@@ -117,32 +143,35 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
         value: ""
       };
     };
-    const getAttributeValues = (slug: string) =>
-      unrolledAttributes.filter(a => a.slug === slug)[0].values;
+    const getAttributeValues = (slug: string) => {
+      const match = unrolledAttributes.find(a => a.slug === slug);
+      if (match) {
+        return match.values.map(v => ({
+          label: v.name,
+          value: v.slug
+        }));
+      }
+
+      return [];
+    };
     const handleProductTypeSelect = (
-      event: React.ChangeEvent<{
-        name: string;
-        value: {
+      event: ChangeEvent<
+        string,
+        {
           label: string;
           value: ProductType;
-        };
-      }>
+        }
+      >
     ) => {
-      onChange(event, () =>
-        onChange({
-          ...event,
-          target: {
-            ...event.target,
-            name: "attributes",
-            value: event.target.value.value.productAttributes.map(
-              attribute => ({
-                slug: attribute.slug,
-                value: ""
-              })
-            )
-          }
-        })
-      );
+      onSet({
+        attributes: event.target.value.value.productAttributes.map(
+          attribute => ({
+            slug: attribute.slug,
+            value: ""
+          })
+        ),
+        productType: event.target.value
+      });
     };
     const handleAttributeValueSelect = (
       event: React.ChangeEvent<{
@@ -170,46 +199,56 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
       <Card className={classes.card}>
         <CardTitle title={i18n.t("Organize Product")} />
         <CardContent>
-          <SingleAutocompleteSelectField
-            name="productType"
-            disabled={!!product || disabled}
-            label={i18n.t("Product Type")}
-            choices={
-              product &&
-              product.productType &&
-              product.productType.name !== undefined
-                ? [{ label: product.productType.name, value: "1" }]
-                : productTypes
-                ? productTypes.map(pt => ({ label: pt.name, value: pt }))
-                : []
-            }
-            value={data.productType}
-            onChange={handleProductTypeSelect}
-          />
-          <FormSpacer />
-          <SingleSelectField
-            disabled={true}
-            name="hasVariants"
-            label={i18n.t("Is it configurable?")}
-            choices={[
-              { label: i18n.t("Yes"), value: "true" },
-              { label: i18n.t("No"), value: "false" }
-            ]}
-            value={
-              product &&
-              product.productType &&
-              product.productType.hasVariants !== undefined
-                ? product.productType.hasVariants + ""
-                : data.productType
-                ? data.productType.value.hasVariants + ""
-                : false + ""
-            }
-            onChange={onChange}
-          />
+          {canChangeType ? (
+            <SingleAutocompleteSelectField
+              error={!!errors.productType}
+              helperText={errors.productType}
+              name="productType"
+              disabled={!!product || disabled}
+              label={i18n.t("Product Type")}
+              choices={
+                product &&
+                product.productType &&
+                product.productType.name !== undefined
+                  ? [{ label: product.productType.name, value: "1" }]
+                  : productTypes
+                  ? productTypes.map(pt => ({ label: pt.name, value: pt }))
+                  : []
+              }
+              value={data.productType}
+              onChange={handleProductTypeSelect}
+            />
+          ) : (
+            <>
+              <Typography className={classes.label} variant="caption">
+                {i18n.t("Product Type")}
+              </Typography>
+              <Typography>
+                {maybe(() => product.productType.name, "...")}
+              </Typography>
+              <CardSpacer />
+              <Typography className={classes.label} variant="caption">
+                {i18n.t("Product Type")}
+              </Typography>
+              <Typography>
+                {maybe(
+                  () =>
+                    product.productType.hasVariants
+                      ? i18n.t("Configurable")
+                      : i18n.t("Simple"),
+                  "..."
+                )}
+              </Typography>
+            </>
+          )}
           {!(data && data.attributes && data.attributes.length === 0) ? (
-            <Typography className={classes.cardSubtitle}>
-              {i18n.t("Attributes")}
-            </Typography>
+            <>
+              <CardSpacer />
+              <Typography className={classes.cardSubtitle}>
+                {i18n.t("Attributes")}
+              </Typography>
+              <hr className={classes.hr} />
+            </>
           ) : (
             <FormSpacer />
           )}
@@ -223,10 +262,7 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
                     label={getAttributeName(item.slug)}
                     onChange={handleAttributeValueSelect}
                     value={getAttributeValue(item.slug)}
-                    choices={getAttributeValues(item.slug).map(v => ({
-                      label: v.name,
-                      value: v.slug
-                    }))}
+                    choices={getAttributeValues(item.slug)}
                     custom
                   />
                   <FormSpacer />
@@ -238,6 +274,8 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
           )}
           <hr className={classes.hr} />
           <SingleAutocompleteSelectField
+            error={!!errors.category}
+            helperText={errors.category}
             disabled={disabled}
             label={i18n.t("Category")}
             choices={disabled ? [] : categories}
@@ -255,7 +293,22 @@ const ProductOrganization = withStyles(styles, { name: "ProductOrganization" })(
             value={data.collections}
             onChange={onChange}
             fetchChoices={fetchCollections}
-          />
+          >
+            {({ deleteItem, items }) => (
+              <>
+                <FormSpacer />
+                <div>
+                  {items.map(item => (
+                    <Chip
+                      key={item.value}
+                      label={item.label}
+                      onClose={() => deleteItem(item)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </MultiAutocompleteSelectField>
         </CardContent>
       </Card>
     );

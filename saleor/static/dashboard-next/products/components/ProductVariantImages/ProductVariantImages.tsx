@@ -8,10 +8,10 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
+import CardTitle from "@saleor/components/CardTitle";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { ProductImage } from "../../types/ProductImage";
 
@@ -21,6 +21,9 @@ const styles = (theme: Theme) =>
       "& img": {
         width: "100%"
       }
+    },
+    helpText: {
+      gridColumnEnd: "span 4"
     },
     image: {
       height: "100%",
@@ -57,7 +60,7 @@ export const ProductVariantImages = withStyles(styles, {
       title={i18n.t("Images")}
       toolbar={
         <Button
-          color="secondary"
+          color="primary"
           variant="text"
           disabled={disabled}
           onClick={onImageAdd}
@@ -79,7 +82,9 @@ export const ProductVariantImages = withStyles(styles, {
               </div>
             ))
         ) : (
-          <Typography>{i18n.t("No images available")}</Typography>
+          <Typography className={classes.helpText}>
+            {i18n.t("Select a specific variant image from product images")}
+          </Typography>
         )}
       </div>
     </CardContent>

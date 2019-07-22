@@ -15,214 +15,270 @@ import versatileimagefield.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0043_auto_20171207_0839'),
-    ]
+    dependencies = [("product", "0043_auto_20171207_0839")]
 
     operations = [
         migrations.AlterField(
-            model_name='attributechoicevalue',
-            name='color',
-            field=models.CharField(blank=True, max_length=7, validators=[django.core.validators.RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')]),
+            model_name="attributechoicevalue",
+            name="color",
+            field=models.CharField(
+                blank=True,
+                max_length=7,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                    )
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='attributechoicevalue',
-            name='name',
+            model_name="attributechoicevalue",
+            name="name",
             field=models.CharField(max_length=100),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='description',
+            model_name="category",
+            name="description",
             field=models.TextField(blank=True),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='is_hidden',
+            model_name="category",
+            name="is_hidden",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='name',
-            field=models.CharField(max_length=128),
+            model_name="category", name="name", field=models.CharField(max_length=128)
         ),
         migrations.AlterField(
-            model_name='category',
-            name='parent',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='product.Category'),
+            model_name="category",
+            name="parent",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="children",
+                to="product.Category",
+            ),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='slug',
-            field=models.SlugField(),
+            model_name="category", name="slug", field=models.SlugField()
         ),
         migrations.AlterField(
-            model_name='product',
-            name='attributes',
+            model_name="product",
+            name="attributes",
             field=django.contrib.postgres.fields.hstore.HStoreField(default={}),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='available_on',
+            model_name="product",
+            name="available_on",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='categories',
-            field=models.ManyToManyField(related_name='products', to='product.Category'),
+            model_name="product",
+            name="categories",
+            field=models.ManyToManyField(
+                related_name="products", to="product.Category"
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='description',
-            field=models.TextField(),
+            model_name="product", name="description", field=models.TextField()
         ),
         migrations.AlterField(
-            model_name='product',
-            name='is_featured',
+            model_name="product",
+            name="is_featured",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='is_published',
+            model_name="product",
+            name="is_published",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='name',
-            field=models.CharField(max_length=128),
+            model_name="product", name="name", field=models.CharField(max_length=128)
         ),
         migrations.AlterField(
-            model_name='product',
-            name='price',
-            field=django_prices.models.MoneyField(currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12),
+            model_name="product",
+            name="price",
+            field=django_prices.models.MoneyField(
+                currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='product_class',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='products', to='product.ProductClass'),
+            model_name="product",
+            name="product_class",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="products",
+                to="product.ProductClass",
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='updated_at',
+            model_name="product",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.AlterField(
-            model_name='productattribute',
-            name='name',
+            model_name="productattribute",
+            name="name",
             field=models.CharField(max_length=100),
         ),
         migrations.AlterField(
-            model_name='productattribute',
-            name='slug',
+            model_name="productattribute",
+            name="slug",
             field=models.SlugField(unique=True),
         ),
         migrations.AlterField(
-            model_name='productclass',
-            name='has_variants',
+            model_name="productclass",
+            name="has_variants",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='productclass',
-            name='is_shipping_required',
+            model_name="productclass",
+            name="is_shipping_required",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='productclass',
-            name='name',
+            model_name="productclass",
+            name="name",
             field=models.CharField(max_length=128),
         ),
         migrations.AlterField(
-            model_name='productclass',
-            name='product_attributes',
-            field=models.ManyToManyField(blank=True, related_name='products_class', to='product.ProductAttribute'),
+            model_name="productclass",
+            name="product_attributes",
+            field=models.ManyToManyField(
+                blank=True, related_name="products_class", to="product.ProductAttribute"
+            ),
         ),
         migrations.AlterField(
-            model_name='productclass',
-            name='variant_attributes',
-            field=models.ManyToManyField(blank=True, related_name='product_variants_class', to='product.ProductAttribute'),
+            model_name="productclass",
+            name="variant_attributes",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="product_variants_class",
+                to="product.ProductAttribute",
+            ),
         ),
         migrations.AlterField(
-            model_name='productimage',
-            name='alt',
+            model_name="productimage",
+            name="alt",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='productimage',
-            name='image',
-            field=versatileimagefield.fields.VersatileImageField(upload_to='products'),
+            model_name="productimage",
+            name="image",
+            field=versatileimagefield.fields.VersatileImageField(upload_to="products"),
         ),
         migrations.AlterField(
-            model_name='productimage',
-            name='order',
+            model_name="productimage",
+            name="order",
             field=models.PositiveIntegerField(editable=False),
         ),
         migrations.AlterField(
-            model_name='productimage',
-            name='ppoi',
-            field=versatileimagefield.fields.PPOIField(default='0.5x0.5', editable=False, max_length=20),
+            model_name="productimage",
+            name="ppoi",
+            field=versatileimagefield.fields.PPOIField(
+                default="0.5x0.5", editable=False, max_length=20
+            ),
         ),
         migrations.AlterField(
-            model_name='productimage',
-            name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='product.Product'),
+            model_name="productimage",
+            name="product",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="images",
+                to="product.Product",
+            ),
         ),
         migrations.AlterField(
-            model_name='productvariant',
-            name='attributes',
+            model_name="productvariant",
+            name="attributes",
             field=django.contrib.postgres.fields.hstore.HStoreField(default={}),
         ),
         migrations.AlterField(
-            model_name='productvariant',
-            name='images',
-            field=models.ManyToManyField(through='product.VariantImage', to='product.ProductImage'),
+            model_name="productvariant",
+            name="images",
+            field=models.ManyToManyField(
+                through="product.VariantImage", to="product.ProductImage"
+            ),
         ),
         migrations.AlterField(
-            model_name='productvariant',
-            name='name',
+            model_name="productvariant",
+            name="name",
             field=models.CharField(blank=True, max_length=100),
         ),
         migrations.AlterField(
-            model_name='productvariant',
-            name='price_override',
-            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True),
+            model_name="productvariant",
+            name="price_override",
+            field=django_prices.models.MoneyField(
+                blank=True,
+                currency=settings.DEFAULT_CURRENCY,
+                decimal_places=2,
+                max_digits=12,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='productvariant',
-            name='sku',
+            model_name="productvariant",
+            name="sku",
             field=models.CharField(max_length=32, unique=True),
         ),
         migrations.AlterField(
-            model_name='stock',
-            name='cost_price',
-            field=django_prices.models.MoneyField(blank=True, currency=settings.DEFAULT_CURRENCY, decimal_places=2, max_digits=12, null=True),
+            model_name="stock",
+            name="cost_price",
+            field=django_prices.models.MoneyField(
+                blank=True,
+                currency=settings.DEFAULT_CURRENCY,
+                decimal_places=2,
+                max_digits=12,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='stock',
-            name='quantity',
-            field=models.IntegerField(default=Decimal('1'), validators=[django.core.validators.MinValueValidator(0)]),
+            model_name="stock",
+            name="quantity",
+            field=models.IntegerField(
+                default=Decimal("1"),
+                validators=[django.core.validators.MinValueValidator(0)],
+            ),
         ),
         migrations.AlterField(
-            model_name='stock',
-            name='quantity_allocated',
-            field=models.IntegerField(default=Decimal('0'), validators=[django.core.validators.MinValueValidator(0)]),
+            model_name="stock",
+            name="quantity_allocated",
+            field=models.IntegerField(
+                default=Decimal("0"),
+                validators=[django.core.validators.MinValueValidator(0)],
+            ),
         ),
         migrations.AlterField(
-            model_name='stock',
-            name='variant',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='stock', to='product.ProductVariant'),
+            model_name="stock",
+            name="variant",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="stock",
+                to="product.ProductVariant",
+            ),
         ),
         migrations.AlterField(
-            model_name='stocklocation',
-            name='name',
+            model_name="stocklocation",
+            name="name",
             field=models.CharField(max_length=100),
         ),
         migrations.AlterField(
-            model_name='variantimage',
-            name='image',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='variant_images', to='product.ProductImage'),
+            model_name="variantimage",
+            name="image",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="variant_images",
+                to="product.ProductImage",
+            ),
         ),
         migrations.AlterField(
-            model_name='variantimage',
-            name='variant',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='variant_images', to='product.ProductVariant'),
+            model_name="variantimage",
+            name="variant",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="variant_images",
+                to="product.ProductVariant",
+            ),
         ),
     ]

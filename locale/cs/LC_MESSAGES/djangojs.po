@@ -4,16 +4,17 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
-# Filip Pytloun <filip@pytloun.cz>, 2018
+# Filip Pytloun <filip@pytloun.cz>, 2019
+# Adéla Štěpánová <info@endevel.cz>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-03 09:23-0600\n"
+"POT-Creation-Date: 2019-06-04 11:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Filip Pytloun <filip@pytloun.cz>, 2018\n"
+"Last-Translator: Adéla Štěpánová <info@endevel.cz>, 2019\n"
 "Language-Team: Czech (https://www.transifex.com/mirumee/teams/34782/cs/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,11 +24,11 @@ msgstr ""
 
 #: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
 msgid "Missing source"
-msgstr ""
+msgstr "Chybějící zdroj"
 
 #: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
 msgid "\n"
-msgstr ""
+msgstr "\n"
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"

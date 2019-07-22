@@ -6,29 +6,29 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('page', '0006_auto_20190220_1928'),
-    ]
+    dependencies = [("page", "0006_auto_20190220_1928")]
 
     operations = [
         migrations.AddField(
-            model_name='page',
-            name='content_json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="page",
+            name="content_json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AddField(
-            model_name='pagetranslation',
-            name='content_json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="pagetranslation",
+            name="content_json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
         migrations.AlterField(
-            model_name='page',
-            name='content',
-            field=models.TextField(blank=True),
+            model_name="page", name="content", field=models.TextField(blank=True)
         ),
         migrations.AlterField(
-            model_name='pagetranslation',
-            name='content',
+            model_name="pagetranslation",
+            name="content",
             field=models.TextField(blank=True),
         ),
     ]

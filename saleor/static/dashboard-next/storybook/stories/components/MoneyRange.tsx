@@ -1,7 +1,8 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import MoneyRange, { MoneyRangeProps } from "../../../components/MoneyRange";
+import MoneyRange, { MoneyRangeProps } from "@saleor/components/MoneyRange";
+import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 
 const props: MoneyRangeProps = {
@@ -16,6 +17,7 @@ const props: MoneyRangeProps = {
 };
 
 storiesOf("Generics / Money range", module)
+  .addDecorator(CardDecorator)
   .addDecorator(Decorator)
   .add("from", () => <MoneyRange {...props} to={undefined} />)
   .add("to", () => <MoneyRange {...props} from={undefined} />)

@@ -5,17 +5,9 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('checkout', '0007_merge_cart_with_checkout'),
-    ]
+    dependencies = [("checkout", "0007_merge_cart_with_checkout")]
 
     operations = [
-        migrations.AlterModelTable(
-            name='cart',
-            table=None,
-        ),
-        migrations.AlterModelTable(
-            name='cartline',
-            table=None,
-        ),
+        migrations.AlterModelTable(name="cart", table=None),
+        migrations.AlterModelTable(name="cartline", table=None),
     ]

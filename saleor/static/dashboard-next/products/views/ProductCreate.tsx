@@ -1,14 +1,15 @@
-import * as React from "react";
+import React from "react";
 
-import Messages from "../../components/messages";
-import Navigator from "../../components/Navigator";
-import Shop from "../../components/Shop";
-import { WindowTitle } from "../../components/WindowTitle";
+import { WindowTitle } from "@saleor/components/WindowTitle";
+import useNavigator from "@saleor/hooks/useNavigator";
+import useNotifier from "@saleor/hooks/useNotifier";
+import useShop from "@saleor/hooks/useShop";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
+import SearchCategories from "../../containers/SearchCategories";
+import SearchCollections from "../../containers/SearchCollections";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
 import ProductCreatePage, { FormData } from "../components/ProductCreatePage";
-import { CategorySearchProvider } from "../containers/CategorySearch";
-import { CollectionSearchProvider } from "../containers/CollectionSearch";
 import { TypedProductCreateMutation } from "../mutations";
 import { TypedProductCreateQuery } from "../queries";
 import { ProductCreate } from "../types/ProductCreate";
@@ -20,159 +21,120 @@ interface ProductUpdateProps {
 
 export const ProductUpdate: React.StatelessComponent<
   ProductUpdateProps
-> = () => (
-  <Shop>
-    {shop => (
-      <Messages>
-        {pushMessage => {
-          return (
-            <Navigator>
-              {navigate => {
-                const handleAttributesEdit = undefined;
-                const handleBack = () => navigate(productListUrl());
+> = () => {
+  const navigate = useNavigator();
+  const notify = useNotifier();
+  const shop = useShop();
+
+  const handleAttributesEdit = undefined;
+  const handleBack = () => navigate(productListUrl());
+
+  return (
+    <SearchCategories variables={DEFAULT_INITIAL_SEARCH_DATA}>
+      {({ search: searchCategory, result: searchCategoryOpts }) => (
+        <SearchCollections variables={DEFAULT_INITIAL_SEARCH_DATA}>
+          {({ search: searchCollection, result: searchCollectionOpts }) => (
+            <TypedProductCreateQuery displayLoader>
+              {({ data, loading }) => {
+                const handleSuccess = (data: ProductCreate) => {
+                  if (data.productCreate.errors.length === 0) {
+                    notify({
+                      text: i18n.t("Product created")
+                    });
+                    navigate(productUrl(data.productCreate.product.id));
+                  }
+                };
 
                 return (
-                  <CategorySearchProvider>
-                    {({
-                      search: searchCategory,
-                      searchOpts: searchCategoryOpts
-                    }) => (
-                      <CollectionSearchProvider>
-                        {({
-                          search: searchCollection,
-                          searchOpts: searchCollectionOpts
-                        }) => (
-                          <TypedProductCreateQuery displayLoader>
-                            {({ data, loading }) => {
-                              const handleSuccess = (data: ProductCreate) => {
-                                if (data.productCreate.errors.length === 0) {
-                                  pushMessage({
-                                    text: i18n.t("Product created")
-                                  });
-                                  navigate(
-                                    productUrl(data.productCreate.product.id)
-                                  );
-                                }
-                              };
+                  <TypedProductCreateMutation onCompleted={handleSuccess}>
+                    {(
+                      productCreate,
+                      {
+                        called: productCreateCalled,
+                        data: productCreateData,
+                        loading: productCreateDataLoading
+                      }
+                    ) => {
+                      const handleSubmit = (formData: FormData) => {
+                        productCreate({
+                          variables: {
+                            attributes: formData.attributes,
+                            basePrice: decimal(formData.basePrice),
+                            category: formData.category.value,
+                            chargeTaxes: formData.chargeTaxes,
+                            collections: formData.collections.map(
+                              collection => collection.value
+                            ),
+                            descriptionJson: JSON.stringify(
+                              formData.description
+                            ),
+                            isPublished: formData.isPublished,
+                            name: formData.name,
+                            productType: formData.productType.value.id,
+                            publicationDate:
+                              formData.publicationDate !== ""
+                                ? formData.publicationDate
+                                : null,
+                            seo: {
+                              description: formData.seoDescription,
+                              title: formData.seoTitle,
+                            },
+                            sku: formData.sku,
+                            stockQuantity:
+                              formData.stockQuantity !== null
+                                ? formData.stockQuantity
+                                : 0
+                          }
+                        });
+                      };
 
-                              return (
-                                <TypedProductCreateMutation
-                                  onCompleted={handleSuccess}
-                                >
-                                  {(
-                                    productCreate,
-                                    {
-                                      called: productCreateCalled,
-                                      data: productCreateData,
-                                      loading: productCreateDataLoading
-                                    }
-                                  ) => {
-                                    const handleSubmit = (
-                                      formData: FormData
-                                    ) => {
-                                      productCreate({
-                                        variables: {
-                                          attributes: formData.attributes,
-                                          category: formData.category.value,
-                                          chargeTaxes: formData.chargeTaxes,
-                                          collections: formData.collections.map(
-                                            collection => collection.value
-                                          ),
-                                          descriptionJson: JSON.stringify(
-                                            formData.description
-                                          ),
-                                          isPublished: formData.available,
-                                          name: formData.name,
-                                          price: decimal(formData.price),
-                                          productType:
-                                            formData.productType.value.id,
-                                          publicationDate:
-                                            formData.publicationDate !== ""
-                                              ? formData.publicationDate
-                                              : null
-                                        }
-                                      });
-                                    };
+                      const disabled = loading || productCreateDataLoading;
 
-                                    const disabled =
-                                      loading || productCreateDataLoading;
-
-                                    const formTransitionState = getMutationState(
-                                      productCreateCalled,
-                                      productCreateDataLoading,
-                                      maybe(
-                                        () =>
-                                          productCreateData.productCreate.errors
-                                      )
-                                    );
-                                    return (
-                                      <>
-                                        <WindowTitle
-                                          title={i18n.t("Create product")}
-                                        />
-                                        <ProductCreatePage
-                                          currency={maybe(
-                                            () => shop.defaultCurrency
-                                          )}
-                                          categories={maybe(
-                                            () =>
-                                              searchCategoryOpts.data.categories
-                                                .edges,
-                                            []
-                                          ).map(edge => edge.node)}
-                                          collections={maybe(
-                                            () =>
-                                              searchCollectionOpts.data
-                                                .collections.edges,
-                                            []
-                                          ).map(edge => edge.node)}
-                                          disabled={disabled}
-                                          errors={
-                                            productCreateData &&
-                                            productCreateData.productCreate &&
-                                            productCreateData.productCreate
-                                              .errors
-                                              ? productCreateData.productCreate
-                                                  .errors
-                                              : []
-                                          }
-                                          fetchCategories={searchCategory}
-                                          fetchCollections={searchCollection}
-                                          header={i18n.t("New Product")}
-                                          productTypes={
-                                            data && data.productTypes
-                                              ? data.productTypes.edges.map(
-                                                  edge => edge.node
-                                                )
-                                              : undefined
-                                          }
-                                          onAttributesEdit={
-                                            handleAttributesEdit
-                                          }
-                                          onBack={handleBack}
-                                          onSubmit={handleSubmit}
-                                          saveButtonBarState={
-                                            formTransitionState
-                                          }
-                                        />
-                                      </>
-                                    );
-                                  }}
-                                </TypedProductCreateMutation>
-                              );
-                            }}
-                          </TypedProductCreateQuery>
-                        )}
-                      </CollectionSearchProvider>
-                    )}
-                  </CategorySearchProvider>
+                      const formTransitionState = getMutationState(
+                        productCreateCalled,
+                        productCreateDataLoading,
+                        maybe(() => productCreateData.productCreate.errors)
+                      );
+                      return (
+                        <>
+                          <WindowTitle title={i18n.t("Create product")} />
+                          <ProductCreatePage
+                            currency={maybe(() => shop.defaultCurrency)}
+                            categories={maybe(
+                              () => searchCategoryOpts.data.categories.edges,
+                              []
+                            ).map(edge => edge.node)}
+                            collections={maybe(
+                              () => searchCollectionOpts.data.collections.edges,
+                              []
+                            ).map(edge => edge.node)}
+                            disabled={disabled}
+                            errors={maybe(
+                              () => productCreateData.productCreate.errors,
+                              []
+                            )}
+                            fetchCategories={searchCategory}
+                            fetchCollections={searchCollection}
+                            header={i18n.t("New Product")}
+                            productTypes={maybe(() =>
+                              data.productTypes.edges.map(edge => edge.node)
+                            )}
+                            onAttributesEdit={handleAttributesEdit}
+                            onBack={handleBack}
+                            onSubmit={handleSubmit}
+                            saveButtonBarState={formTransitionState}
+                          />
+                        </>
+                      );
+                    }}
+                  </TypedProductCreateMutation>
                 );
               }}
-            </Navigator>
-          );
-        }}
-      </Messages>
-    )}
-  </Shop>
-);
+            </TypedProductCreateQuery>
+          )}
+        </SearchCollections>
+      )}
+    </SearchCategories>
+  );
+};
 export default ProductUpdate;

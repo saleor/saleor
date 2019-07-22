@@ -1,7 +1,8 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { AttributeValueInput } from "./../../types/globalTypes";
+import { AttributeValueInput, SeoInput } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: ProductCreate
@@ -25,7 +26,7 @@ export interface ProductCreate_productCreate_product_collections {
   name: string;
 }
 
-export interface ProductCreate_productCreate_product_price {
+export interface ProductCreate_productCreate_product_basePrice {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -82,45 +83,44 @@ export interface ProductCreate_productCreate_product_attributes {
   value: ProductCreate_productCreate_product_attributes_value;
 }
 
-export interface ProductCreate_productCreate_product_availability_priceRange_start_net {
+export interface ProductCreate_productCreate_product_pricing_priceRange_start_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductCreate_productCreate_product_availability_priceRange_start {
+export interface ProductCreate_productCreate_product_pricing_priceRange_start {
   __typename: "TaxedMoney";
-  net: ProductCreate_productCreate_product_availability_priceRange_start_net;
+  net: ProductCreate_productCreate_product_pricing_priceRange_start_net;
 }
 
-export interface ProductCreate_productCreate_product_availability_priceRange_stop_net {
+export interface ProductCreate_productCreate_product_pricing_priceRange_stop_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface ProductCreate_productCreate_product_availability_priceRange_stop {
+export interface ProductCreate_productCreate_product_pricing_priceRange_stop {
   __typename: "TaxedMoney";
-  net: ProductCreate_productCreate_product_availability_priceRange_stop_net;
+  net: ProductCreate_productCreate_product_pricing_priceRange_stop_net;
 }
 
-export interface ProductCreate_productCreate_product_availability_priceRange {
+export interface ProductCreate_productCreate_product_pricing_priceRange {
   __typename: "TaxedMoneyRange";
-  start: ProductCreate_productCreate_product_availability_priceRange_start | null;
-  stop: ProductCreate_productCreate_product_availability_priceRange_stop | null;
+  start: ProductCreate_productCreate_product_pricing_priceRange_start | null;
+  stop: ProductCreate_productCreate_product_pricing_priceRange_stop | null;
 }
 
-export interface ProductCreate_productCreate_product_availability {
-  __typename: "ProductAvailability";
-  available: boolean | null;
-  priceRange: ProductCreate_productCreate_product_availability_priceRange | null;
+export interface ProductCreate_productCreate_product_pricing {
+  __typename: "ProductPricingInfo";
+  priceRange: ProductCreate_productCreate_product_pricing_priceRange | null;
 }
 
 export interface ProductCreate_productCreate_product_images {
   __typename: "ProductImage";
   id: string;
   alt: string;
-  sortOrder: number;
+  sortOrder: number | null;
   url: string;
 }
 
@@ -158,14 +158,15 @@ export interface ProductCreate_productCreate_product {
   seoDescription: string | null;
   category: ProductCreate_productCreate_product_category;
   collections: (ProductCreate_productCreate_product_collections | null)[] | null;
-  price: ProductCreate_productCreate_product_price | null;
+  basePrice: ProductCreate_productCreate_product_basePrice | null;
   margin: ProductCreate_productCreate_product_margin | null;
   purchaseCost: ProductCreate_productCreate_product_purchaseCost | null;
+  isAvailable: boolean | null;
   isPublished: boolean;
   chargeTaxes: boolean;
   publicationDate: any | null;
   attributes: ProductCreate_productCreate_product_attributes[];
-  availability: ProductCreate_productCreate_product_availability | null;
+  pricing: ProductCreate_productCreate_product_pricing | null;
   images: (ProductCreate_productCreate_product_images | null)[] | null;
   variants: (ProductCreate_productCreate_product_variants | null)[] | null;
   productType: ProductCreate_productCreate_product_productType;
@@ -191,6 +192,9 @@ export interface ProductCreateVariables {
   descriptionJson?: any | null;
   isPublished: boolean;
   name: string;
-  price?: any | null;
+  basePrice?: any | null;
   productType: string;
+  sku?: string | null;
+  stockQuantity?: number | null;
+  seo?: SeoInput | null;
 }

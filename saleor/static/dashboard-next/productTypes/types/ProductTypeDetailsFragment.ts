@@ -1,11 +1,16 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
-
-import { TaxRateType } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL fragment: ProductTypeDetailsFragment
 // ====================================================
+
+export interface ProductTypeDetailsFragment_taxType {
+  __typename: "TaxType";
+  description: string | null;
+  taxCode: string | null;
+}
 
 export interface ProductTypeDetailsFragment_productAttributes_values {
   __typename: "AttributeValue";
@@ -49,7 +54,7 @@ export interface ProductTypeDetailsFragment {
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
-  taxRate: TaxRateType | null;
+  taxType: ProductTypeDetailsFragment_taxType | null;
   productAttributes: (ProductTypeDetailsFragment_productAttributes | null)[] | null;
   variantAttributes: (ProductTypeDetailsFragment_variantAttributes | null)[] | null;
   weight: ProductTypeDetailsFragment_weight | null;

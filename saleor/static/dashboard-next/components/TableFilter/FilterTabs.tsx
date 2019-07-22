@@ -5,12 +5,12 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Tabs from "@material-ui/core/Tabs";
-import * as React from "react";
+import React from "react";
 
 const styles = (theme: Theme) =>
   createStyles({
     tabsRoot: {
-      borderBottom: "1px solid #e0e0e0",
+      borderBottom: `1px solid ${theme.overrides.MuiCard.root.borderColor}`,
       paddingLeft: `${theme.spacing.unit * 3}px`
     }
   });

@@ -7,7 +7,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
 import { IconProps } from "@material-ui/core/Icon";
 import { User } from "../auth/types/User";
@@ -28,7 +28,7 @@ const styles = (theme: Theme) =>
   createStyles({
     card: {
       "&:hover": {
-        boxShadow: theme.shadows[12]
+        boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.15);"
       },
       cursor: "pointer",
       marginBottom: theme.spacing.unit * 3,
@@ -63,8 +63,8 @@ const styles = (theme: Theme) =>
     },
     sectionDescription: {},
     sectionTitle: {
-      fontWeight: 600 as 600,
-      marginBottom: 4
+      fontSize: 20,
+      fontWeight: 600 as 600
     }
   });
 

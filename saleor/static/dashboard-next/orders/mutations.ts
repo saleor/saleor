@@ -7,12 +7,20 @@ import {
   fragmentOrderEvent
 } from "./queries";
 import { OrderAddNote, OrderAddNoteVariables } from "./types/OrderAddNote";
+import {
+  OrderBulkCancel,
+  OrderBulkCancelVariables
+} from "./types/OrderBulkCancel";
 import { OrderCancel, OrderCancelVariables } from "./types/OrderCancel";
 import { OrderCapture, OrderCaptureVariables } from "./types/OrderCapture";
 import {
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 } from "./types/OrderCreateFulfillment";
+import {
+  OrderDraftBulkCancel,
+  OrderDraftBulkCancelVariables
+} from "./types/OrderDraftBulkCancel";
 import {
   OrderDraftCancel,
   OrderDraftCancelVariables
@@ -74,6 +82,21 @@ export const TypedOrderCancelMutation = TypedMutation<
   OrderCancelVariables
 >(orderCancelMutation);
 
+const orderBulkCancelMutation = gql`
+  mutation OrderBulkCancel($ids: [ID]!, $restock: Boolean!) {
+    orderBulkCancel(ids: $ids, restock: $restock) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedOrderBulkCancelMutation = TypedMutation<
+  OrderBulkCancel,
+  OrderBulkCancelVariables
+>(orderBulkCancelMutation);
+
 const orderDraftCancelMutation = gql`
   ${fragmentOrderDetails}
   mutation OrderDraftCancel($id: ID!) {
@@ -92,6 +115,21 @@ export const TypedOrderDraftCancelMutation = TypedMutation<
   OrderDraftCancel,
   OrderDraftCancelVariables
 >(orderDraftCancelMutation);
+
+const orderDraftBulkCancelMutation = gql`
+  mutation OrderDraftBulkCancel($ids: [ID]!) {
+    draftOrderBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedOrderDraftBulkCancelMutation = TypedMutation<
+  OrderDraftBulkCancel,
+  OrderDraftBulkCancelVariables
+>(orderDraftBulkCancelMutation);
 
 const orderDraftFinalizeMutation = gql`
   ${fragmentOrderDetails}

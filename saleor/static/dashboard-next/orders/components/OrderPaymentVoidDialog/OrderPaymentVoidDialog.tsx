@@ -4,11 +4,11 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import * as React from "react";
+import React from "react";
 
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton";
+} from "@saleor/components/ConfirmButton";
 import i18n from "../../../i18n";
 
 interface OrderPaymentVoidDialogProps {
@@ -21,7 +21,7 @@ interface OrderPaymentVoidDialogProps {
 const OrderPaymentVoidDialog: React.StatelessComponent<
   OrderPaymentVoidDialogProps
 > = ({ confirmButtonState, open, onConfirm, onClose }) => (
-  <Dialog open={open}>
+  <Dialog onClose={onClose} open={open}>
     <DialogTitle>{i18n.t("Void payment", { context: "title" })}</DialogTitle>
     <DialogContent>
       <DialogContentText>

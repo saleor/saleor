@@ -1,6 +1,5 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
   Theme,
@@ -14,13 +13,14 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Money from "../../../components/Money";
-import MoneyRange from "../../../components/MoneyRange";
-import Skeleton from "../../../components/Skeleton";
-import WeightRange from "../../../components/WeightRange";
+import CardTitle from "@saleor/components/CardTitle";
+import IconButtonTableCell from "@saleor/components/IconButtonTableCell";
+import Money from "@saleor/components/Money";
+import MoneyRange from "@saleor/components/MoneyRange";
+import Skeleton from "@saleor/components/Skeleton";
+import WeightRange from "@saleor/components/WeightRange";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { ICONBUTTON_SIZE } from "../../../theme";
@@ -70,7 +70,7 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
             : i18n.t("Weight Based Rates")
         }
         toolbar={
-          <Button color="secondary" onClick={onRateAdd}>
+          <Button color="primary" onClick={onRateAdd}>
             {i18n.t("Add rate", {
               context: "button"
             })}
@@ -132,30 +132,18 @@ const ShippingZoneRates = withStyles(styles, { name: "ShippingZoneRates" })(
                     <Skeleton />
                   )}
                 </TableCell>
-                <TableCell className={classes.alignRight}>
-                  <IconButton
-                    color="secondary"
-                    disabled={disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onRateEdit(rate.id);
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </TableCell>
-                <TableCell className={classes.alignRight}>
-                  <IconButton
-                    color="secondary"
-                    disabled={disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onRateRemove(rate.id);
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+                <IconButtonTableCell
+                  disabled={disabled}
+                  onClick={() => onRateEdit(rate.id)}
+                >
+                  <EditIcon />
+                </IconButtonTableCell>
+                <IconButtonTableCell
+                  disabled={disabled}
+                  onClick={() => onRateRemove(rate.id)}
+                >
+                  <DeleteIcon />
+                </IconButtonTableCell>
               </TableRow>
             ),
             () => (

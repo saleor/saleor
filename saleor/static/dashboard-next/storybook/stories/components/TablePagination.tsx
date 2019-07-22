@@ -1,10 +1,14 @@
 import Table from "@material-ui/core/Table";
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import TablePagination from "../../../components/TablePagination";
+import TablePagination from "@saleor/components/TablePagination";
+import CardDecorator from "../../CardDecorator";
+import Decorator from "../../Decorator";
 
 storiesOf("Generics / TablePagination", module)
+  .addDecorator(CardDecorator)
+  .addDecorator(Decorator)
   .add("no previous / next page", () => (
     <Table>
       <TablePagination

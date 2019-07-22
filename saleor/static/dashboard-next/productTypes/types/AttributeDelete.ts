@@ -1,7 +1,6 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
-
-import { TaxRateType } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: AttributeDelete
@@ -11,6 +10,12 @@ export interface AttributeDelete_attributeDelete_errors {
   __typename: "Error";
   field: string | null;
   message: string | null;
+}
+
+export interface AttributeDelete_attributeDelete_productType_taxType {
+  __typename: "TaxType";
+  description: string | null;
+  taxCode: string | null;
 }
 
 export interface AttributeDelete_attributeDelete_productType_productAttributes_values {
@@ -55,7 +60,7 @@ export interface AttributeDelete_attributeDelete_productType {
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
-  taxRate: TaxRateType | null;
+  taxType: AttributeDelete_attributeDelete_productType_taxType | null;
   productAttributes: (AttributeDelete_attributeDelete_productType_productAttributes | null)[] | null;
   variantAttributes: (AttributeDelete_attributeDelete_productType_variantAttributes | null)[] | null;
   weight: AttributeDelete_attributeDelete_productType_weight | null;

@@ -1,18 +1,17 @@
-import * as React from "react";
+import React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import CardSpacer from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import Grid from "../../../components/Grid";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
-import { Tab } from "../../../components/Tab";
-import TabContainer from "../../../components/Tab/TabContainer";
+import AppHeader from "@saleor/components/AppHeader";
+import CardSpacer from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import Grid from "@saleor/components/Grid";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import { Tab, TabContainer } from "@saleor/components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { ListProps, UserError } from "../../../types";
+import { ListProps, TabListActions, UserError } from "../../../types";
 import { SaleType } from "../../../types/globalTypes";
 import { SaleDetails_sale } from "../../types/SaleDetails";
 import DiscountCategories from "../DiscountCategories";
@@ -44,7 +43,10 @@ export function saleDetailsPageTab(tab: string): SaleDetailsPageTab {
 }
 
 export interface SaleDetailsPageProps
-  extends Pick<ListProps, Exclude<keyof ListProps, "onRowClick">> {
+  extends Pick<ListProps, Exclude<keyof ListProps, "onRowClick">>,
+    TabListActions<
+      "categoryListToolbar" | "collectionListToolbar" | "productListToolbar"
+    > {
   activeTab: SaleDetailsPageTab;
   defaultCurrency: string;
   errors: UserError[];
@@ -91,7 +93,14 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
   onPreviousPage,
   onProductAssign,
   onProductUnassign,
-  onProductClick
+  onProductClick,
+  categoryListToolbar,
+  collectionListToolbar,
+  productListToolbar,
+  isChecked,
+  selected,
+  toggle,
+  toggleAll
 }) => {
   const initialForm: FormData = {
     endDate: maybe(() => (sale.endDate ? sale.endDate : ""), ""),
@@ -169,6 +178,11 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   onRowClick={onCategoryClick}
                   pageInfo={pageInfo}
                   discount={sale}
+                  isChecked={isChecked}
+                  selected={selected}
+                  toggle={toggle}
+                  toggleAll={toggleAll}
+                  toolbar={categoryListToolbar}
                 />
               ) : activeTab === SaleDetailsPageTab.collections ? (
                 <DiscountCollections
@@ -180,6 +194,11 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   onRowClick={onCollectionClick}
                   pageInfo={pageInfo}
                   discount={sale}
+                  isChecked={isChecked}
+                  selected={selected}
+                  toggle={toggle}
+                  toggleAll={toggleAll}
+                  toolbar={collectionListToolbar}
                 />
               ) : (
                 <DiscountProducts
@@ -191,6 +210,11 @@ const SaleDetailsPage: React.StatelessComponent<SaleDetailsPageProps> = ({
                   onRowClick={onProductClick}
                   pageInfo={pageInfo}
                   discount={sale}
+                  isChecked={isChecked}
+                  selected={selected}
+                  toggle={toggle}
+                  toggleAll={toggleAll}
+                  toolbar={productListToolbar}
                 />
               )}
             </div>

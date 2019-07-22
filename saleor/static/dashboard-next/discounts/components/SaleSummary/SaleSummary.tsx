@@ -1,15 +1,16 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Date from "../../../components/Date";
-import FormSpacer from "../../../components/FormSpacer";
-import Hr from "../../../components/Hr";
-import Money from "../../../components/Money";
-import Percent from "../../../components/Percent";
-import Skeleton from "../../../components/Skeleton";
+import CardSpacer from "@saleor/components/CardSpacer";
+import CardTitle from "@saleor/components/CardTitle";
+import Date from "@saleor/components/Date";
+import FormSpacer from "@saleor/components/FormSpacer";
+import Hr from "@saleor/components/Hr";
+import Money from "@saleor/components/Money";
+import Percent from "@saleor/components/Percent";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { SaleType } from "../../../types/globalTypes";
@@ -27,13 +28,13 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
   <Card>
     <CardTitle title={i18n.t("Summary")} />
     <CardContent>
-      <Typography variant="body2">{i18n.t("Name")}</Typography>
+      <Typography variant="caption">{i18n.t("Name")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(() => sale.name, <Skeleton />)}
       </Typography>
       <FormSpacer />
 
-      <Typography variant="body2">{i18n.t("Value")}</Typography>
+      <Typography variant="caption">{i18n.t("Value")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(
           () =>
@@ -50,12 +51,12 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
           <Skeleton />
         )}
       </Typography>
-    </CardContent>
 
-    <Hr />
+      <CardSpacer />
+      <Hr />
+      <CardSpacer />
 
-    <CardContent>
-      <Typography variant="body2">{i18n.t("Start Date")}</Typography>
+      <Typography variant="caption">{i18n.t("Start Date")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(
           () => (
@@ -66,7 +67,7 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
       </Typography>
       <FormSpacer />
 
-      <Typography variant="body2">{i18n.t("End Date")}</Typography>
+      <Typography variant="caption">{i18n.t("End Date")}</Typography>
       <Typography>
         {maybe<React.ReactNode>(
           () =>

@@ -7,12 +7,12 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { DateTime } from "../../../components/Date";
-import { Hr } from "../../../components/Hr";
-import Skeleton from "../../../components/Skeleton";
+import CardTitle from "@saleor/components/CardTitle";
+import { DateTime } from "@saleor/components/Date";
+import { Hr } from "@saleor/components/Hr";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { CustomerDetails_user } from "../../types/CustomerDetails";
@@ -20,8 +20,7 @@ import { CustomerDetails_user } from "../../types/CustomerDetails";
 const styles = (theme: Theme) =>
   createStyles({
     label: {
-      marginBottom: theme.spacing.unit,
-      textTransform: "uppercase"
+      marginBottom: theme.spacing.unit
     },
     value: {
       fontSize: 24
@@ -37,12 +36,12 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
     <Card>
       <CardTitle title={i18n.t("Customer History")} />
       <CardContent>
-        <Typography className={classes.label} variant="body2">
+        <Typography className={classes.label} variant="caption">
           {i18n.t("Last login")}
         </Typography>
         {maybe(
           () => (
-            <Typography variant="title" className={classes.value}>
+            <Typography variant="h6" className={classes.value}>
               {customer.lastLogin === null ? (
                 i18n.t("-")
               ) : (
@@ -55,12 +54,12 @@ const CustomerStats = withStyles(styles, { name: "CustomerStats" })(
       </CardContent>
       <Hr />
       <CardContent>
-        <Typography className={classes.label} variant="body2">
+        <Typography className={classes.label} variant="caption">
           {i18n.t("Last order")}
         </Typography>
         {maybe(
           () => (
-            <Typography variant="title" className={classes.value}>
+            <Typography variant="h6" className={classes.value}>
               {customer.lastPlacedOrder.edges.length === 0 ? (
                 i18n.t("-")
               ) : (

@@ -5,13 +5,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('payment', '0006_auto_20190109_0358'),
-    ]
+    dependencies = [("payment", "0006_auto_20190109_0358")]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='transaction',
-            options={'ordering': ('pk',)},
-        ),
+        migrations.AlterModelOptions(name="transaction", options={"ordering": ("pk",)})
     ]

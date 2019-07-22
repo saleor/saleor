@@ -9,7 +9,7 @@ import {
 } from "@material-ui/core/styles";
 import CheckIcon from "@material-ui/icons/Check";
 import classNames from "classnames";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 
@@ -37,6 +37,8 @@ const styles = (theme: Theme) =>
       opacity: 0
     },
     label: {
+      alignItems: "center",
+      display: "flex",
       transitionDuration: theme.transitions.duration.standard + "ms"
     },
     progress: {
@@ -59,7 +61,6 @@ const styles = (theme: Theme) =>
 export interface ConfirmButtonProps
   extends Omit<ButtonProps, "classes">,
     WithStyles<typeof styles> {
-  children: string;
   transitionState: ConfirmButtonTransitionState;
 }
 
@@ -133,7 +134,7 @@ const ConfirmButton = withStyles(styles)(
         <Button
           variant="contained"
           onClick={transitionState === "loading" ? undefined : onClick}
-          color="secondary"
+          color="primary"
           className={classNames({
             [classes.error]:
               transitionState === "error" && displayCompletedActionState,

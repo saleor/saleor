@@ -8,6 +8,10 @@ import {
   voucherFragment
 } from "./queries";
 import {
+  SaleBulkDelete,
+  SaleBulkDeleteVariables
+} from "./types/SaleBulkDelete";
+import {
   SaleCataloguesAdd,
   SaleCataloguesAddVariables
 } from "./types/SaleCataloguesAdd";
@@ -18,6 +22,10 @@ import {
 import { SaleCreate, SaleCreateVariables } from "./types/SaleCreate";
 import { SaleDelete, SaleDeleteVariables } from "./types/SaleDelete";
 import { SaleUpdate, SaleUpdateVariables } from "./types/SaleUpdate";
+import {
+  VoucherBulkDelete,
+  VoucherBulkDeleteVariables
+} from "./types/VoucherBulkDelete";
 import {
   VoucherCataloguesAdd,
   VoucherCataloguesAddVariables
@@ -132,6 +140,21 @@ export const TypedSaleDelete = TypedMutation<SaleDelete, SaleDeleteVariables>(
   saleDelete
 );
 
+const saleBulkDelete = gql`
+  mutation SaleBulkDelete($ids: [ID]!) {
+    saleBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedSaleBulkDelete = TypedMutation<
+  SaleBulkDelete,
+  SaleBulkDeleteVariables
+>(saleBulkDelete);
+
 const voucherUpdate = gql`
   ${voucherFragment}
   mutation VoucherUpdate($input: VoucherInput!, $id: ID!) {
@@ -236,3 +259,18 @@ export const TypedVoucherDelete = TypedMutation<
   VoucherDelete,
   VoucherDeleteVariables
 >(voucherDelete);
+
+const voucherBulkDelete = gql`
+  mutation VoucherBulkDelete($ids: [ID]!) {
+    voucherBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedVoucherBulkDelete = TypedMutation<
+  VoucherBulkDelete,
+  VoucherBulkDeleteVariables
+>(voucherBulkDelete);

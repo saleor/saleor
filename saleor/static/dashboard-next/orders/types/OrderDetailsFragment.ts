@@ -1,7 +1,8 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
+import { OrderEventsEmailsEnum, OrderEventsEnum, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL fragment: OrderDetailsFragment
@@ -31,6 +32,7 @@ export interface OrderDetailsFragment_billingAddress {
 
 export interface OrderDetailsFragment_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 
@@ -40,10 +42,10 @@ export interface OrderDetailsFragment_events {
   amount: number | null;
   date: any | null;
   email: string | null;
-  emailType: OrderEventsEmails | null;
+  emailType: OrderEventsEmailsEnum | null;
   message: string | null;
   quantity: number | null;
-  type: OrderEvents | null;
+  type: OrderEventsEnum | null;
   user: OrderDetailsFragment_events_user | null;
 }
 
@@ -65,6 +67,11 @@ export interface OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice {
   net: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice_net;
 }
 
+export interface OrderDetailsFragment_fulfillments_lines_orderLine_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderDetailsFragment_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
@@ -74,7 +81,7 @@ export interface OrderDetailsFragment_fulfillments_lines_orderLine {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderDetailsFragment_fulfillments_lines_orderLine_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderDetailsFragment_fulfillments_lines_orderLine_thumbnail | null;
 }
 
 export interface OrderDetailsFragment_fulfillments_lines {
@@ -111,6 +118,11 @@ export interface OrderDetailsFragment_lines_unitPrice {
   net: OrderDetailsFragment_lines_unitPrice_net;
 }
 
+export interface OrderDetailsFragment_lines_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderDetailsFragment_lines {
   __typename: "OrderLine";
   id: string;
@@ -120,7 +132,7 @@ export interface OrderDetailsFragment_lines {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderDetailsFragment_lines_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderDetailsFragment_lines_thumbnail | null;
 }
 
 export interface OrderDetailsFragment_shippingAddress_country {

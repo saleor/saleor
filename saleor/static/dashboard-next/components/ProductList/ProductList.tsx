@@ -8,27 +8,48 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as React from "react";
+import React from "react";
 
+import TableCellAvatar from "@saleor/components/TableCellAvatar";
 import { CategoryDetails_category_products_edges_node } from "../../categories/types/CategoryDetails";
-import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
 import { maybe, renderCollection } from "../../misc";
-import { ListProps } from "../../types";
+import { ListActions, ListProps } from "../../types";
+import Checkbox from "../Checkbox";
 import Money from "../Money";
 import Skeleton from "../Skeleton";
 import StatusLabel from "../StatusLabel";
+import TableHead from "../TableHead";
 import TablePagination from "../TablePagination";
 
 const styles = (theme: Theme) =>
   createStyles({
+    [theme.breakpoints.up("lg")]: {
+      colName: {
+        width: 430
+      },
+      colPrice: {
+        width: 200
+      },
+      colPublished: {
+        width: 200
+      },
+      colType: {
+        width: 200
+      }
+    },
     avatarCell: {
       paddingLeft: theme.spacing.unit * 2,
       paddingRight: 0,
       width: theme.spacing.unit * 5
     },
+    colName: {},
+    colPrice: {
+      textAlign: "right"
+    },
+    colPublished: {},
+    colType: {},
     link: {
       cursor: "pointer"
     },
@@ -40,7 +61,10 @@ const styles = (theme: Theme) =>
     }
   });
 
-interface ProductListProps extends ListProps, WithStyles<typeof styles> {
+interface ProductListProps
+  extends ListProps,
+    ListActions,
+    WithStyles<typeof styles> {
   products: CategoryDetails_category_products_edges_node[];
 }
 
@@ -48,30 +72,43 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
   ({
     classes,
     disabled,
+    isChecked,
     pageInfo,
+    products,
+    selected,
+    toggle,
+    toggleAll,
+    toolbar,
     onNextPage,
     onPreviousPage,
-    onRowClick,
-    products
+    onRowClick
   }: ProductListProps) => (
     <Table>
-      <TableHead>
-        <TableRow>
-          {(products === undefined || products.length > 0) && <TableCell />}
-          <TableCell className={classes.textLeft}>
-            {i18n.t("Name", { context: "object" })}
-          </TableCell>
-          <TableCell>{i18n.t("Type", { context: "object" })}</TableCell>
-          <TableCell>{i18n.t("Published", { context: "object" })}</TableCell>
-          <TableCell className={classes.textRight}>
-            {i18n.t("Price", { context: "object" })}
-          </TableCell>
-        </TableRow>
+      <TableHead
+        selected={selected}
+        disabled={disabled}
+        items={products}
+        toggleAll={toggleAll}
+        toolbar={toolbar}
+      >
+        <TableCell />
+        <TableCell className={classes.colName}>
+          {i18n.t("Name", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colType}>
+          {i18n.t("Type", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colPublished}>
+          {i18n.t("Published", { context: "object" })}
+        </TableCell>
+        <TableCell className={classes.colPrice}>
+          {i18n.t("Price", { context: "object" })}
+        </TableCell>
       </TableHead>
       <TableFooter>
         <TableRow>
           <TablePagination
-            colSpan={5}
+            colSpan={6}
             hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
             onNextPage={onNextPage}
             hasPreviousPage={
@@ -84,57 +121,68 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
       <TableBody>
         {renderCollection(
           products,
-          product => (
-            <TableRow
-              hover={!!product}
-              key={product ? product.id : "skeleton"}
-              onClick={product && onRowClick(product.id)}
-              className={classes.link}
-            >
-              <TableCellAvatar thumbnail={maybe(() => product.thumbnail.url)} />
-              <TableCell className={classes.textLeft}>
-                {product ? product.name : <Skeleton />}
-              </TableCell>
-              <TableCell>
-                {product && product.productType ? (
-                  product.productType.name
-                ) : (
-                  <Skeleton />
-                )}
-              </TableCell>
-              <TableCell>
-                {product &&
-                product.availability &&
-                product.availability.available !== undefined ? (
-                  <StatusLabel
-                    label={
-                      product.availability.available
-                        ? i18n.t("Published", { context: "product status" })
-                        : i18n.t("Not published", { context: "product status" })
-                    }
-                    status={
-                      product.availability.available ? "success" : "error"
-                    }
+          product => {
+            const isSelected = product ? isChecked(product.id) : false;
+
+            return (
+              <TableRow
+                selected={isSelected}
+                hover={!!product}
+                key={product ? product.id : "skeleton"}
+                onClick={product && onRowClick(product.id)}
+                className={classes.link}
+              >
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={isSelected}
+                    disabled={disabled}
+                    onChange={() => toggle(product.id)}
                   />
-                ) : (
-                  <Skeleton />
-                )}
-              </TableCell>
-              <TableCell className={classes.textRight}>
-                {product &&
-                product.price &&
-                product.price.amount !== undefined &&
-                product.price.currency !== undefined ? (
-                  <Money money={product.price} />
-                ) : (
-                  <Skeleton />
-                )}
-              </TableCell>
-            </TableRow>
-          ),
+                </TableCell>
+                <TableCellAvatar
+                  thumbnail={maybe(() => product.thumbnail.url)}
+                />
+                <TableCell className={classes.colName}>
+                  {product ? product.name : <Skeleton />}
+                </TableCell>
+                <TableCell className={classes.colType}>
+                  {product && product.productType ? (
+                    product.productType.name
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell className={classes.colPublished}>
+                  {product && maybe(() => product.isAvailable !== undefined) ? (
+                    <StatusLabel
+                      label={
+                        product.isAvailable
+                          ? i18n.t("Published", { context: "product status" })
+                          : i18n.t("Not published", {
+                              context: "product status"
+                            })
+                      }
+                      status={product.isAvailable ? "success" : "error"}
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell className={classes.colPrice}>
+                  {maybe(() => product.basePrice) &&
+                  maybe(() => product.basePrice.amount) !== undefined &&
+                  maybe(() => product.basePrice.currency) !== undefined ? (
+                    <Money money={product.basePrice} />
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          },
           () => (
             <TableRow>
-              <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
+              <TableCell colSpan={6}>{i18n.t("No products found")}</TableCell>
             </TableRow>
           )
         )}

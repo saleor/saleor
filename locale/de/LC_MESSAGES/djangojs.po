@@ -5,18 +5,18 @@
 # 
 # Translators:
 # Max Wessendorf <m.wessendorf@ukd.de>, 2018
-# Sebastian Dominik <dsebek@t-online.de>, 2018
 # H3 iM <coding.cs@pm.me>, 2018
 # Michael Bykovski <bykof@me.com>, 2019
+# Sebastian Dominik <dsebek@t-online.de>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-18 08:53-0600\n"
+"POT-Creation-Date: 2019-07-17 04:57-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Michael Bykovski <bykof@me.com>, 2019\n"
+"Last-Translator: Sebastian Dominik <dsebek@t-online.de>, 2019\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -327,45 +327,6 @@ msgstr "Zitat"
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Link"
-
-#: saleor/static/dashboard/js/components/editor.js:61
-msgctxt "Rich text editor option"
-msgid "Image (converts selected text to an image tag)"
-msgstr "Bild (konvertiert den ausgewählten Text zu einem Bild-Tag)"
-
-#: saleor/static/dashboard/js/components/editor.js:66
-msgctxt "Rich text editor option"
-msgid "Left align"
-msgstr "Linksbündig"
-
-#: saleor/static/dashboard/js/components/editor.js:71
-msgctxt "Rich text editor option"
-msgid "Center align"
-msgstr "Zentriert"
-
-#: saleor/static/dashboard/js/components/editor.js:76
-msgctxt "Rich text editor option"
-msgid "Right align"
-msgstr "Rechtsbündig"
-
-#: saleor/static/dashboard/js/components/editor.js:81
-msgctxt "Rich text editor option"
-msgid "Justify"
-msgstr "Blocksatz"
-
-#: saleor/static/dashboard/js/components/editor.js:86
-msgctxt "Rich text editor option"
-msgid "Remove formatting"
-msgstr "Formatierung entfernen"
-
-#: saleor/static/dashboard/js/components/google-preview.js:46
-msgid ""
-"Your input might be a little too short, think of something more descriptive"
-msgstr "Deine Eingabe ist zu kurz, versuch etwas mehr zu beschreiben"
-
-#: saleor/static/dashboard/js/components/google-preview.js:50
-msgid "Your input fits between the recommended lengths"
-msgstr "Deine Eingabe passt in die empfohlene Länge"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"

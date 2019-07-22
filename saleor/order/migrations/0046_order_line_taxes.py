@@ -5,19 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0045_auto_20180329_0142'),
-    ]
+    dependencies = [("order", "0045_auto_20180329_0142")]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='display_gross_prices',
+            model_name="order",
+            name="display_gross_prices",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='orderline',
-            name='tax_rate',
-            field=models.DecimalField(decimal_places=2, default='0.0', max_digits=5),
+            model_name="orderline",
+            name="tax_rate",
+            field=models.DecimalField(decimal_places=2, default="0.0", max_digits=5),
         ),
     ]

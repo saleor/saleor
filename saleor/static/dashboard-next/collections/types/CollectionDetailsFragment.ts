@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -18,6 +19,7 @@ export interface CollectionDetailsFragment {
   name: string;
   backgroundImage: CollectionDetailsFragment_backgroundImage | null;
   descriptionJson: any;
+  publicationDate: any | null;
   seoDescription: string | null;
   seoTitle: string | null;
 }

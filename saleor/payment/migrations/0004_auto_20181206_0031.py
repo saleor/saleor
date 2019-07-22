@@ -5,13 +5,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('payment', '0003_rename_payment_method_to_payment'),
-    ]
+    dependencies = [("payment", "0003_rename_payment_method_to_payment")]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='payment',
-            options={'ordering': ['pk']},
-        ),
+        migrations.AlterModelOptions(name="payment", options={"ordering": ["pk"]})
     ]

@@ -1,6 +1,6 @@
 import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import CustomerDetailsPage, {
   CustomerDetailsPageProps
@@ -73,6 +73,34 @@ storiesOf("Views / Customers / Customer details", module)
           ...customer.lastPlacedOrder,
           edges: []
         }
+      }}
+    />
+  ))
+  .add("no default billing address", () => (
+    <CustomerDetailsPage
+      {...props}
+      customer={{
+        ...customer,
+        defaultBillingAddress: null
+      }}
+    />
+  ))
+  .add("no default shipping address", () => (
+    <CustomerDetailsPage
+      {...props}
+      customer={{
+        ...customer,
+        defaultShippingAddress: null
+      }}
+    />
+  ))
+  .add("no address at all", () => (
+    <CustomerDetailsPage
+      {...props}
+      customer={{
+        ...customer,
+        defaultBillingAddress: null,
+        defaultShippingAddress: null
       }}
     />
   ));

@@ -11,21 +11,22 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
-import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import DeleteIcon from "@material-ui/icons/Delete";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Skeleton from "../../../components/Skeleton";
-import TablePagination from "../../../components/TablePagination";
+import CardTitle from "@saleor/components/CardTitle";
+import Checkbox from "@saleor/components/Checkbox";
+import Skeleton from "@saleor/components/Skeleton";
+import TableHead from "@saleor/components/TableHead";
+import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
-import { ListProps } from "../../../types";
+import { ListActions, ListProps } from "../../../types";
 import { SaleDetails_sale } from "../../types/SaleDetails";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
 
-export interface DiscountCollectionsProps extends ListProps {
+export interface DiscountCollectionsProps extends ListProps, ListActions {
   discount: SaleDetails_sale | VoucherDetails_voucher;
   onCollectionAssign: () => void;
   onCollectionUnassign: (id: string) => void;
@@ -61,35 +62,41 @@ const DiscountCollections = withStyles(styles, {
     onCollectionUnassign,
     onRowClick,
     onPreviousPage,
-    onNextPage
+    onNextPage,
+    isChecked,
+    selected,
+    toggle,
+    toggleAll,
+    toolbar
   }: DiscountCollectionsProps & WithStyles<typeof styles>) => (
     <Card>
       <CardTitle
-        title={i18n.t("Collections assigned to {{ saleName }}", {
-          saleName: maybe(() => sale.name)
-        })}
+        title={i18n.t("Eligible Collections")}
         toolbar={
-          <Button variant="flat" color="secondary" onClick={onCollectionAssign}>
+          <Button color="primary" onClick={onCollectionAssign}>
             {i18n.t("Assign collections")}
           </Button>
         }
       />
       <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell className={classes.wideColumn}>
-              {i18n.t("Collection name")}
-            </TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Products")}
-            </TableCell>
-            <TableCell />
-          </TableRow>
+        <TableHead
+          selected={selected}
+          disabled={disabled}
+          items={maybe(() => sale.collections.edges.map(edge => edge.node))}
+          toggleAll={toggleAll}
+          toolbar={toolbar}
+        >
+          <TableCell className={classes.wideColumn}>
+            {i18n.t("Collection name")}
+          </TableCell>
+          <TableCell className={classes.textRight}>
+            {i18n.t("Products")}
+          </TableCell>
         </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={3}
+              colSpan={4}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -102,38 +109,52 @@ const DiscountCollections = withStyles(styles, {
         <TableBody>
           {renderCollection(
             maybe(() => sale.collections.edges.map(edge => edge.node)),
-            collection => (
-              <TableRow
-                hover={!!collection}
-                key={collection ? collection.id : "skeleton"}
-                onClick={collection && onRowClick(collection.id)}
-                className={classes.tableRow}
-              >
-                <TableCell>
-                  {maybe<React.ReactNode>(() => collection.name, <Skeleton />)}
-                </TableCell>
-                <TableCell className={classes.textRight}>
-                  {maybe<React.ReactNode>(
-                    () => collection.products.totalCount,
-                    <Skeleton />
-                  )}
-                </TableCell>
-                <TableCell className={classes.iconCell}>
-                  <IconButton
-                    disabled={!collection || disabled}
-                    onClick={event => {
-                      event.stopPropagation();
-                      onCollectionUnassign(collection.id);
-                    }}
-                  >
-                    <DeleteIcon color="secondary" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ),
+            collection => {
+              const isSelected = collection ? isChecked(collection.id) : false;
+              return (
+                <TableRow
+                  selected={isSelected}
+                  hover={!!collection}
+                  key={collection ? collection.id : "skeleton"}
+                  onClick={collection && onRowClick(collection.id)}
+                  className={classes.tableRow}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={isSelected}
+                      disabled={disabled}
+                      onChange={() => toggle(collection.id)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {maybe<React.ReactNode>(
+                      () => collection.name,
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.textRight}>
+                    {maybe<React.ReactNode>(
+                      () => collection.products.totalCount,
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.iconCell}>
+                    <IconButton
+                      disabled={!collection || disabled}
+                      onClick={event => {
+                        event.stopPropagation();
+                        onCollectionUnassign(collection.id);
+                      }}
+                    >
+                      <DeleteIcon color="primary" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            },
             () => (
               <TableRow>
-                <TableCell colSpan={3}>
+                <TableCell colSpan={4}>
                   {i18n.t("No collections found")}
                 </TableCell>
               </TableRow>

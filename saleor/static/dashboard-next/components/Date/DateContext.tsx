@@ -1,5 +1,6 @@
-import * as React from "react";
+import React from "react";
 
-const { Provider, Consumer } = React.createContext<number>(undefined);
+export const DateContext = React.createContext<number>(undefined);
+const { Provider, Consumer } = DateContext;
 
 export { Consumer, Provider };

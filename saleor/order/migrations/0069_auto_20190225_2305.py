@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0068_order_checkout_token'),
-    ]
+    dependencies = [("order", "0068_order_checkout_token")]
 
     operations = [
         migrations.AlterField(
-            model_name='fulfillmentline',
-            name='quantity',
+            model_name="fulfillmentline",
+            name="quantity",
             field=models.PositiveIntegerField(),
-        ),
+        )
     ]

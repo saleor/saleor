@@ -4,6 +4,14 @@ import { TypedMutation } from "../mutations";
 import { countryFragment } from "../taxes/queries";
 import { shippingMethodFragment, shippingZoneDetailsFragment } from "./queries";
 import {
+  BulkDeleteShippingRate,
+  BulkDeleteShippingRateVariables
+} from "./types/BulkDeleteShippingRate";
+import {
+  BulkDeleteShippingZone,
+  BulkDeleteShippingZoneVariables
+} from "./types/BulkDeleteShippingZone";
+import {
   CreateShippingRate,
   CreateShippingRateVariables
 } from "./types/CreateShippingRate";
@@ -46,6 +54,21 @@ export const TypedDeleteShippingZone = TypedMutation<
   DeleteShippingZone,
   DeleteShippingZoneVariables
 >(deleteShippingZone);
+
+const bulkDeleteShippingZone = gql`
+  mutation BulkDeleteShippingZone($ids: [ID]!) {
+    shippingZoneBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedBulkDeleteShippingZone = TypedMutation<
+  BulkDeleteShippingZone,
+  BulkDeleteShippingZoneVariables
+>(bulkDeleteShippingZone);
 
 const updateDefaultWeightUnit = gql`
   mutation UpdateDefaultWeightUnit($unit: WeightUnitsEnum) {
@@ -169,3 +192,18 @@ export const TypedDeleteShippingRate = TypedMutation<
   DeleteShippingRate,
   DeleteShippingRateVariables
 >(deleteShippingRate);
+
+const bulkDeleteShippingRate = gql`
+  mutation BulkDeleteShippingRate($ids: [ID]!) {
+    shippingPriceBulkDelete(ids: $ids) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedBulkDeleteShippingRate = TypedMutation<
+  BulkDeleteShippingRate,
+  BulkDeleteShippingRateVariables
+>(bulkDeleteShippingRate);

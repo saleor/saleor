@@ -7,33 +7,30 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0020_auto_20171123_0609'),
-    ]
+    dependencies = [("order", "0020_auto_20171123_0609")]
 
     operations = [
+        migrations.AlterModelOptions(name="deliverygroup", options={}),
         migrations.AlterModelOptions(
-            name='deliverygroup',
-            options={},
+            name="order",
+            options={
+                "ordering": ("-last_status_change",),
+                "permissions": (
+                    ("view_order", "Can view orders"),
+                    ("edit_order", "Can edit orders"),
+                ),
+            },
         ),
         migrations.AlterModelOptions(
-            name='order',
-            options={'ordering': ('-last_status_change',), 'permissions': (('view_order', 'Can view orders'), ('edit_order', 'Can edit orders'))},
+            name="orderhistoryentry", options={"ordering": ("date",)}
         ),
         migrations.AlterModelOptions(
-            name='orderhistoryentry',
-            options={'ordering': ('date',)},
+            name="orderline",
+            options={
+                "verbose_name": "Ordered line",
+                "verbose_name_plural": "Ordered lines",
+            },
         ),
-        migrations.AlterModelOptions(
-            name='orderline',
-            options={'verbose_name': 'Ordered line', 'verbose_name_plural': 'Ordered lines'},
-        ),
-        migrations.AlterModelOptions(
-            name='ordernote',
-            options={},
-        ),
-        migrations.AlterModelOptions(
-            name='payment',
-            options={'ordering': ('-pk',)},
-        ),
+        migrations.AlterModelOptions(name="ordernote", options={}),
+        migrations.AlterModelOptions(name="payment", options={"ordering": ("-pk",)}),
     ]

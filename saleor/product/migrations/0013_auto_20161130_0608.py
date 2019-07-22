@@ -8,10 +8,6 @@ from django.contrib.postgres.operations import HStoreExtension
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0012_auto_20160218_0812'),
-    ]
+    dependencies = [("product", "0012_auto_20160218_0812")]
 
-    operations = [
-        HStoreExtension()
-    ]
+    operations = [HStoreExtension()]

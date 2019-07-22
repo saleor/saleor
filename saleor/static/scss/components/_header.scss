@@ -232,12 +232,12 @@
     .static {
       position: static;
     }
-    &__cart {
+    &__checkout {
       z-index: 4;
       @include media-breakpoint-up(md) {
         line-height: 2.4rem;
       }
-      .cart__icon {
+      .checkout__icon {
         color: $body-color;
         display: block;
         border: solid 1px transparent;
@@ -267,11 +267,11 @@
         &:hover {
           text-decoration: none;
         }
-        .cart-label {
+        .checkout-label {
           padding-right: $global-padding / 2;
           display: inline-block;
         }
-        .navbar__brand__cart__icon {
+        .navbar__brand__checkout__icon {
           display: inline-block;
           svg {
             vertical-align: middle;

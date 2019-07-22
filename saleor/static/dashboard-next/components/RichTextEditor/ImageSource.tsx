@@ -5,7 +5,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import { AtomicBlockUtils, EditorState, EntityInstance } from "draft-js";
-import * as React from "react";
+import React from "react";
 
 import i18n from "../../i18n";
 import Form from "../Form";
@@ -65,7 +65,7 @@ class ImageSource extends React.Component<ImageSourceProps> {
     const initial = entity ? entity.getData().href : "";
 
     return (
-      <Dialog open={true} fullWidth maxWidth="sm">
+      <Dialog onClose={onClose} open={true} fullWidth maxWidth="sm">
         <Form
           initial={{ href: initial }}
           onSubmit={({ href }) => this.submit(href)}
@@ -86,7 +86,7 @@ class ImageSource extends React.Component<ImageSourceProps> {
                 <Button onClick={onClose}>
                   {i18n.t("Cancel", { context: "button" })}
                 </Button>
-                <Button onClick={submit} color="secondary" variant="contained">
+                <Button onClick={submit} color="primary" variant="contained">
                   {i18n.t("Save", { context: "button" })}
                 </Button>
               </DialogActions>

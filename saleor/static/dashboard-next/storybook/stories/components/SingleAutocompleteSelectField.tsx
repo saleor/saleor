@@ -1,8 +1,9 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import Form from "../../../components/Form";
-import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
+import Form from "@saleor/components/Form";
+import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
+import CardDecorator from "../../CardDecorator";
 import Decorator from "../../Decorator";
 import { ChoiceProvider } from "../../mock";
 
@@ -21,7 +22,15 @@ const suggestions = [
   "Zimbabwe"
 ].map(c => ({ label: c, value: c.toLocaleLowerCase().replace(/\s+/, "_") }));
 
+const props = {
+  label: "Country",
+  loading: false,
+  name: "country",
+  placeholder: "Select country"
+};
+
 storiesOf("Generics / SingleAutocompleteSelectField", module)
+  .addDecorator(CardDecorator)
   .addDecorator(Decorator)
   .add("with loading data", () => (
     <Form initial={{ country: suggestions[0] }}>
@@ -29,13 +38,12 @@ storiesOf("Generics / SingleAutocompleteSelectField", module)
         <ChoiceProvider choices={suggestions}>
           {({ choices, fetchChoices }) => (
             <SingleAutocompleteSelectField
+              {...props}
               choices={choices}
               fetchChoices={fetchChoices}
               helperText={`Value: ${data.country.value}`}
               loading={true}
-              name="country"
               onChange={change}
-              placeholder="Select country"
               value={data.country}
             />
           )}
@@ -49,13 +57,11 @@ storiesOf("Generics / SingleAutocompleteSelectField", module)
         <ChoiceProvider choices={suggestions}>
           {({ choices, fetchChoices }) => (
             <SingleAutocompleteSelectField
+              {...props}
               choices={choices}
               fetchChoices={fetchChoices}
               helperText={`Value: ${data.country.value}`}
-              loading={false}
-              name="country"
               onChange={change}
-              placeholder="Select country"
               value={data.country}
             />
           )}
@@ -69,15 +75,14 @@ storiesOf("Generics / SingleAutocompleteSelectField", module)
         <ChoiceProvider choices={suggestions}>
           {({ choices, fetchChoices, loading }) => (
             <SingleAutocompleteSelectField
+              {...props}
               choices={choices}
-              custom={true}
               fetchChoices={fetchChoices}
               helperText={`Value: ${data.country.value}`}
               loading={loading}
-              name="country"
               onChange={change}
-              placeholder="Select country"
               value={data.country}
+              custom={true}
             />
           )}
         </ChoiceProvider>

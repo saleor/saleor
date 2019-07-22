@@ -1,19 +1,18 @@
 import { RawDraftContentState } from "draft-js";
-import * as React from "react";
+import React from "react";
 
-import AppHeader from "../../../components/AppHeader";
-import { CardSpacer } from "../../../components/CardSpacer";
-import { ConfirmButtonTransitionState } from "../../../components/ConfirmButton/ConfirmButton";
-import Container from "../../../components/Container";
-import Form from "../../../components/Form";
-import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
-import SeoForm from "../../../components/SeoForm";
-import { Tab } from "../../../components/Tab";
-import TabContainer from "../../../components/Tab/TabContainer";
+import AppHeader from "@saleor/components/AppHeader";
+import { CardSpacer } from "@saleor/components/CardSpacer";
+import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
+import Container from "@saleor/components/Container";
+import Form from "@saleor/components/Form";
+import PageHeader from "@saleor/components/PageHeader";
+import SaveButtonBar from "@saleor/components/SaveButtonBar";
+import SeoForm from "@saleor/components/SeoForm";
+import { Tab, TabContainer } from "@saleor/components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { UserError } from "../../../types";
+import { TabListActions, UserError } from "../../../types";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
 import {
@@ -37,7 +36,8 @@ export enum CategoryPageTab {
   products = "products"
 }
 
-export interface CategoryUpdatePageProps {
+export interface CategoryUpdatePageProps
+  extends TabListActions<"productListToolbar" | "subcategoryListToolbar"> {
   changeTab: (index: CategoryPageTab) => void;
   currentTab: CategoryPageTab;
   errors: UserError[];
@@ -88,7 +88,13 @@ export const CategoryUpdatePage: React.StatelessComponent<
   onProductClick,
   onSubmit,
   onImageDelete,
-  onImageUpload
+  onImageUpload,
+  isChecked,
+  productListToolbar,
+  selected,
+  subcategoryListToolbar,
+  toggle,
+  toggleAll
 }: CategoryUpdatePageProps) => {
   const initialData: FormData = category
     ? {
@@ -170,6 +176,11 @@ export const CategoryUpdatePage: React.StatelessComponent<
               onNextPage={onNextPage}
               onPreviousPage={onPreviousPage}
               pageInfo={pageInfo}
+              toggle={toggle}
+              toggleAll={toggleAll}
+              selected={selected}
+              isChecked={isChecked}
+              toolbar={subcategoryListToolbar}
             />
           )}
           {currentTab === CategoryPageTab.products && (
@@ -182,6 +193,11 @@ export const CategoryUpdatePage: React.StatelessComponent<
               onPreviousPage={onPreviousPage}
               onRowClick={onProductClick}
               onAdd={onAddProduct}
+              toggle={toggle}
+              toggleAll={toggleAll}
+              selected={selected}
+              isChecked={isChecked}
+              toolbar={productListToolbar}
             />
           )}
           <SaveButtonBar

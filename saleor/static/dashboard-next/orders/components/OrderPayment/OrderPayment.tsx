@@ -8,13 +8,13 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { Hr } from "../../../components/Hr";
-import Money, { subtractMoney } from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
+import CardTitle from "@saleor/components/CardTitle";
+import { Hr } from "@saleor/components/Hr";
+import Money, { subtractMoney } from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
 import i18n from "../../../i18n";
 import { maybe, transformPaymentStatus } from "../../../misc";
 import { OrderAction, OrderStatus } from "../../../types/globalTypes";
@@ -23,7 +23,7 @@ import { OrderDetails_order } from "../../types/OrderDetails";
 const styles = (theme: Theme) =>
   createStyles({
     root: {
-      ...theme.typography.body1,
+      ...theme.typography.body2,
       lineHeight: 1.9,
       width: "100%"
     },
@@ -176,7 +176,7 @@ const OrderPayment = withStyles(styles, { name: "OrderPayment" })(
                 </td>
               </tr>
               <tr className={classes.totalRow}>
-                <td>{i18n.t("Balance")}</td>
+                <td>{i18n.t("Outstanding Balance")}</td>
                 <td className={classes.textRight}>
                   {maybe(
                     () => order.total.gross.amount && order.totalCaptured.amount
@@ -201,26 +201,22 @@ const OrderPayment = withStyles(styles, { name: "OrderPayment" })(
               <Hr />
               <CardActions>
                 {canCapture && (
-                  <Button color="secondary" variant="text" onClick={onCapture}>
+                  <Button color="primary" variant="text" onClick={onCapture}>
                     {i18n.t("Capture", { context: "button" })}
                   </Button>
                 )}
                 {canRefund && (
-                  <Button color="secondary" variant="text" onClick={onRefund}>
+                  <Button color="primary" variant="text" onClick={onRefund}>
                     {i18n.t("Refund", { context: "button" })}
                   </Button>
                 )}
                 {canVoid && (
-                  <Button color="secondary" variant="text" onClick={onVoid}>
+                  <Button color="primary" variant="text" onClick={onVoid}>
                     {i18n.t("Void", { context: "button" })}
                   </Button>
                 )}
                 {canMarkAsPaid && (
-                  <Button
-                    color="secondary"
-                    variant="text"
-                    onClick={onMarkAsPaid}
-                  >
+                  <Button color="primary" variant="text" onClick={onMarkAsPaid}>
                     {i18n.t("Mark as paid", { context: "button" })}
                   </Button>
                 )}

@@ -1,53 +1,128 @@
-import * as React from "react";
+import moment from "moment-timezone";
+import React from "react";
 
-import {
-  Filter,
-  FilterChips,
-  FilterTab,
-  FilterTabs
-} from "../../../components/TableFilter";
+import { DateContext } from "@saleor/components/Date/DateContext";
+import { FieldType, IFilter } from "@saleor/components/Filter";
+import FilterBar from "@saleor/components/FilterBar";
+import TimezoneContext from "@saleor/components/Timezone";
 import i18n from "../../../i18n";
+import { FilterProps } from "../../../types";
+import { OrderStatusFilter } from "../../../types/globalTypes";
+import { OrderListUrlFilters } from "../../urls";
 
-export type OrderListFilterTabs = "all" | "toFulfill" | "toCapture" | "custom";
+type OrderListFilterProps = FilterProps<OrderListUrlFilters>;
 
-interface OrderListFilterProps {
-  currentTab: OrderListFilterTabs;
-  filtersList: Filter[];
-  onAllProducts: () => void;
-  onToFulfill: () => void;
-  onToCapture: () => void;
-  onCustomFilter: () => void;
+export enum OrderFilterKeys {
+  date,
+  dateEqual,
+  dateRange,
+  dateLastWeek,
+  dateLastMonth,
+  dateLastYear,
+  email,
+  fulfillment
 }
 
-const OrderListFilter: React.StatelessComponent<OrderListFilterProps> = ({
-  filtersList,
-  currentTab,
-  onAllProducts,
-  onToFulfill,
-  onToCapture,
-  onCustomFilter
-}) => (
-  <>
-    <FilterTabs
-      currentTab={["all", "toFulfill", "toCapture", "custom"].indexOf(
-        currentTab
-      )}
-    >
-      <FilterTab label={i18n.t("All Orders")} onClick={onAllProducts} />
-      <FilterTab label={i18n.t("Ready to fulfill")} onClick={onToFulfill} />
-      <FilterTab label={i18n.t("Ready to capture")} onClick={onToCapture} />
-      {currentTab === "custom" && filtersList && filtersList.length > 0 && (
-        <FilterTab
-          onClick={onCustomFilter}
-          value={0}
-          label={i18n.t("Custom Filter")}
-        />
-      )}
-    </FilterTabs>
-    {currentTab === "custom" && filtersList && filtersList.length > 0 && (
-      <FilterChips filtersList={filtersList} />
-    )}
-  </>
-);
+const OrderListFilter: React.FC<OrderListFilterProps> = props => {
+  const date = React.useContext(DateContext);
+  const tz = React.useContext(TimezoneContext);
+
+  const filterMenu: IFilter = [
+    {
+      children: [
+        {
+          children: [],
+          data: {
+            fieldLabel: null,
+            type: FieldType.hidden,
+            value: (tz ? moment(date).tz(tz) : moment(date))
+              .subtract(7, "days")
+              .toISOString()
+              .split("T")[0] // Remove timezone
+          },
+          label: i18n.t("Last 7 Days"),
+          value: OrderFilterKeys.dateLastWeek.toString()
+        },
+        {
+          children: [],
+          data: {
+            fieldLabel: null,
+            type: FieldType.hidden,
+            value: (tz ? moment(date).tz(tz) : moment(date))
+              .subtract(30, "days")
+              .toISOString()
+              .split("T")[0] // Remove timezone
+          },
+          label: i18n.t("Last 30 Days"),
+          value: OrderFilterKeys.dateLastMonth.toString()
+        },
+        {
+          children: [],
+          data: {
+            fieldLabel: null,
+            type: FieldType.hidden,
+            value: (tz ? moment(date).tz(tz) : moment(date))
+              .subtract(1, "years")
+              .toISOString()
+              .split("T")[0] // Remove timezone
+          },
+          label: i18n.t("Last Year"),
+          value: OrderFilterKeys.dateLastYear.toString()
+        },
+        {
+          children: [],
+          data: {
+            additionalText: i18n.t("equals"),
+            fieldLabel: null,
+            type: FieldType.date
+          },
+          label: i18n.t("Specific Date"),
+          value: OrderFilterKeys.dateEqual.toString()
+        },
+        {
+          children: [],
+          data: {
+            fieldLabel: i18n.t("Range"),
+            type: FieldType.rangeDate
+          },
+          label: i18n.t("Range"),
+          value: OrderFilterKeys.dateRange.toString()
+        }
+      ],
+      data: {
+        fieldLabel: i18n.t("Date"),
+        type: FieldType.select
+      },
+      label: i18n.t("Date"),
+      value: OrderFilterKeys.date.toString()
+    },
+    {
+      children: [],
+      data: {
+        additionalText: i18n.t("is set as"),
+        fieldLabel: i18n.t("Status"),
+        options: [
+          {
+            label: i18n.t("Fulfilled"),
+            value: OrderStatusFilter.FULFILLED.toString()
+          },
+          {
+            label: i18n.t("Partially Fulfilled"),
+            value: OrderStatusFilter.PARTIALLY_FULFILLED.toString()
+          },
+          {
+            label: i18n.t("Unfulfilled"),
+            value: OrderStatusFilter.UNFULFILLED.toString()
+          }
+        ],
+        type: FieldType.select
+      },
+      label: i18n.t("Fulfillment Status"),
+      value: OrderFilterKeys.fulfillment.toString()
+    }
+  ];
+
+  return <FilterBar {...props} filterMenu={filterMenu} />;
+};
 OrderListFilter.displayName = "OrderListFilter";
 export default OrderListFilter;

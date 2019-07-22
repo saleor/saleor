@@ -9,11 +9,11 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import CardTitle from "@saleor/components/CardTitle";
+import ImageTile from "@saleor/components/ImageTile";
+import ImageUpload from "@saleor/components/ImageUpload";
+import React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
-import CardTitle from "../../../components/CardTitle";
-import ImageTile from "../../../components/ImageTile";
-import ImageUpload from "../../../components/ImageUpload";
 import i18n from "../../../i18n";
 import { ProductDetails_product_images } from "../../types/ProductDetails";
 
@@ -179,7 +179,7 @@ const ProductImages = withStyles(styles, { name: "ProductImages" })(
               onClick={() => this.upload.click()}
               disabled={loading}
               variant="text"
-              color="secondary"
+              color="primary"
             >
               {i18n.t("Upload image")}
             </Button>

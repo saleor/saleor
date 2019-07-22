@@ -6,13 +6,13 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import { DateTime } from "../../../components/Date";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
-import StatusLabel from "../../../components/StatusLabel";
+import CardTitle from "@saleor/components/CardTitle";
+import { DateTime } from "@saleor/components/Date";
+import Money from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
+import StatusLabel from "@saleor/components/StatusLabel";
 import i18n from "../../../i18n";
 import { maybe, renderCollection, transformPaymentStatus } from "../../../misc";
 import { CustomerDetails_user_orders_edges_node } from "../../types/CustomerDetails";
@@ -52,7 +52,7 @@ const CustomerOrders = withStyles(styles, { name: "CustomerOrders" })(
           toolbar={
             <Button
               variant="text"
-              color="secondary"
+              color="primary"
               onClick={onViewAllOrdersClick}
             >
               {i18n.t("View all orders")}

@@ -1,8 +1,8 @@
 import { Omit } from "@material-ui/core";
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import * as placeholderImage from "../../../../images/placeholder60x60.png";
+import placeholderImage from "../../../../images/placeholder60x60.png";
 import OrderDraftPage, {
   OrderDraftPageProps
 } from "../../../orders/components/OrderDraftPage";
@@ -25,6 +25,7 @@ const props: Omit<OrderDraftPageProps, "classes"> = {
   onOrderLineChange: () => undefined,
   onOrderLineRemove: () => () => undefined,
   onProductClick: undefined,
+  onProfileView: () => undefined,
   onShippingAddressEdit: undefined,
   onShippingMethodEdit: undefined,
   order,

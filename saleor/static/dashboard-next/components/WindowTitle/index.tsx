@@ -1,7 +1,7 @@
-import * as React from "react";
+import React from "react";
 import { Helmet } from "react-helmet";
 
-import Shop from "../Shop";
+import useShop from "@saleor/hooks/useShop";
 
 interface WindowTitleProps {
   title: string;
@@ -9,14 +9,10 @@ interface WindowTitleProps {
 
 export const WindowTitle: React.StatelessComponent<WindowTitleProps> = ({
   title
-}) => (
-  <Shop>
-    {shop =>
-      shop === undefined || !title ? null : (
-        <Helmet>
-          <title>{`${title} | ${shop.name}`}</title>
-        </Helmet>
-      )
-    }
-  </Shop>
-);
+}) => {
+  const shop = useShop();
+
+  return shop === undefined || !title ? null : (
+    <Helmet title={`${title} | ${shop.name}`} />
+  );
+};

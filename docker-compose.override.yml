@@ -8,6 +8,7 @@ services:
     volumes:
       - ./saleor/:/app/saleor:Z
       - ./templates/:/app/templates:Z
+      - ./tests/:/app/tests
       # prevents overshadowing of build-time assets
       - /app/saleor/static/assets
       - /app/templates/templated_email/compiled

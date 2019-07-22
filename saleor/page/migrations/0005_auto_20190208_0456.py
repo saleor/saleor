@@ -5,19 +5,13 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('page', '0004_auto_20180803_0528'),
-    ]
+    dependencies = [("page", "0004_auto_20180803_0528")]
 
     operations = [
         migrations.RenameField(
-            model_name='page',
-            old_name='is_visible',
-            new_name='is_published',
+            model_name="page", old_name="is_visible", new_name="is_published"
         ),
         migrations.RenameField(
-            model_name='page',
-            old_name='available_on',
-            new_name='publication_date',
+            model_name="page", old_name="available_on", new_name="publication_date"
         ),
     ]

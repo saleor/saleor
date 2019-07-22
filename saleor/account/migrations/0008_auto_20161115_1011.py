@@ -7,18 +7,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('account', '0007_auto_20161115_0940'),
-    ]
+    dependencies = [("account", "0007_auto_20161115_0940")]
 
-    replaces = [
-        ('userprofile', '0008_auto_20161115_1011'),
-    ]
+    replaces = [("userprofile", "0008_auto_20161115_1011")]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='is_active',
-            field=models.BooleanField(default=True, verbose_name='active'),
-        ),
+            model_name="user",
+            name="is_active",
+            field=models.BooleanField(default=True, verbose_name="active"),
+        )
     ]

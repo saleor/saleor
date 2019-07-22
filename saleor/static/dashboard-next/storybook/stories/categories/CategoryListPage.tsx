@@ -1,15 +1,16 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
 import CategoryListPage from "../../../categories/components/CategoryListPage";
 import { categories } from "../../../categories/fixtures";
-import { pageListProps } from "../../../fixtures";
+import { listActionsProps, pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
 const categoryTableProps = {
   categories,
   onAddCategory: undefined,
   onCategoryClick: () => undefined,
+  ...listActionsProps,
   ...pageListProps.default
 };
 

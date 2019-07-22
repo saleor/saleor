@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -17,15 +16,17 @@ import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import { filter } from "fuzzaldrin";
-import * as React from "react";
+import React from "react";
 
+import Checkbox from "@saleor/components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
-} from "../../../components/ConfirmButton/ConfirmButton";
-import Form from "../../../components/Form";
-import FormSpacer from "../../../components/FormSpacer";
-import Hr from "../../../components/Hr";
-import { ShopInfo_shop_countries } from "../../../components/Shop/types/ShopInfo";
+} from "@saleor/components/ConfirmButton";
+import Form from "@saleor/components/Form";
+import FormSpacer from "@saleor/components/FormSpacer";
+import Hr from "@saleor/components/Hr";
+// tslint:disable no-submodule-imports
+import { ShopInfo_shop_countries } from "@saleor/components/Shop/types/ShopInfo";
 import i18n from "../../../i18n";
 
 interface FormData {
@@ -55,9 +56,6 @@ const styles = (theme: Theme) =>
       marginBottom: theme.spacing.unit * 2,
       marginTop: theme.spacing.unit * 2
     },
-    table: {
-      border: "1px solid " + theme.palette.grey[200]
-    },
     wideCell: {
       width: "100%"
     }
@@ -80,7 +78,7 @@ const DiscountCountrySelectDialog = withStyles(styles, {
       query: ""
     };
     return (
-      <Dialog open={open} fullWidth maxWidth="sm">
+      <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
         <Form initial={initialForm} onSubmit={onConfirm}>
           {({ data, change }) => {
             const countrySelectionMap = countries.reduce((acc, country) => {
@@ -115,12 +113,12 @@ const DiscountCountrySelectDialog = withStyles(styles, {
                 </DialogContent>
                 <Hr />
                 <DialogContent className={classes.container}>
-                  <Typography className={classes.heading} variant="subheading">
+                  <Typography className={classes.heading} variant="subtitle1">
                     {i18n.t("Countries A to Z", {
                       context: "country selection"
                     })}
                   </Typography>
-                  <Table className={classes.table}>
+                  <Table>
                     <TableBody>
                       {filter(countries, data.query, {
                         key: "country"

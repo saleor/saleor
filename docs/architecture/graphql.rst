@@ -6,7 +6,7 @@ GraphQL API (Beta)
     The GraphQL API is in the early version. It is not yet fully optimized against database queries and some mutations or queries may be missing.
 
 
-Saleor provides a GraphQL API which allows to query and modify the shop's data in an efficient and flexible manner.
+Saleor provides a GraphQL API which allows to query and modify the shop's data in an efficient and flexible manner. You can `preview it here <https://demo.getsaleor.com/graphql/>`_.
 
 Learn more about GraphQL language and its concepts on the `official website <https://graphql.org>`_.
 

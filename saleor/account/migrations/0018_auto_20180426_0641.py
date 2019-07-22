@@ -7,36 +7,49 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('account', '0017_auto_20180206_0957'),
-    ]
+    dependencies = [("account", "0017_auto_20180206_0957")]
 
     operations = [
         migrations.CreateModel(
-            name='CustomerNote',
+            name="CustomerNote",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('content', models.TextField()),
-                ('is_public', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("content", models.TextField()),
+                ("is_public", models.BooleanField(default=True)),
             ],
-            options={
-                'ordering': ('date',),
-            },
+            options={"ordering": ("date",)},
         ),
         migrations.AddField(
-            model_name='user',
-            name='note',
+            model_name="user",
+            name="note",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='customernote',
-            name='customer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notes', to=settings.AUTH_USER_MODEL),
+            model_name="customernote",
+            name="customer",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="notes",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='customernote',
-            name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="customernote",
+            name="user",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

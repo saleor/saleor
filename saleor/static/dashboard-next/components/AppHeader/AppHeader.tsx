@@ -7,7 +7,7 @@ import {
 } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
-import * as React from "react";
+import React from "react";
 import AppHeaderContext from "../AppLayout/AppHeaderContext";
 import Skeleton from "../Skeleton";
 
@@ -26,7 +26,7 @@ const styles = (theme: Theme) =>
     },
     root: {
       "&:hover": {
-        color: theme.typography.body1.color
+        color: theme.typography.body2.color
       },
       alignItems: "center",
       color: theme.palette.grey[500],

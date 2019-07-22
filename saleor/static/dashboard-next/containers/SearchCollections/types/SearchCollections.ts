@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -26,5 +27,7 @@ export interface SearchCollections {
 }
 
 export interface SearchCollectionsVariables {
+  after?: string | null;
+  first: number;
   query: string;
 }

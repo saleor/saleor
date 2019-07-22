@@ -6,19 +6,27 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('page', '0001_initial'),
-    ]
+    dependencies = [("page", "0001_initial")]
 
     operations = [
         migrations.AddField(
-            model_name='page',
-            name='seo_description',
-            field=models.CharField(blank=True, max_length=300, null=True, validators=[django.core.validators.MaxLengthValidator(300)]),
+            model_name="page",
+            name="seo_description",
+            field=models.CharField(
+                blank=True,
+                max_length=300,
+                null=True,
+                validators=[django.core.validators.MaxLengthValidator(300)],
+            ),
         ),
         migrations.AddField(
-            model_name='page',
-            name='seo_title',
-            field=models.CharField(blank=True, max_length=70, null=True, validators=[django.core.validators.MaxLengthValidator(70)]),
+            model_name="page",
+            name="seo_title",
+            field=models.CharField(
+                blank=True,
+                max_length=70,
+                null=True,
+                validators=[django.core.validators.MaxLengthValidator(70)],
+            ),
         ),
     ]

@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import CardMenu, { CardMenuItem } from "../../../components/CardMenu";
+import CardMenu, { CardMenuItem } from "@saleor/components/CardMenu";
 import Decorator from "../../Decorator";
 
 const menuItems: CardMenuItem[] = [

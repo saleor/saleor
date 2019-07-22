@@ -1,9 +1,11 @@
-import * as urlJoin from "url-join";
+import { stringify as stringifyQs } from "qs";
+
+import { Dialog } from "../types";
 
 const siteSettingsSection = "/site-settings";
 
 export const siteSettingsPath = siteSettingsSection;
-export const siteSettingsUrl = siteSettingsPath;
-
-export const siteSettingsAddKeyPath = urlJoin(siteSettingsSection, "addKey");
-export const siteSettingsAddKeyUrl = siteSettingsAddKeyPath;
+export type SiteSettingsUrlDialog = "add-key";
+export type SiteSettingsUrlQueryParams = Dialog<SiteSettingsUrlDialog>;
+export const siteSettingsUrl = (params?: SiteSettingsUrlQueryParams) =>
+  siteSettingsPath + "?" + stringifyQs(params);

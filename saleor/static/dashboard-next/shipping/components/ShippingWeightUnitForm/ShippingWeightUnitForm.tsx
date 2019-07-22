@@ -2,12 +2,12 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Form from "../../../components/Form";
-import Hr from "../../../components/Hr";
-import SingleSelectField from "../../../components/SingleSelectField";
+import CardTitle from "@saleor/components/CardTitle";
+import Form from "@saleor/components/Form";
+import Hr from "@saleor/components/Hr";
+import SingleSelectField from "@saleor/components/SingleSelectField";
 import i18n from "../../../i18n";
 import { WeightUnitsEnum } from "../../../types/globalTypes";
 
@@ -59,7 +59,7 @@ const ShippingWeightUnitForm: React.StatelessComponent<
           </CardContent>
           <Hr />
           <CardActions>
-            <Button color="secondary" onClick={submit}>
+            <Button color="primary" onClick={submit}>
               {i18n.t("Save", {
                 context: "button"
               })}

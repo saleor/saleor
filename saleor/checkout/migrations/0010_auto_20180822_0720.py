@@ -6,14 +6,18 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('checkout', '0009_cart_translated_discount_name'),
-    ]
+    dependencies = [("checkout", "0009_cart_translated_discount_name")]
 
     operations = [
         migrations.AlterField(
-            model_name='cart',
-            name='shipping_method',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='carts', to='shipping.ShippingMethod'),
-        ),
+            model_name="cart",
+            name="shipping_method",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="carts",
+                to="shipping.ShippingMethod",
+            ),
+        )
     ]

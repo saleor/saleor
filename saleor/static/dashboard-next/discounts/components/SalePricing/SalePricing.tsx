@@ -8,11 +8,11 @@ import {
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
-import Hr from "../../../components/Hr";
-import TextFieldWithChoice from "../../../components/TextFieldWithChoice";
+import CardTitle from "@saleor/components/CardTitle";
+import Hr from "@saleor/components/Hr";
+import TextFieldWithChoice from "@saleor/components/TextFieldWithChoice";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
 import { SaleType } from "../../../types/globalTypes";
@@ -84,7 +84,7 @@ const SalePricing = withStyles(styles, {
       </CardContent>
       <Hr />
       <CardContent className={classes.root}>
-        <Typography className={classes.subheading} variant="subheading">
+        <Typography className={classes.subheading} variant="subtitle1">
           {i18n.t("Time Frame")}
         </Typography>
         <TextField

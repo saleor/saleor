@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
-import * as React from "react";
+import React from "react";
 
-import NotFoundPage from "../../../components/NotFoundPage";
+import NotFoundPage from "@saleor/components/NotFoundPage";
 import Decorator from "../../Decorator";
 
 storiesOf("Views / Not found error page", module)

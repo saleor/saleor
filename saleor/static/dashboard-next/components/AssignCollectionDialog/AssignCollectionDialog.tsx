@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -11,15 +10,16 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
-import * as React from "react";
+import React from "react";
 
+import { ChangeEvent } from "@saleor/hooks/useForm";
+import { onQueryChange } from "@saleor/misc";
 import { SearchCollections_collections_edges_node } from "../../containers/SearchCollections/types/SearchCollections";
 import i18n from "../../i18n";
+import Checkbox from "../Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "../ConfirmButton/ConfirmButton";
-import Debounce from "../Debounce";
-import Form from "../Form";
 import FormSpacer from "../FormSpacer";
 
 export interface FormData {
@@ -51,13 +51,28 @@ interface AssignCollectionDialogProps extends WithStyles<typeof styles> {
   loading: boolean;
   onClose: () => void;
   onFetch: (value: string) => void;
-  onSubmit: (data: FormData) => void;
+  onSubmit: (data: SearchCollections_collections_edges_node[]) => void;
 }
 
-const initialForm: FormData = {
-  collections: [],
-  query: ""
-};
+function handleCollectionAssign(
+  product: SearchCollections_collections_edges_node,
+  isSelected: boolean,
+  selectedCollections: SearchCollections_collections_edges_node[],
+  setSelectedCollections: (
+    data: SearchCollections_collections_edges_node[]
+  ) => void
+) {
+  if (isSelected) {
+    setSelectedCollections(
+      selectedCollections.filter(
+        selectedProduct => selectedProduct.id !== product.id
+      )
+    );
+  } else {
+    setSelectedCollections([...selectedCollections, product]);
+  }
+}
+
 const AssignCollectionDialog = withStyles(styles, {
   name: "AssignCollectionDialog"
 })(
@@ -70,107 +85,96 @@ const AssignCollectionDialog = withStyles(styles, {
     onClose,
     onFetch,
     onSubmit
-  }: AssignCollectionDialogProps) => (
-    <Dialog
-      open={open}
-      classes={{ paper: classes.overflow }}
-      fullWidth
-      maxWidth="sm"
-    >
-      <Form initial={initialForm} onSubmit={onSubmit}>
-        {({ data, change }) => (
-          <>
-            <DialogTitle>{i18n.t("Assign Collection")}</DialogTitle>
-            <DialogContent className={classes.overflow}>
-              <Debounce debounceFn={onFetch}>
-                {fetch => (
-                  <TextField
-                    name="query"
-                    value={data.query}
-                    onChange={event => change(event, () => fetch(data.query))}
-                    label={i18n.t("Search Collection", {
-                      context: "product search input label"
-                    })}
-                    placeholder={i18n.t(
-                      "Search by product name, attribute, product type etc...",
-                      {
-                        context: "product search input placeholder"
-                      }
-                    )}
-                    fullWidth
-                    InputProps={{
-                      autoComplete: "off",
-                      endAdornment: loading && <CircularProgress size={16} />
-                    }}
-                  />
-                )}
-              </Debounce>
-              <FormSpacer />
-              <Table>
-                <TableBody>
-                  {collections &&
-                    collections.map(category => {
-                      const isChecked = !!data.collections.find(
-                        selectedCollection =>
-                          selectedCollection.id === category.id
-                      );
+  }: AssignCollectionDialogProps) => {
+    const [query, setQuery] = React.useState("");
+    const [selectedCollections, setSelectedCollections] = React.useState<
+      SearchCollections_collections_edges_node[]
+    >([]);
 
-                      return (
-                        <TableRow key={category.id}>
-                          <TableCell
-                            padding="checkbox"
-                            className={classes.checkboxCell}
-                          >
-                            <Checkbox
-                              checked={isChecked}
-                              onChange={() =>
-                                isChecked
-                                  ? change({
-                                      target: {
-                                        name: "collections",
-                                        value: data.collections.filter(
-                                          selectedCollection =>
-                                            selectedCollection.id !==
-                                            category.id
-                                        )
-                                      }
-                                    } as any)
-                                  : change({
-                                      target: {
-                                        name: "collections",
-                                        value: [...data.collections, category]
-                                      }
-                                    } as any)
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className={classes.wideCell}>
-                            {category.name}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={onClose}>
-                {i18n.t("Cancel", { context: "button" })}
-              </Button>
-              <ConfirmButton
-                transitionState={confirmButtonState}
-                color="primary"
-                variant="contained"
-                type="submit"
-              >
-                {i18n.t("Assign collections", { context: "button" })}
-              </ConfirmButton>
-            </DialogActions>
-          </>
-        )}
-      </Form>
-    </Dialog>
-  )
+    const handleQueryChange = (event: ChangeEvent) =>
+      onQueryChange(event, onFetch, setQuery);
+    const handleSubmit = () => onSubmit(selectedCollections);
+
+    return (
+      <Dialog
+        onClose={onClose}
+        open={open}
+        classes={{ paper: classes.overflow }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{i18n.t("Assign Collection")}</DialogTitle>
+        <DialogContent className={classes.overflow}>
+          <TextField
+            name="query"
+            value={query}
+            onChange={handleQueryChange}
+            label={i18n.t("Search Collection", {
+              context: "product search input label"
+            })}
+            placeholder={i18n.t("Search by collection name, etc...", {
+              context: "product search input placeholder"
+            })}
+            fullWidth
+            InputProps={{
+              autoComplete: "off",
+              endAdornment: loading && <CircularProgress size={16} />
+            }}
+          />
+          <FormSpacer />
+          <Table>
+            <TableBody>
+              {collections &&
+                collections.map(collection => {
+                  const isSelected = !!selectedCollections.find(
+                    selectedCollection =>
+                      selectedCollection.id === collection.id
+                  );
+
+                  return (
+                    <TableRow key={collection.id}>
+                      <TableCell
+                        padding="checkbox"
+                        className={classes.checkboxCell}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={() =>
+                            handleCollectionAssign(
+                              collection,
+                              isSelected,
+                              selectedCollections,
+                              setSelectedCollections
+                            )
+                          }
+                        />
+                      </TableCell>
+                      <TableCell className={classes.wideCell}>
+                        {collection.name}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>
+            {i18n.t("Cancel", { context: "button" })}
+          </Button>
+          <ConfirmButton
+            transitionState={confirmButtonState}
+            color="primary"
+            variant="contained"
+            type="submit"
+            onClick={handleSubmit}
+          >
+            {i18n.t("Assign collections", { context: "button" })}
+          </ConfirmButton>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 );
 AssignCollectionDialog.displayName = "AssignCollectionDialog";
 export default AssignCollectionDialog;

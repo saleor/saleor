@@ -1,15 +1,15 @@
 import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
-import * as React from "react";
+import React from "react";
 
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
+import Container from "@saleor/components/Container";
+import PageHeader from "@saleor/components/PageHeader";
 import i18n from "../../../i18n";
-import { PageListProps } from "../../../types";
+import { ListActions, PageListProps } from "../../../types";
 import { VoucherList_vouchers_edges_node } from "../../types/VoucherList";
 import VoucherList from "../VoucherList";
 
-export interface VoucherListPageProps extends PageListProps {
+export interface VoucherListPageProps extends PageListProps, ListActions {
   defaultCurrency: string;
   vouchers: VoucherList_vouchers_edges_node[];
 }
@@ -22,11 +22,16 @@ const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
   onPreviousPage,
   onRowClick,
   pageInfo,
-  vouchers
+  vouchers,
+  isChecked,
+  selected,
+  toggle,
+  toggleAll,
+  toolbar
 }) => (
   <Container>
     <PageHeader title={i18n.t("Vouchers")}>
-      <Button onClick={onAdd} variant="contained" color="secondary">
+      <Button onClick={onAdd} variant="contained" color="primary">
         {i18n.t("Add voucher")}
         <AddIcon />
       </Button>
@@ -39,6 +44,11 @@ const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
       onRowClick={onRowClick}
       pageInfo={pageInfo}
       vouchers={vouchers}
+      isChecked={isChecked}
+      selected={selected}
+      toggle={toggle}
+      toggleAll={toggleAll}
+      toolbar={toolbar}
     />
   </Container>
 );

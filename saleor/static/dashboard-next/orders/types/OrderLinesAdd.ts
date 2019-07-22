@@ -1,7 +1,8 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderLineCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
+import { OrderLineCreateInput, OrderEventsEmailsEnum, OrderEventsEnum, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLinesAdd
@@ -37,6 +38,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_billingAddress {
 
 export interface OrderLinesAdd_draftOrderLinesCreate_order_events_user {
   __typename: "User";
+  id: string;
   email: string;
 }
 
@@ -46,10 +48,10 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_events {
   amount: number | null;
   date: any | null;
   email: string | null;
-  emailType: OrderEventsEmails | null;
+  emailType: OrderEventsEmailsEnum | null;
   message: string | null;
   quantity: number | null;
-  type: OrderEvents | null;
+  type: OrderEventsEnum | null;
   user: OrderLinesAdd_draftOrderLinesCreate_order_events_user | null;
 }
 
@@ -71,6 +73,11 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_or
   net: OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine_unitPrice_net;
 }
 
+export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine {
   __typename: "OrderLine";
   id: string;
@@ -80,7 +87,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_or
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines_orderLine_thumbnail | null;
 }
 
 export interface OrderLinesAdd_draftOrderLinesCreate_order_fulfillments_lines {
@@ -117,6 +124,11 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_lines_unitPrice {
   net: OrderLinesAdd_draftOrderLinesCreate_order_lines_unitPrice_net;
 }
 
+export interface OrderLinesAdd_draftOrderLinesCreate_order_lines_thumbnail {
+  __typename: "Image";
+  url: string;
+}
+
 export interface OrderLinesAdd_draftOrderLinesCreate_order_lines {
   __typename: "OrderLine";
   id: string;
@@ -126,7 +138,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order_lines {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderLinesAdd_draftOrderLinesCreate_order_lines_unitPrice | null;
-  thumbnailUrl: string | null;
+  thumbnail: OrderLinesAdd_draftOrderLinesCreate_order_lines_thumbnail | null;
 }
 
 export interface OrderLinesAdd_draftOrderLinesCreate_order_shippingAddress_country {
@@ -257,7 +269,7 @@ export interface OrderLinesAdd_draftOrderLinesCreate_order {
 export interface OrderLinesAdd_draftOrderLinesCreate {
   __typename: "DraftOrderLinesCreate";
   errors: OrderLinesAdd_draftOrderLinesCreate_errors[] | null;
-  order: OrderLinesAdd_draftOrderLinesCreate_order;
+  order: OrderLinesAdd_draftOrderLinesCreate_order | null;
 }
 
 export interface OrderLinesAdd {

@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 // This file was automatically generated and should not be edited.
 
 // ====================================================
@@ -10,7 +11,7 @@ export interface PageList_pages_edges_node {
   id: string;
   title: string;
   slug: string;
-  isVisible: boolean | null;
+  isPublished: boolean;
 }
 
 export interface PageList_pages_edges {

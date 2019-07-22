@@ -9,8 +9,8 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as classNames from "classnames";
-import * as React from "react";
+import classNames from "classnames";
+import React from "react";
 
 import i18n from "../../i18n";
 import ConfirmButton, {
@@ -34,7 +34,7 @@ interface ActionDialogProps extends WithStyles<typeof styles> {
   confirmButtonState: ConfirmButtonTransitionState;
   open: boolean;
   title: string;
-  variant?: string;
+  variant?: "default" | "delete";
   onClose?();
   onConfirm();
 }
@@ -51,7 +51,7 @@ const ActionDialog = withStyles(styles, { name: "ActionDialog" })(
     onConfirm,
     onClose
   }: ActionDialogProps) => (
-    <Dialog open={open}>
+    <Dialog onClose={onClose} open={open}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>{children}</DialogContent>
       <DialogActions>

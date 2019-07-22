@@ -1,13 +1,17 @@
 import gql from "graphql-tag";
 
+import BaseSearch from "../containers/BaseSearch";
 import { TypedQuery } from "../queries";
 import { OrderDetails, OrderDetailsVariables } from "./types/OrderDetails";
+import {
+  OrderDraftList,
+  OrderDraftListVariables
+} from "./types/OrderDraftList";
 import { OrderList, OrderListVariables } from "./types/OrderList";
 import {
-  OrderVariantSearch,
-  OrderVariantSearchVariables
-} from "./types/OrderVariantSearch";
-import { UserSearch, UserSearchVariables } from "./types/UserSearch";
+  SearchOrderVariant as SearchOrderVariantType,
+  SearchOrderVariantVariables
+} from "./types/SearchOrderVariant";
 
 export const fragmentOrderEvent = gql`
   fragment OrderEventFragment on OrderEvent {
@@ -20,6 +24,7 @@ export const fragmentOrderEvent = gql`
     quantity
     type
     user {
+      id
       email
     }
   }
@@ -62,7 +67,9 @@ export const fragmentOrderLine = gql`
         currency
       }
     }
-    thumbnailUrl
+    thumbnail {
+      url
+    }
   }
 `;
 
@@ -162,6 +169,7 @@ export const orderListQuery = gql`
     $last: Int
     $before: String
     $status: OrderStatusFilter
+    $filter: OrderFilterInput
   ) {
     orders(
       before: $before
@@ -169,6 +177,7 @@ export const orderListQuery = gql`
       first: $first
       last: $last
       status: $status
+      filter: $filter
     ) {
       edges {
         node {
@@ -205,6 +214,51 @@ export const TypedOrderListQuery = TypedQuery<OrderList, OrderListVariables>(
   orderListQuery
 );
 
+export const orderDraftListQuery = gql`
+  ${fragmentAddress}
+  query OrderDraftList(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    draftOrders(before: $before, after: $after, first: $first, last: $last) {
+      edges {
+        node {
+          __typename
+          billingAddress {
+            ...AddressFragment
+          }
+          created
+          id
+          number
+          paymentStatus
+          status
+          total {
+            __typename
+            gross {
+              __typename
+              amount
+              currency
+            }
+          }
+          userEmail
+        }
+      }
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`;
+export const TypedOrderDraftListQuery = TypedQuery<
+  OrderDraftList,
+  OrderDraftListVariables
+>(orderDraftListQuery);
+
 export const orderDetailsQuery = gql`
   ${fragmentOrderDetails}
   query OrderDetails($id: ID!) {
@@ -225,9 +279,9 @@ export const TypedOrderDetailsQuery = TypedQuery<
   OrderDetailsVariables
 >(orderDetailsQuery);
 
-export const orderVariantSearchQuery = gql`
-  query OrderVariantSearch($search: String!, $after: String) {
-    products(query: $search, first: 5, after: $after) {
+export const searchOrderVariant = gql`
+  query SearchOrderVariant($first: Int!, $query: String!, $after: String) {
+    products(query: $query, first: $first, after: $after) {
       edges {
         node {
           id
@@ -255,23 +309,7 @@ export const orderVariantSearchQuery = gql`
     }
   }
 `;
-export const TypedOrderVariantSearch = TypedQuery<
-  OrderVariantSearch,
-  OrderVariantSearchVariables
->(orderVariantSearchQuery);
-
-export const userSearchQuery = gql`
-  query UserSearch($search: String!) {
-    customers(query: $search, first: 5) {
-      edges {
-        node {
-          id
-          email
-        }
-      }
-    }
-  }
-`;
-export const TypedUserSearch = TypedQuery<UserSearch, UserSearchVariables>(
-  userSearchQuery
-);
+export const SearchOrderVariant = BaseSearch<
+  SearchOrderVariantType,
+  SearchOrderVariantVariables
+>(searchOrderVariant);

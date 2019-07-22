@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0067_auto_20181102_1054'),
-    ]
+    dependencies = [("order", "0067_auto_20181102_1054")]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='checkout_token',
+            model_name="order",
+            name="checkout_token",
             field=models.CharField(blank=True, max_length=36),
-        ),
+        )
     ]

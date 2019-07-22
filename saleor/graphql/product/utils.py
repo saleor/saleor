@@ -1,6 +1,6 @@
 from django.utils.text import slugify
 
-from ...product.models import Attribute, AttributeValue
+from ...product.models import Attribute
 
 
 def attributes_to_hstore(attribute_value_input, attributes_queryset):
@@ -13,17 +13,20 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
     attributes_map = {attr.slug: attr.id for attr in attributes_queryset}
 
     attributes_hstore = {}
-    values_map = dict(
-        AttributeValue.objects.values_list('slug', 'id'))
+
+    values_map = {}
+    for attr in attributes_queryset:
+        for value in attr.values.all():
+            values_map[value.slug] = value.id
 
     for attribute in attribute_value_input:
-        attr_slug = attribute.get('slug')
+        attr_slug = attribute.get("slug")
         if attr_slug not in attributes_map:
             raise ValueError(
-                'Attribute %r doesn\'t belong to given product type.' % (
-                    attr_slug,))
+                "Attribute %r doesn't belong to given product type." % (attr_slug,)
+            )
 
-        value = attribute.get('value')
+        value = attribute.get("value")
         if not value:
             continue
 
@@ -34,16 +37,9 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
             # `value_id` was not found; create a new AttributeValue
             # instance from the provided `value`.
             attr_instance = Attribute.objects.get(slug=attr_slug)
-            obj = attr_instance.values.get_or_create(
-                name=value, slug=slugify(value))[0]
+            obj = attr_instance.values.get_or_create(name=value, slug=slugify(value))[0]
             value_id = obj.pk
 
         attributes_hstore[str(attribute_id)] = str(value_id)
 
     return attributes_hstore
-
-
-def validate_image_file(mutation_cls, file, field_name, errors):
-    """Validate if the file is an image."""
-    if not file.content_type.startswith('image/'):
-        mutation_cls.add_error(errors, field_name, 'Invalid file type')

@@ -7,9 +7,9 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import * as React from "react";
+import React from "react";
 
-import CardTitle from "../../../components/CardTitle";
+import CardTitle from "@saleor/components/CardTitle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductDetails_product } from "../../types/ProductDetails";
@@ -29,12 +29,13 @@ interface ProductStockProps extends WithStyles<typeof styles> {
     stockQuantity: number;
   };
   disabled: boolean;
+  errors: { [key: string]: string };
   product: ProductDetails_product;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const ProductStock = withStyles(styles, { name: "ProductStock" })(
-  ({ classes, data, disabled, product, onChange }: ProductStockProps) => (
+  ({ classes, data, disabled, product, onChange, errors }: ProductStockProps) => (
     <Card>
       <CardTitle title={i18n.t("Inventory")} />
       <CardContent>
@@ -45,6 +46,8 @@ const ProductStock = withStyles(styles, { name: "ProductStock" })(
             label={i18n.t("SKU (Stock Keeping Unit)")}
             value={data.sku}
             onChange={onChange}
+            error={!!errors.sku}
+            helperText={errors.sku}
           />
           <TextField
             disabled={disabled}
@@ -53,9 +56,13 @@ const ProductStock = withStyles(styles, { name: "ProductStock" })(
             value={data.stockQuantity}
             type="number"
             onChange={onChange}
-            helperText={i18n.t("Allocated: {{ quantity }}", {
-              quantity: maybe(() => product.variants[0].quantityAllocated)
-            })}
+            helperText={
+              product
+                ? i18n.t("Allocated: {{ quantity }}", {
+                    quantity: maybe(() => product.variants[0].quantityAllocated)
+                  })
+                : undefined
+            }
           />
         </div>
       </CardContent>

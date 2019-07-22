@@ -4,11 +4,11 @@ import {
   withStyles,
   WithStyles
 } from "@material-ui/core/styles";
-import * as React from "react";
+import React from "react";
 
-import Link from "../../../components/Link";
-import Money from "../../../components/Money";
-import Skeleton from "../../../components/Skeleton";
+import Link from "@saleor/components/Link";
+import Money from "@saleor/components/Money";
+import Skeleton from "@saleor/components/Skeleton";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
@@ -16,7 +16,7 @@ import { OrderDetails_order } from "../../types/OrderDetails";
 const styles = (theme: Theme) =>
   createStyles({
     root: {
-      ...theme.typography.body1,
+      ...theme.typography.body2,
       lineHeight: 1.9,
       width: "100%"
     },

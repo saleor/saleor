@@ -7,14 +7,16 @@ import saleor.core.utils.json_serializer
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0055_remove_order_note_order_history_entry'),
-    ]
+    dependencies = [("order", "0055_remove_order_note_order_history_entry")]
 
     operations = [
         migrations.AlterField(
-            model_name='orderevent',
-            name='parameters',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict, encoder=saleor.core.utils.json_serializer.CustomJsonEncoder),
-        ),
+            model_name="orderevent",
+            name="parameters",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True,
+                default=dict,
+                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+            ),
+        )
     ]
