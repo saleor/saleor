@@ -53,11 +53,15 @@ from .mutations.products import (
     CategoryUpdateMeta,
     CategoryUpdatePrivateMeta,
     CollectionAddProducts,
+    CollectionClearMeta,
+    CollectionClearPrivateMeta,
     CollectionCreate,
     CollectionDelete,
     CollectionRemoveProducts,
     CollectionReorderProducts,
     CollectionUpdate,
+    CollectionUpdateMeta,
+    CollectionUpdatePrivateMeta,
     ProductClearMeta,
     ProductClearPrivateMeta,
     ProductCreate,
@@ -313,6 +317,10 @@ class ProductMutations(graphene.ObjectType):
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
     collection_translate = CollectionTranslate.Field()
+    collection_update_metadata = CollectionUpdateMeta.Field()
+    collection_clear_metadata = CollectionClearMeta.Field()
+    collection_update_private_metadata = CollectionUpdatePrivateMeta.Field()
+    collection_clear_private_metadata = CollectionClearPrivateMeta.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()

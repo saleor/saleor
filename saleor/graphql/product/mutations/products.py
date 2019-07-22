@@ -330,16 +330,48 @@ class CollectionRemoveProducts(BaseMutation):
         return CollectionRemoveProducts(collection=collection)
 
 
+class CollectionUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.Collection
+        description = "Update public metadata for Collection"
+        permissions = ("product.manage_products",)
+
+
+class CollectionClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        model = models.Collection
+        description = "Clears public metadata item for Collection"
+        permissions = ("product.manage_products",)
+
+
+class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.Collection
+        public = False
+        description = "Update public metadata for Collection"
+        permissions = ("product.manage_products",)
+
+
+class CollectionClearPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        model = models.Collection
+        public = False
+        description = "Clears public metadata item for Collection"
+        permissions = ("product.manage_products",)
+
+
 class CategoryUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Update public metadata for category"
+        permissions = ("product.manage_products",)
 
 
 class CategoryClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Clears public metadata item for category"
+        permissions = ("product.manage_products",)
 
 
 class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -347,6 +379,7 @@ class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
         model = models.Category
         public = False
         description = "Update public metadata for category"
+        permissions = ("product.manage_products",)
 
 
 class CategoryClearPrivateMeta(ClearMetaBaseMutation):
@@ -354,6 +387,7 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
         model = models.Category
         public = False
         description = "Clears public metadata item for category"
+        permissions = ("product.manage_products",)
 
 
 class AttributeValueInput(InputObjectType):
