@@ -42,6 +42,15 @@ storiesOf("Views / Product types / Product type details", module)
       productType={undefined}
     />
   ))
+  .add("no attributes", () => (
+    <ProductTypeDetailsPage
+      {...props}
+      productType={{
+        ...productType,
+        productAttributes: []
+      }}
+    />
+  ))
   .add("form errors", () => (
     <ProductTypeDetailsPage
       {...props}
