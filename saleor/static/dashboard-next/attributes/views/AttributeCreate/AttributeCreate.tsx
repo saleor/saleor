@@ -1,4 +1,5 @@
 import React from "react";
+import slugify from "slugify";
 
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
@@ -104,8 +105,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
                         0
                       ),
                       values: values.map(value => ({
-                        name: value.name,
-                        value: value.slug
+                        name: value.name
                       }))
                     }
                   }
@@ -119,6 +119,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
               values={values.map((value, valueIndex) => ({
                 __typename: "AttributeValue" as "AttributeValue",
                 id: valueIndex.toString(),
+                slug: slugify(value.name).toLowerCase(),
                 sortOrder: null,
                 type: null,
                 value: null,
