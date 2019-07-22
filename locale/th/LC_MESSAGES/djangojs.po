@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-07-17 04:57-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Jakkrit S <jakkrit@ppsmartbot.com>, 2019\n"
 "Language-Team: Thai (https://www.transifex.com/mirumee/teams/34782/th/)\n"
@@ -324,45 +324,6 @@ msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "ลิ๊งค์"
 
-#: saleor/static/dashboard/js/components/editor.js:61
-msgctxt "Rich text editor option"
-msgid "Image (converts selected text to an image tag)"
-msgstr "ภาพ (เปลี่ยนข้อความที่เลือกไว้เป็น image tag)"
-
-#: saleor/static/dashboard/js/components/editor.js:66
-msgctxt "Rich text editor option"
-msgid "Left align"
-msgstr "ชิดขอบซ้าย"
-
-#: saleor/static/dashboard/js/components/editor.js:71
-msgctxt "Rich text editor option"
-msgid "Center align"
-msgstr "เรียงแนวกลาง"
-
-#: saleor/static/dashboard/js/components/editor.js:76
-msgctxt "Rich text editor option"
-msgid "Right align"
-msgstr "ชิดขอบขวา"
-
-#: saleor/static/dashboard/js/components/editor.js:81
-msgctxt "Rich text editor option"
-msgid "Justify"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/editor.js:86
-msgctxt "Rich text editor option"
-msgid "Remove formatting"
-msgstr "ยกเลือกการทำรูปแบบ"
-
-#: saleor/static/dashboard/js/components/google-preview.js:46
-msgid ""
-"Your input might be a little too short, think of something more descriptive"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/google-preview.js:50
-msgid "Your input fits between the recommended lengths"
-msgstr ""
-
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"
 msgid "Quantity"
@@ -370,5 +331,5 @@ msgstr "จำนวน"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to checkout"
+msgid "Add to cart"
 msgstr ""
