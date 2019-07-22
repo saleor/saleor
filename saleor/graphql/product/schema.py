@@ -63,6 +63,10 @@ from .mutations.products import (
     ProductTypeCreate,
     ProductTypeDelete,
     ProductTypeUpdate,
+    ProductTypeUpdateMeta,
+    ProductTypeClearMeta,
+    ProductTypeUpdatePrivateMeta,
+    ProductTypeClearPrivateMeta,
     ProductUpdate,
     ProductUpdateMeta,
     ProductClearMeta,
@@ -323,6 +327,10 @@ class ProductMutations(graphene.ObjectType):
     product_type_delete = ProductTypeDelete.Field()
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
+    product_type_update_metadata = ProductTypeUpdateMeta.Field()
+    product_type_clear_metadata = ProductTypeClearMeta.Field()
+    product_type_update_private_metadata = ProductTypeUpdatePrivateMeta.Field()
+    product_type_clear_private_metadata = ProductTypeClearPrivateMeta.Field()
 
     digital_content_create = DigitalContentCreate.Field()
     digital_content_delete = DigitalContentDelete.Field()
