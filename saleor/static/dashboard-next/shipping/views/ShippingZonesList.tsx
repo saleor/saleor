@@ -4,6 +4,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
+import { configurationMenuUrl } from "@saleor/configuration";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
@@ -12,8 +13,6 @@ import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
 import useShop from "@saleor/hooks/useShop";
-
-import { configurationMenuUrl } from "@saleor/configuration";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
 import { Lists } from "@saleor/types";
@@ -48,7 +47,6 @@ export const ShippingZonesList: React.StatelessComponent<
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-
   const { updateListSettings, listSettings } = useListSettings(
     Lists.SHIPPING_METHODS_LIST
   );

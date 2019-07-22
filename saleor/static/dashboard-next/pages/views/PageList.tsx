@@ -5,6 +5,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
+import { configurationMenuUrl } from "@saleor/configuration";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
@@ -12,8 +13,6 @@ import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-
-import { configurationMenuUrl } from "@saleor/configuration";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
 import { Lists } from "@saleor/types";
@@ -46,7 +45,6 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
   const { updateListSettings, listSettings } = useListSettings(
     Lists.PAGES_LIST
   );
-
   const paginationState = createPaginationState(
     listSettings.PAGES_LIST.rowNumber,
     params

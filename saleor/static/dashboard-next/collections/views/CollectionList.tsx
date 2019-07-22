@@ -12,9 +12,9 @@ import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
-import { Lists } from "../../types";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { Lists } from "@saleor/types";
 import CollectionListPage from "../components/CollectionListPage/CollectionListPage";
 import {
   TypedCollectionBulkDelete,
@@ -44,7 +44,6 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-
   const { updateListSettings, listSettings } = useListSettings(
     Lists.COLLECTION_LIST
   );

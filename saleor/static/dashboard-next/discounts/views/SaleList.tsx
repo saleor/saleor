@@ -41,7 +41,6 @@ export const SaleList: React.StatelessComponent<SaleListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-
   const { updateListSettings, listSettings } = useListSettings(
     Lists.SALES_LIST
   );

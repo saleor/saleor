@@ -16,9 +16,9 @@ import Checkbox from "@saleor/components/Checkbox";
 import Skeleton from "@saleor/components/Skeleton";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
-import i18n from "../../../i18n";
-import { getUserName, maybe, renderCollection } from "../../../misc";
-import { ListActions, ListProps } from "../../../types";
+import i18n from "@saleor/i18n";
+import { getUserName, maybe, renderCollection } from "@saleor/misc";
+import { ListActions, ListProps } from "@saleor/types";
 import { ListCustomers_customers_edges_node } from "../../types/ListCustomers";
 
 const styles = (theme: Theme) =>

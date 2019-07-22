@@ -10,10 +10,9 @@ import useNavigator from "@saleor/hooks/useNavigator";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
-import { Lists } from "../../types";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { Lists } from "@saleor/types";
 import { CategoryListPage } from "../components/CategoryListPage/CategoryListPage";
 import { TypedCategoryBulkDeleteMutation } from "../mutations";
 import { TypedRootCategoriesQuery } from "../queries";
@@ -40,8 +39,10 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
   const { updateListSettings, listSettings } = useListSettings(
     Lists.CATEGORY_LIST
   );
-
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(
+    listSettings.CATEGORY_LIST.rowNumber,
+    params
+  );
   return (
     <TypedRootCategoriesQuery displayLoader variables={paginationState}>
       {({ data, loading, refetch }) => {

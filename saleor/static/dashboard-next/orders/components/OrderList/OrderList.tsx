@@ -18,14 +18,14 @@ import Skeleton from "@saleor/components/Skeleton";
 import StatusLabel from "@saleor/components/StatusLabel";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
-import i18n from "../../../i18n";
+import i18n from "@saleor/i18n";
 import {
   maybe,
   renderCollection,
   transformOrderStatus,
   transformPaymentStatus
-} from "../../../misc";
-import { ListActions, ListProps } from "../../../types";
+} from "@saleor/misc";
+import { ListActions, ListProps } from "@saleor/types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 
 const styles = (theme: Theme) =>

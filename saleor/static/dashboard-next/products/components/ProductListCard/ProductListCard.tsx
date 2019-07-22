@@ -6,14 +6,14 @@ import React from "react";
 import Container from "@saleor/components/Container";
 import PageHeader from "@saleor/components/PageHeader";
 import ProductList from "@saleor/components/ProductList";
-import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
-import i18n from "../../../i18n";
+import i18n from "@saleor/i18n";
 import {
   FilterPageProps,
   ListActions,
   ListSettings,
   PageListProps
-} from "../../../types";
+} from "@saleor/types";
+import { CategoryDetails_category_products_edges_node } from "../../../categories/types/CategoryDetails";
 import { ProductListUrlFilters } from "../../urls";
 import ProductListFilter from "../ProductListFilter";
 

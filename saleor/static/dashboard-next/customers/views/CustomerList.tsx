@@ -38,7 +38,6 @@ export const CustomerList: React.StatelessComponent<CustomerListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-
   const { updateListSettings, listSettings } = useListSettings(
     Lists.CUSTOMER_LIST
   );
