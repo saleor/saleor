@@ -25,6 +25,7 @@ import {
   ProductImageCreate,
   ProductImageCreateVariables
 } from "../types/ProductImageCreate";
+import { ProductUpdate } from "../types/ProductUpdate";
 import { ProductVariantBulkDelete } from "../types/ProductVariantBulkDelete";
 import {
   productImageUrl,
@@ -65,8 +66,19 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   notify({ text: i18n.t("Product removed") });
                   navigate(productListUrl());
                 };
-                const handleUpdate = () =>
-                  notify({ text: i18n.t("Saved changes") });
+                const handleUpdate = (data: ProductUpdate) => {
+                  if (data.productUpdate.errors.length === 0) {
+                    notify({ text: i18n.t("Saved changes") });
+                  } else {
+                    const attributeError = data.productUpdate.errors.find(
+                      err => err.field === "attributes"
+                    );
+                    if (!!attributeError) {
+                      notify({ text: attributeError.message });
+                    }
+                  }
+                };
+
                 const handleImageCreate = (data: ProductImageCreate) => {
                   const imageError = data.productImageCreate.errors.find(
                     error =>
