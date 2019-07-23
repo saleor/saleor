@@ -18,9 +18,9 @@ import IconButtonTableCell from "@saleor/components/IconButtonTableCell";
 import Skeleton from "@saleor/components/Skeleton";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
-import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
-import { ListActions, ListProps } from "../../../types";
+import i18n from "@saleor/i18n";
+import { maybe, renderCollection } from "@saleor/misc";
+import { ListActions, ListProps } from "@saleor/types";
 import { MenuList_menus_edges_node } from "../../types/MenuList";
 
 export interface MenuListProps extends ListProps, ListActions {
@@ -47,12 +47,14 @@ const styles = (theme: Theme) =>
 const MenuList = withStyles(styles, { name: "MenuList" })(
   ({
     classes,
+    settings,
     disabled,
     isChecked,
     menus,
     onDelete,
     onNextPage,
     onPreviousPage,
+    onUpdateListSettings,
     onRowClick,
     pageInfo,
     selected,
@@ -80,8 +82,10 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
           <TableRow>
             <TablePagination
               colSpan={4}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }
