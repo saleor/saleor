@@ -41,12 +41,12 @@ export default (colors: IThemeColors): Theme =>
             backgroundColor: fade(colors.primary, 0.12)
           }
         },
-        flatPrimary: {
+        flat: {
           "& span": {
             color: colors.textColor
           }
         },
-        flat: {
+        flatPrimary: {
           "& span": {
             color: colors.textColor
           }
