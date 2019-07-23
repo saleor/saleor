@@ -409,6 +409,8 @@ type Checkout implements Node {
   voucherCode: String
   giftCards: [GiftCard]
   id: ID!
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   availableShippingMethods: [ShippingMethod]!
   availablePaymentGateways: [GatewaysEnum]!
   email: String!
@@ -425,6 +427,16 @@ type CheckoutAddPromoCode {
 }
 
 type CheckoutBillingAddressUpdate {
+  errors: [Error!]
+  checkout: Checkout
+}
+
+type CheckoutClearStoredMeta {
+  errors: [Error!]
+  checkout: Checkout
+}
+
+type CheckoutClearStoredPrivateMeta {
   errors: [Error!]
   checkout: Checkout
 }
@@ -528,6 +540,16 @@ type CheckoutShippingAddressUpdate {
 }
 
 type CheckoutShippingMethodUpdate {
+  errors: [Error!]
+  checkout: Checkout
+}
+
+type CheckoutUpdateMeta {
+  errors: [Error!]
+  checkout: Checkout
+}
+
+type CheckoutUpdatePrivateMeta {
   errors: [Error!]
   checkout: Checkout
 }
@@ -1780,6 +1802,10 @@ type Mutations {
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
+  checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta
+  checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredMeta
+  checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
+  checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredPrivateMeta
   passwordReset(email: String!): PasswordReset
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   customerCreate(input: UserCreateInput!): CustomerCreate
