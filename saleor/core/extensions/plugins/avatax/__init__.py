@@ -6,12 +6,10 @@ from urllib.parse import urljoin
 
 import requests
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.utils.translation import pgettext_lazy
 from requests.auth import HTTPBasicAuth
-
-from ....taxes import charge_taxes_on_shipping, include_taxes_in_prices
-from ....utils import get_company_address  # FIXME shouldn't use logic from saleor
 
 if TYPE_CHECKING:
     from .....checkout.models import Checkout
@@ -171,7 +169,7 @@ def append_line_to_data(
     tax_included: Optional[bool] = None,
 ):
     if tax_included is None:
-        tax_included = include_taxes_in_prices()
+        tax_included = Site.objects.get_current().settings.include_taxes_in_prices
     data.append(
         {
             "quantity": quantity,
@@ -210,7 +208,10 @@ def get_checkout_lines_data(
             description=description,
         )
 
-    if charge_taxes_on_shipping() and checkout.shipping_method:
+    charge_taxes_on_shipping = (
+        Site.objects.get_current().settings.charge_taxes_on_shipping
+    )
+    if charge_taxes_on_shipping and checkout.shipping_method:
         append_line_to_data(
             data,
             quantity=1,
@@ -253,7 +254,10 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
             description=order.discount_name,
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
-    if charge_taxes_on_shipping() and order.shipping_method:
+    charge_taxes_on_shipping = (
+        Site.objects.get_current().settings.charge_taxes_on_shipping
+    )
+    if charge_taxes_on_shipping and order.shipping_method:
         append_line_to_data(
             data,
             quantity=1,
@@ -274,7 +278,7 @@ def generate_request_data(
     commit=False,
     currency=settings.DEFAULT_CURRENCY,
 ):
-    company_address = get_company_address()
+    company_address = Site.objects.get_current().settings.company_address
     if company_address:
         company_address = company_address.as_data()
     else:

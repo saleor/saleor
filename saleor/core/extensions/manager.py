@@ -8,11 +8,11 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ..taxes import TaxType, quantize_price
 
 if TYPE_CHECKING:
+    from .plugin import BasePlugin
     from ...checkout.models import Checkout, CheckoutLine
     from ...product.models import Product
     from ...account.models import Address
     from ...order.models import OrderLine, Order
-    from .plugin import BasePlugin
 
 
 class ExtensionsManager:

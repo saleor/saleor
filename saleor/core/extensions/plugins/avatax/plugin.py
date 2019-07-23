@@ -6,7 +6,6 @@ from urllib.parse import urljoin
 from django.conf import settings
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from .....checkout import models as checkout_models
 from ....taxes import TaxType, zero_taxed_money
 from ....taxes.errors import TaxError
 from ...plugin import BasePlugin
@@ -26,7 +25,7 @@ from . import (
 from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
-    from .....checkout.models import Checkout
+    from .....checkout.models import Checkout, CheckoutLine
     from .....order.models import Order, OrderLine
 
 logger = logging.getLogger(__name__)
@@ -56,7 +55,7 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_total(
         self,
-        checkout: "checkout_models.Checkout",
+        checkout: "Checkout",
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -83,7 +82,7 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_subtotal(
         self,
-        checkout: "checkout_models.Checkout",
+        checkout: "Checkout",
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -114,7 +113,7 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_shipping(
         self,
-        checkout: "checkout_models.Checkout",
+        checkout: "Checkout",
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -182,7 +181,7 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
-        checkout_line: "checkout_models.CheckoutLine",
+        checkout_line: "CheckoutLine",
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
