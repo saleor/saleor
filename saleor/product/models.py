@@ -25,10 +25,14 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
 from ..core.fields import SanitizedJSONField
-from ..core.models import PublishableModel, PublishedQuerySet, SortableModel
+from ..core.models import (
+    ModelWithMetadata,
+    PublishableModel,
+    PublishedQuerySet,
+    SortableModel,
+)
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
-from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
@@ -36,7 +40,7 @@ from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 
 
-class Category(MPTTModel, SeoModel):
+class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
@@ -87,7 +91,7 @@ class CategoryTranslation(SeoModelTranslation):
         )
 
 
-class ProductType(models.Model):
+class ProductType(ModelWithMetadata):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
@@ -95,7 +99,6 @@ class ProductType(models.Model):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
-    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         app_label = "product"
@@ -122,7 +125,7 @@ class ProductsQueryset(PublishedQuerySet):
         return qs
 
 
-class Product(SeoModel, PublishableModel):
+class Product(SeoModel, ModelWithMetadata, PublishableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
     )
@@ -145,8 +148,6 @@ class Product(SeoModel, PublishableModel):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
-    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
-
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 
@@ -237,7 +238,7 @@ class ProductTranslation(SeoModelTranslation):
         )
 
 
-class ProductVariant(models.Model):
+class ProductVariant(ModelWithMetadata):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
@@ -377,7 +378,7 @@ class ProductVariantTranslation(models.Model):
         return self.name or str(self.product_variant)
 
 
-class DigitalContent(models.Model):
+class DigitalContent(ModelWithMetadata):
     FILE = "file"
     TYPE_CHOICES = (
         (FILE, pgettext_lazy("File as a digital product", "digital_product")),
@@ -423,7 +424,7 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
-class Attribute(models.Model):
+class Attribute(ModelWithMetadata):
     slug = models.SlugField(max_length=50)
     name = models.CharField(max_length=50)
     product_type = models.ForeignKey(
@@ -560,7 +561,7 @@ class CollectionProduct(SortableModel):
         return self.product.collectionproduct.all()
 
 
-class Collection(SeoModel, PublishableModel):
+class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
     products = models.ManyToManyField(

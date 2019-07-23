@@ -23,7 +23,13 @@ from ..account.enums import AddressTypeEnum
 from ..account.i18n import I18nMixin
 from ..account.types import Address, AddressInput, User
 from ..core.enums import PermissionEnum
-from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ..core.mutations import (
+    BaseMutation,
+    ClearMetaBaseMutation,
+    ModelDeleteMutation,
+    ModelMutation,
+    UpdateMetaBaseMutation,
+)
 from ..core.types import Upload
 from ..core.utils import validate_image_file
 from .utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
@@ -783,3 +789,33 @@ class UserAvatarDelete(BaseMutation):
         user.avatar.delete_sized_images()
         user.avatar.delete()
         return UserAvatarDelete(user=user)
+
+
+class UserUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates metadata for user."
+        model = models.User
+        public = True
+
+
+class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates private metadata for user."
+        permissions = ("account.manage_users",)
+        model = models.User
+        public = False
+
+
+class UserClearStoredMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clear stored metadata value."
+        model = models.User
+        public = True
+
+
+class UserClearStoredPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clear stored metadata value."
+        model = models.User
+        permissions = ("account.manage_users",)
+        public = False
