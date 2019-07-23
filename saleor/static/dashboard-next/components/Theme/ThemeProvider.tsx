@@ -27,7 +27,7 @@ const dark: IThemeColors = {
     focused: "#25262A"
   },
   paperBorder: "#252728",
-  primary: "#13BEBB",
+  primary: "#06847B",
   secondary: "#21125E"
 };
 const light: IThemeColors = {
@@ -51,7 +51,7 @@ const light: IThemeColors = {
     focused: "#DCEBEB"
   },
   paperBorder: "#EAEAEA",
-  primary: "#13BEBB",
+  primary: "#06847B",
   secondary: "#21125E"
 };
 
