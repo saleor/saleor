@@ -3,9 +3,12 @@ import re
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
+from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
+from ...core.resolvers import resolve_meta, resolve_private_meta
+from ...core.types import MetadataObjectType
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
@@ -55,7 +58,7 @@ class AttributeValue(CountableDjangoObjectType):
         return resolve_attribute_value_type(root.value)
 
 
-class Attribute(CountableDjangoObjectType):
+class Attribute(CountableDjangoObjectType, MetadataObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     values = gql_optimizer.field(
@@ -86,6 +89,15 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_values(root: models.Attribute, *_args):
         return root.values.all()
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_private_meta(root, _info):
+        return resolve_private_meta(root, _info)
+
+    @staticmethod
+    def resolve_meta(root, _info):
+        return resolve_meta(root, _info)
 
 
 class SelectedAttribute(graphene.ObjectType):

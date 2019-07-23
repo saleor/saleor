@@ -29,6 +29,10 @@ from .mutations import (
     StaffUpdate,
     UserAvatarDelete,
     UserAvatarUpdate,
+    UserClearStoredMeta,
+    UserClearStoredPrivateMeta,
+    UserUpdateMeta,
+    UserUpdatePrivateMeta,
 )
 from .resolvers import resolve_address_validator, resolve_customers, resolve_staff_users
 from .types import AddressValidationData, User
@@ -127,3 +131,9 @@ class AccountMutations(graphene.ObjectType):
     user_avatar_update = UserAvatarUpdate.Field()
     user_avatar_delete = UserAvatarDelete.Field()
     user_bulk_set_active = UserBulkSetActive.Field()
+
+    user_update_metadata = UserUpdateMeta.Field()
+    user_clear_stored_metadata = UserClearStoredMeta.Field()
+
+    user_update_private_metadata = UserUpdatePrivateMeta.Field()
+    user_clear_stored_private_metadata = UserClearStoredPrivateMeta.Field()
