@@ -21,7 +21,7 @@ export const Draggable = createSvgIcon(
         y2="10.4478"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stopColor="#13BEBB" />
+        <stop stopColor="#06847B" />
         <stop offset="1" stopColor="#3EE7CD" />
       </linearGradient>
     </defs>
