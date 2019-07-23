@@ -78,32 +78,22 @@ class SetPassword(ModelMutation):
         account_events.customer_password_reset_event(user=instance)
 
 
-class CustomerPasswordResetInput(graphene.InputObjectType):
-    email = graphene.String(
-        required=True,
-        description=("Email of the user that will be used for password recovery."),
-    )
-
-
-class CustomerPasswordReset(BaseMutation):
+class PasswordReset(BaseMutation):
     class Arguments:
-        input = CustomerPasswordResetInput(
-            description="Fields required to reset customer's password", required=True
-        )
+        email = graphene.String(description="Email", required=True)
 
     class Meta:
-        description = "Resets the customer's password."
+        description = "Sends password reset email"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        email = data.get("input")["email"]
+    def perform_mutation(cls, _root, info, email):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
             raise ValidationError({"email": "User with this email doesn't exist"})
         site = info.context.site
         send_user_password_reset_email(user, site)
-        return CustomerPasswordReset()
+        return PasswordReset()
 
 
 class AddressUpdate(ModelMutation):

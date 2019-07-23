@@ -1289,7 +1289,7 @@ def test_set_password(user_api_client, customer_user):
 
 @patch("saleor.account.emails.send_password_reset_email.delay")
 def test_password_reset_email(
-    send_password_reset_mock, staff_api_client, customer_user, permission_manage_users
+    send_password_reset_mock, staff_api_client, customer_user
 ):
     query = """
     mutation ResetPassword($email: String!) {
@@ -1303,9 +1303,7 @@ def test_password_reset_email(
     """
     email = customer_user.email
     variables = {"email": email}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["passwordReset"]
     assert data == {"errors": []}
@@ -1321,7 +1319,7 @@ def test_password_reset_email(
 
 @patch("saleor.account.emails.send_password_reset_email.delay")
 def test_password_reset_email_non_existing_user(
-    send_password_reset_mock, staff_api_client, permission_manage_users
+    send_password_reset_mock, staff_api_client
 ):
     query = """
     mutation ResetPassword($email: String!) {
@@ -1335,9 +1333,7 @@ def test_password_reset_email_non_existing_user(
     """
     email = "not_exists@example.com"
     variables = {"email": email}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["passwordReset"]
     assert data["errors"] == [
