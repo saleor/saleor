@@ -12,6 +12,7 @@ const dark: IThemeColors = {
     default: "#1D1E1F",
     paper: "#2E2F31"
   },
+  buttonText: "#202124",
   error: "#C22D74",
   font: {
     default: "#FCFCFC",
@@ -28,7 +29,8 @@ const dark: IThemeColors = {
   },
   paperBorder: "#252728",
   primary: "#13BEBB",
-  secondary: "#21125E"
+  secondary: "#21125E",
+  textColor: "#FFFFFF"
 };
 const light: IThemeColors = {
   autofill: "#f4f6c5",
@@ -36,6 +38,7 @@ const light: IThemeColors = {
     default: "#F1F6F6",
     paper: "#FFFFFF"
   },
+  buttonText: "#FFFFFF",
   error: "#C22D74",
   font: {
     default: "#3D3D3D",
@@ -52,7 +55,8 @@ const light: IThemeColors = {
   },
   paperBorder: "#EAEAEA",
   primary: "#06847B",
-  secondary: "#21125E"
+  secondary: "#21125E",
+  textColor: "#06847B"
 };
 
 interface IThemeContext {
