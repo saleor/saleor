@@ -18,7 +18,7 @@ export const StaffMembers = createSvgIcon(
         y2="46.2508"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stopColor="#13BEBB" />
+        <stop stopColor="#06847B" />
         <stop offset="1" stopColor="#3EE7CD" />
       </linearGradient>
     </defs>

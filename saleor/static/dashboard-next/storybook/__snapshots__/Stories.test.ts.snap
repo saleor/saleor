@@ -17703,7 +17703,7 @@ Ctrl + K"
                       y2="23.5714"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -18358,7 +18358,7 @@ Ctrl + K"
                       y2="23.5714"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -18606,7 +18606,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.78"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18662,7 +18662,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.2508"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18718,7 +18718,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="47.1429"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18774,7 +18774,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="43.2798"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18836,7 +18836,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.8339"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18852,7 +18852,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="33.2176"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18908,7 +18908,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="47.2508"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18964,7 +18964,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.7403"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -19047,7 +19047,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="46.78"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -19103,7 +19103,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="43.2798"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -19165,7 +19165,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="46.8339"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -19181,7 +19181,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="33.2176"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -19237,7 +19237,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="46.7403"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -35918,7 +35918,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                       y2="46.3533"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -35979,7 +35979,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                       y2="40.6161"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -36624,7 +36624,7 @@ exports[`Storyshots Views / HomePage loading 1`] = `
                       y2="46.3533"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -36690,7 +36690,7 @@ exports[`Storyshots Views / HomePage loading 1`] = `
                       y2="40.6161"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -37027,7 +37027,7 @@ exports[`Storyshots Views / HomePage no data 1`] = `
                       y2="46.3533"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -37088,7 +37088,7 @@ exports[`Storyshots Views / HomePage no data 1`] = `
                       y2="40.6161"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -37467,7 +37467,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37598,7 +37598,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37729,7 +37729,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37856,7 +37856,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37983,7 +37983,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -67502,7 +67502,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                             y2="23.5714"
                           >
                             <stop
-                              stop-color="#13BEBB"
+                              stop-color="#06847B"
                             />
                             <stop
                               offset="1"
@@ -67903,7 +67903,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                             y2="23.5714"
                           >
                             <stop
-                              stop-color="#13BEBB"
+                              stop-color="#06847B"
                             />
                             <stop
                               offset="1"
@@ -68276,7 +68276,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                             y2="23.5714"
                           >
                             <stop
-                              stop-color="#13BEBB"
+                              stop-color="#06847B"
                             />
                             <stop
                               offset="1"
@@ -69240,7 +69240,7 @@ Ctrl + K"
                         y2="23.5714"
                       >
                         <stop
-                          stop-color="#13BEBB"
+                          stop-color="#06847B"
                         />
                         <stop
                           offset="1"
@@ -71616,7 +71616,7 @@ Ctrl + K"
                         y2="23.5714"
                       >
                         <stop
-                          stop-color="#13BEBB"
+                          stop-color="#06847B"
                         />
                         <stop
                           offset="1"
@@ -72985,7 +72985,7 @@ Ctrl + K"
                         y2="23.5714"
                       >
                         <stop
-                          stop-color="#13BEBB"
+                          stop-color="#06847B"
                         />
                         <stop
                           offset="1"
