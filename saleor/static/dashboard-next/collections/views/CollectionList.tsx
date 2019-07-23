@@ -14,7 +14,7 @@ import usePaginator, {
 } from "@saleor/hooks/usePaginator";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import CollectionListPage from "../components/CollectionListPage/CollectionListPage";
 import {
   TypedCollectionBulkDelete,
@@ -44,8 +44,8 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.COLLECTION_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.COLLECTION_LIST
   );
 
   const closeModal = () =>
@@ -66,10 +66,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
       })
     );
 
-  const paginationState = createPaginationState(
-    listSettings.COLLECTION_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
   return (
     <TypedCollectionListQuery displayLoader variables={paginationState}>
       {({ data, loading, refetch }) => {
@@ -136,7 +133,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
                         collections={maybe(() =>
                           data.collections.edges.map(edge => edge.node)
                         )}
-                        listSettings={listSettings.COLLECTION_LIST}
+                        settings={settings}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
                         onUpdateListSettings={updateListSettings}

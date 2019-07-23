@@ -64,7 +64,7 @@ const SaleList = withStyles(styles, {
 })(
   ({
     classes,
-    listSettings,
+    settings,
     defaultCurrency,
     disabled,
     onNextPage,
@@ -113,7 +113,7 @@ const SaleList = withStyles(styles, {
           <TableRow>
             <TablePagination
               colSpan={5}
-              listSettings={listSettings}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               onUpdateListSettings={onUpdateListSettings}

@@ -1,9 +1,9 @@
 import useLocalStorage from "@saleor/hooks/useLocalStorage";
 import { defaultListSettings } from "./../config";
-import { Lists, ListSettings } from "./../types";
+import { ListSettings, ListViews } from "./../types";
 
-export default function useListSettings(listName: Lists) {
-  const [listSettings, setListSettings] = useLocalStorage(
+export default function useListSettings(listName: ListViews) {
+  const [settings, setListSettings] = useLocalStorage(
     "listConfig",
     defaultListSettings
   );
@@ -18,7 +18,7 @@ export default function useListSettings(listName: Lists) {
   };
 
   return {
-    listSettings,
+    settings: settings[listName],
     updateListSettings
   };
 }

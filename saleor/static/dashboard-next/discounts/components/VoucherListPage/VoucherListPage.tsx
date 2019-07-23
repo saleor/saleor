@@ -17,7 +17,7 @@ export interface VoucherListPageProps extends PageListProps, ListActions {
 const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
   defaultCurrency,
   disabled,
-  listSettings,
+  settings,
   onAdd,
   onNextPage,
   onPreviousPage,
@@ -40,7 +40,7 @@ const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
     </PageHeader>
     <VoucherList
       defaultCurrency={defaultCurrency}
-      listSettings={listSettings}
+      settings={settings}
       disabled={disabled}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}

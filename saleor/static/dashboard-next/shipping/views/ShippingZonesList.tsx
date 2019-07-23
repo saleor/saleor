@@ -15,7 +15,7 @@ import usePaginator, {
 import useShop from "@saleor/hooks/useShop";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import ShippingZonesListPage from "../components/ShippingZonesListPage";
 import {
   TypedBulkDeleteShippingZone,
@@ -47,14 +47,11 @@ export const ShippingZonesList: React.StatelessComponent<
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.SHIPPING_METHODS_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.SHIPPING_METHODS_LIST
   );
 
-  const paginationState = createPaginationState(
-    listSettings.SHIPPING_METHODS_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
 
   return (
     <TypedShippingZones displayLoader variables={paginationState}>
@@ -152,7 +149,7 @@ export const ShippingZonesList: React.StatelessComponent<
                             defaultWeightUnit={maybe(
                               () => shop.defaultWeightUnit
                             )}
-                            listSettings={listSettings.SHIPPING_METHODS_LIST}
+                            settings={settings}
                             disabled={
                               loading ||
                               deleteShippingZoneOpts.loading ||

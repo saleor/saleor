@@ -63,7 +63,7 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
   ({
     classes,
     disabled,
-    listSettings,
+    settings,
     orders,
     pageInfo,
     onPreviousPage,
@@ -109,7 +109,7 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
           <TableRow>
             <TablePagination
               colSpan={5}
-              listSettings={listSettings}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               onUpdateListSettings={onUpdateListSettings}

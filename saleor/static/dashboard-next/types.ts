@@ -10,11 +10,10 @@ export interface UserError {
 }
 
 export interface ListSettings {
-  name: string;
   rowNumber: number;
 }
 
-export enum Lists {
+export enum ListViews {
   CATEGORY_LIST = "CATEGORY_LIST",
   COLLECTION_LIST = "COLLECTION_LIST",
   CUSTOMER_LIST = "CUSTOMER_LIST",
@@ -35,7 +34,7 @@ export interface ListProps {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
-  listSettings?: ListSettings;
+  settings?: ListSettings;
   onNextPage: () => void;
   onPreviousPage: () => void;
   onRowClick: (id: string) => () => void;

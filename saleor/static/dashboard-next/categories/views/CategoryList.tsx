@@ -12,7 +12,7 @@ import usePaginator, {
 } from "@saleor/hooks/usePaginator";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import { CategoryListPage } from "../components/CategoryListPage/CategoryListPage";
 import { TypedCategoryBulkDeleteMutation } from "../mutations";
 import { TypedRootCategoriesQuery } from "../queries";
@@ -36,13 +36,10 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
   const { isSelected, listElements, toggle, toggleAll, reset } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.CATEGORY_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.CATEGORY_LIST
   );
-  const paginationState = createPaginationState(
-    listSettings.CATEGORY_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
   return (
     <TypedRootCategoriesQuery displayLoader variables={paginationState}>
       {({ data, loading, refetch }) => {
@@ -79,7 +76,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
                       () => data.categories.edges.map(edge => edge.node),
                       []
                     )}
-                    listSettings={listSettings.CATEGORY_LIST}
+                    settings={settings}
                     onAdd={() => navigate(categoryAddUrl())}
                     onRowClick={id => () => navigate(categoryUrl(id))}
                     disabled={loading}

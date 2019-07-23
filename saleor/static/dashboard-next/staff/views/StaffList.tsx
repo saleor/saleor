@@ -10,7 +10,7 @@ import usePaginator, {
 import { configurationMenuUrl } from "@saleor/configuration";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import StaffAddMemberDialog, {
   FormData as AddStaffMemberForm
 } from "../components/StaffAddMemberDialog";
@@ -34,8 +34,8 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.STAFF_MEMBERS_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.STAFF_MEMBERS_LIST
   );
 
   const closeModal = () =>
@@ -48,10 +48,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
       true
     );
 
-  const paginationState = createPaginationState(
-    listSettings.STAFF_MEMBERS_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
   return (
     <TypedStaffListQuery displayLoader variables={paginationState}>
       {({ data, loading }) => {
@@ -99,7 +96,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                 <>
                   <StaffListPage
                     disabled={loading || addStaffMemberData.loading}
-                    listSettings={listSettings.STAFF_MEMBERS_LIST}
+                    settings={settings}
                     pageInfo={pageInfo}
                     staffMembers={maybe(() =>
                       data.staffUsers.edges.map(edge => edge.node)

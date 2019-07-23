@@ -72,7 +72,7 @@ interface StaffListProps extends ListProps, WithStyles<typeof styles> {
 const StaffList = withStyles(styles, { name: "StaffList" })(
   ({
     classes,
-    listSettings,
+    settings,
     disabled,
     onNextPage,
     onPreviousPage,
@@ -97,7 +97,7 @@ const StaffList = withStyles(styles, { name: "StaffList" })(
           <TableRow>
             <TablePagination
               colSpan={3}
-              listSettings={listSettings}
+              settings={settings}
               hasNextPage={
                 pageInfo && !disabled ? pageInfo.hasNextPage : undefined
               }

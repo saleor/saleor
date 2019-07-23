@@ -15,7 +15,7 @@ import usePaginator, {
 import useShop from "@saleor/hooks/useShop";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import SaleListPage from "../components/SaleListPage";
 import { TypedSaleBulkDelete } from "../mutations";
 import { TypedSaleList } from "../queries";
@@ -41,16 +41,13 @@ export const SaleList: React.StatelessComponent<SaleListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.SALES_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.SALES_LIST
   );
 
   const closeModal = () => navigate(saleListUrl(), true);
 
-  const paginationState = createPaginationState(
-    listSettings.SALES_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
 
   return (
     <TypedSaleList displayLoader variables={paginationState}>
@@ -93,7 +90,7 @@ export const SaleList: React.StatelessComponent<SaleListProps> = ({
                   <SaleListPage
                     defaultCurrency={maybe(() => shop.defaultCurrency)}
                     sales={maybe(() => data.sales.edges.map(edge => edge.node))}
-                    listSettings={listSettings.SALES_LIST}
+                    settings={settings}
                     disabled={loading}
                     pageInfo={pageInfo}
                     onAdd={() => navigate(saleAddUrl)}

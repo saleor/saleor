@@ -13,7 +13,7 @@ import usePaginator, {
 } from "@saleor/hooks/usePaginator";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import MenuCreateDialog from "../components/MenuCreateDialog";
 import MenuListPage from "../components/MenuListPage";
 import {
@@ -37,8 +37,8 @@ const MenuList: React.FC<MenuListProps> = ({ params }) => {
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.NAVIGATION_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.NAVIGATION_LIST
   );
 
   const closeModal = () =>
@@ -52,10 +52,7 @@ const MenuList: React.FC<MenuListProps> = ({ params }) => {
       true
     );
 
-  const paginationState = createPaginationState(
-    listSettings.NAVIGATION_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
 
   return (
     <MenuListQuery variables={paginationState}>
@@ -136,7 +133,7 @@ const MenuList: React.FC<MenuListProps> = ({ params }) => {
                             menus={maybe(() =>
                               data.menus.edges.map(edge => edge.node)
                             )}
-                            listSettings={listSettings.NAVIGATION_LIST}
+                            settings={settings}
                             onAdd={() =>
                               navigate(
                                 menuListUrl({
