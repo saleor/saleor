@@ -12,11 +12,12 @@ const dark: IThemeColors = {
     default: "#1D1E1F",
     paper: "#2E2F31"
   },
-  buttonText: "#202124",
   error: "#C22D74",
   font: {
+    buttonText: "#202124",
     default: "#FCFCFC",
-    gray: "#9E9D9D"
+    gray: "#9E9D9D",
+    textColor: "#FFFFFF"
   },
   gray: {
     default: "#202124",
@@ -29,8 +30,7 @@ const dark: IThemeColors = {
   },
   paperBorder: "#252728",
   primary: "#13BEBB",
-  secondary: "#21125E",
-  textColor: "#FFFFFF"
+  secondary: "#21125E"
 };
 const light: IThemeColors = {
   autofill: "#f4f6c5",
@@ -38,11 +38,12 @@ const light: IThemeColors = {
     default: "#F1F6F6",
     paper: "#FFFFFF"
   },
-  buttonText: "#FFFFFF",
   error: "#C22D74",
   font: {
+    buttonText: "#FFFFFF",
     default: "#3D3D3D",
-    gray: "#616161"
+    gray: "#616161",
+    textColor: "#06847B"
   },
   gray: {
     default: "#C8C8C8",
@@ -55,8 +56,7 @@ const light: IThemeColors = {
   },
   paperBorder: "#EAEAEA",
   primary: "#06847B",
-  secondary: "#21125E",
-  textColor: "#06847B"
+  secondary: "#21125E"
 };
 
 interface IThemeContext {
