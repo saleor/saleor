@@ -3,16 +3,17 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
+import { configurationMenuUrl } from "@saleor/configuration";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
-import { configurationMenuUrl } from "../../configuration";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { ListViews } from "@saleor/types";
 import MenuCreateDialog from "../components/MenuCreateDialog";
 import MenuListPage from "../components/MenuListPage";
 import {
@@ -36,6 +37,9 @@ const MenuList: React.FC<MenuListProps> = ({ params }) => {
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.NAVIGATION_LIST
+  );
 
   const closeModal = () =>
     navigate(
@@ -48,7 +52,7 @@ const MenuList: React.FC<MenuListProps> = ({ params }) => {
       true
     );
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(settings.rowNumber, params);
 
   return (
     <MenuListQuery variables={paginationState}>
@@ -129,6 +133,7 @@ const MenuList: React.FC<MenuListProps> = ({ params }) => {
                             menus={maybe(() =>
                               data.menus.edges.map(edge => edge.node)
                             )}
+                            settings={settings}
                             onAdd={() =>
                               navigate(
                                 menuListUrl({
@@ -147,6 +152,7 @@ const MenuList: React.FC<MenuListProps> = ({ params }) => {
                             }
                             onNextPage={loadNextPage}
                             onPreviousPage={loadPreviousPage}
+                            onUpdateListSettings={updateListSettings}
                             onRowClick={id => () => navigate(menuUrl(id))}
                             pageInfo={pageInfo}
                             isChecked={isSelected}

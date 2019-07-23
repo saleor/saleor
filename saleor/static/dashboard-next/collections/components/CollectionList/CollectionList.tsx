@@ -17,9 +17,9 @@ import Skeleton from "@saleor/components/Skeleton";
 import StatusLabel from "@saleor/components/StatusLabel";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
-import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
-import { ListActions, ListProps } from "../../../types";
+import i18n from "@saleor/i18n";
+import { maybe, renderCollection } from "@saleor/misc";
+import { ListActions, ListProps } from "@saleor/types";
 import { CollectionList_collections_edges_node } from "../../types/CollectionList";
 
 const styles = (theme: Theme) =>
@@ -55,8 +55,10 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
     classes,
     collections,
     disabled,
+    settings,
     onNextPage,
     onPreviousPage,
+    onUpdateListSettings,
     onRowClick,
     pageInfo,
     isChecked,
@@ -90,8 +92,10 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
           <TableRow>
             <TablePagination
               colSpan={5}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }
