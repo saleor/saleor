@@ -23,6 +23,7 @@ from . import (
     get_checkout_tax_data,
     get_order_tax_data,
 )
+from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
     from .....checkout.models import Checkout
@@ -170,8 +171,6 @@ class AvataxPlugin(BasePlugin):
             raise TaxError(customer_msg)
 
     def postprocess_order_creation(self, order: "Order", previous_value: Any):
-        # FIXME after we introduce plugin architecture, this logic could be a celery
-        #  task
         if not self._enabled:
             return
         data = get_order_tax_data(
@@ -179,7 +178,7 @@ class AvataxPlugin(BasePlugin):
         )
 
         transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
-        api_post_request(transaction_url, data)
+        api_post_request_task.delay(transaction_url, data)
 
     def calculate_checkout_line_total(
         self,
