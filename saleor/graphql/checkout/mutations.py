@@ -34,7 +34,12 @@ from ...payment.utils import gateway_process_payment, store_customer_id
 from ...product import models as product_models
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
-from ..core.mutations import BaseMutation, ModelMutation
+from ..core.mutations import (
+    BaseMutation,
+    ClearMetaBaseMutation,
+    ModelMutation,
+    UpdateMetaBaseMutation,
+)
 from ..core.utils import from_global_id_strict_type
 from ..order.types import Order
 from ..product.types import ProductVariant
@@ -653,3 +658,35 @@ class CheckoutRemovePromoCode(BaseMutation):
         )
         remove_promo_code_from_checkout(checkout, promo_code)
         return CheckoutUpdateVoucher(checkout=checkout)
+
+
+class CheckoutUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates metadata for Checkout."
+        permissions = ("order.manage_orders",)
+        model = models.Checkout
+        public = True
+
+
+class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates private metadata for Checkout."
+        permissions = ("order.manage_orders",)
+        model = models.Checkout
+        public = False
+
+
+class CheckoutClearStoredMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clear stored metadata value."
+        permissions = ("order.manage_orders",)
+        model = models.Checkout
+        public = True
+
+
+class CheckoutClearStoredPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clear stored metadata value."
+        permissions = ("order.manage_orders",)
+        model = models.Checkout
+        public = False

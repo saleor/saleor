@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 
 META_FIELD = "vatlayer"
+META_NAMESPACE = "taxes"
 
 
 def calculate_checkout_total(
@@ -134,14 +135,16 @@ def assign_tax_to_object_meta(obj: Union["Product", "ProductType"], tax_code: st
         return
     if not hasattr(obj, "meta"):
         return
-    if "taxes" not in obj.meta:
-        obj.meta["taxes"] = {}
-    obj.meta["taxes"][META_FIELD] = {"code": tax_code, "description": tax_code}
+    tax_item = {"code": tax_code, "description": tax_code}
+    stored_tax_meta = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
+    stored_tax_meta.update(tax_item)
+    obj.store_meta(namespace=META_NAMESPACE, client=META_FIELD, item=stored_tax_meta)
+    obj.save()
 
 
 def get_tax_from_object_meta(obj: Union["Product", "ProductType"]) -> TaxType:
     if not hasattr(obj, "meta"):
         return TaxType(code="", description="")
-    tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
+    tax = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
 
     return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))
