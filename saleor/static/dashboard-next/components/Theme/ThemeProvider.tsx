@@ -14,10 +14,10 @@ const dark: IThemeColors = {
   },
   error: "#C22D74",
   font: {
-    buttonText: "#202124",
+    button: "#202124",
     default: "#FCFCFC",
     gray: "#9E9D9D",
-    textColor: "#FFFFFF"
+    textButton: "#FFFFFF"
   },
   gray: {
     default: "#202124",
@@ -40,10 +40,10 @@ const light: IThemeColors = {
   },
   error: "#C22D74",
   font: {
-    buttonText: "#FFFFFF",
+    button: "#FFFFFF",
     default: "#3D3D3D",
     gray: "#616161",
-    textColor: "#06847B"
+    textButton: "#06847B"
   },
   gray: {
     default: "#C8C8C8",
