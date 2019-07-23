@@ -16,7 +16,7 @@ import usePaginator, {
 import useShop from "@saleor/hooks/useShop";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import OrderBulkCancelDialog from "../../components/OrderBulkCancelDialog";
 import OrderListPage from "../../components/OrderListPage/OrderListPage";
 import {
@@ -59,8 +59,8 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.ORDER_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.ORDER_LIST
   );
 
   const tabs = getFilterTabs();
@@ -128,10 +128,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
     handleTabChange(tabs.length + 1);
   };
 
-  const paginationState = createPaginationState(
-    listSettings.ORDER_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
   const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
 
   const handleCreateOrderCreateSuccess = (data: OrderDraftCreate) => {
@@ -146,7 +143,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
       ...paginationState,
       filter: getFilterVariables(params)
     }),
-    [params, listSettings.ORDER_LIST.rowNumber]
+    [params, settings.rowNumber]
   );
 
   return (
@@ -193,7 +190,7 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                     <>
                       <OrderListPage
                         currencySymbol={currencySymbol}
-                        listSettings={listSettings.ORDER_LIST}
+                        settings={settings}
                         filtersList={createFilterChips(
                           params,
                           {

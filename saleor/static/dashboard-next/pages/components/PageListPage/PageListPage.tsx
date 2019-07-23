@@ -17,7 +17,7 @@ export interface PageListPageProps extends PageListProps, ListActions {
 
 const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   disabled,
-  listSettings,
+  settings,
   onAdd,
   onBack,
   onNextPage,
@@ -47,7 +47,7 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
     </PageHeader>
     <PageList
       disabled={disabled}
-      listSettings={listSettings}
+      settings={settings}
       pages={pages}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}

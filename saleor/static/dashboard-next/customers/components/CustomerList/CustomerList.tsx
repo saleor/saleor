@@ -50,7 +50,7 @@ export interface CustomerListProps
 const CustomerList = withStyles(styles, { name: "CustomerList" })(
   ({
     classes,
-    listSettings,
+    settings,
     disabled,
     customers,
     pageInfo,
@@ -87,7 +87,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
           <TableRow>
             <TablePagination
               colSpan={4}
-              listSettings={listSettings}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               onUpdateListSettings={onUpdateListSettings}

@@ -37,14 +37,14 @@ const useStyles = makeStyles(
 interface RowNumberSelectProps {
   choices: number[];
   className?: string;
-  listSettings: ListSettings;
+  settings: ListSettings;
   onChange(key: keyof ListSettings, value: any);
 }
 
 const RowNumberSelect: React.FC<RowNumberSelectProps> = ({
   className,
   choices,
-  listSettings,
+  settings,
   onChange
 }) => {
   const theme = useTheme();
@@ -54,7 +54,7 @@ const RowNumberSelect: React.FC<RowNumberSelectProps> = ({
       <span className={classes.label}>{i18n.t("No of Rows:")}</span>
       <Select
         className={classes.select}
-        value={listSettings.rowNumber}
+        value={settings.rowNumber}
         onChange={event => onChange("rowNumber", event.target.value)}
       >
         {choices.length > 0 &&

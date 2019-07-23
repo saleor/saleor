@@ -15,7 +15,7 @@ import usePaginator, {
 } from "@saleor/hooks/usePaginator";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import PageListPage from "../components/PageListPage/PageListPage";
 import { TypedPageBulkPublish, TypedPageBulkRemove } from "../mutations";
 import { TypedPageListQuery } from "../queries";
@@ -42,13 +42,10 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.PAGES_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.PAGES_LIST
   );
-  const paginationState = createPaginationState(
-    listSettings.PAGES_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
 
   return (
     <TypedPageListQuery displayLoader variables={paginationState}>
@@ -121,7 +118,7 @@ export const PageList: React.StatelessComponent<PageListProps> = ({
                     <>
                       <PageListPage
                         disabled={loading}
-                        listSettings={listSettings.PAGES_LIST}
+                        settings={settings}
                         pages={maybe(() =>
                           data.pages.edges.map(edge => edge.node)
                         )}

@@ -15,7 +15,7 @@ import usePaginator, {
 import useShop from "@saleor/hooks/useShop";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import VoucherListPage from "../components/VoucherListPage";
 import { TypedVoucherBulkDelete } from "../mutations";
 import { TypedVoucherList } from "../queries";
@@ -41,16 +41,13 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.VOUCHER_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.VOUCHER_LIST
   );
 
   const closeModal = () => navigate(voucherListUrl(), true);
 
-  const paginationState = createPaginationState(
-    listSettings.VOUCHER_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
 
   return (
     <TypedVoucherList displayLoader variables={paginationState}>
@@ -91,7 +88,7 @@ export const VoucherList: React.StatelessComponent<VoucherListProps> = ({
                   <WindowTitle title={i18n.t("Vouchers")} />
                   <VoucherListPage
                     defaultCurrency={maybe(() => shop.defaultCurrency)}
-                    listSettings={listSettings.VOUCHER_LIST}
+                    settings={settings}
                     vouchers={maybe(() =>
                       data.vouchers.edges.map(edge => edge.node)
                     )}

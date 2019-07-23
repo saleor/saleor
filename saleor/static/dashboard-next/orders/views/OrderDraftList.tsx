@@ -13,7 +13,7 @@ import usePaginator, {
 } from "@saleor/hooks/usePaginator";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import OrderDraftListPage from "../components/OrderDraftListPage";
 import {
   TypedOrderDraftBulkCancelMutation,
@@ -41,8 +41,8 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.DRAFT_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.DRAFT_LIST
   );
 
   const closeModal = () =>
@@ -61,10 +61,7 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
     navigate(orderUrl(data.draftOrderCreate.order.id));
   };
 
-  const paginationState = createPaginationState(
-    listSettings.DRAFT_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
 
   return (
     <TypedOrderDraftCreateMutation onCompleted={handleCreateOrderCreateSuccess}>
@@ -113,7 +110,7 @@ export const OrderDraftList: React.StatelessComponent<OrderDraftListProps> = ({
                     <>
                       <OrderDraftListPage
                         disabled={loading}
-                        listSettings={listSettings.DRAFT_LIST}
+                        settings={settings}
                         orders={maybe(() =>
                           data.draftOrders.edges.map(edge => edge.node)
                         )}

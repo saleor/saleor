@@ -20,7 +20,7 @@ import usePaginator, {
 import useShop from "@saleor/hooks/useShop";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
-import { Lists } from "@saleor/types";
+import { ListViews } from "@saleor/types";
 import ProductListCard from "../../components/ProductListCard";
 import {
   TypedProductBulkDeleteMutation,
@@ -63,8 +63,8 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, listSettings } = useListSettings(
-    Lists.PRODUCT_LIST
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.PRODUCT_LIST
   );
   const tabs = getFilterTabs();
 
@@ -131,17 +131,14 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     handleTabChange(tabs.length + 1);
   };
 
-  const paginationState = createPaginationState(
-    listSettings.PRODUCT_LIST.rowNumber,
-    params
-  );
+  const paginationState = createPaginationState(settings.rowNumber, params);
   const currencySymbol = maybe(() => shop.defaultCurrency, "USD");
   const queryVariables = React.useMemo(
     () => ({
       ...paginationState,
       filter: getFilterVariables(params)
     }),
-    [params, listSettings.PRODUCT_LIST.rowNumber]
+    [params, settings.rowNumber]
   );
 
   return (
@@ -202,7 +199,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                       <ProductListCard
                         currencySymbol={currencySymbol}
                         currentTab={currentTab}
-                        listSettings={listSettings.PRODUCT_LIST}
+                        settings={settings}
                         filtersList={createFilterChips(
                           params,
                           {

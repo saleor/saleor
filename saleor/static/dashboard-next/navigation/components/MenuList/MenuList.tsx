@@ -47,7 +47,7 @@ const styles = (theme: Theme) =>
 const MenuList = withStyles(styles, { name: "MenuList" })(
   ({
     classes,
-    listSettings,
+    settings,
     disabled,
     isChecked,
     menus,
@@ -82,7 +82,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
           <TableRow>
             <TablePagination
               colSpan={4}
-              listSettings={listSettings}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               onUpdateListSettings={onUpdateListSettings}

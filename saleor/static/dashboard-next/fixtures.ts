@@ -8,21 +8,21 @@ const pageInfo = {
 export const pageListProps: { [key: string]: PageListProps } = {
   default: {
     disabled: false,
-    listSettings: { name: undefined, rowNumber: 20 },
     onAdd: undefined,
     onNextPage: undefined,
     onPreviousPage: undefined,
     onRowClick: () => undefined,
-    pageInfo
+    pageInfo,
+    settings: { rowNumber: 20 }
   },
   loading: {
     disabled: true,
-    listSettings: undefined,
     onAdd: undefined,
     onNextPage: undefined,
     onPreviousPage: undefined,
     onRowClick: () => undefined,
-    pageInfo
+    pageInfo,
+    settings: undefined
   }
 };
 export const listActionsProps: ListActions = {

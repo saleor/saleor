@@ -79,7 +79,7 @@ const VoucherList = withStyles(styles, {
 })(
   ({
     classes,
-    listSettings,
+    settings,
     defaultCurrency,
     disabled,
     onNextPage,
@@ -138,7 +138,7 @@ const VoucherList = withStyles(styles, {
           <TableRow>
             <TablePagination
               colSpan={7}
-              listSettings={listSettings}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               onUpdateListSettings={onUpdateListSettings}

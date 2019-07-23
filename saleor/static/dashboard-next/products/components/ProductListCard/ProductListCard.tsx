@@ -22,7 +22,7 @@ export interface ProductListCardProps
     ListActions,
     FilterPageProps<ProductListUrlFilters> {
   currencySymbol: string;
-  listSettings?: ListSettings;
+  settings?: ListSettings;
   products: CategoryDetails_category_products_edges_node[];
 }
 
