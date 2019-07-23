@@ -14,6 +14,11 @@ export interface User_permissions {
   name: string;
 }
 
+export interface User_avatar {
+  __typename: "Image";
+  url: string;
+}
+
 export interface User {
   __typename: "User";
   id: string;
@@ -23,4 +28,5 @@ export interface User {
   isStaff: boolean;
   note: string | null;
   permissions: (User_permissions | null)[] | null;
+  avatar: User_avatar | null;
 }

@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Order is no longer created when the payment was unsuccessful in the API - #4500 by @NyanKiyoshi
 - Fix navigation rwd - #4511 by @benekex2
 - Create general abstraction for object metadata - #4447 by @salwator
+- Contrast improvements - #4508 by @benekex2
 
 ## 2.8.0
 
