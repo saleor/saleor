@@ -14,6 +14,11 @@ export interface VerifyToken_tokenVerify_user_permissions {
   name: string;
 }
 
+export interface VerifyToken_tokenVerify_user_avatar {
+  __typename: "Image";
+  url: string;
+}
+
 export interface VerifyToken_tokenVerify_user {
   __typename: "User";
   id: string;
@@ -23,6 +28,7 @@ export interface VerifyToken_tokenVerify_user {
   isStaff: boolean;
   note: string | null;
   permissions: (VerifyToken_tokenVerify_user_permissions | null)[] | null;
+  avatar: VerifyToken_tokenVerify_user_avatar | null;
 }
 
 export interface VerifyToken_tokenVerify {

@@ -17,7 +17,7 @@ export type IThemeColors = Record<
 > & {
   background: Record<"default" | "paper", string>;
 } & {
-  font: Record<"default" | "gray", string>;
+  font: Record<"default" | "gray" | "button" | "textButton", string>;
 } & {
   gray: Record<"default" | "disabled", string>;
 } & {
@@ -35,7 +35,18 @@ export default (colors: IThemeColors): Theme =>
             backgroundColor: fade(colors.primary, 0.12)
           }
         },
+        flat: {
+          "& span": {
+            color: colors.font.textButton
+          }
+        },
+        flatPrimary: {
+          "& span": {
+            color: colors.font.textButton
+          }
+        },
         label: {
+          color: colors.font.button,
           fontWeight: 600
         },
         root: {
