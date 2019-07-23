@@ -133,20 +133,18 @@ def apply_taxes_to_shipping_price_range(
 def assign_tax_to_object_meta(obj: Union["Product", "ProductType"], tax_code: str):
     if tax_code not in dict(TaxRateType.CHOICES):
         return
-    if not hasattr(obj, "private_meta"):
+    if not hasattr(obj, "meta"):
         return
     tax_item = {"code": tax_code, "description": tax_code}
-    stored_tax_meta = obj.get_private_meta(namespace=META_NAMESPACE, client=META_FIELD)
+    stored_tax_meta = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
     stored_tax_meta.update(tax_item)
-    obj.store_private_meta(
-        namespace=META_NAMESPACE, client=META_FIELD, item=stored_tax_meta
-    )
+    obj.store_meta(namespace=META_NAMESPACE, client=META_FIELD, item=stored_tax_meta)
     obj.save()
 
 
 def get_tax_from_object_meta(obj: Union["Product", "ProductType"]) -> TaxType:
-    if not hasattr(obj, "private_meta"):
+    if not hasattr(obj, "meta"):
         return TaxType(code="", description="")
-    tax = obj.get_private_meta(namespace=META_NAMESPACE, client=META_FIELD)
+    tax = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
 
     return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))

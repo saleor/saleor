@@ -63,9 +63,7 @@ def test_view_checkout_with_taxes(
     checkout.shipping_address = address
     checkout.save()
     product = checkout.lines.first().variant.product
-    product.private_meta = {
-        "taxes": {"vatlayer": {"code": "standard", "description": ""}}
-    }
+    product.meta = {"taxes": {"vatlayer": {"code": "standard", "description": ""}}}
     product.save()
     response = client.get(reverse("checkout:index"))
     response_checkout_line = response.context[0]["checkout_lines"][0]
