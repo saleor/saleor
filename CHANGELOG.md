@@ -19,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix dashboard menu styles - #4491 by @benekex2
 - Do not allow random ids to appear in snapshots - #4495 by @dominik-zeglen
 - Order is no longer created when the payment was unsuccessful in the API - #4500 by @NyanKiyoshi
+- Contrast improvements - #4508 by @benekex2
 
 ## 2.8.0
 
