@@ -8,6 +8,10 @@ from django.contrib.sites.models import Site
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 
+class TaxError(Exception):
+    """Default tax error"""
+
+
 def zero_money(currency=settings.DEFAULT_CURRENCY):
     """Function used as a model's default."""
     return Money(0, currency)
