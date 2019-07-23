@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import Mock
 from urllib.parse import urlparse
 
 import pytest
@@ -13,9 +14,9 @@ from saleor.core.extensions.plugins.vatlayer import (
     apply_tax_to_price,
     get_tax_rate_by_name,
     get_taxed_shipping_price,
-    get_taxes_for_address,
     get_taxes_for_country,
 )
+from saleor.core.extensions.plugins.vatlayer.plugin import VatlayerPlugin
 from saleor.dashboard.taxes.filters import get_country_choices_for_vat
 
 
@@ -256,26 +257,6 @@ def test_get_country_choices_for_vat(vatlayer):
     assert choices == expected_choices
 
 
-def test_get_taxes_for_address(address, vatlayer, compare_taxes):
-    taxes = get_taxes_for_address(address)
-    compare_taxes(taxes, vatlayer)
-
-
-def test_get_taxes_for_address_fallback_default(settings, vatlayer, compare_taxes):
-    settings.DEFAULT_COUNTRY = "PL"
-    taxes = get_taxes_for_address(None)
-    compare_taxes(taxes, vatlayer)
-
-
-def test_get_taxes_for_address_other_country(address, vatlayer, compare_taxes):
-    address.country = "DE"
-    address.save()
-    tax_rates = get_taxes_for_country(Country("DE"))
-
-    taxes = get_taxes_for_address(address)
-    compare_taxes(taxes, tax_rates)
-
-
 def test_get_taxes_for_country(vatlayer, compare_taxes):
     taxes = get_taxes_for_country(Country("PL"))
     compare_taxes(taxes, vatlayer)
@@ -362,3 +343,19 @@ def test_apply_tax_to_price_no_taxes_return_taxed_money_range():
 def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
     with pytest.raises(TypeError):
         assert apply_tax_to_price(None, "standard", 100)
+
+
+def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
+
+    mocked_taxes = Mock(wraps=get_taxes_for_country)
+    monkeypatch.setattr(
+        "saleor.core.extensions.plugins.vatlayer.plugin.get_taxes_for_country",
+        mocked_taxes,
+    )
+    plugin = VatlayerPlugin()
+    price = product.variants.first().get_price()
+    price = TaxedMoney(price, price)
+    address.country = Country("de")
+    plugin.apply_taxes_to_product(product, price, address.country, price)
+    plugin.apply_taxes_to_shipping(price, address, price)
+    assert mocked_taxes.call_count == 1

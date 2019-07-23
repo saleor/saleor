@@ -12,7 +12,6 @@ from . import (
     TaxRateType,
     apply_tax_to_price,
     get_taxed_shipping_price,
-    get_taxes_for_address,
     get_taxes_for_country,
 )
 
@@ -30,6 +29,7 @@ class VatlayerPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._enabled = bool(settings.VATLAYER_ACCESS_KEY)
+        self._cached_taxes = {}
 
     def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
         if not self._enabled:
@@ -87,6 +87,18 @@ class VatlayerPlugin(BasePlugin):
             )
         return lines_total
 
+    def _get_taxes_for_country(self, country: Country):
+        """Tries to fetch cached taxes on the plugin level. If the plugin doesn't have
+        cached taxes for a given country it will fetch it from cache or db"""
+        if not country:
+            country = Country(settings.DEFAULT_COUNTRY)
+        country_code = country.code
+        if country_code in self._cached_taxes:
+            return self._cached_taxes[country_code]
+        taxes = get_taxes_for_country(country)
+        self._cached_taxes[country_code] = taxes
+        return taxes
+
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
@@ -98,7 +110,9 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
 
         address = checkout.shipping_address or checkout.billing_address
-        taxes = get_taxes_for_address(address)
+        taxes = None
+        if address:
+            taxes = self._get_taxes_for_country(address.country)
         if not checkout.shipping_method:
             return previous_value
 
@@ -111,7 +125,9 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
 
         address = order.shipping_address or order.billing_address
-        taxes = get_taxes_for_address(address)
+        taxes = None
+        if address:
+            taxes = self._get_taxes_for_country(address.country)
         if not order.shipping_method:
             return previous_value
         return get_taxed_shipping_price(order.shipping_method.price, taxes)
@@ -177,9 +193,7 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        taxes = None
-        if country:
-            taxes = get_taxes_for_country(country)
+        taxes = self._get_taxes_for_country(country)
         return get_taxed_shipping_price(prices, taxes)
 
     def apply_taxes_to_shipping(
@@ -188,7 +202,7 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        taxes = get_taxes_for_country(shipping_address.country)
+        taxes = self._get_taxes_for_country(shipping_address.country)
         return get_taxed_shipping_price(price, taxes)
 
     def apply_taxes_to_product(
@@ -202,14 +216,10 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        taxes = kwargs.get("taxes")
-        if country and not taxes:
-            # FIXME After we introduce plugin architecture, taxes will be cached on the
-            #  plugin level and there will be no need to pass it from view functions.
-            #  This is only temporary approach to limit redis and db hits
-            taxes = get_taxes_for_country(country)
-        if not product.charge_taxes:
-            taxes = None
+        taxes = None
+        if country and product.charge_taxes:
+            taxes = self._get_taxes_for_country(country)
+
         product_tax_rate = self.__get_tax_code_from_object_meta(product).code
         tax_rate = (
             product_tax_rate

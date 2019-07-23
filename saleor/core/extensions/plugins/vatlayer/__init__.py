@@ -1,6 +1,4 @@
-from django.conf import settings
 from django.utils.translation import pgettext_lazy
-from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_for_rate, get_tax_rates_for_country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -124,16 +122,6 @@ def get_taxes_for_country(country):
             }
         )
     return taxes
-
-
-def get_taxes_for_address(address):
-    """Return proper taxes for address or default country."""
-    if address is not None:
-        country = address.country
-    else:
-        country = Country(settings.DEFAULT_COUNTRY)
-
-    return get_taxes_for_country(country)
 
 
 def get_tax_rate_by_name(rate_name, taxes=None):
