@@ -21,7 +21,7 @@ const styles = (theme: Theme) =>
       marginTop: theme.spacing.unit
     },
     hr: {
-      backgroundColor: "#eaeaea",
+      backgroundColor: theme.overrides.MuiCard.root.borderColor,
       border: "none",
       height: 1,
       marginBottom: 0,
