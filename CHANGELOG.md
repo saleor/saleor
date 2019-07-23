@@ -9,11 +9,19 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix time zone based tests - #4468 by @fowczarek
 - Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
 - Add voucher once per customer - #4442 by @fowczarek
+- Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
+- New menu design - #4476 by @benekex2
+- Mutation for changing logged user first and last name - #4489 by @fowczarek
+- Add mutation for deleting account - #4494 by @fowczarek
 - New translations:
   - Greek
 - Extensions Manager - #4497 by @korycins
 - Migration of tax logic into a plugin architecture - #4497 by @korycins
 
+- Fix searches and pickers - #4487 by @dominik-zeglen
+- Fix dashboard menu styles - #4491 by @benekex2
+- Do not allow random ids to appear in snapshots - #4495 by @dominik-zeglen
+- Order is no longer created when the payment was unsuccessful in the API - #4500 by @NyanKiyoshi
 
 ## 2.8.0
 
@@ -46,7 +54,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `SPECIFIC_PRODUCT` type to `VoucherType` - #4344 by @fowczarek
 - New translations:
   - Icelandic
-
+- Refactored the backend side of `checkoutCreate` to improve performances and prevent side effects over the user's checkout if the checkout creation was to fail. - #4367 by @NyanKiyoshi
+- Refactored the logic of cleaning the checkout shipping method over the API, so users do not lose the shipping method when updating their checkout. If the shipping method becomes invalid, it will be replaced by the cheapest available. - #4367 by @NyanKiyoshi & @szewczykmira
+- Refactored process of getting available shipping methods to make it easier to understand and prevent human-made errors. - #4367 by @NyanKiyoshi
 
 ## 2.7.0
 

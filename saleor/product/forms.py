@@ -4,6 +4,7 @@ from django import forms
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import amount
+from draftjs_sanitizer import SafeJSONEncoder
 
 from ..checkout.forms import AddToCheckoutForm
 from ..core.taxes import display_gross_prices
@@ -39,7 +40,7 @@ class VariantChoiceField(forms.ModelChoiceField):
             variant.pk: [vi.image.image.url for vi in variant.variant_images.all()]
             for variant in variants.all()
         }
-        self.widget.attrs["data-images"] = json.dumps(images_map)
+        self.widget.attrs["data-images"] = json.dumps(images_map, cls=SafeJSONEncoder)
         # Don't display select input if there is only one variant.
         if self.queryset.count() == 1:
             self.widget = forms.HiddenInput({"value": variants.all()[0].pk})

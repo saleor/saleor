@@ -930,7 +930,7 @@ def create_page():
         ],
         "entityMap": {
             "0": {
-                "data": {"href": "https://github.com/mirumee/saleor"},
+                "data": {"url": "https://github.com/mirumee/saleor"},
                 "type": "LINK",
                 "mutability": "MUTABLE",
             }

@@ -13,6 +13,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from draftjs_sanitizer import SafeJSONEncoder
 
 from ..checkout.utils import set_checkout_cookie
 from ..core.utils import serialize_decimal
@@ -95,6 +96,8 @@ def product_details(request, slug, product_id, form=None):
     show_variant_picker = all([v.attributes for v in product.variants.all()])
     json_ld_data = product_json_ld(product, product_attributes)
     ctx = {
+        "description_json": product.translated.description_json,
+        "description_html": product.translated.description,
         "is_visible": is_visible,
         "form": form,
         "availability": availability,
@@ -103,9 +106,11 @@ def product_details(request, slug, product_id, form=None):
         "product_images": product_images,
         "show_variant_picker": show_variant_picker,
         "variant_picker_data": json.dumps(
-            variant_picker_data, default=serialize_decimal
+            variant_picker_data, default=serialize_decimal, cls=SafeJSONEncoder
         ),
-        "json_ld_product_data": json.dumps(json_ld_data, default=serialize_decimal),
+        "json_ld_product_data": json.dumps(
+            json_ld_data, default=serialize_decimal, cls=SafeJSONEncoder
+        ),
     }
     return TemplateResponse(request, "product/details.html", ctx)
 

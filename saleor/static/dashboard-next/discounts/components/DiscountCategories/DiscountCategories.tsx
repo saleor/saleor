@@ -87,7 +87,6 @@ const DiscountCategories = withStyles(styles, {
           toolbar={toolbar}
         >
           <>
-            <TableCell />
             <TableCell className={classes.wideColumn}>
               {i18n.t("Category name")}
             </TableCell>

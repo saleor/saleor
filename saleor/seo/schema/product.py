@@ -25,7 +25,7 @@ def product_json_ld(product, attributes=None):
         "@type": "Product",
         "name": smart_text(product),
         "image": [product_image.image.url for product_image in product.images.all()],
-        "description": product.description,
+        "description": product.plain_text_description,
         "offers": [],
     }
 

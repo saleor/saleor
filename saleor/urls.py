@@ -50,12 +50,17 @@ translatable_urlpatterns = [
 urlpatterns = non_translatable_urlpatterns + i18n_patterns(*translatable_urlpatterns)
 
 if settings.DEBUG:
-    import debug_toolbar
+    try:
+        import debug_toolbar
+    except ImportError:
+        """The debug toolbar was not installed. Ignore the error.
+        settings.py should already have warned the user about it."""
+    else:
+        urlpatterns += [url(r"^__debug__/", include(debug_toolbar.urls))]
 
     urlpatterns += [
-        url(r"^__debug__/", include(debug_toolbar.urls)),
         # static files (images, css, javascript, etc.)
-        url(r"^static/(?P<path>.*)$", serve),
+        url(r"^static/(?P<path>.*)$", serve)
     ] + static("/media/", document_root=settings.MEDIA_ROOT)
 
 if settings.ENABLE_SILK:
