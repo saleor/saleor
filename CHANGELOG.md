@@ -11,6 +11,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add voucher once per customer - #4442 by @fowczarek
 - New translations:
   - Greek
+- Extensions Manager - #4497 by @korycins
+- Migration of tax logic into a plugin architecture - #4497 by @korycins
 
 
 ## 2.8.0
