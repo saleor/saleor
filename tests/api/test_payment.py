@@ -468,7 +468,11 @@ def braintree_customer_id():
 
 def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
     gateway_name = PaymentGatewayEnum.BRAINTREE.name
-    META = {"gateways": {gateway_name.upper(): {"customer_id": braintree_customer_id}}}
+    META = {
+        "payment-gateways": {
+            gateway_name.upper(): {"customer_id": braintree_customer_id}
+        }
+    }
     store_customer_id(customer_user, gateway_name, braintree_customer_id)
     assert customer_user.private_meta == META
     customer_user.refresh_from_db()
