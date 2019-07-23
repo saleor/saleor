@@ -1,5 +1,6 @@
 import ast
 import os.path
+import warnings
 
 import dj_database_url
 import dj_email_url
@@ -66,6 +67,7 @@ LANGUAGES = [
     ("cs", _("Czech")),
     ("da", _("Danish")),
     ("de", _("German")),
+    ("el", _("Greek")),
     ("en", _("English")),
     ("es", _("Spanish")),
     ("es-co", _("Colombian Spanish")),
@@ -269,8 +271,19 @@ INSTALLED_APPS = [
 
 ENABLE_DEBUG_TOOLBAR = get_bool_from_env("ENABLE_DEBUG_TOOLBAR", False)
 if ENABLE_DEBUG_TOOLBAR:
-    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-    INSTALLED_APPS.append("debug_toolbar")
+    # Ensure the debug toolbar is actually installed before adding it
+    try:
+        __import__("debug_toolbar")
+    except ImportError as exc:
+        msg = (
+            f"{exc} -- Install the missing dependencies by "
+            f"running `pip install -r requirements_dev.txt`"
+        )
+        warnings.warn(msg)
+    else:
+        MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+        INSTALLED_APPS.append("debug_toolbar")
+
     DEBUG_TOOLBAR_PANELS = [
         # adds a request history to the debug toolbar
         "ddt_request_history.panels.request_history.RequestHistoryPanel",
@@ -667,3 +680,8 @@ GRAPHENE = {
 EXTENSIONS_MANAGER = "saleor.core.extensions.manager.ExtensionsManager"
 
 PLUGINS = os.environ.get("PLUGINS", [])
+
+# Whether DraftJS should be used be used instead of HTML
+# True to use DraftJS (JSON based), for the 2.0 dashboard
+# False to use the old editor from dashboard 1.0
+USE_JSON_CONTENT = get_bool_from_env("USE_JSON_CONTENT", False)

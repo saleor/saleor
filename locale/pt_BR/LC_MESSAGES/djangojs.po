@@ -7,19 +7,19 @@
 # Rafael Lima <rafael.liverpool@gmail.com>, 2018
 # Kaiê Guex <kaie.guex@gmail.com>, 2018
 # Wellington Dores <wellingtonjdores@gmail.com>, 2018
-# Roberto Junior <roberto.junior.hbl@gmail.com>, 2018
 # Murilo Gonçalves Pereira <murilogp12@gmail.com>, 2018
 # Andre PS <andreuece@gmail.com>, 2018
 # Geovani Lopes <dedhio@gmail.com>, 2019
+# Roberto Junior <roberto.junior.hbl@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-07-17 04:57-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Geovani Lopes <dedhio@gmail.com>, 2019\n"
+"Last-Translator: Roberto Junior <roberto.junior.hbl@gmail.com>, 2019\n"
 "Language-Team: Portuguese (Brazil) (https://www.transifex.com/mirumee/teams/34782/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -331,45 +331,6 @@ msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Link"
 
-#: saleor/static/dashboard/js/components/editor.js:61
-msgctxt "Rich text editor option"
-msgid "Image (converts selected text to an image tag)"
-msgstr "Imagem (converta texto selecionado em um rótulo de imagem)"
-
-#: saleor/static/dashboard/js/components/editor.js:66
-msgctxt "Rich text editor option"
-msgid "Left align"
-msgstr "Alinhar à esquerda"
-
-#: saleor/static/dashboard/js/components/editor.js:71
-msgctxt "Rich text editor option"
-msgid "Center align"
-msgstr "Centralizar"
-
-#: saleor/static/dashboard/js/components/editor.js:76
-msgctxt "Rich text editor option"
-msgid "Right align"
-msgstr "Alinhar à direita"
-
-#: saleor/static/dashboard/js/components/editor.js:81
-msgctxt "Rich text editor option"
-msgid "Justify"
-msgstr "Justificar"
-
-#: saleor/static/dashboard/js/components/editor.js:86
-msgctxt "Rich text editor option"
-msgid "Remove formatting"
-msgstr "Remover formatação"
-
-#: saleor/static/dashboard/js/components/google-preview.js:46
-msgid ""
-"Your input might be a little too short, think of something more descriptive"
-msgstr "Sua entrada é muito pequena, pense em algo mais descritivo"
-
-#: saleor/static/dashboard/js/components/google-preview.js:50
-msgid "Your input fits between the recommended lengths"
-msgstr "Sua entrada se encaixa no tamanho recomendado"
-
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"
 msgid "Quantity"
@@ -377,5 +338,5 @@ msgstr "Quantidade"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to checkout"
-msgstr "Adicionar à compra"
+msgid "Add to cart"
+msgstr "Adicionar ao carrinho"

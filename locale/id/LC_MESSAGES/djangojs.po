@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-07-17 04:57-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Chetabahana <admin@chetabahana.com>, 2019\n"
 "Language-Team: Indonesian (https://www.transifex.com/mirumee/teams/34782/id/)\n"
@@ -325,47 +325,6 @@ msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Tautan"
 
-#: saleor/static/dashboard/js/components/editor.js:61
-msgctxt "Rich text editor option"
-msgid "Image (converts selected text to an image tag)"
-msgstr "Gambar (mengonversi teks yang dipilih menjadi tag gambar)"
-
-#: saleor/static/dashboard/js/components/editor.js:66
-msgctxt "Rich text editor option"
-msgid "Left align"
-msgstr "Rata kiri"
-
-#: saleor/static/dashboard/js/components/editor.js:71
-msgctxt "Rich text editor option"
-msgid "Center align"
-msgstr "Tengah"
-
-#: saleor/static/dashboard/js/components/editor.js:76
-msgctxt "Rich text editor option"
-msgid "Right align"
-msgstr "Rata kanan"
-
-#: saleor/static/dashboard/js/components/editor.js:81
-msgctxt "Rich text editor option"
-msgid "Justify"
-msgstr "Sesuaikan"
-
-#: saleor/static/dashboard/js/components/editor.js:86
-msgctxt "Rich text editor option"
-msgid "Remove formatting"
-msgstr "Hapus pemformatan"
-
-#: saleor/static/dashboard/js/components/google-preview.js:46
-msgid ""
-"Your input might be a little too short, think of something more descriptive"
-msgstr ""
-"Masukan Anda mungkin agak terlalu pendek, pikirkan sesuatu yang lebih "
-"deskriptif"
-
-#: saleor/static/dashboard/js/components/google-preview.js:50
-msgid "Your input fits between the recommended lengths"
-msgstr "Masukan Anda sesuai dengan panjang yang disarankan"
-
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"
 msgid "Quantity"
@@ -373,5 +332,5 @@ msgstr "Jumlah"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to checkout"
-msgstr ""
+msgid "Add to cart"
+msgstr "Masukkan ke keranjang"

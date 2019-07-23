@@ -10,6 +10,7 @@
 {% load placeholder %}
 {% load static %}
 {% load taxed_prices %}
+{% load format_content from content_formatting %}
 
 {% block title %}
   {% if product.seo_title %}
@@ -193,7 +194,7 @@
       <div class="product__info__description">
         <h3>{% trans "Description" context "Product details title" %}</h3>
         <hr>
-        {{ product.translated.description|safe }}
+        {% format_content content_json=description_json content_html=description_html %}
       </div>
       <hr>
       <table>

@@ -7,13 +7,13 @@ from django.template.response import TemplateResponse
 from ...account.forms import LoginForm
 from ...core.taxes import get_display_price, quantize_price, zero_taxed_money
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
-from ...shipping.utils import get_shipping_price_estimate
 from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm
 from ..models import Checkout
 from ..utils import (
     check_product_availability_and_warn,
     get_checkout_context,
     get_or_empty_db_checkout,
+    get_shipping_price_estimate,
     is_valid_shipping_method,
     update_checkout_quantity,
 )
@@ -151,9 +151,7 @@ def checkout_index(request, checkout):
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={"country": default_country})
     shipping_price_range = get_shipping_price_estimate(
-        price=manager.calculate_checkout_subtotal(checkout, discounts).gross,
-        weight=checkout.get_total_weight(),
-        country_code=default_country,
+        checkout, discounts, country_code=default_country
     )
 
     context = get_checkout_context(
@@ -175,14 +173,10 @@ def checkout_index(request, checkout):
 @get_or_empty_db_checkout(checkout_queryset=Checkout.objects.for_display())
 def checkout_shipping_options(request, checkout):
     """Display shipping options to get a price estimate."""
-    manager = request.extensions
     country_form = CountryForm(request.POST or None)
     if country_form.is_valid():
         shipping_price_range = country_form.get_shipping_price_estimate(
-            price=manager.calculate_checkout_subtotal(
-                checkout, request.discounts
-            ).gross,
-            weight=checkout.get_total_weight(),
+            checkout, request.discounts
         )
     else:
         shipping_price_range = None

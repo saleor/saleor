@@ -450,7 +450,7 @@ class Product(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_tax_rate(root: models.ProductType, info, **_kwargs):
+    def resolve_tax_rate(root: models.Product, _info, **_kwargs):
         # FIXME this resolver should be dropped after we drop tax_rate from API
         if not hasattr(root, "meta"):
             return None
