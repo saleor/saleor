@@ -24,7 +24,7 @@ export const Navigation = createSvgIcon(
         y2="46.8339"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stopColor="#13BEBB" />
+        <stop stopColor="#06847B" />
         <stop offset="1" stopColor="#3EE7CD" />
       </linearGradient>
       <linearGradient
@@ -35,7 +35,7 @@ export const Navigation = createSvgIcon(
         y2="33.2176"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stopColor="#13BEBB" />
+        <stop stopColor="#06847B" />
         <stop offset="1" stopColor="#3EE7CD" />
       </linearGradient>
     </defs>
