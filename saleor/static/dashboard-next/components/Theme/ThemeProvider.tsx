@@ -14,8 +14,10 @@ const dark: IThemeColors = {
   },
   error: "#C22D74",
   font: {
+    button: "#202124",
     default: "#FCFCFC",
-    gray: "#9E9D9D"
+    gray: "#9E9D9D",
+    textButton: "#FFFFFF"
   },
   gray: {
     default: "#202124",
@@ -38,8 +40,10 @@ const light: IThemeColors = {
   },
   error: "#C22D74",
   font: {
+    button: "#FFFFFF",
     default: "#3D3D3D",
-    gray: "#616161"
+    gray: "#616161",
+    textButton: "#06847B"
   },
   gray: {
     default: "#C8C8C8",
@@ -51,7 +55,7 @@ const light: IThemeColors = {
     focused: "#DCEBEB"
   },
   paperBorder: "#EAEAEA",
-  primary: "#13BEBB",
+  primary: "#06847B",
   secondary: "#21125E"
 };
 
