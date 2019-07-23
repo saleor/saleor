@@ -12,18 +12,12 @@ const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
 export const ICONBUTTON_SIZE = 48;
 
 export type IThemeColors = Record<
-  | "primary"
-  | "secondary"
-  | "error"
-  | "paperBorder"
-  | "autofill"
-  | "buttonText"
-  | "textColor",
+  "primary" | "secondary" | "error" | "paperBorder" | "autofill",
   string
 > & {
   background: Record<"default" | "paper", string>;
 } & {
-  font: Record<"default" | "gray", string>;
+  font: Record<"default" | "gray" | "buttonText" | "textColor", string>;
 } & {
   gray: Record<"default" | "disabled", string>;
 } & {
@@ -43,16 +37,16 @@ export default (colors: IThemeColors): Theme =>
         },
         flat: {
           "& span": {
-            color: colors.textColor
+            color: colors.font.textColor
           }
         },
         flatPrimary: {
           "& span": {
-            color: colors.textColor
+            color: colors.font.textColor
           }
         },
         label: {
-          color: colors.buttonText,
+          color: colors.font.buttonText,
           fontWeight: 600
         },
         root: {
