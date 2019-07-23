@@ -1,5 +1,6 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from graphql_jwt.decorators import permission_required
 from django.conf import settings
 
 from ...checkout import models
@@ -12,7 +13,9 @@ from ...core.taxes.interface import (
     calculate_checkout_total,
 )
 from ..core.connection import CountableDjangoObjectType
+from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.money import TaxedMoney
+from ..core.types.meta import MetadataObjectType
 from ..giftcard.types import GiftCard
 from ..payment.enums import PaymentGatewayEnum
 from ..shipping.types import ShippingMethod
@@ -45,7 +48,7 @@ class CheckoutLine(CountableDjangoObjectType):
         return root.is_shipping_required()
 
 
-class Checkout(CountableDjangoObjectType):
+class Checkout(MetadataObjectType, CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
@@ -163,3 +166,12 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_is_shipping_required(root: models.Checkout, _info):
         return root.is_shipping_required()
+
+    @staticmethod
+    @permission_required("order.manage_orders")
+    def resolve_private_meta(root, _info):
+        return resolve_private_meta(root, _info)
+
+    @staticmethod
+    def resolve_meta(root, _info):
+        return resolve_meta(root, _info)
