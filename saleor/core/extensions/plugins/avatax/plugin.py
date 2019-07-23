@@ -6,8 +6,7 @@ from urllib.parse import urljoin
 from django.conf import settings
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ....taxes import TaxType, zero_taxed_money
-from ....taxes.errors import TaxError
+from ....taxes import TaxError, TaxType, zero_taxed_money
 from ...plugin import BasePlugin
 from . import (
     META_FIELD,
