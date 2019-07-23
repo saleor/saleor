@@ -54,7 +54,7 @@ const styles = (theme: Theme) =>
       transition: theme.transitions.duration.standard + "ms"
     },
     content: {
-      [theme.breakpoints.down("md")]: {
+      [theme.breakpoints.down("sm")]: {
         paddingLeft: 0
       },
       paddingLeft: drawerWidthExpanded,
@@ -62,7 +62,7 @@ const styles = (theme: Theme) =>
       width: "100%"
     },
     contentToggle: {
-      [theme.breakpoints.down("md")]: {
+      [theme.breakpoints.down("sm")]: {
         paddingLeft: 0
       },
       paddingLeft: drawerWidth
