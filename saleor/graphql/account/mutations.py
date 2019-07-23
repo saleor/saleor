@@ -795,6 +795,7 @@ class UserUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for user."
         model = models.User
+        public = True
 
 
 class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -809,6 +810,7 @@ class UserClearStoredMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         model = models.User
+        public = True
 
 
 class UserClearStoredPrivateMeta(ClearMetaBaseMutation):

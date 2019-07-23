@@ -532,7 +532,7 @@ class BaseMetadataMutation(BaseMutation):
         cls,
         arguments=None,
         model=None,
-        public=True,
+        public=False,
         return_field_name=None,
         _meta=None,
         **kwargs,
@@ -597,7 +597,7 @@ class BaseMetadataMutation(BaseMutation):
 class MetaUpdateOptions(MutationOptions):
     model = None
     return_field_name = None
-    public = True
+    public = False
 
 
 class UpdateMetaBaseMutation(BaseMetadataMutation):
