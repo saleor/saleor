@@ -240,6 +240,7 @@ class AttributeUpdateMeta(UpdateMetaBaseMutation):
         model = models.Attribute
         description = "Update public metadata for Attribute "
         permissions = ("product.manage_products",)
+        public = True
 
 
 class AttributeClearMeta(ClearMetaBaseMutation):
@@ -247,22 +248,23 @@ class AttributeClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for Attribute"
         model = models.Attribute
         permissions = ("product.manage_products",)
+        public = True
 
 
 class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for Attribute"
         model = models.Attribute
-        public = False
         permissions = ("product.manage_products",)
+        public = False
 
 
 class AttributeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for Attribute"
         model = models.Attribute
-        public = False
         permissions = ("product.manage_products",)
+        public = False
 
 
 class AttributeValueCreate(ModelMutation):

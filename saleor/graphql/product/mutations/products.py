@@ -335,6 +335,7 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
         model = models.Collection
         description = "Update public metadata for Collection"
         permissions = ("product.manage_products",)
+        public = True
 
 
 class CollectionClearMeta(ClearMetaBaseMutation):
@@ -342,22 +343,23 @@ class CollectionClearMeta(ClearMetaBaseMutation):
         model = models.Collection
         description = "Clears public metadata item for Collection"
         permissions = ("product.manage_products",)
+        public = True
 
 
 class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
-        public = False
         description = "Update public metadata for Collection"
         permissions = ("product.manage_products",)
+        public = False
 
 
 class CollectionClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
-        public = False
         description = "Clears public metadata item for Collection"
         permissions = ("product.manage_products",)
+        public = False
 
 
 class CategoryUpdateMeta(UpdateMetaBaseMutation):
@@ -365,6 +367,7 @@ class CategoryUpdateMeta(UpdateMetaBaseMutation):
         model = models.Category
         description = "Update public metadata for category"
         permissions = ("product.manage_products",)
+        public = True
 
 
 class CategoryClearMeta(ClearMetaBaseMutation):
@@ -372,22 +375,23 @@ class CategoryClearMeta(ClearMetaBaseMutation):
         model = models.Category
         description = "Clears public metadata item for category"
         permissions = ("product.manage_products",)
+        public = True
 
 
 class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
-        public = False
         description = "Update public metadata for category"
         permissions = ("product.manage_products",)
+        public = False
 
 
 class CategoryClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
-        public = False
         description = "Clears public metadata item for category"
         permissions = ("product.manage_products",)
+        public = False
 
 
 class AttributeValueInput(InputObjectType):
@@ -601,6 +605,7 @@ class ProductUpdateMeta(UpdateMetaBaseMutation):
         model = models.Product
         description = "Update public metadata for product"
         permissions = ("product.manage_products",)
+        public = True
 
 
 class ProductClearMeta(ClearMetaBaseMutation):
@@ -608,22 +613,23 @@ class ProductClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for product"
         model = models.Product
         permissions = ("product.manage_products",)
+        public = True
 
 
 class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for product"
         model = models.Product
-        public = False
         permissions = ("product.manage_products",)
+        public = False
 
 
 class ProductClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product"
         model = models.Product
-        public = False
         permissions = ("product.manage_products",)
+        public = False
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -745,6 +751,7 @@ class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
         model = models.ProductVariant
         description = "Update public metadata for product variant"
         permissions = ("product.manage_products",)
+        public = True
 
 
 class ProductVariantClearMeta(ClearMetaBaseMutation):
@@ -752,22 +759,23 @@ class ProductVariantClearMeta(ClearMetaBaseMutation):
         model = models.ProductVariant
         description = "Clears public metadata item for product variant"
         permissions = ("product.manage_products",)
+        public = True
 
 
 class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        public = False
         description = "Update public metadata for product variant"
         permissions = ("product.manage_products",)
+        public = False
 
 
 class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        public = False
         description = "Clears public metadata item for product variant"
         permissions = ("product.manage_products",)
+        public = False
 
 
 class ProductTypeInput(graphene.InputObjectType):
@@ -876,6 +884,7 @@ class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
         model = models.ProductType
         description = "Update public metadata for product type"
         permissions = ("product.manage_products",)
+        public = True
 
 
 class ProductTypeClearMeta(ClearMetaBaseMutation):
@@ -883,22 +892,23 @@ class ProductTypeClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for product type"
         model = models.ProductType
         permissions = ("product.manage_products",)
+        public = True
 
 
 class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for product type"
         model = models.ProductType
-        public = False
         permissions = ("product.manage_products",)
+        public = False
 
 
 class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product type"
         model = models.ProductType
-        public = False
         permissions = ("product.manage_products",)
+        public = False
 
 
 class ProductImageCreateInput(graphene.InputObjectType):
