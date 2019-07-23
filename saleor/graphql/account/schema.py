@@ -7,31 +7,35 @@ from ..descriptions import DESCRIPTIONS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
 from .filters import CustomerFilter, StaffUserFilter
-from .mutations import (
+from .mutations.account import (
     AccountRequestDeletion,
     AccountUpdate,
-    AddressCreate,
-    AddressDelete,
-    AddressSetDefault,
-    AddressUpdate,
     CustomerAddressCreate,
-    CustomerCreate,
-    CustomerDelete,
-    CustomerPasswordReset,
     CustomerRegister,
     CustomerSetDefaultAddress,
-    CustomerUpdate,
     LoggedUserUpdate,
-    PasswordReset,
+)
+from .mutations.base import (
+    AddressDelete,
+    AddressUpdate,
+    CustomerPasswordReset,
     SetPassword,
+    UserClearStoredMeta,
+    UserUpdateMeta,
+)
+from .mutations.staff import (
+    AddressCreate,
+    AddressSetDefault,
+    CustomerCreate,
+    CustomerDelete,
+    CustomerUpdate,
+    PasswordReset,
     StaffCreate,
     StaffDelete,
     StaffUpdate,
     UserAvatarDelete,
     UserAvatarUpdate,
-    UserClearStoredMeta,
     UserClearStoredPrivateMeta,
-    UserUpdateMeta,
     UserUpdatePrivateMeta,
 )
 from .resolvers import resolve_address_validator, resolve_customers, resolve_staff_users
