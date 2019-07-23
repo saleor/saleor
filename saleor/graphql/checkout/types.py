@@ -1,7 +1,7 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from graphql_jwt.decorators import permission_required
 from django.conf import settings
+from graphql_jwt.decorators import permission_required
 
 from ...checkout import models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
@@ -14,8 +14,8 @@ from ...core.taxes.interface import (
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.resolvers import resolve_meta, resolve_private_meta
-from ..core.types.money import TaxedMoney
 from ..core.types.meta import MetadataObjectType
+from ..core.types.money import TaxedMoney
 from ..giftcard.types import GiftCard
 from ..payment.enums import PaymentGatewayEnum
 from ..shipping.types import ShippingMethod
